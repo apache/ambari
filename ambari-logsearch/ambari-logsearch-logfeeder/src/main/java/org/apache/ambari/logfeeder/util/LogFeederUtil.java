@@ -21,7 +21,9 @@ package org.apache.ambari.logfeeder.util;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import org.apache.ambari.logfeeder.input.InputFile;
 import org.apache.ambari.logfeeder.plugin.common.MetricData;
+import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -135,6 +137,28 @@ public class LogFeederUtil {
     } else {
       log.counter++;
       return false;
+    }
+  }
+
+  public static void fillMapWithFieldDefaults(Map<String, Object> jsonObj, InputMarker inputMarker, boolean force) {
+    if (inputMarker != null && inputMarker.getInput() != null && (force || inputMarker.getInput().isInitDefaultFields())) {
+      if (jsonObj.get("type") == null) {
+        jsonObj.put("type", inputMarker.getInput().getInputDescriptor().getType());
+      }
+      if (inputMarker.getInput() instanceof InputFile) {
+        if (jsonObj.get("path") == null && ((InputFile)inputMarker.getInput()).getFilePath() != null) {
+          jsonObj.put("path", ((InputFile)inputMarker.getInput()).getFilePath());
+        }
+      }
+      if (jsonObj.get("path") == null && inputMarker.getInput().getInputDescriptor().getPath() != null) {
+        jsonObj.put("path", inputMarker.getInput().getInputDescriptor().getPath());
+      }
+      if (jsonObj.get("host") == null && hostName != null) {
+        jsonObj.put("host", hostName);
+      }
+      if (jsonObj.get("ip") == null && ipAddress != null) {
+        jsonObj.put("ip", ipAddress);
+      }
     }
   }
 }

@@ -62,9 +62,7 @@ App.AlertInstancesPopupView = App.TableView.extend(App.TableServerViewMixin, {
     this.filter();
     this.addObserver('filteringComplete', this, this.overlayObserver);
     this.overlayObserver();
-    $(".notifications-body .filter-select ").click(function(event){
-      event.stopPropagation();
-    });
+    this.$(".filter-select ").click((event) => event.stopPropagation());
     return this._super();
   },
 

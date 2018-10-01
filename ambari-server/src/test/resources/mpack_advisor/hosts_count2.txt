@@ -1,0 +1,165 @@
+"{
+\"href\" : \"/api/v1/hosts?fields=Hosts/*&Hosts/host_name.in(host1.example.com,host2.example.com)\",
+\"items\" : [
+{
+\"href\" : \"/api/v1/hosts/host1.example.com\",
+\"Hosts\" : {
+\"cpu_count\" : 2,
+\"desired_configs\" : null,
+\"disk_info\" : [
+{
+\"available\" : \"20597528\",
+\"device\" : \"/dev/vda1\",
+\"used\" : \"5601252\",
+\"percent\" : \"22%\",
+\"size\" : \"26198780\",
+\"type\" : \"xfs\",
+\"mountpoint\" : \"/\"
+},
+{
+\"available\" : \"10183208\",
+\"device\" : \"devtmpfs\",
+\"used\" : \"0\",
+\"percent\" : \"0%\",
+\"size\" : \"10183208\",
+\"type\" : \"devtmpfs\",
+\"mountpoint\" : \"/dev\"
+},
+{
+\"available\" : \"244714752\",
+\"device\" : \"/dev/vdb\",
+\"used\" : \"61572\",
+\"percent\" : \"1%\",
+\"size\" : \"257899908\",
+\"type\" : \"ext4\",
+\"mountpoint\" : \"/grid/0\"
+}
+],
+\"host_health_report\" : \"\",
+\"host_name\" : \"host1.example.com\",
+\"host_state\" : \"HEALTHY\",
+\"host_status\" : \"HEALTHY\",
+\"ip\" : \"172.22.100.73\",
+\"last_agent_env\" : {
+\"stackFoldersAndFiles\" : [ ],
+\"alternatives\" : [ ],
+\"existingUsers\" : [ ],
+\"existingRepos\" : [ ],
+\"installedPackages\" : [ ],
+\"hostHealth\" : {
+\"activeJavaProcs\" : [ ],
+\"agentTimeStampAtReporting\" : 1529881683206,
+\"serverTimeStampAtReporting\" : 0,
+\"liveServices\" : [
+{
+\"desc\" : \"\",
+\"status\" : \"Healthy\",
+\"name\" : \"chronyd\"
+}
+]
+},
+\"umask\" : 18,
+\"transparentHugePage\" : \"\",
+\"firewallRunning\" : false,
+\"firewallName\" : \"iptables\",
+\"hasUnlimitedJcePolicy\" : null,
+\"reverseLookup\" : true
+},
+\"last_heartbeat_time\" : 1529881722620,
+\"last_registration_time\" : 1529881660676,
+\"os_arch\" : \"x86_64\",
+\"os_family\" : \"redhat7\",
+\"os_type\" : \"centos7\",
+\"ph_cpu_count\" : 2,
+\"public_host_name\" : \"host1.example.com\",
+\"rack_info\" : \"/default-rack\",
+\"recovery_report\" : {
+\"summary\" : \"DISABLED\",
+\"component_reports\" : [ ]
+},
+\"recovery_summary\" : \"DISABLED\",
+\"total_mem\" : 20397560
+}
+},
+{
+\"href\" : \"/api/v1/hosts/host2.example.com\",
+\"Hosts\" : {
+\"cpu_count\" : 2,
+\"desired_configs\" : null,
+\"disk_info\" : [
+{
+\"available\" : \"22460716\",
+\"device\" : \"/dev/vda1\",
+\"used\" : \"3738064\",
+\"percent\" : \"15%\",
+\"size\" : \"26198780\",
+\"type\" : \"xfs\",
+\"mountpoint\" : \"/\"
+},
+{
+\"available\" : \"10183208\",
+\"device\" : \"devtmpfs\",
+\"used\" : \"0\",
+\"percent\" : \"0%\",
+\"size\" : \"10183208\",
+\"type\" : \"devtmpfs\",
+\"mountpoint\" : \"/dev\"
+},
+{
+\"available\" : \"244715764\",
+\"device\" : \"/dev/vdb\",
+\"used\" : \"60560\",
+\"percent\" : \"1%\",
+\"size\" : \"257899908\",
+\"type\" : \"ext4\",
+\"mountpoint\" : \"/grid/0\"
+}
+],
+\"host_health_report\" : \"\",
+\"host_name\" : \"host2.example.com\",
+\"host_state\" : \"HEALTHY\",
+\"host_status\" : \"HEALTHY\",
+\"ip\" : \"172.22.100.74\",
+\"last_agent_env\" : {
+\"stackFoldersAndFiles\" : [ ],
+\"alternatives\" : [ ],
+\"existingUsers\" : [ ],
+\"existingRepos\" : [ ],
+\"installedPackages\" : [ ],
+\"hostHealth\" : {
+\"activeJavaProcs\" : [ ],
+\"agentTimeStampAtReporting\" : 1529881669246,
+\"serverTimeStampAtReporting\" : 0,
+\"liveServices\" : [
+{
+\"desc\" : \"\",
+\"status\" : \"Healthy\",
+\"name\" : \"chronyd\"
+}
+]
+},
+\"umask\" : 18,
+\"transparentHugePage\" : \"\",
+\"firewallRunning\" : false,
+\"firewallName\" : \"iptables\",
+\"hasUnlimitedJcePolicy\" : null,
+\"reverseLookup\" : true
+},
+\"last_heartbeat_time\" : 1529881722619,
+\"last_registration_time\" : 1529881660744,
+\"os_arch\" : \"x86_64\",
+\"os_family\" : \"redhat7\",
+\"os_type\" : \"centos7\",
+\"ph_cpu_count\" : 2,
+\"public_host_name\" : \"host2.example.com\",
+\"rack_info\" : \"/default-rack\",
+\"recovery_report\" : {
+\"summary\" : \"DISABLED\",
+\"component_reports\" : [ ]
+},
+\"recovery_summary\" : \"DISABLED\",
+\"total_mem\" : 20397560
+}
+}
+]
+}"

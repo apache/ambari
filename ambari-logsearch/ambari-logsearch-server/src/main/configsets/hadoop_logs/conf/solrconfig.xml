@@ -35,7 +35,7 @@
        that you fully re-index after changing this setting as it can
        affect both how text is indexed and queried.
   -->
-  <luceneMatchVersion>7.2.1</luceneMatchVersion>
+  <luceneMatchVersion>7.4.0</luceneMatchVersion>
 
   <!-- <lib/> directives can be used to instruct Solr to load any Jars
        identified and use them to resolve any "plugins" specified in
@@ -1213,7 +1213,7 @@
      -->
   <searchComponent name="spellcheck" class="solr.SpellCheckComponent">
 
-    <str name="queryAnalyzerFieldType">key_lower_case</str>
+    <str name="queryAnalyzerFieldType">lowercase</str>
 
     <!-- Multiple "Spell Checkers" can be declared and used by this
          component
@@ -1688,7 +1688,7 @@
       </arr>
     </processor>
     <processor class="solr.AddSchemaFieldsUpdateProcessorFactory">
-      <str name="defaultFieldType">key_lower_case</str>
+      <str name="defaultFieldType">lowercase</str>
       <lst name="typeMapping">
         <str name="valueClass">java.lang.Boolean</str>
         <str name="fieldType">booleans</str>

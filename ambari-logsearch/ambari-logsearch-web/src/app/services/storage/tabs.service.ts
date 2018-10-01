@@ -18,7 +18,7 @@
 
 import {Injectable} from '@angular/core';
 import {Store} from '@ngrx/store';
-import {initialTabs} from '@app/classes/models/tab';
+import {initialTabs} from '@app/classes/models/log-type-tab';
 import {AppStore, CollectionModelService, getCollectionReducer} from '@app/classes/models/store';
 
 export const modelName = 'tabs';

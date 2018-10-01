@@ -35,7 +35,7 @@ import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
 import org.apache.ambari.logfeeder.plugin.common.MetricData;
 import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.apache.ambari.logfeeder.plugin.output.Output;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputDescriptorImpl;
 import org.junit.Test;
 
 public class OutputManagerTest {
@@ -110,7 +110,7 @@ public class OutputManagerTest {
     expect(mockInput.isUseEventMD5()).andReturn(false).anyTimes();
     expect(mockInput.isGenEventMD5()).andReturn(false).anyTimes();
     expect(mockInput.getInputDescriptor()).andReturn(inputDescriptor).anyTimes();
-    expect(mockFilter.isAllowed(jsonObj, inputMarker)).andReturn(true).anyTimes();
+    expect(mockFilter.isAllowed(jsonObj, inputMarker, null)).andReturn(true).anyTimes();
     expect(mockInput.getCache()).andReturn(null);
     expect(mockInput.getOutputList()).andReturn(Arrays.asList(output1, output2, output3));
 
@@ -121,6 +121,7 @@ public class OutputManagerTest {
     replay(output1, output2, output3, mockFilter, mockInput);
     
     OutputManagerImpl manager = new OutputManagerImpl();
+    manager.setLogFeederProps(new LogFeederProps());
     manager.setLogLevelFilterHandler(mockFilter);
     manager.add(output1);
     manager.add(output2);
@@ -146,7 +147,7 @@ public class OutputManagerTest {
     LogLevelFilterHandler mockFilter = strictMock(LogLevelFilterHandler.class);
     
     expect(mockInput.getInputDescriptor()).andReturn(inputDescriptor).anyTimes();
-    expect(mockFilter.isAllowed(jsonString, inputMarker)).andReturn(true).anyTimes();
+    expect(mockFilter.isAllowed(jsonString, inputMarker, null)).andReturn(true).anyTimes();
     expect(mockInput.getOutputList()).andReturn(Arrays.asList(output1, output2, output3));
     
     output1.write(jsonString, inputMarker); expectLastCall();
@@ -157,6 +158,7 @@ public class OutputManagerTest {
 
     OutputManagerImpl manager = new OutputManagerImpl();
     manager.setLogLevelFilterHandler(mockFilter);
+    manager.setLogFeederProps(new LogFeederProps());
     manager.add(output1);
     manager.add(output2);
     manager.add(output3);

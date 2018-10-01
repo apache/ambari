@@ -38,5 +38,23 @@ class ClusterMetadataCache(ClusterCache):
     """
     super(ClusterMetadataCache, self).__init__(cluster_cache_dir)
 
+  def cache_delete(self, cache_update, cache_hash):
+    """
+    Only deleting cluster is supported here
+    """
+    mutable_dict = self._get_mutable_copy()
+    clusters_ids_to_delete = []
+
+    for cluster_id, cluster_updates_dict in cache_update.iteritems():
+      if cluster_updates_dict != {}:
+        raise Exception("Deleting cluster subvalues is not supported")
+
+      clusters_ids_to_delete.append(cluster_id)
+
+    for cluster_id in clusters_ids_to_delete:
+      del mutable_dict[cluster_id]
+
+    self.rewrite_cache(mutable_dict, cache_hash)
+
   def get_cache_name(self):
     return 'metadata'

@@ -45,7 +45,7 @@ describe('App.serviceMetricsMapper', function () {
                       }
                     },
                     master: {
-                      AssignmentManger: {
+                      AssignmentManager: {
                         ritCount: 0
                       }
                     }
@@ -76,7 +76,7 @@ describe('App.serviceMetricsMapper', function () {
                       }
                     },
                     master: {
-                      AssignmentManger: {
+                      AssignmentManager: {
                         ritCount: 0
                       }
                     }
@@ -107,7 +107,7 @@ describe('App.serviceMetricsMapper', function () {
                       }
                     },
                     master: {
-                      AssignmentManger: {
+                      AssignmentManager: {
                         ritCount: 0
                       }
                     }
@@ -138,7 +138,7 @@ describe('App.serviceMetricsMapper', function () {
                       }
                     },
                     master: {
-                      AssignmentManger: {
+                      AssignmentManager: {
                         ritCount: 0
                       }
                     }

@@ -21,7 +21,7 @@
 </div>
 {{#if view.supportSwitchToTextBox}}
   {{#unless view.isPropertyUndefined}}
-    <div {{bindAttr class="view.config.showAsTextBox::hide :left :widget-config-raw"}}>
+    <div {{bindAttr class="view.config.showAsTextBox::hide :widget-config-raw"}}>
       {{view App.PlainConfigTextField
         isVisibleBinding="view.config.showAsTextBox"
         sectionBinding="view.section"

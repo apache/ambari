@@ -69,6 +69,8 @@ class GenericManager(object):
 
     :type name str
     :type context ambari_commons.shell.RepoCallContext
+
+    :raise ValueError if name is empty
     """
     raise NotImplementedError()
 
@@ -79,6 +81,8 @@ class GenericManager(object):
     :type name str
     :type context ambari_commons.shell.RepoCallContext
     :type ignore_dependencies bool
+
+    :raise ValueError if name is empty
     """
     raise NotImplementedError()
 
@@ -88,6 +92,8 @@ class GenericManager(object):
 
     :type name str
     :type context ambari_commons.shell.RepoCallContext
+
+    :raise ValueError if name is empty
     """
     raise NotImplementedError()
 

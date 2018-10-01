@@ -56,7 +56,7 @@ import io.swagger.annotations.ApiResponses;
  * Service responsible for cluster resource requests.
  */
 @Path("/clusters")
-@Api(value = "/clusters", description = "Endpoint for cluster-specific operations")
+@Api(value = "Clusters", description = "Endpoint for cluster-specific operations")
 public class ClusterService extends BaseService {
 
   private static final String CLUSTER_REQUEST_TYPE = "org.apache.ambari.server.api.services.ClusterRequestSwagger";
@@ -135,8 +135,7 @@ public class ClusterService extends BaseService {
   @ApiOperation(value = "Returns all clusters",
     response = ClusterResponseWrapper.class, responseContainer = RESPONSE_CONTAINER_LIST)
   @ApiImplicitParams({
-    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY,
-      defaultValue = ClusterResourceProvider.CLUSTER_NAME),
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
     @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
     @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
     @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, allowableValues = QUERY_FROM_VALUES, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),

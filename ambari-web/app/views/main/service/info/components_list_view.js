@@ -21,6 +21,9 @@ var App = require('app');
 App.SummaryMasterComponentsView = Em.View.extend({
   templateName: require('templates/main/service/info/summary/master_components'),
 
+  // should be bound to App.MainDashboardServiceHdfsView instance
+  summaryView: null,
+
   mastersComp: [
     {
       components: []

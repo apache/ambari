@@ -23,8 +23,9 @@ angular.module('ambariAdminConsole')
   var $t = $translate.instant;
 
 	return {
-		show: function(header, body, confirmText, cancelText, hideCancelButton) {
+		show: function(header, body, confirmText, cancelText, options) {
 			var deferred = $q.defer();
+      options = options || {};
 
 			var modalInstance = $modal.open({
 				templateUrl: 'views/modals/ConfirmationModal.html',
@@ -35,7 +36,8 @@ angular.module('ambariAdminConsole')
           $scope.innerScope = body.scope;
           $scope.confirmText = confirmText || $t('common.controls.ok');
           $scope.cancelText = cancelText || $t('common.controls.cancel');
-					$scope.showCancelButton = !hideCancelButton;
+          $scope.primaryClass = options.primaryClass || 'btn-primary',
+					$scope.showCancelButton = !options.hideCancelButton;
 
 					$scope.ok = function() {
 						$modalInstance.close();

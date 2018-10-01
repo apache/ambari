@@ -97,12 +97,13 @@ describe('App.StackService', function () {
       ss.propertyDidChange('displayNameOnSelectServicePage');
       expect(ss.get('displayNameOnSelectServicePage')).to.equal('HDFS');
     });
-    it('Present coSelectedServices', function () {
-      ss.set('serviceName', 'YARN');
-      ss.set('displayName', 'YARN');
-      ss.propertyDidChange('displayNameOnSelectServicePage');
-      expect(ss.get('displayNameOnSelectServicePage')).to.equal('YARN + MapReduce2');
-    });
+    //TODO uncomment after App.StackService.coSelected will be uncommented
+    // it('Present coSelectedServices', function () {
+    //   ss.set('serviceName', 'YARN');
+    //   ss.set('displayName', 'YARN');
+    //   ss.propertyDidChange('displayNameOnSelectServicePage');
+    //   expect(ss.get('displayNameOnSelectServicePage')).to.equal('YARN + MapReduce2');
+    // });
   });
 
   describe('#isHiddenOnSelectServicePage', function () {
@@ -112,11 +113,11 @@ describe('App.StackService', function () {
         isInstallable: true,
         result: false
       },
-      {
-        serviceName: 'MAPREDUCE2',
-        isInstallable: true,
-        result: true
-      },
+      // {
+      //   serviceName: 'MAPREDUCE2',
+      //   isInstallable: true,
+      //   result: true
+      // },
       {
         serviceName: 'KERBEROS',
         isInstallable: false,
@@ -335,6 +336,13 @@ describe('App.StackService', function () {
         isDisabled: false
       }
     ];
+    
+    beforeEach(function() {
+      this.mock = sinon.stub(App, 'get');
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
 
     cases.forEach(function (testCase) {
 
@@ -346,7 +354,7 @@ describe('App.StackService', function () {
           isInstalled: testCase.isInstalled,
           isMandatory: testCase.isMandatory
         });
-        App.set('router.clusterInstallCompleted', testCase.clusterInstallCompleted);
+        this.mock.returns(testCase.clusterInstallCompleted);
         expect(ss.get('isDisabled')).to.equal(testCase.isDisabled);
       });
 

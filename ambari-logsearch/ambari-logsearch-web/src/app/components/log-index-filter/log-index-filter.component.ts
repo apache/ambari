@@ -16,20 +16,24 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, Output, EventEmitter, forwardRef} from '@angular/core';
-import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {Observable} from 'rxjs/Observable';
+import { Component, OnInit, Input, Output, EventEmitter, forwardRef, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
-import {Moment} from 'moment';
-import {ListItem} from '@app/classes/list-item';
-import {HomogeneousObject, LogLevelObject} from '@app/classes/object';
-import {LogIndexFilterComponentConfig} from '@app/classes/settings';
-import {LogLevel} from '@app/classes/string';
-import {LogsContainerService} from '@app/services/logs-container.service';
-import {UserSettingsService} from '@app/services/user-settings.service';
-import {UtilsService} from '@app/services/utils.service';
-import {ClustersService} from '@app/services/storage/clusters.service';
-import {HostsService} from '@app/services/storage/hosts.service';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Subscription } from 'rxjs/Subscription';
+import { Moment } from 'moment';
+import { ListItem } from '@app/classes/list-item';
+import { HomogeneousObject, LogLevelObject } from '@app/classes/object';
+import { LogIndexFilterComponentConfig } from '@app/classes/settings';
+import { LogLevel } from '@app/classes/string';
+import { LogsContainerService } from '@app/services/logs-container.service';
+import { UserSettingsService } from '@app/services/user-settings.service';
+import { UtilsService } from '@app/services/utils.service';
+import { ClustersService } from '@app/services/storage/clusters.service';
+import { HostsService } from '@app/services/storage/hosts.service';
+import { DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-availability-state.store';
+import { DataAvailabilityValues, DataAvailability } from '@app/classes/string';
 
 @Component({
   selector: 'log-index-filter',
@@ -43,18 +47,7 @@ import {HostsService} from '@app/services/storage/hosts.service';
     }
   ]
 })
-export class LogIndexFilterComponent implements OnInit, ControlValueAccessor {
-
-  constructor(
-    private logsContainer: LogsContainerService, private settingsService: UserSettingsService,
-    private utils: UtilsService, private clustersStorage: ClustersService, private hostsStorage: HostsService
-  ) {
-  }
-
-  ngOnInit() {
-    this.changeIsSubmitDisabled.emit(true);
-    this.clusters.subscribe((clusters: string[]) => this.settingsService.loadIndexFilterConfig(clusters));
-  }
+export class LogIndexFilterComponent implements OnInit, OnDestroy, OnChanges, ControlValueAccessor {
 
   @Output()
   changeIsSubmitDisabled: EventEmitter<boolean> =  new EventEmitter();
@@ -73,19 +66,60 @@ export class LogIndexFilterComponent implements OnInit, ControlValueAccessor {
     return clusterNames.map(this.utils.getListItemFromString);
   });
 
-  activeClusterName: string = '';
+  configsAvailabilityState$: Observable<string> = this.dataAvailablilityStore.getParameter('logIndexFilter');
+  configsAreLoading$: Observable<boolean> = this.configsAvailabilityState$.distinctUntilChanged().map(
+    (state: DataAvailability) => state === DataAvailabilityValues.LOADING
+  );
+
+  @Input()
+  activeClusterName = '';
+
+  private subscriptions: Subscription[] = [];
 
   /**
    * Configs for all clusters
    */
   private configs: HomogeneousObject<LogIndexFilterComponentConfig[]>;
 
+  activeClusterConfigs$: BehaviorSubject<LogIndexFilterComponentConfig[]> = new BehaviorSubject(null);
+
+  constructor(
+    private logsContainer: LogsContainerService,
+    private settingsService: UserSettingsService,
+    private utils: UtilsService,
+    private clustersStorage: ClustersService,
+    private hostsStorage: HostsService,
+    private dataAvailablilityStore: DataAvailabilityStatesStore
+  ) {
+  }
+
+  ngOnInit() {
+    this.changeIsSubmitDisabled.emit(true);
+    this.subscriptions.push(
+      this.clusters.subscribe((clusters: string[]) => this.settingsService.loadIndexFilterConfig(clusters))
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.activeClusterName && this.configs) {
+      this.setCurrentConfig();
+    }
+  }
+
   /**
    * Configs for selected cluster
    * @returns {LogIndexFilterComponentConfig[]}
    */
   get activeClusterConfigs(): LogIndexFilterComponentConfig[] {
-    return this.configs[this.activeClusterName];
+    return this.configs[this.activeClusterName] || [];
+  }
+
+  private setCurrentConfig() {
+    this.activeClusterConfigs$.next((this.configs && this.configs[this.activeClusterName]) || []);
   }
 
   /**
@@ -169,7 +203,8 @@ export class LogIndexFilterComponent implements OnInit, ControlValueAccessor {
   }
 
   updateValue(): void {
-    if(this.onChange) {
+    this.setCurrentConfig();
+    if (this.onChange) {
       this.onChange(this.configs);
     }
   }

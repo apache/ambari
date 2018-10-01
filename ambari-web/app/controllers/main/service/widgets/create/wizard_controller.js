@@ -347,20 +347,61 @@ App.WidgetWizardController = App.WizardController.extend({
   },
 
   /**
-   * assign created widget to active layout if it present
+   * assign created widget to active layout if it present or to appropriate nameservice layout and all-nameservices layout
    * @param data
+   * @param requestObject
+   * @param requestData
    */
-  postWidgetDefinitionSuccessCallback: function (data) {
+  postWidgetDefinitionSuccessCallback: function (data, requestObject, requestData) {
     if (Em.isNone(this.get('content.layout'))) return;
-    var widgets = this.get('content.layout.widgets').map(function(item){
+    var mainServiceInfoMetricsController = App.router.get('mainServiceInfoMetricsController');
+    var self = this;
+    var layout = this.get('content.layout');
+    var newWidgeet = data.resources[0].WidgetInfo;
+    var tag = requestData.data.WidgetInfo.tag;
+
+    if (tag) {
+      this.loadLayoutByName(mainServiceInfoMetricsController.get('userLayoutName') + '_nameservice_' + tag).done(function (data) {
+        data.items[0].WidgetLayoutInfo.widgets = data.items[0].WidgetLayoutInfo.widgets.map(function(w) {
+          return w.WidgetInfo.id;
+        });
+        layout = data.items[0].WidgetLayoutInfo;
+        self.addWidgetToLayout(newWidgeet, layout).done(function () {
+          self.loadLayoutByName(mainServiceInfoMetricsController.get('userLayoutName') + '_nameservice_all').done(function (data) {
+            data.items[0].WidgetLayoutInfo.widgets = data.items[0].WidgetLayoutInfo.widgets.map(function(w) {
+              return w.WidgetInfo.id;
+            });
+            self.addWidgetToLayout(newWidgeet, data.items[0].WidgetLayoutInfo).done(function () {
+              mainServiceInfoMetricsController.updateActiveLayout();
+            });
+          });
+        });
+      });
+    } else {
+      this.addWidgetToLayout(newWidgeet, layout).done(function () {
+        mainServiceInfoMetricsController.updateActiveLayout();
+      });
+    }
+  },
+
+  addWidgetToLayout: function (newWidget, layout) {
+    var mainServiceInfoMetricsController = App.router.get('mainServiceInfoMetricsController');
+    var widgets = layout.widgets.map(function(item){
       return Em.Object.create({id: item});
     });
     widgets.pushObject(Em.Object.create({
-      id: data.resources[0].WidgetInfo.id
+      id: newWidget.id
     }));
-    var mainServiceInfoSummaryController = App.router.get('mainServiceInfoSummaryController');
-    mainServiceInfoSummaryController.saveWidgetLayout(widgets, Em.Object.create(this.get('content.layout'))).done(function() {
-      mainServiceInfoSummaryController.updateActiveLayout();
+    return mainServiceInfoMetricsController.saveWidgetLayout(widgets, Em.Object.create(layout));
+  },
+
+  loadLayoutByName: function (name) {
+    return App.ajax.send({
+      name: 'widget.layout.name.get',
+      sender: this,
+      data: {
+        name: name
+      }
     });
   },
 

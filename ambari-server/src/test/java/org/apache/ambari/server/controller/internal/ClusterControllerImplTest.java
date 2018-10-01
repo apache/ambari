@@ -943,6 +943,7 @@ public class ClusterControllerImplTest {
       providers.put(Resource.Type.StackVersion, new TestStackVersionResourceProvider());
       providers.put(Type.StackArtifact, new TestStackArtifactResourceProvider());
       providers.put(Type.Mpack, new TestMpackResourceProvider());
+      providers.put(Type.OperatingSystem, new TestOperatingSystemResourceProvider());
     }
 
     @Override
@@ -1155,6 +1156,11 @@ public class ClusterControllerImplTest {
 
 
   private static class TestStackVersionResourceProvider extends TestResourceProvider {
+
+    private TestStackVersionResourceProvider() {
+      super(StackVersionResourceProvider.PROPERTY_IDS, StackVersionResourceProvider.KEY_PROPERTY_IDS);
+    }
+
     @Override
     public Set<Resource> getResources(Request request, Predicate predicate)
         throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
@@ -1168,9 +1174,38 @@ public class ClusterControllerImplTest {
     }
   }
 
+  private static class TestOperatingSystemResourceProvider extends TestResourceProvider {
+    private TestOperatingSystemResourceProvider() {
+      super(OperatingSystemResourceProvider.propertyIds, OperatingSystemResourceProvider.keyPropertyIds);
+    }
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      Set<String> keyPropertyValues = new LinkedHashSet<>();
+
+      keyPropertyValues.add("centos5");
+      keyPropertyValues.add("centos6");
+      keyPropertyValues.add("oraclelinux5");
+
+      return getResources(Resource.Type.OperatingSystem, predicate, "OperatingSystems/os_type", keyPropertyValues);
+    }
+  }
+
   private static class TestMpackResourceProvider extends TestResourceProvider {
     private TestMpackResourceProvider() {
       super(MpackResourceProvider.PROPERTY_IDS, MpackResourceProvider.KEY_PROPERTY_IDS);
+    }
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      Set<String> keyPropertyValues = new LinkedHashSet<>();
+
+      keyPropertyValues.add("12345");
+      keyPropertyValues.add("67890");
+
+      return getResources(Type.Mpack, predicate, "MpackInfo/mpack_id", keyPropertyValues);
     }
   }
 

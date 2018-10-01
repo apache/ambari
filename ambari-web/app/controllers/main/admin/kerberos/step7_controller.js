@@ -16,7 +16,9 @@
  * limitations under the License.
  */
 
-App.KerberosWizardStep7Controller = App.KerberosProgressPageController.extend({
+var App = require('app');
+
+App.KerberosWizardStep7Controller = App.KerberosProgressPageController.extend(App.AddSecurityConfigs, {
   name: 'kerberosWizardStep7Controller',
   clusterDeployState: 'KERBEROS_DEPLOY',
   isSingleRequestPage: true,
@@ -75,39 +77,6 @@ App.KerberosWizardStep7Controller = App.KerberosProgressPageController.extend({
   goToNextStep: function() {
     this.clearStage();
     App.router.transitionTo('step7');
-  },
-
-  postKerberosDescriptor: function (kerberosDescriptor) {
-    return App.ajax.send({
-      name: 'admin.kerberos.cluster.artifact.create',
-      sender: this,
-      data: {
-        artifactName: 'kerberos_descriptor',
-        data: {
-          artifact_data: kerberosDescriptor
-        }
-      }
-    });
-  },
-
-  /**
-   * Send request to update kerberos descriptor
-   * @param kerberosDescriptor
-   * @returns {$.ajax|*}
-   */
-  putKerberosDescriptor: function (kerberosDescriptor) {
-    return App.ajax.send({
-      name: 'admin.kerberos.cluster.artifact.update',
-      sender: this,
-      data: {
-        artifactName: 'kerberos_descriptor',
-        data: {
-          artifact_data: kerberosDescriptor
-        }
-      },
-      success: 'unkerberizeCluster',
-      error: 'unkerberizeCluster'
-    });
   },
 
   retry: function () {

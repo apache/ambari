@@ -17,51 +17,90 @@
  */
 package org.apache.ambari.server.events;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.MessageDestinationIsNotDefinedException;
 import org.apache.ambari.server.agent.AgentSessionManager;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 public class DefaultMessageEmitter extends MessageEmitter {
-  private final Map<AmbariUpdateEvent.Type, String> DEFAULT_DESTINATIONS =
-      Collections.unmodifiableMap(new HashMap<AmbariUpdateEvent.Type, String>(){{
-        put(AmbariUpdateEvent.Type.ALERT, "/events/alerts");
-        put(AmbariUpdateEvent.Type.ALERT_GROUP, "/events/alert_group");
-        put(AmbariUpdateEvent.Type.METADATA, "/events/metadata");
-        put(AmbariUpdateEvent.Type.HOSTLEVELPARAMS, "/host_level_params");
-        put(AmbariUpdateEvent.Type.UI_TOPOLOGY, "/events/ui_topologies");
-        put(AmbariUpdateEvent.Type.AGENT_TOPOLOGY, "/events/topologies");
-        put(AmbariUpdateEvent.Type.AGENT_CONFIGS, "/configs");
-        put(AmbariUpdateEvent.Type.CONFIGS, "/events/configs");
-        put(AmbariUpdateEvent.Type.HOSTCOMPONENT, "/events/hostcomponents");
-        put(AmbariUpdateEvent.Type.REQUEST, "/events/requests");
-        put(AmbariUpdateEvent.Type.SERVICE, "/events/services");
-        put(AmbariUpdateEvent.Type.HOST, "/events/hosts");
-        put(AmbariUpdateEvent.Type.COMMAND, "/commands");
-        put(AmbariUpdateEvent.Type.ALERT_DEFINITIONS, "/alert_definitions");
-        put(AmbariUpdateEvent.Type.UI_ALERT_DEFINITIONS, "/events/alert_definitions");
-        put(AmbariUpdateEvent.Type.UPGRADE, "/events/upgrade");
+  private final Map<STOMPEvent.Type, String> DEFAULT_DESTINATIONS =
+      Collections.unmodifiableMap(new HashMap<STOMPEvent.Type, String>(){{
+        put(STOMPEvent.Type.ALERT, "/events/alerts");
+        put(STOMPEvent.Type.ALERT_GROUP, "/events/alert_group");
+        put(STOMPEvent.Type.METADATA, "/events/metadata");
+        put(STOMPEvent.Type.HOSTLEVELPARAMS, "/host_level_params");
+        put(STOMPEvent.Type.UI_TOPOLOGY, "/events/ui_topologies");
+        put(STOMPEvent.Type.AGENT_TOPOLOGY, "/events/topologies");
+        put(STOMPEvent.Type.AGENT_CONFIGS, "/configs");
+        put(STOMPEvent.Type.CONFIGS, "/events/configs");
+        put(STOMPEvent.Type.HOSTCOMPONENT, "/events/hostcomponents");
+        put(STOMPEvent.Type.REQUEST, "/events/requests");
+        put(STOMPEvent.Type.SERVICE, "/events/services");
+        put(STOMPEvent.Type.HOST, "/events/hosts");
+        put(STOMPEvent.Type.COMMAND, "/commands");
+        put(STOMPEvent.Type.ALERT_DEFINITIONS, "/alert_definitions");
+        put(STOMPEvent.Type.UI_ALERT_DEFINITIONS, "/events/alert_definitions");
+        put(STOMPEvent.Type.UPGRADE, "/events/upgrade");
+        put(STOMPEvent.Type.AGENT_ACTIONS, "/agent_actions");
   }});
+  public static final Set<STOMPEvent.Type> DEFAULT_AGENT_EVENT_TYPES =
+      Collections.unmodifiableSet(new HashSet<STOMPEvent.Type>(Arrays.asList(
+        STOMPEvent.Type.METADATA,
+        STOMPEvent.Type.HOSTLEVELPARAMS,
+        STOMPEvent.Type.AGENT_TOPOLOGY,
+        STOMPEvent.Type.AGENT_CONFIGS,
+        STOMPEvent.Type.COMMAND,
+        STOMPEvent.Type.ALERT_DEFINITIONS,
+        STOMPEvent.Type.AGENT_ACTIONS
+  )));
+  public static final Set<STOMPEvent.Type> DEFAULT_API_EVENT_TYPES =
+      Collections.unmodifiableSet(new HashSet<STOMPEvent.Type>(Arrays.asList(
+        STOMPEvent.Type.ALERT,
+        STOMPEvent.Type.ALERT_GROUP,
+        STOMPEvent.Type.METADATA,
+        STOMPEvent.Type.UI_TOPOLOGY,
+        STOMPEvent.Type.CONFIGS,
+        STOMPEvent.Type.HOSTCOMPONENT,
+        STOMPEvent.Type.REQUEST,
+        STOMPEvent.Type.SERVICE,
+        STOMPEvent.Type.HOST,
+        STOMPEvent.Type.UI_ALERT_DEFINITIONS,
+        STOMPEvent.Type.UPGRADE
+  )));
 
-  public DefaultMessageEmitter(AgentSessionManager agentSessionManager, SimpMessagingTemplate simpMessagingTemplate) {
-    super(agentSessionManager, simpMessagingTemplate);
+  public DefaultMessageEmitter(AgentSessionManager agentSessionManager, SimpMessagingTemplate simpMessagingTemplate,
+                               AmbariEventPublisher ambariEventPublisher, int retryCount, int retryInterval) {
+    super(agentSessionManager, simpMessagingTemplate, ambariEventPublisher, retryCount, retryInterval);
   }
 
   @Override
-  public void emitMessage(AmbariUpdateEvent event) throws AmbariException {
-    String destination = DEFAULT_DESTINATIONS.get(event.getType());
-    if (destination == null) {
+  public void emitMessage(STOMPEvent event) throws AmbariException {
+    if (StringUtils.isEmpty(getDestination(event))) {
       throw new MessageDestinationIsNotDefinedException(event.getType());
     }
-    if (event instanceof AmbariHostUpdateEvent) {
-      AmbariHostUpdateEvent hostUpdateEvent = (AmbariHostUpdateEvent) event;
-      emitMessageToHost(hostUpdateEvent, destination);
+    if (event instanceof STOMPHostEvent) {
+      STOMPHostEvent hostUpdateEvent = (STOMPHostEvent) event;
+      if (hostUpdateEvent.getType().equals(STOMPEvent.Type.COMMAND)) {
+        emitMessageRetriable((ExecutionCommandEvent) hostUpdateEvent);
+      } else {
+        emitMessageToHost(hostUpdateEvent);
+      }
     } else {
-      emitMessageToAll(event, destination);
+      emitMessageToAll(event);
     }
+  }
+
+  @Override
+  protected String getDestination(STOMPEvent stompEvent) {
+    return DEFAULT_DESTINATIONS.get(stompEvent.getType());
   }
 }

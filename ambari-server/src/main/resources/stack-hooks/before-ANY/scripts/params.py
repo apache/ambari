@@ -29,14 +29,16 @@ from resource_management.libraries.functions import default
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.format_jvm_option import format_jvm_option_value
 from resource_management.libraries.functions.is_empty import is_empty
-from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from resource_management.libraries.functions.namenode_ha_utils import get_properties_for_all_nameservices, namenode_federation_enabled
 
 config = Script.get_config()
 execution_command = Script.get_execution_command()
 module_configs = Script.get_module_configs()
+stack_settings = Script.get_stack_settings()
+cluster_settings = Script.get_cluster_settings()
 module_name = execution_command.get_module_name()
 tmp_dir = Script.get_tmp_dir()
 
@@ -58,14 +60,8 @@ sudo = AMBARI_SUDO_BINARY
 
 ambari_server_hostname = execution_command.get_ambari_server_host()
 
-stack_version_unformatted = execution_command.get_mpack_version()
-stack_version_formatted = execution_command.get_mpack_version()
+stack_version_unformatted = stack_settings.get_mpack_version()
 
-upgrade_type = Script.get_upgrade_type(execution_command.get_upgrade_type())
-version = execution_command.get_new_mpack_version_for_upgrade()
-# Handle upgrade and downgrade
-if (upgrade_type is not None) and version:
-  stack_version_formatted = format_stack_version(version)
 """
 ??? is this the same as ambariLevelParams/java_home and ambariLevelParams/java_name ???
 """
@@ -108,7 +104,7 @@ def is_secure_port(port):
 # force the use of "current" in the hook
 hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
 
-mpack_name = execution_command.get_mpack_name()
+mpack_name = stack_settings.get_mpack_name()
 mpack_instance_name = execution_command.get_servicegroup_name()
 module_name = execution_command.get_module_name()
 component_type = execution_command.get_component_type()
@@ -165,7 +161,7 @@ mapred_log_dir_prefix = module_configs.get_property_value(module_name, 'mapred-e
 hadoop_env_sh_template = module_configs.get_property_value(module_name, 'hadoop-env', 'content')
 
 #users and groups
-smoke_user =  get_cluster_setting_value('smokeuser')
+smoke_user = cluster_settings.get_smokeuser()
 gmetad_user = module_configs.get_property_value(module_name, 'ganglia-env', 'gmetad_user')
 gmond_user = module_configs.get_property_value(module_name, 'ganglia-env', 'gmond_user')
 tez_user = module_configs.get_property_value(module_name, 'tez-env', 'tez_user')
@@ -195,25 +191,57 @@ has_falcon_server_hosts = not len(falcon_server_hosts) == 0
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 has_zeppelin_master = not len(zeppelin_master_hosts) == 0
 
+hostname = config['agentLevelParams']['hostname']
+hdfs_site = config['configurations']['hdfs-site']
+
 # HDFS High Availability properties
 dfs_ha_enabled = False
 dfs_ha_nameservices = module_configs.get_property_value(module_name, 'hdfs-site', 'dfs.internal.nameservices')
 if dfs_ha_nameservices is None:
   dfs_ha_nameservices = module_configs.get_property_value(module_name, 'hdfs-site', 'dfs.nameservices')
-dfs_ha_namenode_ids = module_configs.get_property_value(module_name, 'hdfs-site', 'dfs.ha.namenodes.{dfs_ha_nameservices}')
-if dfs_ha_namenode_ids:
-  dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
-  dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
-  if dfs_ha_namenode_ids_array_len > 1:
-    dfs_ha_enabled = True
+
+# on stacks without any filesystem there is no hdfs-site
+dfs_ha_namenode_ids_all_ns = get_properties_for_all_nameservices(hdfs_site, 'dfs.ha.namenodes') if 'hdfs-site' in config['configurations'] else {}
+dfs_ha_automatic_failover_enabled = module_configs.get_property_value(module_name, 'hdfs-site', 'dfs.ha.automatic-failover.enabled', False)
+
+# Values for the current Host
+namenode_id = None
+namenode_rpc = None
+
+dfs_ha_namemodes_ids_list = []
+other_namenode_id = None
+
+for ns, dfs_ha_namenode_ids in dfs_ha_namenode_ids_all_ns.iteritems():
+  found = False
+  if not is_empty(dfs_ha_namenode_ids):
+    dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
+    dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
+    if dfs_ha_namenode_ids_array_len > 1:
+      dfs_ha_enabled = True
+  if dfs_ha_enabled:
+    for nn_id in dfs_ha_namemodes_ids_list:
+      nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{ns}.{nn_id}')]
+      if hostname in nn_host:
+        namenode_id = nn_id
+        namenode_rpc = nn_host
+        found = True
+    # With HA enabled namenode_address is recomputed
+    namenode_address = format('hdfs://{ns}')
+
+    # Calculate the namenode id of the other namenode. This is needed during RU to initiate an HA failover using ZKFC.
+    if namenode_id is not None and len(dfs_ha_namemodes_ids_list) == 2:
+      other_namenode_id = list(set(dfs_ha_namemodes_ids_list) - set([namenode_id]))[0]
+
+  if found:
+    break
 
 proxyuser_group = module_configs.get_property_value(module_name, 'hadoop-env', 'proxyuser_group', 'users')
 ranger_group = module_configs.get_property_value(module_name, 'ranger-env', 'ranger_group')
 dfs_cluster_administrators_group = module_configs.get_property_value(module_name, 'hdfs-site', 'dfs.cluster.administrators')
 
-sysprep_skip_create_users_and_groups = get_cluster_setting_value('sysprep_skip_create_users_and_groups')
-ignore_groupsusers_create = get_cluster_setting_value('ignore_groupsusers_create')
-fetch_nonlocal_groups = get_cluster_setting_value('fetch_nonlocal_groups')
+sysprep_skip_create_users_and_groups = cluster_settings.check_sysprep_skip_create_users_and_groups()
+ignore_groupsusers_create = cluster_settings.check_ignore_groupsusers_create()
+fetch_nonlocal_groups = cluster_settings.check_fetch_nonlocal_groups()
 
 smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")
 #repo params
@@ -224,7 +252,7 @@ user_to_groups_dict = {}
 
 #Append new user-group mapping to the dict
 try:
-  user_group_map = ast.literal_eval(execution_command.get_user_groups())
+  user_group_map = ast.literal_eval(stack_settings.get_user_groups())
   for key in user_group_map.iterkeys():
     user_to_groups_dict[key] = user_group_map[key]
 except ValueError:
@@ -232,9 +260,9 @@ except ValueError:
 
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 
-user_list = json.loads(execution_command.get_user_list())
-group_list = json.loads(execution_command.get_group_list())
+user_list = json.loads(stack_settings.get_user_list())
+group_list = json.loads(stack_settings.get_group_list())
 host_sys_prepped = execution_command.is_host_system_prepared()
 
 tez_am_view_acls = module_configs.get_property_value(module_name, 'tez-site', 'tez.am.view-acls')
-override_uid = get_cluster_setting_value('override_uid')
+override_uid = cluster_settings.check_override_uid()

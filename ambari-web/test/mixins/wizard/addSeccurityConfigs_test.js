@@ -19,6 +19,7 @@
 var App = require('app');
 var stackDescriptorData = require('test/mock_data_setup/stack_descriptors');
 var stackDescriptor = stackDescriptorData.KerberosDescriptor.kerberos_descriptor;
+var testHelpers = require('test/helpers');
 
 require('mixins/wizard/addSecurityConfigs');
 
@@ -322,6 +323,116 @@ describe('App.AddSecurityConfigs', function () {
       };
       var displayName = controller._getDisplayNameForConfig(config.name, config.fileName);
       expect(displayName).to.equal('otherCoolDisplayName');
+    });
+  });
+
+  describe('#removeIdentityReferences', function() {
+    it('should return filtered descriptor', function() {
+      var descriptor = {
+        services: [
+          {
+            identities: [
+              {
+                reference: 'bar'
+              },
+              {
+                name: 'foo'
+              },
+              {
+                name: '/foo'
+              }
+            ],
+            components: [
+              {
+                identities: [
+                  {
+                    reference: 'bar'
+                  },
+                  {
+                    name: 'foo'
+                  },
+                  {
+                    name: '/foo'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      };
+      expect(controller.removeIdentityReferences(descriptor)).to.be.eql({
+        services: [
+          {
+            identities: [
+              {
+                name: 'foo'
+              }
+            ],
+            components: [
+              {
+                identities: [
+                  {
+                    name: 'foo'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      });
+    });
+  });
+
+  describe("#postKerberosDescriptor()", function () {
+    beforeEach(function() {
+      sinon.stub(controller, 'removeIdentityReferences').returns('kerberosDescriptor');
+    });
+
+    afterEach(function() {
+      controller.removeIdentityReferences.restore();
+    });
+
+    it("App.ajax.send should be called", function() {
+      controller.postKerberosDescriptor('kerberosDescriptor');
+      var args = testHelpers.findAjaxRequest('name', 'admin.kerberos.cluster.artifact.create');
+      expect(args[0]).to.be.eql({
+        name: 'admin.kerberos.cluster.artifact.create',
+        sender: controller,
+        data: {
+          artifactName: 'kerberos_descriptor',
+          data: {
+            artifact_data: 'kerberosDescriptor'
+          }
+        }
+      });
+    });
+  });
+
+  describe("#putKerberosDescriptor()", function () {
+
+    beforeEach(function() {
+      sinon.stub(controller, 'removeIdentityReferences').returns('kerberosDescriptor');
+    });
+
+    afterEach(function() {
+      controller.removeIdentityReferences.restore();
+    });
+
+    it("App.ajax.send should be called", function() {
+      controller.putKerberosDescriptor('kerberosDescriptor');
+      var args = testHelpers.findAjaxRequest('name', 'admin.kerberos.cluster.artifact.update');
+      expect(args[0]).to.be.eql({
+        name: 'admin.kerberos.cluster.artifact.update',
+        sender: controller,
+        data: {
+          artifactName: 'kerberos_descriptor',
+          data: {
+            artifact_data: 'kerberosDescriptor'
+          }
+        },
+        success: 'unkerberizeCluster',
+        error: 'unkerberizeCluster'
+      });
     });
   });
 

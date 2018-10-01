@@ -17,13 +17,18 @@
 }}
 <div id="manage-journal-node-step5" class="wizard-content col-md-9">
   <h4 class="step-title">{{t admin.manageJournalNode.wizard.step5.bodyHeader}}</h4>
-  <p class="step-description">
-    {{{view.step5BodyText}}}
-  </p>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      {{#if controller.isHDFSNameSpacesLoaded}}
+        {{{view.step5BodyText}}}
+      {{else}}
+        {{view App.SpinnerView}}
+      {{/if}}
+    </div>
+  </div>
 </div>
 <div class="wizard-footer col-md-12">
   <div class="btn-area">
     <a {{bindAttr class="controller.isNextEnabled::disabled :btn :btn-success :pull-right"}} {{action done target="controller"}}>{{t common.next}} &rarr;</a>
-    <span class="pull-right btn-extra-info">{{view.jnCheckPointText}}</span>
   </div>
 </div>

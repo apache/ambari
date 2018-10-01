@@ -31,6 +31,8 @@ App.EditableList = Ember.View.extend({
   typeahead: [],
   selectedTypeahed: 0,
 
+  isCaseSensitive: true,
+
   init: function () {
     this._super();
     this.updateItemsOriginal();
@@ -73,11 +75,13 @@ App.EditableList = Ember.View.extend({
    */
   availableItemsToAdd: function () {
     var allItems = Em.copy(this.get('resources'));
-    var input = this.get('input');
+    var isCaseSensitive = this.get('isCaseSensitive');
+    var input = isCaseSensitive ? this.get('input') : this.get('input').toLowerCase();
     var toRemove = [];
     var existed = this.get('items');
     allItems.forEach(function(item) {
-      if (item.name.indexOf(input) < 0 || existed.findProperty('name', item.name)) {
+      var nameToCompare = isCaseSensitive ? item.name : item.name.toLowerCase();
+      if (nameToCompare.indexOf(input) < 0 || existed.findProperty('name', item.name)) {
         toRemove.push(item);
       }
     });

@@ -20,4 +20,13 @@
 package org.apache.ambari.logsearch.config.api.model.inputconfig;
 
 public interface InputFileDescriptor extends InputFileBaseDescriptor {
+  Integer getDetachIntervalMin();
+
+  Integer getDetachTimeMin();
+
+  Integer getPathUpdateIntervalMin();
+
+  Integer getMaxAgeMin();
+
+  Boolean getDockerEnabled();
 }

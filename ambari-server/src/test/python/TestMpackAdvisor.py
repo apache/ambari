@@ -16,6 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
 import os.path
 import sys
 from unittest import TestCase
@@ -29,6 +30,20 @@ class TestMpackAdvisor(TestCase):
     self.testDirectory = os.path.dirname(os.path.abspath(__file__))
     self.testServicesJson = os.path.join(self.testDirectory, 'mpacks/mpack_advisor_data/services.json')
     self.testHostsJson = os.path.join(self.testDirectory, 'mpacks/mpack_advisor_data/hosts.json')
+
+  def tearDown(self):
+    filePath = os.path.join(self.testDirectory, 'mpacks/mpack_advisor_data/component-layout.json')
+    if os.path.isfile(filePath):
+      os.remove(filePath)
+    filePath = os.path.join(self.testDirectory, 'mpacks/mpack_advisor_data/component-layout-validation.json')
+    if os.path.isfile(filePath):
+      os.remove(filePath)
+    filePath = os.path.join(self.testDirectory, 'mpacks/mpack_advisor_data/configurations.json')
+    if os.path.isfile(filePath):
+      os.remove(filePath)
+    filePath = os.path.join(self.testDirectory, 'mpacks/mpack_advisor_data/configurations-validation.json')
+    if os.path.isfile(filePath):
+      os.remove(filePath)
 
   def test_get_component_layout(self):
     argv = ['dummy', 'recommend-component-layout', self.testHostsJson, self.testServicesJson]

@@ -17,9 +17,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.apache.ambari.contrib.views</groupId>
   <artifactId>pig</artifactId>
-  <version>1.0.0.0-SNAPSHOT</version>
+  <version>2.0.0.0-SNAPSHOT</version>
   <name>Pig</name>
 
   <parent>
@@ -61,6 +60,12 @@
       <groupId>commons-configuration</groupId>
       <artifactId>commons-configuration</artifactId>
       <version>1.6</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-beanutils</groupId>
+          <artifactId>commons-beanutils-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>
@@ -75,7 +80,6 @@
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
-      <version>3.0.1</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -154,7 +158,16 @@
   </properties>
   <build>
     <plugins>
-      <plugin>
+    <plugin>
+      <!--disabled parallel execution of tests for pig-->
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-surefire-plugin</artifactId>
+      <configuration>
+        <forkCount>0</forkCount>
+      </configuration>
+
+    </plugin>
+    <plugin>
         <!-- Cleanup ui files -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-clean-plugin</artifactId>

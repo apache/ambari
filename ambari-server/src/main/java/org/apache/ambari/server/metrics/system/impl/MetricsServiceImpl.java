@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.metrics.system.MetricsSink;
 import org.apache.ambari.server.metrics.system.MetricsSource;
@@ -44,7 +44,7 @@ public class MetricsServiceImpl implements MetricsService {
   @Inject
   AmbariManagementController amc;
   @Inject
-  StateUpdateEventPublisher stateUpdateEventPublisher;
+  STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Override
   public void start() {
@@ -116,7 +116,7 @@ public class MetricsServiceImpl implements MetricsService {
         src.init(MetricsConfiguration.getSubsetConfiguration(configuration, "source." + sourceName + "."), sink);
         sources.put(sourceName, src);
         if (src instanceof StompEventsMetricsSource) {
-          stateUpdateEventPublisher.register(src);
+          STOMPUpdatePublisher.register(src);
         }
         src.start();
       }

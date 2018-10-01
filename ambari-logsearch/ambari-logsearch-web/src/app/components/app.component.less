@@ -16,7 +16,6 @@
  */
 
 @import '../modules/shared/main';
-
 :host {
   background-color: @main-background-color; // TODO implement actual color
   display: flex;
@@ -25,30 +24,39 @@
   min-height: 100vh;
 
   .navbar {
-    margin-bottom: 0;
-    border-radius: 0;
+    align-items: center;
     background-color: @navbar-background-color;
+    border-radius: 0;
     color: #fff;
+    margin-bottom: 0;
     .stretch-flex;
     h1 {
       align-items: center;
-      background-color: lighten(@navbar-background-color, 5%);
+      align-self: stretch;
+      background: @navbar-logo-background-color url('/resources/assets/images/ambari-logo.png') no-repeat;
+      background-position: .5em center;
+      background-size: 25px;
       display: flex;
+      font-size: 20px;
       margin: 0 2em 0 0;
       padding: 0 2em;
-      text-transform: uppercase;
       &.full-flex-width {
         flex-basis: 100%;
       }
     }
     breadcrumbs {
-      font-size: 18px;
+      font-size: 20px;
       .stretch-flex;
     }
 
     /deep/ top-menu {
       margin-left: auto;
       margin-right: 5em;
+    }
+    &:not(.authorized) {
+      h1 {
+        margin: 0;
+      }
     }
   }
 }

@@ -25,15 +25,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.logfeeder.conf.LogEntryCacheConfig;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.input.InputFileMarker;
+import org.apache.ambari.logfeeder.input.InputManagerImpl;
+import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
+import org.apache.ambari.logfeeder.output.OutputManagerImpl;
 import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigGson;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigImpl;
+import org.apache.ambari.logsearch.config.json.JsonHelper;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigGson;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigImpl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
@@ -77,9 +81,22 @@ public class LogEntryParseTester {
   public Map<String, Object> parse() throws Exception {
     InputConfig inputConfig = getInputConfig();
     ConfigHandler configHandler = new ConfigHandler(null);
+    configHandler.setInputManager(new InputManagerImpl());
+    OutputManagerImpl outputManager = new OutputManagerImpl();
+    LogFeederProps logFeederProps = new LogFeederProps();
+    LogEntryCacheConfig logEntryCacheConfig = new LogEntryCacheConfig();
+    logEntryCacheConfig.setCacheEnabled(false);
+    logEntryCacheConfig.setCacheSize(0);
+    logFeederProps.setLogEntryCacheConfig(logEntryCacheConfig);
+    outputManager.setLogFeederProps(logFeederProps);
+    LogLevelFilterHandler logLevelFilterHandler = new LogLevelFilterHandler(null);
+    logLevelFilterHandler.setLogFeederProps(logFeederProps);
+    outputManager.setLogLevelFilterHandler(logLevelFilterHandler);
+    configHandler.setOutputManager(outputManager);
     Input input = configHandler.getTestInput(inputConfig, logId);
+    input.init(logFeederProps);
     final Map<String, Object> result = new HashMap<>();
-    input.getFirstFilter().init(new LogFeederProps());
+    input.getFirstFilter().init(logFeederProps);
     input.addOutput(new Output<LogFeederProps, InputFileMarker>() {
       @Override
       public void init(LogFeederProps logFeederProperties) throws Exception {
@@ -115,10 +132,6 @@ public class LogEntryParseTester {
       }
 
       @Override
-      public void outputConfigChanged(OutputProperties outputProperties) {
-      }
-
-      @Override
       public void copyFile(File inputFile, InputMarker inputMarker) throws UnsupportedOperationException {
       }
       
@@ -128,7 +141,8 @@ public class LogEntryParseTester {
       }
     });
     input.outputLine(logEntry, new InputFileMarker(input, null, 0));
-    
+    input.outputLine(logEntry, new InputFileMarker(input, null, 0));
+
     return result.isEmpty() ?
         ImmutableMap.of("errorMessage", (Object)"Could not parse test log entry") :
         result;
@@ -140,24 +154,11 @@ public class LogEntryParseTester {
     for (JsonObject globalConfig : globalConfigs) {
       for (Map.Entry<String, JsonElement> typeEntry : shipperConfigJson.getAsJsonObject().entrySet()) {
         for (JsonElement e : typeEntry.getValue().getAsJsonArray()) {
-          merge(globalConfig, e.getAsJsonObject());
+          JsonHelper.merge(globalConfig, e.getAsJsonObject());
         }
       }
     }
     return InputConfigGson.gson.fromJson(shipperConfigJson, InputConfigImpl.class);
-  }
-  
-  private void merge(JsonObject source, JsonObject target) {
-    for (Map.Entry<String, JsonElement> e : source.entrySet()) {
-      if (!target.has(e.getKey())) {
-        target.add(e.getKey(), e.getValue());
-      } else {
-        if (e.getValue().isJsonObject()) {
-          JsonObject valueJson = (JsonObject)e.getValue();
-          merge(valueJson, target.get(e.getKey()).getAsJsonObject());
-        }
-      }
-    }
   }
 
 }

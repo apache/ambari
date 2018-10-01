@@ -20,13 +20,12 @@ package org.apache.ambari.logsearch.conf;
 
 import org.apache.ambari.logsearch.conf.global.SolrAuditLogsState;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
+import org.apache.ambari.logsearch.conf.global.LogLevelFilterManagerState;
 import org.apache.ambari.logsearch.conf.global.SolrServiceLogsState;
 import org.apache.ambari.logsearch.conf.global.SolrEventHistoryState;
 import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.data.solr.core.SolrTemplate;
 import org.springframework.data.solr.repository.config.EnableSolrRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -35,25 +34,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class SolrConfig {
 
-  @Bean(name = "serviceSolrTemplate")
-  public SolrTemplate serviceSolrTemplate() {
-    return null;
-  }
-
-  @Bean(name = "auditSolrTemplate")
-  @DependsOn("serviceSolrTemplate")
-  public SolrTemplate auditSolrTemplate() {
-    return null;
-  }
-
-  @Bean(name = "eventHistorySolrTemplate")
-  @DependsOn("serviceSolrTemplate")
-  public SolrTemplate eventHistorySolrTemplate() {
-    return null;
-  }
-
   @Bean
-  @DependsOn({"serviceSolrTemplate", "auditSolrTemplate"})
   public SolrSchemaFieldDao solrSchemaFieldDao() {
     return new SolrSchemaFieldDao();
   }
@@ -71,6 +52,11 @@ public class SolrConfig {
   @Bean(name = "solrEventHistoryState")
   public SolrCollectionState solrEventHistoryState() {
     return new SolrEventHistoryState();
+  }
+
+  @Bean
+  public SolrClientsHolder solrClientsHolder() {
+    return new SolrClientsHolder();
   }
 }
 

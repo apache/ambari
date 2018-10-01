@@ -18,8 +18,14 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.state.ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY;
+import static org.apache.ambari.server.state.ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY;
+import static org.apache.ambari.server.state.ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY;
+import static org.apache.ambari.server.state.ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY;
+import static org.apache.ambari.server.state.ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.ALWAYS_APPLY;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.NEVER_APPLY;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY;
@@ -48,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.KerberosHelper;
@@ -59,6 +66,7 @@ import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
@@ -78,6 +86,7 @@ import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.ResolvedComponent;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
+import org.apache.ambari.server.topology.Setting;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
@@ -111,12 +120,15 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   private static final Configuration EMPTY_CONFIG = new Configuration(Collections.emptyMap(), Collections.emptyMap());
   private final Map<String, Collection<String>> serviceComponents = new HashMap<>();
   private final Map<String, String> serviceByComponent = new HashMap<>();
-  private final Map<String, Map<String, String>> stackProperties = new HashMap<>();
   private final Map<String, String> defaultClusterEnvProperties = new HashMap<>();
 
   private final String STACK_NAME = "testStack";
   private final String STACK_VERSION = "1";
   private final StackId STACK_ID = new StackId(STACK_NAME, STACK_VERSION);
+
+  private final String CLUSTER_ENV_PROP = "cluster-env";
+
+  private final Map<String, Map<String, String>> stackProperties = new HashMap<>();
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
@@ -132,6 +144,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
   @Mock(type = MockType.NICE)
   private Stack stack;
+
+  @Mock(type = MockType.NICE)
+  private StackInfo stackInfo;
 
   @Mock(type = MockType.NICE)
   private AmbariManagementController controller;
@@ -157,11 +172,18 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   @Mock(type = MockType.NICE)
   private SecurityConfigurationFactory securityFactory;
 
+  @Mock
+  private AmbariMetaInfo metaInfo;
+
+  private Setting setting;
+
   @Before
   public void init() throws Exception {
     expect(ambariContext.composeStacks(anyObject())).andReturn(stack).anyTimes();
     expect(bp.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(bp.getName()).andReturn("test-bp").anyTimes();
+    setting = new Setting(new HashMap<>());
+    expect(bp.getSetting()).andReturn(setting).anyTimes();
 
     expect(stack.getName()).andReturn(STACK_NAME).atLeastOnce();
     expect(stack.getVersion()).andReturn(STACK_VERSION).atLeastOnce();
@@ -182,18 +204,24 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
     expect(configHelper.getDefaultStackProperties(
         EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
-  
-   stackProperties.put(ConfigHelper.CLUSTER_ENV, defaultClusterEnvProperties);
 
+    stackProperties.put(ConfigHelper.CLUSTER_ENV, defaultClusterEnvProperties);
+
+    expect(metaInfo.getClusterProperties()).andReturn(ImmutableSet.of()).anyTimes();
+    expect(metaInfo.getStack(STACK_ID)).andReturn(stackInfo).anyTimes();
+    expect(stackInfo.getProperties()).andReturn(Lists.newArrayList()).anyTimes();
+    expect(stackInfo.getServices()).andReturn(Lists.newArrayList()).anyTimes();
 
     expect(ambariContext.isClusterKerberosEnabled(1)).andReturn(true).once();
     expect(ambariContext.getClusterName(1L)).andReturn("clusterName").anyTimes();
+    expect(ambariContext.getController()).andReturn(controller).anyTimes();
     PowerMock.mockStatic(AmbariServer.class);
     expect(AmbariServer.getController()).andReturn(controller).anyTimes();
     PowerMock.replay(AmbariServer.class);
     expect(clusters.getCluster("clusterName")).andReturn(cluster).anyTimes();
     expect(controller.getKerberosHelper()).andReturn(kerberosHelper).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
     expect(kerberosHelper.getKerberosDescriptor(cluster, false)).andReturn(kerberosDescriptor).anyTimes();
     Set<String> properties = new HashSet<>();
     properties.add("core-site/hadoop.security.auth_to_local");
@@ -276,7 +304,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
   @After
   public void tearDown() {
-    reset(bp, serviceInfo, stack, ambariContext, configHelper);
+    reset(bp, serviceInfo, stack, stackInfo, ambariContext, configHelper);
   }
 
   @Test
@@ -645,6 +673,37 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     String updatedVal = properties.get("webhcat-site").get("templeton.zookeeper.hosts");
     assertEquals("%HOSTGROUP::group1%:5050,%HOSTGROUP::group2%:9090", updatedVal);
+  }
+
+  @Test
+  public void testDoUpdateForBlueprintExport_MultiHostProperty__WithPrefixAndPorts() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, String> typeProps = new HashMap<>();
+    typeProps.put("atlas.server.bind.address",
+      "http://testhost:21000,http://testhost2:21000,http://testhost2a:21000,http://testhost2b:21000");
+    properties.put("application-properties", typeProps);
+
+    Configuration clusterConfig = new Configuration(properties, emptyMap());
+
+    Collection<String> hgComponents = Sets.newHashSet("NAMENODE", "SECONDARY_NAMENODE", "ZOOKEEPER_SERVER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<String> hgComponents2 = Sets.newHashSet("DATANODE", "HDFS_CLIENT", "ZOOKEEPER_SERVER");
+    Set<String> hosts2 = Sets.newHashSet("testhost2", "testhost2a", "testhost2b");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, hosts2);
+
+    Collection<String> hgComponents3 = Sets.newHashSet("HDFS_CLIENT", "ZOOKEEPER_CLIENT");
+    Set<String> hosts3 = Sets.newHashSet("testhost3", "testhost3a");
+    TestHostGroup group3 = new TestHostGroup("group3", hgComponents3, hosts3);
+
+    Collection<TestHostGroup> hostGroups = Sets.newHashSet(group1, group2, group3);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    configProcessor.doUpdateForBlueprintExport();
+
+    String updatedVal = properties.get("application-properties").get("atlas.server.bind.address");
+    assertEquals("http://%HOSTGROUP::group1%:21000,http://%HOSTGROUP::group2%:21000", updatedVal);
   }
 
   @Test
@@ -1149,6 +1208,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     assertNull("Initial NameNode HA property exported although should not have", hadoopEnvProperties.get("dfs_ha_initial_namenode_active"));
     assertNull("Initial NameNode HA property exported although should not have", hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+
+    Map<String, String> clusterEnv = clusterConfig.getProperties().get("cluster-env");
+    assertTrue("Initial NameNode HA property exported although should not have", clusterEnv == null || clusterEnv.get("dfs_ha_initial_namenode_active") == null);
+    assertTrue("Initial NameNode HA property exported although should not have", clusterEnv == null || clusterEnv.get("dfs_ha_initial_namenode_standby") == null);
   }
 
   @Test
@@ -1347,6 +1410,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.timeline-service.webapp.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.log.server.web-service.url", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.https.address", expectedHostName + ":" + expectedPortNum);
 
     Configuration clusterConfig = new Configuration(configProperties,
       Collections.emptyMap());
@@ -1390,6 +1455,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
     assertEquals("Yarn ResourceManager timeline web service url was incorrectly exported",
       createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.log.server.web-service.url"));
+    assertEquals("Yarn ResourceManager timeline reader webapp address was incorrectly exported",
+        createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp HTTPS address was incorrectly exported",
+        createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.https.address"));
   }
 
   @Test
@@ -1413,6 +1482,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.timeline-service.address", "0.0.0.0" + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.address", "0.0.0.0" + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", "0.0.0.0" + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.address", "0.0.0.0" + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.https.address", "0.0.0.0" + ":" + expectedPortNum);
 
     Configuration clusterConfig = new Configuration(configProperties,
       Collections.emptyMap());
@@ -1454,6 +1525,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       "0.0.0.0" + ":" + expectedPortNum, yarnSiteProperties.get("yarn.timeline-service.webapp.address"));
     assertEquals("Yarn ResourceManager timeline webapp HTTPS address was incorrectly exported",
       "0.0.0.0" + ":" + expectedPortNum, yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp address was incorrectly exported",
+      "0.0.0.0" + ":" + expectedPortNum, yarnSiteProperties.get("yarn.timeline-service.reader.webapp.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp HTTPS address was incorrectly exported",
+      "0.0.0.0" + ":" + expectedPortNum, yarnSiteProperties.get("yarn.timeline-service.reader.webapp.https.address"));
   }
 
   @Test
@@ -1965,9 +2040,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals("yarn-site zookeeper config not properly exported",
       createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
       yarnSiteProperties.get("hadoop.registry.zk.quorum"));
-    assertEquals("slider-client zookeeper config not properly exported",
-      createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
-      sliderClientProperties.get("slider.zookeeper.quorum"));
     assertEquals("kafka zookeeper config not properly exported",
       createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
       kafkaBrokerProperties.get("zookeeper.connect"));
@@ -2171,13 +2243,11 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals("128m", updatedVal2);
 
     assertEquals("Incorrect number of config types updated",
-      3, configTypesUpdated.size());
+      2, configTypesUpdated.size());
     assertTrue("Expected config type not updated",
       configTypesUpdated.contains("oozie-env"));
     assertTrue("Expected config type not updated",
       configTypesUpdated.contains("yarn-site"));
-    assertTrue("Expected config type not updated",
-      configTypesUpdated.contains("cluster-env"));
   }
 
   @Test
@@ -2346,6 +2416,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("1")).anyTimes();
+    expect(stack.getCardinality("TIMELINE_READER")).andReturn(new Cardinality("1")).anyTimes();
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
@@ -2375,12 +2446,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     group1Components.add("SECONDARY_NAMENODE");
     group1Components.add("RESOURCEMANAGER");
     group1Components.add("APP_TIMELINE_SERVER");
+    group1Components.add("TIMELINE_READER");
     TestHostGroup group1 = new TestHostGroup("group1", group1Components, Collections.singleton("testhost"));
 
     Collection<String> group2Components = new HashSet<>();
     group2Components.add("DATANODE");
     group2Components.add("HDFS_CLIENT");
     group2Components.add("APP_TIMELINE_SERVER");
+    group2Components.add("TIMELINE_READER");
     TestHostGroup group2 = new TestHostGroup("group2", group2Components, Collections.singleton("testhost2"));
 
     Collection<TestHostGroup> hostGroups = new HashSet<>();
@@ -2388,6 +2461,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
+    expect(stack.getCardinality("TIMELINE_READER")).andReturn(new Cardinality("0-1")).anyTimes();
 
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
@@ -2419,12 +2493,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     group1Components.add("SECONDARY_NAMENODE");
     group1Components.add("RESOURCEMANAGER");
     group1Components.add("APP_TIMELINE_SERVER");
+    group1Components.add("TIMELINE_READER");
     TestHostGroup group1 = new TestHostGroup("group1", group1Components, Collections.singleton("testhost"));
 
     Collection<String> group2Components = new HashSet<>();
     group2Components.add("DATANODE");
     group2Components.add("HDFS_CLIENT");
     group2Components.add("APP_TIMELINE_SERVER");
+    group2Components.add("TIMELINE_READER");
     TestHostGroup group2 = new TestHostGroup("group2", group2Components, Collections.singleton("testhost2"));
 
     Collection<TestHostGroup> hostGroups = new HashSet<>();
@@ -2432,6 +2508,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
+    expect(stack.getCardinality("TIMELINE_READER")).andReturn(new Cardinality("0-1")).anyTimes();
 
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
@@ -2469,6 +2546,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
+    expect(stack.getCardinality("TIMELINE_READER")).andReturn(new Cardinality("0-1")).anyTimes();
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
@@ -2734,76 +2812,40 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   }
 
   @Test
-  public void testDoUpdateForClusterVerifyRetrySettingsDefault() throws Exception {
-    Map<String, Map<String, String>> configProperties =
-      new HashMap<>();
+  public void testMultipleHostTopologyUpdater__hostgroup__multipleHostGroups() throws Exception {
 
-    HashMap<String, String> clusterEnvProperties = new HashMap<>();
-    configProperties.put("cluster-env", clusterEnvProperties);
+    final String typeName = "application-properties";
+    final String propertyName = "atlas.rest.address";
+    final String originalValue = "http://%HOSTGROUP::group1%:21000,http://%HOSTGROUP::group2%:21000";
+    final String component = "ATLAS_SERVER";
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, String> typeProps = new HashMap<>();
+    typeProps.put(propertyName, originalValue);
+    properties.put(typeName, typeProps);
 
-    TestHostGroup testHostGroup = new TestHostGroup("test-host-group-one", Collections.emptySet(), Collections.emptySet());
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, Collections.singleton(testHostGroup), NEVER_APPLY);
+    Configuration clusterConfig = new Configuration(properties, emptyMap());
 
-    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+    Set<String> components = ImmutableSet.of(component);
 
-    Set<String> updatedConfigTypes =
-      updater.doUpdateForClusterCreate();
+    Set<String> group1Hosts = ImmutableSet.of("testhost1a", "testhost1b", "testhost1c");
+    Set<String> group2Hosts = ImmutableSet.of("testhost2a", "testhost2b", "testhost2c");
 
-    // after update, verify that the retry properties for commands and installs are set as expected
-    assertEquals("Incorrect number of properties added to cluster-env for retry",
-      3, clusterEnvProperties.size());
-    assertEquals("command_retry_enabled was not set to the expected default",
-      "true", clusterEnvProperties.get("command_retry_enabled"));
-    assertEquals("commands_to_retry was not set to the expected default",
-      "INSTALL,START", clusterEnvProperties.get("commands_to_retry"));
-    assertEquals("command_retry_max_time_in_sec was not set to the expected default",
-      "600", clusterEnvProperties.get("command_retry_max_time_in_sec"));
+    TestHostGroup group1 = new TestHostGroup("group1", components, group1Hosts);
+    TestHostGroup group2 = new TestHostGroup("group2", components, group2Hosts);
 
-    assertEquals("Incorrect number of config types updated by this operation",
-      1, updatedConfigTypes.size());
+    Collection<TestHostGroup> hostGroups = ImmutableSet.of(group1, group2);
 
-    assertTrue("Expected type not included in the updated set",
-      updatedConfigTypes.contains("cluster-env"));
-  }
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
 
-  @Test
-  public void testDoUpdateForClusterVerifyRetrySettingsCustomized() throws Exception {
-    Map<String, Map<String, String>> configProperties =
-      new HashMap<>();
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu =
+      new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component, ',', true, true, true);
+    String newValue = mhtu.updateForClusterCreate(propertyName, originalValue, properties, topology);
 
-    HashMap<String, String> clusterEnvProperties = new HashMap<>();
-    configProperties.put("cluster-env", clusterEnvProperties);
-
-    clusterEnvProperties.put("command_retry_enabled", "false");
-    clusterEnvProperties.put("commands_to_retry", "TEST");
-    clusterEnvProperties.put("command_retry_max_time_in_sec", "1");
-
-
-    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
-
-    TestHostGroup testHostGroup = new TestHostGroup("test-host-group-one", Collections.emptySet(), Collections.emptySet());
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, Collections.singleton(testHostGroup), NEVER_APPLY);
-
-    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
-
-    Set<String> updatedConfigTypes =
-      updater.doUpdateForClusterCreate();
-
-    // after update, verify that the retry properties for commands and installs are set as expected
-    // in this case, the customer-provided overrides should be honored, rather than the retry defaults
-    assertEquals("Incorrect number of properties added to cluster-env for retry",
-      3, clusterEnvProperties.size());
-    assertEquals("command_retry_enabled was not set to the expected default",
-      "false", clusterEnvProperties.get("command_retry_enabled"));
-    assertEquals("commands_to_retry was not set to the expected default",
-      "TEST", clusterEnvProperties.get("commands_to_retry"));
-    assertEquals("command_retry_max_time_in_sec was not set to the expected default",
-      "1", clusterEnvProperties.get("command_retry_max_time_in_sec"));
-
-    assertEquals("Incorrect number of config types updated",
-      0, updatedConfigTypes.size());
+    Set<String> expectedAddresses =
+      Sets.union(group1Hosts, group2Hosts).stream().map(host -> "http://" + host + ":21000").collect(toSet());
+    Set<String> replacedAddresses = ImmutableSet.copyOf(newValue.split(","));
+    assertEquals(expectedAddresses, replacedAddresses);
   }
 
   @Test
@@ -2898,13 +2940,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // verify that the Blueprint config processor has set the internal required properties
     // that determine the active and standby node hostnames for this HA setup
     // one of the two hosts should be set to active and the other to standby
-    String activeHost = hadoopEnvProperties.get("dfs_ha_initial_namenode_active");
+    Map<String, String> clusterEnv = clusterConfig.getProperties().get("cluster-env");
+    String activeHost = clusterEnv.get("dfs_ha_initial_namenode_active");
     if (activeHost.equals(expectedHostName)) {
       assertEquals("Standby Namenode hostname was not set correctly",
-        expectedHostNameTwo, hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+        expectedHostNameTwo, clusterEnv.get("dfs_ha_initial_namenode_standby"));
     } else if (activeHost.equals(expectedHostNameTwo)) {
       assertEquals("Standby Namenode hostname was not set correctly",
-        expectedHostName, hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+        expectedHostName, clusterEnv.get("dfs_ha_initial_namenode_standby"));
     } else {
       fail("Active Namenode hostname was not set correctly: " + activeHost);
     }
@@ -3329,6 +3372,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.timeline-service.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.https.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.resourcemanager.ha.enabled", "true");
     yarnSiteProperties.put("yarn.resourcemanager.ha.rm-ids", "rm1, rm2");
 
@@ -3336,6 +3381,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("RESOURCEMANAGER");
     hgComponents.add("APP_TIMELINE_SERVER");
+    hgComponents.add("TIMELINE_READER");
     hgComponents.add("HISTORYSERVER");
     TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
 
@@ -3374,6 +3420,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.webapp.address"));
     assertEquals("Yarn ResourceManager timeline webapp HTTPS address was incorrectly updated",
       createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp address was incorrectly updated",
+      createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp HTTPS address was incorrectly updated",
+      createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.https.address"));
   }
 
   @Test
@@ -3399,6 +3449,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.timeline-service.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.https.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.resourcemanager.ha.enabled", "true");
     yarnSiteProperties.put("yarn.resourcemanager.ha.rm-ids", "rm1, rm2");
     yarnSiteProperties.put("yarn.resourcemanager.hostname.rm1", expectedHostName);
@@ -3423,6 +3475,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("RESOURCEMANAGER");
     hgComponents.add("APP_TIMELINE_SERVER");
+    hgComponents.add("TIMELINE_READER");
     hgComponents.add("HISTORYSERVER");
     TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
 
@@ -3461,6 +3514,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.webapp.address"));
     assertEquals("Yarn ResourceManager timeline webapp HTTPS address was incorrectly updated",
       createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp address was incorrectly updated",
+      createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.address"));
+    assertEquals("Yarn ResourceManager timeline reader ebapp HTTPS address was incorrectly updated",
+      createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.https.address"));
 
     // verify that dynamically-named RM HA properties are exported as expected
     List<String> properties = Arrays.asList(
@@ -5316,7 +5373,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // verify that the Blueprint config processor has set the internal required properties
     // that determine the active and standby node hostnames for this HA setup.
     // one host should be active and the other standby
-    String initialActiveHost = hadoopEnvProperties.get("dfs_ha_initial_namenode_active");
+    Map<String, String> clusterEnv = clusterConfig.getProperties().get("cluster-env");
+    String initialActiveHost = clusterEnv.get("dfs_ha_initial_namenode_active");
     String expectedStandbyHost = null;
     if (initialActiveHost.equals(expectedHostName)) {
       expectedStandbyHost = expectedHostNameTwo;
@@ -5326,7 +5384,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       fail("Active Namenode hostname was not set correctly");
     }
     assertEquals("Standby Namenode hostname was not set correctly",
-      expectedStandbyHost, hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+      expectedStandbyHost, clusterEnv.get("dfs_ha_initial_namenode_standby"));
 
 
     assertEquals("fs.defaultFS should not be modified by cluster update when NameNode HA is enabled.",
@@ -5348,14 +5406,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     // verify that correct configuration types were listed as updated in the returned set
-    assertEquals("Incorrect number of updated config types returned, set = " + updatedConfigTypes,
-      3, updatedConfigTypes.size());
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("cluster-env"));
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("hdfs-site"));
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("hadoop-env"));
+    assertEquals(ImmutableSet.of("cluster-env", "hdfs-site"), updatedConfigTypes);
   }
 
   @Test
@@ -5423,9 +5474,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     // verify that correct configuration types were listed as updated in the returned set
     assertEquals("Incorrect number of updated config types returned, set = " + updatedConfigTypes,
-      2, updatedConfigTypes.size());
-    assertTrue("Expected config type 'cluster-env' not found in updated set",
-      updatedConfigTypes.contains("cluster-env"));
+      1, updatedConfigTypes.size());
     assertTrue("Expected config type 'hdfs-site' not found in updated set",
       updatedConfigTypes.contains("hdfs-site"));
   }
@@ -5505,12 +5554,93 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // verify that the Blueprint config processor has not overridden
     // the user's configuration to determine the active and
     // standby nodes in this NameNode HA cluster
+    Map<String, String> clusterEnv = clusterConfig.getProperties().get("cluster-env");
+
     assertEquals("Active Namenode hostname was not set correctly",
-      expectedHostName, hadoopEnvProperties.get("dfs_ha_initial_namenode_active"));
+      expectedHostName, clusterEnv.get("dfs_ha_initial_namenode_active"));
 
     assertEquals("Standby Namenode hostname was not set correctly",
-      expectedHostNameTwo, hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+      expectedHostNameTwo, clusterEnv.get("dfs_ha_initial_namenode_standby"));
   }
+
+  private Map<String, String> defaultStackProps() {
+    return Maps.newHashMap(ImmutableMap.of(
+      CLUSTER_ENV_STACK_NAME_PROPERTY, STACK_NAME,
+      CLUSTER_ENV_STACK_ROOT_PROPERTY, "/usr/" + STACK_NAME,
+      CLUSTER_ENV_STACK_TOOLS_PROPERTY, "{ some tools... }",
+      CLUSTER_ENV_STACK_FEATURES_PROPERTY, "{ some features... }",
+      CLUSTER_ENV_STACK_PACKAGES_PROPERTY, "{ some packages... }"
+    ));
+  }
+
+  @Test
+  public void testSetStackToolsAndFeatures_ClusterEnvDidNotChange() throws Exception {
+    defaultClusterEnvProperties.putAll(defaultStackProps());
+    Map<String, Map<String, String>> blueprintProps = Maps.newHashMap(ImmutableMap.of(
+      "cluster-env", defaultStackProps()
+    ));
+    Configuration clusterConfig = new Configuration(blueprintProps, emptyMap());
+
+    TestHostGroup group = new TestHostGroup("groups1", Sets.newHashSet("NAMENODE"), ImmutableSet.of("host1"));
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, ImmutableSet.of(group),
+        NEVER_APPLY);
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    Set<String> configTypesUpdated = Sets.newHashSet();
+    updater.setStackToolsAndFeatures(clusterConfig, configTypesUpdated);
+    assertEquals("cluster-env should NOT have been updated", ImmutableSet.of(), configTypesUpdated);
+  }
+
+
+  @Test
+  public void testSetStackToolsAndFeatures_ClusterEnvChanged() throws Exception {
+    defaultClusterEnvProperties.putAll(defaultStackProps());
+    Map<String, String> blueprintClusterEnv = defaultStackProps();
+    // change something to trigger cluter-env added to the changed configs
+    blueprintClusterEnv.put(CLUSTER_ENV_STACK_ROOT_PROPERTY, "/opt/" + STACK_NAME);
+
+    Map<String, Map<String, String>> blueprintProps = Maps.newHashMap(ImmutableMap.of(
+      "cluster-env", blueprintClusterEnv
+    ));
+    Configuration clusterConfig = new Configuration(blueprintProps, emptyMap());
+
+    TestHostGroup group = new TestHostGroup("groups1", Sets.newHashSet("NAMENODE"), ImmutableSet.of("host1"));
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, ImmutableSet.of(group),
+        NEVER_APPLY);
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    Set<String> configTypesUpdated = Sets.newHashSet();
+    updater.setStackToolsAndFeatures(clusterConfig, configTypesUpdated);
+    assertEquals("cluster-env should have been updated", ImmutableSet.of("cluster-env"), configTypesUpdated);
+  }
+
+  @Test
+  public void testSetStackToolsAndFeatures_ClusterEnvChanged_TrimmedValuesEqual() throws Exception {
+    defaultClusterEnvProperties.putAll(defaultStackProps());
+    Map<String, String> blueprintClusterEnv = defaultStackProps();
+    // This change should not be considered as an update to cluster-env as trimmed values are still equal
+    blueprintClusterEnv.put(
+      CLUSTER_ENV_STACK_ROOT_PROPERTY,
+      blueprintClusterEnv.get(CLUSTER_ENV_STACK_ROOT_PROPERTY) + "       \n");
+
+    Map<String, Map<String, String>> blueprintProps = Maps.newHashMap(ImmutableMap.of(
+      "cluster-env", blueprintClusterEnv
+    ));
+    Configuration clusterConfig = new Configuration(blueprintProps, emptyMap());
+
+    TestHostGroup group = new TestHostGroup("groups1", Sets.newHashSet("NAMENODE"), ImmutableSet.of("host1"));
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, ImmutableSet.of(group),
+        NEVER_APPLY);
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    Set<String> configTypesUpdated = Sets.newHashSet();
+    updater.setStackToolsAndFeatures(clusterConfig, configTypesUpdated);
+    assertEquals("cluster-env should NOT have been updated", ImmutableSet.of(), configTypesUpdated);
+  }
+
 
   @Test
   public void testParseNameServices() throws Exception {
@@ -5680,7 +5810,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   @Test
   public void testHadoopHaNameNode() throws Exception {
     // Given
-    final String configType = "hadoop-env";
+    final String configType = "cluster-env";
     Map<String, Map<String, String>> properties = new HashMap<>();
 
     // enable HA
@@ -8216,7 +8346,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     throws InvalidTopologyException {
 
 
-    replay(stack, serviceInfo, ambariContext, configHelper, controller, kerberosHelper, kerberosDescriptor, clusters, cluster);
+    replay(stack, stackInfo, serviceInfo, ambariContext, configHelper, controller, kerberosHelper, kerberosDescriptor, clusters,
+      cluster, metaInfo);
 
     Map<String, HostGroupInfo> hostGroupInfo = new HashMap<>();
     Map<String, HostGroup> allHostGroups = new HashMap<>();
@@ -8263,9 +8394,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     BlueprintBasedClusterProvisionRequest request = new BlueprintBasedClusterProvisionRequest(ambariContext, securityFactory, bp, topologyRequestMock);
 
-    ClusterTopologyImpl clusterTopology = new ClusterTopologyImpl(ambariContext, request, resolvedComponents);
-    clusterTopology.setClusterId(1L);
-    return clusterTopology;
+    return new ClusterTopologyImpl(ambariContext, request, resolvedComponents);
   }
 
   private class TestHostGroup {

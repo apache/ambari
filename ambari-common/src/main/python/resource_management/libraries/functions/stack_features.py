@@ -23,8 +23,6 @@ import ambari_simplejson as json
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.constants import Direction
-from resource_management.libraries.functions.version import format_stack_version
-from resource_management.libraries.functions import stack_settings
 
 # executionCommand for STOP
 _ROLE_COMMAND_STOP = 'STOP'
@@ -41,22 +39,20 @@ def check_stack_feature(stack_feature, stack_version):
   :param stack_version: Version of the stack
   :return: Will return True if successful, otherwise, False.
   """
-
-  from resource_management.libraries.functions.default import default
+  from resource_management.libraries.script.script import Script
+  from resource_management.libraries.execution_command.stack_settings import StackSettings
   from resource_management.libraries.functions.version import compare_versions
 
-  stack_name = default("/stackSettings/stack_name", None)
+  execution_command = Script.get_execution_command()
+  stack_settings = Script.get_stack_settings()
+  stack_name = stack_settings.get_mpack_name()
   if stack_name is None:
     Logger.warning("Cannot find the stack name in the command. Stack features cannot be loaded")
     return False
-
-  stack_features_setting = stack_settings.get_stack_setting_value(stack_settings.STACK_FEATURES_SETTING)
-  # TODO : Removed the below if of reading from cluster_env, once we have removed stack_features from there
-  # and have started using /stackSettings as source of truth.
-  if stack_features_setting is None:
-    Logger.debug("Couldn't retrieve 'stack_features' from /stackSettings. Retrieving from cluster_env now.")
-    stack_features_setting = default("/configurations/cluster-env/"+stack_settings.STACK_FEATURES_SETTING, None)
-
+  # TODO call stack_settings.get_stack_features() will fail in TestStackFeature, need more investigation
+  stack_features_setting = None
+  if Script.config and "stackSettings" in Script.config and "stack_features" in Script.config["stackSettings"]:
+    stack_features_setting = Script.config["stackSettings"]["stack_features"]
 
   if not stack_version:
     Logger.debug("Cannot determine if feature %s is supported since did not provide a stack version." % stack_feature)
@@ -71,7 +67,7 @@ def check_stack_feature(stack_feature, stack_version):
 
     data = data[stack_name]
 
-    for feature in data[stack_settings.STACK_FEATURES_SETTING]:
+    for feature in data[StackSettings.STACK_FEATURES_SETTING]:
       if feature["name"] == stack_feature:
         if "min_version" in feature:
           min_version = feature["min_version"]
@@ -102,23 +98,29 @@ def get_stack_feature_version(config):
                   and commandParams from.
   :return: the version to use when checking stack features.
   """
-  from resource_management.libraries.functions.default import default
+  from resource_management.libraries.script.script import Script
+  from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 
-  if "stackSettings" not in config or "commandParams" not in config:
+  execution_command = Script.get_execution_command()
+  stack_settings = Script.get_stack_settings()
+
+  if "stackSettings" not in config and "commandParams" not in config:
     raise Fail("Unable to determine the correct version since stackSettings and commandParams were not present in the configuration dictionary")
 
   # should always be there
-  stack_version = config['stackSettings']['stack_version']
+  # Actually not always, i.e if we restart zookeeper service and no stack_version is included in command.json
+  stack_version = stack_settings.get_mpack_version()
 
   # something like 2.4.0.0-1234; represents the version for the command
   # (or None if this is a cluster install and it hasn't been calculated yet)
   # this is always guaranteed to be the correct version for the command, even in
   # upgrade and downgrade scenarios
-  command_version = default("/commandParams/version", None)
-  command_stack = default("/commandParams/target_stack", None)
+  command_version = execution_command.get_new_mpack_version_for_upgrade()
+  # TODO we may need add this to execution_command lib
+  command_stack = execution_command.get_value("commandParams/target_stack", None)
 
   # UPGRADE or DOWNGRADE (or None)
-  upgrade_direction = default("/commandParams/upgrade_direction", None)
+  upgrade_direction = execution_command.check_upgrade_direction()
 
   # start out with the value that's right 99% of the time
   version_for_stack_feature_checks = command_version if command_version is not None else stack_version
@@ -145,8 +147,8 @@ def get_stack_feature_version(config):
   is_downgrade = upgrade_direction.lower() == Direction.DOWNGRADE.lower()
   # guaranteed to have a STOP command now during an UPGRADE/DOWNGRADE, check direction
   if is_downgrade:
-    from resource_management.libraries.functions import upgrade_summary
-    version_for_stack_feature_checks = upgrade_summary.get_source_version(default_version = version_for_stack_feature_checks)
+    from resource_management.libraries.functions.upgrade_summary import UpgradeSummary
+    version_for_stack_feature_checks = UpgradeSummary().get_service_source_version(service_group_name=None, service_name=None, default_version=version_for_stack_feature_checks)
   else:
     # UPGRADE
       version_for_stack_feature_checks = command_version if command_version is not None else stack_version

@@ -41,7 +41,6 @@ public class TimelineMetricCacheSizingTest {
     metric.setAppId("KAFKA_BROKER");
     metric.setInstanceId("NULL");
     metric.setHostName("my.privatehostname.of.average.length");
-    metric.setTimestamp(System.currentTimeMillis());
     metric.setStartTime(System.currentTimeMillis());
     metric.setType("LONG");
 

@@ -246,6 +246,7 @@ def main():
   ambari_server_folder = get_parent_path(pwd, 'ambari-server')
   ambari_agent_folder = os.path.normpath(os.path.join(ambari_server_folder, "../ambari-agent"))
   ambari_common_folder = os.path.normpath(os.path.join(ambari_server_folder, "../ambari-common"))
+  mpack_instance_manager_folder = os.path.normpath(os.path.join(ambari_server_folder, "../mpack-instance-manager"))
   sys.path.append(os.path.join(ambari_common_folder, "src/main/python"))
   sys.path.append(os.path.join(ambari_common_folder, "src/main/python/ambari_jinja2"))
   sys.path.append(os.path.join(ambari_common_folder, "src/test/python"))
@@ -255,6 +256,8 @@ def main():
   sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/scripts"))
   sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/custom_actions/scripts"))
   sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/host_scripts"))
+  sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/stacks"))
+  sys.path.append(os.path.join(mpack_instance_manager_folder, "src/main/python/instance_manager"))
 
   stacks_folder = os.path.join(pwd, 'stacks')
   #generate test variants(path, service, stack)
@@ -274,15 +277,6 @@ def main():
             test_variants.append({'directory': current_service_dir,
                                   'service': service,
                                   'stack': stack})
-
-  #add tests for services under common-services
-  comm_serv_folder = os.path.join(pwd, 'common-services')
-  for service in os.listdir(comm_serv_folder):
-    current_service_dir = os.path.join(comm_serv_folder, service)
-    if os.path.isdir(current_service_dir) and service not in SERVICE_EXCLUDE:
-      test_variants.append({'directory': current_service_dir,
-                          'service': service,
-                          'stack': None})
 
   #run tests for every service in every stack in separate process
   has_failures = False

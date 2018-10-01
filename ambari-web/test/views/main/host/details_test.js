@@ -72,25 +72,13 @@ describe('App.MainHostDetailsView', function () {
     });
   });
 
-  describe('#isActive', function () {
-    activeCases.forEach(function (item) {
-      it('should be ' + item.isActive, function () {
-        view.set('controller', {
-          content: {
-            passiveState: item.passiveState
-          }
-        });
-        expect(view.get('isActive')).to.equal(item.isActive);
-      });
-    });
-  });
-
   describe('#maintenance', function () {
     activeCases.forEach(function (item) {
       it('passive state label should contain ' + item.label, function () {
         view.set('controller', {
           content: {
-            passiveState: item.passiveState
+            passiveState: item.passiveState,
+            isActive: item.isActive
           }
         });
         expect(view.get('maintenance').findProperty('action', 'onOffPassiveModeForHost').label).to.contain(item.label);

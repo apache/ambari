@@ -18,7 +18,9 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 import java.util.List;
 import java.util.Map;
@@ -35,6 +37,7 @@ public class Setting {
    */
   private final Map<String, Set<Map<String, String>>> properties;
 
+  static final String SETTING_NAME_CLUSTER_SETTINGS = "cluster_settings";
   static final String SETTING_NAME_RECOVERY_SETTINGS = "recovery_settings";
   static final String SETTING_NAME_SERVICE_SETTINGS = "service_settings";
   static final String SETTING_NAME_COMPONENT_SETTINGS = "component_settings";
@@ -158,6 +161,23 @@ public class Setting {
     return repositorySettingsValue.stream()
       .map(RepositorySetting::fromMap)
       .collect(toList());
+  }
+
+
+  /**
+   * Extracts and returns the cluster settings.
+   * Currently the settings under the categories "cluster_settings" and "recovery_settings".
+   * Settings are flattened from sets of maps to a simple map.
+   * @return cluster settings
+   */
+  Map<String, String> getClusterSettings() {
+    Set<String> settingsToExtract =
+      ImmutableSet.of(SETTING_NAME_CLUSTER_SETTINGS, SETTING_NAME_RECOVERY_SETTINGS);
+    return settingsToExtract.stream()
+      .flatMap( settingCategory ->
+        properties.getOrDefault(settingCategory, emptySet()).stream())
+      .flatMap( map -> map.entrySet().stream() )
+      .collect(toMap(e -> e.getKey(), e -> e.getValue()));
   }
 
   /**

@@ -62,4 +62,9 @@ public class RawMetricsPublisher extends AbstractMetricPublisher {
     protected String getPostUrl() {
         return BASE_POST_URL;
     }
+
+    @Override
+    protected String getHostInMemoryAggregationProtocol() {
+        return "http";
+    }
 }

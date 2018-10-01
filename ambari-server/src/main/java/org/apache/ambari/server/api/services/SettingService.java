@@ -51,7 +51,7 @@ import io.swagger.annotations.ApiResponses;
  * Service responsible for setting resource requests.
  */
 @Path("/settings")
-@Api(value = "/settings", description = "Endpoint for settings-specific operations")
+@Api(value = "Settings", description = "Endpoint for settings-specific operations")
 public class SettingService extends BaseService {
 
   private static final String DEFAULT_FIELDS_GET_SETTINGS = SettingResourceProvider.SETTING_NAME_PROPERTY_ID;

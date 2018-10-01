@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.controller.StackVersionResponse;
 import org.apache.ambari.server.stack.Validable;
@@ -654,5 +655,12 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
 
   public void setRefreshCommandConfiguration(RefreshCommandConfiguration refreshCommandConfiguration) {
     this.refreshCommandConfiguration = refreshCommandConfiguration;
+  }
+
+  /**
+   * @return names of each service in the stack
+   */
+  public Set<String> getServiceNames() {
+    return getServices().stream().map(ServiceInfo::getName).collect(Collectors.toSet());
   }
 }

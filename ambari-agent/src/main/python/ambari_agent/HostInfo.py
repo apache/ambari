@@ -147,6 +147,8 @@ def get_ntp_service():
     return ("ntpd", "ntp",)
   elif OSCheck.is_ubuntu_family():
     return ("ntp", "chrony",)
+  else:
+    return ("ntpd",)
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -158,7 +160,7 @@ class HostInfoLinux(HostInfo):
     "storm", "hive-hcatalog", "tez", "falcon", "ambari_qa", "hadoop_deploy",
     "rrdcached", "hcat", "ambari-qa", "sqoop-ambari-qa", "sqoop-ambari_qa",
     "webhcat", "hadoop-hdfs", "hadoop-yarn", "hadoop-mapreduce",
-    "knox", "yarn", "hive-webhcat", "kafka", "slider", "storm-slider-client",
+    "knox", "yarn", "hive-webhcat", "kafka",
     "mahout", "spark", "pig", "phoenix", "ranger", "accumulo",
     "ambari-metrics-collector", "ambari-metrics-monitor", "atlas", "zeppelin"
   ]

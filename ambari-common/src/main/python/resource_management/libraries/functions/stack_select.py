@@ -34,15 +34,14 @@ from resource_management.libraries.functions.get_stack_version import get_stack_
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_tools
-from resource_management.libraries.functions import stack_settings
+from resource_management.libraries.functions.decorator import deprecated
 from resource_management.core import shell
 from resource_management.core import sudo
 from resource_management.core.shell import call
 from resource_management.libraries.functions.version import format_stack_version
-from resource_management.libraries.functions.version_select_util import get_versions_from_stack_root
 from resource_management.libraries.functions import stack_features
 from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions import upgrade_summary
+from resource_management.libraries.functions.upgrade_summary import UpgradeSummary
 
 STACK_SELECT_PREFIX = 'ambari-python-wrap'
 
@@ -55,8 +54,7 @@ SERVICE_CHECK_DIRECTORY_MAP = {
   "OOZIE_SERVICE_CHECK" : "hadoop-client",
   "MAHOUT_SERVICE_CHECK" : "mahout-client",
   "MAPREDUCE2_SERVICE_CHECK" : "hadoop-client",
-  "YARN_SERVICE_CHECK" : "hadoop-client",
-  "SLIDER_SERVICE_CHECK" : "slider-client"
+  "YARN_SERVICE_CHECK" : "hadoop-client"
 }
 
 # <stack-root>/current/hadoop-client/[bin|sbin|libexec|lib]
@@ -90,6 +88,7 @@ _PACKAGE_SCOPES = (PACKAGE_SCOPE_INSTALL, PACKAGE_SCOPE_STANDARD, PACKAGE_SCOPE_
 # the orchestration types which equal to a partial (non-STANDARD) upgrade
 _PARTIAL_ORCHESTRATION_SCOPES = ("PATCH", "MAINT")
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_package_name(default_package = None):
   """
   Gets the stack-select package name for the service name and
@@ -119,7 +118,7 @@ def get_package_name(default_package = None):
     else:
       raise
 
-
+@deprecated(comment = "The stack-select tools are no longer used")
 def is_package_supported(package, supported_packages = None):
   """
   Gets whether the specified package is supported by the <stack_select> tool.
@@ -139,6 +138,7 @@ def is_package_supported(package, supported_packages = None):
   return False
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_supported_packages():
   """
   Parses the output from <stack-select> packages and returns an array of the various packages.
@@ -158,6 +158,7 @@ def get_supported_packages():
   return [line.strip() for line in stdout.splitlines()]
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_packages(scope, service_name = None, component_name = None):
   """
   Gets the packages which should be used with the stack's stack-select tool for the
@@ -169,32 +170,29 @@ def get_packages(scope, service_name = None, component_name = None):
   :param component_name: the component name, such as ZOOKEEPER_SERVER
   :return:  the packages to use with stack-select or None
   """
+  from resource_management.libraries.execution_command.execution_command import ExecutionCommand
   from resource_management.libraries.functions.default import default
 
   if scope not in _PACKAGE_SCOPES:
     raise Fail("The specified scope of {0} is not valid".format(scope))
 
   config = Script.get_config()
+  execution_command = Script.get_execution_command()
+  stack_settings = execution_command.get_stack_settings()
 
   if service_name is None or component_name is None:
     if 'role' not in config or 'serviceName' not in config:
       raise Fail("Both the role and the service name must be included in the command in order to determine which packages to use with the stack-select tool")
 
-    service_name = config['serviceName']
-    component_name = config['role']
+    service_name = execution_command.get_component_instance_name()
+    component_name = execution_command.get_component_type()
 
 
-  stack_name = default("/stackSettings/stack_name", None)
+  stack_name = stack_settings.get_mpack_name()
   if stack_name is None:
     raise Fail("The stack name is not present in the command. Packages for stack-select tool cannot be loaded.")
 
-  stack_packages_setting = stack_settings.get_stack_setting_value(stack_settings.STACK_PACKAGES_SETTING)
-  # TODO : Removed the below if of reading from cluster_env, once we have removed stack_packages from there
-  # and have started using /stackSettings as source of truth.
-  if stack_packages_setting is None:
-    Logger.debug("Couldn't retrieve 'stack_packages' from /stackSettings. Retrieving from cluster_env now.")
-    stack_packages_setting = default("/configurations/cluster-env/"+stack_settings.STACK_PACKAGES_SETTING, None)
-
+  stack_packages_setting = stack_settings.get_stack_packages()
   if stack_packages_setting is None:
     raise Fail("The stack packages are not defined on the command. Unable to load packages for the stack-select tool")
 
@@ -254,6 +252,7 @@ def get_packages(scope, service_name = None, component_name = None):
   return packages
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def select_all(version_to_select):
   """
   Executes <stack-selector-tool> on every component for the specified version. If the value passed in is a
@@ -276,6 +275,7 @@ def select_all(version_to_select):
   Execute(command, only_if = only_if_command)
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def select_packages(version):
   """
   Uses the command's service and role to determine the stack-select packages which need to be invoked.
@@ -286,7 +286,7 @@ def select_packages(version):
   """
   package_scope = PACKAGE_SCOPE_STANDARD
   orchestration = package_scope
-  summary = upgrade_summary.get_upgrade_summary()
+  summary = None
 
   if summary is not None:
     orchestration = summary.orchestration
@@ -308,6 +308,7 @@ def select_packages(version):
     select(stack_select_package_name, version)
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def select(component, version):
   """
   Executes <stack-selector-tool> on the specific component and version. Some global
@@ -337,7 +338,7 @@ def select(component, version):
       reload(module)
       Logger.info("After {0}, reloaded module {1}".format(command, moduleName))
 
-
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_role_component_current_stack_version():
   """
   Gets the current HDP version of the component that this role command is for.
@@ -371,7 +372,7 @@ def get_role_component_current_stack_version():
 
   return current_stack_version
 
-
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_hadoop_dir(target):
   """
   Return the hadoop shared directory which should be used for the command's component. The
@@ -409,6 +410,7 @@ def get_hadoop_dir(target):
   return hadoop_dir
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_hadoop_dir_for_stack_version(target, stack_version):
   """
   Return the hadoop shared directory for the provided stack version. This is necessary
@@ -430,6 +432,7 @@ def get_hadoop_dir_for_stack_version(target, stack_version):
   return hadoop_dir
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def _get_upgrade_stack():
   """
   Gets the stack name and stack version if an upgrade is currently in progress.
@@ -446,6 +449,7 @@ def _get_upgrade_stack():
 
   return None
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def unsafe_get_stack_versions():
   """
   Gets list of stack versions installed on the host.
@@ -461,24 +465,8 @@ def unsafe_get_stack_versions():
       versions.append(line.rstrip('\n'))
   return (code, out, versions)
 
-def get_stack_versions(stack_root):
-  """
-  Gets list of stack versions installed on the host.
-  By default a call to <stack-selector-tool> versions is made to get the list of installed stack versions.
-  As a fallback list of installed versions is collected from stack version directories in stack install root.
-  :param stack_root: Stack install root
-  :return: Returns list of installed stack versions.
-  """
-  stack_selector_path = stack_tools.get_stack_tool_path(stack_tools.STACK_SELECTOR_NAME)
-  code, out = call((STACK_SELECT_PREFIX, stack_selector_path, 'versions'))
-  versions = []
-  if 0 == code:
-    for line in out.splitlines():
-      versions.append(line.rstrip('\n'))
-  if not versions:
-    versions = get_versions_from_stack_root(stack_root)
-  return versions
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_stack_version_before_install(component_name):
   """
   Works in the similar way to '<stack-selector-tool> status component',

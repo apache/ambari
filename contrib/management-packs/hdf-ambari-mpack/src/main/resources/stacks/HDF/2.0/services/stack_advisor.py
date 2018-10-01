@@ -590,8 +590,8 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
 
     if 'cluster-env' in services['configurations'] and \
-        'metrics_collector_vip_host' in services['configurations']['cluster-env']['properties']:
-      metric_collector_host = services['configurations']['cluster-env']['properties']['metrics_collector_vip_host']
+        'metrics_collector_external_hosts' in services['configurations']['cluster-env']['properties']:
+      metric_collector_host = services['configurations']['cluster-env']['properties']['metrics_collector_external_hosts']
     else:
       metric_collector_host = 'localhost' if len(amsCollectorHosts) == 0 else amsCollectorHosts[0]
 
@@ -617,6 +617,7 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
       putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'true')
       putAmsSiteProperty("timeline.metrics.host.aggregator.ttl", 259200)
       putAmsHbaseSiteProperty("hbase.cluster.distributed", 'true')
+      putAmsHbaseSiteProperty("hbase.unsafe.stream.capability.enforce", 'true')
     else:
       putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'false')
       putAmsSiteProperty("timeline.metrics.host.aggregator.ttl", 86400)
@@ -1509,6 +1510,9 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
 
     if not mountPoints:
       return self.getErrorItem("No disk info found on host %s" % hostInfo["host_name"])
+
+    if mountPoint is None:
+      return self.getErrorItem("No mount point in directory %s. Mount points: %s" % (dir, ', '.join(mountPoints.keys())))
 
     if mountPoints[mountPoint] < reqiuredDiskSpace:
       msg = "Ambari Metrics disk space requirements not met. \n" \

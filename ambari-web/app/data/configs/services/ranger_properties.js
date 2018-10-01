@@ -18,48 +18,6 @@
 
 module.exports = [
   {
-    "category": "SolrKerberosSettings",
-    "filename": "ranger-admin-site.xml",
-    "name": "xasecure.audit.jaas.Client.option.principal",
-    "serviceName": "RANGER"
-  },
-  {
-    "category": "SolrKerberosSettings",
-    "filename": "ranger-admin-site.xml",
-    "name": "xasecure.audit.jaas.Client.option.keyTab",
-    "serviceName": "RANGER"
-  },
-  {
-    "category": "SolrKerberosSettings",
-    "filename": "ranger-admin-site.xml",
-    "name": "xasecure.audit.jaas.Client.loginModuleName",
-    "serviceName": "RANGER"
-  },
-  {
-    "category": "SolrKerberosSettings",
-    "filename": "ranger-admin-site.xml",
-    "name": "xasecure.audit.jaas.Client.loginModuleControlFlag",
-    "serviceName": "RANGER"
-  },
-  {
-    "category": "SolrKerberosSettings",
-    "filename": "ranger-admin-site.xml",
-    "name": "xasecure.audit.jaas.Client.option.useKeyTab",
-    "serviceName": "RANGER"
-  },
-  {
-    "category": "SolrKerberosSettings",
-    "filename": "ranger-admin-site.xml",
-    "name": "xasecure.audit.jaas.Client.option.storeKey",
-    "serviceName": "RANGER"
-  },
-  {
-    "category": "SolrKerberosSettings",
-    "filename": "ranger-admin-site.xml",
-    "name": "xasecure.audit.jaas.Client.option.serviceName",
-    "serviceName": "RANGER"
-  },
-  {
     "category": "RANGER_ADMIN",
     "filename": "ranger-env.xml",
     "index": 0,
@@ -120,7 +78,9 @@ module.exports = [
           "ranger.ldap.bind.dn",
           "ranger.ldap.bind.password",
           "ranger.ldap.referral",
-          "ranger.ldap.user.searchfilter"
+          "ranger.ldap.user.searchfilter",
+          "ranger.ldap.group.searchbase",
+          "ranger.ldap.group.searchfilter"
         ]
       },
       {
@@ -286,12 +246,14 @@ module.exports = [
     "category": "ADSettings",
     "filename": "ranger-admin-site.xml",
     "name": "ranger.ldap.ad.domain",
+    "index": 4,
     "serviceName": "RANGER"
   },
   {
     "category": "ADSettings",
     "filename": "ranger-admin-site.xml",
     "name": "ranger.ldap.ad.url",
+    "index": 1,
     "serviceName": "RANGER"
   },
   {
@@ -304,12 +266,14 @@ module.exports = [
     "category": "ADSettings",
     "filename": "ranger-admin-site.xml",
     "name": "ranger.ldap.ad.bind.dn",
+    "index": 2,
     "serviceName": "RANGER"
   },
   {
     "category": "ADSettings",
     "filename": "ranger-admin-site.xml",
     "name": "ranger.ldap.ad.bind.password",
+    "index": 3,
     "serviceName": "RANGER"
   },
   {

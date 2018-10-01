@@ -80,7 +80,7 @@ angular.module('ambariAdminConsole')
 
             RemoteCluster.edit(payload, config).then(function(data) {
                 Alert.success($t('views.alerts.credentialsUpdated'));
-                $scope.form.passwordChangeForm.$setPristine();
+                $scope.form.passwordChangeForm = {};
               })
               .catch(function(data) {
                 console.log(data);

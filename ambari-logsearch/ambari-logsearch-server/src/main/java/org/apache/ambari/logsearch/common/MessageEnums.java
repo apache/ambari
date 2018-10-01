@@ -35,6 +35,7 @@ public enum MessageEnums {
   SOLR_COLLECTION_NOT_READY("logsearch.solr.collection.error", "Solr has not accessible yet for collection."),
   CONFIGURATION_NOT_AVAILABLE("logsearch.config.not_available", "Log Search configuration is not available"),
   CONFIGURATION_API_DISABLED("logsearch.config.api.disabled", "Log Search configuration is not available"),
+  SOLR_CONFIGURATION_API_SOLR_NOT_AVAILEBLE("logsearch.config.api.solr.not.available", "Solr as log level filter manager source is not available"),
   // Common Validations
   INVALID_PASSWORD("logsearch.validation.invalid_password", "Invalid password"),
   INVALID_INPUT_DATA("logsearch.validation.invalid_input_data", "Invalid input data"),

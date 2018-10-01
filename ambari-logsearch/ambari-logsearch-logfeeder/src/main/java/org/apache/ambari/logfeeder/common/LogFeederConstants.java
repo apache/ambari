@@ -50,6 +50,7 @@ public class LogFeederConstants {
 
   public static final String LOG_FILTER_ENABLE_PROPERTY = "logfeeder.log.filter.enable";
   public static final String INCLUDE_DEFAULT_LEVEL_PROPERTY = "logfeeder.include.default.level";
+  public static final String SOLR_IMPLICIT_ROUTING_PROPERTY = "logfeeder.solr.implicit.routing";
 
   public static final String CONFIG_DIR_PROPERTY = "logfeeder.config.dir";
   public static final String CONFIG_FILES_PROPERTY = "logfeeder.config.files";
@@ -87,5 +88,23 @@ public class LogFeederConstants {
   public static final String CHECKPOINT_FOLDER_PROPERTY = "logfeeder.checkpoint.folder";
   public static final String CHECKPOINT_EXTENSION_PROPERTY = "logfeeder.checkpoint.extension";
   public static final String DEFAULT_CHECKPOINT_EXTENSION = ".cp";
+
+  public static final String DOCKER_CONTAINER_REGISTRY_ENABLED_PROPERTY = "logfeeder.docker.registry.enabled";
+  public static final boolean DOCKER_CONTAINER_REGISTRY_ENABLED_DEFAULT = false;
+
+  public static final String USE_LOCAL_CONFIGS_PROPERTY = "logfeeder.configs.local.enabled";
+  public static final boolean USE_LOCAL_CONFIGS_DEFAULT = false;
+
+  public static final String USE_SOLR_FILTER_STORAGE_PROPERTY = "logfeeder.configs.filter.solr.enabled";
+  public static final boolean USE_SOLR_FILTER_STORAGE_DEFAULT = false;
+
+  public static final String USE_ZK_FILTER_STORAGE_PROPERTY = "logfeeder.configs.filter.zk.enabled";
+  public static final boolean USE_ZK_FILTER_STORAGE_DEFAULT = false;
+
+  public static final String MONITOR_SOLR_FILTER_STORAGE_PROPERTY = "logfeeder.configs.filter.solr.monitor.enabled";
+  public static final boolean MONITOR_SOLR_FILTER_STORAGE_DEFAULT = true;
+
+  public static final String SOLR_ZK_CONNECTION_STRING = "logfeeder.solr.zk_connect_string";
+  public static final String SOLR_URLS = "logfeeder.solr.urls";
 
 }

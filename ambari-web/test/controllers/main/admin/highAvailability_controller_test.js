@@ -43,7 +43,7 @@ describe('App.MainAdminHighAvailabilityController', function () {
       App.router.transitionTo.restore();
       controller.showErrorPopup.restore();
       App.HostComponent.find.restore();
-      App.router.get.restore();
+      App.get.restore();
     });
 
     describe('NAMENODE in INSTALLED state', function () {
@@ -66,7 +66,7 @@ describe('App.MainAdminHighAvailabilityController', function () {
             workStatus: 'INSTALLED'
           })
         ];
-        sinon.stub(App.router, 'get', function() {
+        sinon.stub(App, 'get', function() {
           return 3;
         });
         this.result = controller.enableHighAvailability();
@@ -91,7 +91,7 @@ describe('App.MainAdminHighAvailabilityController', function () {
       ];
 
       beforeEach(function () {
-        sinon.stub(App.router, 'get', function(){
+        sinon.stub(App, 'get', function(){
           return 3;
         });
         this.result = controller.enableHighAvailability();
@@ -128,7 +128,7 @@ describe('App.MainAdminHighAvailabilityController', function () {
       ];
 
       beforeEach(function () {
-        sinon.stub(App.router, 'get', function () {
+        sinon.stub(App, 'get', function () {
           return 1;
         });
         this.result = controller.enableHighAvailability();
@@ -164,7 +164,7 @@ describe('App.MainAdminHighAvailabilityController', function () {
             workStatus: 'INSTALLED'
           })
         ];
-        sinon.stub(App.router, 'get', function() {
+        sinon.stub(App, 'get', function() {
           return 3;
         });
         this.result = controller.enableHighAvailability();

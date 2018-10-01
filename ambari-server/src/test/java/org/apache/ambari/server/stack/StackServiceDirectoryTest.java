@@ -44,7 +44,8 @@ public class StackServiceDirectoryTest {
     String pathWithValidChars = "/FakeStackName/1.0/services/FAKESERVICE/";
     String serviceNameInvalidChars = "Fake-Serv.ice";
 
-    String desiredServiceAdvisorName = "FakeStackName10FakeServiceServiceAdvisor";
+    // ambari 3.0 and beyond, no stack is used in serviceadvisor name
+    String desiredServiceAdvisorName = "FakeServiceServiceAdvisor";
 
     MockStackServiceDirectory ssd1 = createStackServiceDirectory(pathWithInvalidChars);
     assertEquals(desiredServiceAdvisorName, ssd1.getAdvisorName(serviceNameValidChars));

@@ -18,12 +18,12 @@
  */
 package org.apache.ambari.logsearch.story;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
+import java.util.List;
+
 import org.apache.ambari.logsearch.steps.LogSearchApiSteps;
-import org.apache.ambari.logsearch.steps.SolrSteps;
+import org.apache.ambari.logsearch.steps.LogSearchConfigApiSteps;
 import org.apache.ambari.logsearch.steps.LogSearchDockerSteps;
+import org.apache.ambari.logsearch.steps.SolrSteps;
 import org.jbehave.core.configuration.Configuration;
 import org.jbehave.core.configuration.MostUsefulConfiguration;
 import org.jbehave.core.junit.JUnitStories;
@@ -33,7 +33,9 @@ import org.jbehave.core.steps.InjectableStepsFactory;
 import org.jbehave.core.steps.InstanceStepsFactory;
 import org.junit.Test;
 
-import java.util.List;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
 
 public class LogSearchBackendStories extends JUnitStories {
 
@@ -53,7 +55,8 @@ public class LogSearchBackendStories extends JUnitStories {
     return new InstanceStepsFactory(configuration(),
       new LogSearchDockerSteps(),
       new SolrSteps(),
-      new LogSearchApiSteps());
+      new LogSearchApiSteps(),
+      new LogSearchConfigApiSteps());
   }
 
   @Test

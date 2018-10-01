@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.api.services.AdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.BlueprintConfigurations;
@@ -40,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -49,30 +51,20 @@ import com.google.inject.Singleton;
  * Generate advised configurations for blueprint cluster provisioning by the stack advisor.
  */
 @Singleton
-public class StackAdvisorBlueprintProcessor {
+public class StackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor {
 
   private static final Logger LOG = LoggerFactory.getLogger(StackAdvisorBlueprintProcessor.class);
 
   private static StackAdvisorHelper stackAdvisorHelper;
 
-  static final String RECOMMENDATION_FAILED = "Configuration recommendation failed.";
-  static final String INVALID_RESPONSE = "Configuration recommendation returned with invalid response.";
-
   public static void init(StackAdvisorHelper instance) {
     stackAdvisorHelper = instance;
   }
 
-  private static final Map<String, String> userContext;
-  static
-  {
-    userContext = new HashMap<>();
-    userContext.put("operation", "ClusterCreate");
-  }
+  private static final Map<String, String> userContext = ImmutableMap.of("operation", "ClusterCreate");
 
   /**
-   * Recommend configurations by the stack advisor, then store the results in cluster topology.
-   * @param clusterTopology cluster topology instance
-   * @param userProvidedConfigurations User configurations of cluster provided in Blueprint + Cluster template
+   * {@inheritDoc}
    */
   public void adviseConfiguration(ClusterTopology clusterTopology, Map<String, Map<String, String>> userProvidedConfigurations) throws ConfigurationTopologyException {
     for (StackId stackId : clusterTopology.getStackIds()) {

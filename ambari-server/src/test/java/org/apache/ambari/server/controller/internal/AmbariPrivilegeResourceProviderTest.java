@@ -290,42 +290,42 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     Map<Object, Resource> resourceMap = new HashMap<>();
 
     for (Resource resource : resources) {
-      resourceMap.put(resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_ID_PROPERTY_ID), resource);
+      resourceMap.put(resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_ID), resource);
     }
 
     Resource resource1 = resourceMap.get(31);
 
     Assert.assertEquals(6, resource1.getPropertiesMap().get("PrivilegeInfo").size());
-    Assert.assertEquals("AMBARI.ADMINISTRATOR", resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
-    Assert.assertEquals("Ambari Administrator", resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
-    Assert.assertEquals("joe", resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
-    Assert.assertEquals("USER", resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
-    Assert.assertEquals(31, resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_ID_PROPERTY_ID));
-    Assert.assertEquals("AMBARI", resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+    Assert.assertEquals("AMBARI.ADMINISTRATOR", resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME));
+    Assert.assertEquals("Ambari Administrator", resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL));
+    Assert.assertEquals("joe", resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME));
+    Assert.assertEquals("USER", resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE));
+    Assert.assertEquals(31, resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_ID));
+    Assert.assertEquals("AMBARI", resource1.getPropertyValue(AmbariPrivilegeResourceProvider.TYPE));
 
     Resource resource2 = resourceMap.get(32);
 
     Assert.assertEquals(7, resource2.getPropertiesMap().get("PrivilegeInfo").size());
-    Assert.assertEquals("CLUSTER.USER", resource2.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
-    Assert.assertEquals("Cluster User", resource2.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
-    Assert.assertEquals("jeff", resource2.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
-    Assert.assertEquals("USER", resource2.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
-    Assert.assertEquals(32, resource2.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_ID_PROPERTY_ID));
-    Assert.assertEquals("cluster1", resource2.getPropertyValue(ClusterPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID));
-    Assert.assertEquals("CLUSTER", resource2.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+    Assert.assertEquals("CLUSTER.USER", resource2.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME));
+    Assert.assertEquals("Cluster User", resource2.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL));
+    Assert.assertEquals("jeff", resource2.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME));
+    Assert.assertEquals("USER", resource2.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE));
+    Assert.assertEquals(32, resource2.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_ID));
+    Assert.assertEquals("cluster1", resource2.getPropertyValue(ClusterPrivilegeResourceProvider.CLUSTER_NAME));
+    Assert.assertEquals("CLUSTER", resource2.getPropertyValue(AmbariPrivilegeResourceProvider.TYPE));
 
     Resource resource3 = resourceMap.get(33);
 
     Assert.assertEquals(9, resource3.getPropertiesMap().get("PrivilegeInfo").size());
-    Assert.assertEquals("VIEW.USER", resource3.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
-    Assert.assertEquals("View User", resource3.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
-    Assert.assertEquals("bob", resource3.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
-    Assert.assertEquals("USER", resource3.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
-    Assert.assertEquals(33, resource3.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_ID_PROPERTY_ID));
-    Assert.assertEquals("view", resource3.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID));
-    Assert.assertEquals("1.0.1", resource3.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID));
-    Assert.assertEquals("inst1", resource3.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID));
-    Assert.assertEquals("VIEW", resource3.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+    Assert.assertEquals("VIEW.USER", resource3.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME));
+    Assert.assertEquals("View User", resource3.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL));
+    Assert.assertEquals("bob", resource3.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME));
+    Assert.assertEquals("USER", resource3.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE));
+    Assert.assertEquals(33, resource3.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_ID));
+    Assert.assertEquals("view", resource3.getPropertyValue(ViewPrivilegeResourceProvider.VIEW_NAME));
+    Assert.assertEquals("1.0.1", resource3.getPropertyValue(ViewPrivilegeResourceProvider.VERSION));
+    Assert.assertEquals("inst1", resource3.getPropertyValue(ViewPrivilegeResourceProvider.INSTANCE_NAME));
+    Assert.assertEquals("VIEW", resource3.getPropertyValue(AmbariPrivilegeResourceProvider.TYPE));
 
     verifyAll();
   }
@@ -365,7 +365,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     AmbariPrivilegeResourceProvider provider = new AmbariPrivilegeResourceProvider();
     Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, roleEntities, resourceEntities, provider.getPropertyIds());
 
-    Assert.assertEquals(ResourceType.AMBARI.name(), resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+    Assert.assertEquals(ResourceType.AMBARI.name(), resource.getPropertyValue(AmbariPrivilegeResourceProvider.TYPE));
 
     verify(permissionEntity, principalTypeEntity, principalEntity, resourceTypeEntity, resourceEntity, privilegeEntity);
   }
@@ -411,8 +411,8 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     AmbariPrivilegeResourceProvider provider = new AmbariPrivilegeResourceProvider();
     Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, roleEntities, resourceEntities, provider.getPropertyIds());
 
-    Assert.assertEquals("TestCluster", resource.getPropertyValue(ClusterPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID));
-    Assert.assertEquals(ResourceType.CLUSTER.name(), resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+    Assert.assertEquals("TestCluster", resource.getPropertyValue(ClusterPrivilegeResourceProvider.CLUSTER_NAME));
+    Assert.assertEquals(ResourceType.CLUSTER.name(), resource.getPropertyValue(AmbariPrivilegeResourceProvider.TYPE));
 
     verify(permissionEntity, principalTypeEntity, principalEntity, resourceTypeEntity, clusterEntity, resourceEntity, privilegeEntity);
   }
@@ -463,10 +463,10 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     AmbariPrivilegeResourceProvider provider = new AmbariPrivilegeResourceProvider();
     Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, roleEntities, resourceEntities, provider.getPropertyIds());
 
-    Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID));
-    Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID));
-    Assert.assertEquals("1.2.3.4", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID));
-    Assert.assertEquals(ResourceType.VIEW.name(), resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+    Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.INSTANCE_NAME));
+    Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.VIEW_NAME));
+    Assert.assertEquals("1.2.3.4", resource.getPropertyValue(ViewPrivilegeResourceProvider.VERSION));
+    Assert.assertEquals(ResourceType.VIEW.name(), resource.getPropertyValue(AmbariPrivilegeResourceProvider.TYPE));
 
     verify(permissionEntity, principalTypeEntity, principalEntity, resourceTypeEntity, viewInstanceEntity, viewEntity, resourceEntity, privilegeEntity);
   }
@@ -517,10 +517,10 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     AmbariPrivilegeResourceProvider provider = new AmbariPrivilegeResourceProvider();
     Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, roleEntities, resourceEntities, provider.getPropertyIds());
 
-    Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID));
-    Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID));
-    Assert.assertEquals("1.2.3.4", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID));
-    Assert.assertEquals(ResourceType.VIEW.name(), resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+    Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.INSTANCE_NAME));
+    Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.VIEW_NAME));
+    Assert.assertEquals("1.2.3.4", resource.getPropertyValue(ViewPrivilegeResourceProvider.VERSION));
+    Assert.assertEquals(ResourceType.VIEW.name(), resource.getPropertyValue(AmbariPrivilegeResourceProvider.TYPE));
 
     verify(permissionEntity, principalTypeEntity, principalEntity, resourceTypeEntity, viewInstanceEntity, viewEntity, resourceEntity, privilegeEntity);
   }
@@ -572,9 +572,9 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<>();
-    properties.put(PrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID, "CLUSTER.OPERATOR");
-    properties.put(PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID, "User1");
-    properties.put(PrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID, "USER");
+    properties.put(PrivilegeResourceProvider.PERMISSION_NAME, "CLUSTER.OPERATOR");
+    properties.put(PrivilegeResourceProvider.PRINCIPAL_NAME, "User1");
+    properties.put(PrivilegeResourceProvider.PRINCIPAL_TYPE, "USER");
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);
@@ -626,10 +626,10 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
     Resource resource = resources.iterator().next();
 
-    Assert.assertEquals("AMBARI.ADMINISTRATOR", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
-    Assert.assertEquals("Ambari Administrator", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
-    Assert.assertEquals("User1", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
-    Assert.assertEquals("USER", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
+    Assert.assertEquals("AMBARI.ADMINISTRATOR", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME));
+    Assert.assertEquals("Ambari Administrator", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL));
+    Assert.assertEquals("User1", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME));
+    Assert.assertEquals("USER", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE));
 
     verifyAll();
   }
@@ -679,10 +679,10 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
     Resource resource = resources.iterator().next();
 
-    Assert.assertEquals("CLUSTER.OPERATOR", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
-    Assert.assertEquals("Cluster Operator", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
-    Assert.assertEquals(requestedUsername, resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
-    Assert.assertEquals("USER", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
+    Assert.assertEquals("CLUSTER.OPERATOR", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME));
+    Assert.assertEquals("Cluster Operator", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL));
+    Assert.assertEquals(requestedUsername, resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME));
+    Assert.assertEquals("USER", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE));
 
     verifyAll();
   }
@@ -743,9 +743,9 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<>();
-    properties.put(PrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID, "CLUSTER.OPERATOR");
-    properties.put(PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID, requestedUsername);
-    properties.put(PrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID, "USER");
+    properties.put(PrivilegeResourceProvider.PERMISSION_NAME, "CLUSTER.OPERATOR");
+    properties.put(PrivilegeResourceProvider.PRINCIPAL_NAME, requestedUsername);
+    properties.put(PrivilegeResourceProvider.PRINCIPAL_TYPE, "USER");
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);
@@ -792,7 +792,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
   private Predicate createPredicate(Long id) {
     return new PredicateBuilder()
-        .property(AmbariPrivilegeResourceProvider.PRIVILEGE_ID_PROPERTY_ID)
+        .property(AmbariPrivilegeResourceProvider.PRIVILEGE_ID)
         .equals(id)
         .toPredicate();
   }

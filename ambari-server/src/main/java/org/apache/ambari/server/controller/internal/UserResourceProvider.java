@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.text.NumberFormat;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -692,7 +693,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
         userEntity.getActive(),
         isAdmin,
         userEntity.getConsecutiveFailures(),
-        userEntity.getCreateTime());
+        new Date(userEntity.getCreateTime()));
     userResponse.setGroups(groups);
     return userResponse;
   }

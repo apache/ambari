@@ -68,7 +68,7 @@ public class HostEventCreatorTest extends AuditEventCreatorTestBase{
 
     Set<Map<String,String>> set = new HashSet<>();
     Map<String,String> map = new HashMap<>();
-    map.put(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "MYCOMPONENT");
+    map.put(HostComponentResourceProvider.COMPONENT_NAME, "MYCOMPONENT");
     set.add(map);
 
     properties.put("host_components", set);

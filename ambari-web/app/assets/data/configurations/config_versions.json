@@ -1764,7 +1764,8 @@
             "yarn.timeline-service.ttl-enable" : "true",
             "yarn.timeline-service.ttl-ms" : "2678400000",
             "yarn.timeline-service.webapp.address" : "c6402.ambari.apache.org:8188",
-            "yarn.timeline-service.webapp.https.address" : "c6402.ambari.apache.org:8190"
+            "yarn.timeline-service.webapp.https.address" : "c6402.ambari.apache.org:8190",
+            "yarn.service.framework.path" : "/hdp/apps/${hdp.version}/yarn/service-dep.tar.gz"
           },
           "properties_attributes" : { }
         },

@@ -21,7 +21,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.apache.ambari.server.events.TopologyUpdateEvent;
+import org.apache.ambari.server.events.UpdateEventType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.SetUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -44,14 +45,14 @@ public class TopologyCluster {
   }
 
   public boolean update(Set<TopologyComponent> componentsToUpdate, Set<TopologyHost> hostsToUpdate,
-                     TopologyUpdateEvent.EventType eventType) {
+                     UpdateEventType eventType) {
     boolean changed = false;
     for (TopologyComponent componentToUpdate : componentsToUpdate) {
       boolean isPresent = false;
       for (Iterator<TopologyComponent> iter = getTopologyComponents().iterator(); iter.hasNext() && !isPresent; ) {
         TopologyComponent existsComponent = iter.next();
         if (existsComponent.equals(componentToUpdate)) {
-          if (eventType.equals(TopologyUpdateEvent.EventType.DELETE)) {
+          if (eventType.equals(UpdateEventType.DELETE)) {
             if (SetUtils.isEqualSet(existsComponent.getHostIds(), componentToUpdate.getHostIds())) {
               iter.remove();
               changed = true;
@@ -64,7 +65,7 @@ public class TopologyCluster {
           isPresent = true;
         }
       }
-      if (!isPresent && eventType.equals(TopologyUpdateEvent.EventType.UPDATE)) {
+      if (!isPresent && eventType.equals(UpdateEventType.UPDATE)) {
         getTopologyComponents().add(componentToUpdate);
         changed = true;
       }
@@ -74,7 +75,7 @@ public class TopologyCluster {
       for (Iterator<TopologyHost> iter = getTopologyHosts().iterator(); iter.hasNext() && !isPresent; ) {
         TopologyHost existsHost = iter.next();
         if (existsHost.equals(hostToUpdate)) {
-          if (eventType.equals(TopologyUpdateEvent.EventType.DELETE)) {
+          if (eventType.equals(UpdateEventType.DELETE)) {
             iter.remove();
             changed = true;
           } else {
@@ -83,7 +84,7 @@ public class TopologyCluster {
           isPresent = true;
         }
       }
-      if (!isPresent && eventType.equals(TopologyUpdateEvent.EventType.UPDATE)) {
+      if (!isPresent && eventType.equals(UpdateEventType.UPDATE)) {
         getTopologyHosts().add(hostToUpdate);
         changed = true;
       }
@@ -108,13 +109,19 @@ public class TopologyCluster {
   }
 
   public TopologyCluster deepCopyCluster() {
-    Set<TopologyComponent> copiedComponents = new HashSet<>();
-    for (TopologyComponent topologyComponent : topologyComponents) {
-      copiedComponents.add(topologyComponent.deepCopy());
+    Set<TopologyComponent> copiedComponents = null;
+    if (CollectionUtils.isNotEmpty(topologyComponents)) {
+      copiedComponents = new HashSet<>();
+      for (TopologyComponent topologyComponent : topologyComponents) {
+        copiedComponents.add(topologyComponent.deepCopy());
+      }
     }
-    Set<TopologyHost> copiedHosts = new HashSet<>();
-    for (TopologyHost topologyHost : topologyHosts) {
-      copiedHosts.add(topologyHost.deepCopy());
+    Set<TopologyHost> copiedHosts = null;
+    if (CollectionUtils.isNotEmpty(topologyHosts)) {
+      copiedHosts = new HashSet<>();
+      for (TopologyHost topologyHost : topologyHosts) {
+        copiedHosts.add(topologyHost.deepCopy());
+      }
     }
     return new TopologyCluster(copiedComponents, copiedHosts);
   }

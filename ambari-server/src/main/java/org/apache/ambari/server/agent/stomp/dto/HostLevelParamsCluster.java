@@ -18,7 +18,11 @@
 package org.apache.ambari.server.agent.stomp.dto;
 
 
+import java.util.Map;
+import java.util.SortedMap;
+
 import org.apache.ambari.server.agent.RecoveryConfig;
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,24 +36,34 @@ public class HostLevelParamsCluster {
   @JsonProperty("recoveryConfig")
   private RecoveryConfig recoveryConfig;
 
-  public HostLevelParamsCluster(HostRepositories hostRepositories, RecoveryConfig recoveryConfig) {
+  @JsonProperty("blueprint_provisioning_state")
+  private Map<String, BlueprintProvisioningState> blueprintProvisioningState;
+
+  @JsonProperty("stacksSettings")
+  private SortedMap<Long, SortedMap<String, String>> stacksSettings;
+
+  public HostLevelParamsCluster(HostRepositories hostRepositories, RecoveryConfig recoveryConfig,
+        Map<String, BlueprintProvisioningState> blueprintProvisioningState,
+                                SortedMap<Long, SortedMap<String, String>> stacksSettings) {
     this.hostRepositories = hostRepositories;
     this.recoveryConfig = recoveryConfig;
+    this.blueprintProvisioningState = blueprintProvisioningState;
+    this.stacksSettings = stacksSettings;
   }
 
   public HostRepositories getHostRepositories() {
     return hostRepositories;
   }
 
-  public void setHostRepositories(HostRepositories hostRepositories) {
-    this.hostRepositories = hostRepositories;
-  }
-
   public RecoveryConfig getRecoveryConfig() {
     return recoveryConfig;
   }
 
-  public void setRecoveryConfig(RecoveryConfig recoveryConfig) {
-    this.recoveryConfig = recoveryConfig;
+  public SortedMap<Long, SortedMap<String, String>> getStacksSettings() {
+    return stacksSettings;
+  }
+
+  public Map<String, BlueprintProvisioningState> getBlueprintProvisioningState() {
+    return blueprintProvisioningState;
   }
 }

@@ -38,10 +38,7 @@ App.MainHostDetailsView = Em.View.extend({
 
   hasManyClientsWithConfigs: Em.computed.gt('clientsWithConfigs.length', 1),
 
-  isActive: Em.computed.equal('controller.content.passiveState', 'OFF'),
-
   maintenance: function () {
-    var onOff = this.get('isActive') ? "On" : "Off";
     var result = [];
     if (App.isAuthorized("SERVICE.START_STOP")) {
       result = result.concat([
@@ -76,11 +73,11 @@ App.MainHostDetailsView = Em.View.extend({
         action: 'onOffPassiveModeForHost',
         liClass: '',
         cssClass: 'icon-medkit',
-        active: this.get('isActive'),
-        label: this.t('passiveState.turn' + onOff)
+        active: this.get('controller.content.isActive'),
+        label: this.t('passiveState.turn' + (this.get('controller.content.isActive') ? "On" : "Off"))
       });
     }
-    if (App.get('isKerberosEnabled')){
+    if (App.get('isKerberosEnabled') && App.get('supports.regenerateKeytabsOnSingleHost')){
       var actionMap = App.HostComponentActionMap.getMap(this);
       result.push(actionMap.REGENERATE_KEYTAB_FILE_OPERATIONS);
     }    
@@ -99,7 +96,7 @@ App.MainHostDetailsView = Em.View.extend({
       label: this.t('host.host.details.checkHost')
     });
     return result;
-  }.property('controller.content', 'isActive', 'controller.content.isNotHeartBeating'),
+  }.property('controller.content', 'controller.content.isActive', 'controller.content.isNotHeartBeating'),
 
   didInsertElement: function () {
     var self = this;

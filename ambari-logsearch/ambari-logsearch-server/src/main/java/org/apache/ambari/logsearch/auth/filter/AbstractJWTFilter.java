@@ -86,20 +86,19 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
         .setSigningKey(parseRSAPublicKey(getPublicKey()))
         .parseClaimsJws(getJWTFromCookie(request))
         .getBody();
-
       String userName  = claims.getSubject();
       LOG.info("USERNAME: " + userName);
       LOG.info("URL = " + request.getRequestURL());
       if (StringUtils.isNotEmpty(claims.getAudience()) && !getAudiences().contains(claims.getAudience())) {
         throw new IllegalArgumentException(String.format("Audience validation failed. (Not found: %s)", claims.getAudience()));
       }
-      Authentication authentication = new JWTAuthenticationToken(userName, getPublicKey(), getAuthorities());
+      Authentication authentication = new JWTAuthenticationToken(userName, getPublicKey(), getAuthorities(userName));
       authentication.setAuthenticated(true);
       SecurityContextHolder.getContext().setAuthentication(authentication);
       return authentication;
     } catch (ExpiredJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
       LOG.info("URL = " + request.getRequestURL());
-      LOG.warn("Error during JWT authentication: ", e.getMessage());
+      LOG.warn("Error during JWT authentication: {}", e.getMessage());
       throw new BadCredentialsException(e.getMessage(), e);
     }
   }
@@ -119,9 +118,9 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
     super.successfulAuthentication(request, response, chain, authResult);
     String ajaxRequestHeader = request.getHeader("X-Requested-With");
     if (isWebUserAgent(request.getHeader("User-Agent")) && !"XMLHttpRequest".equals(ajaxRequestHeader)) {
-      response.sendRedirect(createForwardableURL(request) + getOriginalQueryString(request));
+      chain.doFilter(request, response);
+      //response.sendRedirect(createForwardableURL(request) + getOriginalQueryString(request));
     }
-    // chain.doFilter(request, response); TODO: check
   }
 
   @Override
@@ -129,6 +128,9 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
     super.unsuccessfulAuthentication(request, response, failed);
     String ajaxRequestHeader = request.getHeader("X-Requested-With");
     String loginUrl = constructLoginURL(request);
+    if (loginUrl.endsWith("?doAs=anonymous")) { // HACK! - use proper solution, investigate which filter changes ? to &
+      loginUrl = StringUtils.removeEnd(loginUrl, "?doAs=anonymous");
+    }
     if (!isWebUserAgent(request.getHeader("User-Agent")) || "XMLHttpRequest".equals(ajaxRequestHeader)) {
       Map<String, String> mapObj = new HashMap<>();
       mapObj.put("knoxssoredirectURL", URLEncoder.encode(loginUrl, "UTF-8"));
@@ -245,7 +247,7 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
 
   protected abstract List<String> getAudiences();
 
-  protected abstract Collection<? extends GrantedAuthority> getAuthorities();
+  protected abstract Collection<? extends GrantedAuthority> getAuthorities(String username);
 
   protected abstract List<String> getUserAgentList();
 

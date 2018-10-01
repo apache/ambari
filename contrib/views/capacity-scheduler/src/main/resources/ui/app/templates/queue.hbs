@@ -416,6 +416,74 @@
                 {{/if}}
               </div>
             {{/if}}
+            {{#if content.isLeafQ}}
+                <div class="form-group">
+                    {{tooltip-label
+                            class="col-xs-6 control-label"
+                            label='Maximum Application Lifetime '
+                            message='Maximum lifetime of an application which is submitted to a queue in seconds.Any value less than or equal to zero will be considered as disabled.<br/> If positive value is configured then any application submitted to this queue will be killed after exceeds the configured lifetime'}}
+                    {{#if isOperator}}
+                        <div class="col-xs-6 control-value input-percent-wrap">
+                            <div>
+                                <div class="input-group input-percent">
+                                    {{int-input value=content.maximum_application_lifetime class="input-sm input-int"
+                                                placeholder="-1"}}
+                                    <span class="input-group-addon">sec</span>
+                                </div>
+                            </div>
+                            {{#if queueDirtyFilelds.maximum_application_lifetime}}
+                                <div class="btn-group btn-group-xs">
+                                    <a {{action 'rollbackProp' 'maximum_application_lifetime' content}} href="#"
+                                                                                                        class="btn btn-default btn-warning"><i
+                                            class="fa fa-undo"></i></a>
+                                </div>
+                            {{/if}}
+                        </div>
+                    {{else}}
+                        <div class="col-xs-6">
+                            {{#if content.maximum_application_lifetime}}
+                                <p class="form-control-static">{{content.maximum_application_lifetime}} sec</p>
+                            {{else}}
+                                <p class="form-control-static">-1</p>
+                            {{/if}}
+                        </div>
+                    {{/if}}
+                </div>
+            {{/if}}
+              {{#if content.isLeafQ}}
+                  <div class="form-group">
+                      {{tooltip-label
+                              class="col-xs-6 control-label"
+                              label='Default Application Lifetime '
+                              message='Default lifetime of an application which is submitted to a queue in seconds. Any value less than or equal to zero will be considered as disabled.<br/>  If the user has not submitted application with lifetime value then this value will be taken.'}}
+                      {{#if isOperator}}
+                          <div class="col-xs-6 control-value input-percent-wrap">
+                              <div>
+                                  <div class="input-group input-percent">
+                                      {{int-input value=content.default_application_lifetime class="input-sm input-int"
+                                                  placeholder="-1"}}
+                                      <span class="input-group-addon">sec</span>
+                                  </div>
+                              </div>
+                              {{#if queueDirtyFilelds.default_application_lifetime}}
+                                  <div class="btn-group btn-group-xs">
+                                      <a {{action 'rollbackProp' 'default_application_lifetime' content}} href="#"
+                                                                                                          class="btn btn-default btn-warning"><i
+                                              class="fa fa-undo"></i></a>
+                                  </div>
+                              {{/if}}
+                          </div>
+                      {{else}}
+                          <div class="col-xs-6">
+                              {{#if content.default_application_lifetime}}
+                                  <p class="form-control-static">{{content.default_application_lifetime}} sec</p>
+                              {{else}}
+                                  <p class="form-control-static">-1</p>
+                              {{/if}}
+                          </div>
+                      {{/if}}
+                  </div>
+              {{/if}}
             {{#if isFairOP}}
               <div class="form-group">
                 {{tooltip-label
@@ -456,6 +524,64 @@
                   {{/if}}
               </div>
             {{/if}}
+              <div class="form-group">
+                  {{tooltip-label
+                          class="col-xs-6 control-label"
+                          label='Maximum Allocation Vcores'
+                          message='The per queue maximum limit of virtual cores to allocate to each container request at the Resource Manager.'
+                  }}
+                  {{#if isOperator}}
+                      <div class="col-xs-6 control-value">
+                          {{int-input value=content.maximum_allocation_vcores class="input-sm input-int" placeholder="Inherited"}}
+                          {{#if queueDirtyFilelds.maximum_allocation_vcores}}
+                              <div class="btn-group btn-group-xs" >
+                                  <a {{action 'rollbackProp' 'maximum_allocation_vcores' content}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+                              </div>
+                          {{/if}}
+                      </div>
+                  {{else}}
+                      <div class="col-xs-6">
+                          {{#if content.maximum_allocation_vcores}}
+                              <p class="form-control-static">{{content.maximum_allocation_vcores}}</p>
+                          {{else}}
+                              <p class="form-control-static">Inherited</p>
+                          {{/if}}
+                      </div>
+                  {{/if}}
+              </div>
+              <div class="form-group">
+                  {{tooltip-label
+                          class="col-xs-6 control-label"
+                          label='Maximum Allocation Mb'
+                          message='The per queue maximum limit of memory to allocate to each container request at the Resource Manager.'
+                  }}
+                  {{#if isOperator}}
+                      <div class="col-xs-6 control-value input-percent-wrap">
+                          <div>
+                              <div class="input-group input-percent">
+                                  {{int-input value=content.maximum_allocation_mb class="input-sm input-int"
+                                              placeholder="Inherited"}}
+                                  <span class="input-group-addon">MB</span>
+                              </div>
+                          </div>
+                          {{#if queueDirtyFilelds.maximum_allocation_mb}}
+                              <div class="btn-group btn-group-xs">
+                                  <a {{action 'rollbackProp' 'maximum_allocation_mb' content}} href="#"
+                                                                                               class="btn btn-default btn-warning"><i
+                                          class="fa fa-undo"></i></a>
+                              </div>
+                          {{/if}}
+                      </div>
+                  {{else}}
+                      <div class="col-xs-6">
+                          {{#if content.maximum_allocation_mb}}
+                              <p class="form-control-static">{{content.maximum_allocation_mb}} MB</p>
+                          {{else}}
+                              <p class="form-control-static">Inherited</p>
+                          {{/if}}
+                      </div>
+                  {{/if}}
+              </div>
           </form>
         </div>
       </div>

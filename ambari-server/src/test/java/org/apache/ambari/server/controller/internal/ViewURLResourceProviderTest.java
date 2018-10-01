@@ -74,8 +74,8 @@ public class ViewURLResourceProviderTest {
   public void testToResource() throws Exception {
     ViewURLResourceProvider provider = new ViewURLResourceProvider();
     Set<String> propertyIds = new HashSet<>();
-    propertyIds.add(ViewURLResourceProvider.URL_NAME_PROPERTY_ID);
-    propertyIds.add(ViewURLResourceProvider.URL_SUFFIX_PROPERTY_ID);
+    propertyIds.add(ViewURLResourceProvider.URL_NAME);
+    propertyIds.add(ViewURLResourceProvider.URL_SUFFIX);
     ViewURLEntity viewURLEntity = createNiceMock(ViewURLEntity.class);
 
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
@@ -91,11 +91,11 @@ public class ViewURLResourceProviderTest {
     replay(viewURLEntity, viewEntity, viewInstanceEntity);
 
     Resource resource = provider.toResource(viewURLEntity);
-    assertEquals(resource.getPropertyValue(ViewURLResourceProvider.URL_NAME_PROPERTY_ID),"test");
-    assertEquals(resource.getPropertyValue(ViewURLResourceProvider.URL_SUFFIX_PROPERTY_ID),"url");
-    assertEquals(resource.getPropertyValue(ViewURLResourceProvider.VIEW_INSTANCE_NAME_PROPERTY_ID),"test");
-    assertEquals(resource.getPropertyValue(ViewURLResourceProvider.VIEW_INSTANCE_VERSION_PROPERTY_ID),"1.0.0");
-    assertEquals(resource.getPropertyValue(ViewURLResourceProvider.VIEW_INSTANCE_COMMON_NAME_PROPERTY_ID),"FILES");
+    assertEquals(resource.getPropertyValue(ViewURLResourceProvider.URL_NAME),"test");
+    assertEquals(resource.getPropertyValue(ViewURLResourceProvider.URL_SUFFIX),"url");
+    assertEquals(resource.getPropertyValue(ViewURLResourceProvider.VIEW_INSTANCE_NAME),"test");
+    assertEquals(resource.getPropertyValue(ViewURLResourceProvider.VIEW_INSTANCE_VERSION),"1.0.0");
+    assertEquals(resource.getPropertyValue(ViewURLResourceProvider.VIEW_INSTANCE_COMMON_NAME),"FILES");
     verify(viewURLEntity,viewInstanceEntity,viewEntity);
   }
 
@@ -125,11 +125,11 @@ public class ViewURLResourceProviderTest {
     setDao(ViewURLResourceProvider.class.getDeclaredField("viewURLDAO"), viewURLDAO);
     Set<Map<String, Object>> properties = new HashSet<>();
     Map<String, Object> propertyMap = new HashMap<>();
-    propertyMap.put(ViewURLResourceProvider.URL_NAME_PROPERTY_ID,"test");
-    propertyMap.put(ViewURLResourceProvider.URL_SUFFIX_PROPERTY_ID,"suffix");
-    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_COMMON_NAME_PROPERTY_ID,"FILES");
-    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_NAME_PROPERTY_ID,"test");
-    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_VERSION_PROPERTY_ID,"1.0.0");
+    propertyMap.put(ViewURLResourceProvider.URL_NAME,"test");
+    propertyMap.put(ViewURLResourceProvider.URL_SUFFIX,"suffix");
+    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_COMMON_NAME,"FILES");
+    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_NAME,"test");
+    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_VERSION,"1.0.0");
 
     expect(viewregistry.getInstanceDefinition("FILES","1.0.0","test")).andReturn(viewInstanceEntity);
     expect(viewregistry.getDefinition("FILES","1.0.0")).andReturn(viewEntity);
@@ -140,6 +140,7 @@ public class ViewURLResourceProviderTest {
     expect(viewInstanceEntity.getName()).andReturn("test").once();
     expect(viewInstanceEntity.getViewUrl()).andReturn(null).once();
     expect(viewURLDAO.findByName("test")).andReturn(Optional.absent());
+    expect(viewURLDAO.findBySuffix("suffix")).andReturn(Optional.absent());
     Capture<ViewURLEntity> urlEntityCapture = newCapture();
     viewURLDAO.save(capture(urlEntityCapture));
     viewregistry.updateViewInstance(viewInstanceEntity);
@@ -160,7 +161,7 @@ public class ViewURLResourceProviderTest {
   }
 
   @Test(expected = org.apache.ambari.server.controller.spi.SystemException.class)
-  public void testCreateResources_existingUrl() throws Exception {
+  public void testCreateResources_existingUrlName() throws Exception {
     ViewInstanceEntity viewInstanceEntity = createNiceMock(ViewInstanceEntity.class);
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
     ViewURLResourceProvider provider = new ViewURLResourceProvider();
@@ -169,11 +170,11 @@ public class ViewURLResourceProviderTest {
     setDao(ViewURLResourceProvider.class.getDeclaredField("viewURLDAO"), viewURLDAO);
     Set<Map<String, Object>> properties = new HashSet<>();
     Map<String, Object> propertyMap = new HashMap<>();
-    propertyMap.put(ViewURLResourceProvider.URL_NAME_PROPERTY_ID,"test");
-    propertyMap.put(ViewURLResourceProvider.URL_SUFFIX_PROPERTY_ID,"suffix");
-    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_COMMON_NAME_PROPERTY_ID,"FILES");
-    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_NAME_PROPERTY_ID,"test");
-    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_VERSION_PROPERTY_ID,"1.0.0");
+    propertyMap.put(ViewURLResourceProvider.URL_NAME,"test");
+    propertyMap.put(ViewURLResourceProvider.URL_SUFFIX,"suffix");
+    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_COMMON_NAME,"FILES");
+    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_NAME,"test");
+    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_VERSION,"1.0.0");
 
     expect(viewregistry.getInstanceDefinition("FILES","1.0.0","test")).andReturn(viewInstanceEntity);
     expect(viewregistry.getDefinition("FILES","1.0.0")).andReturn(viewEntity);
@@ -191,6 +192,38 @@ public class ViewURLResourceProviderTest {
 
   }
 
+  @Test(expected = org.apache.ambari.server.controller.spi.SystemException.class)
+  public void testCreateResources_existingUrlSuffix() throws Exception {
+    ViewInstanceEntity viewInstanceEntity = createNiceMock(ViewInstanceEntity.class);
+    ViewEntity viewEntity = createNiceMock(ViewEntity.class);
+    ViewURLResourceProvider provider = new ViewURLResourceProvider();
+
+    ViewURLDAO viewURLDAO = createNiceMock(ViewURLDAO.class);
+    setDao(ViewURLResourceProvider.class.getDeclaredField("viewURLDAO"), viewURLDAO);
+    Set<Map<String, Object>> properties = new HashSet<>();
+    Map<String, Object> propertyMap = new HashMap<>();
+    propertyMap.put(ViewURLResourceProvider.URL_NAME,"test");
+    propertyMap.put(ViewURLResourceProvider.URL_SUFFIX,"suffix");
+    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_COMMON_NAME,"FILES");
+    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_NAME,"test");
+    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_VERSION,"1.0.0");
+
+    expect(viewregistry.getInstanceDefinition("FILES","1.0.0","test")).andReturn(viewInstanceEntity);
+    expect(viewregistry.getDefinition("FILES","1.0.0")).andReturn(viewEntity);
+    expect(viewInstanceEntity.getViewEntity()).andReturn(viewEntity).once();
+    expect(viewEntity.getCommonName()).andReturn("FILES").once();
+    expect(viewEntity.isDeployed()).andReturn(true).once();
+    expect(viewEntity.getVersion()).andReturn("1.0.0").once();
+    expect(viewInstanceEntity.getName()).andReturn("test").once();
+    expect(viewInstanceEntity.getViewUrl()).andReturn(null).once();
+    expect(viewURLDAO.findByName("test")).andReturn(Optional.absent());
+    expect(viewURLDAO.findBySuffix("suffix")).andReturn(Optional.of(new ViewURLEntity()));
+    replay(viewregistry,viewEntity,viewInstanceEntity,viewURLDAO);
+    properties.add(propertyMap);
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+    provider.createResources(PropertyHelper.getCreateRequest(properties, null));
+  }
+
 
   @Test
   public void testUpdateResources() throws Exception {
@@ -203,8 +236,8 @@ public class ViewURLResourceProviderTest {
     setDao(ViewURLResourceProvider.class.getDeclaredField("viewURLDAO"), viewURLDAO);
     Set<Map<String, Object>> properties = new HashSet<>();
     Map<String, Object> propertyMap = new HashMap<>();
-    propertyMap.put(ViewURLResourceProvider.URL_NAME_PROPERTY_ID,"test");
-    propertyMap.put(ViewURLResourceProvider.URL_SUFFIX_PROPERTY_ID,"suffix2");
+    propertyMap.put(ViewURLResourceProvider.URL_NAME,"test");
+    propertyMap.put(ViewURLResourceProvider.URL_SUFFIX,"suffix2");
 
     expect(viewURLDAO.findByName("test")).andReturn(Optional.of(viewURLEntity));
     expect(viewURLEntity.getViewInstanceEntity()).andReturn(viewInstanceEntity).once();
@@ -224,7 +257,7 @@ public class ViewURLResourceProviderTest {
 
     PredicateBuilder predicateBuilder = new PredicateBuilder();
     Predicate predicate =
-            predicateBuilder.property(ViewURLResourceProvider.URL_NAME_PROPERTY_ID).equals("test").toPredicate();
+            predicateBuilder.property(ViewURLResourceProvider.URL_NAME).equals("test").toPredicate();
 
     provider.updateResources(PropertyHelper.getCreateRequest(properties, null),predicate);
 
@@ -242,14 +275,14 @@ public class ViewURLResourceProviderTest {
     ViewURLResourceProvider provider = new ViewURLResourceProvider();
     ViewURLEntity viewURLEntity = createNiceMock(ViewURLEntity.class);
     ViewURLDAO viewURLDAO = createNiceMock(ViewURLDAO.class);
-    EqualsPredicate<String> equalsPredicate = new EqualsPredicate<>(ViewURLResourceProvider.URL_NAME_PROPERTY_ID,"test");
+    EqualsPredicate<String> equalsPredicate = new EqualsPredicate<>(ViewURLResourceProvider.URL_NAME,"test");
 
 
     setDao(ViewURLResourceProvider.class.getDeclaredField("viewURLDAO"), viewURLDAO);
     Set<Map<String, Object>> properties = new HashSet<>();
     Map<String, Object> propertyMap = new HashMap<>();
-    propertyMap.put(ViewURLResourceProvider.URL_NAME_PROPERTY_ID,"test");
-    propertyMap.put(ViewURLResourceProvider.URL_SUFFIX_PROPERTY_ID,"suffix");
+    propertyMap.put(ViewURLResourceProvider.URL_NAME,"test");
+    propertyMap.put(ViewURLResourceProvider.URL_SUFFIX,"suffix");
 
     expect(viewURLDAO.findByName("test")).andReturn(Optional.of(viewURLEntity));
     expect(viewURLEntity.getViewInstanceEntity()).andReturn(viewInstanceEntity).once();

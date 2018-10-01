@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
+App.MainHostSummaryView = Em.View.extend(App.HiveInteractiveCheck, App.TimeRangeMixin, {
 
   templateName: require('templates/main/host/summary'),
 
@@ -54,7 +54,65 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
   /**
    * Host metrics panel not displayed when Metrics service (ex:Ganglia) is not in stack definition.
    */
-  isNoHostMetricsService: Em.computed.equal('App.services.hostMetrics.length', 0),
+  hasHostMetricsService: Em.computed.gt('App.services.hostMetrics.length', 0),
+
+  nameNodeComponent: Em.computed.findBy('content.hostComponents', 'componentName', 'NAMENODE'),
+
+  hasNameNode: Em.computed.bool('nameNodeComponent'),
+
+  showHostMetricsBlock: Em.computed.or('hasHostMetricsService', 'hasNameNode'),
+
+  nameNodeWidgets: function () {
+    const hasNameNode = this.get('hasNameNode');
+    let widgets = [];
+    if (hasNameNode) {
+      const model = App.HDFSService.find('HDFS'),
+        hostName = this.get('content.hostName'),
+        widgetsDefinitions = require('data/dashboard_widgets').toMapByProperty('viewName');
+      widgets.pushObjects([
+        App.NameNodeHeapPieChartView.extend({
+          model,
+          hostName,
+          widgetHtmlId: 'nn-heap',
+          title: Em.I18n.t('dashboard.widgets.NameNodeHeap'),
+          showActions: false,
+          widget: {
+            threshold: widgetsDefinitions.NameNodeHeapPieChartView.threshold,
+          }
+        }),
+        App.NameNodeCpuPieChartView.extend({
+          widgetHtmlId: 'nn-cpu',
+          title: Em.I18n.t('dashboard.widgets.NameNodeCpu'),
+          showActions: false,
+          widget: {
+            threshold: widgetsDefinitions.NameNodeCpuPieChartView.threshold
+          },
+          subGroupId: this.get('nameNodeComponent.haNameSpace'),
+          activeNameNodes: [this.get('nameNodeComponent')],
+          nameNode: this.get('nameNodeComponent')
+        }),
+        App.NameNodeRpcView.extend({
+          model,
+          hostName,
+          widgetHtmlId: 'nn-rpc',
+          title: Em.I18n.t('dashboard.widgets.NameNodeRpc'),
+          showActions: false,
+          widget: {
+            threshold: widgetsDefinitions.NameNodeRpcView.threshold
+          }
+        }),
+        App.NameNodeUptimeView.extend({
+          model,
+          hostName,
+          widgetHtmlId: 'nn-uptime',
+          title: Em.I18n.t('dashboard.widgets.NameNodeUptime'),
+          showActions: false,
+          subGroupId: this.get('nameNodeComponent.haNameSpace')
+        })
+      ]);
+    }
+    return widgets;
+  }.property('hasNameNode'),
 
   /**
    * Message for "restart" block
@@ -74,6 +132,9 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
   willInsertElement: function() {
     this.sortedComponentsFormatter();
     this.addObserver('content.hostComponents.length', this, 'sortedComponentsFormatter');
+    if (this.get('installedServices').indexOf('HIVE') !== -1) {
+      this.loadHiveConfigs();
+    }
   },
 
   didInsertElement: function () {
@@ -110,23 +171,19 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
    * Master components first, then slaves and clients
    */
   sortedComponentsFormatter: function() {
-    const updatebleProperties = Em.A(['workStatus', 'passiveState', 'staleConfigs', 'haStatus']);
     const hostComponentViewMap = this.get('hostComponentViewMap');
-    const masters = [], slaves = [], clients = [];
-
+    let sortedComponentsArray = [];
     this.get('content.hostComponents').forEach(function (component) {
       component.set('viewClass', hostComponentViewMap[component.get('componentName')] ? hostComponentViewMap[component.get('componentName')] : App.HostComponentView);
-      if (component.get('isMaster')) {
-        masters.push(component);
-      } else if (component.get('isSlave')) {
-        slaves.push(component);
-      } else if (component.get('isClient')) {
+      if (component.get('isClient')) {
         component.set('isLast', true);
         component.set('isInstallFailed', ['INSTALL_FAILED', 'INIT'].contains(component.get('workStatus')));
-        clients.pushObject(component);
-        }
-    }, this);
-    this.set('sortedComponents', masters.concat(slaves, clients));
+      }
+      sortedComponentsArray.push(component);
+    });
+
+    sortedComponentsArray = sortedComponentsArray.sort((a, b) => a.get('displayName').localeCompare(b.get('displayName')));
+    this.set('sortedComponents', sortedComponentsArray);
   },
 
   /**
@@ -168,7 +225,8 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
         if (installedServices.contains(addableComponent.get('serviceName'))
             && !installedComponents.contains(addableComponent.get('componentName'))
             && !this.hasCardinalityConflict(addableComponent.get('componentName'))) {
-          if ((addableComponent.get('componentName') === 'OOZIE_SERVER') && !App.router.get('mainHostDetailsController.isOozieServerAddable')) {
+          if ((addableComponent.get('componentName') === 'OOZIE_SERVER') && !App.router.get('mainHostDetailsController.isOozieServerAddable') ||
+            addableComponent.get('componentName') === 'HIVE_SERVER_INTERACTIVE' && !self.get('enableHiveInteractive')) {
             return;
           }
           components.pushObject(self.addableComponentObject.create({
@@ -179,7 +237,7 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
       }, this);
     }
     return components;
-  }.property('content.hostComponents.length', 'App.components.addableToHost.@each'),
+  }.property('content.hostComponents.length', 'App.components.addableToHost.@each', 'enableHiveInteractive'),
 
   /**
    *
@@ -187,7 +245,7 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
    * @returns {boolean}
    */
   hasCardinalityConflict: function(componentName) {
-    var totalCount = App.SlaveComponent.find(componentName).get('totalCount');
+    var totalCount = App.HostComponent.getCount(componentName, 'totalCount');
     var maxToInstall = App.StackServiceComponent.find(componentName).get('maxToInstall');
     return !(totalCount < maxToInstall);
   },

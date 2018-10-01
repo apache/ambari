@@ -31,6 +31,8 @@ public enum ServiceAdvisorCommandType {
 
   RECOMMEND_CONFIGURATIONS_FOR_SSO("recommend-configurations-for-sso"),
 
+  RECOMMEND_CONFIGURATIONS_FOR_KERBEROS("recommend-configurations-for-kerberos"),
+
   RECOMMEND_CONFIGURATION_DEPENDENCIES("recommend-configuration-dependencies"),
 
   VALIDATE_CONFIGURATIONS("validate-configurations");

@@ -84,7 +84,8 @@ public class AmbariLocalAuthenticationProviderTest extends AbstractAuthenticatio
 
   @Override
   protected void validateAuthenticationResult(AmbariUserAuthentication result) {
-    assertEquals(1, (result.getPrincipal()).getUserId());
+    assertEquals((Integer) 1, result.getUserId());
+    assertEquals((Integer) 1, (result.getPrincipal()).getUserId());
   }
 
 }

@@ -18,10 +18,15 @@
 
 package org.apache.ambari.server.state;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+
+import javax.annotation.Nonnull;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterSettingNotFoundException;
@@ -206,7 +211,7 @@ public interface Cluster {
    *
    * @return
    */
-  Map<String, ServiceGroup> getServiceGroups() throws AmbariException;
+  Map<String, ServiceGroup> getServiceGroups();
 
   /**
    * Get a cluster setting
@@ -229,7 +234,7 @@ public interface Cluster {
    *
    * @return
    */
-  Map<String, ClusterSetting> getClusterSettings() throws AmbariException;
+  Map<String, ClusterSetting> getClusterSettings();
 
   /**
    * Get all cluster settings name and value as Map.
@@ -237,7 +242,7 @@ public interface Cluster {
    *
    * @return
    */
-  Map<String, String> getClusterSettingsNameValueMap() throws AmbariException;
+  Map<String, String> getClusterSettingsNameValueMap();
 
   /**
    * Get all ServiceComponentHosts on a given host
@@ -282,6 +287,7 @@ public interface Cluster {
    * @return collection of hosts that are associated with this cluster
    */
   Collection<Host> getHosts();
+  default Set<String> getHostNames() { return getHosts().stream().map(Host::getHostName).collect(toSet()); }
 
   /**
    * Get all of the hosts running the provided service and component.
@@ -412,6 +418,8 @@ public interface Cluster {
   Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType);
 
   /**
+   * @deprecated {@link #getConfig(String, String, Optional)} should be preferred
+   *
    * Gets the specific config that matches the specified type and tag.  This not
    * necessarily a DESIRED configuration that applies to a cluster.
    *
@@ -420,19 +428,23 @@ public interface Cluster {
    * @return a {@link Config} object, or <code>null</code> if the specific type
    * and version have not been set.
    */
-  Config getConfig(String configType, String versionTag);
+  @Deprecated
+  Config getConfig(@Nonnull String configType, @Nonnull String versionTag);
 
   /**
-   * Gets the specific config that matches the specified type and tag.  This not
+   * Gets the specific config that matches the specified type and tag. This not
    * necessarily a DESIRED configuration that applies to a cluster.
+   *
+   * If {@code serviceId} is present, the config will be first looked up in service instance level configs, when absent,
+   * cluster level configs will be searched.
    *
    * @param configType the config type to find
    * @param versionTag the config version tag to find
-   * @param serviceId the service for the config
+   * @param serviceId The optional serviceid. When present, the config will be looked up from service leve configs
    * @return a {@link Config} object, or <code>null</code> if the specific type
    * and version have not been set.
    */
-  Config getConfigByServiceId(String configType, String versionTag, Long serviceId);
+  Config getConfig(@Nonnull String configType, @Nonnull String versionTag, @Nonnull Optional<Long> serviceId);
 
   /**
    * Get latest (including inactive ones) configurations with any of the given types.

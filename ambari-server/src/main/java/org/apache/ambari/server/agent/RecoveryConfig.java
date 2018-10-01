@@ -18,100 +18,48 @@
 
 package org.apache.ambari.server.agent;
 
-import com.google.gson.annotations.SerializedName;
+import java.util.Collections;
+import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Recovery config to be sent to the agent
  */
 public class RecoveryConfig {
 
-  /**
-   * Creates a holder for agent requests
-   */
-  public RecoveryConfig() {
-  }
-
-  @SerializedName("type")
-  @com.fasterxml.jackson.annotation.JsonProperty("type")
-  private String type;
-
-  @SerializedName("maxCount")
-  @com.fasterxml.jackson.annotation.JsonProperty("maxCount")
-  private String maxCount;
-
-  @SerializedName("windowInMinutes")
-  @com.fasterxml.jackson.annotation.JsonProperty("windowInMinutes")
-  private String windowInMinutes;
-
-  @SerializedName("retryGap")
-  @com.fasterxml.jackson.annotation.JsonProperty("retryGap")
-  private String retryGap;
-
-  @SerializedName("maxLifetimeCount")
-  @com.fasterxml.jackson.annotation.JsonProperty("maxLifetimeCount")
-  private String maxLifetimeCount;
-
   @SerializedName("components")
-  @com.fasterxml.jackson.annotation.JsonProperty("components")
-  private String enabledComponents;
+  @JsonProperty("components")
+  private List<RecoveryConfigComponent> enabledComponents;
 
-  public String getEnabledComponents() {
-    return enabledComponents;
-  }
-
-  public void setEnabledComponents(String enabledComponents) {
+  public RecoveryConfig(List<RecoveryConfigComponent> enabledComponents) {
     this.enabledComponents = enabledComponents;
   }
 
-  public String getType() {
-    return type;
+  public List<RecoveryConfigComponent> getEnabledComponents() {
+    return enabledComponents == null ? null : Collections.unmodifiableList(enabledComponents);
   }
 
-  public void setType(String type) {
-    this.type = type;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    RecoveryConfig that = (RecoveryConfig) o;
+
+    return enabledComponents != null ? enabledComponents.equals(that.enabledComponents) : that.enabledComponents == null;
   }
 
-  public String getMaxCount() {
-    return maxCount;
-  }
-
-  public void setMaxCount(String maxCount) {
-    this.maxCount = maxCount;
-  }
-
-  public String getWindowInMinutes() {
-    return windowInMinutes;
-  }
-
-  public void setWindowInMinutes(String windowInMinutes) {
-    this.windowInMinutes = windowInMinutes;
-  }
-
-  public String getRetryGap() {
-    return retryGap;
-  }
-
-  public void setRetryGap(String retryGap) {
-    this.retryGap = retryGap;
-  }
-
-  public String getMaxLifetimeCount() {
-    return maxLifetimeCount;
-  }
-
-  public void setMaxLifetimeCount(String maxLifetimeCount) {
-    this.maxLifetimeCount = maxLifetimeCount;
+  @Override
+  public int hashCode() {
+    int result = (enabledComponents != null ? enabledComponents.hashCode() : 0);
+    return result;
   }
 
   @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder("RecoveryConfig{");
-    buffer.append(", type=").append(type);
-    buffer.append(", maxCount=").append(maxCount);
-    buffer.append(", windowInMinutes=").append(windowInMinutes);
-    buffer.append(", retryGap=").append(retryGap);
-    buffer.append(", maxLifetimeCount=").append(maxLifetimeCount);
     buffer.append(", components=").append(enabledComponents);
     buffer.append('}');
     return buffer.toString();

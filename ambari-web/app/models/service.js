@@ -21,7 +21,7 @@ var App = require('app');
 require('utils/config');
 
 App.Service = DS.Model.extend({
-  serviceName: DS.attr('string'),
+  serviceName: DS.attr('string', {defaultValue: ''}),
   displayName: Em.computed.formatRole('serviceName', true),
   serviceGroupName: DS.attr('string'),
   mpackName: DS.attr('string'),
@@ -171,16 +171,25 @@ App.Service = DS.Model.extend({
   }.property('restartRequiredHostsAndComponents'),
 
   /**
+   * @type {number}
+   */
+  warningCount: 0,
+  /**
+   * @type {number}
+   */
+  criticalCount: 0,
+
+  /**
    * Does service have Critical Alerts
    * @type {boolean}
    */
-  hasCriticalAlerts: false,
+  hasCriticalAlerts: Em.computed.gte('criticalCount', 0),
 
   /**
    * Number of the Critical and Warning alerts for current service
    * @type {number}
    */
-  alertsCount: 0
+  alertsCount: Em.computed.sumProperties('warningCount', 'criticalCount')
 
 });
 

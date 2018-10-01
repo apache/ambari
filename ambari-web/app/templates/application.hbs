@@ -25,16 +25,10 @@
     <div class="navigation-bar-container">
     <ul class="side-nav-header nav nav-pills nav-stacked">
       <li class="navigation-header">
-        {{#if enableLinks}}
-          <a {{translateAttr href="topnav.logo.href"}} class="ambari-logo">
-            <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari" {{QAAttr "ambari-logo"}}>
-          </a>
-        {{else}}
-          <a class="ambari-logo">
-            <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari" {{QAAttr "ambari-logo"}}>
-          </a>
-        {{/if}}
-        <div class="btn-group">
+        <a href="#" {{action goToDashboard target="controller"}} class="ambari-logo">
+          <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari" {{QAAttr "ambari-logo"}}>
+        </a>
+        <div class="btn-group" {{action goToDashboard target="controller"}}>
           <span class="ambari-header" title="Apache Ambari" {{QAAttr "ambari-title"}}>{{t app.name}}</span>
         </div>
       </li>
@@ -152,17 +146,9 @@
                 <span class="alerts-label dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
                       aria-expanded="false">
                   <span class="glyphicon glyphicon-bell"></span>
-                  {{#if App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
-                  {{! alerts exist }}
-                    <span {{bindAttr class=":numberCircle App.router.mainAlertDefinitionsController.isCriticalAlerts:alert-crit-count:alert-warn-count"}}>
-                      {{App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
-                    </span>
-                  {{else}}
-                  {{! no alerts }}
-                    <span {{translateAttr title="titlebar.alerts.noAlerts"}} class="numberCircle alerts-none-count">
-                      {{App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
-                    </span>
-                  {{/if}}
+                  {{view App.AlertBadgeView
+                    criticalCountBinding="App.router.mainAlertDefinitionsController.criticalAlertInstancesCount"
+                    warningCountBinding="App.router.mainAlertDefinitionsController.warningAlertInstancesCount"}}
                 </span>
                 <div id="notifications-dropdown" class="dropdown-menu row">
                   {{view App.AlertInstancesPopupView}}
@@ -202,6 +188,33 @@
 
   <div class="container main-container">
     <div id="content">
+      {{#if App.wizardIsNotFinished}}
+        <div class="ru-badge row">
+          {{#if isExistingClusterDataLoaded}}
+            <p class="col-md-4 col-md-offset-4">
+              {{#if showUpgradeLabel}}
+                <a href="#" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                  <span {{bindAttr class="upgradeMap.cls :label"}}>
+                    <i {{bindAttr class="upgradeMap.icon :glyphicon"}}></i>&nbsp;
+                    {{upgradeMap.msg}}
+                  </span>
+                </a>
+              {{else}}
+                {{#if App.router.wizardWatcherController.isNonWizardUser}}
+                  <span class="label upgrade-in-progress">
+                  <i class="glyphicon glyphicon-cog"></i>&nbsp;{{App.router.wizardWatcherController.wizardDisplayName}}
+                </span>
+                {{/if}}
+              {{/if}}
+            </p>
+          {{/if}}
+        </div>
+        <div class="row">
+          {{#if App.router.mainAdminStackAndUpgradeController.isFinalizeItem}}
+          <p class="col-md-10 col-md-offset-1 alert alert-danger">{{t admin.stackVersions.version.upgrade.notFinalized.warning}}</p>
+          {{/if}}
+        </div>
+      {{/if}}
       {{outlet}}
     </div>
   </div>

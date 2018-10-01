@@ -33,12 +33,12 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
-
 import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 @Entity
@@ -113,7 +113,28 @@ public class HostComponentStateEntity {
   private String componentType;
 
   /**
-   * Version reported by host component during last status update.
+   * The mpack version reported by the host component during the last status
+   * update. Components are associated with more than a single version; they
+   * have an mpack version and then their specific component version.
+   * </p>
+   *
+   * <pre>
+   * /usr/vendor/mpacks/my-mpack/1.0.0-b450/some_component -> /usr/vendor/modules/some_component/3.4.0.0-b42
+   * </pre>
+   *
+   * In this example, the version of the mpack can change, but still technically
+   * point to the same component version. This is why both are tracked.
+   *
+   * @see #version
+   */
+  @Column(name = "mpack_version", nullable = false, insertable = true, updatable = true)
+  private String mpackVersion = State.UNKNOWN.toString();
+
+  /**
+   * The component version reported by the host component during the last status
+   * update.
+   *
+   * @see #mpackVersion
    */
   @Column(name = "version", nullable = false, insertable = true, updatable = true)
   private String version = State.UNKNOWN.toString();
@@ -168,7 +189,7 @@ public class HostComponentStateEntity {
   }
 
   public Long getServiceId() {
-    return this.serviceId;
+    return serviceId;
   }
 
   public void setServiceId(Long serviceId) {
@@ -196,7 +217,7 @@ public class HostComponentStateEntity {
   }
 
   public void setComponentId(Long componentId) {
-    this.id = componentId;
+    id = componentId;
   }
 
   public Long getComponentId() {
@@ -243,6 +264,26 @@ public class HostComponentStateEntity {
     this.version = version;
   }
 
+  /**
+   * Gets the version of the mpack which was reported for this host component.
+   *
+   * @return the mpack version reporting for this component, or
+   *         {@link State#UNKNOWN}.
+   */
+  public String getMpackVersion() {
+    return mpackVersion;
+  }
+
+  /**
+   * Sets the version of the mpack which was reported for this host component.
+   *
+   * @param mpackVersion
+   *          the version to set, or {@link State#UNKNOWN}.
+   */
+  public void setMpackVersion(String mpackVersion) {
+    this.mpackVersion = mpackVersion;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -254,78 +295,24 @@ public class HostComponentStateEntity {
     }
 
     HostComponentStateEntity that = (HostComponentStateEntity) o;
-
-    if (id != null ? !id.equals(that.id) : that.id != null) {
-      return false;
-    }
-
-    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) {
-      return false;
-    }
-
-    if (serviceGroupId != null ? !serviceGroupId.equals(that.serviceGroupId) : that.serviceGroupId != null) {
-      return false;
-    }
-
-    if (serviceId != null ? !serviceId.equals(that.serviceId) : that.serviceId != null) {
-      return false;
-    }
-
-    if (componentName != null ? !componentName.equals(that.componentName)
-        : that.componentName != null) {
-      return false;
-    }
-
-    if (componentType != null ? !componentType.equals(that.componentType)
-            : that.componentType != null) {
-      return false;
-    }
-
-    if (currentState != null ? !currentState.equals(that.currentState)
-        : that.currentState != null) {
-      return false;
-    }
-
-    if (lastLiveState != null ? !lastLiveState.equals(that.lastLiveState)
-        : that.lastLiveState != null) {
-      return false;
-    }
-
-    if (upgradeState != null ? !upgradeState.equals(that.upgradeState)
-        : that.upgradeState != null) {
-      return false;
-    }
-
-    if (hostEntity != null ? !hostEntity.equals(that.hostEntity) : that.hostEntity != null) {
-      return false;
-    }
-
-    if (hostComponentDesiredStateEntity != null ? !hostComponentDesiredStateEntity.equals(that.hostComponentDesiredStateEntity) : that.hostComponentDesiredStateEntity != null) {
-      return false;
-    }
-
-    if (version != null ? !version.equals(that.version) : that.version != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equal(id, that.id) && Objects.equal(clusterId, that.clusterId)
+        && Objects.equal(serviceGroupId, that.serviceGroupId)
+        && Objects.equal(serviceId, that.serviceId)
+        && Objects.equal(componentName, that.componentName)
+        && Objects.equal(componentType, that.componentType)
+        && Objects.equal(currentState, that.currentState)
+        && Objects.equal(lastLiveState, that.lastLiveState)
+        && Objects.equal(upgradeState, that.upgradeState)
+        && Objects.equal(hostEntity, that.hostEntity)
+        && Objects.equal(hostComponentDesiredStateEntity, that.hostComponentDesiredStateEntity)
+        && Objects.equal(mpackVersion, that.version) && Objects.equal(version, that.version);
   }
 
   @Override
   public int hashCode() {
-    int result = id != null ? id.intValue() : 0;
-    result = 31 * result + (clusterId != null ? clusterId.intValue() : 0);
-    result = 31 * result + (serviceGroupId != null ? serviceGroupId.intValue() : 0);
-    result = 31 * result + (serviceId != null ? serviceId.intValue() : 0);
-    result = 31 * result + (hostEntity != null ? hostEntity.hashCode() : 0);
-    result = 31 * result + (hostComponentDesiredStateEntity != null ? hostComponentDesiredStateEntity.hashCode() : 0);
-    result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
-    result = 31 * result + (componentType != null ? componentType.hashCode() : 0);
-    result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
-    result = 31 * result + (lastLiveState != null ? lastLiveState.hashCode() : 0);
-    result = 31 * result + (upgradeState != null ? upgradeState.hashCode() : 0);
-    result = 31 * result + (version != null ? version.hashCode() : 0);
-    return result;
+    return Objects.hashCode(id, clusterId, serviceGroupId, serviceId, hostEntity,
+        hostComponentDesiredStateEntity, componentName, componentType, currentState, lastLiveState,
+        upgradeState, mpackVersion, version);
   }
 
   public ServiceComponentDesiredStateEntity getServiceComponentDesiredStateEntity() {
@@ -357,9 +344,16 @@ public class HostComponentStateEntity {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("clusterId", clusterId).add("serviceGroupId", serviceGroupId).add(
-      "serviceId", serviceId).add("componentId", id).add("componentName", componentName).add
-            ("componentType", componentType).add("hostId", hostId).add("state", currentState).toString();
+    return MoreObjects.toStringHelper(this)
+        .add("clusterId", clusterId)
+        .add("serviceGroupId", serviceGroupId)
+        .add("serviceId", serviceId)
+        .add("componentId", id)
+        .add("componentName", componentName)
+        .add("componentType", componentType)
+        .add("hostId", hostId)
+        .add("state", currentState)
+        .add("mpackVersion", mpackVersion)
+        .add("version", version).toString();
   }
-
 }

@@ -26,22 +26,24 @@ from resource_management.libraries.functions.cluster_settings import get_cluster
 config = Script.get_config()
 execution_command = Script.get_execution_command()
 module_configs = Script.get_module_configs()
+stack_settings = Script.get_stack_settings()
+cluster_settings = Script.get_cluster_settings()
 module_name = execution_command.get_module_name()
 tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
-stack_version_unformatted = execution_command.get_mpack_version()
+stack_version_unformatted = stack_settings.get_mpack_version()
 agent_stack_retry_on_unavailability = execution_command.check_agent_stack_want_retry_on_unavailability()
 agent_stack_retry_count = execution_command.get_agent_stack_retry_count()
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 #users and groups
-smoke_user = get_cluster_setting_value('smokeuser')
+smoke_user = cluster_settings.get_smokeuser()
 gmetad_user = module_configs.get_property_value(module_name, 'ganglia-env', 'gmetad_user')
 gmond_user = module_configs.get_property_value(module_name, 'ganglia-env', 'gmond_user')
 tez_user = module_configs.get_property_value(module_name, 'tez-env', 'tez_user')
 
-user_group = get_cluster_setting_value('user_group')
+user_group = cluster_settings.get_user_group()
 proxyuser_group = module_configs.get_property_value(module_name, 'hadoop-env', 'proxyuser_group', 'users')
 
 hdfs_log_dir_prefix = module_configs.get_property_value(module_name, 'hadoop-env', 'hdfs_log_dir_prefix')

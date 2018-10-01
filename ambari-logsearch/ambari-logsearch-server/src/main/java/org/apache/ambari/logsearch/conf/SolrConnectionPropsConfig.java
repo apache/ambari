@@ -64,6 +64,16 @@ public abstract class SolrConnectionPropsConfig implements SolrPropsConfig {
   )
   private String configSetFolder;
 
+  @LogSearchPropertyDescription(
+    name = "logsearch.solr.implicit.routing",
+    description = "Use implicit routing for Solr Collections.",
+    examples = {"true"},
+    defaultValue = "false",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  @Value("${logsearch.solr.implicit.routing:false}")
+  private boolean solrImplicitRouting;
+
   @Override
   public String getSolrUrl() {
     return solrUrl;
@@ -102,5 +112,15 @@ public abstract class SolrConnectionPropsConfig implements SolrPropsConfig {
   @Override
   public void setConfigSetFolder(String configSetFolder) {
     this.configSetFolder = configSetFolder;
+  }
+
+  @Override
+  public boolean isSolrImplicitRouting() {
+    return solrImplicitRouting;
+  }
+
+  @Override
+  public void setSolrImplicitRouting(boolean solrImplicitRouting) {
+    this.solrImplicitRouting = solrImplicitRouting;
   }
 }

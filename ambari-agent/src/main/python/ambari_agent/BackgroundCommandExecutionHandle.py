@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,11 +14,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 import logging
 
 logger = logging.getLogger()
 installScriptHash = -1
+
 
 class BackgroundCommandExecutionHandle:
   
@@ -37,8 +36,6 @@ class BackgroundCommandExecutionHandle:
     self.commandId = commandId
     self.on_background_command_started = on_background_command_started
     self.on_background_command_complete_callback = on_background_command_complete_callback
-
-
 
   def __str__(self):
     return "[BackgroundHandle: pid='{0}', status='{1}', exitCode='{2}', commandId='{3}']".format(self.pid, self.status, self.exitCode, self.commandId)

@@ -94,7 +94,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
     expect(stack.getConfiguration(services)).andReturn(createStackDefaults()).anyTimes();
     expect(stack.getServices(STACK_ID)).andReturn(services).anyTimes();
-    expect(clusterTopology.getServices()).andReturn(services).anyTimes();
+    expect(clusterTopology.getServiceTypes()).andReturn(services).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
     expect(clusterTopology.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
@@ -133,7 +133,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
     expect(stack.getConfiguration(services)).andReturn(createStackDefaults()).anyTimes();
     expect(stack.getServices(STACK_ID)).andReturn(services).anyTimes();
-    expect(clusterTopology.getServices()).andReturn(services).anyTimes();
+    expect(clusterTopology.getServiceTypes()).andReturn(services).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
     expect(clusterTopology.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
@@ -173,7 +173,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
     expect(stack.getConfiguration(services)).andReturn(createStackDefaults()).anyTimes();
     expect(stack.getServices(STACK_ID)).andReturn(services).anyTimes();
-    expect(clusterTopology.getServices()).andReturn(services).anyTimes();
+    expect(clusterTopology.getServiceTypes()).andReturn(services).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
     expect(clusterTopology.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
@@ -211,7 +211,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
     expect(stack.getConfiguration(services)).andReturn(createStackDefaults()).anyTimes();
     expect(stack.getServices(STACK_ID)).andReturn(services).anyTimes();
-    expect(clusterTopology.getServices()).andReturn(services).anyTimes();
+    expect(clusterTopology.getServiceTypes()).andReturn(services).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
     expect(clusterTopology.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
@@ -248,7 +248,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
     expect(stack.getServices(STACK_ID)).andReturn(services).anyTimes();
-    expect(clusterTopology.getServices()).andReturn(services).anyTimes();
+    expect(clusterTopology.getServiceTypes()).andReturn(services).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andThrow(new StackAdvisorException("ex"));
     expect(configuration.getFullProperties()).andReturn(props);
 
@@ -280,7 +280,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
     expect(stack.getConfiguration(services)).andReturn(createStackDefaults()).anyTimes();
     expect(stack.getServices(STACK_ID)).andReturn(services).anyTimes();
-    expect(clusterTopology.getServices()).andReturn(services).anyTimes();
+    expect(clusterTopology.getServiceTypes()).andReturn(services).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(new RecommendationResponse());

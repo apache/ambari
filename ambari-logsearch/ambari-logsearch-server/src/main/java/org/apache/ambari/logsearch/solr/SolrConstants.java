@@ -60,6 +60,7 @@ public class SolrConstants {
     public static final String GROUP = "group";
     public static final String LEVEL = "level";
     public static final String THREAD_NAME = "thread_name";
+    public static final String METHOD = "method";
     public static final String LOGGER_NAME = "logger_name";
     public static final String LINE_NUMBER = "line_number";
     public static final String PATH = "path";
@@ -68,6 +69,10 @@ public class SolrConstants {
     public static final String KEY_DYNAMIC_FIELDS = "key_*";
     public static final String WS_DYNAMIC_FIELDS = "ws_*";
     public static final String SDI_DYNAMIC_FIELDS = "sdi_*";
+    public static final String INT_DYNAMIC_FIELDS = "*_i";
+    public static final String LONG_DYNAMIC_FIELDS = "*_l";
+    public static final String BOOLEAN_DYNAMIC_FIELDS = "*_b";
+    public static final String STRING_DYNAMIC_FIELDS = "*_s";
   }
 
   public class AuditLogConstants {

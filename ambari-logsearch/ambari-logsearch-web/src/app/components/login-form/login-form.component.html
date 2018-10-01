@@ -16,7 +16,7 @@
 -->
 
 <div class="login-form well col-md-4 col-md-offset-4 col-sm-offset-4">
-  <div class="alert alert-danger" *ngIf="isLoginAlertDisplayed" [innerHTML]="'authorization.error' | translate"></div>
+  <div class="alert alert-danger" *ngIf="isLoginAlertDisplayed">{{errorMessage}}</div>
   <form #loginForm="ngForm" (ngSubmit)="login()">
     <div class="form-group">
       <label for="username">{{'authorization.name' | translate}}</label>
@@ -26,7 +26,7 @@
       <label for="password">{{'authorization.password' | translate}}</label>
       <input class="form-control" type="password" id="password" name="password" required [(ngModel)]="password">
     </div>
-    <button class="btn btn-success" [disabled]="!loginForm.form.valid || isLoginInProgress">
+    <button class="btn btn-success" [disabled]="!loginForm.form.valid || (isLoginInProgress$ | async)">
       {{'authorization.signIn' | translate}}
     </button>
   </form>

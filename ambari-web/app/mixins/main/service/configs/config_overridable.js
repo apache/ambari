@@ -370,6 +370,7 @@ App.ConfigOverridable = Em.Mixin.create({
   launchSwitchConfigGroupOfHostDialog: function (selectedGroup, configGroups, hostName, callback) {
     var self = this;
     return App.ModalPopup.show({
+      classNames: ['change-config-group-modal'],
       header: Em.I18n.t('config.group.host.switch.dialog.title'),
       configGroups: configGroups,
       selectedConfigGroup: selectedGroup,

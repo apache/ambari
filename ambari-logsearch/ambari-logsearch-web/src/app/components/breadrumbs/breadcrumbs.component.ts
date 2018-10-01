@@ -17,7 +17,10 @@
  */
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {Subscription} from 'rxjs/Subscription';
-import {ActivatedRouteSnapshot, Router, RoutesRecognized} from '@angular/router';
+import {ActivatedRouteSnapshot, NavigationEnd, Router, RoutesRecognized} from '@angular/router';
+import {Title} from '@angular/platform-browser';
+import {TranslateService} from '@ngx-translate/core';
+import {Observable} from 'rxjs/Observable';
 
 export interface BreadCrumb {
   text: string;
@@ -38,12 +41,17 @@ export class BreadcrumbsComponent implements OnInit, OnDestroy {
   @Input()
   addRootFirst: boolean = true;
 
-  constructor(private router: Router) { }
+  constructor(
+    private router: Router,
+    private titleService: Title,
+    private translateService: TranslateService
+  ) { }
 
   ngOnInit() {
     this.subscriptions.push(
-      this.router.events.filter((event) => event instanceof RoutesRecognized).subscribe(this.onRoutesRecognized)
+      this.router.events.filter((event) => event instanceof NavigationEnd).subscribe(this.onNavigationEnd)
     );
+    this.onNavigationEnd();
   }
 
   ngOnDestroy() {
@@ -57,7 +65,7 @@ export class BreadcrumbsComponent implements OnInit, OnDestroy {
     while (level) {
       if (level.url.length) {
         path.push(
-          (level.parent ? '' : '/') // start with trailng slash if this is the root
+          (level.parent ? '' : '/') // start with trailing slash if this is the root
           + level.url.reduce((url, segment) => url += ('/' + segment.path), '') // build up the url by its segments
         );
         if (level.data.breadcrumbs) {
@@ -76,8 +84,20 @@ export class BreadcrumbsComponent implements OnInit, OnDestroy {
     return breadcrumbs;
   }
 
-  onRoutesRecognized = (routes: RoutesRecognized): void => {
-    this.crumbs = this.getCrumbsFromRouterStateSnapshot(routes.state.root);
+  setPageTite(pageTitle) {
+    Observable.combineLatest(
+      this.translateService.get('common.title'),
+      pageTitle ? this.translateService.get(pageTitle) : Observable.of('')
+    ).first().subscribe(([commonTitle, pageTite]) => {
+      this.titleService.setTitle(pageTitle ? `${commonTitle} - ${pageTite}` : commonTitle);
+    });
+  }
+
+  onNavigationEnd = (): void => {
+    this.crumbs = this.getCrumbsFromRouterStateSnapshot(this.router.routerState.snapshot.root);
+    if (this.crumbs.length) {
+      this.setPageTite(this.crumbs[this.crumbs.length - 1].text);
+    }
   }
 
 }

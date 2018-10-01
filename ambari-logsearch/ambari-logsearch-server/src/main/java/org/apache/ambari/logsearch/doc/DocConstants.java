@@ -46,6 +46,10 @@ public class DocConstants {
     public static final String FORMAT_D = "File Export format, can be 'txt' or 'json'";
     public static final String TOP = "Number that defines how many top element you would like to see.";
     public static final String USER_D = "Filter for users (comma separated list)";
+    public static final String LOG_ID_D = "Id of the log component";
+    public static final String SHIPPER_CONFIG_D = "Input config json for logfeeder shipper";
+    public static final String TEST_ENTRY_D = "Log sample for testing";
+
   }
 
   public class AuditOperationDescriptions {

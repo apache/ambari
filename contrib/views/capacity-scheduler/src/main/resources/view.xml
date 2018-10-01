@@ -32,7 +32,7 @@
         <name>AUTO_CS_INSTANCE</name>
         <label>YARN Queue Manager</label>
         <description>Manage YARN Capacity Scheduler Queues</description>
-        <stack-id>HDP-2.*</stack-id>
+        <stack-id>HDP-*</stack-id>
         <services>
             <service>YARN</service>
         </services>

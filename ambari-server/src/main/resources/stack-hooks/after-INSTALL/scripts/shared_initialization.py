@@ -87,7 +87,16 @@ def setup_config():
               configuration_attributes=params.module_configs.get_all_attributes(params.module_name, 'core-site'),
               owner=params.hdfs_user,
               group=params.user_group,
-              only_if=format("ls {hadoop_conf_dir}"))
+              only_if=format("ls {hadoop_conf_dir}"),
+              xml_include_file=params.mount_table_xml_inclusion_file_full_path
+              )
+
+    if params.mount_table_content:
+      File(os.path.join(params.hadoop_conf_dir, params.xml_inclusion_file_name),
+           owner=params.hdfs_user,
+           group=params.user_group,
+           content=params.mount_table_content
+           )
 
   Directory(params.logsearch_logfeeder_conf,
             mode=0755,
@@ -114,21 +123,3 @@ def load_version(struct_out_file):
     return json_info['version']
   except (IOError, KeyError, TypeError):
     return None
-
-
-def link_configs(struct_out_file):
-  """
-  Use the conf_select module to link configuration directories correctly.
-  """
-  import params
-
-  json_version = load_version(struct_out_file)
-
-  if not json_version:
-    Logger.info("Could not load 'version' from {0}".format(struct_out_file))
-    return
-
-  # On parallel command execution this should be executed by a single process at a time.
-  with FcntlBasedProcessLock(params.link_configs_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
-    for package_name, directories in conf_select.get_package_dirs().iteritems():
-      conf_select.convert_conf_directories_to_symlinks(package_name, json_version, directories)

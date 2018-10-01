@@ -243,18 +243,12 @@ public class CompositeStack implements StackDefinition {
 
   @Override
   public Stream<String> getServicesForConfigType(String config) {
-    if (ConfigHelper.CLUSTER_ENV.equals(config)) { // for backwards compatibility
-      return Stream.empty();
-    }
-    return stacks.stream()
-      .map(m -> {
-        try {
-          return m.getServiceForConfigType(config);
-        } catch (IllegalArgumentException e) {
-          return null;
-        }
-      })
-      .filter(Objects::nonNull);
+    return stacks.stream().flatMap(s -> s.getServicesForConfigType(config));
+  }
+
+  @Override
+  public Stream<Pair<StackId, String>> getStackServicesForConfigType(String config) {
+    return stacks.stream().flatMap(m -> m.getStackServicesForConfigType(config));
   }
 
   @Override

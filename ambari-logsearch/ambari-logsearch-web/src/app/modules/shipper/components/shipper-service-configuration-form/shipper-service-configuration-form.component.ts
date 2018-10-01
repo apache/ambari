@@ -25,8 +25,6 @@ import 'rxjs/add/operator/startWith';
 
 import {CanComponentDeactivate} from '@modules/shared/services/can-deactivate-guard.service';
 
-import {UtilsService} from '@app/services/utils.service';
-import {ShipperClusterServiceConfigurationModel} from '../../models/shipper-cluster-service-configuration.model';
 import {ShipperCluster} from '../../models/shipper-cluster.type';
 import {ShipperClusterService} from '../../models/shipper-cluster-service.type';
 import {ShipperClusterServiceConfigurationInterface} from '../../models/shipper-cluster-service-configuration.interface';
@@ -34,7 +32,7 @@ import {ShipperConfigurationModel} from '../../models/shipper-configuration.mode
 import * as formValidators from '../../directives/validator.directive';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {Subscription} from 'rxjs/Subscription';
-import {ShipperClusterServiceValidationModel} from '@modules/shipper/models/shipper-cluster-service-validation.model';
+import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: 'shipper-configuration-form',
@@ -61,11 +59,14 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
   @Input()
   validationResponse: {[key: string]: any};
 
-  @Output()
-  configurationSubmit: EventEmitter<ShipperClusterServiceConfigurationModel> = new EventEmitter<ShipperClusterServiceConfigurationModel>();
+  @Input()
+  disabled = false;
 
   @Output()
-  validationSubmit: EventEmitter<ShipperClusterServiceValidationModel> = new EventEmitter<ShipperClusterServiceValidationModel>();
+  configurationSubmit: EventEmitter<FormGroup> = new EventEmitter<FormGroup>();
+
+  @Output()
+  validationSubmit: EventEmitter<FormGroup> = new EventEmitter<FormGroup>();
 
   private configurationComponents$: Observable<string[]>;
 
@@ -94,9 +95,11 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
   private canDeactivateModalResult: Subject<boolean> = new Subject<boolean>();
 
   private canDeactivateObservable$: Observable<boolean> = Observable.create((observer: Observer<boolean>)  => {
-    this.canDeactivateModalResult.subscribe((result: boolean) => {
-      observer.next(result);
-    });
+    this.subscriptions.push(
+      this.canDeactivateModalResult.subscribe((result: boolean) => {
+        observer.next(result);
+      })
+    );
   });
 
   private serviceNamesListSubject: BehaviorSubject<ShipperClusterService[]> = new BehaviorSubject<ShipperClusterService[]>([]);
@@ -104,13 +107,28 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
   private subscriptions: Subscription[] = [];
 
   constructor(
-    private utilsService: UtilsService,
     private formBuilder: FormBuilder,
-    private changeDetectorRef: ChangeDetectorRef
-  ) {}
+    private activatedRoute: ActivatedRoute,
+    private changeDetectionRef: ChangeDetectorRef
+  ) {
+    // This is a fix to avoid the ExpressionChangedAfterItHasBeenCheckedError exception
+    // We create forms checking if there is serviceName set, so that is why we put this in the constructor.
+    this.createForms();
+  }
 
   ngOnInit() {
-    this.createForms();
+    this.subscriptions.push(
+      this.activatedRoute.params.map(params => params.service).subscribe((service) => {
+        this.serviceName = service;
+      })
+    );
+    if (!this.serviceName) {
+      this.configurationForm.controls.serviceName.setValidators([
+        Validators.required,
+        formValidators.uniqueServiceNameValidator(this.serviceNamesListSubject)
+      ]);
+      this.changeDetectionRef.detectChanges();
+    }
     this.configurationComponents$ = this.configurationForm.controls.configuration.valueChanges.map((newValue: string): string[] => {
       let components: string[];
       try {
@@ -188,15 +206,11 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
     const configuration: ShipperClusterServiceConfigurationInterface = this.configuration || (
       this.serviceName ? this.configuration : new ShipperConfigurationModel()
     );
-    const configurationFormValidators: ValidatorFn[] = [Validators.required];
-    if (!this.serviceName) {
-      configurationFormValidators.push(formValidators.uniqueServiceNameValidator(this.serviceNamesListSubject));
-    }
     this.configurationForm = this.formBuilder.group({
       clusterName: this.formBuilder.control(this.clusterName, Validators.required),
       serviceName: this.formBuilder.control(
         this.serviceName,
-        configurationFormValidators
+        [Validators.required]
       ),
       configuration: this.formBuilder.control(
         this.getConfigurationAsString(configuration),
@@ -205,30 +219,34 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
     });
 
     this.validatorForm = this.formBuilder.group({
-      clusterName: this.formBuilder.control(this.clusterName, Validators.required),
-      componentName: this.formBuilder.control('', Validators.required),
-      sampleData: this.formBuilder.control('', Validators.required)
+      clusterName: this.formBuilder.control(
+        this.clusterName,
+        [Validators.required]
+      ),
+      componentName: this.formBuilder.control('', [
+        Validators.required,
+        formValidators.getConfigurationServiceValidator(this.configurationForm.controls.configuration)
+      ]),
+      sampleData: this.formBuilder.control('', Validators.required),
+      configuration: this.formBuilder.control('', Validators.required)
     });
+    this.subscriptions.push(
+      this.configurationForm.valueChanges.subscribe(() => {
+        this.validatorForm.controls.componentName.updateValueAndValidity();
+        this.validatorForm.controls.configuration.setValue(this.configurationForm.controls.configuration.value);
+      })
+    );
   }
 
-  onConfigurationSubmit(configurationForm: FormGroup): void {
+  onConfigurationSubmit(): void {
     if (this.configurationForm.valid) {
-      const rawValue = this.configurationForm.getRawValue();
-      const serviceName: string = Array.isArray(rawValue.serviceName) ? rawValue.serviceName.shift().value : rawValue.serviceName;
-      this.configurationSubmit.emit({
-        cluster: rawValue.clusterName,
-        service: serviceName,
-        configuration: JSON.parse(rawValue.configuration)
-      });
+      this.configurationSubmit.emit(this.configurationForm);
     }
   }
 
   onValidationSubmit(): void {
-    if (this.validatorForm) {
-      this.validationSubmit.emit({
-        configuration: this.configurationForm.controls.configuration.value,
-        ...this.validatorForm.getRawValue()
-      });
+    if (this.validatorForm.valid) {
+      this.validationSubmit.emit(this.validatorForm);
     }
   }
 

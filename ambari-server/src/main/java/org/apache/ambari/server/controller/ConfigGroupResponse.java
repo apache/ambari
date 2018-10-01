@@ -17,9 +17,14 @@
  */
 package org.apache.ambari.server.controller;
 
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
+
+import io.swagger.annotations.ApiModelProperty;
 
 public class ConfigGroupResponse {
   private Long id;
@@ -44,6 +49,7 @@ public class ConfigGroupResponse {
     this.configVersions = configVersions;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.ID_PROPERTY_ID)
   public Long getId() {
     return id;
   }
@@ -52,6 +58,7 @@ public class ConfigGroupResponse {
     this.id = id;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.CLUSTER_NAME_PROPERTY_ID)
   public String getClusterName() {
     return clusterName;
   }
@@ -60,6 +67,7 @@ public class ConfigGroupResponse {
     this.clusterName = clusterName;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.GROUP_NAME_PROPERTY_ID)
   public String getGroupName() {
     return groupName;
   }
@@ -68,6 +76,7 @@ public class ConfigGroupResponse {
     this.groupName = groupName;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.TAG_PROPERTY_ID)
   public String getTag() {
     return tag;
   }
@@ -76,6 +85,7 @@ public class ConfigGroupResponse {
     this.tag = tag;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.DESCRIPTION_PROPERTY_ID)
   public String getDescription() {
     return description;
   }
@@ -84,6 +94,7 @@ public class ConfigGroupResponse {
     this.description = description;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.HOSTS_PROPERTY_ID)
   public Set<Map<String, Object>> getHosts() {
     return hosts;
   }
@@ -92,6 +103,7 @@ public class ConfigGroupResponse {
     this.hosts = hosts;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.DESIRED_CONFIGS_PROPERTY_ID)
   public Set<Map<String, Object>> getConfigurations() {
     return configVersions;
   }
@@ -100,11 +112,17 @@ public class ConfigGroupResponse {
     this.configVersions = configurations;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.VERSION_TAGS_PROPERTY_ID)
   public Set<Map<String, Object>> getVersionTags() {
     return versionTags;
   }
 
   public void setVersionTags(Set<Map<String, Object>> versionTags) {
     this.versionTags = versionTags;
+  }
+
+  public interface ConfigGroupWrapper extends ApiModel {
+    @ApiModelProperty(name = ConfigGroupResourceProvider.CONFIG_GROUP)
+    ConfigGroupResponse getConfigGroup();
   }
 }

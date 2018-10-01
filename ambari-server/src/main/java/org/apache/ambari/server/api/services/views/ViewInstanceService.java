@@ -31,10 +31,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.Request;
@@ -44,6 +44,8 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.view.ViewRegistry;
 
+import org.apache.http.HttpStatus;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -52,15 +54,16 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
+
 /**
  * Service responsible for instances resource requests.
  */
 @Path("/views/{viewName}/versions/{version}/instances")
 @Api(tags = "Views", description = "Endpoint for view specific operations")
 public class ViewInstanceService extends BaseService {
-  /**
-   * The view registry;
-   */
+
+  public static final String VIEW_INSTANCE_REQUEST_TYPE = "org.apache.ambari.server.controller.ViewInstanceResponse";
+
   private final ViewRegistry viewRegistry = ViewRegistry.getInstance();
 
   /**
@@ -75,20 +78,25 @@ public class ViewInstanceService extends BaseService {
    * @return instance collection resource representation
    */
   @GET
-  @Produces("text/plain")
-  @ApiOperation(value = "Get all view instances", nickname = "ViewInstanceService#getServices", notes = "Returns all instances for a view version.", response = ViewInstanceResponse.class, responseContainer = "List")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Get all view instances", response = ViewInstanceResponse.class, responseContainer = "List")
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "fields", value = "Filter view instance details", defaultValue = "ViewInstanceInfo/*", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "sortBy", value = "Sort users (asc | desc)", defaultValue = "ViewInstanceInfo/instance_name.desc", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "page_size", value = "The number of resources to be returned for the paged response.", defaultValue = "10", dataType = "integer", paramType = "query"),
-    @ApiImplicitParam(name = "from", value = "The starting page resource (inclusive). Valid values are :offset | \"start\"", defaultValue = "0", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "to", value = "The ending page resource (inclusive). Valid values are :offset | \"end\"", dataType = "string", paramType = "query")
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "ViewInstanceInfo/*", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, allowableValues = QUERY_FROM_VALUES, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, allowableValues = QUERY_TO_VALUES, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
   })
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation", response = ViewInstanceResponse.class, responseContainer = "List")}
-  )
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+  })
   public Response getServices(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                              @PathParam("viewName") String viewName, @PathParam("version") String version) throws AuthorizationException {
+    @PathParam("viewName") String viewName, @PathParam("version") String version) throws AuthorizationException {
     return handleRequest(headers, body, ui, Request.Type.GET, createResource(viewName, version, null));
   }
 
@@ -106,17 +114,22 @@ public class ViewInstanceService extends BaseService {
    */
   @GET
   @Path("{instanceName}")
-  @Produces("text/plain")
-  @ApiOperation(value = "Get single view instance", nickname = "ViewInstanceService#getService", notes = "Returns view instance details.", response = ViewInstanceResponse.class)
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Get single view instance", response = ViewInstanceResponse.class)
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "fields", value = "Filter view instance details", defaultValue = "ViewInstanceInfo", dataType = "string", paramType = "query")
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "ViewInstanceInfo/*", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
   })
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation", response = ViewInstanceResponse.class)}
-  )
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+  })
   public Response getService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                             @ApiParam(value = "view name") @PathParam("viewName") String viewName, @PathParam("version") String version,
-                             @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) throws AuthorizationException {
+    @ApiParam(value = "view name") @PathParam("viewName") String viewName, @PathParam("version") String version,
+    @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) throws AuthorizationException {
     return handleRequest(headers, body, ui, Request.Type.GET, createResource(viewName, version, instanceName));
   }
 
@@ -135,18 +148,23 @@ public class ViewInstanceService extends BaseService {
    */
   @POST
   @Path("{instanceName}")
-  @Produces("text/plain")
-  @ApiOperation(value = "Create view instance", nickname = "ViewInstanceService#createService", notes = "Creates view instance resource.")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Create view instance")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "body", value = "input parameters in json form", required = true, dataType = "org.apache.ambari.server.controller.ViewInstanceRequest", paramType = "body")
+    @ApiImplicitParam(dataType = VIEW_INSTANCE_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
   })
   @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation"),
-    @ApiResponse(code = 500, message = "Server Error")}
-  )
+    @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response createService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                @ApiParam(value = "view name") @PathParam("viewName") String viewName, @PathParam("version") String version,
-                                @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) throws AuthorizationException {
+    @ApiParam(value = "view name") @PathParam("viewName") String viewName, @PathParam("version") String version,
+    @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) throws AuthorizationException {
     return handleRequest(headers, body, ui, Request.Type.POST, createResource(viewName, version, instanceName));
   }
 
@@ -162,10 +180,23 @@ public class ViewInstanceService extends BaseService {
    *
    * @return information regarding the created instances
    */
-  @POST @ApiIgnore // until documented
-  @Produces("text/plain")
+  @POST
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Create view instances")
+  @ApiImplicitParams({
+    @ApiImplicitParam(dataType = VIEW_INSTANCE_REQUEST_TYPE, paramType = PARAM_TYPE_BODY, allowMultiple = true)
+  })
+  @ApiResponses(value = {
+    @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response createServices(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                 @PathParam("viewName") String viewName, @PathParam("version") String version) throws AuthorizationException {
+    @PathParam("viewName") String viewName, @PathParam("version") String version) throws AuthorizationException {
     return handleRequest(headers, body, ui, Request.Type.POST, createResource(viewName, version, null));
   }
 
@@ -182,20 +213,26 @@ public class ViewInstanceService extends BaseService {
    *
    * @return information regarding the updated instance
    */
+
   @PUT
   @Path("{instanceName}")
-  @Produces("text/plain")
-  @ApiOperation(value = "Update view instance detail", nickname = "ViewInstanceService#updateService", notes = "Updates view instance resource.")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Update view instance detail")
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "body", value = "input parameters in json form", required = true, dataType = "org.apache.ambari.server.controller.ViewInstanceRequest", paramType = "body")
+    @ApiImplicitParam(dataType = VIEW_INSTANCE_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
   })
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation"),
-    @ApiResponse(code = 500, message = "Server Error")}
-  )
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_OR_HOST_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response updateService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                @ApiParam(value = "view name") @PathParam("viewName") String viewName, @PathParam("version") String version,
-                                @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) throws AuthorizationException {
+    @ApiParam(value = "view name") @PathParam("viewName") String viewName, @PathParam("version") String version,
+    @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) throws AuthorizationException {
     return handleRequest(headers, body, ui, Request.Type.PUT, createResource(viewName, version, instanceName));
   }
 
@@ -211,10 +248,23 @@ public class ViewInstanceService extends BaseService {
    *
    * @return information regarding the updated instance
    */
-  @PUT @ApiIgnore // until documented
-  @Produces("text/plain")
+  @PUT
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Update multiple view instance detail")
+  @ApiImplicitParams({
+    @ApiImplicitParam(dataType = VIEW_INSTANCE_REQUEST_TYPE, paramType = PARAM_TYPE_BODY, allowMultiple = true)
+  })
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_OR_HOST_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response updateServices(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                 @PathParam("viewName") String viewName, @PathParam("version") String version) throws AuthorizationException {
+    @PathParam("viewName") String viewName, @PathParam("version") String version) throws AuthorizationException {
     return handleRequest(headers, body, ui, Request.Type.PUT, createResource(viewName, version, null));
   }
 
@@ -232,15 +282,18 @@ public class ViewInstanceService extends BaseService {
    */
   @DELETE
   @Path("{instanceName}")
-  @Produces("text/plain")
-  @ApiOperation(value = "Delete view instance", nickname = "ViewInstanceService#deleteService", notes = "Delete view resource.")
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation"),
-    @ApiResponse(code = 500, message = "Server Error")}
-  )
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Delete view instance")
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_OR_HOST_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response deleteService(@Context HttpHeaders headers, @Context UriInfo ui,
-                                @ApiParam(value = "view name") @PathParam("viewName") String viewName, @PathParam("version") String version,
-                                @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) throws AuthorizationException {
+    @ApiParam(value = "view name") @PathParam("viewName") String viewName, @PathParam("version") String version,
+    @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) throws AuthorizationException {
     return handleRequest(headers, null, ui, Request.Type.DELETE, createResource(viewName, version, instanceName));
   }
 

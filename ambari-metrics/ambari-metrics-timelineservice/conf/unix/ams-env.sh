@@ -14,3 +14,20 @@
 # limitations under the License.
 
 # Set environment variables here.
+# Collector Log directory for log4j
+export AMS_COLLECTOR_LOG_DIR=/tmp
+
+# Monitor Log directory for outfile
+export AMS_MONITOR_LOG_DIR=/tmp
+
+# Collector pid directory
+export AMS_COLLECTOR_PID_DIR=/tmp
+
+# Monitor pid directory
+export AMS_MONITOR_PID_DIR=/tmp
+
+# AMS HBase pid directory
+export AMS_HBASE_PID_DIR=/tmp
+
+# AMS Collector heapsize
+export AMS_COLLECTOR_HEAPSIZE=512m

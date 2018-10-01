@@ -22,7 +22,7 @@ import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.apache.ambari.logfeeder.plugin.input.cache.LRUCache;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputDescriptorImpl;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;

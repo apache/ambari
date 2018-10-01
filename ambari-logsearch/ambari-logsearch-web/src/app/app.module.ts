@@ -24,11 +24,11 @@ import {InMemoryBackendService} from 'angular-in-memory-web-api';
 import {TypeaheadModule, TooltipModule} from 'ngx-bootstrap';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {StoreModule} from '@ngrx/store';
-import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import {StoreDevtoolsModule} from '@ngrx/store-devtools';
 import {MomentModule} from 'angular2-moment';
 import {MomentTimezoneModule} from 'angular-moment-timezone';
 import {NgStringPipesModule} from 'angular-pipes';
-import { SimpleNotificationsModule } from 'angular2-notifications';
+import {SimpleNotificationsModule} from 'angular2-notifications';
 
 import {environment} from '@envs/environment';
 
@@ -38,7 +38,6 @@ import {ShipperModule} from '@modules/shipper/shipper.module';
 
 import {ServiceInjector} from '@app/classes/service-injector';
 
-import {mockApiDataService} from '@app/services/mock-api-data.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
@@ -110,23 +109,11 @@ import {ClusterFilterComponent } from '@app/components/cluster-filter/cluster-fi
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 import {TranslateService as AppTranslateService} from '@app/services/translate.service';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
-
-export function getXHRBackend(
-  injector: Injector, browser: BrowserXhr, xsrf: XSRFStrategy, options: ResponseOptions
-): XHRBackend | InMemoryBackendService {
-  if (environment.production) {
-    return new XHRBackend(browser, options, xsrf);
-  } else {
-    return new InMemoryBackendService(
-      injector,
-      new mockApiDataService(),
-      {
-        passThruUnknownUrl: true,
-        rootPath: ''
-      }
-    );
-  }
-}
+import {TabGuard} from '@app/services/tab.guard';
+import {LogsBreadcrumbsResolverService} from '@app/services/logs-breadcrumbs-resolver.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {LoginScreenGuardService} from '@app/services/login-screen-guard.service';
 
 @NgModule({
   declarations: [
@@ -223,15 +210,15 @@ export function getXHRBackend(
     ServiceLogsFieldsService,
     AuditLogsFieldsService,
     TabsService,
-    {
-      provide: XHRBackend,
-      useFactory: getXHRBackend,
-      deps: [Injector, BrowserXhr, XSRFStrategy, ResponseOptions]
-    },
+    TabGuard,
+    LogsBreadcrumbsResolverService,
     AuthService,
     AuthGuardService,
     HistoryManagerService,
-    ClusterSelectionService
+    ClusterSelectionService,
+    LogsFilteringUtilsService,
+    LogsStateService,
+    LoginScreenGuardService
   ],
   bootstrap: [AppComponent],
   entryComponents: [

@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
@@ -60,6 +61,7 @@ import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -83,10 +85,7 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.UserGroupInfo;
-import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
@@ -94,10 +93,9 @@ import org.apache.commons.collections.MapUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
-import org.easymock.Mock;
-import org.easymock.MockType;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -115,15 +113,9 @@ public class AmbariCustomCommandExecutionHelperTest {
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
 
-  @Mock(type = MockType.NICE)
-  private ActionManager actionManager;
-
-  @Mock(type = MockType.NICE)
   private HostRoleCommand hostRoleCommand;
-
-  @Mock(type = MockType.NICE)
+  private ActionManager actionManager;
   private ConfigHelper configHelper;
-
   private Injector injector;
   private Clusters clusters;
   private AmbariManagementController ambariManagementController;
@@ -133,16 +125,15 @@ public class AmbariCustomCommandExecutionHelperTest {
 
   @Before
   public void setup() throws Exception {
-    EasyMock.reset(actionManager, hostRoleCommand, configHelper);
-
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule(){
       @Override
       protected void configure() {
         getProperties().setProperty(Configuration.AGENT_SERVICE_CHECK_TASK_TIMEOUT.getKey(),
           OVERRIDDEN_SERVICE_CHECK_TIMEOUT_VALUE);
         super.configure();
-        bind(ActionManager.class).toInstance(actionManager);
-        bind(ConfigHelper.class).toInstance(configHelper);
+        bind(HostRoleCommand.class).toInstance(EasyMock.createNiceMock(HostRoleCommand.class));
+        bind(ActionManager.class).toInstance(EasyMock.createNiceMock(ActionManager.class));
+        bind(ConfigHelper.class).toInstance(EasyMock.createNiceMock(ConfigHelper.class));
       }
     };
 
@@ -150,11 +141,22 @@ public class AmbariCustomCommandExecutionHelperTest {
     injector.getInstance(GuiceJpaInitializer.class);
     ambariManagementController = injector.getInstance(AmbariManagementController.class);
     clusters = injector.getInstance(Clusters.class);
+    hostRoleCommand = injector.getInstance(HostRoleCommand.class);
+    actionManager = injector.getInstance(ActionManager.class);
+    configHelper = injector.getInstance(ConfigHelper.class);
 
     expect(configHelper.getPropertiesWithPropertyType(EasyMock.anyObject(StackId.class),
         EasyMock.anyObject(PropertyInfo.PropertyType.class),
         EasyMock.anyObject(Cluster.class),
-        EasyMock.anyObject(Map.class))).andReturn(Collections.emptyMap());
+        EasyMock.anyObject(Map.class))).andReturn(Collections.emptyMap()).anyTimes();
+
+    EasyMock.expect(configHelper.getHostActualConfigs(EasyMock.anyLong())).andReturn(
+        new AgentConfigsUpdateEvent(null, new TreeMap<>())).anyTimes();
+
+    Map<String, Set<String>> userGroupsMap = new HashMap<>();
+    userGroupsMap.put("zookeeperUser", new HashSet<>(Arrays.asList("zookeeperGroup")));
+    expect(configHelper.createUserGroupsMap(EasyMock.anyObject(StackId.class),
+        EasyMock.anyObject(Cluster.class), EasyMock.anyObject(Map.class))).andReturn(userGroupsMap).anyTimes();
 
     replay(configHelper);
 
@@ -163,8 +165,6 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
     createClusterFixture("c1", new StackId("HDP-2.0.6"), "2.0.6-1234", "c1");
-
-    EasyMock.reset(configHelper);
 
     expect(hostRoleCommand.getTaskId()).andReturn(1L);
     expect(hostRoleCommand.getStageId()).andReturn(1L);
@@ -175,50 +175,17 @@ public class AmbariCustomCommandExecutionHelperTest {
     expect(actionManager.getNextRequestId()).andReturn(1L).anyTimes();
     expect(actionManager.getRequestTasks(1L)).andReturn(Collections.singletonList(hostRoleCommand));
 
-    StackInfo stackInfo = new StackInfo();
-    stackInfo.setName("HDP");
-    stackInfo.setVersion("2.0.6");
-    StackId stackId = new StackId(stackInfo);
-    Map<String, DesiredConfig> desiredConfigMap = new HashMap<>();
-    Map<PropertyInfo, String> userProperties = new HashMap<>();
-    Map<PropertyInfo, String> groupProperties = new HashMap<>();
-    PropertyInfo userProperty = new PropertyInfo();
-    userProperty.setFilename("zookeeper-env.xml");
-    userProperty.setName("zookeeper-user");
-    userProperty.setValue("zookeeperUser");
-    PropertyInfo groupProperty = new PropertyInfo();
-    groupProperty.setFilename("zookeeper-env.xml");
-    groupProperty.setName("zookeeper-group");
-    groupProperty.setValue("zookeeperGroup");
-    ValueAttributesInfo valueAttributesInfo = new ValueAttributesInfo();
-    valueAttributesInfo.setType("user");
-    Set<UserGroupInfo> userGroupEntries = new HashSet<>();
-    UserGroupInfo userGroupInfo = new UserGroupInfo();
-    userGroupInfo.setType("zookeeper-env");
-    userGroupInfo.setName("zookeeper-group");
-    userGroupEntries.add(userGroupInfo);
-    valueAttributesInfo.setUserGroupEntries(userGroupEntries);
-    userProperty.setPropertyValueAttributes(valueAttributesInfo);
-    userProperties.put(userProperty, "zookeeperUser");
-    groupProperties.put(groupProperty, "zookeeperGroup");
-    Map<String, Set<String>> userGroupsMap = new HashMap<>();
-    userGroupsMap.put("zookeeperUser", new HashSet<>(Arrays.asList("zookeeperGroup")));
-    Cluster cluster = clusters.getCluster("c1");
-    expect(configHelper.getPropertiesWithPropertyType(
-      stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userProperties).anyTimes();
-    expect(configHelper.getPropertiesWithPropertyType(
-      stackId, PropertyInfo.PropertyType.GROUP, cluster, desiredConfigMap)).andReturn(groupProperties).anyTimes();
-    expect(configHelper.createUserGroupsMap(stackId, cluster, desiredConfigMap)).andReturn(userGroupsMap).anyTimes();
-
     actionManager.sendActions(EasyMock.capture(requestCapture), EasyMock.anyObject(ExecuteActionRequest.class));
     EasyMock.expectLastCall();
-
   }
 
   @After
   public void teardown() throws AmbariException, SQLException {
     SecurityContextHolder.getContext().setAuthentication(null);
     H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
+    EasyMock.reset(actionManager);
+    EasyMock.reset(hostRoleCommand);
+    EasyMock.reset(configHelper);
   }
 
   @Test
@@ -238,7 +205,9 @@ public class AmbariCustomCommandExecutionHelperTest {
         }, false);
     actionRequest.getResourceFilters().add(new RequestResourceFilter("CORE", "YARN", "RESOURCEMANAGER", Collections.singletonList("c1-c6401")));
 
-    replay(hostRoleCommand, actionManager, configHelper);
+    Cluster cluster = clusters.getCluster("c1");
+
+    replay(hostRoleCommand, actionManager);
 
     createServiceComponentHosts("c1", "CORE", "c1");
 
@@ -260,6 +229,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertTrue(command.getHostLevelParams().containsKey(ExecutionCommand.KeyNames.USER_GROUPS));
     Assert.assertEquals("{\"zookeeperUser\":[\"zookeeperGroup\"]}", command.getHostLevelParams().get(ExecutionCommand.KeyNames.USER_GROUPS));
     Assert.assertEquals(true, command.getForceRefreshConfigTagsBeforeExecution());
+    Assert.assertNull(command.getRepositoryFile());
   }
 
   @Test
@@ -285,7 +255,7 @@ public class AmbariCustomCommandExecutionHelperTest {
        new RequestOperationLevel(Resource.Type.Service, "c1", "CORE", "GANGLIA", null, null),
       new HashMap<>(), false);
 
-    replay(hostRoleCommand, actionManager, configHelper);
+    replay(hostRoleCommand, actionManager);
 
     createServiceComponentHosts("c1", "CORE", "c1");
 
@@ -323,7 +293,7 @@ public class AmbariCustomCommandExecutionHelperTest {
         new RequestOperationLevel(Resource.Type.Service, "c1", "CORE", "GANGLIA", null, null),
       new HashMap<>(), false);
 
-    replay(hostRoleCommand, actionManager, configHelper);
+    replay(hostRoleCommand, actionManager);
 
     createServiceComponentHosts("c1", "CORE", "c1");
 
@@ -359,7 +329,7 @@ public class AmbariCustomCommandExecutionHelperTest {
         new RequestOperationLevel(Resource.Type.Host, "c1", "CORE", "GANGLIA", null, null),
       new HashMap<>(), false);
 
-    replay(hostRoleCommand, actionManager, configHelper);
+    replay(hostRoleCommand, actionManager);
 
     createServiceComponentHosts("c1", "CORE", "c1");
 
@@ -496,7 +466,7 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     HashSet<String> localComponents = new HashSet<>();
     expect(execCmd.getLocalComponents()).andReturn(localComponents).anyTimes();
-    replay(configHelper, stage, execCmdWrapper, execCmd);
+    replay(stage, execCmdWrapper, execCmd);
 
     createServiceComponentHosts("c1", "CORE", "c1");
 
@@ -548,7 +518,7 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     HashSet<String> localComponents = new HashSet<>();
     expect(execCmd.getLocalComponents()).andReturn(localComponents).anyTimes();
-    replay(configHelper, stage, execCmdWrapper, execCmd);
+    replay(stage, execCmdWrapper, execCmd);
 
     createServiceComponentHosts("c1", "CORE", "c1");
 
@@ -587,6 +557,13 @@ public class AmbariCustomCommandExecutionHelperTest {
     expect(stage.getExecutionCommandWrapper(EasyMock.eq("c1-c6403"), EasyMock.anyString())).andReturn(execCmdWrapper);
     expect(execCmdWrapper.getExecutionCommand()).andReturn(execCmd);
     expect(execCmd.getForceRefreshConfigTagsBeforeExecution()).andReturn(true);
+
+    AgentConfigsUpdateEvent event = new AgentConfigsUpdateEvent(null, null);
+    event.setHash("01");
+    event.setTimestamp(1L);
+    event.setHash("12345");
+    EasyMock.reset(configHelper);
+    expect(configHelper.getHostActualConfigs(EasyMock.anyLong())).andReturn(event).anyTimes();
 
     HashSet<String> localComponents = new HashSet<>();
     expect(execCmd.getLocalComponents()).andReturn(localComponents).anyTimes();
@@ -635,7 +612,15 @@ public class AmbariCustomCommandExecutionHelperTest {
   public void testIsTopologyRefreshRequired() throws Exception {
     AmbariCustomCommandExecutionHelper helper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
 
+    EasyMock.reset(configHelper);
+    EasyMock.expect(configHelper.getHostActualConfigs(EasyMock.anyLong())).andReturn(
+        new AgentConfigsUpdateEvent(null, new TreeMap<>())).anyTimes();
+
+    EasyMock.replay(configHelper);
+
     createClusterFixture("c2", new StackId("HDP-2.1.1"), "2.1.1.0-1234", "c2");
+
+    EasyMock.verify(configHelper);
 
     Assert.assertTrue(helper.isTopologyRefreshRequired("START", "c2", "CORE", "HDFS"));
     Assert.assertTrue(helper.isTopologyRefreshRequired("RESTART", "c2", "CORE", "HDFS"));
@@ -658,7 +643,7 @@ public class AmbariCustomCommandExecutionHelperTest {
               }
             }, false);
     actionRequest.getResourceFilters().add(new RequestResourceFilter("CORE", "YARN", "RESOURCEMANAGER", Collections.singletonList("c1-c6401")));
-    replay(hostRoleCommand, actionManager, configHelper);
+    replay(hostRoleCommand, actionManager);
 
     createServiceComponentHosts("c1", "CORE", "c1");
 
@@ -673,6 +658,61 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertFalse(MapUtils.isEmpty(command.getComponentVersionMap()));
     Assert.assertEquals(1, command.getComponentVersionMap().size());
     Assert.assertTrue(command.getComponentVersionMap().containsKey("ZOOKEEPER"));
+    Assert.assertNull(command.getRepositoryFile());
+  }
+
+  /**
+   * Obsolete: RepoversionDAO has gone
+   * Tests that if a component's repository is not resolved, then the repo
+   * version map does not get populated.
+   *
+   * @throws Exception
+   */
+  @Ignore
+  @Test
+  public void testAvailableServicesMapIsEmptyWhenRepositoriesNotResolved() throws Exception {
+
+    // Since RepositoryVersionDAO has gone, now we assume the path to metainfo file is invalid,
+    // so that we don't get a component version map
+    /*AmbariMetaInfo ambariMetaInfo = ambariManagementController.getAmbariMetaInfo();
+    StackManagerMock stackManagerMock = (StackManagerMock) ambariMetaInfo.getStackManager();
+    stackManagerMock.invalidateCurrentPaths();
+    try {
+      ambariManagementController.updateStacks();
+    } catch(Exception e) {
+      // Do nothing, the AmbariException is expected here
+      // "org.apache.ambari.server.AmbariException: Ambari Meta Information can't be read from the stack root directory"
+    }*/
+
+    Map<String, String> requestProperties = new HashMap<String, String>() {
+      {
+        put(REQUEST_CONTEXT_PROPERTY, "Refresh YARN Capacity Scheduler");
+        put("command", "REFRESHQUEUES");
+      }
+    };
+
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1", "REFRESHQUEUES",
+        new HashMap<String, String>() {
+          {
+            put("forceRefreshConfigTags", "capacity-scheduler");
+          }
+        }, false);
+
+    actionRequest.getResourceFilters().add(new RequestResourceFilter("CORE", "YARN", "RESOURCEMANAGER",
+        Collections.singletonList("c1-c6401")));
+
+    EasyMock.replay(hostRoleCommand, actionManager, configHelper);
+
+    createServiceComponentHosts("c1", "CORE", "c1");
+
+    ambariManagementController.createAction(actionRequest, requestProperties);
+    Request request = requestCapture.getValue();
+    Stage stage = request.getStages().iterator().next();
+    List<ExecutionCommandWrapper> commands = stage.getExecutionCommands("c1-c6401");
+    ExecutionCommand command = commands.get(0).getExecutionCommand();
+
+    Assert.assertTrue(MapUtils.isEmpty(command.getComponentVersionMap()));
+    Assert.assertNull(command.getRepositoryFile());
   }
 
   @Test
@@ -810,6 +850,56 @@ public class AmbariCustomCommandExecutionHelperTest {
     assertEquals("8", defaultHostParams.get(JAVA_VERSION));
     assertNotNull(defaultHostParams.get(NOT_MANAGED_HDFS_PATH_LIST));
     assertTrue(defaultHostParams.get(NOT_MANAGED_HDFS_PATH_LIST).contains("/tmp"));
+  }
+
+  /**
+   * Tests that when {@link ActionExecutionContext#isFutureCommand()} is set, invalid
+   * hosts/components are still scheduled.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testFutureCommandsPassValidation() throws Exception {
+    // make sure the component isn't added to the cluster yet
+    final String serviceGroupName = "CORE";
+    final String serviceName = "YARN";
+    final String componentName = "YARN_FOO";
+    Cluster cluster = clusters.getCluster("c1");
+    Service service = cluster.getService(serviceName);
+    try {
+      service.getServiceComponent(componentName);
+      Assert.fail("For this test to work, the YARN_FOO component must not be in the cluster yet");
+    } catch (AmbariException ambariException) {
+      // expected
+    }
+
+    AmbariCustomCommandExecutionHelper ambariCustomCommandExecutionHelper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
+
+    List<RequestResourceFilter> requestResourceFilter = new ArrayList<RequestResourceFilter>() {{
+        add(new RequestResourceFilter(serviceGroupName, serviceName, componentName,
+            Collections.singletonList("c1-c6401")));
+    }};
+
+    ActionExecutionContext actionExecutionContext = new ActionExecutionContext("c1", "RESTART", requestResourceFilter);
+    actionExecutionContext.setIsFutureCommand(true);
+
+    Stage stage = EasyMock.niceMock(Stage.class);
+    ExecutionCommandWrapper execCmdWrapper = EasyMock.niceMock(ExecutionCommandWrapper.class);
+    ExecutionCommand execCmd = EasyMock.niceMock(ExecutionCommand.class);
+
+    EasyMock.expect(stage.getClusterName()).andReturn("c1");
+
+    EasyMock.expect(stage.getExecutionCommandWrapper(EasyMock.eq("c1-c6401"), EasyMock.anyString())).andReturn(execCmdWrapper);
+    EasyMock.expect(execCmdWrapper.getExecutionCommand()).andReturn(execCmd);
+    EasyMock.expectLastCall();
+
+    HashSet<String> localComponents = new HashSet<>();
+    EasyMock.expect(execCmd.getLocalComponents()).andReturn(localComponents).anyTimes();
+    EasyMock.replay(stage, execCmdWrapper, execCmd);
+
+    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<>(), null);
+
+    EasyMock.verify(stage, execCmdWrapper, execCmd);
   }
 
   private void createClusterFixture(String clusterName, StackId stackId,

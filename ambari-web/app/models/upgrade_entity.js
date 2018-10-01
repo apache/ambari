@@ -56,6 +56,11 @@ App.upgradeEntity = Em.Object.extend({
   isRunning: Em.computed.existsIn('status', ['IN_PROGRESS']),
 
   /**
+   * @type {boolean}
+   */
+  isCompleted: Em.computed.existsIn('status', ['COMPLETED', 'FAILED', 'TIMEDOUT', 'ABORTED']),
+
+  /**
    * @type {number}
    */
   progress: function () {

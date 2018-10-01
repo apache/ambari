@@ -19,10 +19,7 @@
 
 package org.apache.ambari.logsearch.config.api;
 
-import java.util.List;
 import java.util.Map;
-
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputSolrProperties;
 
 /**
  * Log Search Configuration for Log Feeder.
@@ -56,21 +53,4 @@ public interface LogSearchConfigLogFeeder extends LogSearchConfig {
    */
   void monitorInputConfigChanges(InputConfigMonitor inputConfigMonitor, LogLevelFilterMonitor logLevelFilterMonitor,
       String clusterName) throws Exception;
-
-  /**
-   * Get the properties of an Output Solr.
-   * 
-   * @param type The type of the Output Solr.
-   * @return The properties of the Output Solr, or null if it doesn't exist.
-   * @throws Exception
-   */
-  OutputSolrProperties getOutputSolrProperties(String type) throws Exception;
-
-  /**
-   * Saves the properties of an Output Solr.
-   *
-   * @param outputConfigMonitors The monitors which want to watch the output config changes.
-   * @throws Exception
-   */
-  void monitorOutputProperties(List<? extends OutputConfigMonitor> outputConfigMonitors) throws Exception;
 }

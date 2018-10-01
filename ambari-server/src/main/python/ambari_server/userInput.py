@@ -19,7 +19,6 @@ limitations under the License.
 '''
 
 import os
-import getpass
 import re
 
 from ambari_commons.logging_utils import get_silent
@@ -157,31 +156,32 @@ def get_prompt_default(defaultStr=None):
     return '(' + defaultStr + ')'
 
 
-def read_password(passwordDefault,
-                  passwordPattern,
-                  passwordPrompt=None,
-                  passwordDescr=None,
-                  answer=None):
+def read_password(password_default,
+                  password_pattern,
+                  password_prompt=None,
+                  password_descr=None,
+                  answer=None,
+                  confirm_password_prompt="Re-enter password: "):
 
   input = True
   while(input):
     # setup password
-    if passwordPrompt is None:
-      passwordPrompt = 'Password (' + passwordDefault + '): '
+    if password_prompt is None:
+      password_prompt = 'Password (' + password_default + '): '
 
-    if passwordDescr is None:
-      passwordDescr = "Invalid characters in password. Use only alphanumeric or " \
+    if password_descr is None:
+      password_descr = "Invalid characters in password. Use only alphanumeric or " \
                       "_ or - characters"
 
-    password = get_validated_string_input(passwordPrompt, passwordDefault,
-                                          passwordPattern, passwordDescr, True, answer = answer)
+    password = get_validated_string_input(password_prompt, password_default,
+                                          password_pattern, password_descr, True, answer = answer)
     if not password:
       print 'Password cannot be blank.'
       continue
 
-    if password != passwordDefault:
-      password1 = get_validated_string_input("Re-enter password: ", passwordDefault, passwordPattern,
-                                             passwordDescr, True, answer = answer)
+    if password != password_default:
+      password1 = get_validated_string_input(confirm_password_prompt, password_default, password_pattern,
+                                             password_descr, True, answer = answer)
       if password != password1:
         print "Passwords do not match"
         continue

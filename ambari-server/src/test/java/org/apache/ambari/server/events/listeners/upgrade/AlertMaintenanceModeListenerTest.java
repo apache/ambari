@@ -24,13 +24,16 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.events.AlertUpdateEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
@@ -40,7 +43,9 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
+import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -59,6 +64,8 @@ public class AlertMaintenanceModeListenerTest {
   private static final String HOSTNAME = "c6401.ambari.apache.org";
   private static final String SERVICE = "HDFS";
   private static final String COMPONENT = "NAMENODE";
+  private static final Long CLUSTER_ID = 1L;
+  private static final String DEFINITION_NAME = "definition_name";
 
   @Inject
   private AmbariEventPublisher m_eventPublisher;
@@ -103,12 +110,24 @@ public class AlertMaintenanceModeListenerTest {
     Host host = EasyMock.createNiceMock(Host.class);
     EasyMock.expect(host.getHostName()).andReturn(HOSTNAME).atLeastOnce();
 
-    EasyMock.replay(hostAlert, serviceAlert, componentAlert, host, m_alertsDAO);
+    STOMPUpdatePublisher stompUpdatePublisher = injector.getInstance(STOMPUpdatePublisher.class);
+    Capture<AlertUpdateEvent> alertUpdateEventCapture = EasyMock.newCapture();
+    stompUpdatePublisher.publish(EasyMock.capture(alertUpdateEventCapture));
+
+    EasyMock.replay(hostAlert, serviceAlert, componentAlert, host, m_alertsDAO, stompUpdatePublisher);
 
     MaintenanceModeEvent hostEvent = new MaintenanceModeEvent(MaintenanceState.ON, 1 /* cluster id */, host);
     m_eventPublisher.publish(hostEvent);
 
     EasyMock.verify(hostAlert, serviceAlert, componentAlert, host, m_alertsDAO);
+
+    AlertUpdateEvent alertUpdateEvent = alertUpdateEventCapture.getValue();
+    Assert.assertNotNull(alertUpdateEvent);
+    Assert.assertEquals(1, alertUpdateEvent.getSummaries().size());
+    Assert.assertTrue(alertUpdateEvent.getSummaries().containsKey(CLUSTER_ID));
+    Assert.assertEquals(1, alertUpdateEvent.getSummaries().get(CLUSTER_ID).size());
+    Assert.assertTrue(alertUpdateEvent.getSummaries().get(CLUSTER_ID).containsKey(DEFINITION_NAME));
+    Assert.assertEquals(1, alertUpdateEvent.getSummaries().get(CLUSTER_ID).get(DEFINITION_NAME).State.Ok.MaintenanceCount);
   }
 
   /**
@@ -132,12 +151,24 @@ public class AlertMaintenanceModeListenerTest {
     EasyMock.expect(service.getClusterId()).andReturn(1L).anyTimes();
     EasyMock.expect(service.getName()).andReturn(SERVICE).atLeastOnce();
 
-    EasyMock.replay(hostAlert, serviceAlert, componentAlert, service, m_alertsDAO);
+    STOMPUpdatePublisher stompUpdatePublisher = injector.getInstance(STOMPUpdatePublisher.class);
+    Capture<AlertUpdateEvent> alertUpdateEventCapture = EasyMock.newCapture();
+    stompUpdatePublisher.publish(EasyMock.capture(alertUpdateEventCapture));
+
+    EasyMock.replay(hostAlert, serviceAlert, componentAlert, service, m_alertsDAO, stompUpdatePublisher);
 
     MaintenanceModeEvent serviceEvent = new MaintenanceModeEvent(MaintenanceState.ON, service);
     m_eventPublisher.publish(serviceEvent);
 
     EasyMock.verify(hostAlert, serviceAlert, componentAlert, service, m_alertsDAO);
+
+    AlertUpdateEvent alertUpdateEvent = alertUpdateEventCapture.getValue();
+    Assert.assertNotNull(alertUpdateEvent);
+    Assert.assertEquals(1, alertUpdateEvent.getSummaries().size());
+    Assert.assertTrue(alertUpdateEvent.getSummaries().containsKey(CLUSTER_ID));
+    Assert.assertEquals(1, alertUpdateEvent.getSummaries().get(CLUSTER_ID).size());
+    Assert.assertTrue(alertUpdateEvent.getSummaries().get(CLUSTER_ID).containsKey(DEFINITION_NAME));
+    Assert.assertEquals(1, alertUpdateEvent.getSummaries().get(CLUSTER_ID).get(DEFINITION_NAME).State.Ok.MaintenanceCount);
   }
 
   @Test
@@ -160,7 +191,11 @@ public class AlertMaintenanceModeListenerTest {
     EasyMock.expect(serviceComponentHost.getServiceType()).andReturn(SERVICE).atLeastOnce();
     EasyMock.expect(serviceComponentHost.getServiceComponentName()).andReturn(COMPONENT).atLeastOnce();
 
-    EasyMock.replay(hostAlert, serviceAlert, componentAlert, serviceComponentHost, m_alertsDAO);
+    STOMPUpdatePublisher stompUpdatePublisher = injector.getInstance(STOMPUpdatePublisher.class);
+    Capture<AlertUpdateEvent> alertUpdateEventCapture = EasyMock.newCapture();
+    stompUpdatePublisher.publish(EasyMock.capture(alertUpdateEventCapture));
+
+    EasyMock.replay(hostAlert, serviceAlert, componentAlert, serviceComponentHost, m_alertsDAO, stompUpdatePublisher);
 
     MaintenanceModeEvent serviceComponentHostEvent = new MaintenanceModeEvent(MaintenanceState.ON,
         serviceComponentHost);
@@ -168,6 +203,14 @@ public class AlertMaintenanceModeListenerTest {
     m_eventPublisher.publish(serviceComponentHostEvent);
 
     EasyMock.verify(hostAlert, serviceAlert, componentAlert, serviceComponentHost, m_alertsDAO);
+
+    AlertUpdateEvent alertUpdateEvent = alertUpdateEventCapture.getValue();
+    Assert.assertNotNull(alertUpdateEvent);
+    Assert.assertEquals(1, alertUpdateEvent.getSummaries().size());
+    Assert.assertTrue(alertUpdateEvent.getSummaries().containsKey(CLUSTER_ID));
+    Assert.assertEquals(1, alertUpdateEvent.getSummaries().get(CLUSTER_ID).size());
+    Assert.assertTrue(alertUpdateEvent.getSummaries().get(CLUSTER_ID).containsKey(DEFINITION_NAME));
+    Assert.assertEquals(1, alertUpdateEvent.getSummaries().get(CLUSTER_ID).get(DEFINITION_NAME).State.Ok.MaintenanceCount);
   }
 
   private List<AlertCurrentEntity> getMockAlerts(String testType) {
@@ -179,6 +222,8 @@ public class AlertMaintenanceModeListenerTest {
     AlertHistoryEntity serviceHistory = EasyMock.createStrictMock(AlertHistoryEntity.class);
     AlertHistoryEntity componentHistory = EasyMock.createStrictMock(AlertHistoryEntity.class);
 
+    AlertDefinitionEntity alertDefinition = EasyMock.createStrictMock(AlertDefinitionEntity.class);
+
     EasyMock.expect(hostAlert.getAlertHistory()).andReturn(hostHistory).atLeastOnce();
     EasyMock.expect(serviceAlert.getAlertHistory()).andReturn(serviceHistory).atLeastOnce();
     EasyMock.expect(componentAlert.getAlertHistory()).andReturn(componentHistory).atLeastOnce();
@@ -186,12 +231,19 @@ public class AlertMaintenanceModeListenerTest {
     EasyMock.expect(hostHistory.getHostName()).andReturn(HOSTNAME).atLeastOnce();
     EasyMock.expect(hostHistory.getServiceName()).andReturn(null).atLeastOnce();
     EasyMock.expect(hostHistory.getComponentName()).andReturn(null).atLeastOnce();
+    EasyMock.expect(hostHistory.getAlertDefinition()).andReturn(alertDefinition).atLeastOnce();
     EasyMock.expect(hostHistory.getAlertState()).andReturn(AlertState.OK).atLeastOnce();
+    EasyMock.expect(hostHistory.getClusterId()).andReturn(CLUSTER_ID).atLeastOnce();
 
     EasyMock.expect(serviceHistory.getHostName()).andReturn(null).atLeastOnce();
     EasyMock.expect(serviceHistory.getServiceName()).andReturn(SERVICE).atLeastOnce();
     EasyMock.expect(serviceHistory.getComponentName()).andReturn(null).atLeastOnce();
+    EasyMock.expect(serviceHistory.getAlertDefinition()).andReturn(alertDefinition).atLeastOnce();
     EasyMock.expect(serviceHistory.getAlertState()).andReturn(AlertState.OK).atLeastOnce();
+    EasyMock.expect(serviceHistory.getClusterId()).andReturn(CLUSTER_ID).atLeastOnce();
+
+    EasyMock.expect(alertDefinition.getDefinitionId()).andReturn(1L).atLeastOnce();
+    EasyMock.expect(alertDefinition.getDefinitionName()).andReturn(DEFINITION_NAME).atLeastOnce();
 
     if (testType.equals("SCH")) {
       EasyMock.expect(componentHistory.getHostName()).andReturn(HOSTNAME).atLeastOnce();
@@ -202,7 +254,9 @@ public class AlertMaintenanceModeListenerTest {
       EasyMock.expect(componentHistory.getServiceName()).andReturn(null).atLeastOnce();
       EasyMock.expect(componentHistory.getComponentName()).andReturn(COMPONENT).atLeastOnce();
     }
+    EasyMock.expect(componentHistory.getAlertDefinition()).andReturn(alertDefinition).atLeastOnce();
     EasyMock.expect(componentHistory.getAlertState()).andReturn(AlertState.OK).atLeastOnce();
+    EasyMock.expect(componentHistory.getClusterId()).andReturn(CLUSTER_ID).atLeastOnce();
 
     List<AlertCurrentEntity> currentAlerts = new ArrayList<>();
     currentAlerts.add(hostAlert);
@@ -211,7 +265,7 @@ public class AlertMaintenanceModeListenerTest {
 
     EasyMock.expect(m_alertsDAO.findCurrent()).andReturn(currentAlerts).atLeastOnce();
 
-    EasyMock.replay(hostHistory, serviceHistory, componentHistory);
+    EasyMock.replay(hostHistory, serviceHistory, componentHistory, alertDefinition);
     return currentAlerts;
   }
 
@@ -231,6 +285,7 @@ public class AlertMaintenanceModeListenerTest {
       binder.bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));
       binder.bind(AlertsDAO.class).toInstance(createNiceMock(AlertsDAO.class));
       binder.bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+      binder.bind(STOMPUpdatePublisher.class).toInstance(createNiceMock(STOMPUpdatePublisher.class));
     }
   }
 }

@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -175,8 +176,10 @@ public class ConfigGroupImpl implements ConfigGroup {
 
     // Populate configs
     for (ConfigGroupConfigMappingEntity configMappingEntity : configGroupEntity.getConfigGroupConfigMappingEntities()) {
-      Config config = cluster.getConfig(configMappingEntity.getConfigType(),
-        configMappingEntity.getVersionTag());
+      Config config = cluster.getConfig(
+        configMappingEntity.getConfigType(),
+        configMappingEntity.getVersionTag(),
+        Optional.ofNullable(serviceId));
 
       if (config != null) {
         m_configurations.put(config.getType(), config);
@@ -436,9 +439,16 @@ public class ConfigGroupImpl implements ConfigGroup {
         if (clusterConfigEntity == null) {
           Service service = cluster.getService(serviceId);
 
-          //TODO check the serviceid = null for the right use case
           config = configFactory.createNew(service.getStackId(), cluster, config.getType(),
-              config.getTag(), config.getProperties(), config.getPropertiesAttributes(), null);
+              config.getTag(), config.getProperties(), config.getPropertiesAttributes(), serviceId);
+          // TODO: the following line should not be here, adding only temporarily for compatibility
+          // ClusterImpl keeps cluster level configs and service instance level configs (those associated with
+          // a serviceId) separately. Most of current Ambari code only uses cluster level configs. (TODO: fix it!)
+          // When a service instance level config is created using AmbariManagementController.createConfig() it will
+          // be added to the cluster both as service level and cluster level configs. To keep consistency with
+          // this behavior service level configs created here will too be added as cluster level configs until
+          // this thing gets fixed.
+          cluster.addConfig(config);
 
           entry.setValue(config);
 
@@ -456,6 +466,7 @@ public class ConfigGroupImpl implements ConfigGroup {
         configMappingEntity.setConfigGroupId(configGroupEntity.getGroupId());
         configMappingEntity.setConfigType(clusterConfigEntity.getType());
         configMappingEntity.setVersionTag(clusterConfigEntity.getTag());
+        configMappingEntity.setServiceId(clusterConfigEntity.getServiceId());
         configGroupConfigMappingDAO.create(configMappingEntity);
         configGroupEntity.getConfigGroupConfigMappingEntities().add
           (configMappingEntity);
@@ -509,10 +520,8 @@ public class ConfigGroupImpl implements ConfigGroup {
 
     for (Config config : m_configurations.values()) {
       Map<String, Object> configMap = new HashMap<>();
-      configMap.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID,
-          config.getType());
-      configMap.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID,
-          config.getTag());
+      configMap.put(ConfigurationResourceProvider.TYPE, config.getType());
+      configMap.put(ConfigurationResourceProvider.TAG, config.getTag());
       configObjMap.add(configMap);
     }
 

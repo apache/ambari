@@ -18,19 +18,19 @@
  */
 package org.apache.ambari.logsearch.handler;
 
-import org.apache.ambari.logsearch.conf.SolrPropsConfig;
-import org.apache.commons.io.FileUtils;
-import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.common.cloud.SolrZkClient;
-import org.apache.solr.common.cloud.ZkConfigManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.apache.solr.common.cloud.ZkConfigManager.CONFIGS_ZKNODE;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
-import java.nio.file.Paths;
-import java.util.UUID;
+
+import org.apache.ambari.logsearch.conf.SolrPropsConfig;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.common.cloud.SolrZkClient;
+import org.apache.solr.common.cloud.ZkConfigManager;
+import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractSolrConfigHandler implements SolrZkRequestHandler<Boolean> {
 
@@ -46,17 +46,14 @@ public abstract class AbstractSolrConfigHandler implements SolrZkRequestHandler<
   public Boolean handle(CloudSolrClient solrClient, SolrPropsConfig solrPropsConfig) throws Exception {
     boolean reloadCollectionNeeded = false;
     String separator = FileSystems.getDefault().getSeparator();
-    String downloadFolderLocation = String.format("%s%s%s%s%s", System.getProperty("java.io.tmpdir"), separator,
-      UUID.randomUUID().toString(), separator, solrPropsConfig.getConfigName());
     solrClient.connect();
     SolrZkClient zkClient = solrClient.getZkStateReader().getZkClient();
-    File tmpDir = new File(downloadFolderLocation);
     try {
       ZkConfigManager zkConfigManager = new ZkConfigManager(zkClient);
       boolean configExists = zkConfigManager.configExists(solrPropsConfig.getConfigName());
       if (configExists) {
         uploadMissingConfigFiles(zkClient, zkConfigManager, solrPropsConfig.getConfigName());
-        reloadCollectionNeeded = doIfConfigExists(solrPropsConfig, zkClient, separator, downloadFolderLocation, tmpDir);
+        reloadCollectionNeeded = doIfConfigExists(solrPropsConfig, zkClient, separator);
       } else {
         doIfConfigNotExist(solrPropsConfig, zkConfigManager);
         uploadMissingConfigFiles(zkClient, zkConfigManager, solrPropsConfig.getConfigName());
@@ -64,24 +61,15 @@ public abstract class AbstractSolrConfigHandler implements SolrZkRequestHandler<
     } catch (Exception e) {
       throw new RuntimeException(String.format("Cannot upload configurations to zk. (collection: %s, config set folder: %s)",
         solrPropsConfig.getCollection(), solrPropsConfig.getConfigSetFolder()), e);
-    } finally {
-      if (tmpDir.exists()) {
-        try {
-          FileUtils.deleteDirectory(tmpDir);
-        } catch (IOException e){
-          LOG.error("Cannot delete temp directory.", e);
-        }
-      }
     }
     return reloadCollectionNeeded;
   }
 
   /**
-   * Update config file (like solrconfig.xml) to zookeeper znode of solr, contains a download location as well which can be
-   * used to determine that you need to update the configuration or not
+   * Update config file (like solrconfig.xml) to zookeeper znode of solr
    */
   public abstract boolean updateConfigIfNeeded(SolrPropsConfig solrPropsConfig, SolrZkClient zkClient, File file,
-                                               String separator, String downloadFolderLocation) throws IOException;
+                                               String separator, byte[] content) throws IOException;
 
   /**
    * Config file name which should be uploaded to zookeeper
@@ -91,31 +79,31 @@ public abstract class AbstractSolrConfigHandler implements SolrZkRequestHandler<
   @SuppressWarnings("unused")
   public void doIfConfigNotExist(SolrPropsConfig solrPropsConfig, ZkConfigManager zkConfigManager) throws IOException {
     // Do nothing
-  };
+  }
 
   @SuppressWarnings("unused")
   public void uploadMissingConfigFiles(SolrZkClient zkClient, ZkConfigManager zkConfigManager, String configName) throws IOException {
     // do Nothing
   }
 
-  public boolean doIfConfigExists(SolrPropsConfig solrPropsConfig, SolrZkClient zkClient, String separator, String downloadFolderLocation, File tmpDir) throws IOException {
-    boolean result = false;
+  public boolean doIfConfigExists(SolrPropsConfig solrPropsConfig, SolrZkClient zkClient, String separator) throws IOException {
     LOG.info("Config set exists for '{}' collection. Refreshing it if needed...", solrPropsConfig.getCollection());
-    if (!tmpDir.mkdirs()) {
-      LOG.error("Cannot create directories for '{}'", tmpDir.getAbsolutePath());
-    }
-    ZkConfigManager zkConfigManager = new ZkConfigManager(zkClient);
-    zkConfigManager.downloadConfigDir(solrPropsConfig.getConfigName(), Paths.get(downloadFolderLocation));
-    File[] listOfFiles = getConfigSetFolder().listFiles();
-    if (listOfFiles != null) {
+    try {
+      File[] listOfFiles = getConfigSetFolder().listFiles();
+      if (listOfFiles == null)
+        return false;
+      byte[] data = zkClient.getData(String.format("%s/%s/%s", CONFIGS_ZKNODE, solrPropsConfig.getConfigName(), getConfigFileName()), null, null, true);
+
       for (File file : listOfFiles) {
-        if (file.getName().equals(getConfigFileName()) && updateConfigIfNeeded(solrPropsConfig, zkClient, file, separator, downloadFolderLocation)) {
-          result = true;
-          break;
+        if (file.getName().equals(getConfigFileName()) && updateConfigIfNeeded(solrPropsConfig, zkClient, file, separator, data)) {
+          return true;
         }
       }
+      return false;
+    } catch (KeeperException | InterruptedException e) {
+      throw new IOException("Error downloading files from zookeeper path " + solrPropsConfig.getConfigName(),
+              SolrZkClient.checkInterrupted(e));
     }
-    return result;
   }
 
   protected File getConfigSetFolder() {

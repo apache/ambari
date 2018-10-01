@@ -33,9 +33,10 @@ App.NameNodeRpcView = App.TextDashboardWidgetView.extend(App.EditableWidgetMixin
 
   isRed: Em.computed.gtProperties('data', 'thresholdMax'),
 
+  modelValue: Em.computed.getByKey('model.nameNodeRpcValues', 'hostName'),
+
   data: function () {
-    const clusterId = this.get('clusterId'),
-      rpc = this.get(`model.nameNodeRpcValues.${clusterId}`);
+    const rpc = this.get('modelValue');
     if (rpc) {
       return rpc.toFixed(2);
     }
@@ -43,14 +44,14 @@ App.NameNodeRpcView = App.TextDashboardWidgetView.extend(App.EditableWidgetMixin
       return 0;
     }
     return null;
-  }.property('model.nameNodeRpcValues', 'clusterId'),
+  }.property('modelValue'),
 
   content: function () {
     if (this.get('data') || this.get('data') == 0) {
       return this.get('data') + " ms";
     }
     return Em.I18n.t('services.service.summary.notAvailable');
-  }.property('model.nameNodeRpcValues', 'clusterId'),
+  }.property('modelValue'),
 
   hintInfo: Em.I18n.t('dashboard.widgets.hintInfo.hint3')
 

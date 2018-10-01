@@ -21,5 +21,5 @@ package org.apache.ambari.logsearch.model.request.impl;
 import org.apache.ambari.logsearch.common.Marker;
 
 @Marker
-public class ServiceLogAggregatedInfoRequest extends BaseServiceLogRequest {
+public interface ServiceLogAggregatedInfoRequest extends BaseServiceLogRequest {
 }

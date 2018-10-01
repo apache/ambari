@@ -59,5 +59,16 @@ public enum ExperimentalFeature {
    * Loading and dealing with upgrade checks dynamically and injecting
    * configurations into them.
    */
-  UPGRADE_PACK_PRE_CHECKS;
+  UPGRADE_PACK_PRE_CHECKS,
+
+  /*
+   * Support for service-specific repos for custom services
+   */
+  CUSTOM_SERVICE_REPOS,
+
+  /**
+   * Automatically removing Kerberos identities when a service or component is
+   * removed.
+   */
+  ORPHAN_KERBEROS_IDENTITY_REMOVAL;
 }

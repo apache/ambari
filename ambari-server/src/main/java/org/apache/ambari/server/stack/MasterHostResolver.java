@@ -22,6 +22,7 @@ import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -41,6 +42,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.stack.upgrade.ExecuteHostType;
 import org.apache.ambari.server.utils.HTTPUtils;
 import org.apache.ambari.server.utils.HostAndPort;
 import org.apache.ambari.server.utils.StageUtils;
@@ -48,8 +50,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
-
 
 public class MasterHostResolver {
 
@@ -159,6 +161,47 @@ public class MasterHostResolver {
       LOG.error("Unable to get master and hosts for Component " + componentName + ". Error: " + err.getMessage(), err);
     }
     return filterHosts(hostsType, serviceName, componentName);
+  }
+
+  /**
+   * Gets hosts which match the supplied criteria.
+   *
+   * @param cluster
+   * @param executeHostType
+   * @param serviceName
+   * @param componentName
+   * @return
+   */
+  public static Collection<Host> getCandidateHosts(Cluster cluster, ExecuteHostType executeHostType,
+      String serviceName, String componentName) {
+    Collection<Host> candidates = cluster.getHosts();
+    if (StringUtils.isNotBlank(serviceName) && StringUtils.isNotBlank(componentName)) {
+      List<ServiceComponentHost> schs = cluster.getServiceComponentHosts(serviceName,componentName);
+      candidates = schs.stream().map(sch -> sch.getHost()).collect(Collectors.toList());
+    }
+
+    if (candidates.isEmpty()) {
+      return candidates;
+    }
+
+    // figure out where to add the new component
+    List<Host> winners = Lists.newArrayList();
+    switch (executeHostType) {
+      case ALL:
+        winners.addAll(candidates);
+        break;
+      case FIRST:
+        winners.add(candidates.iterator().next());
+        break;
+      case MASTER:
+        winners.add(candidates.iterator().next());
+        break;
+      case ANY:
+        winners.add(candidates.iterator().next());
+        break;
+    }
+
+    return winners;
   }
 
   /**

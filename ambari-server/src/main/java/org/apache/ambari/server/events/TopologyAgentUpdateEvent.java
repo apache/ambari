@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TopologyAgentUpdateEvent extends TopologyUpdateEvent {
-  public TopologyAgentUpdateEvent(SortedMap<String, TopologyCluster> clusters, String hash, EventType eventType) {
+  public TopologyAgentUpdateEvent(SortedMap<String, TopologyCluster> clusters, String hash, UpdateEventType eventType) {
     super(Type.AGENT_TOPOLOGY, clusters, hash, eventType);
   }
 }

@@ -21,6 +21,7 @@ package org.apache.ambari.server.serveraction.kerberos;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +32,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.UpdateConfigurationPolicy;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
@@ -40,6 +42,7 @@ import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerbero
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -100,10 +103,20 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   public static final String KDC_TYPE = "kdc_type";
 
   /**
-   * A (command parameter) property name used to hold a boolean value indicating whether configurations
-   * should be process to see if they need to be updated
+   * A (command parameter) property name used to hold the value indicating how to process
+   * configurations updates. One of the of the following values is expected:
+   * <dl>
+   * <dt>none</dt>
+   * <dd>No configurations will be updated</dd>
+   * <dt>identities_only</dt>
+   * <dd>New and updated configurations related to Kerberos identity information - principal, keytab file, and auth-to-local rule properties</dd>
+   * <dt>new_and_identities</dt>
+   * <dd>Only new configurations declared by the Kerberos descriptor and stack advisor as well as the identity-related changes</dd>
+   * <dt>all</dt>
+   * <dd>All configuration changes (default)</dd>
+   * </dl>
    */
-  public static final String UPDATE_CONFIGURATIONS = "update_configurations";
+  public static final String UPDATE_CONFIGURATION_POLICY = "update_configuration_policy";
 
   /**
    * A (command parameter) property name used to hold the note to set when applying any
@@ -167,12 +180,6 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   private KerberosOperationHandlerFactory kerberosOperationHandlerFactory;
 
   /**
-   * The KerberosIdentityDataFileReaderFactory to use to obtain KerberosIdentityDataFileReader instances
-   */
-  @Inject
-  private KerberosIdentityDataFileReaderFactory kerberosIdentityDataFileReaderFactory;
-
-  /**
    * KerberosHelper
    */
   @Inject
@@ -194,6 +201,20 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    */
   protected static String getCommandParameterValue(Map<String, String> commandParameters, String propertyName) {
     return ((commandParameters == null) || (propertyName == null)) ? null : commandParameters.get(propertyName);
+  }
+
+  /**
+   * Given a (command parameter) Map, attempts to safely retrieve the "update_configuration_policy" property.
+   *
+   * @param commandParameters a Map containing the dictionary of data to interrogate
+   * @return a UpdateConfigurationPolicy
+   */
+  protected static UpdateConfigurationPolicy getUpdateConfigurationPolicy(Map<String, String> commandParameters) {
+    String stringValue = getCommandParameterValue(commandParameters, UPDATE_CONFIGURATION_POLICY);
+    UpdateConfigurationPolicy value = UpdateConfigurationPolicy.translate(stringValue);
+
+    // Return UpdateConfigurationPolicy.ALL as a default value
+    return (value == null) ? UpdateConfigurationPolicy.ALL : value;
   }
 
   /**
@@ -395,7 +416,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    * <p/>
    * Using {@link #getHostFilter()}, {@link #getIdentityFilter()} and {@link #getServiceComponentFilter()} it retrieve
    * list of filtered keytabs and their principals and process each principal using
-   * {@link #processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, Map)}.
+   * {@link #processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, boolean, Map)}.
    *
    * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
    *                                 to a given request
@@ -430,11 +451,13 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       }
 
       try {
-        for (ResolvedKerberosKeytab rkk : kerberosKeytabController.getFilteredKeytabs((Map<String, Collection<String>>) getServiceComponentFilter(), getHostFilter(), getIdentityFilter())) {
+        final Map<String, Collection<String>> serviceComponentFilter =kerberosKeytabController.adjustServiceComponentFilter(clusters.getCluster(getClusterName()), getServiceComponentFilter());
+        final Collection<KerberosIdentityDescriptor> serviceIdentities = serviceComponentFilter == null ? null : calculateServiceIdentities(getClusterName(), serviceComponentFilter);
+        for (ResolvedKerberosKeytab rkk : kerberosKeytabController.getFilteredKeytabs(serviceComponentFilter, getHostFilter(), getIdentityFilter())) {
           for (ResolvedKerberosPrincipal principal : rkk.getPrincipals()) {
-            commandReport = processIdentity(principal, handler, kerberosConfiguration, requestSharedDataContext);
-            // If the principal processor returns a CommandReport, than it is time to stop since
-            // an error condition has probably occurred, else all is assumed to be well.
+            commandReport = processIdentity(principal, handler, kerberosConfiguration, isRelevantIdentity(serviceIdentities, principal), requestSharedDataContext);
+            // If the principal processor returns a CommandReport, than it is time to stop
+            // since an error condition has probably occurred, else all is assumed to be well.
             if (commandReport != null) {
               break;
             }
@@ -462,6 +485,32 @@ public abstract class KerberosServerAction extends AbstractServerAction {
         : commandReport;
   }
 
+  private boolean isRelevantIdentity(Collection<KerberosIdentityDescriptor> serviceIdentities, ResolvedKerberosPrincipal principal) {
+    if (serviceIdentities != null) {
+      boolean hasValidIdentity = false;
+      for (KerberosIdentityDescriptor serviceIdentity : serviceIdentities) {
+        if (principal.getPrincipal().equals(serviceIdentity.getPrincipalDescriptor().getName()) && StringUtils.isBlank(serviceIdentity.getReference())) {
+          hasValidIdentity = true;
+          break;
+        }
+      }
+      return hasValidIdentity;
+    }
+
+    return true;
+  }
+
+  private Collection<KerberosIdentityDescriptor> calculateServiceIdentities(String clusterName, Map<String, Collection<String>> serviceComponentFilter)
+      throws AmbariException {
+    final Collection<KerberosIdentityDescriptor> serviceIdentities = new ArrayList<>();
+    for (String service : serviceComponentFilter.keySet()) {
+      for (Collection<KerberosIdentityDescriptor> activeIdentities : kerberosHelper.getActiveIdentities(clusterName, null, service, null, true).values()) {
+        serviceIdentities.addAll(activeIdentities);
+      }
+    }
+    return serviceIdentities;
+  }
+
   /**
    * Processes an identity as necessary.
    * <p/>
@@ -474,6 +523,8 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    *                                 tasks for specific Kerberos implementations
    *                                 (MIT, Active Directory, etc...)
    * @param kerberosConfiguration    a Map of configuration properties from kerberos-env
+   * @param includedInFilter         a Boolean value indicating whather the principal is included in
+   *                                 the current filter or not
    * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
    *                                 to a given request  @return a CommandReport, indicating an error
    *                                 condition; or null, indicating a success condition
@@ -482,6 +533,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   protected abstract CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal,
                                                    KerberosOperationHandler operationHandler,
                                                    Map<String, String> kerberosConfiguration,
+                                                   boolean includedInFilter,
                                                    Map<String, Object> requestSharedDataContext)
       throws AmbariException;
 

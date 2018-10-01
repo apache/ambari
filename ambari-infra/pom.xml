@@ -25,7 +25,7 @@
 
   <properties>
     <jdk.version>1.8</jdk.version>
-    <solr.version>7.2.1</solr.version>
+    <solr.version>7.4.0</solr.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <python.ver>python &gt;= 2.6</python.ver>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
@@ -33,10 +33,32 @@
     <deb.dependency.list>${deb.python.ver}</deb.dependency.list>
     <hadoop.version>3.0.0</hadoop.version>
     <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>
+    <zookeeper.version>3.4.6.2.3.0.0-2557</zookeeper.version>
     <skipSurefireTests>false</skipSurefireTests>
   </properties>
 
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <organization>
+    <name>Apache Software Foundation</name>
+    <url>http://www.apache.org</url>
+  </organization>
+  <issueManagement>
+    <system>jira</system>
+    <url>https://issues.apache.org/jira/browse/AMBARI</url>
+  </issueManagement>
+
   <repositories>
+    <repository>
+      <id>apache-hadoop</id>
+      <name>hdp</name>
+      <url>http://repo.hortonworks.com/content/groups/public/</url>
+    </repository>
     <repository>
       <id>oss.sonatype.org</id>
       <name>OSS Sonatype Staging</name>
@@ -77,6 +99,49 @@
   <build>
     <pluginManagement>
       <plugins>
+       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rpm-maven-plugin</artifactId>
+        <version>2.1.4</version>
+        <executions>
+          <execution>
+            <!-- unbinds rpm creation from maven lifecycle -->
+            <phase>none</phase>
+            <goals>
+              <goal>attached-rpm</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <copyright>2012, Apache Software Foundation</copyright>
+          <group>Development</group>
+          <description>Maven Recipe: RPM Package.</description>
+          <release>${package-release}</release>
+          <version>${package-version}</version>
+          <mappings/>
+        </configuration>
+      </plugin>
+        <plugin>
+          <groupId>org.vafer</groupId>
+          <artifactId>jdeb</artifactId>
+          <version>1.4</version>
+          <executions>
+            <execution>
+              <!--Stub execution on direct plugin call - workaround for ambari deb build process-->
+              <id>stub-execution</id>
+              <phase>none</phase>
+              <goals>
+                <goal>jdeb</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <skip>true</skip>
+            <attach>false</attach>
+            <submodules>false</submodules>
+            <controlDir>${project.basedir}/../src/main/package/deb/control</controlDir>
+          </configuration>
+       </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
@@ -267,7 +332,33 @@
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
-        <version>3.4.10</version>
+        <version>${zookeeper.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.5</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>2.9.4</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>2.9.4</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-xml</artifactId>
+        <version>2.9.4</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.fasterxml.woodstox</groupId>
+            <artifactId>woodstox-core</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
     </dependencies>
   </dependencyManagement>

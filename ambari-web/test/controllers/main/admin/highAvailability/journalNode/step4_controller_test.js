@@ -117,28 +117,6 @@ describe('App.ManageJournalNodeWizardStep4Controller', function () {
     });
   });
 
-  describe('#startJournalNodes', function() {
-
-    beforeEach(function() {
-      sinon.stub(controller, 'updateComponent');
-    });
-
-    afterEach(function() {
-      controller.updateComponent.restore();
-    });
-
-    it('updateComponent should be called', function() {
-      controller.set('content.masterComponentHosts', [
-        {
-          component: 'JOURNALNODE',
-          hostName: 'host1'
-        }
-      ]);
-      controller.startJournalNodes();
-      expect(controller.updateComponent.calledWith('JOURNALNODE', ['host1'], "HDFS", "Start")).to.be.true;
-    });
-  });
-
   describe('#reconfigureHDFS', function() {
 
     beforeEach(function() {

@@ -220,6 +220,8 @@ dfs.NNTopUserOpCounts.windowMs=60000.op=setReplication.TotalCount
 dfs.NNTopUserOpCounts.windowMs=60000.op=setReplication.user=ambari-qa.count
 dfs.NNTopUserOpCounts.windowMs=60000.op=setTimes.TotalCount
 dfs.NNTopUserOpCounts.windowMs=60000.op=setTimes.user=ams.count
+dfs.NNTopUserOpCounts.windowMs=1500000.op=create.user=hbase/ctr-e138-1518143905142-124809-01-000002.hwx.site@EXAMPLE.COM.count
+dfs.NNTopUserOpCounts.windowMs=1500000.op=delete.user=hbase/ctr-e138-1518143905142-124809-01-000003.hwx.site@EXAMPLE.COM.count
 dfs.namenode.AddBlockOps
 dfs.namenode.AllowSnapshotOps
 dfs.namenode.BlockOpsBatched

@@ -19,6 +19,7 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import static org.easymock.EasyMock.expect;
+import static org.mockito.Matchers.anyBoolean;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,9 +40,11 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RootComponent;
+import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -64,6 +67,8 @@ import junit.framework.Assert;
 public class FinalizeKerberosServerActionTest extends EasyMockSupport {
   @Rule
   public TemporaryFolder folder = new TemporaryFolder();
+
+  private final TopologyHolder topologyHolder = createNiceMock(TopologyHolder.class);
 
   @Test
   @Ignore("Update accordingly to changes")
@@ -90,7 +95,7 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
 
     ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<>();
 
-    FinalizeKerberosServerAction action = injector.getInstance(FinalizeKerberosServerAction.class);
+    FinalizeKerberosServerAction action = new FinalizeKerberosServerAction(topologyHolder);
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -122,7 +127,7 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
 
     ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<>();
 
-    FinalizeKerberosServerAction action = injector.getInstance(FinalizeKerberosServerAction.class);
+    FinalizeKerberosServerAction action = new FinalizeKerberosServerAction(topologyHolder);
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -196,6 +201,10 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
     final Clusters clusters = createMock(Clusters.class);
     expect(clusters.getHostsForCluster(clusterName)).andReturn(clusterHostMap).anyTimes();
     expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
+
+    final TopologyUpdateEvent event = createNiceMock(TopologyUpdateEvent.class);
+    expect(topologyHolder.getCurrentData()).andReturn(event).once();
+    expect(topologyHolder.updateData(event)).andReturn(anyBoolean()).once();
 
     return Guice.createInjector(new AbstractModule() {
 

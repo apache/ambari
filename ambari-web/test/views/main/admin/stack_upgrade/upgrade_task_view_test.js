@@ -23,12 +23,15 @@ require('views/main/admin/stack_upgrade/upgrade_task_view');
 describe('App.upgradeTaskView', function () {
   var view = App.upgradeTaskView.create({
     content: Em.Object.create(),
+    controller: Em.Object.create({
+      getUpgradeTask: sinon.stub().returns({
+        complete: Em.clb
+      })
+    }),
     taskDetailsProperties: ['prop1']
   });
   view.removeObserver('content.isExpanded', view, 'doPolling');
   view.removeObserver('outsideView', view, 'doPolling');
-
-  App.TestAliases.testAsComputedOr(view, 'showContent', ['outsideView', 'content.isExpanded']);
 
   describe("#logTabId", function() {
     it("depends on `elementId`", function() {
@@ -166,6 +169,41 @@ describe('App.upgradeTaskView', function () {
     });
     it("document is closed", function () {
       expect(mockWindow.document.close.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#toggleExpanded', function() {
+    beforeEach(function() {
+      sinon.stub(view, 'doPolling');
+    });
+    afterEach(function() {
+      view.doPolling.restore();
+    });
+
+    it('doPolling should be called', function() {
+      view.set('isExpanded', false);
+      view.toggleExpanded();
+      expect(view.get('isExpanded')).to.be.true;
+      expect(view.doPolling.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#doPolling', function() {
+
+    it('getUpgradeTask should be called', function() {
+      view.set('isExpanded', true);
+      view.doPolling();
+      expect(view.get('controller').getUpgradeTask.calledOnce).to.be.true;
+      expect(view.get('content.isContentLoaded')).to.be.true;
+    });
+
+    it('getUpgradeTask should be called when outside view', function() {
+      view.set('outsideView', Em.Object.create({
+        isDetailsOpened: true
+      }));
+      view.doPolling();
+      expect(view.get('controller').getUpgradeTask.called).to.be.true;
+      expect(view.get('content.isContentLoaded')).to.be.true;
     });
   });
 

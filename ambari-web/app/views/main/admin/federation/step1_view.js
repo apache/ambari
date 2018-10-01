@@ -25,8 +25,6 @@ App.NameNodeFederationWizardStep1View = Em.View.extend({
   didInsertElement: function() {
     //todo: provide tooltip with correct message
     // App.popover($("input[type=text]"), {'placement': 'right', 'trigger': 'hover', 'title': this.t('admin.highAvailability.wizard.step1.nameserviceid.tooltip.title'), 'content': this.t('admin.highAvailability.wizard.step1.nameserviceid.tooltip.content')});
-  },
-
-  showInputError: Em.computed.and('!controller.isNameServiceIdValid', 'controller.content.nameServiceId.length')
+  }
 
 });

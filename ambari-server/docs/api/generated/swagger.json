@@ -14,17 +14,47 @@
     "name" : "Actions",
     "description" : "Endpoint for action definition specific operations"
   }, {
+    "name" : "Alerts",
+    "description" : "Endpoint for alert specific operations"
+  }, {
     "name" : "Blueprints",
     "description" : "Endpoint for blueprint specific operations"
   }, {
     "name" : "Cluster Services",
     "description" : "Endpoint for service specific operations"
   }, {
+    "name" : "Clusters",
+    "description" : "Endpoint for cluster-specific operations"
+  }, {
+    "name" : "Config Groups",
+    "description" : "Endpoint for config-group-specific operations"
+  }, {
+    "name" : "Configurations",
+    "description" : "Endpoint for configuration-specific operations"
+  }, {
     "name" : "Groups",
     "description" : "Endpoint for group specific operations"
   }, {
+    "name" : "Host Components",
+    "description" : "Endpoint for host component specific operations"
+  }, {
+    "name" : "Hosts",
+    "description" : "Endpoint for host-specific operations"
+  }, {
+    "name" : "RequestSchedules",
+    "description" : "Endpoint for request schedule specific operations"
+  }, {
     "name" : "Requests",
     "description" : "Endpoint for request specific operations"
+  }, {
+    "name" : "Root Service Configurations",
+    "description" : "Endpoint for Ambari root service component configuration related operations"
+  }, {
+    "name" : "Services",
+    "description" : "Endpoint for querying root-level services, ie. Ambari Server and Ambari Agents"
+  }, {
+    "name" : "Settings",
+    "description" : "Endpoint for settings-specific operations"
   }, {
     "name" : "Stacks",
     "description" : "Endpoint for stack specific operations"
@@ -35,21 +65,9 @@
     "name" : "Users",
     "description" : "Endpoint for User specific operations"
   }, {
-    "name" : "Views"
-  }, {
-    "name" : "clusters",
-    "description" : "Endpoint for cluster-specific operations"
-  }, {
-    "name" : "hosts",
-    "description" : "Endpoint for host-specific operations"
-  }, {
-    "name" : "services",
-    "description" : "Endpoint for querying root-level services, ie. Ambari Server and Ambari Agents"
-  }, {
-    "name" : "settings",
-    "description" : "Endpoint for settings-specific operations"
+    "name" : "Views",
+    "description" : "Endpoint for view specific operations"
   } ],
-  "schemes" : [ "http", "https" ],
   "paths" : {
     "/actions" : {
       "get" : {
@@ -239,6 +257,260 @@
           },
           "404" : {
             "description" : "The requested resource doesn't exist."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
+    "/alert_targets" : {
+      "get" : {
+        "tags" : [ "Alerts" ],
+        "summary" : "Returns all alert targets",
+        "description" : "",
+        "operationId" : "getTargets",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string",
+          "default" : "AlertTarget/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort resources in result by (asc | desc)",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive).  \"start\" is also accepted.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 0,
+          "minimum" : 0.0
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive).  \"end\" is also accepted.",
+          "required" : false,
+          "type" : "integer",
+          "minimum" : 1.0
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/AlertTargetSwagger"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Alerts" ],
+        "summary" : "Creates an alert target",
+        "description" : "",
+        "operationId" : "createTarget",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/AlertTargetSwagger"
+          }
+        }, {
+          "name" : "validate_config",
+          "in" : "query",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "overwrite_existing",
+          "in" : "query",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Successful operation"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
+    "/alert_targets/{targetId}" : {
+      "get" : {
+        "tags" : [ "Alerts" ],
+        "summary" : "Returns a single alert target",
+        "description" : "",
+        "operationId" : "getTarget",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "targetId",
+          "in" : "path",
+          "description" : "alert target id",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string",
+          "default" : "AlertTarget/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort resources in result by (asc | desc)",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive).  \"start\" is also accepted.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 0,
+          "minimum" : 0.0
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive).  \"end\" is also accepted.",
+          "required" : false,
+          "type" : "integer",
+          "minimum" : 1.0
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/AlertTargetSwagger"
+            }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Alerts" ],
+        "summary" : "Updates an alert target",
+        "description" : "",
+        "operationId" : "updateTarget",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "targetId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/AlertTargetSwagger"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Alerts" ],
+        "summary" : "Deletes an alert target",
+        "description" : "",
+        "operationId" : "deleteTarget",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "targetId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
           },
           "500" : {
             "description" : "Internal server error"
@@ -451,7 +723,7 @@
     },
     "/clusters" : {
       "get" : {
-        "tags" : [ "clusters" ],
+        "tags" : [ "Clusters" ],
         "summary" : "Returns all clusters",
         "description" : "",
         "operationId" : "getClusters",
@@ -461,8 +733,7 @@
           "in" : "query",
           "description" : "Filter fields in the response (identifier fields are mandatory)",
           "required" : false,
-          "type" : "string",
-          "default" : "cluster_name"
+          "type" : "string"
         }, {
           "name" : "sortBy",
           "in" : "query",
@@ -519,7 +790,7 @@
     },
     "/clusters/{clusterName}" : {
       "get" : {
-        "tags" : [ "clusters" ],
+        "tags" : [ "Clusters" ],
         "summary" : "Returns information about a specific cluster",
         "description" : "",
         "operationId" : "getCluster",
@@ -559,7 +830,7 @@
         }
       },
       "post" : {
-        "tags" : [ "clusters" ],
+        "tags" : [ "Clusters" ],
         "summary" : "Creates a cluster",
         "description" : "",
         "operationId" : "createCluster",
@@ -602,7 +873,7 @@
         }
       },
       "put" : {
-        "tags" : [ "clusters" ],
+        "tags" : [ "Clusters" ],
         "summary" : "Updates a cluster",
         "description" : "",
         "operationId" : "updateCluster",
@@ -645,7 +916,7 @@
         }
       },
       "delete" : {
-        "tags" : [ "clusters" ],
+        "tags" : [ "Clusters" ],
         "summary" : "Deletes a cluster",
         "description" : "",
         "operationId" : "deleteCluster",
@@ -677,7 +948,7 @@
     },
     "/clusters/{clusterName}/artifacts" : {
       "get" : {
-        "tags" : [ "clusters" ],
+        "tags" : [ "Clusters" ],
         "summary" : "Returns all artifacts associated with the cluster",
         "description" : "",
         "operationId" : "getClusterArtifacts",
@@ -747,7 +1018,7 @@
         }
       },
       "put" : {
-        "tags" : [ "clusters" ],
+        "tags" : [ "Clusters" ],
         "summary" : "Updates multiple artifacts",
         "description" : "",
         "operationId" : "updateClusterArtifacts",
@@ -790,7 +1061,7 @@
         }
       },
       "delete" : {
-        "tags" : [ "clusters" ],
+        "tags" : [ "Clusters" ],
         "summary" : "Deletes all artifacts of a cluster that match the provided predicate",
         "description" : "",
         "operationId" : "deleteClusterArtifacts",
@@ -822,7 +1093,7 @@
     },
     "/clusters/{clusterName}/artifacts/{artifactName}" : {
       "get" : {
-        "tags" : [ "clusters" ],
+        "tags" : [ "Clusters" ],
         "summary" : "Get the details of a cluster artifact",
         "description" : "",
         "operationId" : "getClusterArtifact",
@@ -886,7 +1157,7 @@
         }
       },
       "post" : {
-        "tags" : [ "clusters" ],
+        "tags" : [ "Clusters" ],
         "summary" : "Creates a cluster artifact",
         "description" : "",
         "operationId" : "createClusterArtifact",
@@ -937,7 +1208,7 @@
         }
       },
       "put" : {
-        "tags" : [ "clusters" ],
+        "tags" : [ "Clusters" ],
         "summary" : "Updates a single artifact",
         "description" : "",
         "operationId" : "updateClusterArtifact",
@@ -985,7 +1256,7 @@
         }
       },
       "delete" : {
-        "tags" : [ "clusters" ],
+        "tags" : [ "Clusters" ],
         "summary" : "Deletes a single artifact",
         "description" : "",
         "operationId" : "deleteClusterArtifact",
@@ -1020,6 +1291,928 @@
         }
       }
     },
+    "/clusters/{clusterName}/config_groups" : {
+      "get" : {
+        "tags" : [ "Config Groups" ],
+        "summary" : "Returns all config groups",
+        "description" : "",
+        "operationId" : "getConfigGroups",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string",
+          "default" : "ConfigGroup/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort resources in result by (asc | desc)",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive).  \"start\" is also accepted.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 0,
+          "minimum" : 0.0
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive).  \"end\" is also accepted.",
+          "required" : false,
+          "type" : "integer",
+          "minimum" : 1.0
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/ConfigGroupWrapper"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Config Groups" ],
+        "summary" : "Creates a config group",
+        "description" : "",
+        "operationId" : "createConfigGroup",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/ConfigGroupRequest"
+          }
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Successful operation"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
+    "/clusters/{clusterName}/config_groups/{groupId}" : {
+      "get" : {
+        "tags" : [ "Config Groups" ],
+        "summary" : "Returns a single config group",
+        "description" : "",
+        "operationId" : "getConfigGroup",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "groupId",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string",
+          "default" : "ConfigGroup/*"
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/ConfigGroupWrapper"
+            }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Config Groups" ],
+        "summary" : "Updates a config group",
+        "description" : "",
+        "operationId" : "updateConfigGroup",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "groupId",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/ConfigGroupRequest"
+          }
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Config Groups" ],
+        "summary" : "Deletes a config group",
+        "description" : "",
+        "operationId" : "deleteConfigGroup",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "groupId",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
+    "/clusters/{clusterName}/configurations" : {
+      "get" : {
+        "tags" : [ "Configurations" ],
+        "summary" : "Get all configurations",
+        "description" : "",
+        "operationId" : "getConfigurations",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort resources in result by (asc | desc)",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive).  \"start\" is also accepted.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 0,
+          "minimum" : 0.0
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive).  \"end\" is also accepted.",
+          "required" : false,
+          "type" : "integer",
+          "minimum" : 1.0
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/ConfigurationResponse"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Configurations" ],
+        "summary" : "Create new configurations",
+        "description" : "",
+        "operationId" : "createConfigurations",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/ConfigurationRequest"
+          }
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Successful operation"
+          },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
+    "/clusters/{clusterName}/configurations/service_config_versions" : {
+      "get" : {
+        "tags" : [ "Configurations" ],
+        "summary" : "Get all service config versions",
+        "description" : "",
+        "operationId" : "getServiceConfigVersions",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort resources in result by (asc | desc)",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive).  \"start\" is also accepted.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 0,
+          "minimum" : 0.0
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive).  \"end\" is also accepted.",
+          "required" : false,
+          "type" : "integer",
+          "minimum" : 1.0
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/ServiceConfigVersionResponse"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
+    "/clusters/{clusterName}/host_components" : {
+      "get" : {
+        "tags" : [ "Host Components" ],
+        "summary" : "Get all host components for a host",
+        "description" : "",
+        "operationId" : "getHostComponents",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "format",
+          "in" : "query",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/HostComponentSwagger"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Host Components" ],
+        "summary" : "Delete host components",
+        "description" : "",
+        "operationId" : "deleteHostComponents",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
+    "/clusters/{clusterName}/host_components/{hostComponentName}" : {
+      "get" : {
+        "tags" : [ "Host Components" ],
+        "summary" : "Get single host component for a host",
+        "description" : "",
+        "operationId" : "getHostComponent",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "hostComponentName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "format",
+          "in" : "query",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/HostComponentSwagger"
+            }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Host Components" ],
+        "summary" : "Create new host component",
+        "description" : "",
+        "operationId" : "createHostComponent",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "hostComponentName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/ServiceComponentHostResponse"
+          }
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Successful operation"
+          },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Host Components" ],
+        "summary" : "Update host component detail",
+        "description" : "",
+        "operationId" : "updateHostComponent",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "hostComponentName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/ServiceComponentHostResponse"
+          }
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Host Components" ],
+        "summary" : "Delete host component",
+        "description" : "",
+        "operationId" : "deleteHostComponent",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "hostComponentName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
+    "/clusters/{clusterName}/host_components/{hostComponentName}/processes" : {
+      "get" : {
+        "tags" : [ "Host Components" ],
+        "summary" : "Get processes of a specific host component",
+        "description" : "",
+        "operationId" : "getProcesses",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "hostComponentName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/HostComponentProcessResponse"
+            }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
+    "/clusters/{clusterName}/request_schedules" : {
+      "get" : {
+        "tags" : [ "RequestSchedules" ],
+        "summary" : "Get all request schedules",
+        "description" : "",
+        "operationId" : "getRequestSchedules",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string",
+          "default" : "RequestSchedule/*"
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/RequestScheduleResponseSwagger"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "RequestSchedules" ],
+        "summary" : "Create new request schedule",
+        "description" : "",
+        "operationId" : "createRequestSchedule",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/RequestScheduleRequestSwagger"
+          }
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Successful operation"
+          },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
+    "/clusters/{clusterName}/request_schedules/{requestScheduleId}" : {
+      "get" : {
+        "tags" : [ "RequestSchedules" ],
+        "summary" : "Get request schedule",
+        "description" : "",
+        "operationId" : "getRequestSchedule",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "requestScheduleId",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string",
+          "default" : "RequestSchedule/*"
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/RequestScheduleResponseSwagger"
+            }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "RequestSchedules" ],
+        "summary" : "Delete a request schedule",
+        "description" : "Changes status from COMPLETED to DISABLED",
+        "operationId" : "deleteRequestSchedule",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "requestScheduleId",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "clusterName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
     "/clusters/{clusterName}/services" : {
       "get" : {
         "tags" : [ "Cluster Services" ],
@@ -1033,14 +2226,14 @@
           "description" : "Filter fields in the response (identifier fields are mandatory)",
           "required" : false,
           "type" : "string",
-          "default" : "ServiceInfo/service_name, ServiceInfo/cluster_name"
+          "default" : "ServiceInfo/service_name,ServiceInfo/cluster_name"
         }, {
           "name" : "sortBy",
           "in" : "query",
           "description" : "Sort resources in result by (asc | desc)",
           "required" : false,
           "type" : "string",
-          "default" : "ServiceInfo/service_name.asc, ServiceInfo/cluster_name.asc"
+          "default" : "ServiceInfo/service_name.asc,ServiceInfo/cluster_name.asc"
         }, {
           "name" : "page_size",
           "in" : "query",
@@ -2028,7 +3221,7 @@
     },
     "/hosts" : {
       "get" : {
-        "tags" : [ "hosts" ],
+        "tags" : [ "Hosts" ],
         "summary" : "Returns a collection of all hosts",
         "description" : "",
         "operationId" : "getHosts",
@@ -2076,7 +3269,7 @@
             "schema" : {
               "type" : "array",
               "items" : {
-                "$ref" : "#/definitions/Wrapper"
+                "$ref" : "#/definitions/HostResponseWrapper"
               }
             }
           },
@@ -2095,7 +3288,7 @@
         }
       },
       "post" : {
-        "tags" : [ "hosts" ],
+        "tags" : [ "Hosts" ],
         "summary" : "Creates multiple hosts in a single request",
         "description" : "",
         "operationId" : "createHosts",
@@ -2136,7 +3329,7 @@
         }
       },
       "put" : {
-        "tags" : [ "hosts" ],
+        "tags" : [ "Hosts" ],
         "summary" : "Updates multiple hosts in a single request",
         "description" : "",
         "operationId" : "updateHosts",
@@ -2174,7 +3367,7 @@
         }
       },
       "delete" : {
-        "tags" : [ "hosts" ],
+        "tags" : [ "Hosts" ],
         "summary" : "Deletes multiple hosts in a single request",
         "description" : "",
         "operationId" : "deleteHosts",
@@ -2208,7 +3401,7 @@
     },
     "/hosts/{hostName}" : {
       "get" : {
-        "tags" : [ "hosts" ],
+        "tags" : [ "Hosts" ],
         "summary" : "Returns information about a single host",
         "description" : "",
         "operationId" : "getHost",
@@ -2230,7 +3423,7 @@
           "200" : {
             "description" : "Successful operation",
             "schema" : {
-              "$ref" : "#/definitions/Wrapper"
+              "$ref" : "#/definitions/HostResponseWrapper"
             }
           },
           "401" : {
@@ -2248,7 +3441,7 @@
         }
       },
       "post" : {
-        "tags" : [ "hosts" ],
+        "tags" : [ "Hosts" ],
         "summary" : "Creates a host",
         "description" : "",
         "operationId" : "createHost",
@@ -2295,7 +3488,7 @@
         }
       },
       "put" : {
-        "tags" : [ "hosts" ],
+        "tags" : [ "Hosts" ],
         "summary" : "Updates a host",
         "description" : "",
         "operationId" : "updateHost",
@@ -2339,7 +3532,7 @@
         }
       },
       "delete" : {
-        "tags" : [ "hosts" ],
+        "tags" : [ "Hosts" ],
         "summary" : "Deletes a host",
         "description" : "",
         "operationId" : "deleteHost",
@@ -2559,7 +3752,7 @@
     },
     "/services" : {
       "get" : {
-        "tags" : [ "services" ],
+        "tags" : [ "Services" ],
         "summary" : "Returns the list of root-level services",
         "description" : "",
         "operationId" : "getRootServices",
@@ -2596,7 +3789,7 @@
     },
     "/services/{serviceName}" : {
       "get" : {
-        "tags" : [ "services" ],
+        "tags" : [ "Services" ],
         "summary" : "Returns information about the given root-level service, including a list of its components",
         "description" : "",
         "operationId" : "getRootService",
@@ -2639,7 +3832,7 @@
     },
     "/services/{serviceName}/components" : {
       "get" : {
-        "tags" : [ "services" ],
+        "tags" : [ "Services" ],
         "summary" : "Returns the list of components for the given root-level service",
         "description" : "",
         "operationId" : "getRootServiceComponents",
@@ -2685,7 +3878,7 @@
     },
     "/services/{serviceName}/components/{componentName}" : {
       "get" : {
-        "tags" : [ "services" ],
+        "tags" : [ "Services" ],
         "summary" : "Returns information about the given component for the given root-level service",
         "description" : "",
         "operationId" : "getRootServiceComponent",
@@ -2732,9 +3925,155 @@
         }
       }
     },
+    "/services/{serviceName}/components/{componentName}/configurations/{category}" : {
+      "get" : {
+        "tags" : [ "Root Service Configurations" ],
+        "summary" : "Retrieve the details of a root service component configuration resource",
+        "description" : "",
+        "operationId" : "RootServiceComponentConfigurationService#getConfiguration",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "category",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string",
+          "default" : "Configuration/*"
+        }, {
+          "name" : "serviceName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "componentName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/RootServiceComponentConfigurationResponseSwagger"
+            }
+          },
+          "404" : {
+            "description" : "The requested resource doesn't exist."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Root Service Configurations" ],
+        "summary" : "Updates root service component configuration resources ",
+        "description" : "",
+        "operationId" : "RootServiceComponentConfigurationService#updateConfiguration",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "category",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/RootServiceComponentConfigurationRequestSwagger"
+          }
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string",
+          "default" : "Configuration/*"
+        }, {
+          "name" : "serviceName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "componentName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "The requested resource doesn't exist."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Root Service Configurations" ],
+        "summary" : "Deletes a root service component configuration resource",
+        "description" : "",
+        "operationId" : "RootServiceComponentConfigurationService#deleteConfiguration",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "category",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "serviceName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "componentName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "The requested resource doesn't exist."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
     "/services/{serviceName}/components/{componentName}/hostComponents" : {
       "get" : {
-        "tags" : [ "services" ],
+        "tags" : [ "Services" ],
         "summary" : "Returns the list of hosts for the given root-level service component",
         "description" : "",
         "operationId" : "getRootServiceComponentHosts",
@@ -2786,7 +4125,7 @@
     },
     "/services/{serviceName}/hosts" : {
       "get" : {
-        "tags" : [ "services" ],
+        "tags" : [ "Services" ],
         "summary" : "Returns the list of hosts for the given root-level service",
         "description" : "",
         "operationId" : "getRootHosts",
@@ -2805,7 +4144,7 @@
             "schema" : {
               "type" : "array",
               "items" : {
-                "$ref" : "#/definitions/Wrapper"
+                "$ref" : "#/definitions/HostResponseWrapper"
               }
             }
           },
@@ -2826,7 +4165,7 @@
     },
     "/services/{serviceName}/hosts/{hostName}" : {
       "get" : {
-        "tags" : [ "services" ],
+        "tags" : [ "Services" ],
         "summary" : "Returns information about the given host",
         "description" : "",
         "operationId" : "getRootHost",
@@ -2849,7 +4188,7 @@
           "200" : {
             "description" : "Successful operation",
             "schema" : {
-              "$ref" : "#/definitions/Wrapper"
+              "$ref" : "#/definitions/HostResponseWrapper"
             }
           },
           "401" : {
@@ -2869,7 +4208,7 @@
     },
     "/services/{serviceName}/hosts/{hostName}/hostComponents" : {
       "get" : {
-        "tags" : [ "services" ],
+        "tags" : [ "Services" ],
         "summary" : "Returns the list of components for the given root-level service on the given host",
         "description" : "",
         "operationId" : "getRootServiceHostComponents",
@@ -2921,7 +4260,7 @@
     },
     "/services/{serviceName}/hosts/{hostName}/hostComponents/{hostComponent}" : {
       "get" : {
-        "tags" : [ "services" ],
+        "tags" : [ "Services" ],
         "summary" : "Returns information about the given component for the given root-level service on the given host",
         "description" : "",
         "operationId" : "getRootServiceHostComponent",
@@ -2976,7 +4315,7 @@
     },
     "/settings" : {
       "get" : {
-        "tags" : [ "settings" ],
+        "tags" : [ "Settings" ],
         "summary" : "Returns all settings",
         "description" : "",
         "operationId" : "getSettings",
@@ -3039,7 +4378,7 @@
         }
       },
       "post" : {
-        "tags" : [ "settings" ],
+        "tags" : [ "Settings" ],
         "summary" : "Creates a setting",
         "description" : "",
         "operationId" : "createSetting",
@@ -3082,7 +4421,7 @@
     },
     "/settings/{settingName}" : {
       "get" : {
-        "tags" : [ "settings" ],
+        "tags" : [ "Settings" ],
         "summary" : "Returns a specific setting",
         "description" : "",
         "operationId" : "getSetting",
@@ -3151,7 +4490,7 @@
         }
       },
       "put" : {
-        "tags" : [ "settings" ],
+        "tags" : [ "Settings" ],
         "summary" : "Updates a setting",
         "description" : "",
         "operationId" : "updateSetting",
@@ -3189,7 +4528,7 @@
         }
       },
       "delete" : {
-        "tags" : [ "settings" ],
+        "tags" : [ "Settings" ],
         "summary" : "Deletes a setting",
         "description" : "",
         "operationId" : "deleteSetting",
@@ -5492,27 +6831,26 @@
         }
       }
     },
-    "/views" : {
+    "/view/urls" : {
       "get" : {
         "tags" : [ "Views" ],
-        "summary" : "Get all views",
-        "description" : "Returns details of all views.",
-        "operationId" : "ViewService#getViews",
+        "summary" : "Get all view URLs",
+        "description" : "",
+        "operationId" : "getViewUrls",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "fields",
           "in" : "query",
-          "description" : "Filter view details",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
           "required" : false,
           "type" : "string",
-          "default" : "ViewInfo/*"
+          "default" : "ViewUrlInfo/*"
         }, {
           "name" : "sortBy",
           "in" : "query",
-          "description" : "Sort users (asc | desc)",
+          "description" : "Sort resources in result by (asc | desc)",
           "required" : false,
-          "type" : "string",
-          "default" : "ViewInfo/view_name.asc"
+          "type" : "string"
         }, {
           "name" : "page_size",
           "in" : "query",
@@ -5523,16 +6861,242 @@
         }, {
           "name" : "from",
           "in" : "query",
-          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "description" : "The starting page resource (inclusive).  \"start\" is also accepted.",
           "required" : false,
-          "type" : "string",
-          "default" : "0"
+          "type" : "integer",
+          "default" : 0,
+          "minimum" : 0.0
         }, {
           "name" : "to",
           "in" : "query",
-          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "description" : "The ending page resource (inclusive).  \"end\" is also accepted.",
           "required" : false,
+          "type" : "integer",
+          "minimum" : 1.0
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/ViewUrlResponseSwagger"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
+    "/view/urls/{urlName}" : {
+      "get" : {
+        "tags" : [ "Views" ],
+        "summary" : "Get single view URL",
+        "description" : "",
+        "operationId" : "getViewUrl",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "urlName",
+          "in" : "path",
+          "required" : true,
           "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string",
+          "default" : "ViewUrlInfo/*"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/ViewUrlResponseSwagger"
+            }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Views" ],
+        "summary" : "Create view URL",
+        "description" : "",
+        "operationId" : "createUrl",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "urlName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/ViewUrlResponseSwagger"
+          }
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Successful operation"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Views" ],
+        "summary" : "Update view URL",
+        "description" : "",
+        "operationId" : "updateUrl",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "urlName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/ViewUrlResponseSwagger"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Views" ],
+        "summary" : "Delete view URL",
+        "description" : "",
+        "operationId" : "deleteUrl",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "urlName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
+    "/views" : {
+      "get" : {
+        "tags" : [ "Views" ],
+        "summary" : "Get all views",
+        "description" : "Returns details of all views.",
+        "operationId" : "getViews",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string",
+          "default" : "Views/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort resources in result by (asc | desc)",
+          "required" : false,
+          "type" : "string",
+          "default" : "Views/view_name.asc"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive).  \"start\" is also accepted.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 0,
+          "minimum" : 0.0
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive).  \"end\" is also accepted.",
+          "required" : false,
+          "type" : "integer",
+          "minimum" : 1.0
         } ],
         "responses" : {
           "200" : {
@@ -5543,6 +7107,21 @@
                 "$ref" : "#/definitions/ViewResponse"
               }
             }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
           }
         }
       }
@@ -5551,8 +7130,8 @@
       "get" : {
         "tags" : [ "Views" ],
         "summary" : "Get single view",
-        "description" : "Returns view details.",
-        "operationId" : "ViewService#getView",
+        "description" : "",
+        "operationId" : "getView",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "viewName",
@@ -5563,10 +7142,10 @@
         }, {
           "name" : "fields",
           "in" : "query",
-          "description" : "Filter view details",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
           "required" : false,
           "type" : "string",
-          "default" : "ViewInfo"
+          "default" : "Views/*"
         } ],
         "responses" : {
           "200" : {
@@ -5574,6 +7153,21 @@
             "schema" : {
               "$ref" : "#/definitions/ViewResponse"
             }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
           }
         }
       }
@@ -5582,8 +7176,8 @@
       "get" : {
         "tags" : [ "Views" ],
         "summary" : "Get all versions for a view",
-        "description" : "Returns details of all versions for a view.",
-        "operationId" : "ViewVersionService#getVersions",
+        "description" : "",
+        "operationId" : "getVersions",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "viewName",
@@ -5594,17 +7188,16 @@
         }, {
           "name" : "fields",
           "in" : "query",
-          "description" : "Filter view version details",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
           "required" : false,
           "type" : "string",
           "default" : "ViewVersionInfo/*"
         }, {
           "name" : "sortBy",
           "in" : "query",
-          "description" : "Sort users (asc | desc)",
+          "description" : "Sort resources in result by (asc | desc)",
           "required" : false,
-          "type" : "string",
-          "default" : "ViewVersionInfo/version.desc"
+          "type" : "string"
         }, {
           "name" : "page_size",
           "in" : "query",
@@ -5615,16 +7208,18 @@
         }, {
           "name" : "from",
           "in" : "query",
-          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "description" : "The starting page resource (inclusive).  \"start\" is also accepted.",
           "required" : false,
-          "type" : "string",
-          "default" : "0"
+          "type" : "integer",
+          "default" : 0,
+          "minimum" : 0.0
         }, {
           "name" : "to",
           "in" : "query",
-          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "description" : "The ending page resource (inclusive).  \"end\" is also accepted.",
           "required" : false,
-          "type" : "string"
+          "type" : "integer",
+          "minimum" : 1.0
         } ],
         "responses" : {
           "200" : {
@@ -5635,6 +7230,21 @@
                 "$ref" : "#/definitions/ViewVersionResponse"
               }
             }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
           }
         }
       }
@@ -5643,8 +7253,8 @@
       "get" : {
         "tags" : [ "Views" ],
         "summary" : "Get single view version",
-        "description" : "Returns view details.",
-        "operationId" : "ViewVersionService#getVersion",
+        "description" : "",
+        "operationId" : "getVersion",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "viewName",
@@ -5660,10 +7270,10 @@
         }, {
           "name" : "fields",
           "in" : "query",
-          "description" : "Filter view details",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
           "required" : false,
           "type" : "string",
-          "default" : "ViewVersionInfo"
+          "default" : "ViewVersionInfo/*"
         } ],
         "responses" : {
           "200" : {
@@ -5671,6 +7281,21 @@
             "schema" : {
               "$ref" : "#/definitions/ViewVersionResponse"
             }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
           }
         }
       }
@@ -5679,8 +7304,8 @@
       "get" : {
         "tags" : [ "Views" ],
         "summary" : "Get all view instances",
-        "description" : "Returns all instances for a view version.",
-        "operationId" : "ViewInstanceService#getServices",
+        "description" : "",
+        "operationId" : "getServices",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "viewName",
@@ -5695,17 +7320,16 @@
         }, {
           "name" : "fields",
           "in" : "query",
-          "description" : "Filter view instance details",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
           "required" : false,
           "type" : "string",
           "default" : "ViewInstanceInfo/*"
         }, {
           "name" : "sortBy",
           "in" : "query",
-          "description" : "Sort users (asc | desc)",
+          "description" : "Sort resources in result by (asc | desc)",
           "required" : false,
-          "type" : "string",
-          "default" : "ViewInstanceInfo/instance_name.desc"
+          "type" : "string"
         }, {
           "name" : "page_size",
           "in" : "query",
@@ -5716,16 +7340,18 @@
         }, {
           "name" : "from",
           "in" : "query",
-          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "description" : "The starting page resource (inclusive).  \"start\" is also accepted.",
           "required" : false,
-          "type" : "string",
-          "default" : "0"
+          "type" : "integer",
+          "default" : 0,
+          "minimum" : 0.0
         }, {
           "name" : "to",
           "in" : "query",
-          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "description" : "The ending page resource (inclusive).  \"end\" is also accepted.",
           "required" : false,
-          "type" : "string"
+          "type" : "integer",
+          "minimum" : 1.0
         } ],
         "responses" : {
           "200" : {
@@ -5736,6 +7362,117 @@
                 "$ref" : "#/definitions/ViewInstanceResponse"
               }
             }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Views" ],
+        "summary" : "Create view instances",
+        "description" : "",
+        "operationId" : "createServices",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/ViewInstanceResponse"
+          }
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Successful operation"
+          },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Views" ],
+        "summary" : "Update multiple view instance detail",
+        "description" : "",
+        "operationId" : "updateServices",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/ViewInstanceResponse"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
           }
         }
       }
@@ -5744,8 +7481,8 @@
       "get" : {
         "tags" : [ "Views" ],
         "summary" : "Get single view instance",
-        "description" : "Returns view instance details.",
-        "operationId" : "ViewInstanceService#getService",
+        "description" : "",
+        "operationId" : "getService",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "viewName",
@@ -5767,10 +7504,10 @@
         }, {
           "name" : "fields",
           "in" : "query",
-          "description" : "Filter view instance details",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
           "required" : false,
           "type" : "string",
-          "default" : "ViewInstanceInfo"
+          "default" : "ViewInstanceInfo/*"
         } ],
         "responses" : {
           "200" : {
@@ -5778,14 +7515,29 @@
             "schema" : {
               "$ref" : "#/definitions/ViewInstanceResponse"
             }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
           }
         }
       },
       "post" : {
         "tags" : [ "Views" ],
         "summary" : "Create view instance",
-        "description" : "Creates view instance resource.",
-        "operationId" : "ViewInstanceService#createService",
+        "description" : "",
+        "operationId" : "createService",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "viewName",
@@ -5807,26 +7559,40 @@
         }, {
           "in" : "body",
           "name" : "body",
-          "description" : "input parameters in json form",
-          "required" : true,
+          "required" : false,
           "schema" : {
-            "$ref" : "#/definitions/ViewInstanceRequest"
+            "$ref" : "#/definitions/ViewInstanceResponse"
           }
         } ],
         "responses" : {
-          "200" : {
+          "201" : {
             "description" : "Successful operation"
           },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
           "500" : {
-            "description" : "Server Error"
+            "description" : "Internal server error"
           }
         }
       },
       "put" : {
         "tags" : [ "Views" ],
         "summary" : "Update view instance detail",
-        "description" : "Updates view instance resource.",
-        "operationId" : "ViewInstanceService#updateService",
+        "description" : "",
+        "operationId" : "updateService",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "viewName",
@@ -5848,26 +7614,40 @@
         }, {
           "in" : "body",
           "name" : "body",
-          "description" : "input parameters in json form",
-          "required" : true,
+          "required" : false,
           "schema" : {
-            "$ref" : "#/definitions/ViewInstanceRequest"
+            "$ref" : "#/definitions/ViewInstanceResponse"
           }
         } ],
         "responses" : {
           "200" : {
             "description" : "Successful operation"
           },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
           "500" : {
-            "description" : "Server Error"
+            "description" : "Internal server error"
           }
         }
       },
       "delete" : {
         "tags" : [ "Views" ],
         "summary" : "Delete view instance",
-        "description" : "Delete view resource.",
-        "operationId" : "ViewInstanceService#deleteService",
+        "description" : "",
+        "operationId" : "deleteService",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "viewName",
@@ -5891,8 +7671,17 @@
           "200" : {
             "description" : "Successful operation"
           },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
           "500" : {
-            "description" : "Server Error"
+            "description" : "Internal server error"
           }
         }
       }
@@ -5902,7 +7691,7 @@
         "tags" : [ "Views" ],
         "summary" : "Migrate view instance data",
         "description" : "Migrates view instance persistence data from origin view instance specified in the path params.",
-        "operationId" : "ViewDataMigrationService#migrateData",
+        "operationId" : "migrateData",
         "parameters" : [ {
           "name" : "viewName",
           "in" : "path",
@@ -5938,8 +7727,20 @@
           "200" : {
             "description" : "Successful operation"
           },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
           "500" : {
-            "description" : "Server Error"
+            "description" : "Internal server error"
           }
         }
       }
@@ -5948,8 +7749,8 @@
       "get" : {
         "tags" : [ "Views" ],
         "summary" : "Get all view instance privileges",
-        "description" : "Returns all privileges for the resource.",
-        "operationId" : "ViewPrivilegeService#getPrivileges",
+        "description" : "",
+        "operationId" : "getPrivileges",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "viewName",
@@ -5972,17 +7773,16 @@
         }, {
           "name" : "fields",
           "in" : "query",
-          "description" : "Filter privileges",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
           "required" : false,
           "type" : "string",
           "default" : "PrivilegeInfo/*"
         }, {
           "name" : "sortBy",
           "in" : "query",
-          "description" : "Sort privileges (asc | desc)",
+          "description" : "Sort resources in result by (asc | desc)",
           "required" : false,
-          "type" : "string",
-          "default" : "PrivilegeInfo/user_name.asc"
+          "type" : "string"
         }, {
           "name" : "page_size",
           "in" : "query",
@@ -5993,34 +7793,51 @@
         }, {
           "name" : "from",
           "in" : "query",
-          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "description" : "The starting page resource (inclusive).  \"start\" is also accepted.",
           "required" : false,
-          "type" : "string",
-          "default" : "0"
+          "type" : "integer",
+          "default" : 0,
+          "minimum" : 0.0
         }, {
           "name" : "to",
           "in" : "query",
-          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "description" : "The ending page resource (inclusive).  \"end\" is also accepted.",
           "required" : false,
-          "type" : "string"
+          "type" : "integer",
+          "minimum" : 1.0
         } ],
         "responses" : {
           "200" : {
-            "description" : "successful operation",
+            "description" : "Successful operation",
             "schema" : {
               "type" : "array",
               "items" : {
-                "$ref" : "#/definitions/ViewPrivilegeResponse"
+                "$ref" : "#/definitions/ViewPrivilegeResponseWrapper"
               }
             }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
           }
         }
       },
       "post" : {
         "tags" : [ "Views" ],
         "summary" : "Create view instance privilege",
-        "description" : "Create privilege resource for view instance.",
-        "operationId" : "ViewPrivilegeService#createPrivilege",
+        "description" : "",
+        "operationId" : "createPrivilege",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "viewName",
@@ -6043,18 +7860,122 @@
         }, {
           "in" : "body",
           "name" : "body",
-          "description" : "input parameters in json form",
-          "required" : true,
+          "required" : false,
           "schema" : {
-            "$ref" : "#/definitions/ViewPrivilegeRequest"
+            "$ref" : "#/definitions/ViewPrivilegeService"
+          }
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Successful operation"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Views" ],
+        "summary" : "Update view instance privilege",
+        "description" : "",
+        "operationId" : "updatePrivileges",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "view version",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "instanceName",
+          "in" : "path",
+          "description" : "instance name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/ViewPrivilegeService"
           }
         } ],
         "responses" : {
           "200" : {
             "description" : "Successful operation"
           },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
           "500" : {
-            "description" : "Server Error"
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Views" ],
+        "summary" : "Delete view instance privileges",
+        "description" : "",
+        "operationId" : "deletePrivileges",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "viewVersion",
+          "in" : "path",
+          "description" : "view version",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "instanceName",
+          "in" : "path",
+          "description" : "instance name",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
           }
         }
       }
@@ -6063,8 +7984,8 @@
       "get" : {
         "tags" : [ "Views" ],
         "summary" : "Get single view instance privilege",
-        "description" : "Returns privilege details.",
-        "operationId" : "ViewPrivilegeService#getPrivilege",
+        "description" : "",
+        "operationId" : "getPrivilege",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "viewName",
@@ -6093,25 +8014,40 @@
         }, {
           "name" : "fields",
           "in" : "query",
-          "description" : "Filter privilege details",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
           "required" : false,
           "type" : "string",
-          "default" : "PrivilegeInfo"
+          "default" : "PrivilegeInfo/*"
         } ],
         "responses" : {
           "200" : {
             "description" : "Successful operation",
             "schema" : {
-              "$ref" : "#/definitions/ViewPrivilegeResponse"
+              "$ref" : "#/definitions/ViewPrivilegeResponseWrapper"
             }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
           }
         }
       },
       "delete" : {
         "tags" : [ "Views" ],
-        "summary" : "Delete view instance privilege",
-        "description" : "Delete view instance privilege resource.",
-        "operationId" : "ViewPrivilegeService#deletePrivilege",
+        "summary" : "Delete privileges",
+        "description" : "",
+        "operationId" : "deletePrivilege",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "viewName",
@@ -6142,8 +8078,17 @@
           "200" : {
             "description" : "Successful operation"
           },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster or host not found"
+          },
           "500" : {
-            "description" : "Server Error"
+            "description" : "Internal server error"
           }
         }
       }
@@ -6152,8 +8097,8 @@
       "get" : {
         "tags" : [ "Views" ],
         "summary" : "Get all permissions for a view",
-        "description" : "Returns all permission details for the version of a view.",
-        "operationId" : "ViewPermissionService#getPermissions",
+        "description" : "",
+        "operationId" : "getPermissions",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "viewName",
@@ -6170,10 +8115,16 @@
         }, {
           "name" : "fields",
           "in" : "query",
-          "description" : "Filter privileges",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
           "required" : false,
           "type" : "string",
           "default" : "PermissionInfo/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort resources in result by (asc | desc)",
+          "required" : false,
+          "type" : "string"
         }, {
           "name" : "page_size",
           "in" : "query",
@@ -6184,16 +8135,18 @@
         }, {
           "name" : "from",
           "in" : "query",
-          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "description" : "The starting page resource (inclusive).  \"start\" is also accepted.",
           "required" : false,
-          "type" : "string",
-          "default" : "0"
+          "type" : "integer",
+          "default" : 0,
+          "minimum" : 0.0
         }, {
           "name" : "to",
           "in" : "query",
-          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "description" : "The ending page resource (inclusive).  \"end\" is also accepted.",
           "required" : false,
-          "type" : "string"
+          "type" : "integer",
+          "minimum" : 1.0
         } ],
         "responses" : {
           "200" : {
@@ -6204,6 +8157,21 @@
                 "$ref" : "#/definitions/ViewPermissionResponse"
               }
             }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
           }
         }
       }
@@ -6212,8 +8180,8 @@
       "get" : {
         "tags" : [ "Views" ],
         "summary" : "Get single view permission",
-        "description" : "Returns permission details for a single version of a view.",
-        "operationId" : "ViewPermissionService#getPermission",
+        "description" : "",
+        "operationId" : "getPermission",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "viewName",
@@ -6236,10 +8204,10 @@
         }, {
           "name" : "fields",
           "in" : "query",
-          "description" : "Filter view permission details",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
           "required" : false,
           "type" : "string",
-          "default" : "PermissionInfo"
+          "default" : "PermissionInfo/*"
         } ],
         "responses" : {
           "200" : {
@@ -6247,6 +8215,21 @@
             "schema" : {
               "$ref" : "#/definitions/ViewPermissionResponse"
             }
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "Cluster not found"
+          },
+          "500" : {
+            "description" : "Internal server error"
           }
         }
       }
@@ -6430,6 +8413,78 @@
         }
       }
     },
+    "AlertGroup" : {
+      "type" : "object",
+      "properties" : {
+        "default" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "id" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "cluster_id" : {
+          "type" : "integer",
+          "format" : "int64"
+        }
+      }
+    },
+    "AlertTargetInfo" : {
+      "type" : "object",
+      "properties" : {
+        "name" : {
+          "type" : "string"
+        },
+        "properties" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        },
+        "id" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "enabled" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "notification_type" : {
+          "type" : "string"
+        },
+        "groups" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/AlertGroup"
+          }
+        },
+        "alert_states" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "global" : {
+          "type" : "boolean",
+          "default" : false
+        }
+      }
+    },
+    "AlertTargetSwagger" : {
+      "type" : "object",
+      "properties" : {
+        "AlertTarget" : {
+          "$ref" : "#/definitions/AlertTargetInfo"
+        }
+      }
+    },
     "Alternative" : {
       "type" : "object",
       "properties" : {
@@ -6447,14 +8502,101 @@
         "stack_name" : {
           "type" : "string"
         },
-        "service_name" : {
+        "stack_version" : {
           "type" : "string"
         },
-        "stack_version" : {
+        "service_name" : {
           "type" : "string"
         },
         "artifact_name" : {
           "type" : "string"
+        }
+      }
+    },
+    "BatchRequest" : {
+      "type" : "object",
+      "properties" : {
+        "batch_settings" : {
+          "$ref" : "#/definitions/BatchSettings"
+        },
+        "requests" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/BatchRequestRequest"
+          }
+        }
+      }
+    },
+    "BatchRequestRequest" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "type" : "string"
+        },
+        "RequestBodyInfo" : {
+          "$ref" : "#/definitions/RequestBodyInfo"
+        },
+        "order_id" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "uri" : {
+          "type" : "string"
+        }
+      }
+    },
+    "BatchRequestResponse" : {
+      "type" : "object",
+      "properties" : {
+        "request_type" : {
+          "type" : "string"
+        },
+        "request_status" : {
+          "type" : "string"
+        },
+        "return_code" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "response_message" : {
+          "type" : "string"
+        },
+        "order_id" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "request_uri" : {
+          "type" : "string"
+        },
+        "request_body" : {
+          "type" : "string"
+        }
+      }
+    },
+    "BatchResponse" : {
+      "type" : "object",
+      "properties" : {
+        "batch_settings" : {
+          "$ref" : "#/definitions/BatchSettings"
+        },
+        "batch_requests" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/BatchRequestResponse"
+          }
+        }
+      }
+    },
+    "BatchSettings" : {
+      "type" : "object",
+      "properties" : {
+        "task_failure_tolerance_limit" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "batch_separation_in_seconds" : {
+          "type" : "integer",
+          "format" : "int32"
         }
       }
     },
@@ -6523,14 +8665,14 @@
     "ClusterArtifactRequest" : {
       "type" : "object",
       "properties" : {
+        "Artifacts" : {
+          "$ref" : "#/definitions/ClusterArtifactRequestInfo"
+        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
-        },
-        "Artifacts" : {
-          "$ref" : "#/definitions/ClusterArtifactRequestInfo"
         }
       }
     },
@@ -6545,14 +8687,14 @@
     "ClusterArtifactResponse" : {
       "type" : "object",
       "properties" : {
+        "Artifacts" : {
+          "$ref" : "#/definitions/ClusterArtifactResponseInfo"
+        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
-        },
-        "Artifacts" : {
-          "$ref" : "#/definitions/ClusterArtifactResponseInfo"
         }
       }
     },
@@ -6635,9 +8777,6 @@
         "desired_service_config_versions" : {
           "$ref" : "#/definitions/ServiceConfigVersionRequest"
         },
-        "repository_version" : {
-          "type" : "string"
-        },
         "desired_configs" : {
           "type" : "array",
           "items" : {
@@ -6716,14 +8855,14 @@
     "ClusterServiceArtifactRequest" : {
       "type" : "object",
       "properties" : {
+        "Artifacts" : {
+          "$ref" : "#/definitions/ClusterServiceArtifactRequestInfo"
+        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
-        },
-        "Artifacts" : {
-          "$ref" : "#/definitions/ClusterServiceArtifactRequestInfo"
         }
       }
     },
@@ -6774,19 +8913,7 @@
     "ComponentDependencyResponseInfo" : {
       "type" : "object",
       "properties" : {
-        "scope" : {
-          "type" : "string"
-        },
         "stack_name" : {
-          "type" : "string"
-        },
-        "service_name" : {
-          "type" : "string"
-        },
-        "stack_version" : {
-          "type" : "string"
-        },
-        "component_name" : {
           "type" : "string"
         },
         "conditions" : {
@@ -6795,10 +8922,22 @@
             "$ref" : "#/definitions/DependencyConditionInfo"
           }
         },
+        "scope" : {
+          "type" : "string"
+        },
+        "stack_version" : {
+          "type" : "string"
+        },
+        "component_name" : {
+          "type" : "string"
+        },
         "dependent_component_name" : {
           "type" : "string"
         },
         "dependent_service_name" : {
+          "type" : "string"
+        },
+        "service_name" : {
           "type" : "string"
         }
       }
@@ -6827,6 +8966,56 @@
         "limitReached" : {
           "type" : "boolean",
           "default" : false
+        }
+      }
+    },
+    "Config" : {
+      "type" : "object",
+      "properties" : {
+        "properties" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        },
+        "type" : {
+          "type" : "string"
+        },
+        "tag" : {
+          "type" : "string"
+        },
+        "version" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "serviceConfigVersions" : {
+          "type" : "array",
+          "items" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "propertiesAttributes" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          }
+        },
+        "stackId" : {
+          "$ref" : "#/definitions/StackId"
+        },
+        "propertiesTypes" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "array",
+            "uniqueItems" : true,
+            "items" : {
+              "type" : "string"
+            }
+          }
         }
       }
     },
@@ -6861,6 +9050,105 @@
         }
       }
     },
+    "ConfigGroupRequest" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "cluster_name" : {
+          "type" : "string"
+        },
+        "group_name" : {
+          "type" : "string"
+        },
+        "tag" : {
+          "type" : "string"
+        },
+        "service_name" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "service_config_version_note" : {
+          "type" : "string"
+        },
+        "hosts" : {
+          "type" : "array",
+          "uniqueItems" : true,
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "desired_configs" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "$ref" : "#/definitions/Config"
+          }
+        }
+      }
+    },
+    "ConfigGroupResponse" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "cluster_name" : {
+          "type" : "string"
+        },
+        "group_name" : {
+          "type" : "string"
+        },
+        "tag" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "hosts" : {
+          "type" : "array",
+          "uniqueItems" : true,
+          "items" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "object"
+            }
+          }
+        },
+        "version_tags" : {
+          "type" : "array",
+          "uniqueItems" : true,
+          "items" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "object"
+            }
+          }
+        },
+        "desired_configs" : {
+          "type" : "array",
+          "uniqueItems" : true,
+          "items" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "object"
+            }
+          }
+        }
+      }
+    },
+    "ConfigGroupWrapper" : {
+      "type" : "object",
+      "properties" : {
+        "ConfigGroup" : {
+          "$ref" : "#/definitions/ConfigGroupResponse"
+        }
+      }
+    },
     "ConfigPlacement" : {
       "type" : "object",
       "properties" : {
@@ -6891,7 +9179,7 @@
     "ConfigurationRequest" : {
       "type" : "object",
       "properties" : {
-        "clusterName" : {
+        "Config/cluster_name" : {
           "type" : "string"
         },
         "type" : {
@@ -6900,13 +9188,6 @@
         "version" : {
           "type" : "integer",
           "format" : "int64"
-        },
-        "serviceConfigVersionNote" : {
-          "type" : "string"
-        },
-        "selected" : {
-          "type" : "boolean",
-          "default" : false
         },
         "properties" : {
           "type" : "object",
@@ -6914,10 +9195,7 @@
             "type" : "string"
           }
         },
-        "versionTag" : {
-          "type" : "string"
-        },
-        "propertiesAttributes" : {
+        "properties_attributes" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object",
@@ -6925,56 +9203,42 @@
               "type" : "string"
             }
           }
+        },
+        "tag" : {
+          "type" : "string"
         }
       }
     },
     "ConfigurationResponse" : {
       "type" : "object",
       "properties" : {
-        "clusterName" : {
+        "Config/cluster_name" : {
           "type" : "string"
         },
-        "stackId" : {
-          "$ref" : "#/definitions/StackId"
+        "Config/stack_id" : {
+          "type" : "string"
         },
         "type" : {
           "type" : "string"
         },
-        "versionTag" : {
+        "tag" : {
           "type" : "string"
         },
         "version" : {
           "type" : "integer",
           "format" : "int64"
         },
-        "serviceConfigVersions" : {
-          "type" : "array",
-          "items" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        },
-        "configs" : {
+        "properties" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "string"
           }
         },
-        "configAttributes" : {
+        "properties_attributes" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object",
             "additionalProperties" : {
-              "type" : "string"
-            }
-          }
-        },
-        "propertiesTypes" : {
-          "type" : "object",
-          "additionalProperties" : {
-            "type" : "array",
-            "uniqueItems" : true,
-            "items" : {
               "type" : "string"
             }
           }
@@ -7000,19 +9264,19 @@
         "display_name" : {
           "type" : "string"
         },
-        "active" : {
-          "type" : "boolean",
-          "default" : false
-        },
         "password" : {
           "type" : "string"
         },
-        "admin" : {
+        "active" : {
           "type" : "boolean",
           "default" : false
         },
         "local_user_name" : {
           "type" : "string"
+        },
+        "admin" : {
+          "type" : "boolean",
+          "default" : false
         }
       }
     },
@@ -7022,22 +9286,22 @@
         "display_name" : {
           "type" : "string"
         },
-        "active" : {
-          "type" : "boolean",
-          "default" : false
-        },
         "user_name" : {
           "type" : "string"
         },
         "password" : {
           "type" : "string"
         },
-        "admin" : {
+        "active" : {
           "type" : "boolean",
           "default" : false
         },
         "local_user_name" : {
           "type" : "string"
+        },
+        "admin" : {
+          "type" : "boolean",
+          "default" : false
         }
       }
     },
@@ -7097,7 +9361,7 @@
         "type" : {
           "type" : "string"
         },
-        "mountPoint" : {
+        "mountpoint" : {
           "type" : "string"
         }
       }
@@ -7108,10 +9372,19 @@
         "userName" : {
           "type" : "string"
         },
+        "userStatus" : {
+          "type" : "string"
+        },
         "userHomeDir" : {
           "type" : "string"
         },
-        "userStatus" : {
+        "name" : {
+          "type" : "string"
+        },
+        "homeDir" : {
+          "type" : "string"
+        },
+        "status" : {
           "type" : "string"
         }
       }
@@ -7148,37 +9421,37 @@
       "type" : "object",
       "required" : [ "PrivilegeInfo/group_name" ],
       "properties" : {
-        "PrivilegeInfo/permission_label" : {
+        "permission_label" : {
           "type" : "string"
         },
-        "PrivilegeInfo/privilege_id" : {
+        "privilege_id" : {
           "type" : "integer",
           "format" : "int32"
         },
-        "PrivilegeInfo/permission_name" : {
+        "permission_name" : {
           "type" : "string"
         },
-        "PrivilegeInfo/principal_type" : {
+        "principal_type" : {
           "type" : "string",
           "enum" : [ "USER", "GROUP", "ROLE" ]
         },
-        "PrivilegeInfo/principal_name" : {
+        "principal_name" : {
           "type" : "string"
         },
-        "PrivilegeInfo/type" : {
+        "type" : {
           "type" : "string",
           "enum" : [ "AMBARI", "CLUSTER", "VIEW" ]
         },
-        "PrivilegeInfo/cluster_name" : {
+        "cluster_name" : {
           "type" : "string"
         },
-        "PrivilegeInfo/view_name" : {
+        "view_name" : {
           "type" : "string"
         },
-        "PrivilegeInfo/version" : {
+        "version" : {
           "type" : "string"
         },
-        "PrivilegeInfo/instance_name" : {
+        "instance_name" : {
           "type" : "string"
         },
         "PrivilegeInfo/group_name" : {
@@ -7208,6 +9481,105 @@
         "Groups/group_type" : {
           "type" : "string",
           "enum" : [ "LOCAL", "LDAP", "JWT", "PAM" ]
+        }
+      }
+    },
+    "Host" : {
+      "type" : "object",
+      "properties" : {
+        "httpProperty" : {
+          "type" : "string"
+        },
+        "httpsProperty" : {
+          "type" : "string"
+        },
+        "site" : {
+          "type" : "string"
+        }
+      }
+    },
+    "HostComponentComponent" : {
+      "type" : "object",
+      "properties" : {
+        "href" : {
+          "type" : "string"
+        },
+        "ServiceComponentInfo" : {
+          "$ref" : "#/definitions/HostComponentServiceComponentInfo"
+        }
+      }
+    },
+    "HostComponentHost" : {
+      "type" : "object",
+      "properties" : {
+        "href" : {
+          "type" : "string"
+        }
+      }
+    },
+    "HostComponentMetrics" : {
+      "type" : "object"
+    },
+    "HostComponentProcessResponse" : {
+      "type" : "object",
+      "properties" : {
+        "cluster_name" : {
+          "type" : "string"
+        },
+        "host_name" : {
+          "type" : "string"
+        },
+        "component_name" : {
+          "type" : "string"
+        },
+        "valueMap" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "HostComponentProcesses" : {
+      "type" : "object"
+    },
+    "HostComponentServiceComponentInfo" : {
+      "type" : "object",
+      "properties" : {
+        "component_name" : {
+          "type" : "string"
+        },
+        "cluster_name" : {
+          "type" : "string"
+        },
+        "service_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "HostComponentSwagger" : {
+      "type" : "object",
+      "properties" : {
+        "host" : {
+          "$ref" : "#/definitions/HostComponentHost"
+        },
+        "component" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/HostComponentComponent"
+          }
+        },
+        "HostRoles" : {
+          "$ref" : "#/definitions/ServiceComponentHostResponse"
+        },
+        "metrics" : {
+          "$ref" : "#/definitions/HostComponentMetrics"
+        },
+        "processes" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/HostComponentProcesses"
+          }
         }
       }
     },
@@ -7243,12 +9615,12 @@
             "$ref" : "#/definitions/ComponentInfo"
           }
         },
+        "name" : {
+          "type" : "string"
+        },
         "cardinality" : {
           "type" : "integer",
           "format" : "int32"
-        },
-        "name" : {
-          "type" : "string"
         }
       }
     },
@@ -7306,13 +9678,13 @@
         "maintenance_state" : {
           "type" : "string"
         },
-        "public_host_name" : {
+        "host_group" : {
           "type" : "string"
         },
         "blueprint" : {
           "type" : "string"
         },
-        "host_group" : {
+        "public_host_name" : {
           "type" : "string"
         }
       }
@@ -7401,9 +9773,21 @@
         }
       }
     },
+    "HostResponseWrapper" : {
+      "type" : "object",
+      "properties" : {
+        "Hosts" : {
+          "$ref" : "#/definitions/HostResponse"
+        }
+      }
+    },
     "JavaProc" : {
       "type" : "object",
       "properties" : {
+        "hadoop" : {
+          "type" : "boolean",
+          "default" : false
+        },
         "user" : {
           "type" : "string"
         },
@@ -7413,10 +9797,6 @@
         },
         "command" : {
           "type" : "string"
-        },
-        "hadoop" : {
-          "type" : "boolean",
-          "default" : false
         }
       }
     },
@@ -7454,6 +9834,9 @@
         },
         "port" : {
           "$ref" : "#/definitions/Port"
+        },
+        "host" : {
+          "$ref" : "#/definitions/Host"
         },
         "protocol" : {
           "$ref" : "#/definitions/Protocol"
@@ -7508,24 +9891,6 @@
         },
         "MemberInfo/user_name" : {
           "type" : "string"
-        }
-      }
-    },
-    "OperatingSystemEntity" : {
-      "type" : "object",
-      "properties" : {
-        "osType" : {
-          "type" : "string"
-        },
-        "repositories" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/definitions/RepositoryEntity"
-          }
-        },
-        "ambariManagedRepos" : {
-          "type" : "boolean",
-          "default" : false
         }
       }
     },
@@ -7649,6 +10014,9 @@
         "regex" : {
           "type" : "string"
         },
+        "httpsRegex" : {
+          "type" : "string"
+        },
         "site" : {
           "type" : "string"
         }
@@ -7657,37 +10025,37 @@
     "PrivilegeResponse" : {
       "type" : "object",
       "properties" : {
-        "PrivilegeInfo/permission_label" : {
+        "permission_label" : {
           "type" : "string"
         },
-        "PrivilegeInfo/privilege_id" : {
+        "privilege_id" : {
           "type" : "integer",
           "format" : "int32"
         },
-        "PrivilegeInfo/permission_name" : {
+        "permission_name" : {
           "type" : "string"
         },
-        "PrivilegeInfo/principal_type" : {
+        "principal_type" : {
           "type" : "string",
           "enum" : [ "USER", "GROUP", "ROLE" ]
         },
-        "PrivilegeInfo/principal_name" : {
+        "principal_name" : {
           "type" : "string"
         },
-        "PrivilegeInfo/type" : {
+        "type" : {
           "type" : "string",
           "enum" : [ "AMBARI", "CLUSTER", "VIEW" ]
         },
-        "PrivilegeInfo/cluster_name" : {
+        "cluster_name" : {
           "type" : "string"
         },
-        "PrivilegeInfo/view_name" : {
+        "view_name" : {
           "type" : "string"
         },
-        "PrivilegeInfo/version" : {
+        "version" : {
           "type" : "string"
         },
-        "PrivilegeInfo/instance_name" : {
+        "instance_name" : {
           "type" : "string"
         }
       }
@@ -7752,14 +10120,14 @@
         "stack_name" : {
           "type" : "string"
         },
-        "quicklink_data" : {
-          "$ref" : "#/definitions/QuickLinksConfiguration"
+        "stack_version" : {
+          "type" : "string"
         },
         "service_name" : {
           "type" : "string"
         },
-        "stack_version" : {
-          "type" : "string"
+        "quicklink_data" : {
+          "$ref" : "#/definitions/QuickLinksConfiguration"
         }
       }
     },
@@ -7769,7 +10137,7 @@
         "summary" : {
           "type" : "string"
         },
-        "componentReports" : {
+        "component_reports" : {
           "type" : "array",
           "items" : {
             "$ref" : "#/definitions/ComponentRecoveryReport"
@@ -7785,7 +10153,7 @@
           "xml" : {
             "name" : "type"
           },
-          "enum" : [ "STANDARD", "PATCH", "SERVICE" ]
+          "enum" : [ "STANDARD", "PATCH", "MAINT", "SERVICE" ]
         },
         "stackId" : {
           "type" : "string",
@@ -7822,42 +10190,112 @@
     "Repo" : {
       "type" : "object",
       "properties" : {
+        "distribution" : {
+          "type" : "string"
+        },
+        "components" : {
+          "type" : "string"
+        },
         "unique" : {
           "type" : "boolean",
           "default" : false
         },
-        "repoName" : {
-          "type" : "string"
-        },
-        "baseUrl" : {
-          "type" : "string"
+        "tags" : {
+          "type" : "array",
+          "xml" : {
+            "name" : "tag",
+            "wrapped" : true
+          },
+          "uniqueItems" : true,
+          "items" : {
+            "type" : "string",
+            "enum" : [ "GPL" ]
+          }
         },
         "mirrorsList" : {
           "type" : "string"
         },
         "repoId" : {
           "type" : "string"
+        },
+        "repoName" : {
+          "type" : "string"
+        },
+        "baseUrl" : {
+          "type" : "string"
         }
       }
     },
-    "RepositoryEntity" : {
+    "RepoDefinitionEntity" : {
       "type" : "object",
       "properties" : {
-        "name" : {
+        "id" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "repoOs" : {
+          "$ref" : "#/definitions/RepoOsEntity"
+        },
+        "repoName" : {
+          "type" : "string"
+        },
+        "repoID" : {
           "type" : "string"
         },
         "baseUrl" : {
           "type" : "string"
         },
-        "repositoryId" : {
+        "mirrors" : {
           "type" : "string"
         },
-        "mirrorsList" : {
+        "distribution" : {
+          "type" : "string"
+        },
+        "components" : {
           "type" : "string"
         },
         "unique" : {
           "type" : "boolean",
           "default" : false
+        },
+        "applicableServices" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "tags" : {
+          "type" : "array",
+          "uniqueItems" : true,
+          "items" : {
+            "type" : "string",
+            "enum" : [ "GPL" ]
+          }
+        }
+      }
+    },
+    "RepoOsEntity" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "family" : {
+          "type" : "string"
+        },
+        "ambariManaged" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "repoDefinitionEntities" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/RepoDefinitionEntity"
+          }
+        },
+        "repositoryVersionEntity" : {
+          "$ref" : "#/definitions/RepositoryVersionEntity"
         }
       }
     },
@@ -7874,6 +10312,12 @@
           "type" : "string"
         },
         "repoName" : {
+          "type" : "string"
+        },
+        "distribution" : {
+          "type" : "string"
+        },
+        "components" : {
           "type" : "string"
         },
         "mirrorsList" : {
@@ -7893,6 +10337,20 @@
         "ambariManagedRepositories" : {
           "type" : "boolean",
           "default" : false
+        },
+        "applicableServices" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "tags" : {
+          "type" : "array",
+          "uniqueItems" : true,
+          "items" : {
+            "type" : "string",
+            "enum" : [ "GPL" ]
+          }
         }
       }
     },
@@ -7912,15 +10370,15 @@
         "displayName" : {
           "type" : "string"
         },
-        "operatingSystems" : {
+        "repoOsEntities" : {
           "type" : "array",
           "items" : {
-            "$ref" : "#/definitions/OperatingSystemEntity"
+            "$ref" : "#/definitions/RepoOsEntity"
           }
         },
         "type" : {
           "type" : "string",
-          "enum" : [ "STANDARD", "PATCH", "SERVICE" ]
+          "enum" : [ "STANDARD", "PATCH", "MAINT", "SERVICE" ]
         },
         "versionXml" : {
           "type" : "string"
@@ -7931,30 +10389,39 @@
         "versionXsd" : {
           "type" : "string"
         },
+        "resolved" : {
+          "type" : "boolean",
+          "default" : false
+        },
         "children" : {
           "type" : "array",
           "items" : {
             "$ref" : "#/definitions/RepositoryVersionEntity"
           }
         },
-        "stackId" : {
-          "$ref" : "#/definitions/StackId"
-        },
-        "repositoryXml" : {
-          "$ref" : "#/definitions/VersionDefinitionXml"
+        "hidden" : {
+          "type" : "boolean",
+          "default" : false
         },
         "stackName" : {
           "type" : "string"
         },
-        "operatingSystemsJson" : {
+        "stackVersion" : {
           "type" : "string"
+        },
+        "legacy" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "repositoryXml" : {
+          "$ref" : "#/definitions/VersionDefinitionXml"
         },
         "parentId" : {
           "type" : "integer",
           "format" : "int64"
         },
-        "stackVersion" : {
-          "type" : "string"
+        "stackId" : {
+          "$ref" : "#/definitions/StackId"
         }
       }
     },
@@ -7974,16 +10441,16 @@
           "type" : "boolean",
           "default" : false
         },
-        "repositories" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/definitions/RepositoryInfo"
-          }
-        },
         "errors" : {
           "type" : "array",
           "items" : {
             "type" : "string"
+          }
+        },
+        "repositories" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/RepositoryInfo"
           }
         },
         "latestURI" : {
@@ -7997,18 +10464,32 @@
     "Request" : {
       "type" : "object",
       "properties" : {
-        "cluster_name" : {
-          "type" : "string"
-        },
-        "exclusive" : {
-          "type" : "boolean",
-          "default" : false
-        },
         "resource_filters" : {
           "type" : "array",
           "items" : {
             "$ref" : "#/definitions/RequestResourceFilter"
           }
+        },
+        "exclusive" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "cluster_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "RequestBodyInfo" : {
+      "type" : "object",
+      "properties" : {
+        "Requests/resource_filters" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/RequestResourceFilter"
+          }
+        },
+        "RequestInfo" : {
+          "$ref" : "#/definitions/RequestInfo"
         }
       }
     },
@@ -8021,14 +10502,14 @@
             "type" : "object"
           }
         },
-        "operation_level" : {
-          "$ref" : "#/definitions/OperationLevel"
-        },
         "command" : {
           "type" : "string"
         },
         "action" : {
           "type" : "string"
+        },
+        "operation_level" : {
+          "$ref" : "#/definitions/OperationLevel"
         }
       }
     },
@@ -8088,13 +10569,13 @@
         "hosts" : {
           "type" : "string"
         },
-        "service_name" : {
-          "type" : "string"
-        },
         "component_name" : {
           "type" : "string"
         },
         "hosts_predicate" : {
+          "type" : "string"
+        },
+        "service_name" : {
           "type" : "string"
         }
       }
@@ -8107,15 +10588,90 @@
         }
       }
     },
+    "RequestScheduleRequestElement" : {
+      "type" : "object",
+      "properties" : {
+        "schedule" : {
+          "$ref" : "#/definitions/ScheduleRequest"
+        },
+        "batch" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/BatchRequest"
+          }
+        }
+      }
+    },
+    "RequestScheduleRequestSwagger" : {
+      "type" : "object",
+      "properties" : {
+        "RequestSchedule" : {
+          "$ref" : "#/definitions/RequestScheduleRequestElement"
+        }
+      }
+    },
+    "RequestScheduleResponseElement" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "status" : {
+          "type" : "string"
+        },
+        "schedule" : {
+          "$ref" : "#/definitions/ScheduleResponse"
+        },
+        "batch" : {
+          "$ref" : "#/definitions/BatchResponse"
+        },
+        "create_user" : {
+          "type" : "string"
+        },
+        "update_user" : {
+          "type" : "string"
+        },
+        "update_time" : {
+          "type" : "string"
+        },
+        "last_execution_status" : {
+          "type" : "string"
+        },
+        "authenticated_user" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "cluster_name" : {
+          "type" : "string"
+        },
+        "create_time" : {
+          "type" : "string"
+        }
+      }
+    },
+    "RequestScheduleResponseSwagger" : {
+      "type" : "object",
+      "properties" : {
+        "RequestSchedule" : {
+          "$ref" : "#/definitions/RequestScheduleResponseElement"
+        }
+      }
+    },
     "RequestStatusInfo" : {
       "type" : "object",
       "properties" : {
         "type" : {
           "type" : "string"
         },
-        "create_time" : {
-          "type" : "integer",
-          "format" : "int64"
+        "start_time" : {
+          "type" : "string"
+        },
+        "request_status" : {
+          "type" : "string"
         },
         "request_context" : {
           "type" : "string"
@@ -8127,13 +10683,10 @@
         "completed_task_count" : {
           "type" : "string"
         },
-        "start_time" : {
+        "request_schedule" : {
           "type" : "string"
         },
-        "request_status" : {
-          "type" : "string"
-        },
-        "cluster_name" : {
+        "end_time" : {
           "type" : "string"
         },
         "id" : {
@@ -8143,18 +10696,11 @@
           "type" : "integer",
           "format" : "int32"
         },
-        "end_time" : {
-          "type" : "string"
-        },
-        "exclusive" : {
-          "type" : "boolean",
-          "default" : false
-        },
         "failed_task_count" : {
           "type" : "integer",
           "format" : "int32"
         },
-        "operation_level" : {
+        "inputs" : {
           "type" : "string"
         },
         "progress_percent" : {
@@ -8175,11 +10721,75 @@
             "$ref" : "#/definitions/RequestResourceFilter"
           }
         },
-        "request_schedule" : {
+        "exclusive" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "cluster_name" : {
           "type" : "string"
         },
-        "inputs" : {
+        "create_time" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "operation_level" : {
           "type" : "string"
+        }
+      }
+    },
+    "RootServiceComponentConfigurationRequestInfo" : {
+      "type" : "object",
+      "properties" : {
+        "properties" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        },
+        "categoryName" : {
+          "type" : "string"
+        },
+        "componentName" : {
+          "type" : "string"
+        },
+        "serviceName" : {
+          "type" : "string"
+        }
+      }
+    },
+    "RootServiceComponentConfigurationRequestSwagger" : {
+      "type" : "object",
+      "properties" : {
+        "Configuration" : {
+          "$ref" : "#/definitions/RootServiceComponentConfigurationRequestInfo"
+        }
+      }
+    },
+    "RootServiceComponentConfigurationResponseInfo" : {
+      "type" : "object",
+      "properties" : {
+        "properties" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "object"
+          }
+        },
+        "categoryName" : {
+          "type" : "string"
+        },
+        "componentName" : {
+          "type" : "string"
+        },
+        "serviceName" : {
+          "type" : "string"
+        }
+      }
+    },
+    "RootServiceComponentConfigurationResponseSwagger" : {
+      "type" : "object",
+      "properties" : {
+        "Configuration" : {
+          "$ref" : "#/definitions/RootServiceComponentConfigurationResponseInfo"
         }
       }
     },
@@ -8293,6 +10903,64 @@
         }
       }
     },
+    "ScheduleRequest" : {
+      "type" : "object",
+      "properties" : {
+        "startTime" : {
+          "type" : "string"
+        },
+        "day_of_week" : {
+          "type" : "string"
+        },
+        "month" : {
+          "type" : "string"
+        },
+        "hours" : {
+          "type" : "string"
+        },
+        "minutes" : {
+          "type" : "string"
+        },
+        "year" : {
+          "type" : "string"
+        },
+        "days_of_month" : {
+          "type" : "string"
+        },
+        "endTime" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ScheduleResponse" : {
+      "type" : "object",
+      "properties" : {
+        "start_time" : {
+          "type" : "string"
+        },
+        "day_of_week" : {
+          "type" : "string"
+        },
+        "month" : {
+          "type" : "string"
+        },
+        "hours" : {
+          "type" : "string"
+        },
+        "minutes" : {
+          "type" : "string"
+        },
+        "year" : {
+          "type" : "string"
+        },
+        "days_of_month" : {
+          "type" : "string"
+        },
+        "end_time" : {
+          "type" : "string"
+        }
+      }
+    },
     "Section" : {
       "type" : "object",
       "properties" : {
@@ -8341,43 +11009,102 @@
             "type" : "object"
           }
         },
+        "kerberos_descriptor_reference" : {
+          "type" : "string"
+        },
         "security_type" : {
           "type" : "string",
           "enum" : [ "NONE", "KERBEROS" ]
-        },
-        "kerberos_descriptor_reference" : {
+        }
+      }
+    },
+    "ServiceComponentHostResponse" : {
+      "type" : "object",
+      "properties" : {
+        "cluster_name" : {
           "type" : "string"
+        },
+        "service_name" : {
+          "type" : "string"
+        },
+        "component_name" : {
+          "type" : "string"
+        },
+        "display_name" : {
+          "type" : "string"
+        },
+        "public_host_name" : {
+          "type" : "string"
+        },
+        "host_name" : {
+          "type" : "string"
+        },
+        "actual_configs" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "$ref" : "#/definitions/HostConfig"
+          }
+        },
+        "state" : {
+          "type" : "string"
+        },
+        "version" : {
+          "type" : "string"
+        },
+        "desired_stack_id" : {
+          "type" : "string"
+        },
+        "desired_repository_version" : {
+          "type" : "string"
+        },
+        "desired_state" : {
+          "type" : "string"
+        },
+        "stale_configs" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "reload_configs" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "maintenance_state" : {
+          "type" : "string"
+        },
+        "upgrade_state" : {
+          "type" : "string",
+          "enum" : [ "NONE", "COMPLETE", "IN_PROGRESS", "FAILED", "VERSION_MISMATCH" ]
         }
       }
     },
     "ServiceConfigVersionRequest" : {
       "type" : "object",
       "properties" : {
-        "clusterName" : {
+        "cluster_name" : {
           "type" : "string"
         },
-        "serviceName" : {
+        "service_name" : {
           "type" : "string"
         },
-        "version" : {
+        "service_config_version" : {
           "type" : "integer",
           "format" : "int64"
         },
-        "createTime" : {
+        "createtime" : {
           "type" : "integer",
           "format" : "int64"
         },
-        "applyTime" : {
+        "appliedtime" : {
           "type" : "integer",
           "format" : "int64"
         },
-        "userName" : {
+        "user" : {
           "type" : "string"
         },
-        "note" : {
+        "service_config_version_note" : {
           "type" : "string"
         },
-        "isCurrent" : {
+        "is_current" : {
           "type" : "boolean",
           "default" : false
         }
@@ -8386,37 +11113,37 @@
     "ServiceConfigVersionResponse" : {
       "type" : "object",
       "properties" : {
-        "clusterName" : {
+        "cluster_name" : {
           "type" : "string"
         },
-        "serviceName" : {
+        "service_name" : {
           "type" : "string"
         },
-        "version" : {
+        "service_config_version" : {
           "type" : "integer",
           "format" : "int64"
         },
-        "createTime" : {
+        "createtime" : {
           "type" : "integer",
           "format" : "int64"
         },
-        "groupId" : {
+        "group_id" : {
           "type" : "integer",
           "format" : "int64"
         },
-        "groupName" : {
+        "group_name" : {
           "type" : "string"
         },
-        "userName" : {
+        "user" : {
           "type" : "string"
         },
-        "note" : {
+        "service_config_version_note" : {
           "type" : "string"
         },
-        "stackId" : {
+        "stack_id" : {
           "type" : "string"
         },
-        "isCurrent" : {
+        "is_current" : {
           "type" : "boolean",
           "default" : false
         },
@@ -8432,7 +11159,7 @@
             "type" : "string"
           }
         },
-        "compatibleWithCurrentStack" : {
+        "is_cluster_compatible" : {
           "type" : "boolean",
           "default" : false
         }
@@ -8459,11 +11186,9 @@
         "credential_store_supporteds" : {
           "type" : "string"
         },
-        "desiredStack" : {
-          "type" : "string"
-        },
-        "desiredRepositoryVersion" : {
-          "type" : "string"
+        "desiredRepositoryVersionId" : {
+          "type" : "integer",
+          "format" : "int64"
         },
         "resolvedRepository" : {
           "$ref" : "#/definitions/RepositoryVersionEntity"
@@ -8490,6 +11215,10 @@
         "desiredRepositoryVersion" : {
           "type" : "string"
         },
+        "desiredRepositoryVersionId" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
         "repositoryVersionState" : {
           "type" : "string",
           "enum" : [ "NOT_REQUIRED", "INSTALLING", "INSTALLED", "INSTALL_FAILED", "OUT_OF_SYNC", "CURRENT" ]
@@ -8505,6 +11234,18 @@
           "default" : false
         },
         "credential_store_enabled" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "sso_integration_supported" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "sso_integration_desired" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "sso_integration_enabled" : {
           "type" : "boolean",
           "default" : false
         }
@@ -8584,14 +11325,14 @@
     "StackArtifactResponse" : {
       "type" : "object",
       "properties" : {
+        "Artifacts" : {
+          "$ref" : "#/definitions/Artifacts"
+        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
-        },
-        "Artifacts" : {
-          "$ref" : "#/definitions/Artifacts"
         }
       }
     },
@@ -8668,7 +11409,7 @@
           "uniqueItems" : true,
           "items" : {
             "type" : "string",
-            "enum" : [ "PASSWORD", "USER", "GROUP", "TEXT", "ADDITIONAL_USER_PROPERTY", "NOT_MANAGED_HDFS_PATH", "VALUE_FROM_PROPERTY_FILE", "KERBEROS_PRINCIPAL" ]
+            "enum" : [ "PASSWORD", "USER", "UID", "GROUP", "GID", "TEXT", "ADDITIONAL_USER_PROPERTY", "NOT_MANAGED_HDFS_PATH", "VALUE_FROM_PROPERTY_FILE", "KERBEROS_PRINCIPAL" ]
           }
         }
       }
@@ -8729,14 +11470,14 @@
     "StackServiceArtifactResponse" : {
       "type" : "object",
       "properties" : {
+        "Artifacts" : {
+          "$ref" : "#/definitions/Artifacts"
+        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
-        },
-        "Artifacts" : {
-          "$ref" : "#/definitions/Artifacts"
         }
       }
     },
@@ -8768,6 +11509,16 @@
           "type" : "boolean",
           "default" : false
         },
+        "rollingRestartSupported" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "customCommands" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
         "custom_commands" : {
           "type" : "array",
           "items" : {
@@ -8781,16 +11532,19 @@
         "bulkCommandsDisplayName" : {
           "type" : "string"
         },
+        "componentType" : {
+          "type" : "string"
+        },
         "is_master" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "is_client" : {
           "type" : "boolean",
           "default" : false
         },
         "bulk_commands_master_component_namen" : {
           "type" : "string"
-        },
-        "is_client" : {
-          "type" : "boolean",
-          "default" : false
         },
         "decommission_allowed" : {
           "type" : "boolean",
@@ -8884,6 +11638,10 @@
           "default" : false
         },
         "credential_store_required" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "sso_integration_supported" : {
           "type" : "boolean",
           "default" : false
         }
@@ -9099,17 +11857,17 @@
         "file_name" : {
           "type" : "string"
         },
-        "theme_data" : {
-          "$ref" : "#/definitions/Theme"
-        },
         "stack_name" : {
+          "type" : "string"
+        },
+        "stack_version" : {
           "type" : "string"
         },
         "service_name" : {
           "type" : "string"
         },
-        "stack_version" : {
-          "type" : "string"
+        "theme_data" : {
+          "$ref" : "#/definitions/Theme"
         }
       }
     },
@@ -9135,14 +11893,10 @@
         "display_name" : {
           "type" : "string"
         },
-        "active" : {
-          "type" : "boolean",
-          "default" : false
-        },
         "password" : {
           "type" : "string"
         },
-        "admin" : {
+        "active" : {
           "type" : "boolean",
           "default" : false
         },
@@ -9151,6 +11905,10 @@
         },
         "old_password" : {
           "type" : "string"
+        },
+        "admin" : {
+          "type" : "boolean",
+          "default" : false
         }
       }
     },
@@ -9263,37 +12021,37 @@
       "type" : "object",
       "required" : [ "PrivilegeInfo/user_name" ],
       "properties" : {
-        "PrivilegeInfo/permission_label" : {
+        "permission_label" : {
           "type" : "string"
         },
-        "PrivilegeInfo/privilege_id" : {
+        "privilege_id" : {
           "type" : "integer",
           "format" : "int32"
         },
-        "PrivilegeInfo/permission_name" : {
+        "permission_name" : {
           "type" : "string"
         },
-        "PrivilegeInfo/principal_type" : {
+        "principal_type" : {
           "type" : "string",
           "enum" : [ "USER", "GROUP", "ROLE" ]
         },
-        "PrivilegeInfo/principal_name" : {
+        "principal_name" : {
           "type" : "string"
         },
-        "PrivilegeInfo/type" : {
+        "type" : {
           "type" : "string",
           "enum" : [ "AMBARI", "CLUSTER", "VIEW" ]
         },
-        "PrivilegeInfo/cluster_name" : {
+        "cluster_name" : {
           "type" : "string"
         },
-        "PrivilegeInfo/view_name" : {
+        "view_name" : {
           "type" : "string"
         },
-        "PrivilegeInfo/version" : {
+        "version" : {
           "type" : "string"
         },
-        "PrivilegeInfo/instance_name" : {
+        "instance_name" : {
           "type" : "string"
         },
         "PrivilegeInfo/user_name" : {
@@ -9350,12 +12108,12 @@
           "type" : "integer",
           "format" : "int32"
         },
+        "user_name" : {
+          "type" : "string"
+        },
         "active" : {
           "type" : "boolean",
           "default" : false
-        },
-        "user_name" : {
-          "type" : "string"
         },
         "admin" : {
           "type" : "boolean",
@@ -9534,13 +12292,6 @@
         "xsdLocation" : {
           "type" : "string"
         },
-        "availableServiceNames" : {
-          "type" : "array",
-          "uniqueItems" : true,
-          "items" : {
-            "type" : "string"
-          }
-        },
         "stackDefault" : {
           "type" : "boolean",
           "default" : false
@@ -9555,55 +12306,6 @@
       "properties" : {
         "view_name" : {
           "type" : "string"
-        }
-      }
-    },
-    "ViewInstanceRequest" : {
-      "type" : "object",
-      "properties" : {
-        "ViewInstanceInfo" : {
-          "$ref" : "#/definitions/ViewInstanceRequestInfo"
-        }
-      }
-    },
-    "ViewInstanceRequestInfo" : {
-      "type" : "object",
-      "properties" : {
-        "label" : {
-          "type" : "string"
-        },
-        "description" : {
-          "type" : "string"
-        },
-        "visible" : {
-          "type" : "boolean",
-          "default" : false
-        },
-        "icon_path" : {
-          "type" : "string"
-        },
-        "icon64_path" : {
-          "type" : "string"
-        },
-        "properties" : {
-          "type" : "object",
-          "additionalProperties" : {
-            "type" : "string"
-          }
-        },
-        "instance_data" : {
-          "type" : "object",
-          "additionalProperties" : {
-            "type" : "string"
-          }
-        },
-        "cluster_handle" : {
-          "type" : "integer",
-          "format" : "int32"
-        },
-        "cluster_type" : {
-          "type" : "string",
-          "enum" : [ "LOCAL_AMBARI", "REMOTE_AMBARI", "NONE" ]
         }
       }
     },
@@ -9711,62 +12413,86 @@
     "ViewPermissionResponse" : {
       "type" : "object",
       "properties" : {
-        "ViewPermissionInfo" : {
+        "PermissionInfo" : {
           "$ref" : "#/definitions/ViewPermissionInfo"
-        }
-      }
-    },
-    "ViewPrivilegeRequest" : {
-      "type" : "object",
-      "properties" : {
-        "PrivilegeInfo/permission_name" : {
-          "type" : "string"
-        },
-        "PrivilegeInfo/principal_type" : {
-          "type" : "string",
-          "enum" : [ "USER", "GROUP", "ROLE" ]
-        },
-        "PrivilegeInfo/principal_name" : {
-          "type" : "string"
         }
       }
     },
     "ViewPrivilegeResponse" : {
       "type" : "object",
       "properties" : {
-        "PrivilegeInfo/permission_label" : {
+        "permission_label" : {
           "type" : "string"
         },
-        "PrivilegeInfo/privilege_id" : {
+        "privilege_id" : {
           "type" : "integer",
           "format" : "int32"
         },
-        "PrivilegeInfo/permission_name" : {
+        "permission_name" : {
           "type" : "string"
         },
-        "PrivilegeInfo/principal_type" : {
+        "principal_type" : {
           "type" : "string",
           "enum" : [ "USER", "GROUP", "ROLE" ]
         },
-        "PrivilegeInfo/principal_name" : {
+        "principal_name" : {
           "type" : "string"
         },
-        "PrivilegeInfo/view_name" : {
+        "view_name" : {
           "type" : "string"
         },
-        "PrivilegeInfo/version" : {
+        "version" : {
           "type" : "string"
         },
-        "PrivilegeInfo/instance_name" : {
+        "instance_name" : {
           "type" : "string"
         }
       }
+    },
+    "ViewPrivilegeResponseWrapper" : {
+      "type" : "object",
+      "properties" : {
+        "PrivilegeInfo" : {
+          "$ref" : "#/definitions/ViewPrivilegeResponse"
+        }
+      }
+    },
+    "ViewPrivilegeService" : {
+      "type" : "object"
     },
     "ViewResponse" : {
       "type" : "object",
       "properties" : {
         "ViewInfo" : {
           "$ref" : "#/definitions/ViewInfo"
+        }
+      }
+    },
+    "ViewUrlInfo" : {
+      "type" : "object",
+      "properties" : {
+        "url_name" : {
+          "type" : "string"
+        },
+        "url_suffix" : {
+          "type" : "string"
+        },
+        "view_instance_common_name" : {
+          "type" : "string"
+        },
+        "view_instance_version" : {
+          "type" : "string"
+        },
+        "view_instance_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ViewUrlResponseSwagger" : {
+      "type" : "object",
+      "properties" : {
+        "ViewUrlInfo" : {
+          "$ref" : "#/definitions/ViewUrlInfo"
         }
       }
     },
@@ -9914,14 +12640,9 @@
         },
         "clusterName" : {
           "type" : "string"
-        }
-      }
-    },
-    "Wrapper" : {
-      "type" : "object",
-      "properties" : {
-        "Hosts" : {
-          "$ref" : "#/definitions/HostResponse"
+        },
+        "tag" : {
+          "type" : "string"
         }
       }
     }

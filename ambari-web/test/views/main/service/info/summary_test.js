@@ -40,10 +40,6 @@ describe('App.MainServiceInfoSummaryView', function() {
 
   App.TestAliases.testAsComputedAlias(view, 'serviceName', 'service.serviceName', 'string');
 
-  App.TestAliases.testAsComputedAlias(view, 'alertsCount', 'controller.content.alertsCount', 'number');
-
-  App.TestAliases.testAsComputedAlias(view, 'hasCriticalAlerts', 'controller.content.hasCriticalAlerts', 'boolean');
-
   describe('#servers', function () {
     it('services shouldn\'t have servers except FLUME and ZOOKEEPER', function () {
       expect(view.get('servers')).to.be.empty;

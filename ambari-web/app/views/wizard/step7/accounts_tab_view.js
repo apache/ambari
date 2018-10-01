@@ -19,7 +19,7 @@
 
 var App = require('app');
 
-App.AccountsTabOnStep7View = Em.View.extend({
+App.AccountsTabOnStep7View = Em.View.extend(App.WizardMiscPropertyChecker, {
 
   templateName: require('templates/wizard/step7/accounts_tab'),
 
@@ -29,6 +29,18 @@ App.AccountsTabOnStep7View = Em.View.extend({
   properties: function () {
     return this.get('controller.stepConfigs').findProperty('serviceName', 'MISC').get('configs').filterProperty('displayType', 'user');
   }.property('controller.stepConfigsCreated'),
+
+  propertyChanged: function () {
+    var changedProperty = this.get('properties').find(function (prop) {
+      return prop.get('editDone');
+    });
+    if(!changedProperty) {
+      return;
+    }
+    var stepConfigs = this.get('controller.stepConfigs');
+    var serviceId = changedProperty.get('serviceName');
+    return this.showConfirmationDialogIfShouldChangeProps(changedProperty, stepConfigs, serviceId);
+  }.observes('properties.@each.editDone'),
 
   checkboxes: function () {
     var miscConfigs = this.get('controller.stepConfigs').findProperty('serviceName', 'MISC').get('configs');

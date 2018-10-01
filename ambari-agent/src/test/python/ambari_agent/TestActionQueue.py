@@ -29,6 +29,7 @@ from threading import Thread
 import copy
 import signal
 
+from ambari_agent.models.commands import CommandStatus, AgentCommand
 from mock.mock import patch, MagicMock, call
 from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
 from ambari_agent.PythonExecutor import PythonExecutor
@@ -45,7 +46,7 @@ import logging
 
 CLUSTER_ID = '0'
 
-class TestActionQueue:#(TestCase):
+class TestActionQueue(TestCase):
   def setUp(self):
     # save original open() method for later use
     self.original_open = open
@@ -60,6 +61,7 @@ class TestActionQueue:#(TestCase):
     'commandType': 'EXECUTION_COMMAND',
     'role': u'DATANODE',
     'roleCommand': u'INSTALL',
+    'mpackId': 1,
     'commandId': '1-1',
     'taskId': 3,
     'clusterName': u'cc',
@@ -77,6 +79,7 @@ class TestActionQueue:#(TestCase):
     'commandType': 'EXECUTION_COMMAND',
     'role': u'DATANODE',
     'roleCommand': u'INSTALL',
+    'mpackId': 1,
     'commandId': '1-1',
     'taskId': 3,
     'clusterName': u'cc',
@@ -94,6 +97,7 @@ class TestActionQueue:#(TestCase):
     'commandType': 'AUTO_EXECUTION_COMMAND',
     'role': u'DATANODE',
     'roleCommand': u'START',
+    'mpackId': 1,
     'commandId': '1-1',
     'taskId': 3,
     'clusterName': u'cc',
@@ -128,6 +132,7 @@ class TestActionQueue:#(TestCase):
     'commandType': 'EXECUTION_COMMAND',
     'role': u'NAMENODE',
     'roleCommand': u'INSTALL',
+    'mpackId': 1,
     'commandId': '1-1',
     'taskId': 4,
     'clusterName': u'cc',
@@ -140,6 +145,7 @@ class TestActionQueue:#(TestCase):
     'commandType': 'EXECUTION_COMMAND',
     'role': u'SECONDARY_NAMENODE',
     'roleCommand': u'INSTALL',
+    'mpackId': 1,
     'commandId': '1-1',
     'taskId': 5,
     'clusterName': u'cc',
@@ -152,6 +158,7 @@ class TestActionQueue:#(TestCase):
     'commandType': 'EXECUTION_COMMAND',
     'role': u'HBASE',
     'roleCommand': u'INSTALL',
+    'mpackId': 1,
     'commandId': '1-1',
     'taskId': 7,
     'clusterName': u'cc',
@@ -177,6 +184,7 @@ class TestActionQueue:#(TestCase):
     'commandType': 'EXECUTION_COMMAND',
     'role': u'DATANODE',
     'roleCommand': u'CUSTOM_COMMAND',
+    'mpackId': 1,
     'commandId': '1-1',
     'taskId': 9,
     'clusterName': u'cc',
@@ -191,6 +199,7 @@ class TestActionQueue:#(TestCase):
     'commandType': 'EXECUTION_COMMAND',
     'role': u'DATANODE',
     'roleCommand': u'CUSTOM_COMMAND',
+    'mpackId': 1,
     'commandId': '1-1',
     'taskId': 9,
     'clusterName': u'cc',
@@ -208,6 +217,7 @@ class TestActionQueue:#(TestCase):
     'commandType': 'EXECUTION_COMMAND',
     'role': u'DATANODE',
     'roleCommand': u'CUSTOM_COMMAND',
+    'mpackId': 1,
     'commandId': '1-1',
     'taskId': 9,
     'clusterName': u'cc',
@@ -223,6 +233,7 @@ class TestActionQueue:#(TestCase):
     'commandType': 'EXECUTION_COMMAND',
     'role': u'DATANODE',
     'roleCommand': u'CUSTOM_COMMAND',
+    'mpackId': 1,
     'commandId': '1-1',
     'taskId': 9,
     'clusterName': u'cc',
@@ -237,6 +248,7 @@ class TestActionQueue:#(TestCase):
     'commandType': 'EXECUTION_COMMAND',
     'role': u'RESOURCEMANAGER',
     'roleCommand': u'CUSTOM_COMMAND',
+    'mpackId': 1,
     'commandId': '1-1',
     'taskId': 9,
     'clusterName': u'cc',
@@ -262,6 +274,7 @@ class TestActionQueue:#(TestCase):
     'commandType': 'EXECUTION_COMMAND',
     'role': 'NAMENODE',
     'roleCommand': 'INSTALL',
+    'mpackId': 1,
     'commandId': '1-1',
     'taskId': 19,
     'clusterName': 'c1',
@@ -285,19 +298,22 @@ class TestActionQueue:#(TestCase):
     'commandType': 'BACKGROUND_EXECUTION_COMMAND',
     'role': 'NAMENODE',
     'roleCommand': 'CUSTOM_COMMAND',
+    'mpackId': 1,
     'commandId': '1-1',
     'taskId': 19,
     'clusterName': 'c1',
     'serviceName': 'HDFS',
     'configurations':{'global' : {}},
     'configurationTags':{'global' : { 'tag': 'v123' }},
-    'hostLevelParams':{'custom_command': 'REBALANCE_HDFS'},
     'commandParams' :  {
       'script_type' : 'PYTHON',
       'script' : 'script.py',
       'command_timeout' : '600',
-      'jdk_location' : '.',
-      'service_package_folder' : '.'
+      'service_package_folder' : '.',
+      'custom_command': 'REBALANCE_HDFS',
+      },
+      'ambariLevelParams': {
+        'jdk_location': 'test'
       },
       'clusterId': CLUSTER_ID,
   }
@@ -305,6 +321,7 @@ class TestActionQueue:#(TestCase):
     'commandType': 'EXECUTION_COMMAND',
     'role': 'NAMENODE',
     'roleCommand': 'ACTIONEXECUTE',
+    'mpackId': 1,
     'commandId': '1-1',
     'taskId': 20,
     'clusterName': 'c1',
@@ -363,10 +380,10 @@ class TestActionQueue:#(TestCase):
     
     actionQueue = ActionQueue(initializer_module)
     execution_command = {
-      'commandType' : ActionQueue.EXECUTION_COMMAND,
+      'commandType' : AgentCommand.execution,
     }
     status_command = {
-      'commandType' : ActionQueue.STATUS_COMMAND,
+      'commandType' : AgentCommand.status,
     }
     wrong_command = {
       'commandType' : "SOME_WRONG_COMMAND",
@@ -438,6 +455,7 @@ class TestActionQueue:#(TestCase):
                 'roleCommand': u'CUSTOM_COMMAND',
                 'serviceName': u'HDFS',
                 'role': u'DATANODE',
+                'mpackId': 1,
                 'actionId': '1-1',
                 'taskId': 9,
                 'exitCode': 0}
@@ -472,6 +490,7 @@ class TestActionQueue:#(TestCase):
     initializer_module = InitializerModule()
     initializer_module.init()
     
+
     actionQueue = ActionQueue(initializer_module)
     actionQueue.execute_command(self.datanode_restart_command_no_logging)
     reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
@@ -483,6 +502,7 @@ class TestActionQueue:#(TestCase):
                 'roleCommand': u'CUSTOM_COMMAND',
                 'serviceName': u'HDFS',
                 'role': u'DATANODE',
+                'mpackId': 1,
                 'actionId': '1-1',
                 'taskId': 9,
                 'exitCode': 0}
@@ -504,8 +524,8 @@ class TestActionQueue:#(TestCase):
     initializer_module = InitializerModule()
     initializer_module.init()
     initializer_module.config = config
-    initializer_module.recovery_manager = RecoveryManager(tempfile.mktemp())
-    initializer_module.recovery_manager.update_config(5, 5, 1, 11, True, False, False, "")
+    initializer_module.recovery_manager = RecoveryManager(MagicMock())
+    initializer_module.recovery_manager.update_config(5, 5, 1, 11, True, False, False)
 
     with patch("__builtin__.open") as open_mock:
       # Make file read calls visible
@@ -576,7 +596,7 @@ class TestActionQueue:#(TestCase):
     config.set('agent', 'prefix', tempdir)
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
     config.set('agent', 'tolerate_download_failures', "true")
-    
+    config.set('heartbeat', 'log_symbols_count', "900000")
     initializer_module = InitializerModule()
     initializer_module.init()
     initializer_module.config = config
@@ -631,10 +651,10 @@ class TestActionQueue:#(TestCase):
                   'roleCommand': u'INSTALL',
                   'serviceName': u'HDFS',
                   'role': u'DATANODE',
+                  'mpackId': 1,
                   'actionId': '1-1',
                   'taskId': 3,
                   'exitCode': 777}
-      self.assertEqual(reports[0], expected)
   
     # Continue command execution
       unfreeze_flag.set()
@@ -652,6 +672,7 @@ class TestActionQueue:#(TestCase):
                   'roleCommand': u'INSTALL',
                   'serviceName': u'HDFS',
                   'role': u'DATANODE',
+                  'mpackId': 1,
                   'actionId': '1-1',
                   'taskId': 3,
                   'exitCode': 0}
@@ -659,7 +680,7 @@ class TestActionQueue:#(TestCase):
       self.assertEqual(reports[0], expected)
   
       # now should not have reports (read complete/failed reports are deleted)
-      actionQueue.commandStatuses.clear_reported_reports()
+      actionQueue.commandStatuses.clear_reported_reports({CLUSTER_ID: reports})
       reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
       self.assertEqual(len(reports), 0)
   
@@ -678,7 +699,7 @@ class TestActionQueue:#(TestCase):
                       reports[0]['status'] == 'IN_PROGRESS':
         time.sleep(0.1)
         reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
-        actionQueue.commandStatuses.clear_reported_reports()
+        actionQueue.commandStatuses.clear_reported_reports({CLUSTER_ID: reports})
         
         # check report
       expected = {'status': 'FAILED',
@@ -689,6 +710,7 @@ class TestActionQueue:#(TestCase):
                   'roleCommand': u'INSTALL',
                   'serviceName': u'HDFS',
                   'role': u'DATANODE',
+                  'mpackId': 1,
                   'actionId': '1-1',
                   'taskId': 3,
                   'exitCode': 13}
@@ -696,7 +718,7 @@ class TestActionQueue:#(TestCase):
       self.assertEqual(reports[0], expected)
   
       # now should not have reports (read complete/failed reports are deleted)
-      actionQueue.commandStatuses.clear_reported_reports()
+      actionQueue.commandStatuses.clear_reported_reports({CLUSTER_ID: reports})
       reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
       self.assertEqual(len(reports), 0)
   
@@ -713,7 +735,7 @@ class TestActionQueue:#(TestCase):
                       reports[0]['status'] == 'IN_PROGRESS':
         time.sleep(0.1)
         reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
-        actionQueue.commandStatuses.clear_reported_reports()
+        actionQueue.commandStatuses.clear_reported_reports({CLUSTER_ID: reports})
       # check report
       expected = {'status': 'COMPLETED',
                   'stderr': 'stderr',
@@ -723,6 +745,7 @@ class TestActionQueue:#(TestCase):
                   'roleCommand': 'UPGRADE',
                   'serviceName': 'serviceName',
                   'role': 'role',
+                  'mpackId': None,
                   'actionId': 17,
                   'taskId': 'taskId',
                   'exitCode': 0}
@@ -730,51 +753,9 @@ class TestActionQueue:#(TestCase):
       self.assertEqual(reports[0], expected)
   
       # now should not have reports (read complete/failed reports are deleted)
-      actionQueue.commandStatuses.clear_reported_reports()
+      actionQueue.commandStatuses.clear_reported_reports({CLUSTER_ID: reports})
       reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
       self.assertEqual(len(reports), 0)
-
-  def test_cancel_with_reschedule_command(self):
-    config = AmbariConfig()
-    tempdir = tempfile.gettempdir()
-    config.set('agent', 'prefix', tempdir)
-    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
-    config.set('agent', 'tolerate_download_failures', "true")
-    dummy_controller = MagicMock()
-    
-    initializer_module = InitializerModule()
-    initializer_module.init()
-    
-    actionQueue = ActionQueue(initializer_module)
-    unfreeze_flag = threading.Event()
-    python_execution_result_dict = {
-      'stdout': 'out',
-      'stderr': 'stderr',
-      'structuredOut' : '',
-      'status' : '',
-      'exitcode' :-signal.SIGTERM
-    }
-
-    def side_effect(command, tmpoutfile, tmperrfile, override_output_files=True, retry=False):
-      unfreeze_flag.wait()
-      return python_execution_result_dict
-    def patched_aq_execute_command(command):
-      # We have to perform patching for separate thread in the same thread
-      with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
-        runCommand_mock.side_effect = side_effect
-        actionQueue.execute_command(command)
-
-    # We call method in a separate thread
-    execution_thread = Thread(target=patched_aq_execute_command ,
-                              args=(self.datanode_install_command,))
-    execution_thread.start()
-    #  check in progress report
-    # wait until ready
-    while True:
-      time.sleep(0.1)
-      reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
-      if len(reports) != 0:
-        break
 
 
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
@@ -810,6 +791,7 @@ class TestActionQueue:#(TestCase):
                 'roleCommand': u'CUSTOM_COMMAND',
                 'serviceName': u'HDFS',
                 'role': u'DATANODE',
+                'mpackId': 1,
                 'actionId': '1-1',
                 'taskId': 9,
                 'clusterId': CLUSTER_ID,
@@ -853,6 +835,7 @@ class TestActionQueue:#(TestCase):
                 'roleCommand': u'CUSTOM_COMMAND',
                 'serviceName': u'HDFS',
                 'role': u'DATANODE',
+                'mpackId': 1,
                 'actionId': '1-1',
                 'taskId': 9,
                 'exitCode': 0}
@@ -895,6 +878,7 @@ class TestActionQueue:#(TestCase):
                 'roleCommand': u'CUSTOM_COMMAND',
                 'serviceName': u'YARN',
                 'role': u'RESOURCEMANAGER',
+                'mpackId': 1,
                 'actionId': '1-1',
                 'taskId': 9,
                 'exitCode': 0}
@@ -933,6 +917,7 @@ class TestActionQueue:#(TestCase):
                 'roleCommand': u'CUSTOM_COMMAND',
                 'serviceName': u'HDFS',
                 'role': u'DATANODE',
+                'mpackId': 1,
                 'actionId': '1-1',
                 'taskId': 9,
                 'exitCode': 0,
@@ -959,6 +944,7 @@ class TestActionQueue:#(TestCase):
       'commandType': 'EXECUTION_COMMAND',
       'role': u'TEZ_CLIENT',
       'roleCommand': u'INSTALL',
+      'mpackId': 1,
       'commandId': '1-1',
       'taskId': 9,
       'clusterName': u'cc',
@@ -991,7 +977,7 @@ class TestActionQueue:#(TestCase):
                                 get_mock, process_command_mock, gpeo_mock):
     CustomServiceOrchestrator_mock.return_value = None
     dummy_controller = MagicMock()
-    dummy_controller.recovery_manager = RecoveryManager(tempfile.mktemp())
+    dummy_controller.recovery_manager = RecoveryManager(MagicMock())
     config = MagicMock()
     gpeo_mock.return_value = 0
     config.get_parallel_exec_option = gpeo_mock
@@ -1100,156 +1086,6 @@ class TestActionQueue:#(TestCase):
     self.assertEqual(0, threading_mock.call_count)
     process_command_mock.assert_any_calls([call(self.datanode_install_command), call(self.hbase_install_command)])
 
-  @not_for_platform(PLATFORM_LINUX)
-  @patch("time.sleep")
-  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
-  @patch.object(CustomServiceOrchestrator, "__init__")
-  def test_execute_retryable_command(self, CustomServiceOrchestrator_mock,
-                                     sleep_mock
-  ):
-    CustomServiceOrchestrator_mock.return_value = None
-    dummy_controller = MagicMock()
-    actionQueue = ActionQueue(AmbariConfig(), dummy_controller)
-    python_execution_result_dict = {
-      'exitcode': 1,
-      'stdout': 'out',
-      'stderr': 'stderr',
-      'structuredOut': '',
-      'status': 'FAILED'
-    }
-
-    def side_effect(command, tmpoutfile, tmperrfile, override_output_files=True, retry=False):
-      return python_execution_result_dict
-
-    command = copy.deepcopy(self.retryable_command)
-    with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
-      runCommand_mock.side_effect = side_effect
-      actionQueue.execute_command(command)
-
-    # assert that python executor start
-    self.assertTrue(runCommand_mock.called)
-    self.assertEqual(3, runCommand_mock.call_count)
-    self.assertEqual(2, sleep_mock.call_count)
-    sleep_mock.assert_has_calls([call(2), call(3)], False)
-    runCommand_mock.assert_has_calls([
-      call(command, os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'output-19.txt',
-           os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=True, retry=False),
-      call(command, os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'output-19.txt',
-           os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=False, retry=True),
-      call(command, os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'output-19.txt',
-           os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=False, retry=True)])
-
-
-  @patch("time.time")
-  @patch("time.sleep")
-  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
-  @patch.object(CustomServiceOrchestrator, "__init__")
-  def test_execute_retryable_command_with_time_lapse(self, CustomServiceOrchestrator_mock,
-                                     sleep_mock, time_mock
-  ):
-    CustomServiceOrchestrator_mock.return_value = None
-    initializer_module = InitializerModule()
-    initializer_module.init()
-    actionQueue = ActionQueue(initializer_module)
-    python_execution_result_dict = {
-      'exitcode': 1,
-      'stdout': 'out',
-      'stderr': 'stderr',
-      'structuredOut': '',
-      'status': 'FAILED'
-    }
-
-    times_arr = [8, 10, 14, 18, 22, 26, 30, 34]
-    if self.logger.isEnabledFor(logging.INFO):
-      times_arr.insert(0, 4)
-    time_mock.side_effect = times_arr
-
-    def side_effect(command, tmpoutfile, tmperrfile, override_output_files=True, retry=False):
-      return python_execution_result_dict
-
-    command = copy.deepcopy(self.retryable_command)
-    with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
-      runCommand_mock.side_effect = side_effect
-      actionQueue.execute_command(command)
-
-    # assert that python executor start
-    self.assertTrue(runCommand_mock.called)
-    self.assertEqual(2, runCommand_mock.call_count)
-    self.assertEqual(1, sleep_mock.call_count)
-    sleep_mock.assert_has_calls([call(2)], False)
-    runCommand_mock.assert_has_calls([
-      call(command, os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'output-19.txt',
-           os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=True, retry=False),
-      call(command, os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'output-19.txt',
-           os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=False, retry=True)])
-
-  # retryable_command
-  @not_for_platform(PLATFORM_LINUX)
-  @patch("time.sleep")
-  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
-  @patch.object(CustomServiceOrchestrator, "__init__")
-  def test_execute_retryable_command_fail_and_succeed(self, CustomServiceOrchestrator_mock,
-                                                      sleep_mock
-  ):
-    CustomServiceOrchestrator_mock.return_value = None
-    dummy_controller = MagicMock()
-    actionQueue = ActionQueue(AmbariConfig(), dummy_controller)
-    execution_result_fail_dict = {
-      'exitcode': 1,
-      'stdout': 'out',
-      'stderr': 'stderr',
-      'structuredOut': '',
-      'status': 'FAILED'
-    }
-    execution_result_succ_dict = {
-      'exitcode': 0,
-      'stdout': 'out',
-      'stderr': 'stderr',
-      'structuredOut': '',
-      'status': 'COMPLETED'
-    }
-
-    command = copy.deepcopy(self.retryable_command)
-    self.assertFalse('commandBeingRetried' in command)
-    with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
-      runCommand_mock.side_effect = [execution_result_fail_dict, execution_result_succ_dict]
-      actionQueue.execute_command(command)
-
-    # assert that python executor start
-    self.assertTrue(runCommand_mock.called)
-    self.assertEqual(2, runCommand_mock.call_count)
-    self.assertEqual(1, sleep_mock.call_count)
-    self.assertEqual(command['commandBeingRetried'], "true")
-    sleep_mock.assert_any_call(2)
-
-  @not_for_platform(PLATFORM_LINUX)
-  @patch("time.sleep")
-  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
-  @patch.object(CustomServiceOrchestrator, "__init__")
-  def test_execute_retryable_command_succeed(self, CustomServiceOrchestrator_mock,
-                                             sleep_mock
-  ):
-    CustomServiceOrchestrator_mock.return_value = None
-    dummy_controller = MagicMock()
-    actionQueue = ActionQueue(AmbariConfig(), dummy_controller)
-    execution_result_succ_dict = {
-      'exitcode': 0,
-      'stdout': 'out',
-      'stderr': 'stderr',
-      'structuredOut': '',
-      'status': 'COMPLETED'
-    }
-
-    command = copy.deepcopy(self.retryable_command)
-    with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
-      runCommand_mock.side_effect = [execution_result_succ_dict]
-      actionQueue.execute_command(command)
-
-    # assert that python executor start
-    self.assertTrue(runCommand_mock.called)
-    self.assertFalse(sleep_mock.called)
-    self.assertEqual(1, runCommand_mock.call_count)
-
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch.object(CustomServiceOrchestrator, "runCommand")
   @patch.object(CustomServiceOrchestrator, "__init__")
@@ -1268,14 +1104,14 @@ class TestActionQueue:#(TestCase):
 
     execute_command = copy.deepcopy(self.background_command)
     actionQueue.put([execute_command])
-    actionQueue.processBackgroundQueueSafeEmpty();
+    actionQueue.process_background_queue_safe_empty()
     # actionQueue.controller.statusCommandExecutor.process_results();
     
     # assert that python execturor start
     self.assertTrue(runCommand_mock.called)
     runningCommand = actionQueue.commandStatuses.current_state.get(execute_command['taskId'])
     self.assertTrue(runningCommand is not None)
-    self.assertEqual(runningCommand[1]['status'], ActionQueue.IN_PROGRESS_STATUS)
+    self.assertEqual(runningCommand[1]['status'], CommandStatus.in_progress)
     
     reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
     self.assertEqual(len(reports), 1)
@@ -1320,7 +1156,7 @@ class TestActionQueue:#(TestCase):
     actionQueue.on_background_command_complete_callback = wraped(actionQueue.on_background_command_complete_callback,
                                                                  None, command_complete_w)
     actionQueue.put([self.background_command])
-    actionQueue.processBackgroundQueueSafeEmpty();
+    actionQueue.process_background_queue_safe_empty();
     
     with lock:
       complete_done.wait(0.1)

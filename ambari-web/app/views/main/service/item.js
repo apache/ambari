@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.MainServiceItemView = Em.View.extend({
+App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
   templateName: require('templates/main/service/item'),
 
   serviceName: Em.computed.alias('controller.content.serviceName'),
@@ -65,6 +65,14 @@ App.MainServiceItemView = Em.View.extend({
        },
        {
          cssClass: 'glyphicon glyphicon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hive.server2interactive')),
+         service: 'HIVE',
+         component: 'HIVE_SERVER_INTERACTIVE',
+         dependsFromAnotherProperty: true,
+         depend: this.get('enableHiveInteractive')
+       },
+       {
+         cssClass: 'glyphicon glyphicon-plus',
          'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.zookeeper.server')),
          service: 'ZOOKEEPER',
          component: 'ZOOKEEPER_SERVER'
@@ -92,6 +100,30 @@ App.MainServiceItemView = Em.View.extend({
          'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('OOZIE_SERVER', false)),
          service: 'OOZIE',
          component: 'OOZIE_SERVER'
+       },
+       {
+         cssClass: 'glyphicon glyphicon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('DRUID_BROKER', false)),
+         service: 'DRUID',
+         component: 'DRUID_BROKER'
+       },
+       {
+         cssClass: 'glyphicon glyphicon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('DRUID_ROUTER', false)),
+         service: 'DRUID',
+         component: 'DRUID_ROUTER'
+       },
+       {
+         cssClass: 'glyphicon glyphicon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('DRUID_OVERLORD', false)),
+         service: 'DRUID',
+         component: 'DRUID_OVERLORD'
+       },
+       {
+         cssClass: 'glyphicon glyphicon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('DRUID_COORDINATOR', false)),
+         service: 'DRUID',
+         component: 'DRUID_COORDINATOR'
        }
      ]
    },
@@ -259,7 +291,8 @@ App.MainServiceItemView = Em.View.extend({
 
         if (App.isAuthorized('HOST.ADD_DELETE_COMPONENTS')) {
           self.addActionMap().filterProperty('service', serviceName).forEach(function (item) {
-            if (App.get('components.addableToHost').contains(item.component)) {
+            if (App.get('components.addableToHost').contains(item.component) &&
+              (!item.dependsFromAnotherProperty || item.depend)) {
 
               var isEnabled = App.HostComponent.find().filterProperty('componentName', item.component).length < App.get('allHostNames.length');
 
@@ -365,6 +398,10 @@ App.MainServiceItemView = Em.View.extend({
   willInsertElement: function () {
     var self = this;
     this.get('controller').loadConfigs();
+    if (this.get('controller.content.serviceName') === 'HIVE') {
+      this.loadHiveConfigs();
+    }
+
     this.get('maintenanceObsFields').forEach(function (field) {
       self.addObserver('controller.' + field, self, 'observeMaintenance');
     });

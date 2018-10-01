@@ -111,8 +111,6 @@ public class ConfigureTask extends ServerSideActionTask {
     implClass = ConfigureAction.class.getName();
   }
 
-  private Task.Type type = Task.Type.CONFIGURE;
-
   @XmlAttribute(name = "id")
   public String id;
 
@@ -130,7 +128,7 @@ public class ConfigureTask extends ServerSideActionTask {
    */
   @Override
   public Type getType() {
-    return type;
+    return Task.Type.CONFIGURE;
   }
 
   @Override

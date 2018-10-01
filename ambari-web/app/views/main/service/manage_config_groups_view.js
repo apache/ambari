@@ -101,7 +101,7 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
   showTooltip: function () {
     if (!this.get('controller.isLoaded')) return false;
     Em.run.next(function(){
-      App.tooltip($('.properties-link'));
+      App.tooltip($('.properties-link'), {html: true});
       App.tooltip($("[rel='button-info']"));
       App.tooltip($("[rel='button-info-dropdown']"), {placement: 'left'});
     });

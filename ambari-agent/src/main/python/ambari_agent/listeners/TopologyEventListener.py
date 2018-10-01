@@ -30,8 +30,9 @@ class TopologyEventListener(EventListener):
   """
   Listener of Constants.TOPOLOGIES_TOPIC events from server.
   """
-  def __init__(self, topology_cache):
-    self.topology_cache = topology_cache
+  def __init__(self, initializer_module):
+    super(TopologyEventListener, self).__init__(initializer_module)
+    self.topology_cache = initializer_module.topology_cache
 
   def on_event(self, headers, message):
     """

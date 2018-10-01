@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Host info with updated parameter. This update will be sent to all subscribed recipients.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class HostUpdateEvent extends AmbariUpdateEvent {
+public class HostUpdateEvent extends STOMPEvent {
 
   @JsonProperty("cluster_name")
   private String clusterName;

@@ -26,6 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -62,13 +63,19 @@ public class ConfigMergeHelper {
     for (Service service : cluster.getServices()) {
       oldStack = service.getStackId();
       Set<PropertyInfo> oldStackProperties = m_ambariMetaInfo.get().getServiceProperties(
-          oldStack.getStackName(), oldStack.getStackVersion(), service.getServiceType());
+        oldStack.getStackName(), oldStack.getStackVersion(), service.getServiceType());
       addToMap(oldMap, oldStackProperties);
 
-      Set<PropertyInfo> newStackProperties = m_ambariMetaInfo.get().getServiceProperties(
+      try {
+        Set<PropertyInfo> newStackProperties = m_ambariMetaInfo.get().getServiceProperties(
           targetStack.getStackName(), targetStack.getStackVersion(), service.getServiceType());
-      addToMap(newMap, newStackProperties);
-    }
+        addToMap(newMap, newStackProperties);
+      } catch (StackAccessException e) {
+        LOG.info("Skipping service {} of type {} which is currently installed but does not exist in the target stack {}",
+          service.getName(), service.getServiceType(), targetStack);
+        continue;
+      }
+  }
 
     // Collect stack-level properties defined for old and new stack
     Set<PropertyInfo> set = m_ambariMetaInfo.get().getStackProperties(

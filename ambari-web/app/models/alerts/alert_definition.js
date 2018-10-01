@@ -155,7 +155,7 @@ App.AlertDefinition = DS.Model.extend({
     order.forEach(function (state) {
       var cnt = summary[state] ? summary[state].count + summary[state].maintenanceCount : 0;
       if (cnt > 0) {
-        text = summary[state].latestText;
+        text = Em.getWithDefault(summary[state], 'latestText', '');
       }
     });
     return text;

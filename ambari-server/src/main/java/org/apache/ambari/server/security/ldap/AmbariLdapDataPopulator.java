@@ -95,6 +95,7 @@ public class AmbariLdapDataPopulator {
   private static final String UID_ATTRIBUTE = "uid";
   private static final String OBJECT_CLASS_ATTRIBUTE = "objectClass";
   private static final int USERS_PAGE_SIZE = 500;
+  private static final String SYSTEM_PROPERTY_DISABLE_ENDPOINT_IDENTIFICATION = "com.sun.jndi.ldap.object.disableEndpointIdentification";
 
   // REGEXP to check member attribute starts with "cn=" or "uid=" - case insensitive
   private static final String IS_MEMBER_DN_REGEXP = "^(?i)(uid|cn|%s|%s)=.*$";
@@ -760,9 +761,8 @@ public class AmbariLdapDataPopulator {
    * @return LdapTemplate instance
    */
   protected LdapTemplate loadLdapTemplate() {
-    LdapServerProperties ldapServerProperties = getLdapProperties();
     final LdapServerProperties properties = getConfiguration().getLdapServerProperties();
-    if (ldapTemplate == null || !properties.equals(ldapServerProperties)) {
+    if (ldapTemplate == null || !properties.equals(getLdapProperties())) {
       LOG.info("Reloading properties");
       ldapServerProperties = properties;
 
@@ -780,14 +780,22 @@ public class AmbariLdapDataPopulator {
         ldapContextSource.setPassword(ldapServerProperties.getManagerPassword());
       }
 
+      if (ldapServerProperties.isUseSsl() && ldapServerProperties.isDisableEndpointIdentification()) {
+        System.setProperty(SYSTEM_PROPERTY_DISABLE_ENDPOINT_IDENTIFICATION, "true");
+        LOG.info("Disabled endpoint identification");
+      } else {
+        System.clearProperty(SYSTEM_PROPERTY_DISABLE_ENDPOINT_IDENTIFICATION);
+        LOG.info("Removed endpoint identification disabling");
+      }
+
+      ldapContextSource.setReferral(ldapServerProperties.getReferralMethod());
+
       try {
         ldapContextSource.afterPropertiesSet();
       } catch (Exception e) {
         LOG.error("LDAP Context Source not loaded ", e);
         throw new UsernameNotFoundException("LDAP Context Source not loaded", e);
       }
-
-      ldapContextSource.setReferral(ldapServerProperties.getReferralMethod());
 
       ldapTemplate = createLdapTemplate(ldapContextSource);
 

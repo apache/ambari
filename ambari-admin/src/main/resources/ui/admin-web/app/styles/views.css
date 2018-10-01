@@ -103,3 +103,7 @@ input[type="checkbox"] + label {
   -webkit-animation-delay: -1.0s;
   animation-delay: -1.0s;
 }
+
+#views-table td {
+  word-break: break-all;
+}

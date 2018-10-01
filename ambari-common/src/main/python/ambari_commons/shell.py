@@ -25,6 +25,7 @@ import signal
 from ambari_commons import subprocess32 as subprocess
 import threading
 from contextlib import contextmanager
+import copy
 
 import time
 
@@ -282,9 +283,13 @@ def launch_subprocess(command, term_geometry=(42, 255), env=None):
     _logger.debug("Warning, command  \"{0}\" doesn't support sudo appending".format(command))
 
   is_shell = not isinstance(command, (list, tuple))
+  environ = copy.deepcopy(os.environ)
+
+  if env:
+    environ.update(env)
 
   return PopenEx(command, stdout=PIPE_PTY, stderr=subprocess.PIPE,
-                 shell=is_shell, preexec_fn=_geometry_helper, close_fds=True, env=env)
+                 shell=is_shell, preexec_fn=_geometry_helper, close_fds=True, env=environ)
 
 
 def chunks_reader(cmd, kill_timer):
@@ -482,6 +487,7 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
 
   buff_queue = None
   kill_timer = None
+  kill_timer_started = False
 
   try:
     cmd = launch_subprocess(command, env=env)
@@ -489,8 +495,10 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
       yield []
       return
     kill_timer = threading.Timer(timeout, lambda: cmd.kill())
+    kill_timer.daemon = True
     if timeout > -1:
       kill_timer.start()
+      kill_timer_started = True
 
     if strategy == ReaderStrategy.BufferedQueue:
       buff_queue = BufferedQueue()
@@ -507,8 +515,6 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
     if error_callback and cmd.returncode and cmd.returncode > 0:
       error_callback(command, cmd.stderr.readlines(), cmd.returncode)
   except Exception as e:
-    if kill_timer:
-      kill_timer.cancel()
     _logger.error("Exception during command '{0}' execution: {1}".format(command, str(e)))
     if error_callback:
       error_callback(command, [str(e)], -1)
@@ -517,6 +523,9 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
   finally:
     if buff_queue:
       buff_queue.notify_end()
+    if kill_timer and kill_timer_started:
+      kill_timer.cancel()
+      kill_timer.join()
 
 
 def get_all_children(base_pid):
@@ -734,8 +743,9 @@ def repository_manager_executor(cmd, repo_properties, context=RepoCallContext(),
 
     should_stop_retries = __handle_retries(cmd, repo_properties, context, call_result, is_first_time, is_last_time)
     if (is_last_time or should_stop_retries) and call_result.code != 0:
-      message = "Failed to execute command '{0}', exited with code '{1}' with message: {2}".format(
-        cmd, call_result.code, call_result.error)
+      message = "Failed to execute command '{0}', exited with code '{1}', message: '{2}'".format(
+        cmd if not isinstance(cmd, (list, tuple)) else " ".join(cmd),
+        call_result.code, call_result.error)
 
       if context.ignore_errors:
         _logger.warning(message)

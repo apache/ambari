@@ -30,7 +30,7 @@ export class ComponentLabelPipe implements PipeTransform {
 
   transform(name: string): Observable<string> {
     return this.componentService.findInCollection(component => component.name === name)
-      .map(component => component ? component.label || component.name : name)
+      .map(component => component ? component.label || component.name : name);
   }
 
 }

@@ -15,8 +15,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div class="row" style="padding: 5px 10px;">
-  <div class="left-arrow">
+<div class="row one-row-tabs-container">
+  <div {{bindAttr class=":left-arrow view.isNavArrowsHidden:not-visible"}}>
     <a href="#"{{bindAttr class="view.isLeftArrowDisabled:disabled"}} {{action "scrollTabsLeft" target="view"}}> <i class="icon-angle-left"></i>
     </a>
   </div>
@@ -28,14 +28,18 @@
              data-toggle="tab">
             {{formatRole tab.serviceName}}
             {{#if tab.errorsCount}}
-              <span class="badge badge-important">{{tab.errorsCount}}</span>
+              <span class="alert-badge" {{QAAttr "error-badge"}}>
+                <span class="counter label alerts-crit-count">
+                  {{tab.errorsCount}}
+                </span>
+              </span>
             {{/if}}
           </a>
         </li>
       {{/each}}
     </ul>
   </div>
-  <div class="right-arrow">
+  <div {{bindAttr class=":right-arrow view.isNavArrowsHidden:not-visible"}}>
     <a href="#" {{bindAttr class="view.isRightArrowDisabled:disabled"}} {{action "scrollTabsRight" target="view"}}>
       <i class="icon-angle-right"></i>
     </a>

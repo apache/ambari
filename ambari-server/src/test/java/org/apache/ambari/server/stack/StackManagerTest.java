@@ -26,6 +26,7 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -44,8 +45,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -386,7 +385,8 @@ public class StackManagerTest {
     // values from base service
     assertEquals(baseSqoopService.isDeleted(), sqoopService.isDeleted());
     assertEquals(baseSqoopService.getAlertsFile(),sqoopService.getAlertsFile());
-    assertEquals(baseSqoopService.getClientComponent(), sqoopService.getClientComponent());
+    // they are different because of versions are not the same now
+    assertNotSame(baseSqoopService.getClientComponent(), sqoopService.getClientComponent());
     assertEquals(baseSqoopService.getCommandScript(), sqoopService.getCommandScript());
     assertEquals(baseSqoopService.getConfigDependencies(), sqoopService.getConfigDependencies());
     assertEquals(baseSqoopService.getConfigDir(), sqoopService.getConfigDir());
@@ -419,7 +419,8 @@ public class StackManagerTest {
     // compare components
     List<ComponentInfo> stormServiceComponents = stormService.getComponents();
     List<ComponentInfo> baseStormServiceComponents = baseStormService.getComponents();
-    assertEquals(new HashSet<>(stormServiceComponents), new HashSet<>(baseStormServiceComponents));
+    // The versions are not the same now
+    assertNotSame(new HashSet<>(stormServiceComponents), new HashSet<>(baseStormServiceComponents));
     // values from base service
     assertEquals(baseStormService.isDeleted(), stormService.isDeleted());
     //todo: specify alerts file in stack
@@ -460,11 +461,12 @@ public class StackManagerTest {
     // compare components
     List<ComponentInfo> serviceComponents = service.getComponents();
     List<ComponentInfo> baseStormServiceCompoents = baseSqoopService.getComponents();
-    assertEquals(serviceComponents, baseStormServiceCompoents);
+    // Versions are different now
+    assertNotSame(serviceComponents, baseStormServiceCompoents);
     // values from base service
     assertEquals(baseSqoopService.isDeleted(), service.isDeleted());
     assertEquals(baseSqoopService.getAlertsFile(),service.getAlertsFile());
-    assertEquals(baseSqoopService.getClientComponent(), service.getClientComponent());
+    assertNotSame(baseSqoopService.getClientComponent(), service.getClientComponent());
     assertEquals(baseSqoopService.getCommandScript(), service.getCommandScript());
     assertEquals(baseSqoopService.getConfigDependencies(), service.getConfigDependencies());
     assertEquals(baseSqoopService.getConfigDir(), service.getConfigDir());
@@ -746,7 +748,7 @@ public class StackManagerTest {
     URL rootDirectoryURL = StackManagerTest.class.getResource("/");
     Assert.notNull(rootDirectoryURL);
 
-    File resourcesDirectory = new File(new File(rootDirectoryURL.getFile()).getParentFile().getParentFile(), "src/main/resources");
+    File resourcesDirectory = new File(new File(rootDirectoryURL.getFile()).getParentFile().getParentFile(), "src/test/resources");
 
     File stackRoot = new File(resourcesDirectory, "stacks");
     File commonServices = new File(resourcesDirectory, "common-services");
@@ -805,221 +807,6 @@ public class StackManagerTest {
         }
       }
     }
-  }
-
-  @Test
-  public void testServicesWithRangerPluginRoleCommandOrder() throws AmbariException {
-    URL rootDirectoryURL = StackManagerTest.class.getResource("/");
-    Assert.notNull(rootDirectoryURL);
-
-    File resourcesDirectory = new File(new File(rootDirectoryURL.getFile()).getParentFile().getParentFile(), "src/main/resources");
-
-    File stackRoot = new File(resourcesDirectory, "stacks");
-    File commonServices = new File(resourcesDirectory, "common-services");
-    File extensions = null;
-
-    try {
-      URL extensionsURL = ClassLoader.getSystemClassLoader().getResource("extensions");
-      if (extensionsURL != null) {
-        extensions = new File(extensionsURL.getPath().replace("test-classes","classes"));
-      }
-    }
-    catch (Exception e) {}
-
-    MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
-    StackDAO stackDao = createNiceMock(StackDAO.class);
-    ExtensionDAO extensionDao = createNiceMock(ExtensionDAO.class);
-    ExtensionLinkDAO linkDao = createNiceMock(ExtensionLinkDAO.class);
-    ActionMetadata actionMetadata = createNiceMock(ActionMetadata.class);
-    Configuration config = createNiceMock(Configuration.class);
-    ExtensionEntity extensionEntity = createNiceMock(ExtensionEntity.class);
-
-    expect(config.getSharedResourcesDirPath()).andReturn(
-      ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
-
-    expect(
-        extensionDao.find(EasyMock.anyObject(String.class),
-            EasyMock.anyObject(String.class))).andReturn(extensionEntity).atLeastOnce();
-
-    List<ExtensionLinkEntity> list = Collections.emptyList();
-    expect(
-        linkDao.findByStack(EasyMock.anyObject(String.class),
-            EasyMock.anyObject(String.class))).andReturn(list).atLeastOnce();
-
-    replay(config, metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata);
-
-    OsFamily osFamily = new OsFamily(config);
-    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
-
-    StackManager stackManager = new StackManager(resourcesDirectory, stackRoot, commonServices, extensions, osFamily,
-        false, false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
-
-    String rangerUserSyncRoleCommand = Role.RANGER_USERSYNC + "-" + RoleCommand.START;
-    String rangerAdminRoleCommand = Role.RANGER_ADMIN + "-" + RoleCommand.START;
-    String zookeeperServerRoleCommand = Role.ZOOKEEPER_SERVER + "-" + RoleCommand.START;
-    String nodeManagerRoleCommand = Role.NODEMANAGER + "-" + RoleCommand.START;
-    String mySqlServerRoleCommand = Role.MYSQL_SERVER + "-" + RoleCommand.START;
-
-    // When
-    StackInfo hdp = stackManager.getStack("HDP", "2.3");
-    Map<String, Object> rco = hdp.getRoleCommandOrder().getContent();
-
-    // Then
-    // verify that services that have ranger plugin are after ranger admin in the role command order sequence
-    // as these services require ranger admin and ranger user sync to up upfront
-    Map<String, Object> generalDeps = (Map<String, Object>)rco.get("general_deps");
-    Map<String, Object> optionalNoGlusterfs = (Map<String, Object>)rco.get("optional_no_glusterfs");
-
-
-    // HDFS
-    String nameNodeRoleCommand  = Role.NAMENODE +  "-" + RoleCommand.START;
-    ArrayList<String> nameNodeBlockers = (ArrayList<String>)optionalNoGlusterfs.get(nameNodeRoleCommand);
-
-    assertTrue(nameNodeRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, nameNodeBlockers.contains(rangerUserSyncRoleCommand));
-
-    String dataNodeRoleCommand = Role.DATANODE +  "-" + RoleCommand.START;
-    ArrayList<String> dataNodeBlockers = (ArrayList<String>)optionalNoGlusterfs.get(dataNodeRoleCommand);
-
-    assertTrue(dataNodeRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, dataNodeBlockers.contains(rangerUserSyncRoleCommand));
-
-    // YARN
-    String resourceManagerCommandRoleCommand = Role.RESOURCEMANAGER +  "-" + RoleCommand.START;
-    ArrayList<String> resourceManagerBlockers = (ArrayList<String>)generalDeps.get(resourceManagerCommandRoleCommand);
-
-    assertTrue(resourceManagerCommandRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, resourceManagerBlockers.contains(rangerUserSyncRoleCommand));
-
-
-    // HBase
-    String hbaseRoleCommand = Role.HBASE_MASTER +  "-" + RoleCommand.START;
-    ArrayList<String> hbaseBlockers = (ArrayList<String>)generalDeps.get(hbaseRoleCommand);
-
-    assertTrue(hbaseRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, hbaseBlockers.contains(rangerUserSyncRoleCommand));
-    assertTrue(hbaseRoleCommand + " should be dependent of " + zookeeperServerRoleCommand, hbaseBlockers.contains(zookeeperServerRoleCommand));
-
-    // Knox
-    String knoxRoleCommand = Role.KNOX_GATEWAY +  "-" + RoleCommand.START;
-    ArrayList<String> knoxBlockers = (ArrayList<String>)generalDeps.get(knoxRoleCommand);
-
-    assertTrue(knoxRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, knoxBlockers.contains(rangerUserSyncRoleCommand));
-
-    // Kafka
-    String kafkaRoleCommand = Role.KAFKA_BROKER +  "-" + RoleCommand.START;
-    ArrayList<String> kafkaBlockers = (ArrayList<String>)generalDeps.get(kafkaRoleCommand);
-
-    assertTrue(Role.KAFKA_BROKER + "-" + RoleCommand.START + " should be dependent of " + rangerUserSyncRoleCommand, kafkaBlockers.contains(rangerUserSyncRoleCommand));
-
-    // Hive
-    String hiveRoleCommand = Role.HIVE_SERVER +  "-" + RoleCommand.START;
-    ArrayList<String> hiveBlockers = (ArrayList<String>)generalDeps.get(hiveRoleCommand);
-
-    assertTrue(hiveRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, hiveBlockers.contains(rangerUserSyncRoleCommand));
-    assertTrue(hiveRoleCommand + " should be dependent of " + nodeManagerRoleCommand, hiveBlockers.contains(nodeManagerRoleCommand));
-    assertTrue(hiveRoleCommand + " should be dependent of " + mySqlServerRoleCommand, hiveBlockers.contains(mySqlServerRoleCommand));
-
-    // Storm
-    String stormRoleCommand = Role.NIMBUS +  "-" + RoleCommand.START;
-    ArrayList<String> stormBlockers = (ArrayList<String>)generalDeps.get(stormRoleCommand);
-
-    assertTrue(stormRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, stormBlockers.contains(rangerUserSyncRoleCommand));
-    assertTrue(stormRoleCommand + " should be dependent of " + zookeeperServerRoleCommand, stormBlockers.contains(zookeeperServerRoleCommand));
-
-    // Ranger KMS
-    String kmsRoleCommand = Role.RANGER_KMS_SERVER +  "-" + RoleCommand.START;
-    ArrayList<String> rangerKmsBlockers = (ArrayList<String>)generalDeps.get(kmsRoleCommand);
-
-    assertTrue(kmsRoleCommand + " should be dependent of " + rangerAdminRoleCommand, rangerKmsBlockers.contains(rangerAdminRoleCommand));
-    assertTrue(kmsRoleCommand + " should be dependent of " + nameNodeRoleCommand, rangerKmsBlockers.contains(nameNodeRoleCommand));
-
-    // Ranger User Sync
-    ArrayList<String> rangerUserSyncBlockers = (ArrayList<String>)generalDeps.get(rangerUserSyncRoleCommand);
-
-    assertTrue(rangerUserSyncRoleCommand + " should be dependent of " + rangerAdminRoleCommand, rangerUserSyncBlockers.contains(rangerAdminRoleCommand));
-  }
-  //todo: component override assertions
-
-  @Test
-  public void testServicesWithLogsearchRoleCommandOrder() throws AmbariException {
-    URL rootDirectoryURL = StackManagerTest.class.getResource("/");
-    Assert.notNull(rootDirectoryURL);
-
-    File resourcesDirectory = new File(new File(rootDirectoryURL.getFile()).getParentFile().getParentFile(), "src/main/resources");
-
-    File stackRoot = new File(resourcesDirectory, "stacks");
-    File commonServices = new File(resourcesDirectory, "common-services");
-    File extensions = null;
-
-    try {
-         URL extensionsURL = ClassLoader.getSystemClassLoader().getResource("extensions");
-      if (extensionsURL != null) {
-        extensions = new File(extensionsURL.getPath().replace("test-classes","classes"));
-      }
-    }
-    catch (Exception e) {}
-
-    MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
-    StackDAO stackDao = createNiceMock(StackDAO.class);
-    ExtensionDAO extensionDao = createNiceMock(ExtensionDAO.class);
-    ExtensionLinkDAO linkDao = createNiceMock(ExtensionLinkDAO.class);
-    ActionMetadata actionMetadata = createNiceMock(ActionMetadata.class);
-    Configuration config = createNiceMock(Configuration.class);
-    ExtensionEntity extensionEntity = createNiceMock(ExtensionEntity.class);
-
-    expect(config.getSharedResourcesDirPath()).andReturn(
-      ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
-
-    expect(
-        extensionDao.find(EasyMock.anyObject(String.class),
-            EasyMock.anyObject(String.class))).andReturn(extensionEntity).atLeastOnce();
-
-    List<ExtensionLinkEntity> list = Collections.emptyList();
-    expect(
-        linkDao.findByStack(EasyMock.anyObject(String.class),
-            EasyMock.anyObject(String.class))).andReturn(list).atLeastOnce();
-
-    replay(config, metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata);
-
-    OsFamily osFamily = new OsFamily(config);
-    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
-
-    StackManager stackManager = new StackManager(resourcesDirectory, stackRoot, commonServices, extensions, osFamily,
-        false, false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
-
-    String zookeeperServerRoleCommand = Role.ZOOKEEPER_SERVER + "-" + RoleCommand.START;
-    String logsearchServerRoleCommand = Role.LOGSEARCH_SERVER + "-" + RoleCommand.START;
-    String infraSolrRoleCommand = Role.INFRA_SOLR + "-" + RoleCommand.START;
-    String logsearchLogfeederRoleCommand = Role.LOGSEARCH_LOGFEEDER + "-" + RoleCommand.START;
-
-    StackInfo hdp = stackManager.getStack("HDP", "2.3");
-    Map<String, Object> rco = hdp.getRoleCommandOrder().getContent();
-
-    Map<String, Object> generalDeps = (Map<String, Object>) rco.get("general_deps");
-    Map<String, Object> optionalNoGlusterfs = (Map<String, Object>) rco.get("optional_no_glusterfs");
-
-    // HDFS/YARN - verify that the stack level rco still works as expected
-    String nameNodeRoleCommand = Role.NAMENODE + "-" + RoleCommand.START;
-    String rangerUserSyncRoleCommand = Role.RANGER_USERSYNC + "-" + RoleCommand.START;
-    ArrayList<String> nameNodeBlockers = (ArrayList<String>) optionalNoGlusterfs.get(nameNodeRoleCommand);
-
-    assertTrue(nameNodeRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, nameNodeBlockers.contains(rangerUserSyncRoleCommand));
-
-    String resourceManagerCommandRoleCommand = Role.RESOURCEMANAGER +  "-" + RoleCommand.START;
-    ArrayList<String> resourceManagerBlockers = (ArrayList<String>)generalDeps.get(resourceManagerCommandRoleCommand);
-
-    assertTrue(resourceManagerCommandRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, resourceManagerBlockers.contains(rangerUserSyncRoleCommand));
-
-    // verify logsearch rco
-    // LogSearch Solr
-    ArrayList<String> logsearchSolrBlockers = (ArrayList<String>) generalDeps.get(infraSolrRoleCommand);
-    assertTrue(infraSolrRoleCommand + " should be dependent of " + zookeeperServerRoleCommand, logsearchSolrBlockers.contains(zookeeperServerRoleCommand));
-
-    // LogSearch Server
-    ArrayList<String> logsearchServerBlockers = (ArrayList<String>) generalDeps.get(logsearchServerRoleCommand);
-    assertTrue(logsearchServerRoleCommand + " should be dependent of " + infraSolrRoleCommand, logsearchServerBlockers.contains(infraSolrRoleCommand));
-
-    // LogSearch LogFeeder
-    ArrayList<String> logsearchLogfeederBlockers = (ArrayList<String>) generalDeps.get(logsearchLogfeederRoleCommand);
-    assertTrue(logsearchLogfeederRoleCommand + " should be dependent of " + infraSolrRoleCommand, logsearchLogfeederBlockers.contains(infraSolrRoleCommand));
-    assertTrue(logsearchLogfeederRoleCommand + " should be dependent of " + logsearchServerRoleCommand, logsearchLogfeederBlockers.contains(logsearchServerRoleCommand));
   }
 
   @Test

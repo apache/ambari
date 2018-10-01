@@ -59,5 +59,4 @@ public class ApplicationConfig {
     factoryBean.afterPropertiesSet();
     return factoryBean.getObject();
   }
-
 }

@@ -1,4 +1,3 @@
-#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,127 +13,94 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-ROOT="${RPM_INSTALL_PREFIX}"
+ROOT=`echo "${RPM_INSTALL_PREFIX}" | sed 's|/$||g'`
 
-STACKS_FOLDER="${ROOT}/var/lib/ambari-server/resources/stacks"
-STACKS_FOLDER_OLD=${ROOT}/var/lib/ambari-server/resources/stacks_$(date '+%d_%m_%y_%H_%M').old
 
-COMMON_SERVICES_FOLDER="${ROOT}/var/lib/ambari-server/resources/common-services"
-COMMON_SERVICES_FOLDER_OLD=${ROOT}/var/lib/ambari-server/resources/common-services_$(date '+%d_%m_%y_%H_%M').old
+do_backups(){
+  local etc_dir="${ROOT}/etc/ambari-server"
+  local var_dir="${ROOT}/var/lib/ambari-server"
+  local usr_dir="${ROOT}/usr/lib/ambari-server"
+  local usr_backup_dir="${ROOT}/usr/lib/ambari-server-backups"
 
-MPACKS_FOLDER="${ROOT}/var/lib/ambari-server/resources/mpacks"
-MPACKS_FOLDER_OLD=${ROOT}/var/lib/ambari-server/resources/mpacks_$(date '+%d_%m_%y_%H_%M').old
+  local stacks_backup_folder="${var_dir}/resources/stacks_$(date '+%d_%m_%y_%H_%M').old"
+  local common_service_backup_folder="${var_dir}/resources/common-services_$(date '+%d_%m_%y_%H_%M').old"
 
-AMBARI_PROPERTIES="${ROOT}/etc/ambari-server/conf/ambari.properties"
-AMBARI_PROPERTIES_OLD="$AMBARI_PROPERTIES.rpmsave"
+  #  backup configuration
 
-AMBARI_ENV="${ROOT}/var/lib/ambari-server/ambari-env.sh"
-AMBARI_ENV_OLD="$AMBARI_ENV.rpmsave"
+  # data format:  "title:source:destination"; each new record on new line
+  local backup_folders="configs:${etc_dir}/conf.save:${etc_dir}/conf_$(date '+%d_%m_%y_%H_%M').save
+Ambari properties:${etc_dir}/conf/ambari.properties:${etc_dir}/conf/ambari.properties.rpmsave
+Ambari properties:${var_dir}/ambari-env.sh:${var_dir}/ambari-env.sh.rpmsave
+JAAS login file:${etc_dir}/conf/krb5JAASLogin.conf:${etc_dir}/conf/krb5JAASLogin.conf.rpmsave
+stacks directory:${var_dir}/resources/stacks:${stacks_backup_folder}
+common-services directory:${var_dir}/resources/common-services:${common_service_backup_folder}"
 
-AMBARI_KRB_JAAS_LOGIN_FILE="${ROOT}/etc/ambari-server/conf/krb5JAASLogin.conf"
-AMBARI_KRB_JAAS_LOGIN_FILE_OLD="$AMBARI_KRB_JAAS_LOGIN_FILE.rpmsave"
+ echo "${backup_folders}"| while IFS=: read title source destination; do
+   if [ -e "${source}" ]; then
+     echo "Backing up ${title}: ${source} -> ${destination}"
+     mv -f "${source}" "${destination}"
+   fi
+ done
 
-AMBARI_VIEWS_FOLDER="${ROOT}/var/lib/ambari-server/resources/views"
-AMBARI_VIEWS_BACKUP_FOLDER="$AMBARI_VIEWS_FOLDER/backups"
+  # backup mpacks
 
-AMBARI_SERVER_JAR_FILES="/usr/lib/ambari-server/ambari-server-*.jar"
-AMBARI_SERVER_JAR_FILES_BACKUP_FOLDER="/usr/lib/ambari-server-backups"
-SERVER_CONF_SAVE="${ROOT}/etc/ambari-server/conf.save"
-SERVER_CONF_SAVE_BACKUP="${ROOT}/etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save"
+  local mpacks_folder="${ROOT}/var/lib/ambari-server/resources/mpacks"
+  local mpacks_folder_old=${ROOT}/var/lib/ambari-server/resources/mpacks_$(date '+%d_%m_%y_%H_%M').old
 
-if [ -d "$SERVER_CONF_SAVE" ]
-then
-    echo "Backing up configs $SERVER_CONF_SAVE -> $SERVER_CONF_SAVE_BACKUP"
-    mv "$SERVER_CONF_SAVE" "$SERVER_CONF_SAVE_BACKUP"
-fi
-
-if [ -f "$AMBARI_PROPERTIES" ]
-then
-    echo "Backing up Ambari properties $AMBARI_PROPERTIES -> $AMBARI_PROPERTIES_OLD"
-    mv -f "$AMBARI_PROPERTIES" "$AMBARI_PROPERTIES_OLD"
-fi
-
-if [ -f "$AMBARI_ENV" ]
-then
-    echo "Backing up Ambari properties $AMBARI_ENV -> $AMBARI_ENV_OLD"
-    mv -f "$AMBARI_ENV" "$AMBARI_ENV_OLD"
-fi
-
-if [ -f "$AMBARI_KRB_JAAS_LOGIN_FILE" ]
-then
-    echo "Backing up JAAS login file $AMBARI_KRB_JAAS_LOGIN_FILE -> $AMBARI_KRB_JAAS_LOGIN_FILE_OLD"
-    mv -f "$AMBARI_KRB_JAAS_LOGIN_FILE" "$AMBARI_KRB_JAAS_LOGIN_FILE_OLD"
-fi
-
-if [ -d "$STACKS_FOLDER" ]
-then
-    echo "Backing up stacks directory $STACKS_FOLDER -> $STACKS_FOLDER_OLD"
-    mv -f "$STACKS_FOLDER" "$STACKS_FOLDER_OLD"
-fi
-
-if [ -d "$COMMON_SERVICES_FOLDER" ]
-then
-    echo "Backing up common-services directory $COMMON_SERVICES_FOLDER -> $COMMON_SERVICES_FOLDER_OLD"
-    mv -f "$COMMON_SERVICES_FOLDER" "$COMMON_SERVICES_FOLDER_OLD"
-fi
-
-if [ -d "$MPACKS_FOLDER" ]
-then
+  if [ -d "${mpacks_folder}" ]; then
     # Make a copy of mpacks folder
-    if [ ! -d "$MPACKS_FOLDER_OLD" ]; then
-        echo "Backing up mpacks directory $MPACKS_FOLDER -> $MPACKS_FOLDER_OLD"
-        cp -R "$MPACKS_FOLDER" "$MPACKS_FOLDER_OLD"
+    if [ ! -d "${mpacks_folder_old}" ]; then
+      echo "Backing up mpacks directory: ${mpacks_folder} -> ${mpacks_folder_old}"
+      cp -R "${mpacks_folder}" "${mpacks_folder_old}"
     fi
 
-    # Update symlinks in $STACKS_FOLDER_OLD to point to $MPACKS_FOLDER_OLD
-    if [ -d "$STACKS_FOLDER_OLD" ]; then
-        for link in $(find "$STACKS_FOLDER_OLD" -type l)
-        do
-            target=`readlink $link`
-            if grep -q "$MPACKS_FOLDER/"<<<$target; then
-                new_target="${target/$MPACKS_FOLDER/$MPACKS_FOLDER_OLD}"
-                echo "Updating symlink $link -> $new_target"
-                ln -snf $new_target $link
-            fi
+    local symlink_update_folders="${stacks_backup_folder};${common_service_backup_folder}"
+
+    echo ${symlink_update_folders}| tr ';' '\n'| while read item; do
+      if [ -d "${item}" ]; then
+        for link in $(find "${item}" -type l); do
+          local target=`readlink ${link}`
+          echo ${target}|grep -q "${mpacks_folder}/" 1>/dev/null 2>&1
+          if [ $? -eq 0 ]; then
+            local new_target="${target/$mpacks_folder/$mpacks_folder_old}"
+            echo "Updating symlink ${link} -> ${new_target}"
+            ln -snf ${new_target} ${link}
+          fi
         done
-    fi
+      fi
+    done
+  fi
 
-    # Update symlinks in $COMMON_SERVICES_FOLDER_OLD to point to $MPACKS_FOLDER_OLD
-    if [ -d "$COMMON_SERVICES_FOLDER_OLD" ]; then
-    for link in $(find "$COMMON_SERVICES_FOLDER_OLD" -type l)
-        do
-            target=`readlink $link`
-            if grep -q "$MPACKS_FOLDER/"<<<$target; then
-                new_target="${target/$MPACKS_FOLDER/$MPACKS_FOLDER_OLD}"
-                echo "Updating symlink $link -> $new_target"
-                ln -snf $new_target $link
-            fi
-        done
-    fi
-fi
+  # backup Ambari Views
 
-if [ ! -d "$AMBARI_VIEWS_BACKUP_FOLDER" ] && [ -d "$AMBARI_VIEWS_FOLDER" ]
-then
-    mkdir "$AMBARI_VIEWS_BACKUP_FOLDER"
-fi
+  local ambari_views_folder="${var_dir}/resources/views"
+  local ambari_views_backup_folder="${ambari_views_folder}/backups"
 
-if [ -d "$AMBARI_VIEWS_FOLDER" ] && [ -d "$AMBARI_VIEWS_BACKUP_FOLDER" ]
-then
-    echo "Backing up Ambari view jars $AMBARI_VIEWS_FOLDER/*.jar -> $AMBARI_VIEWS_BACKUP_FOLDER/"
-    cp -u $AMBARI_VIEWS_FOLDER/*.jar $AMBARI_VIEWS_BACKUP_FOLDER/
-fi
+  if [ ! -d "${ambari_views_backup_folder}" ] && [ -d "${ambari_views_folder}" ]; then
+    mkdir "${ambari_views_backup_folder}"
+  fi
 
-for f in $AMBARI_SERVER_JAR_FILES;
-do
-    if [ -f "$f" ]
-    then
-        if [ ! -d "$AMBARI_SERVER_JAR_FILES_BACKUP_FOLDER" ]
-        then
-            mkdir -p "$AMBARI_SERVER_JAR_FILES_BACKUP_FOLDER"
-        fi
-        echo "Backing up Ambari server jar $f -> $AMBARI_SERVER_JAR_FILES_BACKUP_FOLDER/"
-        mv -f $f $AMBARI_SERVER_JAR_FILES_BACKUP_FOLDER/
-    fi
-done
+  ls ${ambari_views_folder}/*.jar > /dev/null 2>&1
+  local jars_exist=$?
+  if [ -d "${ambari_views_folder}" ] && [ -d "${ambari_views_backup_folder}" ] && [ ${jars_exist} -eq 0 ]; then
+      echo "Backing up Ambari view jars: ${ambari_views_folder}/*.jar -> ${ambari_views_backup_folder}/"
+      cp -u ${ambari_views_folder}/*.jar "${ambari_views_backup_folder}/" 1>/dev/null 2>&1
+  fi
 
-exit 0
+  # backup Ambari Server Jar
+
+  local ambari_server_jar_files=${usr_dir}/ambari-server-*.jar
+  local ambari_server_jar_files_backup_folder="${usr_backup_dir}"
+
+  for f in ${ambari_server_jar_files}; do
+      if [ -f "${f}" ]; then
+          if [ ! -d "${ambari_server_jar_files_backup_folder}" ]; then
+              mkdir -p "${ambari_server_jar_files_backup_folder}"
+          fi
+          echo "Backing up Ambari server jar: ${f} -> ${ambari_server_jar_files_backup_folder}/"
+          mv -f "${f}" "${ambari_server_jar_files_backup_folder}/"
+      fi
+  done
+}
+
+do_backups

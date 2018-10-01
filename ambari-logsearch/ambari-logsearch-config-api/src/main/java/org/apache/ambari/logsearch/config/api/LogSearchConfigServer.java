@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilterMap;
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputSolrProperties;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 
 /**
@@ -82,30 +81,4 @@ public interface LogSearchConfigServer extends LogSearchConfig {
    * @return The input configuration for the service if it exists, null otherwise.
    */
   InputConfig getInputConfig(String clusterName, String serviceName);
-
-  /**
-   * Modifies the log level filters for all the logs.
-   * 
-   * @param clusterName The name of the cluster where the logs are.
-   * @param filters The log level filters to set.
-   * @throws Exception
-   */
-  void setLogLevelFilters(String clusterName, LogLevelFilterMap filters) throws Exception;
-
-  /**
-   * Returns the Log Level Filters of a cluster.
-   * 
-   * @param clusterName The name of the cluster which's log level filters are required.
-   * @return All the log level filters of the cluster.
-   */
-  LogLevelFilterMap getLogLevelFilters(String clusterName);
-
-  /**
-   * Saves the properties of an Output Solr.
-   * 
-   * @param type The type of the Output Solr.
-   * @param outputSolrProperties The properties of the Output Solr.
-   * @throws Exception
-   */
-  void saveOutputSolrProperties(String type, OutputSolrProperties outputSolrProperties) throws Exception;
 }

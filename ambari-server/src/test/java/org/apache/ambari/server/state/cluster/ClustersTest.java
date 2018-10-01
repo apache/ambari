@@ -407,16 +407,20 @@ public class ClustersTest {
     clusters.addHost(h1);
     clusters.addHost(h2);
 
-    Host host1 = clusters.getHost(h1);
 
-    setOsFamily(clusters.getHost(h1), "centos", "5.9");
-    setOsFamily(clusters.getHost(h2), "centos", "5.9");
+    Host host1 = clusters.getHost(h1);
+    Host host2 = clusters.getHost(h2);
+
+    setOsFamily(host1, "centos", "5.9");
+    setOsFamily(host2, "centos", "5.9");
 
     clusters.mapAndPublishHostsToCluster(new HashSet<String>() {
       {
         addAll(Arrays.asList(h1, h2));
       }
     }, c1);
+    clusters.updateHostMappings(host1);
+    clusters.updateHostMappings(host2);
 
     // host config override
     host1.addDesiredConfig(cluster.getClusterId(), true, "_test", config2);
@@ -441,7 +445,7 @@ public class ClustersTest {
     serviceCheckNodeHost.setState(State.UNKNOWN);
 
     Assert.assertNotNull(injector.getInstance(HostComponentStateDAO.class).findByIndex(
-      nameNodeHost.getClusterId(), 1L, 1L,
+      nameNodeHost.getClusterId(), serviceGroup.getServiceGroupId(), hdfs.getServiceId(),
       nameNodeHost.getServiceComponentId(),  nameNodeHostEntity.getHostId()));
 
     Assert.assertNotNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByIndex(nameNodeHost.getServiceComponentId()));
@@ -462,7 +466,8 @@ public class ClustersTest {
     topologyRequest.setClusterId(cluster.getClusterId());
     topologyRequest.setClusterName("Test Cluster");
 
-    replay(bp);
+    //HostLevelParamsHolder hostLevelParamsHolder = injector.getInstance(HostLevelParamsHolder.class);
+    replay(bp/*, hostLevelParamsHolder*/);
 
     persistedState.persistTopologyRequest(topologyRequest);
 
@@ -472,7 +477,7 @@ public class ClustersTest {
 
     Assert.assertEquals(2, hostDAO.findAll().size());
     Assert.assertNull(injector.getInstance(HostComponentStateDAO.class).findByIndex(
-      nameNodeHost.getClusterId(), 1L, 1L,
+      nameNodeHost.getClusterId(), serviceGroup.getServiceGroupId(), hdfs.getServiceId(),
       nameNodeHost.getServiceComponentId(), nameNodeHostEntity.getHostId()));
 
     Assert.assertNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByIndex(nameNodeHost.getServiceComponentId()));
@@ -623,6 +628,7 @@ public class ClustersTest {
     @Override
     public void configure(Binder binder) {
       binder.bind(TopologyManager.class).toInstance(createNiceMock(TopologyManager.class));
+      //binder.bind(HostLevelParamsHolder.class).toInstance(createNiceMock(HostLevelParamsHolder.class));
     }
   }
 }

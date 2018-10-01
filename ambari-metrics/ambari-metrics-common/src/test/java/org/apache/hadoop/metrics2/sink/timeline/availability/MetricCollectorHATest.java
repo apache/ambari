@@ -202,5 +202,10 @@ public class MetricCollectorHATest {
     protected int getHostInMemoryAggregationPort() {
       return 61888;
     }
+
+    @Override
+    protected String getHostInMemoryAggregationProtocol() {
+      return "http";
+    }
   }
 }

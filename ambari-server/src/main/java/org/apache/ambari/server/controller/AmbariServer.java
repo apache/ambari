@@ -53,6 +53,7 @@ import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.KeyService;
 import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
+import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
@@ -63,6 +64,7 @@ import org.apache.ambari.server.checks.DatabaseConsistencyCheckHelper;
 import org.apache.ambari.server.checks.DatabaseConsistencyCheckResult;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.SingleFileWatch;
 import org.apache.ambari.server.configuration.spring.AgentStompConfig;
 import org.apache.ambari.server.configuration.spring.ApiSecurityConfig;
 import org.apache.ambari.server.configuration.spring.ApiStompConfig;
@@ -84,6 +86,8 @@ import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvid
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
 import org.apache.ambari.server.controller.utilities.KerberosIdentityCleaner;
+import org.apache.ambari.server.events.AmbariPropertiesChangedEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -470,13 +474,16 @@ public class AmbariServer {
 
       enableLog4jMonitor(configsMap);
 
-      GzipHandler gzipHandler = new GzipHandler();
-      gzipHandler.setHandler(root);
-
-      //TODO minimal set, perhaps is needed to add some other mime types
-      gzipHandler.setIncludedMimeTypes("text/html", "text/plain", "text/xml", "text/css", "application/javascript",
+      if (configs.isGzipHandlerEnabledForJetty()) {
+        GzipHandler gzipHandler = new GzipHandler();
+        gzipHandler.setHandler(root);
+        //TODO minimal set, perhaps is needed to add some other mime types
+        gzipHandler.setIncludedMimeTypes("text/html", "text/plain", "text/xml", "text/css", "application/javascript",
           "application/x-javascript", "application/xml", "application/x-www-form-urlencoded", "application/json");
-      handlerList.addHandler(gzipHandler);
+        handlerList.addHandler(gzipHandler);
+      } else {
+        handlerList.addHandler(root);
+      }
 
       server.setHandler(handlerList);
 
@@ -502,11 +509,9 @@ public class AmbariServer {
       agentroot.addServlet(cert, "/*");
       cert.setInitOrder(4);
 
-      ServletHolder resources = new ServletHolder(ServletContainer.class);
-      resources.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
-          "com.sun.jersey.api.core.PackagesResourceConfig");
-      resources.setInitParameter("com.sun.jersey.config.property.packages",
-          "org.apache.ambari.server.resources.api.rest;");
+      File resourcesDirectory = new File(configs.getResourceDirPath());
+      ServletHolder resources = new ServletHolder(DefaultServlet.class);
+      resources.setInitParameter("resourceBase", resourcesDirectory.getParent());
       root.addServlet(resources, "/resources/*");
       resources.setInitOrder(5);
 
@@ -946,6 +951,7 @@ public class AmbariServer {
     AmbariPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     ActionManager.setTopologyManager(injector.getInstance(TopologyManager.class));
     StackAdvisorBlueprintProcessor.init(injector.getInstance(StackAdvisorHelper.class));
+    MpackAdvisorBlueprintProcessor.init(injector.getInstance(MpackAdvisorHelper.class), injector.getInstance(AmbariMetaInfo.class));
     ThreadPoolEnabledPropertyProvider.init(injector.getInstance(Configuration.class));
 
     BaseService.init(injector.getInstance(RequestAuditLogger.class));
@@ -954,6 +960,15 @@ public class AmbariServer {
 
     KerberosIdentityCleaner identityCleaner = injector.getInstance(KerberosIdentityCleaner.class);
     identityCleaner.register();
+
+    configureFileWatcher();
+  }
+
+  private void configureFileWatcher() {
+    AmbariEventPublisher ambariEventPublisher = injector.getInstance(AmbariEventPublisher.class);
+    Configuration config = injector.getInstance(Configuration.class);
+    SingleFileWatch watch = new SingleFileWatch(config.getConfigFile(), file -> ambariEventPublisher.publish(new AmbariPropertiesChangedEvent()));
+    watch.start();
   }
 
   /**

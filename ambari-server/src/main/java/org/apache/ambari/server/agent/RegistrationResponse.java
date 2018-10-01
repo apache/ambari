@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.agent.stomp.StompResponse;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -33,7 +34,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  *
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class RegistrationResponse {
+public class RegistrationResponse extends StompResponse {
   @JsonProperty("response")
   @JsonIgnore
   private RegistrationStatus response;

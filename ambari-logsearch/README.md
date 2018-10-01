@@ -59,7 +59,7 @@ By default integration tests are not a part of the build process, you need to se
 # from ambari-logsearch folder
 mvn clean integration-test -Dbackend-tests failsafe:verify
 # or run selenium tests with docker for mac, but before that you nedd to start xquartz
-xquartz
+open -a XQuartz
 # then in an another window you can start ui tests
 mvn clean integration-test -Dselenium-tests failsafe:verify
 # you can specify story file folde location with -Dbackend.stories.location and -Dui.stories.location (absolute file path) in the commands

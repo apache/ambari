@@ -22,7 +22,6 @@ import static org.apache.ambari.server.events.AlertDefinitionEventType.UPDATE;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 
 import javax.inject.Provider;
 
@@ -38,7 +37,7 @@ import org.apache.ambari.server.events.AlertDefinitionsUIUpdateEvent;
 import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -65,7 +64,7 @@ public class AlertDefinitionsUIUpdateListener {
   private Provider<Clusters> clusters;
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private AlertDefinitionsHolder alertDefinitionsHolder;
@@ -114,10 +113,11 @@ public class AlertDefinitionsUIUpdateListener {
         LOG.warn(msg, e);
       }
     }
-
-    alertDefinitionsHolder.provideAlertDefinitionAgentUpdateEvent(UPDATE, event.getClusterId(), definitions, hostName);
-    Map<Long, AlertCluster> map = Collections.singletonMap(event.getClusterId(), new AlertCluster(definitions, hostName));
-    stateUpdateEventPublisher.publish(new AlertDefinitionsUIUpdateEvent(UPDATE, map));
+    if (!definitions.isEmpty()) {
+      alertDefinitionsHolder.provideAlertDefinitionAgentUpdateEvent(UPDATE, event.getClusterId(), definitions, hostName);
+      Map<Long, AlertCluster> map = Collections.singletonMap(event.getClusterId(), new AlertCluster(definitions, hostName));
+      STOMPUpdatePublisher.publish(new AlertDefinitionsUIUpdateEvent(UPDATE, map));
+    }
   }
 
   @Subscribe
@@ -127,26 +127,29 @@ public class AlertDefinitionsUIUpdateListener {
     if (event.isMasterComponent()) {
       definitions.putAll(helper.get().findByServiceMaster(event.getClusterId(), event.getServiceName()));
     }
-    alertDefinitionsHolder.provideAlertDefinitionAgentUpdateEvent(DELETE, event.getClusterId(), definitions, hostName);
-    Map<Long, AlertCluster> map = Collections.singletonMap(event.getClusterId(), new AlertCluster(definitions, hostName));
-    stateUpdateEventPublisher.publish(new AlertDefinitionsUIUpdateEvent(DELETE, map));
+    if (!definitions.isEmpty()) {
+      alertDefinitionsHolder.provideAlertDefinitionAgentUpdateEvent(DELETE, event.getClusterId(), definitions, hostName);
+      Map<Long, AlertCluster> map = Collections.singletonMap(event.getClusterId(), new AlertCluster(definitions, hostName));
+      STOMPUpdatePublisher.publish(new AlertDefinitionsUIUpdateEvent(DELETE, map));
+    }
   }
 
   private void handleSingleDefinitionChange(AlertDefinitionEventType eventType, AlertDefinition alertDefinition) throws AmbariException {
     LOG.info("{} alert definition '{}'", eventType, alertDefinition);
-    Set<String> hosts = helper.get().invalidateHosts(alertDefinition);
-    for (String hostName : hosts) {
+    Cluster cluster = clusters.get().getCluster(alertDefinition.getClusterId());
+    helper.get().invalidateHosts(alertDefinition); // do we need to invalidate, what's the purpose of this?
+    for (String hostName : alertDefinition.matchingHosts(clusters.get())) {
       alertDefinitionsHolder.provideAlertDefinitionAgentUpdateEvent(eventType, alertDefinition.getClusterId(),
           Collections.singletonMap(alertDefinition.getDefinitionId(), alertDefinition), hostName);
     }
     if (alertDefinition.getName().equals(AMBARI_STALE_ALERT_NAME)) {
-      for (Host host : clusters.get().getCluster(alertDefinition.getClusterId()).getHosts()) {
+      for (Host host : cluster.getHosts()) {
         alertDefinitionsHolder.provideStaleAlertDefinitionUpdateEvent(eventType, alertDefinition.getClusterId(),
             alertHelper.getWaitFactorMultiplier(alertDefinition), host.getHostName());
       }
     }
     Map<Long, AlertCluster> update = Collections.singletonMap(alertDefinition.getClusterId(), new AlertCluster(alertDefinition, null));
     AlertDefinitionsUIUpdateEvent event = new AlertDefinitionsUIUpdateEvent(eventType, update);
-    stateUpdateEventPublisher.publish(event);
+    STOMPUpdatePublisher.publish(event);
   }
 }

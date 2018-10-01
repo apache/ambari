@@ -26,7 +26,7 @@ var columnsConfig = [
     isVisible: true,
     sortable: true,
     sortOrder: 0,
-    columnClass: 'col-md-4 col-xs-4'
+    columnClass: 'col-md-3 col-xs-3'
   },
   {
     title: 'Size',
@@ -50,7 +50,7 @@ var columnsConfig = [
     isVisible: true,
     sortable: true,
     sortOrder: 0,
-    columnClass: 'col-md-2 col-xs-2'
+    columnClass: 'col-md-1 col-xs-1'
   },
   {
     title: 'Group',
@@ -66,7 +66,23 @@ var columnsConfig = [
     isVisible: true,
     sortable: false,
     sortOrder: 0,
+    columnClass: 'col-md-1 col-xs-1'
+  },
+  {
+    title: 'Erasure Coding',
+    key: 'erasureCodingPolicyName',
+    isVisible: true,
+    sortable: false,
+    sortOrder: 0,
     columnClass: 'col-md-2 col-xs-2'
+  },
+  {
+    title: 'Encrypted',
+    key: 'isEncrypted',
+    isVisible: true,
+    sortable: false,
+    sortOrder: 0,
+    columnClass: 'col-md-1 col-xs-1'
   }
 ];
 

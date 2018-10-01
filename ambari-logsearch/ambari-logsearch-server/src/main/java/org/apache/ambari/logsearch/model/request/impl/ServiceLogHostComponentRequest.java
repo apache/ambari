@@ -18,22 +18,8 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
-import io.swagger.annotations.ApiParam;
+import org.apache.ambari.logsearch.common.Marker;
 
-import javax.ws.rs.QueryParam;
-
-public class ServiceLogHostComponentRequest extends ServiceLogRequest {
-  @QueryParam("hostName")
-  @ApiParam
-  String hostName;
-
-  @Override
-  public String getHostName() {
-    return hostName;
-  }
-
-  @Override
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
-  }
+@Marker
+public interface ServiceLogHostComponentRequest extends ServiceLogRequest {
 }

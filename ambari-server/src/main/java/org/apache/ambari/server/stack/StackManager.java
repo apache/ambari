@@ -25,7 +25,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.annotation.Nullable;
 import javax.xml.XMLConstants;
@@ -105,7 +107,7 @@ public class StackManager {
   /**
    * Map of stack id to stack info
    */
-  protected Map<String, StackInfo> stackMap = new HashMap<>();
+  protected NavigableMap<String, StackInfo> stackMap = new TreeMap<>();
   protected Map<String, ServiceModule> commonServiceModules;
   protected Map<String, StackModule> stackModules;
   protected Map<String, ExtensionModule> extensionModules;
@@ -116,6 +118,8 @@ public class StackManager {
   private Map<String, ExtensionInfo> extensionMap = new HashMap<>();
 
   private AmbariManagementHelper helper;
+
+  private final boolean refreshArchives;
 
   /**
    * Constructor. Initialize stack manager.
@@ -163,13 +167,15 @@ public class StackManager {
 
     LOG.info("Initializing the stack manager...");
 
+    this.refreshArchives = refreshArchives;
+
     if (validate) {
       validateStackDirectory(stackRoot);
       validateCommonServicesDirectory(commonServicesRoot);
       validateExtensionDirectory(extensionRoot);
     }
 
-    stackMap = new HashMap<>();
+    stackMap = new TreeMap<>();
     stackContext = new StackContext(metaInfoDAO, actionMetadata, osFamily);
     extensionMap = new HashMap<>();
     this.helper = helper;
@@ -198,38 +204,34 @@ public class StackManager {
     fullyResolveExtensions(stackModules, commonServiceModules, extensionModules);
     fullyResolveStacks(stackModules, commonServiceModules, extensionModules);
 
-    if(refreshArchives) {
-      updateArchives(resourcesRoot, stackRoot, stackModules, commonServiceModules, extensionModules);
-    }
+    updateArchives(resourcesRoot, stackRoot, stackModules, commonServiceModules, extensionModules);
 
     populateDB(stackDao, extensionDao);
   }
 
-  /***
-   *  Constructor. Initialize StackManager for merging service definitions and creating management packs
+  /**
+   * Generates {@code .hash} and {@code archive.zip} files by invoking the
+   * {@link ResourceFilesKeeperHelper}. If
+   * {@link Configuration#isStackResourceHashAndArchiveGenerationEnabled()} is
+   * disabled, then this method will do no work.
+   *
+   * @param resourcesRoot
    * @param stackRoot
-   * @param commonServicesRoot
+   * @param stackModules
+   * @param commonServiceModules
+   * @param extensionModules
+   * @throws AmbariException
+   *
+   * @see {@link Configuration#isStackResourceHashAndArchiveGenerationEnabled()}
    */
-  public StackManager(File stackRoot, File commonServicesRoot, boolean validate) throws AmbariException{
-    LOG.info("Initializing the stack manager...");
-
-    if (validate) {
-      validateStackDirectory(stackRoot);
-      validateCommonServicesDirectory(commonServicesRoot);
-    }
-
-    stackMap = new HashMap<>();
-
-    parseDirectories(stackRoot, commonServicesRoot, null);
-
-    fullyResolveCommonServices(stackModules, commonServiceModules, extensionModules);
-    fullyResolveExtensions(stackModules, commonServiceModules, extensionModules);
-    fullyResolveStacks(stackModules, commonServiceModules, extensionModules);
-  }
-
   protected void updateArchives(
     File resourcesRoot, File stackRoot, Map<String, StackModule> stackModules, Map<String, ServiceModule> commonServiceModules,
     Map<String, ExtensionModule> extensionModules ) throws AmbariException {
+
+    if (!refreshArchives) {
+      LOG.info("Refreshing archives is disabled, no hash or archive generation will be done.");
+      return;
+    }
 
     LOG.info("Refreshing archives ...");
 
@@ -655,8 +657,6 @@ public class StackManager {
           continue;
         }
         for (File serviceFolder : commonService.listFiles(StackDirectory.FILENAME_FILTER)) {
-          String serviceName = serviceFolder.getParentFile().getName();
-          String serviceVersion = serviceFolder.getName();
           ServiceDirectory serviceDirectory = new CommonServiceDirectory(serviceFolder.getPath());
           ServiceMetainfoXml metaInfoXml = serviceDirectory.getMetaInfoFile();
           if (metaInfoXml != null) {
@@ -710,10 +710,6 @@ public class StackManager {
       }
     }
 
-    if (stackMap.isEmpty()) {
-      throw new AmbariException("Unable to find stack definitions under " +
-          "stackRoot = " + stackRoot.getAbsolutePath());
-    }
     return stackModules;
   }
 

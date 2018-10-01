@@ -342,6 +342,7 @@
         <configuration>
           <excludes>
             <exclude>pass.txt</exclude>
+            <exclude>src/test/resources/mpack_advisor/*.txt</exclude>
             <exclude>src/test/resources/version</exclude>
             <exclude>src/test/resources/users.ldif</exclude>
             <exclude>src/test/resources/temporal_ganglia_data.txt</exclude>
@@ -434,7 +435,7 @@
               <swaggerApiReader>org.apache.ambari.swagger.AmbariSwaggerReader</swaggerApiReader>
               <springmvc>false</springmvc>
               <locations>org.apache.ambari.server.api.services</locations>
-              <schemes>http,https</schemes>
+              <schemes></schemes>
               <basePath>/api/v1</basePath>
               <info>
                 <title>Swagger spec for Ambari REST API</title>
@@ -498,7 +499,7 @@
           <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>eclipselink</artifactId>
-            <version>2.6.2</version>
+            <version>${eclipselink.version}</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -557,6 +558,10 @@
             <scriptFile>src/main/package/rpm/posttrans_server.sh</scriptFile>
             <fileEncoding>utf-8</fileEncoding>
           </posttransScriptlet>
+          <postremoveScriptlet>
+            <scriptFile>src/main/package/rpm/postremove.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
+          </postremoveScriptlet>
           <needarch>x86_64</needarch>
           <mappings>
             <mapping>
@@ -663,6 +668,7 @@
           <failOnError>false</failOnError>
           <threshold>Low</threshold>
           <findbugsXmlOutputDirectory>${project.basedir}/target/findbugs</findbugsXmlOutputDirectory>
+          <excludeFilterFile>${project.basedir}/findbugs.exclude.xml</excludeFilterFile>
         </configuration>
         <executions>
           <execution>
@@ -692,6 +698,9 @@
               <includes>
                 <include>*.xml</include>
               </includes>
+              <excludes>
+                <exclude>findbugs.exclude.xml</exclude>
+              </excludes>
               <outputDir>${project.basedir}/target/findbugs</outputDir>
               <stylesheet>fancy-hist.xsl</stylesheet>
               <fileMappers>
@@ -1268,6 +1277,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <scope>test</scope>
@@ -1275,22 +1289,18 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-security</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-servlet</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-servlets</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-webapp</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -1303,6 +1313,12 @@
     <dependency>
       <groupId>org.mortbay.jetty</groupId>
       <artifactId>jsp-2.1-glassfish</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>ant</groupId>
+          <artifactId>ant</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.ant</groupId>
@@ -1457,6 +1473,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-expression</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
       <artifactId>jersey-spring</artifactId>
       <version>1.19</version>
@@ -1546,12 +1567,7 @@
     <dependency>
       <groupId>cglib</groupId>
       <artifactId>cglib</artifactId>
-      <version>2.2.2</version>
-    </dependency>
-    <dependency>
-      <groupId>asm</groupId>
-      <artifactId>asm</artifactId>
-      <version>3.3.1</version>
+      <version>3.2.4</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
@@ -1561,7 +1577,6 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>9.3-1101-jdbc4</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -1645,7 +1660,7 @@
     <dependency>
       <groupId>com.nimbusds</groupId>
       <artifactId>nimbus-jose-jwt</artifactId>
-      <version>3.9</version>
+      <version>5.9</version>
       <scope>compile</scope>
       <exclusions>
         <exclusion>
@@ -1707,15 +1722,27 @@
           <artifactId>jetty-util</artifactId>
         </exclusion>
         <exclusion>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>jetty</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>org.apache.zookeeper</groupId>
           <artifactId>zookeeper</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.jcraft</groupId>
+          <artifactId>jsch</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>com.jcraft</groupId>
+      <artifactId>jsch</artifactId>
+      <version>0.1.54</version>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-util</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>
@@ -1770,7 +1797,7 @@
     <dependency>
       <groupId>org.kohsuke</groupId>
       <artifactId>libpam4j</artifactId>
-      <version>1.8</version>
+      <version>1.10</version>
     </dependency>
     <dependency>
       <groupId>net.java.dev.jna</groupId>
@@ -1778,8 +1805,18 @@
       <version>4.2.2</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.directory.api</groupId>
+      <artifactId>api-ldap-model</artifactId>
+      <version>2.0.0.AM1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.directory.api</groupId>
+      <artifactId>api-ldap-client-api</artifactId>
+      <version>2.0.0.AM1</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.directory.server</groupId>
-      <artifactId>apacheds-all</artifactId>
+      <artifactId>apacheds-kerberos-codec</artifactId>
       <version>2.0.0-M24</version>
     </dependency>
     <dependency>
@@ -1790,6 +1827,10 @@
         <exclusion>
           <groupId>commons-collections</groupId>
           <artifactId>commons-collections</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.directory.api</groupId>
+          <artifactId>api-ldap-model</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

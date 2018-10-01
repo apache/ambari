@@ -101,14 +101,14 @@ public class HostOrderGrouping extends Grouping {
     }
 
     @Override
-    public void add(UpgradeContext upgradeContext, HostsType hostsType, String service,
+    public void add(UpgradeContext upgradeContext, Mpack mpack, HostsType hostsType, String service,
         boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
       // !!! NOOP, this called when there are services in the group, and there
       // are none for host-ordered.
     }
 
     @Override
-    public List<StageWrapper> build(UpgradeContext upgradeContext,
+    public List<StageWrapper> build(UpgradeContext upgradeContext, Mpack mpack,
         List<StageWrapper> stageWrappers) throws AmbariException {
 
       List<StageWrapper> wrappers = new ArrayList<>(stageWrappers);
@@ -119,7 +119,7 @@ public class HostOrderGrouping extends Grouping {
             wrappers.addAll(buildHosts(upgradeContext, orderItem.getActionItems()));
             break;
           case SERVICE_CHECK:
-            wrappers.addAll(buildServiceChecks(upgradeContext, orderItem.getActionItems()));
+            wrappers.addAll(buildServiceChecks(upgradeContext, mpack, orderItem.getActionItems()));
             break;
         }
       }
@@ -302,7 +302,9 @@ public class HostOrderGrouping extends Grouping {
      * @param upgradeContext  the context
      * @return  the wrappers for a host
      */
-    private List<StageWrapper> buildServiceChecks(UpgradeContext upgradeContext, List<String> serviceChecks) {
+    private List<StageWrapper> buildServiceChecks(UpgradeContext upgradeContext,
+        Mpack mpack, List<String> serviceChecks) {
+
       if (CollectionUtils.isEmpty(serviceChecks)) {
         return Collections.emptyList();
       }
@@ -325,7 +327,7 @@ public class HostOrderGrouping extends Grouping {
         }
 
         StageWrapper wrapper = new StageWrapper(StageWrapper.Type.SERVICE_CHECK,
-            String.format("Service Check %s", upgradeContext.getDisplayName(null, serviceName)),
+            String.format("Service Check %s", upgradeContext.getDisplayName(mpack, serviceName)),
             new TaskWrapper(serviceName, "", Collections.emptySet(), new ServiceCheckTask()));
 
         wrappers.add(wrapper);

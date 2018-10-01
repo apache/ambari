@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.AuditServiceLoadRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.AuditServiceLoadQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,20 +39,20 @@ public class AuditServiceLoadRequestQueryConverterTest extends AbstractRequestCo
   @Test
   public void testConvert() {
     // GIVEN
-    AuditServiceLoadRequest request = new AuditServiceLoadRequest();
+    AuditServiceLoadRequest request = new AuditServiceLoadQueryRequest();
     fillBaseLogRequestWithTestData(request);
     // WHEN
     SolrQuery solrQuery = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN
     assertEquals("?q=*%3A*&rows=0&fq=evtTime%3A%5B2016-09-13T22%3A00%3A01.000Z+TO+2016-09-14T22%3A00%3A01.000Z%5D" +
-      "&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage&fq=repo%3A%28logsearch_app+secure_log%29" +
-      "&fq=-repo%3A%28hst_agent+system_message%29&fq=cluster%3Acl1&facet=true&facet.mincount=1&facet.limit=10&facet.field=repo", solrQuery.toQueryString());
+      "&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage&fq=repo%3A%28logsearch_app+OR+secure_log%29" +
+      "&fq=-repo%3A%28hst_agent+OR+system_message%29&fq=cluster%3Acl1&facet=true&facet.mincount=1&facet.limit=10&facet.field=repo", solrQuery.toQueryString());
   }
 
   @Test
   public void testConvertWithoutData() {
     // GIVEN
-    AuditServiceLoadRequest request = new AuditServiceLoadRequest();
+    AuditServiceLoadRequest request = new AuditServiceLoadQueryRequest();
     // WHEN
     SolrQuery solrQuery = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN

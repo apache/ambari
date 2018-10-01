@@ -21,6 +21,7 @@
     <build>${env.BUILD_NUMBER}</build>
 
     <min-ambari-version>2.0.*</min-ambari-version>
+    <max-ambari-version>2.5.*</max-ambari-version>
 
     <validator-class>org.apache.ambari.view.pig.PropertyValidator</validator-class>
     <view-class>org.apache.ambari.view.utils.ViewImpl</view-class>

@@ -20,6 +20,9 @@ package org.apache.ambari.logsearch.web.security;
 
 import java.util.HashMap;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -27,9 +30,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
-
-import javax.inject.Inject;
-import javax.inject.Named;
 
 @Named
 public class LogsearchAuthenticationProvider extends LogsearchAbstractAuthenticationProvider {
@@ -50,7 +50,7 @@ public class LogsearchAuthenticationProvider extends LogsearchAbstractAuthentica
     logger.info("Authenticating user:" + inAuthentication.getName() + ", userDetail=" + inAuthentication.toString());
     logger.info("authentication.class=" + inAuthentication.getClass().getName());
 
-    HashMap<String, Object> auditRecord = new HashMap<String, Object>();
+    HashMap<String, Object> auditRecord = new HashMap<>();
     auditRecord.put("user", inAuthentication.getName());
     auditRecord.put("principal", inAuthentication.getPrincipal().toString());
     auditRecord.put("auth_class", inAuthentication.getClass().getName());
@@ -96,8 +96,13 @@ public class LogsearchAuthenticationProvider extends LogsearchAbstractAuthentica
       }
       return authentication;
     } finally {
-      String jsonStr = JSONUtil.mapToJSON(auditRecord);
-      auditLogger.log(isSuccess ? Level.INFO : Level.WARN, jsonStr);
+      try {
+        String jsonStr = JSONUtil.toJson(auditRecord);
+        auditLogger.log(isSuccess ? Level.INFO : Level.WARN, jsonStr);
+      }
+      catch (Exception e) {
+        logger.error("Unable to add audit log entry", e);
+      }
     }
   }
 

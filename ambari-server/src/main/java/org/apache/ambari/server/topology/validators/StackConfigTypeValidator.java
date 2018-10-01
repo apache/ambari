@@ -17,10 +17,13 @@ package org.apache.ambari.server.topology.validators;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Validates whether incoming config types (form the blueprint or the cluster creation template) are valid.
@@ -29,6 +32,9 @@ import org.slf4j.LoggerFactory;
  */
 public class StackConfigTypeValidator implements TopologyValidator {
   private static final Logger LOGGER = LoggerFactory.getLogger(StackConfigTypeValidator.class);
+
+  private static final Set<String> GLOBAL_CONFIG_TYPES = ImmutableSet.of(
+    ConfigHelper.CLUSTER_ENV);
 
   @Override
   public ClusterTopology validate(ClusterTopology topology) throws InvalidTopologyException {
@@ -45,6 +51,7 @@ public class StackConfigTypeValidator implements TopologyValidator {
 
     // remove all "valid" config types from the incoming set
     incomingConfigTypes.removeAll(stackConfigTypes);
+    incomingConfigTypes.removeAll(GLOBAL_CONFIG_TYPES);
 
     if (!incomingConfigTypes.isEmpty()) {
       // there are config types in the request that are not in the stack

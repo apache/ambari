@@ -35,10 +35,11 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * The {@link ConfigUpgradeChangeDefinition} represents a configuration change. This change can be
@@ -77,6 +78,9 @@ import com.google.common.base.Objects;
  * }
  * </pre>
  *
+ *
+ *
+ * WARNING! After adding/updating classes below, please don't forget to update 'upgrade-config.xsd' respectively
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -204,7 +208,8 @@ public class ConfigUpgradeChangeDefinition {
 
     List<Replace> list = new ArrayList<>();
     for (Replace r : replacements) {
-      if (null == r.key || null == r.find || null == r.replaceWith) {
+
+      if (StringUtils.isBlank(r.key) || StringUtils.isEmpty(r.find) || null == r.replaceWith) {
         LOG.warn(String.format("Replacement %s is invalid", r));
         continue;
       }
@@ -215,47 +220,62 @@ public class ConfigUpgradeChangeDefinition {
   }
 
   /**
+   * Evaluates the {@link RegexReplace} instances defined for the upgrade and
+   * converts them into distinct {@link Replace} objects. In some cases, if the
+   * regex matches more than 1 string in the configuration, it will create
+   * multiple {@link Replace} objects, each with their own literal string to
+   * find/replace.
+   *
    * @return the replacement tokens, never {@code null}
    */
   public List<Replace> getRegexReplacements(Cluster cluster) {
-
     if (null == regexReplacements) {
-
       return Collections.emptyList();
     }
 
     List<Replace> list = new ArrayList<>();
     for (RegexReplace regexReplaceObj : regexReplacements) {
-      if (null == regexReplaceObj.key || null == regexReplaceObj.find || null == regexReplaceObj.replaceWith) {
+      if (StringUtils.isBlank(regexReplaceObj.key) || StringUtils.isEmpty(regexReplaceObj.find)
+          || null == regexReplaceObj.replaceWith) {
         LOG.warn(String.format("Replacement %s is invalid", regexReplaceObj));
         continue;
       }
 
-      try{
+      try {
         Config config = cluster.getDesiredConfigByType(configType);
 
         Map<String, String> properties = config.getProperties();
         String content = properties.get(regexReplaceObj.key);
 
         Pattern REGEX = Pattern.compile(regexReplaceObj.find, Pattern.MULTILINE);
-
         Matcher patternMatchObj = REGEX.matcher(content);
-        if (patternMatchObj.find() && patternMatchObj.groupCount()==1) {
-          regexReplaceObj.find = patternMatchObj.group();
-          Replace rep = regexReplaceObj.copyToReplaceObject();
-          list.add(rep);
+
+        if (regexReplaceObj.matchAll) {
+          while (patternMatchObj.find()) {
+            regexReplaceObj.find = patternMatchObj.group();
+            if (StringUtils.isNotBlank(regexReplaceObj.find)) {
+              Replace rep = regexReplaceObj.copyToReplaceObject();
+              list.add(rep);
+            }
+          }
+        } else {
+          // find the first literal match and create a replacement for it
+          if (patternMatchObj.find() && patternMatchObj.groupCount() == 1) {
+            regexReplaceObj.find = patternMatchObj.group();
+            Replace rep = regexReplaceObj.copyToReplaceObject();
+            list.add(rep);
+          }
         }
 
-        }catch(Exception e){
-          String message = "getRegexReplacements : Error while fetching config properties : key - " + regexReplaceObj.key + " find - " + regexReplaceObj.find;
-          LOG.error(message, e);
-
-        }
-
+      } catch (Exception e) {
+        LOG.error(String.format(
+            "There was an error while trying to execute a regex replacement for %s/%s. The regular expression was %s",
+            configType, regexReplaceObj.key, regexReplaceObj.find), e);
       }
+    }
+
     return list;
   }
-
 
   /**
    * Gets the insertion directives.
@@ -270,15 +290,8 @@ public class ConfigUpgradeChangeDefinition {
     return inserts;
   }
 
-  /**
-   * Used for configuration updates that should mask their values from being
-   * printed in plain text.
-   */
   @XmlAccessorType(XmlAccessType.FIELD)
-  public static class Masked {
-    @XmlAttribute(name = "mask")
-    public boolean mask = false;
-
+  public static class ConditionalField{
     /**
      * The key to read for the if condition.
      */
@@ -298,10 +311,35 @@ public class ConfigUpgradeChangeDefinition {
     public String ifValue;
 
     /**
+     * Reverse search value result to opposite by allowing
+     * operation to be executed when value not found
+     */
+    @XmlAttribute(name = "if-value-not-matched")
+    public boolean ifValueNotMatched = false;
+
+    /**
+     * the way how to search the value:
+     * {@code IfValueMatchType.EXACT} - full comparison
+     * {@code IfValueMatchType.PARTIAL} - search for substring in string
+     */
+    @XmlAttribute(name = "if-value-match-type")
+    public IfValueMatchType ifValueMatchType = IfValueMatchType.EXACT;
+
+    /**
      * The property key state for the if condition
      */
     @XmlAttribute(name = "if-key-state")
     public PropertyKeyState ifKeyState;
+  }
+
+  /**
+   * Used for configuration updates that should mask their values from being
+   * printed in plain text.
+   */
+  @XmlAccessorType(XmlAccessType.FIELD)
+  public static class Masked extends ConditionalField{
+    @XmlAttribute(name = "mask")
+    public boolean mask = false;
   }
 
 
@@ -319,7 +357,7 @@ public class ConfigUpgradeChangeDefinition {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper("Set").add("key", key)
+      return MoreObjects.toStringHelper("Set").add("key", key)
           .add("value", value)
           .add("ifKey", ifKey)
           .add("ifType", ifType)
@@ -394,7 +432,7 @@ public class ConfigUpgradeChangeDefinition {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).add("operation", operation)
+      return MoreObjects.toStringHelper(this).add("operation", operation)
           .add("fromType", fromType)
           .add("fromKey", fromKey)
           .add("toKey", toKey)
@@ -437,7 +475,7 @@ public class ConfigUpgradeChangeDefinition {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).add("key", key)
+      return MoreObjects.toStringHelper(this).add("key", key)
           .add("find", find)
           .add("replaceWith", replaceWith)
           .add("ifKey", ifKey)
@@ -472,9 +510,16 @@ public class ConfigUpgradeChangeDefinition {
     @XmlAttribute(name="replace-with")
     public String replaceWith;
 
+    /**
+     * Find as many matching groups as possible and create replacements for each
+     * one. The default value is {@code false}.
+     */
+    @XmlAttribute(name = "match-all")
+    public boolean matchAll = false;
+
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).add("key", key)
+      return MoreObjects.toStringHelper(this).add("key", key)
           .add("find", find)
           .add("replaceWith",replaceWith)
           .add("ifKey", ifKey)
@@ -508,7 +553,7 @@ public class ConfigUpgradeChangeDefinition {
    */
   @XmlAccessorType(XmlAccessType.FIELD)
   @XmlType(name = "insert")
-  public static class Insert {
+  public static class Insert extends Masked{
     /**
      * The key name
      */
@@ -544,7 +589,7 @@ public class ConfigUpgradeChangeDefinition {
      */
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).add("insertType", insertType)
+      return MoreObjects.toStringHelper(this).add("insertType", insertType)
           .add("key", key)
           .add("value",value)
           .add("newlineBefore", newlineBefore)
@@ -568,6 +613,24 @@ public class ConfigUpgradeChangeDefinition {
      */
     @XmlEnumValue("append")
     APPEND
+  }
+
+  /**
+   * The {@link IfValueMatchType} defines value search behaviour
+   */
+  @XmlEnum
+  public enum IfValueMatchType {
+    /**
+     * Exact value match
+     */
+    @XmlEnumValue("exact")
+    EXACT,
+
+    /**
+     * partial value match
+     */
+    @XmlEnumValue("partial")
+    PARTIAL
   }
 
 }

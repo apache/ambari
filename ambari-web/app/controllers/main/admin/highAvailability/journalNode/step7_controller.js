@@ -18,13 +18,14 @@
 
 var App = require('app');
 
-App.ManageJournalNodeWizardStep7Controller = Em.Controller.extend({
+App.ManageJournalNodeWizardStep7Controller = App.ManageJournalNodeProgressPageController.extend(App.WizardEnableDone, {
+  name: 'manageJournalNodeWizardStep7Controller',
+  clusterDeployState: 'JOURNALNODE_MANAGEMENT',
+  tasksMessagesPrefix: 'admin.manageJournalNode.wizard.step',
 
-  name: "manageJournalNodeWizardStep7Controller",
+  commands: ['startAllServices'],
 
-  done: function () {
-    App.router.send("next");
+  startAllServices: function () {
+    this.startServices(false);
   }
-
 });
-

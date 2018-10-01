@@ -219,8 +219,10 @@ describe('App.themeMapper', function () {
           "name": "SSEC1",
           "row_index": 2,
           "row_span": 5,
-          "section_id": 1
-        }
+          "section_id": 1,
+          "theme_name": "t1",
+        },
+        "t1"
       ]);
     });
 
@@ -239,9 +241,11 @@ describe('App.themeMapper', function () {
           "name": "SSEC1",
           "row_index": 2,
           "row_span": 5,
-          "section_id": 1
+          "section_id": 1,
+          "theme_name": "t1"
         }],
-        'subsection'
+        'subsection',
+        "t1"
       ]);
     });
 
@@ -260,7 +264,8 @@ describe('App.themeMapper', function () {
           "name": "SSEC1",
           "row_index": 2,
           "row_span": 5,
-          "section_id": 1
+          "section_id": 1,
+          "theme_name": "t1"
         }
       ]);
     });
@@ -293,7 +298,7 @@ describe('App.themeMapper', function () {
     });
 
     it('mapThemeConditions should be called', function() {
-      App.themesMapper.loadSubSectionTabs(subSection, {id: 2});
+      App.themesMapper.loadSubSectionTabs(subSection, {id: 2}, "t1");
       expect(App.themesMapper.mapThemeConditions.getCall(0).args).to.be.eql([
         [{
           "depends_on": [],
@@ -301,14 +306,16 @@ describe('App.themeMapper', function () {
           "id": "SEC1",
           "is_active": true,
           "name": "SEC1",
-          "sub_section_id": 2
+          "sub_section_id": 2,
+          "theme_name": "t1"
         }],
-        'subsectionTab'
+        'subsectionTab',
+        "t1"
       ]);
     });
 
     it('App.store.safeLoadMany should be called', function() {
-      App.themesMapper.loadSubSectionTabs(subSection, {id: 2});
+      App.themesMapper.loadSubSectionTabs(subSection, {id: 2}, "t1");
       expect(App.store.safeLoadMany.getCall(0).args[1]).to.be.eql([
         {
           "depends_on": [],
@@ -316,7 +323,8 @@ describe('App.themeMapper', function () {
           "id": "SEC1",
           "is_active": true,
           "name": "SEC1",
-          "sub_section_id": 2
+          "sub_section_id": 2,
+          "theme_name": "t1"
         }
       ]);
     });
@@ -377,7 +385,8 @@ describe('App.themeMapper', function () {
     it('should set config to subSection', function() {
       json.ThemeInfo.theme_data.Theme.configuration.placement.configs[0]["subsection-name"] = 'ss-1';
       var subSection = Em.Object.create({
-        configProperties: []
+        configProperties: [],
+        isLoaded: true
       });
       this.mockSection.returns(subSection);
       App.themesMapper.mapThemeConfigs(json);
@@ -387,7 +396,8 @@ describe('App.themeMapper', function () {
     it('should set config to SubSectionTab', function() {
       json.ThemeInfo.theme_data.Theme.configuration.placement.configs[0]["subsection-tab-name"] = 'sst-1';
       var subSectionTab = Em.Object.create({
-        configProperties: []
+        configProperties: [],
+        isLoaded: true
       });
       this.mockSectionTab.returns(subSectionTab);
       App.themesMapper.mapThemeConfigs(json);
@@ -452,7 +462,7 @@ describe('App.themeMapper', function () {
         }
       ];
 
-      App.themesMapper.mapThemeConditions(subSections, 'type1');
+      App.themesMapper.mapThemeConditions(subSections, 'type1', "t1");
       expect(App.store.safeLoadMany.getCall(0).args[1][0]).to.be.eql({
         "id": "ss-1_0",
         "name": 'sub-section',
@@ -463,6 +473,7 @@ describe('App.themeMapper', function () {
           }
         ],
         "resource": "config",
+        "theme_name": "t1",
         "type": "type1"
       });
     });

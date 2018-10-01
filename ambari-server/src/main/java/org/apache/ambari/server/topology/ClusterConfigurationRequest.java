@@ -35,7 +35,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
+import org.apache.ambari.server.api.services.AdvisorBlueprintProcessor;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.ServiceResponse;
@@ -71,28 +71,31 @@ public class ClusterConfigurationRequest {
   private AmbariContext ambariContext;
   private ClusterTopology clusterTopology;
   private BlueprintConfigurationProcessor configurationProcessor;
-  private StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
+  private AdvisorBlueprintProcessor advisorBlueprintProcessor;
   private StackDefinition stack;
   private boolean configureSecurity = false;
 
-  public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology topology, boolean setInitial,
-                                     StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor, boolean configureSecurity) {
-    this(ambariContext, topology, setInitial, stackAdvisorBlueprintProcessor);
+  public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology topology,
+                                     AdvisorBlueprintProcessor advisorBlueprintProcessor, boolean configureSecurity
+  ) {
+    this(ambariContext, topology, advisorBlueprintProcessor);
     this.configureSecurity = configureSecurity;
   }
 
-  public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology clusterTopology, boolean setInitial,
-                                     StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor) {
+  public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology clusterTopology,
+    AdvisorBlueprintProcessor advisorBlueprintProcessor
+  ) {
     this.ambariContext = ambariContext;
     this.clusterTopology = clusterTopology;
     this.stack = clusterTopology.getStack();
     // set initial configuration (not topology resolved)
     this.configurationProcessor = new BlueprintConfigurationProcessor(clusterTopology);
-    this.stackAdvisorBlueprintProcessor = stackAdvisorBlueprintProcessor;
+    this.advisorBlueprintProcessor = advisorBlueprintProcessor;
     removeOrphanConfigTypes();
-    if (setInitial) {
-      setConfigurationsOnCluster(clusterTopology, TopologyManager.INITIAL_CONFIG_TAG, Collections.emptySet());
-    }
+  }
+
+  public void setInitialConfigurations() throws AmbariException {
+    setConfigurationsOnCluster(clusterTopology, TopologyManager.INITIAL_CONFIG_TAG, Collections.emptySet());
   }
 
   /**
@@ -153,7 +156,7 @@ public class ClusterConfigurationRequest {
       // obtain recommended configurations before config updates
       if (clusterTopology.getConfigRecommendationStrategy().shouldUseAdvisor()) {
         // get merged properties form Blueprint & cluster template (this doesn't contains stack default values)
-        stackAdvisorBlueprintProcessor.adviseConfiguration(this.clusterTopology, userProvidedConfigurations);
+        advisorBlueprintProcessor.adviseConfiguration(this.clusterTopology, userProvidedConfigurations);
       }
 
       updatedConfigTypes.addAll(configurationProcessor.doUpdateForClusterCreate());
@@ -169,9 +172,8 @@ public class ClusterConfigurationRequest {
     Set<String> updatedConfigTypes = new HashSet<>();
 
     Cluster cluster = getCluster();
-    Blueprint blueprint = clusterTopology.getBlueprint();
 
-    Configuration stackDefaults = clusterTopology.getStack().getConfiguration(clusterTopology.getServices());
+    Configuration stackDefaults = clusterTopology.getStack().getConfiguration(clusterTopology.getServiceTypes());
     Map<String, Map<String, String>> stackDefaultProps = stackDefaults.getProperties();
 
     // add clusterHostInfo containing components to hosts map, based on Topology, to use this one instead of
@@ -181,12 +183,12 @@ public class ClusterConfigurationRequest {
 
     try {
       // generate principals & keytabs for headless identities
-      AmbariContext.getController().getKerberosHelper()
+      ambariContext.getController().getKerberosHelper()
         .ensureHeadlessIdentities(cluster, existingConfigurations,
-          new HashSet<>(clusterTopology.getServices()));
+          new HashSet<>(clusterTopology.getServiceTypes()));
 
       // apply Kerberos specific configurations
-      Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
+      Map<String, Map<String, String>> updatedConfigs = ambariContext.getController().getKerberosHelper()
         .getServiceConfigurationUpdates(cluster, existingConfigurations,
             createServiceComponentMap(), null, null, true, false);
 
@@ -279,7 +281,7 @@ public class ClusterConfigurationRequest {
       String componentName = component.componentName();
       Collection<String> componentHost = clusterTopology.getHostAssignmentsForComponent(componentName);
       // retrieve corresponding clusterInfoKey for component using StageUtils
-      String clusterInfoKey = StageUtils.getComponentToClusterInfoKeyMap().get(componentName);
+      String clusterInfoKey = StageUtils.getClusterHostInfoKey(componentName);
       if (clusterInfoKey == null) {
         clusterInfoKey = componentName.toLowerCase() + "_hosts";
       }
@@ -299,7 +301,7 @@ public class ClusterConfigurationRequest {
       existingConfigurations.put(CLUSTER_HOST_INFO, new HashMap<>());
 
       // apply Kerberos specific configurations
-      Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
+      Map<String, Map<String, String>> updatedConfigs = ambariContext.getController().getKerberosHelper()
         .getServiceConfigurationUpdates(cluster, existingConfigurations,
           createServiceComponentMap(), null, null, true, false);
 
@@ -332,7 +334,7 @@ public class ClusterConfigurationRequest {
 
   private Cluster getCluster() throws AmbariException {
     String clusterName = ambariContext.getClusterName(clusterTopology.getClusterId());
-    return AmbariContext.getController().getClusters().getCluster(clusterName);
+    return ambariContext.getController().getClusters().getCluster(clusterName);
   }
 
   /**
@@ -340,11 +342,7 @@ public class ClusterConfigurationRequest {
    * @param clusterTopology  cluster topology
    * @param tag              config tag
    */
-  public void setConfigurationsOnCluster(ClusterTopology clusterTopology, String tag, Set<String> updatedConfigTypes) {
-    // TODO: This version works with Ambari 3.0 where it is assumed that any service with a configuration can be identified
-    //   by its name. Even though the cluster is multi-stack (multi-mpack), service names should not conflict across mpacks,
-    //   except client services which have no configuration. In 3.1, mpack may have conflicting service names
-    //todo: also handle setting of host group scoped configuration which is updated by config processor
+  private void setConfigurationsOnCluster(ClusterTopology clusterTopology, String tag, Set<String> updatedConfigTypes) throws AmbariException {
     List<Pair<String, ClusterRequest>> serviceNamesAndConfigurationRequests = new ArrayList<>();
 
     Configuration clusterConfiguration = clusterTopology.getConfiguration();
@@ -356,16 +354,19 @@ public class ClusterConfigurationRequest {
 
     // TODO: do we need to handle security type? In the previous version it was handled but in a broken way
 
-    for (ServiceResponse service : ambariContext.getServices(clusterTopology.getClusterName())) {
+    String clusterName = ambariContext.getClusterName(clusterTopology.getClusterId());
+    for (ServiceResponse service : ambariContext.getServices(clusterName)) {
       ClusterRequest clusterRequest =
-        new ClusterRequest(clusterTopology.getClusterId(), clusterTopology.getClusterName(), null, null, null, null);
+        new ClusterRequest(clusterTopology.getClusterId(), clusterName, null, null, null, null);
       clusterRequest.setDesiredConfig(new ArrayList<>());
 
       Set<String> configTypes =
         Sets.difference(
-          Sets.intersection(stack.getAllConfigurationTypes(service.getServiceName()), clusterConfigTypes),
-          Sets.union(stack.getExcludedConfigurationTypes(service.getServiceName()), globalConfigTypes)
+          Sets.intersection(stack.getAllConfigurationTypes(service.getServiceType()), clusterConfigTypes),
+          Sets.union(stack.getExcludedConfigurationTypes(service.getServiceType()), globalConfigTypes)
         );
+
+      LOG.info("Creating config request for service {}, types {}", service.getServiceName(), configTypes);
 
       for (String serviceConfigType: configTypes) {
         Map<String, String> properties = clusterProperties.get(serviceConfigType);
@@ -373,7 +374,7 @@ public class ClusterConfigurationRequest {
 
         removeNullValues(properties, attributes);
 
-        ConfigurationRequest configurationRequest = new ConfigurationRequest(clusterTopology.getClusterName(),
+        ConfigurationRequest configurationRequest = new ConfigurationRequest(clusterName,
           serviceConfigType,
           tag,
           properties,
@@ -388,14 +389,14 @@ public class ClusterConfigurationRequest {
     // since the stack returns "cluster-env" with each service's config ensure that only one
     // ClusterRequest occurs for the global cluster-env configuration
     ClusterRequest globalConfigClusterRequest =
-      new ClusterRequest(clusterTopology.getClusterId(), clusterTopology.getClusterName(), null, null, null, null);
+      new ClusterRequest(clusterTopology.getClusterId(), clusterName, null, null, null, null);
 
     Map<String, String> clusterEnvProps = clusterProperties.get("cluster-env");
     Map<String, Map<String, String>> clusterEnvAttributes = clusterAttributes.get("cluster-env");
 
     removeNullValues(clusterEnvProps, clusterEnvAttributes);
 
-    ConfigurationRequest globalConfigurationRequest = new ConfigurationRequest(clusterTopology.getClusterName(),
+    ConfigurationRequest globalConfigurationRequest = new ConfigurationRequest(clusterName,
       "cluster-env",
       tag,
       clusterEnvProps,
@@ -433,17 +434,26 @@ public class ClusterConfigurationRequest {
    */
   private void  setConfigurationsOnCluster(List<Pair<String, ClusterRequest>> serviceNamesAndRequests,
                                          String tag, Set<String> updatedConfigTypes)  {
+    String clusterName = null;
+    try {
+      clusterName = ambariContext.getClusterName(clusterTopology.getClusterId());
+    } catch (AmbariException e) {
+      LOG.error("Cannot get cluster name for clusterId = " + clusterTopology.getClusterId(), e);
+      throw new RuntimeException(e);
+    }
     // iterate over services to deploy
     for (Pair<String, ClusterRequest> serviceNameAndRequest: serviceNamesAndRequests) {
-      LOG.info("Sending cluster config update request for service = " + serviceNameAndRequest.getLeft());
+      LOG.info("Sending cluster config update request for service {}", serviceNameAndRequest.getLeft());
       ambariContext.setConfigurationOnCluster(serviceNameAndRequest.getRight());
     }
+
+    ambariContext.notifyAgentsAboutConfigsChanges(clusterName);
 
     if (tag.equals(TopologyManager.TOPOLOGY_RESOLVED_TAG)) {
       // if this is a request to resolve config, then wait until resolution is completed
       try {
         // wait until the cluster topology configuration is set/resolved
-        ambariContext.waitForConfigurationResolution(clusterTopology.getClusterName(), updatedConfigTypes);
+        ambariContext.waitForConfigurationResolution(clusterTopology.getClusterId(), updatedConfigTypes);
       } catch (AmbariException e) {
         LOG.error("Error while attempting to wait for the cluster configuration to reach TOPOLOGY_RESOLVED state.", e);
       }

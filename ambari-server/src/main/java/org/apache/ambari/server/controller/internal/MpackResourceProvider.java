@@ -257,6 +257,11 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
 
       for (MpackResponse response : responses) {
         Resource resource = setResources(response);
+        Set<String> requestIds = getRequestPropertyIds(request, predicate);
+        if (requestIds.contains(MODULES)) {
+        	List<Module> modules = getManagementController().getModules(response.getId());
+        	resource.setProperty(MODULES, modules);
+        }
         results.add(resource);
       }
     } else {

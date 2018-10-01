@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.ServiceGraphRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceGraphQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,23 +38,22 @@ public class ServiceLogLevelDateRangeRequestQueryConverterTest extends AbstractR
   @Test
   public void testConvert() {
     // GIVEN
-    ServiceGraphRequest request = new ServiceGraphRequest();
+    ServiceGraphRequest request = new ServiceGraphQueryRequest();
     fillBaseLogRequestWithTestData(request);
     request.setUnit("+1HOUR");
     request.setLevel("WARN,ERROR,FATAL");
     // WHEN
     SolrQuery query = underTest.convert(request);
     // THEN
-    assertEquals("?q=*%3A*&facet=true&facet.pivot=%7B%21range%3Dr1%7Dlevel&facet.mincount=1&facet.limit=-1&facet.sort=index" +
-      "&facet.range=%7B%21tag%3Dr1%7Dlogtime&f.logtime.facet.range.start=2016-09-13T22%3A00%3A01.000Z" +
-      "&f.logtime.facet.range.end=2016-09-14T22%3A00%3A01.000Z&f.logtime.facet.range.gap=%2B1HOUR&rows=0&start=0" +
-      "&fq=level%3A%28WARN+OR+ERROR+OR+FATAL%29&fq=cluster%3Acl1", query.toQueryString());
+    assertEquals("?q=*%3A*&facet=true&facet.pivot=%7B%21range%3Dr1%7Dlevel&facet.mincount=1&facet.limit=-1" +
+      "&facet.sort=index&facet.range=%7B%21tag%3Dr1%7Dlogtime&f.logtime.facet.range.start=2016-09-13T22%3A00%3A01.000Z" +
+      "&f.logtime.facet.range.end=2016-09-14T22%3A00%3A01.000Z&f.logtime.facet.range.gap=%2B1HOUR&rows=0&start=0&fq=level%3A%28WARN+OR+ERROR+OR+FATAL%29&fq=cluster%3Acl1&fq=type%3A%28logsearch_app+OR+secure_log%29&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage", query.toQueryString());
   }
 
   @Test
   public void testConvertWithoutData() {
     // GIVEN
-    ServiceGraphRequest request = new ServiceGraphRequest();
+    ServiceGraphRequest request = new ServiceGraphQueryRequest();
     request.setUnit("+1HOUR"); // minimal data for date range gap
     request.setFrom("2016-09-13T22:00:01.000Z");
     request.setTo("2016-09-14T22:00:01.000Z");

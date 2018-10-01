@@ -100,30 +100,13 @@ describe('App.MainHostComboSearchBoxView', function () {
       }));
       sinon.stub(view.get('parentView'), 'updateComboFilter');
       sinon.stub(view, 'createFilterConditions').returns([{}]);
-      sinon.stub(view, 'clearErrMsg');
-      sinon.stub(view, 'showErrMsg');
       sinon.stub(App.db, 'setComboSearchQuery');
-      this.mockFacet = sinon.stub(view, 'findInvalidFacet');
     });
 
     afterEach(function() {
       App.db.setComboSearchQuery.restore();
-      view.clearErrMsg.restore();
-      view.showErrMsg.restore();
-      this.mockFacet.restore();
       view.createFilterConditions.restore();
       view.get('parentView').updateComboFilter.restore();
-    });
-
-    it("clearErrMsg should be called", function() {
-      view.search('query', {});
-      expect(view.clearErrMsg.calledOnce).to.be.true;
-    });
-
-    it("showErrMsg should be called", function() {
-      this.mockFacet.returns({});
-      view.search('query', {});
-      expect(view.showErrMsg.calledWith({})).to.be.true;
     });
 
     it("App.db.setComboSearchQuery should be called", function() {
@@ -530,33 +513,6 @@ describe('App.MainHostComboSearchBoxView', function () {
           "Maintenance Mode Off"
         ], {preserveOrder: true}
       ]);
-    });
-  });
-
-  describe("#findInvalidFacet()", function () {
-
-    beforeEach(function() {
-      sinon.stub(App.router, 'get').returns({});
-    });
-
-    afterEach(function() {
-      App.router.get.restore();
-    });
-
-    it("empty searchCollection", function() {
-      expect(view.findInvalidFacet({models: []})).to.be.null;
-    });
-
-    it("searchCollection has values", function() {
-      expect(view.findInvalidFacet({models: [{
-        attributes: {
-          category: 'cat1'
-        }
-      }]})).to.be.eql({
-          attributes: {
-            category: 'cat1'
-          }
-        });
     });
   });
 

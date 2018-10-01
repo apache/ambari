@@ -16,15 +16,13 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import {Response} from '@angular/http';
+import {Response, ResponseOptions, ResponseType} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/catch';
-import {Store} from '@ngrx/store';
 
 import {HttpClientService} from '@app/services/http-client.service';
 import {ShipperClusterServiceConfigurationModel} from '@modules/shipper/models/shipper-cluster-service-configuration.model';
 import {ShipperClusterServiceValidationModel} from '@modules/shipper/models/shipper-cluster-service-validation.model';
-import {ShipperCluster} from '@modules/shipper/models/shipper-cluster.type';
 
 @Injectable()
 export class ShipperConfigurationService {
@@ -33,7 +31,20 @@ export class ShipperConfigurationService {
     private httpClientService: HttpClientService
   ) { }
 
-  addConfiguration(configuration: ShipperClusterServiceConfigurationModel): Observable<ShipperClusterServiceConfigurationModel | Error> {
+  createResponseWithConfigBody(configuration: ShipperClusterServiceConfigurationModel, originalResponse?: Response): Response {
+    return new Response(
+      new ResponseOptions({
+        body: configuration,
+        status: originalResponse ? originalResponse.status : null,
+        statusText: originalResponse ? originalResponse.statusText : null,
+        headers: originalResponse ? originalResponse.headers : null,
+        type: originalResponse ? originalResponse.type : ResponseType.Basic,
+        url: originalResponse ? originalResponse.url : ''
+      })
+    );
+  }
+
+  addConfiguration(configuration: ShipperClusterServiceConfigurationModel): Observable<Response | Error> {
     return this.httpClientService.post(
       'shipperClusterServiceConfiguration',
       configuration.configuration,
@@ -42,15 +53,13 @@ export class ShipperConfigurationService {
         cluster: configuration.cluster,
         service: configuration.service
       })
-      .map((response: Response): ShipperClusterServiceConfigurationModel => {
-        return configuration;
-      })
-      .catch((error: Response): Observable<Error> => {
-        return Observable.of(new Error(error.json().message || ''));
+      .map((response: Response): Response => this.createResponseWithConfigBody(configuration, response))
+      .catch((error: Response): Observable<Response> => {
+        return Observable.of(error);
       });
   }
 
-  updateConfiguration(configuration: ShipperClusterServiceConfigurationModel): Observable<ShipperClusterServiceConfigurationModel | Error> {
+  updateConfiguration(configuration: ShipperClusterServiceConfigurationModel): Observable<Response> {
     return this.httpClientService.put(
       'shipperClusterServiceConfiguration',
       configuration.configuration,
@@ -59,11 +68,9 @@ export class ShipperConfigurationService {
         cluster: configuration.cluster,
         service: configuration.service
       })
-      .map((response: Response): ShipperClusterServiceConfigurationModel => {
-        return configuration;
-      })
-      .catch((error: Response): Observable<Error> => {
-        return Observable.of(new Error(error.json().message || ''));
+      .map((response: Response): Response => this.createResponseWithConfigBody(configuration, response))
+      .catch((error: Response): Observable<Response> => {
+        return Observable.of(error);
       });
   }
 
@@ -80,16 +87,15 @@ export class ShipperConfigurationService {
     });
   }
 
-  testConfiguration(payload: ShipperClusterServiceValidationModel): Observable<any> {
+  testConfiguration(payload: ShipperClusterServiceValidationModel): Observable<Response> {
     const requestPayload: {[key: string]: any} = {
-      shipper_config: payload.configuration,
-      log_id: payload.componentName,
-      test_entry: payload.sampleData
+      shipperConfig: encodeURIComponent(payload.configuration),
+      logId: payload.componentName,
+      testEntry: payload.sampleData
     };
     return this.httpClientService.postFormData('shipperClusterServiceConfigurationTest', requestPayload, null, {
       cluster: payload.clusterName
-    })
-    .map((response: Response) => response.json());
+    });
   }
 
 }

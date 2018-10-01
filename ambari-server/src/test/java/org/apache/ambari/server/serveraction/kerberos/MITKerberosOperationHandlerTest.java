@@ -26,6 +26,7 @@ import static org.easymock.EasyMock.newCapture;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.configuration.Configuration;
@@ -34,6 +35,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -246,6 +248,50 @@ public class MITKerberosOperationHandlerTest extends KDCKerberosOperationHandler
     handler.close();
 
     verifyAll();
+  }
+
+  @Test
+  public void testGetAdminServerHost() throws KerberosOperationException {
+    ShellCommandUtil.Result kinitResult = createMock(ShellCommandUtil.Result.class);
+    expect(kinitResult.isSuccessful()).andReturn(true).anyTimes();
+
+    Capture<String[]> capturedKinitCommand = newCapture(CaptureType.ALL);
+
+    MITKerberosOperationHandler handler = createMockedHandler(methodExecuteCommand);
+    expect(handler.executeCommand(capture(capturedKinitCommand), anyObject(Map.class), anyObject(KDCKerberosOperationHandler.InteractivePasswordHandler.class)))
+        .andReturn(kinitResult)
+        .anyTimes();
+
+
+    Map<String,String> config = new HashMap<>();
+    config.put("encryption_types", "aes des3-cbc-sha1 rc4 des-cbc-md5");
+
+    replayAll();
+
+    config.put("admin_server_host", "kdc.example.com");
+    handler.open(getAdminCredentials(), DEFAULT_REALM, config);
+    Assert.assertEquals("kdc.example.com", handler.getAdminServerHost(false));
+    Assert.assertEquals("kdc.example.com", handler.getAdminServerHost(true));
+    handler.close();
+
+    config.put("admin_server_host", "kdc.example.com:749");
+    handler.open(getAdminCredentials(), DEFAULT_REALM, config);
+    Assert.assertEquals("kdc.example.com", handler.getAdminServerHost(false));
+    Assert.assertEquals("kdc.example.com:749", handler.getAdminServerHost(true));
+    handler.close();
+
+    verifyAll();
+
+    Assert.assertTrue(capturedKinitCommand.hasCaptured());
+    List<String[]> capturedValues = capturedKinitCommand.getValues();
+    Assert.assertEquals(2, capturedValues.size());
+
+    // The capture values will be an array of strings used to build the command:
+    //   ["/usr/bin/kinit", "-c", "SOME_FILE_PATH", "-S", "SERVER_PRINCIPAL", "CLIENT_PRINCIPAL"]
+    // We are interested in the 4th item in the array - the service's principal.
+    // It must not contain the port else authentication will fail
+    Assert.assertEquals("kadmin/kdc.example.com", capturedValues.get(0)[4]);
+    Assert.assertEquals("kadmin/kdc.example.com", capturedValues.get(1)[4]);
   }
 
   @Override

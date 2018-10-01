@@ -77,6 +77,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   });
   private int hostInMemoryAggregationPort;
   private boolean hostInMemoryAggregationEnabled;
+  private String hostInMemoryAggregationProtocol;
 
   @Override
   public void init(SubsetConfiguration conf) {
@@ -109,12 +110,13 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     protocol = conf.getString(COLLECTOR_PROTOCOL, "http");
     collectorHosts = parseHostsStringArrayIntoCollection(conf.getStringArray(COLLECTOR_HOSTS_PROPERTY));
     port = conf.getString(COLLECTOR_PORT, "6188");
-    hostInMemoryAggregationEnabled = conf.getBoolean(HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY);
-    hostInMemoryAggregationPort = conf.getInt(HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY);
+    hostInMemoryAggregationEnabled = conf.getBoolean(HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY, false);
+    hostInMemoryAggregationPort = conf.getInt(HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY, 61888);
+    hostInMemoryAggregationProtocol = conf.getString(HOST_IN_MEMORY_AGGREGATION_PROTOCOL_PROPERTY, "http");
     if (collectorHosts.isEmpty()) {
       LOG.error("No Metric collector configured.");
     } else {
-      if (protocol.contains("https")) {
+      if (protocol.contains("https") || hostInMemoryAggregationProtocol.contains("https")) {
         String trustStorePath = conf.getString(SSL_KEYSTORE_PATH_PROPERTY).trim();
         String trustStoreType = conf.getString(SSL_KEYSTORE_TYPE_PROPERTY).trim();
         String trustStorePwd = conf.getString(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
@@ -259,6 +261,11 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   @Override
   protected int getHostInMemoryAggregationPort() {
     return hostInMemoryAggregationPort;
+  }
+
+  @Override
+  protected String getHostInMemoryAggregationProtocol() {
+    return hostInMemoryAggregationProtocol;
   }
 
   @Override
@@ -502,7 +509,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
         LOG.debug("Closing HadoopTimelineMetricSink. Flushing metrics to collector...");
         TimelineMetrics metrics = metricsCache.getAllMetrics();
         if (metrics != null) {
-          emitMetrics(metrics);
+          emitMetrics(metrics, true);
         }
       }
     });

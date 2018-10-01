@@ -19,9 +19,14 @@
 package org.apache.ambari.server.state;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.state.stack.RepoTag;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -77,6 +82,11 @@ public class RepositoryInfo {
   @JsonProperty("tags")
   @SerializedName("tags")
   private Set<RepoTag> tags = new HashSet<>();
+
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  private List<String> applicableServices = new LinkedList<>();
+
 
   /**
    * @return the baseUrl
@@ -206,6 +216,18 @@ public class RepositoryInfo {
     this.unique = unique;
   }
 
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  public List<String> getApplicableServices() {
+    return applicableServices;
+  }
+
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  public void setApplicableServices(List<String> applicableServices) {
+    this.applicableServices = applicableServices;
+  }
+
   @Override
   public String toString() {
     return "[ repoInfo: "
@@ -218,6 +240,7 @@ public class RepositoryInfo {
         + ", mirrorsList=" + mirrorsList
         + ", unique=" + unique
         + ", ambariManagedRepositories=" + ambariManagedRepositories
+        + ", applicableServices=" +  StringUtils.join(applicableServices, ",")
         + " ]";
   }
 

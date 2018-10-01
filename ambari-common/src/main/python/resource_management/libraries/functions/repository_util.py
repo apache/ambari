@@ -33,12 +33,13 @@ UBUNTU_REPO_COMPONENTS_POSTFIX = "main"
 
 class RepositoryUtil:
   def __init__(self, config, tags_to_skip):
+    from resource_management.libraries.script import Script
     self.tags_to_skip = tags_to_skip
 
     # repo templates
     repo_file = config['repositoryFile']
-    repo_rhel_suse =  get_cluster_setting_value('repo_suse_rhel_template')
-    repo_ubuntu =  get_cluster_setting_value('repo_ubuntu_template')
+    repo_rhel_suse = Script.get_cluster_settings().get_repo_suse_rhel_template()
+    repo_ubuntu = Script.get_cluster_settings().get_repo_ubuntu_template()
 
     if is_empty(repo_file):
       return
@@ -60,7 +61,6 @@ class RepositoryUtil:
           self.command_repository.mpack_name, self.command_repository.version_string))
       return {}
 
-    append_to_file = False  # initialize to False to create the file anew.
     repo_files = {}
     for repository in self.command_repository.items:
       if repository.repo_id is None:
@@ -76,15 +76,16 @@ class RepositoryUtil:
             self.command_repository.mpack_name, self.command_repository.version_string, repository.repo_id))
       else:
         Repository(repository.repo_id,
-                   action="create",
+                   action="prepare",
                    base_url=repository.base_url,
                    mirror_list=repository.mirrors_list,
                    repo_file_name=self.command_repository.repo_filename,
                    repo_template=self.template,
-                   components=repository.ubuntu_components,
-                   append_to_file=append_to_file)
-        append_to_file = True
+                   components=repository.ubuntu_components
+        )
         repo_files[repository.repo_id] = self.command_repository.repo_filename
+
+    Repository(None, action="create")
 
     return repo_files
 
@@ -183,7 +184,7 @@ class CommandRepositoryItem(object):
 
     self.ubuntu_components = [self.distribution if self.distribution else self.repo_name] + \
                              [self.components.replace(",", " ") if self.components else UBUNTU_REPO_COMPONENTS_POSTFIX]
-
+    self.applicable_services = _find_value(json_dict, 'applicableServices')
 
 
 

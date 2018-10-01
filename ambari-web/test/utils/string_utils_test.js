@@ -285,4 +285,17 @@ describe('stringUtils', function () {
       });
     });
   });
+
+  describe('#unicodeEscape', function() {
+
+    it('a/b should be converted to "a\\u002fb"', function() {
+      expect(stringUtils.unicodeEscape('a/b', /[\/]/g)).to.be.equal("a\\u002fb");
+    });
+    it('a/b should be converted to "\\u0061\\u002f\\u0062"',  function() {
+      expect(stringUtils.unicodeEscape('a/b')).to.be.equal("\\u0061\\u002f\\u0062");
+    });
+    it('a/b should be converted to "a/b"',  function() {
+      expect(stringUtils.unicodeEscape('a/b', /[0-9]/g)).to.be.equal("a/b");
+    });
+  });
 });

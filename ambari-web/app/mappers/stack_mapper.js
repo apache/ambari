@@ -81,6 +81,7 @@ App.stackMapper = App.QuickDataMapper.create({
     latest_base_url: 'latest_base_url',
     mirrors_list: 'mirrors_list',
     os_type: 'os_type',
+    original_repo_id: 'repo_id',
     repo_id: 'repo_id',
     repo_name: 'repo_name',
     stack_name: 'stack_name',
@@ -89,7 +90,8 @@ App.stackMapper = App.QuickDataMapper.create({
     components: 'components',
     distribution: 'distribution',
     unique: 'unique',
-    tags: 'tags'
+    tags: 'tags',
+    applicable_services: 'applicable_services'
   },
 
   map: function(json) {

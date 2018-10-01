@@ -36,16 +36,9 @@ public class ClusterConfigs {
     return configurations;
   }
 
-  public void setConfigurations(SortedMap<String, SortedMap<String, String>> configurations) {
-    this.configurations = configurations;
-  }
 
   public SortedMap<String, SortedMap<String, SortedMap<String, String>>> getConfigurationAttributes() {
     return configurationAttributes;
-  }
-
-  public void setConfigurationAttributes(SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurationAttributes) {
-    this.configurationAttributes = configurationAttributes;
   }
 
   @Override

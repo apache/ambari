@@ -22,8 +22,11 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.services.views.ViewPermissionService;
+import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvider;
 
 import io.swagger.annotations.ApiModelProperty;
+
+
 
 /**
  * Response schema for endpoint {@link ViewPermissionService#getPermissions(HttpHeaders, UriInfo, String, String)}
@@ -44,7 +47,7 @@ public class ViewPermissionResponse implements ApiModel {
    * Returns {@link ViewPermissionInfo} instance that hold all view permission information
    * @return {@link ViewPermissionInfo}
    */
-  @ApiModelProperty(name = "ViewPermissionInfo")
+  @ApiModelProperty(name = ViewPermissionResourceProvider.PERMISSION_INFO)
   public ViewPermissionInfo getViewPermissionInfo() {
     return viewPermissionInfo;
   }
@@ -79,7 +82,7 @@ public class ViewPermissionResponse implements ApiModel {
      * Returns view name
      * @return view name
      */
-    @ApiModelProperty(name = "view_name")
+    @ApiModelProperty(name = ViewPermissionResourceProvider.VIEW_NAME_PROPERTY_ID)
     public String getViewName() {
       return viewName;
     }
@@ -88,6 +91,7 @@ public class ViewPermissionResponse implements ApiModel {
      * Returns view version
      * @return view version
      */
+    @ApiModelProperty(name = ViewPermissionResourceProvider.VERSION_PROPERTY_ID)
     public String getVersion() {
       return version;
     }
@@ -96,7 +100,7 @@ public class ViewPermissionResponse implements ApiModel {
      * Returns permission id
      * @return permission id
      */
-    @ApiModelProperty(name = "permission_id")
+    @ApiModelProperty(name = ViewPermissionResourceProvider.PERMISSION_ID_PROPERTY_ID)
     public Integer getPermissionId() {
       return permissionId;
     }
@@ -105,7 +109,7 @@ public class ViewPermissionResponse implements ApiModel {
      * Returns permission name
      * @return permission name
      */
-    @ApiModelProperty(name = "permission_name")
+    @ApiModelProperty(name = ViewPermissionResourceProvider.PERMISSION_NAME_PROPERTY_ID)
     public String getPermissionName() {
       return permissionName;
     }
@@ -114,7 +118,7 @@ public class ViewPermissionResponse implements ApiModel {
      * Returns resource name
      * @return resource names
      */
-    @ApiModelProperty(name = "resource_name")
+    @ApiModelProperty(name = ViewPermissionResourceProvider.RESOURCE_NAME_PROPERTY_ID)
     public String getResourceName() {
       return resourceName;
     }

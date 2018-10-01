@@ -18,36 +18,9 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.common.Marker;
 import org.apache.ambari.logsearch.model.request.EventHistoryParamDefinition;
 
-import javax.ws.rs.QueryParam;
-
-public class EventHistoryRequest extends CommonSearchRequest implements EventHistoryParamDefinition {
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_FILTER_NAME)
-  private String filterName;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_ROW_TYPE)
-  private String rowType;
-
-  @Override
-  public String getFilterName() {
-    return filterName;
-  }
-
-  @Override
-  public void setFilterName(String filterName) {
-    this.filterName = filterName;
-  }
-
-  @Override
-  public String getRowType() {
-    return rowType;
-  }
-
-  @Override
-  public void setRowType(String rowType) {
-    this.rowType = rowType;
-  }
+@Marker
+public interface EventHistoryRequest extends CommonSearchRequest, EventHistoryParamDefinition {
 }

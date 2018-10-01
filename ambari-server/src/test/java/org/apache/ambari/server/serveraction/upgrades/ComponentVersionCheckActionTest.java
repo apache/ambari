@@ -335,7 +335,7 @@ public class ComponentVersionCheckActionTest {
 
     // set the SCH versions to the new stack so that the finalize action is
     // happy - don't update DATANODE - we want to make the action complain
-    cluster.getServiceComponentHosts("HDFS", "NAMENODE").get(0).setVersion(targetVersion);
+    cluster.getServiceComponentHosts("HDFS", "NAMENODE").get(0).setVersions("1.0.0.0-b1234", targetVersion);
 
     // now finalize and ensure we can transition from UPGRADING to UPGRADED
     // automatically before CURRENT
@@ -358,7 +358,7 @@ public class ComponentVersionCheckActionTest {
     assertEquals(-1, report.getExitCode());
 
     // OK, now set the datanode so it completes
-    cluster.getServiceComponentHosts("HDFS", "DATANODE").get(0).setVersion(targetVersion);
+    cluster.getServiceComponentHosts("HDFS", "DATANODE").get(0).setVersions("1.0.0.0-b1234", targetVersion);
 
     report = action.execute(null);
     assertNotNull(report);
@@ -394,15 +394,15 @@ public class ComponentVersionCheckActionTest {
     addServiceComponent(service, "DATANODE");
 
     ServiceComponentHost sch = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", "h1");
-    sch.setVersion(HDP_2_1_1_0);
+    sch.setVersions("1.0.0.0-b1234", HDP_2_1_1_0);
     sch = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", "h1");
-    sch.setVersion(HDP_2_1_1_0);
+    sch.setVersions("1.0.0.0-b1234", HDP_2_1_1_0);
 
     service = installService(cluster, serviceGroup, "ZOOKEEPER", targetMpack);
     addServiceComponent(service, "ZOOKEEPER_SERVER");
 
     sch = createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_SERVER", "h1");
-    sch.setVersion(HDP_2_1_1_1);
+    sch.setVersions("1.0.0.0-b1234", HDP_2_1_1_1);
 
     // Finalize the upgrade
     Map<String, String> commandParams = new HashMap<>();

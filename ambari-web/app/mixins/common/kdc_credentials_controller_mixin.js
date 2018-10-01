@@ -43,6 +43,7 @@ App.KDCCredentialsControllerMixin = Em.Mixin.create({
   credentialsStoreConfigs: [
     {
       name: 'persist_credentials',
+      description: 'Ambari must be configured to encrypt the passwords stored in Ambari before you can save admin credentials',
       displayType: 'checkbox',
       value: 'false',
       recommendedValue: 'false',

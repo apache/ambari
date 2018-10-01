@@ -28,8 +28,10 @@
                          [isRightAlign]="true"></filter-dropdown>
       </form>
       <dropdown-button label="{{'logs.columns' | translate}}" [options]="columns" [isRightAlign]="true"
-                       [isMultipleChoice]="true" (selectItem)="updateSelectedColumns($event)"
-                       [listItemArguments]="logsTypeMapObject.fieldsModel">
+                       (selectItem)="updateSelectedColumns($event)"
+                       [listItemArguments]="logsTypeMapObject.fieldsModel"
+                       [isMultipleChoice]="true"
+                       [useClearToDefaultSelection]="true">
       </dropdown-button>
       <div class="layout-btn-group">
         <a *ngIf="layout==='FLEX'" class="btn" (click)="toggleShowLabels()" tooltip="{{'logs.toggleLabels' | translate}}">
@@ -58,6 +60,19 @@
           <col *ngIf="isColumnDisplayed('path')" class="log-path">
           <col *ngIf="isColumnDisplayed('log_message')" class="log-message">
         </colgroup>
+        <thead>
+          <tr>
+            <th class="log-action"></th>
+            <th *ngIf="isColumnDisplayed('logtime')">{{getLabelForField('logtime') | translate}}</th>
+            <th *ngIf="isColumnDisplayed('level')">{{getLabelForField('level') | translate}}</th>
+            <th *ngIf="isColumnDisplayed('type')">{{getLabelForField('type') | translate}}</th>
+            <ng-container *ngFor="let column of displayedColumns">
+              <th *ngIf="customStyledColumns.indexOf(column.value) === -1">{{getLabelForField(column.value) | translate}}</th>
+            </ng-container>
+            <th *ngIf="isColumnDisplayed('path')">{{getLabelForField('path') | translate}}</th>
+            <th *ngIf="isColumnDisplayed('log_message')">{{getLabelForField('log_message') | translate}}</th>
+          </tr>
+        </thead>
         <tbody>
           <ng-container *ngFor="let log of logs; let i = index">
             <tr *ngIf="i === 0 || isDifferentDates(log.logtime, logs[i - 1].logtime)" class="log-date-row">

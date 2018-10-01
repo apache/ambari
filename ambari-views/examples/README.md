@@ -30,7 +30,6 @@ See the documentation pages for the view examples.
 * [Phone List Upgrade View](phone-list-upgrade-view/docs/index.md) : Demonstrates view data migration from Phone List View.
 * [Property View](property-view/docs/index.md) : Demonstrates view configuration property options.
 * [Property Validator View](property-validator-view/docs/index.md) : Demonstrates configuration property validator.
-* [Weather view](weather-view/docs/index.md) : Demonstrates the the use of instance parameters, a servlet for a dynamic UI and a managed resource.
 * [Auto Cluster view](auto-cluster-view/docs/index.md) : Example view that can be auto-created and configured to leverage the Ambari REST APIs to access a cluster being managed by Ambari.
 
 Please also visit the [Apache Ambari Project](http://ambari.apache.org/) page for more information.

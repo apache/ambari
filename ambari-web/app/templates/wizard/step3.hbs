@@ -80,6 +80,8 @@
               <th class="col-md-2" {{QAAttr "confirm-hosts-table-heading-cell"}}>{{t common.status}}</th>
               <!-- given by the parsing function that parses data from bootstrap call, dynamically assign the color -->
               <th class="col-md-2" {{QAAttr "confirm-hosts-table-heading-cell"}}>{{t common.action}}</th>
+              <!-- empty th to contain extra space of table -->
+              <th></th>
               <!-- trash icon -->
               <!-- retry icon -->
             </tr>
@@ -115,6 +117,8 @@
                       <i class="icon icon-remove-sign" {{translateAttr title="common.remove"}}></i>
                     </a>
                   </td>
+                  <!-- empty td to contain extra space of table -->
+                  <td></td>
                 {{/view}}
               {{/each}}
             {{else}}
@@ -126,11 +130,19 @@
             {{/if}}
             </tbody>
             <tfoot>
-            <tr>
-              <td colspan="5">
-                {{view App.PaginationView}}
-              </td>
-            </tr>
+              <tr>
+                <td colspan="5">
+                  {{#if view.selectedHostsCount}}
+                    <a {{action selectedHostsPopup target="controller"}} href="#">
+                      {{view.selectedHostsCount}}
+                      {{pluralize view.selectedHostsCount singular="t:hosts.filters.selectedHostInfo" plural="t:hosts.filters.selectedHostsInfo"}}
+                    </a>
+                    -
+                    <a {{action unSelectAll target="view"}} href="#">{{t hosts.filters.clearSelection}}</a>
+                  {{/if}}
+                  {{view App.PaginationView}}
+                </td>
+              </tr>
             </tfoot>
           </table>
         </div>
@@ -165,6 +177,7 @@
         {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
       {{/if}}
     </button>
+    {{template "templates/wizard/installer_cancel_button"}}
     <button type="button"
             class="btn btn-success pull-right" {{bindAttr disabled="isNextButtonDisabled"}} {{action submit target="controller"}} {{QAAttr "wizard-next"}}>
       {{#if App.router.nextBtnClickInProgress}}

@@ -42,9 +42,9 @@ public class PrivilegeEventCreatorTest extends AuditEventCreatorTestBase{
     PrivilegeEventCreator creator = new PrivilegeEventCreator();
 
     Map<String,Object> properties = new HashMap<>();
-    properties.put(PrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID, "USER");
-    properties.put(PrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID, "Permission2");
-    properties.put(PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID, userName + "2");
+    properties.put(PrivilegeResourceProvider.PRINCIPAL_TYPE, "USER");
+    properties.put(PrivilegeResourceProvider.PERMISSION_NAME, "Permission2");
+    properties.put(PrivilegeResourceProvider.PRINCIPAL_NAME, userName + "2");
 
     NamedPropertySet nps = new NamedPropertySet("1",properties);
 
@@ -68,19 +68,19 @@ public class PrivilegeEventCreatorTest extends AuditEventCreatorTestBase{
     PrivilegeEventCreator creator = new PrivilegeEventCreator();
 
     Map<String,Object> properties = new HashMap<>();
-    properties.put(PrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID, "USER");
-    properties.put(PrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID, "Permission1");
-    properties.put(PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID, userName);
+    properties.put(PrivilegeResourceProvider.PRINCIPAL_TYPE, "USER");
+    properties.put(PrivilegeResourceProvider.PERMISSION_NAME, "Permission1");
+    properties.put(PrivilegeResourceProvider.PRINCIPAL_NAME, userName);
 
     Map<String,Object> properties2 = new HashMap<>();
-    properties2.put(PrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID, "USER");
-    properties2.put(PrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID, "Permission2");
-    properties2.put(PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID, userName + "2");
+    properties2.put(PrivilegeResourceProvider.PRINCIPAL_TYPE, "USER");
+    properties2.put(PrivilegeResourceProvider.PERMISSION_NAME, "Permission2");
+    properties2.put(PrivilegeResourceProvider.PRINCIPAL_NAME, userName + "2");
 
     Map<String,Object> properties3 = new HashMap<>();
-    properties3.put(PrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID, "GROUP");
-    properties3.put(PrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID, "Permission1");
-    properties3.put(PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID, "testgroup");
+    properties3.put(PrivilegeResourceProvider.PRINCIPAL_TYPE, "GROUP");
+    properties3.put(PrivilegeResourceProvider.PERMISSION_NAME, "Permission1");
+    properties3.put(PrivilegeResourceProvider.PRINCIPAL_NAME, "testgroup");
 
     NamedPropertySet nps = new NamedPropertySet("1",properties);
     NamedPropertySet nps2 = new NamedPropertySet("2",properties2);

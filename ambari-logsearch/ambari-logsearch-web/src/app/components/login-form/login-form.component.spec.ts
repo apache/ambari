@@ -26,22 +26,25 @@ import {AuthService} from '@app/services/auth.service';
 
 import {LoginFormComponent} from './login-form.component';
 import {RouterTestingModule} from '@angular/router/testing';
+import {NotificationsService} from 'angular2-notifications';
+import {NotificationService} from '@app/modules/shared/services/notification.service';
 
 describe('LoginFormComponent', () => {
   let component: LoginFormComponent;
   let fixture: ComponentFixture<LoginFormComponent>;
 
-  let authMock = {
-    isError: false
+  const authMock = {
+    isError: false,
+    isAuthorized: false
   };
-  const httpClient = {
-    isAuthorized: true,
-    postFormData: () => {
+
+  const AuthServiceMock = {
+    login: () => {
       return {
-        subscribe: (success: () => void, error: () => void) => {
-          authMock.isError ? error() : success();
+        subscribe: (observer: (resp) => void, error: (resp) => void) => {
+          authMock.isAuthorized ? observer(authMock.isAuthorized) : error(authMock.isAuthorized);
         }
-      }
+      };
     }
   };
 
@@ -59,10 +62,11 @@ describe('LoginFormComponent', () => {
       providers: [
         AppStateService,
         {
-          provide: HttpClientService,
-          useValue: httpClient
+          provide: AuthService,
+          useValue: AuthServiceMock
         },
-        AuthService
+        NotificationsService,
+        NotificationService
       ]
     })
     .compileComponents();
@@ -98,6 +102,7 @@ describe('LoginFormComponent', () => {
       describe(test.title, () => {
         beforeEach(() => {
           authMock.isError = test.isError;
+          authMock.isAuthorized = test.isAuthorized;
           component.login();
         });
 

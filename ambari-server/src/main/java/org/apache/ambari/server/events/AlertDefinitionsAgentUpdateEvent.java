@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Contains info about alert definitions update. This update is specific to a single host.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AlertDefinitionsAgentUpdateEvent extends AmbariHostUpdateEvent implements Hashable {
+public class AlertDefinitionsAgentUpdateEvent extends STOMPHostEvent implements Hashable {
 
   private final Map<Long, AlertCluster> clusters;
   private final AlertDefinitionEventType eventType;

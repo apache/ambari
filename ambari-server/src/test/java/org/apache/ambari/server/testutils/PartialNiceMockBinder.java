@@ -36,6 +36,7 @@ import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.hooks.AmbariEventFactory;
@@ -168,6 +169,7 @@ public class PartialNiceMockBinder implements Module {
           binder.bind(CredentialStoreService.class).toInstance(easyMockSupport.createNiceMock(CredentialStoreService.class));
           binder.bind(AmbariManagementController.class).toInstance(ambariManagementController);
           binder.bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
+          binder.bind(KerberosHelper.class).toInstance(easyMockSupport.createNiceMock(KerberosHelper.class));
       });
       addConfigsBindings();
       addFactoriesInstallBinding();

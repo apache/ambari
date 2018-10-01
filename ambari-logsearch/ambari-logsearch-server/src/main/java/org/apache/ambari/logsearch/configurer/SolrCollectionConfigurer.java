@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.logsearch.configurer;
 
+import org.apache.ambari.logsearch.conf.SolrClientsHolder;
 import org.apache.ambari.logsearch.conf.SolrPropsConfig;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
@@ -27,8 +28,8 @@ import org.apache.ambari.logsearch.handler.ListCollectionHandler;
 import org.apache.ambari.logsearch.handler.ReloadCollectionHandler;
 import org.apache.ambari.logsearch.handler.UploadConfigurationHandler;
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.client.solrj.impl.Krb5HttpClientBuilder;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -55,10 +56,15 @@ public class SolrCollectionConfigurer implements Configurer {
 
   private final SolrDaoBase solrDaoBase;
   private final boolean hasEnumConfig; // enumConfig.xml for solr collection
+  private final SolrClientsHolder solrClientsHolder;
+  private final SolrClientsHolder.CollectionType collectionType;
 
-  public SolrCollectionConfigurer(SolrDaoBase solrDaoBase, boolean hasEnumConfig) {
+  public SolrCollectionConfigurer(SolrDaoBase solrDaoBase, boolean hasEnumConfig,
+                                  SolrClientsHolder solrClientsHolder, SolrClientsHolder.CollectionType collectionType) {
     this.solrDaoBase = solrDaoBase;
     this.hasEnumConfig = hasEnumConfig;
+    this.solrClientsHolder = solrClientsHolder;
+    this.collectionType = collectionType;
   }
 
   @Override
@@ -86,7 +92,7 @@ public class SolrCollectionConfigurer implements Configurer {
             if (solrDaoBase.getSolrTemplate() == null) {
               solrDaoBase.setSolrTemplate(createSolrTemplate(solrPropsConfig));
             }
-            CloudSolrClient cloudSolrClient = (CloudSolrClient) solrDaoBase.getSolrTemplate().getSolrClient();
+            CloudSolrClient cloudSolrClient = (CloudSolrClient) solrClientsHolder.getSolrClient(collectionType);
             boolean reloadCollectionNeeded = uploadConfigurationsIfNeeded(cloudSolrClient, configSetFolder, state, solrPropsConfig);
             checkSolrStatus(cloudSolrClient);
             createCollectionsIfNeeded(cloudSolrClient, state, solrPropsConfig, reloadCollectionNeeded);
@@ -114,10 +120,12 @@ public class SolrCollectionConfigurer implements Configurer {
   }
 
   public SolrTemplate createSolrTemplate(SolrPropsConfig solrPropsConfig) {
-    return new SolrTemplate(createClient(
+    SolrClient solrClient = createClient(
       solrPropsConfig.getSolrUrl(),
       solrPropsConfig.getZkConnectString(),
-      solrPropsConfig.getCollection()));
+      solrPropsConfig.getCollection());
+    solrClientsHolder.setSolrClient(solrClient, collectionType);
+    return new SolrTemplate(solrClient);
   }
 
   private CloudSolrClient createClient(String solrUrl, String zookeeperConnectString, String defaultCollection) {
@@ -133,12 +141,12 @@ public class SolrCollectionConfigurer implements Configurer {
   }
 
   private void setupSecurity() {
-    String jaasFile = solrDaoBase.getSolrKerberosConfig().getJaasFile();
     boolean securityEnabled = solrDaoBase.getSolrKerberosConfig().isEnabled();
     if (securityEnabled) {
-      System.setProperty(JAVA_SECURITY_AUTH_LOGIN_CONFIG, jaasFile);
-      System.setProperty(SOLR_HTTPCLIENT_BUILDER_FACTORY, Krb5HttpClientBuilder.class.getCanonicalName());
-      LOG.info("setupSecurity() called for kerberos configuration, jaas file: " + jaasFile);
+      String javaSecurityConfig = System.getProperty(JAVA_SECURITY_AUTH_LOGIN_CONFIG);
+      String solrHttpBuilderFactory = System.getProperty(SOLR_HTTPCLIENT_BUILDER_FACTORY);
+      LOG.info("setupSecurity() called for kerberos configuration, jaas file: {}, solr http client factory: {}",
+        javaSecurityConfig, solrHttpBuilderFactory);
     }
   }
 
@@ -219,7 +227,7 @@ public class SolrCollectionConfigurer implements Configurer {
     try {
       List<String> allCollectionList = new ListCollectionHandler().handle(solrClient, null);
       solrDaoBase.waitForLogSearchConfig();
-      CreateCollectionHandler handler = new CreateCollectionHandler(solrDaoBase.getLogSearchConfig(), allCollectionList);
+      CreateCollectionHandler handler = new CreateCollectionHandler(allCollectionList);
       boolean collectionCreated = handler.handle(solrClient, solrPropsConfig);
       boolean collectionReloaded = true;
       if (reloadCollectionNeeded) {

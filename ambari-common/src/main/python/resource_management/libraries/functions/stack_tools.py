@@ -24,15 +24,16 @@ __all__ = ["get_stack_tool", "get_stack_tool_name", "get_stack_tool_path",
 # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import ambari_simplejson as json
 
-from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.utils import pad
 from resource_management.libraries.functions import stack_settings
+from resource_management.libraries.functions.decorator import deprecated
 
 STACK_SELECTOR_NAME = "stack_selector"
 CONF_SELECTOR_NAME = "conf_selector"
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_stack_tool(name):
   """
   Give a tool selector name get the stack-specific tool name, tool path, tool package
@@ -40,8 +41,12 @@ def get_stack_tool(name):
   :return: tool_name, tool_path, tool_package
   """
   from resource_management.libraries.functions.default import default
+  from resource_management.libraries.script import Script
+  from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 
-  stack_name = default("/stackSettings/stack_name", None)
+  execution_command = Script.execution_command = ExecutionCommand(Script.get_config())
+
+  stack_name = execution_command.get_mpack_name() #default("/stackSettings/stack_name", None)
   if stack_name is None:
     Logger.warning("Cannot find the stack name in the command. Stack tools cannot be loaded")
     return None, None, None
@@ -76,6 +81,8 @@ def get_stack_tool(name):
   # Return fixed length (tool_name, tool_path, tool_package) tuple
   return tuple(pad(tool_config[:3], 3))
 
+
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_stack_tool_name(name):
   """
   Give a tool selector name get the stack-specific tool name
@@ -86,6 +93,7 @@ def get_stack_tool_name(name):
   return tool_name
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_stack_tool_path(name):
   """
   Give a tool selector name get the stack-specific tool path
@@ -96,6 +104,7 @@ def get_stack_tool_path(name):
   return tool_path
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_stack_tool_package(name):
   """
   Give a tool selector name get the stack-specific tool package
@@ -106,6 +115,7 @@ def get_stack_tool_package(name):
   return tool_package
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_stack_root(stack_name, stack_root_json):
   """
   Get the stack-specific install root directory from the raw, JSON-escaped properties.
@@ -127,6 +137,7 @@ def get_stack_root(stack_name, stack_root_json):
   return stack_root[stack_name]
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_stack_name(stack_formatted):
   """
   Get the stack name (eg. HDP) from formatted string that may contain stack version (eg. HDP-2.6.1.0-123)

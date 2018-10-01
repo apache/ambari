@@ -26,8 +26,10 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
 
 /**
@@ -94,9 +96,9 @@ public class InternalSSLSocketFactory extends SSLSocketFactory {
 
   /**
    * LenientTrustManager is a TrustManager that accepts all certificates without validating the
-   * chain of trust.
+   * chain of trust or hostname.
    */
-  public static class LenientTrustManager implements X509TrustManager {
+  public static class LenientTrustManager extends X509ExtendedTrustManager implements X509TrustManager {
     public void checkClientTrusted(X509Certificate[] xcs, String string) throws CertificateException {
       // do nothing
     }
@@ -107,6 +109,26 @@ public class InternalSSLSocketFactory extends SSLSocketFactory {
 
     public X509Certificate[] getAcceptedIssuers() {
       return new X509Certificate[0];
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] x509Certificates, String s, Socket socket) throws CertificateException {
+      // do nothing
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] x509Certificates, String s, Socket socket) throws CertificateException {
+      // do nothing
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] x509Certificates, String s, SSLEngine sslEngine) throws CertificateException {
+      // do nothing
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] x509Certificates, String s, SSLEngine sslEngine) throws CertificateException {
+      // do nothing
     }
   }
 }

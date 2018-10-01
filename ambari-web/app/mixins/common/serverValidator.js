@@ -203,8 +203,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
       name: 'mpack.advisor.validations',
       sender: this,
       data: validationData,
-      success: 'validationSuccess',
-      error: 'validationError'
+      success: 'validationSuccess'
     });
   },
 
@@ -232,8 +231,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @returns {{type: String, isError: boolean, isWarn: boolean, isGeneral: boolean, messages: Array}}
    */
   createErrorMessage: function (type, property, messages) {
-    var errorTypes = this.get('errorTypes');
-    var error = {
+    const errorTypes = this.get('errorTypes');
+    let error = {
       type: type,
       isCriticalError: type === errorTypes.CRITICAL_ERROR,
       isError: type === errorTypes.ERROR,
@@ -245,11 +244,12 @@ App.ServerValidatorMixin = Em.Mixin.create({
 
     Em.assert('Unknown config error type ' + type, error.isError || error.isWarn || error.isGeneral || error.isCriticalError);
     if (property) {
+      const value = Em.get(property, 'value');
       error.id = Em.get(property, 'id');
       error.serviceName = Em.get(property, 'serviceDisplayName') || App.StackService.find(Em.get(property, 'serviceName')).get('displayName');
       error.propertyName = Em.get(property, 'name');
       error.filename = Em.get(property, 'filename');
-      error.value = Em.get(property, 'value');
+      error.value = value && Em.get(property, 'displayType') === 'password' ? new Array(value.length + 1).join('*') : value;
       error.description = Em.get(property, 'description');
     }
     return error;
@@ -361,9 +361,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
     var parsed = this.parseValidation(data);
     this.set('configErrorList', this.collectAllIssues(parsed.configErrorsMap, parsed.generalErrors));
   },
-
-  validationError: Em.K,
-
+  
   valueObserver: function () {
     var self = this;
     if (this.get('isInstallWizard') && this.get('currentTabName') === 'all-configurations') {
@@ -372,10 +370,14 @@ App.ServerValidatorMixin = Em.Mixin.create({
         if (self.get('validationRequest')) {
           self.get('validationRequest').abort();
         }
-        self.runServerSideValidation().done(function () {
-          self.set('validationRequest', null);
-          self.set('requestTimer', 0);
-        });
+        if (self.get('recommendationsInProgress')) {
+          self.valueObserver();
+        } else {
+          self.runServerSideValidation().done(function () {
+            self.set('validationRequest', null);
+            self.set('requestTimer', 0);
+          });
+        }
       }, 500));
     }
   }.observes('selectedService.configs.@each.value')

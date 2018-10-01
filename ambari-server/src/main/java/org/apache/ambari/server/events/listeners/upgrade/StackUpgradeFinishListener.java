@@ -93,6 +93,13 @@ public class StackUpgradeFinishListener {
         CachedRoleCommandOrderProvider cachedRcoProvider = (CachedRoleCommandOrderProvider) roleCommandOrderProvider.get();
         cachedRcoProvider.clearRoleCommandOrderCache();
       }
+
+      try {
+        ambariMetaInfo.get().reconcileAlertDefinitions(cluster, true);
+      } catch (AmbariException e){
+        LOG.error("Caught AmbariException when update alert definitions", e);
+      }
+
     }
 
   }

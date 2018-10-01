@@ -18,18 +18,7 @@
 
 {{#if view.isLoaded}}
   <div id="host-details">
-    <div class="host-details-header">
-      <div class="status-info mbm">
-        <h2 class='table-title display-inline'>
-          <a class="disabled">{{t common.host}}</a><span>:&nbsp;{{unbound view.content.hostName}}</span>
-        </h2>
-        <span rel="HealthTooltip" {{bindAttr class="view.content.healthClass view.content.healthIconClass"}} data-placement="bottom" {{bindAttr data-original-title="view.content.healthToolTip" }}></span>
-        {{#unless view.isActive}}
-          <span class="host-maintenance-notice pull-right"><span class="icon-medkit"></span> {{t hosts.host.passive.mode}}</span>
-        {{/unless}}
-      </div>
-    </div>
-    <div class="content">
+       <div class="content">
       {{view App.MainHostMenuView hostBinding="view.content"}}
         <div class="service-button">
           <div class="btn-group display-inline-block">

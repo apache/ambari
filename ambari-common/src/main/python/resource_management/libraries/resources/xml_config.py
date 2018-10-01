@@ -34,6 +34,7 @@ class XmlConfig(Resource):
   mode = ResourceArgument()
   owner = ResourceArgument()
   group = ResourceArgument()
+  xml_include_file = ResourceArgument()
 
   encoding = ResourceArgument(default="UTF-8")
 

@@ -88,11 +88,11 @@ public class ViewInstanceEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withType(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID))
-          .withVersion(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID))
-          .withName(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID))
-          .withDisplayName(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.LABEL_PROPERTY_ID))
-          .withDescription(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.DESCRIPTION_PROPERTY_ID))
+          .withType(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.VIEW_NAME))
+          .withVersion(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.VERSION))
+          .withName(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.INSTANCE_NAME))
+          .withDisplayName(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.LABEL))
+          .withDescription(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.DESCRIPTION))
           .build();
 
       case PUT:
@@ -102,11 +102,11 @@ public class ViewInstanceEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withType(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID))
-          .withVersion(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID))
-          .withName(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID))
-          .withDisplayName(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.LABEL_PROPERTY_ID))
-          .withDescription(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.DESCRIPTION_PROPERTY_ID))
+          .withType(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.VIEW_NAME))
+          .withVersion(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.VERSION))
+          .withName(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.INSTANCE_NAME))
+          .withDisplayName(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.LABEL))
+          .withDescription(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.DESCRIPTION))
           .build();
 
       case DELETE:

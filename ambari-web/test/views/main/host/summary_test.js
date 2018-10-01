@@ -57,69 +57,14 @@ describe('App.MainHostSummaryView', function() {
       {
         content: Em.Object.create({
           hostComponents: Em.A([
-            Em.Object.create({isMaster: false, isSlave: true, componentName: 'B'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'A'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'C'}),
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'D'})
+            Em.Object.create({componentName: 'C', displayName: 'C'}),
+            Em.Object.create({componentName: 'A', displayName: 'A'}),
+            Em.Object.create({componentName: 'B', displayName: 'B'}),
+            Em.Object.create({componentName: 'D', displayName: 'D'})
           ])
         }),
-        m: 'List of masters, slaves and clients',
-        e: ['A', 'C', 'B']
-      },
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([
-            Em.Object.create({isMaster: false, isSlave: true, componentName: 'B'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'A'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'C'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'D'})
-          ])
-        }),
-        m: 'List of masters and slaves',
-        e: ['A', 'C', 'D', 'B']
-      },
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'B'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'A'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'C'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'D'})
-          ])
-        }),
-        m: 'List of masters',
-        e: ['B', 'A', 'C', 'D']
-      },
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([
-            Em.Object.create({isMaster: false, isSlave: true, componentName: 'B'}),
-            Em.Object.create({isMaster: false, isSlave: true, componentName: 'A'}),
-            Em.Object.create({isMaster: false, isSlave: true, componentName: 'C'}),
-            Em.Object.create({isMaster: false, isSlave: true, componentName: 'D'})
-          ])
-        }),
-        m: 'List of slaves',
-        e: ['B', 'A', 'C', 'D']
-      },
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([])
-        }),
-        m: 'Empty list',
-        e: []
-      },
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([
-            Em.Object.create({isClient: true, componentName: 'B'}),
-            Em.Object.create({isMaster: true, componentName: 'A'}),
-            Em.Object.create({isSlave: true, componentName: 'C'}),
-            Em.Object.create({isClient: true, componentName: 'D'})
-          ])
-        }),
-        m: 'List of clients',
-        e: ['A', 'C', 'B', 'D']
+        m: 'List of components',
+        e: ['A', 'B', 'C', 'D']
       }
     ]);
 
@@ -308,19 +253,17 @@ describe('App.MainHostSummaryView', function() {
   describe("#hasCardinalityConflict()", function () {
 
     beforeEach(function() {
-      this.mockSlave = sinon.stub(App.SlaveComponent, 'find');
+      this.mockComponent = sinon.stub(App.HostComponent, 'getCount');
       this.mockStack = sinon.stub(App.StackServiceComponent, 'find');
     });
 
     afterEach(function() {
-      this.mockSlave.restore();
+      this.mockComponent.restore();
       this.mockStack.restore();
     });
 
     it("totalCount equal to maxToInstall", function() {
-      this.mockSlave.returns(Em.Object.create({
-        totalCount: 1
-      }));
+      this.mockComponent.returns(1);
       this.mockStack.returns(Em.Object.create({
         maxToInstall: 1
       }));
@@ -328,9 +271,7 @@ describe('App.MainHostSummaryView', function() {
     });
 
     it("totalCount more than maxToInstall", function() {
-      this.mockSlave.returns(Em.Object.create({
-        totalCount: 2
-      }));
+      this.mockComponent.returns(2);
       this.mockStack.returns(Em.Object.create({
         maxToInstall: 1
       }));
@@ -338,9 +279,7 @@ describe('App.MainHostSummaryView', function() {
     });
 
     it("totalCount less than maxToInstall", function() {
-      this.mockSlave.returns(Em.Object.create({
-        totalCount: 0
-      }));
+      this.mockComponent.returns(0);
       this.mockStack.returns(Em.Object.create({
         maxToInstall: 1
       }));

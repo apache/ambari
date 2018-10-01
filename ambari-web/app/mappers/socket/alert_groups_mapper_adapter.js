@@ -25,6 +25,13 @@ App.alertGroupsMapperAdapter = App.QuickDataMapper.create({
   map: function(event) {
     event.groups.forEach((alertGroup) => {
       if (event.updateType === 'UPDATE' || event.updateType === 'CREATE') {
+        const {definitions, targets} = alertGroup;
+        if (definitions) {
+          alertGroup.definitions = this.convertIdsToObjects(definitions);
+        }
+        if (targets) {
+          alertGroup.targets = this.convertIdsToObjects(targets);
+        }
         App.alertGroupsMapper.map({
           items: [
             {
@@ -37,5 +44,11 @@ App.alertGroupsMapperAdapter = App.QuickDataMapper.create({
       }
     });
     App.router.get('manageAlertGroupsController').toggleProperty('changeTrigger');
+  },
+
+  convertIdsToObjects: function (arr) {
+    return arr.map(id => ({
+      id
+    }));
   }
 });

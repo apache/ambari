@@ -43,6 +43,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
@@ -113,10 +114,18 @@ public class ExecutionCommandWrapperTest {
     clusters = injector.getInstance(Clusters.class);
     clusters.addHost(HOST1);
     clusters.addCluster(CLUSTER1, new StackId("HDP-0.1"));
+    clusters.mapHostToCluster(HOST1, CLUSTER1);
+
+    Map<String, String> hostAttributes = new HashMap<>();
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "6.4");
+    Host host = clusters.getHost(HOST1);
+    host.setHostAttributes(hostAttributes);
 
     Cluster cluster1 = clusters.getCluster(CLUSTER1);
 
     ServiceGroup serviceGroup = cluster1.addServiceGroup("CORE", cluster1.getDesiredStackVersion().getStackId());
+    ormTestHelper.createMpack(cluster1.getDesiredStackVersion());
     cluster1.addService(serviceGroup, "HDFS", "HDFS");
 
     SERVICE_SITE_CLUSTER = new HashMap<>();
@@ -239,6 +248,7 @@ public class ExecutionCommandWrapperTest {
 
     Assert.assertEquals(serviceSiteKeys.size(), serviceSiteConfig.size());
 
+    Assert.assertNotNull(processedExecutionCommand.getRepositoryFile());
   }
 
   @Test

@@ -71,6 +71,19 @@
             <timeout>600</timeout>
           </commandScript>
         </component>
+
+        <component>
+          <name>YARN_FOO</name>
+          <displayName>Yarn Foo</displayName>
+          <category>SLAVE</category>
+          <cardinality>0+</cardinality>
+          <commandScript>
+            <script>scripts/yarn_foo.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
+
         <component>
           <name>YARN_CLIENT</name>
           <displayName>YARN Client</displayName>
@@ -83,6 +96,7 @@
             <timeout>600</timeout>
           </commandScript>
         </component>
+
         <component>
           <name>TEZ</name>
           <category>CLIENT</category>

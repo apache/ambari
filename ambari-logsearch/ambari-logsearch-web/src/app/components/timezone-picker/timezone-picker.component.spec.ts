@@ -45,6 +45,14 @@ import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec'
 
 import {TimeZonePickerComponent} from './timezone-picker.component';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {NotificationsService} from 'angular2-notifications/src/notifications.service';
+import {NotificationService} from '@modules/shared/services/notification.service';
+
+import { dataAvailabilityStates, DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-availability-state.store';
 
 describe('TimeZonePickerComponent', () => {
   let component: TimeZonePickerComponent;
@@ -58,6 +66,7 @@ describe('TimeZonePickerComponent', () => {
         TimeZoneAbbrPipe
       ],
       imports: [
+        RouterTestingModule,
         StoreModule.provideStore({
           appSettings,
           appState,
@@ -71,7 +80,8 @@ describe('TimeZonePickerComponent', () => {
           serviceLogsFields,
           serviceLogsHistogramData,
           serviceLogsTruncated,
-          tabs
+          tabs,
+          dataAvailabilityStates
         }),
         ...TranslationModules
       ],
@@ -94,7 +104,13 @@ describe('TimeZonePickerComponent', () => {
         AuthService,
         UserSettingsService,
         UtilsService,
-        ClusterSelectionService
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService,
+        NotificationsService,
+        NotificationService,
+        DataAvailabilityStatesStore
       ],
     })
     .compileComponents();

@@ -82,6 +82,11 @@ public class TestAmbariMetricsSinkImpl extends AbstractTimelineMetricsSink imple
   }
 
   @Override
+  protected String getHostInMemoryAggregationProtocol() {
+    return "http";
+  }
+
+  @Override
   public void init(MetricsConfiguration configuration) {
 
   }

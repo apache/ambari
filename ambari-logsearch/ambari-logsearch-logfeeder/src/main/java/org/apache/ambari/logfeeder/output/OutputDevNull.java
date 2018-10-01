@@ -21,7 +21,6 @@ package org.apache.ambari.logfeeder.output;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logfeeder.plugin.output.Output;
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -51,10 +50,6 @@ public class OutputDevNull extends Output<LogFeederProps, InputMarker> {
   @Override
   public String getOutputType() {
     return "devnull";
-  }
-
-  @Override
-  public void outputConfigChanged(OutputProperties outputProperties) {
   }
 
   @Override

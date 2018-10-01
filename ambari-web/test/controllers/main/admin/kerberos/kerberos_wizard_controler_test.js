@@ -528,8 +528,4 @@ describe('App.KerberosWizardController', function() {
       expect(mock.onResolve.calledOnce).to.be.true;
     });
   });
-
-
 });
-
-

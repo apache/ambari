@@ -54,7 +54,12 @@ if [ ! -z "$LOGSEARCH_SOLR_CLIENT_SSL_INCLUDE" ]; then
 fi
 
 if [ -z "$LOGSEARCH_PID_FILE" ]; then
-  LOGSEARCH_PID_DIR=$HOME
+  LOGSEARCH_DEFAULT_PID_DIR="/var/run/ambari-logsearch-portal"
+  if [ -d "$LOGSEARCH_DEFAULT_PID_DIR" ]; then
+    LOGSEARCH_PID_DIR=$LOGSEARCH_DEFAULT_PID_DIR
+  else
+    LOGSEARCH_PID_DIR=$HOME
+  fi
   export LOGSEARCH_PID_FILE=$LOGSEARCH_PID_DIR/logsearch.pid
 fi
 

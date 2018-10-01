@@ -89,18 +89,18 @@
             </td>
           </tr>
           {{/each}}
-        </tbody>
-          {{#if view.isPaginate}}
-            <tfoot>
+        {{/if}}
+      </tbody>
+        {{#if view.isPaginate}}
+          <tfoot>
             <tr>
               <td colspan="5">
                 {{view App.PaginationView}}
               </td>
             </tr>
-            </tfoot>
-          {{/if}}
-        </table>
+          </tfoot>
         {{/if}}
+      </table>
         {{#if view.isShowMore}}
           <div class="show-more" {{action requestMoreOperations}}><a href="#">{{t hostPopup.serviceInfo.showMore}}</a>
           </div>
@@ -343,7 +343,7 @@
                     <strong class="muted">{{hostLog.fileName}}</strong>
                     {{#view App.LogSearchUILinkView linkQueryParamsBinding="hostLog.linkTail" tagName="span"}}
                       <a {{bindAttr href="view.formatedLink" class=":pull-right view.isLodaded::disabled"}}
-                              target="_blank">
+                              target="_blank" rel="noopener noreferrer">
                         <i class="icon-external-link"></i>
                         {{t popup.logTail.openInLogSearch}}</a>
                     {{/view}}

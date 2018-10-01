@@ -1011,8 +1011,11 @@ var urls = {
     'mock': ''
   },
   'host.host_component.decommission_status_datanode': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentId}?fields=metrics/dfs/namenode',
+    'real': '/clusters/{clusterName}/host_components?HostRoles/component_name=NAMENODE&HostRoles/host_name.in({hostNames})&fields=metrics/dfs/namenode',
     'mock': '/data/hosts/HDP2/decommission_state.json'
+  },
+  'host.host_component.decommission_status_regionserver': {
+    'real': '/clusters/{clusterName}/host_components?HostRoles/component_name=HBASE_MASTER&HostRoles/host_name={hostName}&fields=metrics/hbase/master/liveRegionServersHosts,metrics/hbase/master/deadRegionServersHosts&minimal_response=true'
   },
   'host.region_servers.in_inservice': {
     'real': '/clusters/{clusterName}/host_components?HostRoles/component_name=HBASE_REGIONSERVER&HostRoles/desired_admin_state=INSERVICE&fields=HostRoles/host_name&minimal_response=true',
@@ -1449,6 +1452,10 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{nameNodeId}',
     'mock': ''
   },
+  'admin.high_availability.getNnCheckPointsStatuses': {
+    'real': '/clusters/{clusterName}/host_components?HostRoles/component_name=NAMENODE&HostRoles/host_name.in({hostNames})&fields=HostRoles/desired_state,metrics/dfs/namenode&minimal_response=true',
+    'mock': ''
+  },
   'admin.high_availability.getJnCheckPointStatus': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{jnId}?fields=metrics',
     'mock': ''
@@ -1520,15 +1527,6 @@ var urls = {
   },
   'admin.get.all_configurations': {
     'real': '/clusters/{clusterName}/configurations?{urlParams}',
-    'mock': '',
-    'format': function () {
-      return {
-        timeout: 10000
-      };
-    }
-  },
-  'admin.security.add.cluster_configs': {
-    'real': '/clusters/{clusterName}' + '?fields=Clusters/desired_configs',
     'mock': '',
     'format': function () {
       return {
@@ -1713,9 +1711,19 @@ var urls = {
     'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups/{groupId}/upgrade_items/{stageId}?fields=' +
     'UpgradeItem/group_id,' +
     'UpgradeItem/stage_id,' +
-    'tasks/Tasks/*&' +
+    'tasks/Tasks/command_detail,' +
+    'tasks/Tasks/host_name,' +
+    'tasks/Tasks/role,' +
+    'tasks/Tasks/request_id,' +
+    'tasks/Tasks/stage_id,' +
+    'tasks/Tasks/status,' +
+    'tasks/Tasks/structured_out&' +
     'minimal_response=true',
     'mock': '/data/stack_versions/upgrade_item.json'
+  },
+  'admin.upgrade.upgrade_task': {
+    'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups/{groupId}/upgrade_items/{stageId}/tasks/{taskId}',
+    'mock': ''
   },
   'admin.upgrade.service_checks': {
     'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups?upgrade_items/UpgradeItem/status=COMPLETED&upgrade_items/tasks/Tasks/status.in(FAILED,ABORTED,TIMEDOUT)&upgrade_items/tasks/Tasks/command=SERVICE_CHECK&fields=upgrade_items/tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,upgrade_items/tasks/Tasks/status&minimal_response=true'
@@ -1902,7 +1910,7 @@ var urls = {
   },
 
   'admin.kerberos_security.regenerate_keytabs.service' : {
-    'real': '/clusters/{clusterName}?regenerate_keytabs=all&regenerate_components={serviceName}',
+    'real': '/clusters/{clusterName}?regenerate_keytabs=all&regenerate_components={serviceName}&config_update_policy=none',
     'mock': '',
     'type': 'PUT',
     'format': function (data) {
@@ -1917,7 +1925,7 @@ var urls = {
   },
 
   'admin.kerberos_security.regenerate_keytabs.host' : {
-    'real': '/clusters/{clusterName}?regenerate_keytabs=all&regenerate_hosts={hostName}',
+    'real': '/clusters/{clusterName}?regenerate_keytabs=all&regenerate_hosts={hostName}&config_update_policy=none',
     'mock': '',
     'type': 'PUT',
     'format': function (data) {
@@ -2385,7 +2393,29 @@ var urls = {
           },
           "Requests/resource_filters": [
             {
-              "hosts_predicate": "HostRoles/stale_configs=true"
+              "hosts_predicate": "HostRoles/stale_configs=true&HostRoles/cluster_name=" + data.clusterName
+            }
+          ]
+        })
+      }
+    }
+  },
+
+  'restart.custom.filter': {
+    'real': "/clusters/{clusterName}/requests",
+    'mock': "",
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command": "RESTART",
+            "context": data.context,
+            "operation_level": "host_component"
+          },
+          "Requests/resource_filters": [
+            {
+              "hosts_predicate": data.filter
             }
           ]
         })
@@ -2517,10 +2547,6 @@ var urls = {
       };
     }
   },
-  'host.status.total_count': {
-    'real': '/clusters/{clusterName}?fields=Clusters/total_hosts&minimal_response=true',
-    'mock': '/data/hosts/HDP2/host_status_counters.json'
-  },
   'host.stack_versions.install': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/stack_versions',
     'mock': '',
@@ -2578,7 +2604,7 @@ var urls = {
     'mock': ''
   },
   'hosts.for_quick_links': {
-    'real': '/clusters/{clusterName}/hosts?Hosts/host_name.in({masterHosts})&fields=Hosts/public_host_name{urlParams}&minimal_response=true',
+    'real': '/clusters/{clusterName}/hosts?Hosts/host_name.in({hosts})&fields=Hosts/public_host_name{urlParams}&minimal_response=true',
     'mock': '/data/hosts/quick_links.json'
   },
   'hosts.confirmed.install': {
@@ -2720,6 +2746,10 @@ var urls = {
     'real': '/hosts?Hosts/host_name.in({hostNames})&fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&minimal_response=true',
     'mock': ''
   },
+  'hosts.ips': {
+    'real': '/hosts?Hosts/host_name.in({hostNames})&fields=Hosts/ip',
+    'mock': ''
+  },
   'hosts.host_components.pre_load': {
     real: '',
     mock: '/data/hosts/HDP2/hosts.json',
@@ -2746,7 +2776,7 @@ var urls = {
     }
   },
   'hosts.bulk.operations': {
-    real: '/clusters/{clusterName}/hosts?fields=Hosts/host_name,Hosts/maintenance_state,' +
+    real: '/clusters/{clusterName}/hosts?fields=Hosts/host_name,Hosts/host_state,Hosts/maintenance_state,' +
     'host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
     'Hosts/total_mem,' +
     'host_components/HostRoles/stale_configs' +
@@ -2908,6 +2938,16 @@ var urls = {
     mock: '/data/widget_layouts/{serviceName}/default_dashboard.json'
   },
 
+  'widget.layout.name.get': {
+    real: '/clusters/{clusterName}/widget_layouts?WidgetLayoutInfo/layout_name={name}',
+    mock: '/data/widget_layouts/{serviceName}/default_dashboard.json'
+  },
+
+  'widget.layout.delete': {
+    real: '/clusters/{clusterName}/widget_layouts/{layoutId}',
+    type: 'DELETE'
+  },
+
   'widget.layout.get': {
     real: '/clusters/{clusterName}/widget_layouts?{urlParams}',
     mock: '/data/widget_layouts/{serviceName}/default_dashboard.json'
@@ -2984,7 +3024,7 @@ var urls = {
   },
 
   'widgets.hostComponent.metrics.get': {
-    real: '/clusters/{clusterName}/host_components?HostRoles/component_name={componentName}{hostComponentCriteria}&fields={metricPaths}&format=null_padding',
+    real: '/clusters/{clusterName}/host_components?HostRoles/component_name={componentName}{hostComponentCriteria}&fields={metricPaths}&format=null_padding{selectedHostsParam}',
     mock: '/data/metrics/{serviceName}/Append_num_ops.json'
   },
 
@@ -3161,18 +3201,36 @@ var urls = {
     real: '/registries/{registryId}/mpacks/{name}/versions/{version}',
   },
 
-  'registry.recommendation.usecases': {
+  'registry.recommendation.useCases': {
     real: '/registries/{registryId}/recommendations',
     format: function (data) {
       return {
         type: 'POST',
         data: JSON.stringify({
           recommend: "scenario-mpacks",
-          selected_scenarios: data.usecases
+          selected_scenarios: data.useCases
         })
       };
     }
-  }
+  },
+
+  'hiveServerInteractive.getStatus': {
+    real: '',
+    mock: '',
+    format: function (data) {
+      return {
+        url: 'http://' + data.hsiHost + ':' + data.port + '/leader'
+      }
+    }
+  },
+
+  'servicegroup.get_all': {
+    'real': '/clusters/{clusterName}/servicegroups'
+  },
+
+  'servicegroup.get_all_details': {
+    'real': '/clusters/{clusterName}/servicegroups?fields=*'
+  },
 };
 /**
  * Replace data-placeholders to its values
@@ -3396,7 +3454,7 @@ var ajax = Em.Object.extend({
    * Upon error with one of these statuses modal should be displayed
    * @type {Array}
    */
-  statuses: ['500', '401', '407', '413'],
+  statuses: [500, 401, 407, 413],
 
   /**
    * defaultErrorHandler function is referred from App.ajax.send function and App.HttpClient.defaultErrorHandler function

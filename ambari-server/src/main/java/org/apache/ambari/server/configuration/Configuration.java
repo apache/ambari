@@ -33,8 +33,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
-import java.security.cert.CertificateException;
-import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -65,9 +63,7 @@ import org.apache.ambari.server.orm.JPATableGenerationStrategy;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.security.ClientSecurityType;
-import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
-import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.state.services.RetryUpgradeActionService;
@@ -157,6 +153,8 @@ public class Configuration {
    * The HTML {@code <br/>} tag.
    */
   private static final String HTML_BREAK_TAG = "<br/>";
+
+  private static final String AGENT_CONFIGS_DEFAULT_SECTION = "agentConfig";
 
   /**
    * Used to determine which repository validation strings should be used
@@ -447,10 +445,19 @@ public class Configuration {
    * The location and name of the Python mpack advisor script executed when
    * configuring services.
    */
-  @Markdown(description = "The location and name of the Python stack advisor script executed when configuring services.")
+  @Markdown(description = "The location and name of the Python mpack advisor script executed when configuring services.")
   public static final ConfigurationProperty<String> MPACK_ADVISOR_SCRIPT = new ConfigurationProperty<>(
       "mpackadvisor.script",
       AmbariPath.getPath("/var/lib/ambari-server/resources/scripts/mpack_advisor_wrapper.py"));
+
+  /**
+   * If set to true, the legacy stack advisor will be used instead of the newer mpack advisor (default value is false).
+   */
+  @Markdown(description = "If set to true, the legacy stack advisor will be used instead of the newer mpack advisor (default value is false).")
+  public static final ConfigurationProperty<Boolean> USE_LEGACY_STACK_ADVISOR = new ConfigurationProperty<>(
+    "use.legacy.stackadvisor",
+    false);
+
 
   /**
    * The name of the shell script used to wrap all invocations of Python by Ambari.
@@ -484,6 +491,13 @@ public class Configuration {
   @Markdown(description = "Determines whether Cross-Site Request Forgery attacks are prevented by looking for the `X-Requested-By` header.")
   public static final ConfigurationProperty<String> API_CSRF_PREVENTION = new ConfigurationProperty<>(
       "api.csrfPrevention.enabled", "true");
+
+  /**
+   * Determines whether Gzip handler is enabled for Jetty.
+   */
+  @Markdown(description = "Determines whether jetty Gzip compression is enabled or not.")
+  public static final ConfigurationProperty<String> GZIP_HANDLER_JETTY_ENABLED = new ConfigurationProperty<>(
+    "gzip.handler.jetty.enabled", "true");
 
   /**
    * Determines whether HTTP body data is compressed with GZIP.
@@ -561,6 +575,13 @@ public class Configuration {
   @Markdown(description = "The name of the file located in the `security.server.keys_dir` directory where certificates will be generated when Ambari uses the `openssl ca` command.")
   public static final ConfigurationProperty<String> SRVR_CRT_NAME = new ConfigurationProperty<>(
       "security.server.cert_name", "ca.crt");
+
+  /**
+   * The name of the file that contains the CA certificate chain for certificate validation during 2-way SSL communication.
+   */
+  @Markdown(description = "The name of the file located in the `security.server.keys_dir` directory containing the CA certificate chain used to verify certificates during 2-way SSL communications.")
+  public static final ConfigurationProperty<String> SRVR_CRT_CHAIN_NAME = new ConfigurationProperty<>(
+      "security.server.cert_chain_name", "ca_chain.pem");
 
   /**
    * The name of the certificate request file used when generating certificates.
@@ -1160,59 +1181,6 @@ public class Configuration {
   @Markdown(description = "A comma-separate list of upgrade tasks details to skip when retrying failed commands automatically.")
   public static final ConfigurationProperty<String> STACK_UPGRADE_AUTO_RETRY_COMMAND_DETAILS_TO_IGNORE = new ConfigurationProperty<>(
       "stack.upgrade.auto.retry.command.details.to.ignore", "\"Execute HDFS Finalize\"");
-
-  /**
-   * Determines whether to use JWT authentication when connecting to remote Hadoop resources.
-   */
-  @Markdown(description = "Determines whether to use JWT authentication when connecting to remote Hadoop resources.")
-  public static final ConfigurationProperty<Boolean> JWT_AUTH_ENABLED = new ConfigurationProperty<>(
-      "authentication.jwt.enabled", Boolean.FALSE);
-
-  /**
-   * The URL for authentication of the user in the absence of a JWT token when
-   * handling a JWT request.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The URL for authentication of the user in the absence of a JWT token when handling a JWT request.")
-  public static final ConfigurationProperty<String> JWT_AUTH_PROVIDER_URL = new ConfigurationProperty<>(
-      "authentication.jwt.providerUrl", null);
-
-  /**
-   * The public key to use when verifying the authenticity of a JWT token.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The public key to use when verifying the authenticity of a JWT token.")
-  public static final ConfigurationProperty<String> JWT_PUBLIC = new ConfigurationProperty<>(
-      "authentication.jwt.publicKey", null);
-
-  /**
-   * A list of the JWT audiences expected. Leaving this blank will allow for any audience.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "A list of the JWT audiences expected. Leaving this blank will allow for any audience.")
-  public static final ConfigurationProperty<String> JWT_AUDIENCES = new ConfigurationProperty<>(
-      "authentication.jwt.audiences", null);
-
-  /**
-   * The name of the cookie which will be used to extract the JWT token from the request.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The name of the cookie which will be used to extract the JWT token from the request.")
-  public static final ConfigurationProperty<String> JWT_COOKIE_NAME = new ConfigurationProperty<>(
-      "authentication.jwt.cookieName", "hadoop-jwt");
-
-  /**
-   * The original URL to use when constructing the logic URL for JWT.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The original URL to use when constructing the logic URL for JWT.")
-  public static final ConfigurationProperty<String> JWT_ORIGINAL_URL_QUERY_PARAM = new ConfigurationProperty<>(
-      "authentication.jwt.originalUrlParamName", "originalUrl");
 
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    * Kerberos authentication-specific properties
@@ -1883,7 +1851,7 @@ public class Configuration {
    */
   @Markdown(description = "Thread pool size for spring messaging")
   public static final ConfigurationProperty<Integer> MESSAGING_THREAD_POOL_SIZE = new ConfigurationProperty<>(
-      "messaging.threadpool.size", 1);
+      "messaging.threadpool.size", 10);
 
   /**
    * The thread pool size for agents registration.
@@ -1936,11 +1904,32 @@ public class Configuration {
       "api.heartbeat.interval", 10000);
 
   /**
-   * The maximum size of a stomp text message. Default is 2 MB.
+   * The maximum size of an incoming stomp text message. Default is 2 MB.
    */
-  @Markdown(description = "The maximum size of a stomp text message. Default is 2 MB.")
-  public static final ConfigurationProperty<Integer> STOMP_MAX_MESSAGE_SIZE = new ConfigurationProperty<>(
-      "stomp.max.message.size", 2*1024*1024);
+  @Markdown(description = "The maximum size of an incoming stomp text message. Default is 2 MB.")
+  public static final ConfigurationProperty<Integer> STOMP_MAX_INCOMING_MESSAGE_SIZE = new ConfigurationProperty<>(
+      "stomp.max_incoming.message.size", 2*1024*1024);
+
+  /**
+   * The maximum size of a buffer for stomp message sending. Default is 5 MB.
+   */
+  @Markdown(description = "The maximum size of a buffer for stomp message sending. Default is 5 MB.")
+  public static final ConfigurationProperty<Integer> STOMP_MAX_BUFFER_MESSAGE_SIZE = new ConfigurationProperty<>(
+      "stomp.max_buffer.message.size", 5*1024*1024);
+
+  /**
+   * The number of attempts to emit execution command message to agent. Default is 4
+   */
+  @Markdown(description = "The number of attempts to emit execution command message to agent. Default is 4")
+  public static final ConfigurationProperty<Integer> EXECUTION_COMMANDS_RETRY_COUNT = new ConfigurationProperty<>(
+      "execution.command.retry.count", 4);
+
+  /**
+   * The interval in seconds between attempts to emit execution command message to agent. Default is 15
+   */
+  @Markdown(description = "The interval in seconds between attempts to emit execution command message to agent. Default is 15")
+  public static final ConfigurationProperty<Integer> EXECUTION_COMMANDS_RETRY_INTERVAL = new ConfigurationProperty<>(
+      "execution.command.retry.interval", 15);
 
   /**
    * The maximum number of threads used to extract Ambari Views when Ambari
@@ -2315,6 +2304,15 @@ public class Configuration {
       "views.http.cache-control", "no-store");
 
   /**
+   * The value that is additional classpath for the views. It will take comma separated paths. If the individual path is jar
+   * it will be included otherwise if it is a directory then all the files inside it will be included in the classpath. Directories
+   * WILL NOT BE traversed recursively
+   */
+  @Markdown(description = "Additional class path added to each Ambari View. Comma separated jars or directories")
+  public static final ConfigurationProperty<String> VIEWS_ADDITIONAL_CLASSPATH_VALUE = new ConfigurationProperty<>(
+      "views.additional.classpath", "");
+
+  /**
    * The value that will be used to set the {@code PRAGMA} HTTP response header.
    * HTTP response header for Ambari View requests.
    */
@@ -2628,6 +2626,16 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES = new ConfigurationProperty<>(
     "stack.upgrade.default.parallelism", 100);
 
+  /**
+   * If enabled, Ambari will generate hash files for stack resource directories
+   * and generate compressed archives of those directories to send to agents.
+   * This should normally always be {@code true} except in a development
+   * environment.
+   */
+  @Markdown(description = "Enables whether Ambari should generate .hash files for stack resource directories. This should always be enabled unless working in a development environment.")
+  public static final ConfigurationProperty<Boolean> STACK_RESOURCE_HASH_ENABLED = new ConfigurationProperty<>(
+      "server.stack.resources.hash.enabled", true);
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -2637,7 +2645,7 @@ public class Configuration {
   private String ambariUpgradeConfigUpdatesFilePath;
   private JsonObject hostChangesJson;
   private Map<String, String> configsMap;
-  private Map<String, String> agentConfigsMap;
+  private Map<String, Map<String,String>> agentConfigsMap;
   private Properties customDbProperties = null;
   private Properties customPersistenceProperties = null;
   private Long configLastModifiedDateForCustomJDBC = 0L;
@@ -2790,13 +2798,16 @@ public class Configuration {
     this.properties = properties;
 
     agentConfigsMap = new HashMap<>();
-    agentConfigsMap.put(CHECK_REMOTE_MOUNTS.getKey(), getProperty(CHECK_REMOTE_MOUNTS));
-    agentConfigsMap.put(CHECK_MOUNTS_TIMEOUT.getKey(), getProperty(CHECK_MOUNTS_TIMEOUT));
-    agentConfigsMap.put(ENABLE_AUTO_AGENT_CACHE_UPDATE.getKey(), getProperty(ENABLE_AUTO_AGENT_CACHE_UPDATE));
-    agentConfigsMap.put(JAVA_HOME.getKey(), getProperty(JAVA_HOME));
+    agentConfigsMap.put(AGENT_CONFIGS_DEFAULT_SECTION, new HashMap<String, String>());
+
+    Map<String,String> defaultAgentConfigsMap = agentConfigsMap.get(AGENT_CONFIGS_DEFAULT_SECTION);
+    defaultAgentConfigsMap.put(CHECK_REMOTE_MOUNTS.getKey(), getProperty(CHECK_REMOTE_MOUNTS));
+    defaultAgentConfigsMap.put(CHECK_MOUNTS_TIMEOUT.getKey(), getProperty(CHECK_MOUNTS_TIMEOUT));
+    defaultAgentConfigsMap.put(ENABLE_AUTO_AGENT_CACHE_UPDATE.getKey(), getProperty(ENABLE_AUTO_AGENT_CACHE_UPDATE));
+    defaultAgentConfigsMap.put(JAVA_HOME.getKey(), getProperty(JAVA_HOME));
 
     configsMap = new HashMap<>();
-    configsMap.putAll(agentConfigsMap);
+    configsMap.putAll(defaultAgentConfigsMap);
     configsMap.put(AMBARI_PYTHON_WRAP.getKey(), getProperty(AMBARI_PYTHON_WRAP));
     configsMap.put(SRVR_AGENT_HOSTNAME_VALIDATE.getKey(), getProperty(SRVR_AGENT_HOSTNAME_VALIDATE));
     configsMap.put(SRVR_TWO_WAY_SSL.getKey(), getProperty(SRVR_TWO_WAY_SSL));
@@ -2804,6 +2815,7 @@ public class Configuration {
     configsMap.put(SRVR_ONE_WAY_SSL_PORT.getKey(), getProperty(SRVR_ONE_WAY_SSL_PORT));
     configsMap.put(SRVR_KSTR_DIR.getKey(), getProperty(SRVR_KSTR_DIR));
     configsMap.put(SRVR_CRT_NAME.getKey(), getProperty(SRVR_CRT_NAME));
+    configsMap.put(SRVR_CRT_CHAIN_NAME.getKey(), getProperty(SRVR_CRT_CHAIN_NAME));
     configsMap.put(SRVR_KEY_NAME.getKey(), getProperty(SRVR_KEY_NAME));
     configsMap.put(SRVR_CSR_NAME.getKey(), getProperty(SRVR_CSR_NAME));
     configsMap.put(KSTR_NAME.getKey(), getProperty(KSTR_NAME));
@@ -3014,7 +3026,7 @@ public class Configuration {
   private void writeConfigFile(Properties propertiesToStore, boolean append) throws AmbariException {
     File configFile = null;
     try {
-      configFile = new File(Configuration.class.getClassLoader().getResource(Configuration.CONFIG_FILE).getPath());
+      configFile = getConfigFile();
       propertiesToStore.store(new OutputStreamWriter(new FileOutputStream(configFile, append), Charsets.UTF_8), null);
     } catch (Exception e) {
       LOG.error("Cannot write properties [" + propertiesToStore + "] into configuration file [" + configFile + ", " + append + "] ");
@@ -3038,7 +3050,7 @@ public class Configuration {
     writeConfigFile(existingProperties, false);
 
     // reloading properties
-    this.properties = readConfigFile();
+    properties = readConfigFile();
   }
 
   /**
@@ -3174,7 +3186,7 @@ public class Configuration {
   }
 
   public Map<String, String> getDatabaseConnectorNames() {
-    File file = new File(Configuration.class.getClassLoader().getResource(CONFIG_FILE).getPath());
+    File file = getConfigFile();
     Long currentConfigLastModifiedDate = file.lastModified();
     Properties properties = null;
     if (currentConfigLastModifiedDate.longValue() != configLastModifiedDateForCustomJDBC.longValue()) {
@@ -3198,8 +3210,12 @@ public class Configuration {
     return databaseConnectorNames;
   }
 
+  public File getConfigFile() {
+    return new File(Configuration.class.getClassLoader().getResource(CONFIG_FILE).getPath());
+  }
+
   public Map<String, String> getPreviousDatabaseConnectorNames() {
-    File file = new File(Configuration.class.getClassLoader().getResource(CONFIG_FILE).getPath());
+    File file = getConfigFile();
     Long currentConfigLastModifiedDate = file.lastModified();
     Properties properties = null;
     if (currentConfigLastModifiedDate.longValue() != configLastModifiedDateForCustomJDBCToRemove.longValue()) {
@@ -3370,6 +3386,10 @@ public class Configuration {
     return getProperty(MPACK_ADVISOR_SCRIPT);
   }
 
+  public boolean shouldUseLegacyStackAdvisor() {
+    return Boolean.valueOf(getProperty(USE_LEGACY_STACK_ADVISOR));
+  }
+
   /**
    * @return a list of prefixes. Packages whose name starts with any of these
    * prefixes, should be skipped during upgrade.
@@ -3486,7 +3506,7 @@ public class Configuration {
    * Keys - public constants of this class
    * @return the map with server config parameters related to agent configuration
    */
-  public Map<String, String> getAgentConfigsMap() {
+  public Map<String, Map<String,String>> getAgentConfigsMap() {
     return agentConfigsMap;
   }
 
@@ -3802,6 +3822,19 @@ public class Configuration {
   }
 
   /**
+   * Get the comma separated additional classpath, that should be added to view's classloader.
+   * <p/>
+   * By default it will be empty. i.e. no additional classpath.
+   * If present it will be comma separated path entries. Each entry can be a file or a directory.
+   * If entry is a file it will be added as it is.
+   * If entry is a directory, all the files inside this directory will be added to the classpath.
+   * @return the view's additional classpath value - null or "" indicates that the value is not set
+   */
+  public String getViewsAdditionalClasspath() {
+    return getProperty(VIEWS_ADDITIONAL_CLASSPATH_VALUE);
+  }
+
+  /**
    * Get the value that should be set for the <code>Pragma</code> HTTP response header for Ambari Views.
    * <p/>
    * By default this will be <code>no-cache</code>. For example:
@@ -3856,6 +3889,15 @@ public class Configuration {
    */
   public boolean isApiGzipped() {
     return Boolean.parseBoolean(getProperty(API_GZIP_COMPRESSION_ENABLED));
+  }
+
+
+  /**
+   * Check to see if the API responses should be compressed via gzip or not
+   * @return false if not, true if gzip compression needs to be used.
+   */
+  public boolean isGzipHandlerEnabledForJetty() {
+    return Boolean.parseBoolean(getProperty(GZIP_HANDLER_JETTY_ENABLED));
   }
 
   /**
@@ -4603,7 +4645,7 @@ public class Configuration {
   }
 
   /**
-   * @return max thread pool size for clients, default 25
+   * @return max thread pool size for clients, default 10
    */
   public int getSpringMessagingThreadPoolSize() {
     return Integer.parseInt(getProperty(MESSAGING_THREAD_POOL_SIZE));
@@ -4660,10 +4702,31 @@ public class Configuration {
   }
 
   /**
-   * @return the maximum size of a stomp text message. Default is 2 MB.
+   * @return the maximum size of an incoming stomp text message. Default is 2 MB.
    */
-  public int getStompMaxMessageSize() {
-    return Integer.parseInt(getProperty(STOMP_MAX_MESSAGE_SIZE));
+  public int getStompMaxIncomingMessageSize() {
+    return Integer.parseInt(getProperty(STOMP_MAX_INCOMING_MESSAGE_SIZE));
+  }
+
+  /**
+   * @return the maximum size of a buffer for stomp message sending. Default is 5 MB.
+   */
+  public int getStompMaxBufferMessageSize() {
+    return Integer.parseInt(getProperty(STOMP_MAX_BUFFER_MESSAGE_SIZE));
+  }
+
+  /**
+   * @return the number of attempts to emit execution command message to agent. Default is 4
+   */
+  public int getExecutionCommandsRetryCount() {
+    return Integer.parseInt(getProperty(EXECUTION_COMMANDS_RETRY_COUNT));
+  }
+
+  /**
+   * @return the interval in seconds between attempts to emit execution command message to agent. Default is 15
+   */
+  public int getExecutionCommandsRetryInterval() {
+    return Integer.parseInt(getProperty(EXECUTION_COMMANDS_RETRY_INTERVAL));
   }
 
   /**
@@ -5164,48 +5227,6 @@ public class Configuration {
   }
 
   /**
-   * Get set of properties desribing SSO configuration (JWT)
-   */
-  public JwtAuthenticationProperties getJwtProperties() {
-    boolean enableJwt = Boolean.valueOf(getProperty(JWT_AUTH_ENABLED));
-
-    if (enableJwt) {
-      String providerUrl = getProperty(JWT_AUTH_PROVIDER_URL);
-      if (providerUrl == null) {
-        LOG.error("JWT authentication provider URL not specified. JWT auth will be disabled.");
-        return null;
-      }
-      String publicKeyPath = getProperty(JWT_PUBLIC);
-      if (publicKeyPath == null) {
-        LOG.error("Public key pem not specified for JWT auth provider {}. JWT auth will be disabled.", providerUrl);
-        return null;
-      }
-      try {
-        RSAPublicKey publicKey = CertificateUtils.getPublicKeyFromFile(publicKeyPath);
-        JwtAuthenticationProperties jwtProperties = new JwtAuthenticationProperties();
-        jwtProperties.setAuthenticationProviderUrl(providerUrl);
-        jwtProperties.setPublicKey(publicKey);
-
-        jwtProperties.setCookieName(getProperty(JWT_COOKIE_NAME));
-        jwtProperties.setAudiencesString(getProperty(JWT_AUDIENCES));
-        jwtProperties.setOriginalUrlQueryParam(getProperty(JWT_ORIGINAL_URL_QUERY_PARAM));
-
-        return jwtProperties;
-
-      } catch (IOException e) {
-        LOG.error("Unable to read public certificate file. JWT auth will be disabled.", e);
-        return null;
-      } catch (CertificateException e) {
-        LOG.error("Unable to parse public certificate file. JWT auth will be disabled.", e);
-        return null;
-      }
-    } else {
-      return null;
-    }
-
-  }
-
-  /**
    * Gets the Kerberos authentication-specific properties container
    *
    * @return an AmbariKerberosAuthenticationProperties
@@ -5299,7 +5320,12 @@ public class Configuration {
   }
 
   public Boolean getGplLicenseAccepted(){
-    return Boolean.valueOf(getProperty(GPL_LICENSE_ACCEPTED));
+    Properties actualProps = readConfigFile();
+    String defaultGPLAcceptedValue = null;
+    if (null != GPL_LICENSE_ACCEPTED.getDefaultValue()) {
+      defaultGPLAcceptedValue = String.valueOf(GPL_LICENSE_ACCEPTED.getDefaultValue());
+    }
+    return Boolean.valueOf(actualProps.getProperty(GPL_LICENSE_ACCEPTED.getKey(), defaultGPLAcceptedValue));
   }
 
   public String getAgentStackRetryOnInstallCount(){
@@ -6066,4 +6092,15 @@ public class Configuration {
   public int getAlertServiceCorePoolSize() {
     return Integer.parseInt(getProperty(SERVER_SIDE_ALERTS_CORE_POOL_SIZE));
   }
+
+  /**
+   * Gets whether Ambari should generate {@code .hash} and {@code archive.zip}
+   * files for stack resources.
+   *
+   * @return {@code true} to generate the files, {@code false} otherwise.
+   */
+  public boolean isStackResourceHashAndArchiveGenerationEnabled() {
+    return Boolean.parseBoolean(getProperty(STACK_RESOURCE_HASH_ENABLED));
+  }
+
 }

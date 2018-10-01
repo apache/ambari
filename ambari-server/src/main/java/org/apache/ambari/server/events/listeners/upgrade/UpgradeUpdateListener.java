@@ -21,7 +21,7 @@ import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.RequestUpdateEvent;
 import org.apache.ambari.server.events.UpgradeUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
@@ -35,7 +35,7 @@ import com.google.inject.Singleton;
 @EagerSingleton
 public class UpgradeUpdateListener {
 
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private UpgradeDAO upgradeDAO;
@@ -47,17 +47,17 @@ public class UpgradeUpdateListener {
   private RequestDAO requestDAO;
 
   @Inject
-  public UpgradeUpdateListener(StateUpdateEventPublisher stateUpdateEventPublisher, AmbariEventPublisher ambariEventPublisher) {
-    stateUpdateEventPublisher.register(this);
+  public UpgradeUpdateListener(STOMPUpdatePublisher STOMPUpdatePublisher, AmbariEventPublisher ambariEventPublisher) {
+    STOMPUpdatePublisher.register(this);
 
-    this.stateUpdateEventPublisher = stateUpdateEventPublisher;
+    this.STOMPUpdatePublisher = STOMPUpdatePublisher;
   }
 
   @Subscribe
   public void onRequestUpdate(RequestUpdateEvent requestUpdateEvent) {
     UpgradeEntity upgradeEntity = upgradeDAO.findUpgradeByRequestId(requestUpdateEvent.getRequestId());
     if (upgradeEntity != null) {
-      stateUpdateEventPublisher.publish(UpgradeUpdateEvent.formUpdateEvent(hostRoleCommandDAO, requestDAO, upgradeEntity));
+      STOMPUpdatePublisher.publish(UpgradeUpdateEvent.formUpdateEvent(hostRoleCommandDAO, requestDAO, upgradeEntity));
     }
   }
 }

@@ -53,7 +53,7 @@ import com.google.inject.Inject;
  * This class mainly relies on the KerberosServerAction to iterate through metadata identifying
  * the Kerberos keytab files that need to be created. For each identity in the metadata, this
  * implementation's
- * {@link KerberosServerAction#processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, Map)}
+ * {@link KerberosServerAction#processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, boolean, Map)}
  * is invoked attempting the creation of the relevant keytab file.
  */
 public class CreateKeytabFilesServerAction extends KerberosServerAction {
@@ -133,6 +133,8 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
    *                                 tasks for specific Kerberos implementations
    *                                 (MIT, Active Directory, etc...)
    * @param kerberosConfiguration    a Map of configuration properties from kerberos-env
+   * @param includedInFilter         a Boolean value indicating whather the principal is included in
+   *                                 the current filter or not
    * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
    *                                 to a given request  @return a CommandReport, indicating an error
    *                                 condition; or null, indicating a success condition
@@ -142,6 +144,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
   protected CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal,
                                           KerberosOperationHandler operationHandler,
                                           Map<String, String> kerberosConfiguration,
+                                          boolean includedInFilter,
                                           Map<String, Object> requestSharedDataContext)
       throws AmbariException {
 
@@ -206,6 +209,11 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
 
                 boolean regenerateKeytabs = getOperationType(getCommandParameters()) == OperationType.RECREATE_ALL;
 
+                if(!includedInFilter) {
+                  // If this principal is to be filtered out, skip... unless is has not yet been created...
+                  regenerateKeytabs = false;
+                }
+
                 KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(resolvedPrincipal.getPrincipal());
                 String cachedKeytabPath = (principalEntity == null) ? null : principalEntity.getCachedKeytabPath();
 
@@ -214,7 +222,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                     // There is nothing to do for this since it must already exist and we don't want to
                     // regenerate the keytab
                     message = String.format("Skipping keytab file for %s, missing password indicates nothing to do", resolvedPrincipal.getPrincipal());
-                    LOG.debug(message);
+                    LOG.info(message);
                   } else {
                     if (cachedKeytabPath == null) {
                       message = String.format("Failed to create keytab for %s, missing cached file", resolvedPrincipal.getPrincipal());
@@ -241,7 +249,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                         ensureAmbariOnlyAccess(destinationKeytabFile);
 
                         message = String.format("Successfully created keytab file for %s at %s", resolvedPrincipal.getPrincipal(), destinationKeytabFile.getAbsolutePath());
-                        LOG.debug(message);
+                        LOG.info(message);
                         auditEventBuilder.withPrincipal(resolvedPrincipal.getPrincipal()).withHostName(hostName).withKeyTabFilePath(destinationKeytabFile.getAbsolutePath());
                       } else {
                         message = String.format("Failed to create keytab file for %s at %s", resolvedPrincipal.getPrincipal(), destinationKeytabFile.getAbsolutePath());

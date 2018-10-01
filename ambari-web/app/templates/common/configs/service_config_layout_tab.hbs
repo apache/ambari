@@ -58,7 +58,11 @@
                                     <a href="#" {{action setActiveSubTab subSectionTab target="view"}}{{bindAttr data-target="subSectionTab.id"}} data-toggle="tab">
                                       {{subSectionTab.displayName}}
                                       {{#if subSectionTab.errorsCount}}
-                                        <span class="badge badge-important">{{subSectionTab.errorsCount}}</span>
+                                        <span class="alert-badge" {{QAAttr "error-badge"}}>
+                                          <span class="counter label alerts-crit-count">
+                                            {{subSectionTab.errorsCount}}
+                                          </span>
+                                        </span>
                                       {{/if}}
                                     </a>
                                   </li>

@@ -22,7 +22,7 @@
 #config-versions-control {
   .dropdown-menu {
     min-width: 600px;
-    padding-bottom: 20px;
+    padding-bottom: 8px;
     li {
       padding: 3px 20px;
     }
@@ -40,7 +40,11 @@
     box-shadow: inset 0 0 0 @border-color, inset 0px -10px 8px -8px @border-color;
   }
   .grey-text {
+    vertical-align: middle;
     color: @top-nav-brand-color;
+  }
+  .close {
+    vertical-align: middle;
   }
   .current-color {
     color: @health-status-green;
@@ -89,16 +93,18 @@
     height: 30px;
     cursor: pointer;
   }
-  .make-current {
-    color: @health-status-green;
-    border-color: @health-status-green;
-  }
   .compare-bar {
     background-color: @border-color;
     padding: 10px 15px;
-    .close {
-      line-height: 30px;
+    .compare-label {
+      vertical-align: middle;
     }
+  }
+}
+
+.host-configs {
+  .config-layout {
+    margin-bottom: 10px;
   }
 }
 
@@ -107,6 +113,7 @@
     display: inline-block;
     width: @button-width;
     .btn.dropdown-toggle {
+      text-transform: none;
       width: 100%;
       text-align: left;
       padding: 10px;

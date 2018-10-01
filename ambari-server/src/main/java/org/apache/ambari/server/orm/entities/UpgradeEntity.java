@@ -18,6 +18,7 @@
 package org.apache.ambari.server.orm.entities;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -497,4 +498,12 @@ public class UpgradeEntity {
     return mpacks;
   }
 
+ /**
+ * Removes historical entries for a service component in this upgrade.
+ */
+ public void removeHistories(Collection<UpgradeHistoryEntity> upgradeHistoryEntity) {
+    if (upgradeHistory != null) {
+      upgradeHistory.removeAll(upgradeHistoryEntity);
+    }
+  }
 }

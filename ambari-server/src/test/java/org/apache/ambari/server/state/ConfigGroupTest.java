@@ -32,6 +32,7 @@ import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
@@ -63,6 +64,7 @@ public class ConfigGroupTest {
   private ClusterDAO clusterDAO;
   private ClusterServiceDAO clusterServiceDAO;
   private ServiceGroupDAO serviceGroupDAO;
+  private StackId stackId;
 
   @Before
   public void setup() throws Exception {
@@ -78,7 +80,7 @@ public class ConfigGroupTest {
     clusterDAO = injector.getInstance(ClusterDAO.class);
     serviceGroupDAO = injector.getInstance(ServiceGroupDAO.class);
 
-    StackId stackId = new StackId("HDP-0.1");
+    stackId = new StackId("HDP-0.1");
     OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
     helper.createMpack(stackId);
 
@@ -107,7 +109,7 @@ public class ConfigGroupTest {
     Map<String, String> attributes = new HashMap<>();
     attributes.put("a", "true");
     propertiesAttributes.put("final", attributes);
-    Config config = configFactory.createNew(cluster, "hdfs-site", "testversion", properties, propertiesAttributes);
+    Config config = configFactory.createNew(stackId, cluster, "hdfs-site", "testversion", properties, propertiesAttributes, 1L);
 
     Host host = clusters.getHost("h1");
 
@@ -130,6 +132,7 @@ public class ConfigGroupTest {
     clusterServiceEntity.setServiceGroupEntity(serviceGroupEntity);
     clusterServiceEntity.setServiceName("HDFS");
     clusterServiceEntity.setServiceType("HDFS");
+    clusterServiceEntity.setServiceId(1L);
     clusterServiceDAO.create(clusterServiceEntity);
 
     ConfigGroup configGroup = configGroupFactory.createNew(cluster, 1L, clusterServiceEntity.getServiceId(), "cg-test", "HDFS", "New HDFS configs for h1", configs, hosts);
@@ -151,7 +154,9 @@ public class ConfigGroupTest {
     Assert.assertNotNull(configMappingEntity);
     Assert.assertEquals("hdfs-site", configMappingEntity.getConfigType());
     Assert.assertEquals("testversion", configMappingEntity.getVersionTag());
-    Assert.assertNotNull(configMappingEntity.getClusterConfigEntity());
+    ClusterConfigEntity clusterConfigEntity = configMappingEntity.getClusterConfigEntity();
+    Assert.assertNotNull(clusterConfigEntity);
+    Assert.assertEquals(Long.valueOf(1L), clusterConfigEntity.getServiceId());
     Assert.assertTrue(configMappingEntity
       .getClusterConfigEntity().getData().contains("a"));
     Assert.assertEquals("{\"final\":{\"a\":\"true\"}}", configMappingEntity

@@ -24,18 +24,24 @@ package org.apache.ambari.server.events;
  * component is enabled or disabled for auto start.
  */
 public class ServiceComponentRecoveryChangedEvent extends AmbariEvent {
-  private String m_clusterName;
-  private String m_serviceName;
-  private String m_componentName;
-  private boolean m_recoveryEnabled;
+  private final long m_clusterId;
+  private final String m_clusterName;
+  private final String m_serviceName;
+  private final String m_componentName;
+  private final boolean m_recoveryEnabled;
 
   public ServiceComponentRecoveryChangedEvent(
-          String clusterName, String serviceName, String componentName, boolean recoveryEnabled) {
+          long clusterId, String clusterName, String serviceName, String componentName, boolean recoveryEnabled) {
     super(AmbariEventType.SERVICE_COMPONENT_RECOVERY_CHANGED);
+    m_clusterId = clusterId;
     m_clusterName = clusterName;
     m_serviceName = serviceName;
     m_componentName = componentName;
     m_recoveryEnabled = recoveryEnabled;
+  }
+
+  public long getClusterId() {
+    return m_clusterId;
   }
 
   /**
@@ -80,7 +86,8 @@ public class ServiceComponentRecoveryChangedEvent extends AmbariEvent {
   @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder("ServiceComponentRecoveryChangeEvent{");
-    buffer.append("clusterName=").append(getClusterName());
+    buffer.append("clusterId=").append(getClusterId());
+    buffer.append(", clusterName=").append(getClusterName());
     buffer.append(", serviceName=").append(getServiceName());
     buffer.append(", componentName=").append(getComponentName());
     buffer.append(", recoveryEnabled=").append(isRecoveryEnabled());

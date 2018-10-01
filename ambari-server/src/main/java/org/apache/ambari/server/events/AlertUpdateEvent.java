@@ -26,7 +26,7 @@ import org.apache.ambari.server.api.query.render.AlertSummaryGroupedRenderer;
 /**
  * Contains info about alerts update. This update will be sent to all subscribed recipients.
  */
-public class AlertUpdateEvent extends AmbariUpdateEvent {
+public class AlertUpdateEvent extends STOMPEvent {
   /**
    * Alert summaries grouped by cluster id.
    */

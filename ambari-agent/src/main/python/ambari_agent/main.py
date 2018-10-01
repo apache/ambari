@@ -106,12 +106,7 @@ from resource_management.core.logger import Logger
 #from resource_management.core.resources.system import File
 #from resource_management.core.environment import Environment
 
-from ambari_agent import HeartbeatThread
 from ambari_agent.InitializerModule import InitializerModule
-from ambari_agent.ComponentStatusExecutor import ComponentStatusExecutor
-from ambari_agent.CommandStatusReporter import CommandStatusReporter
-from ambari_agent.HostStatusReporter import HostStatusReporter
-from ambari_agent.AlertStatusReporter import AlertStatusReporter
 
 #logging.getLogger('ambari_agent').propagate = False
 
@@ -141,8 +136,6 @@ SYSLOG_FORMAT_STRING = ' ambari_agent - %(filename)s - [%(process)d] - %(name)s 
 SYSLOG_FORMATTER = logging.Formatter(SYSLOG_FORMAT_STRING)
 
 _file_logging_handlers ={}
-
-EXIT_CODE_ON_STOP = 0
 
 def setup_logging(logger, filename, logging_level):
   logger.propagate = False
@@ -362,22 +355,11 @@ MAX_RETRIES = 10
 
 def run_threads(initializer_module):
   initializer_module.alert_scheduler_handler.start()
-
-  heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
-  heartbeat_thread.start()
-
-  component_status_executor = ComponentStatusExecutor(initializer_module)
-  component_status_executor.start()
-
-  command_status_reporter = CommandStatusReporter(initializer_module)
-  command_status_reporter.start()
-
-  host_status_reporter = HostStatusReporter(initializer_module)
-  host_status_reporter.start()
-
-  alert_status_reporter = AlertStatusReporter(initializer_module)
-  alert_status_reporter.start()
-
+  initializer_module.heartbeat_thread.start()
+  initializer_module.component_status_executor.start()
+  initializer_module.command_status_reporter.start()
+  initializer_module.host_status_reporter.start()
+  initializer_module.alert_status_reporter.start()
   initializer_module.action_queue.start()
 
   while not initializer_module.stop_event.is_set():
@@ -385,11 +367,11 @@ def run_threads(initializer_module):
 
   initializer_module.action_queue.interrupt()
 
-  command_status_reporter.join()
-  component_status_executor.join()
-  host_status_reporter.join()
-  alert_status_reporter.join()
-  heartbeat_thread.join()
+  initializer_module.command_status_reporter.join()
+  initializer_module.component_status_executor.join()
+  initializer_module.host_status_reporter.join()
+  initializer_module.alert_status_reporter.join()
+  initializer_module.heartbeat_thread.join()
   initializer_module.action_queue.join()
 
 # event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
@@ -518,7 +500,7 @@ def main(initializer_module, heartbeat_stop_callback=None):
       # Clean up if not Windows OS
       #
       if connected or stopped:
-        ExitHelper().exit(EXIT_CODE_ON_STOP)
+        ExitHelper().exit()
         logger.info("finished")
         break
     pass # for server_hostname in server_hostnames

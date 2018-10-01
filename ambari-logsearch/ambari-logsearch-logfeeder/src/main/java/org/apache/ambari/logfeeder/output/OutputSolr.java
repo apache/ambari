@@ -19,48 +19,46 @@
 
 package org.apache.ambari.logfeeder.output;
 
+import org.apache.ambari.logfeeder.common.IdGeneratorHelper;
+import org.apache.ambari.logfeeder.common.LogFeederSolrClientFactory;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logfeeder.util.DateUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputSolrProperties;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.client.solrj.impl.Krb5HttpClientBuilder;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.cloud.CollectionStateWatcher;
 import org.apache.solr.common.cloud.DocCollection;
+import org.apache.solr.common.cloud.Slice;
+import org.apache.solr.common.cloud.ZkStateReader;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.Collection;;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
-public class OutputSolr extends Output<LogFeederProps, InputMarker> implements CollectionStateWatcher {
+public class OutputSolr extends Output<LogFeederProps, InputMarker> {
 
   private static final Logger LOG = Logger.getLogger(OutputSolr.class);
 
-  private static final int OUTPUT_PROPERTIES_WAIT_MS = 10000;
   private static final int SHARDS_WAIT_MS = 10000;
 
   private static final int DEFAULT_MAX_BUFFER_SIZE = 5000;
@@ -77,16 +75,15 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
   private String collection;
   private String splitMode;
   private int splitInterval;
-  private List<String> shards;
   private String zkConnectString;
+  private String[] solrUrls = null;
   private int maxIntervalMS;
   private int workers;
   private int maxBufferSize;
-  private boolean isComputeCurrentCollection = false;
+  private boolean implicitRouting = false;
   private int lastSlotByMin = -1;
   private boolean skipLogtime = false;
-
-  private final Object propertiesLock = new Object();
+  private List<String> idFields = new ArrayList<>();
 
   private BlockingQueue<OutputData> outgoingBuffer = null;
   private List<SolrWorkerThread> workerThreadList = new ArrayList<>();
@@ -116,35 +113,43 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
   @Override
   public void init(LogFeederProps logFeederProps) throws Exception {
     this.logFeederProps = logFeederProps;
-    initParams();
+    initParams(logFeederProps);
     setupSecurity();
     createOutgoingBuffer();
-    createSolrStateWatcher();
     createSolrWorkers();
   }
 
-  private void initParams() throws Exception {
+  private void initParams(LogFeederProps logFeederProps) throws Exception {
     type = getStringValue("type");
-    while (true) {
-      OutputSolrProperties outputSolrProperties = getLogSearchConfig().getOutputSolrProperties(type);
-      if (outputSolrProperties == null) {
-        LOG.info("Output solr properties for type " + type + " is not available yet.");
-        try { Thread.sleep(OUTPUT_PROPERTIES_WAIT_MS); } catch (Exception e) { LOG.warn(e); }
-      } else {
-        initPropertiesFromLogSearchConfig(outputSolrProperties, true);
-        break;
-      }
-    }
 
     zkConnectString = getStringValue("zk_connect_string");
-    if (StringUtils.isEmpty(zkConnectString)) {
-      throw new Exception("For solr output the zk_connect_string property need to be set");
+    List<String> solrUrlsList = getListValue("solr_urls");
+
+    if (StringUtils.isBlank(zkConnectString) && CollectionUtils.isEmpty(solrUrlsList)) {
+      throw new Exception("For solr output the zk_connect_string or solr_urls property need to be set");
     }
+
+    if (CollectionUtils.isNotEmpty(solrUrlsList)) {
+      solrUrls = solrUrlsList.toArray(new String[0]);
+    }
+
+    idFields = getListValue("id_fields", new ArrayList<>());
 
     skipLogtime = getBooleanValue("skip_logtime", DEFAULT_SKIP_LOGTIME);
 
     maxIntervalMS = getIntValue("idle_flush_time_ms", DEFAULT_MAX_INTERVAL_MS);
     workers = getIntValue("workers", DEFAULT_NUMBER_OF_WORKERS);
+
+    splitInterval = 0;
+    splitMode = getStringValue("split_interval", "none");
+    if (!splitMode.equals("none")) {
+      splitInterval = Integer.parseInt(splitMode);
+    }
+
+    collection = getStringValue("collection");
+    if (StringUtils.isEmpty(collection)) {
+      throw new IllegalStateException("Collection property is mandatory");
+    }
 
     maxBufferSize = getIntValue("flush_size", DEFAULT_MAX_BUFFER_SIZE);
     if (maxBufferSize < 1) {
@@ -154,38 +159,22 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
 
     LOG.info(String.format("Config: Number of workers=%d, splitMode=%s, splitInterval=%d."
         + getShortDescription(), workers, splitMode, splitInterval));
-  }
 
-  @Override
-  public void outputConfigChanged(OutputProperties outputProperties) {
-    initPropertiesFromLogSearchConfig((OutputSolrProperties)outputProperties, false);
-  }
-
-  private void initPropertiesFromLogSearchConfig(OutputSolrProperties outputSolrProperties, boolean init) {
-    synchronized (propertiesLock) {
-      splitMode = outputSolrProperties.getSplitIntervalMins();
-      if (!splitMode.equalsIgnoreCase("none")) {
-        splitInterval = Integer.parseInt(splitMode);
-      }
-      isComputeCurrentCollection = !splitMode.equalsIgnoreCase("none");
-
-      // collection can not be overwritten after initialization
-      if (init) {
-        collection = outputSolrProperties.getCollection();
-        if (StringUtils.isEmpty(collection)) {
-          throw new IllegalStateException("Collection property is mandatory");
-        }
-      }
+    implicitRouting = logFeederProps.isSolrImplicitRouting(); // TODO: in the future, load it from output config (can be a use case to use different routing for audit/service logs)
+    if (implicitRouting) {
+      LOG.info("Config: Use implicit routing globally for adding docs to Solr.");
+    } else {
+      LOG.info("Config: Use compositeId globally for adding docs to Solr.");
     }
   }
 
   private void setupSecurity() {
-    String jaasFile = logFeederProps.getLogFeederSecurityConfig().getSolrJaasFile();
     boolean securityEnabled = logFeederProps.getLogFeederSecurityConfig().isSolrKerberosEnabled();
     if (securityEnabled) {
-      System.setProperty(JAVA_SECURITY_AUTH_LOGIN_CONFIG, jaasFile);
-      System.setProperty(SOLR_HTTPCLIENT_BUILDER_FACTORY, Krb5HttpClientBuilder.class.getCanonicalName());
-      LOG.info("setupSecurity() called for kerberos configuration, jaas file: " + jaasFile);
+      String javaSecurityConfig = System.getProperty(JAVA_SECURITY_AUTH_LOGIN_CONFIG);
+      String solrHttpBuilderFactory = System.getProperty(SOLR_HTTPCLIENT_BUILDER_FACTORY);
+      LOG.info("setupSecurity() called for kerberos configuration, jaas file: "
+        + javaSecurityConfig + ", solr http client factory: " + solrHttpBuilderFactory);
     }
   }
 
@@ -195,73 +184,33 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
     outgoingBuffer = new LinkedBlockingQueue<OutputData>(bufferSize);
   }
 
-  private void createSolrStateWatcher() throws Exception {
-    if ("none".equals(splitMode)) {
-      return;
-    }
-    
-    CloudSolrClient stateWatcherClient = createSolrClient();
-    stateWatcherClient.registerCollectionStateWatcher(collection, this);
-    while (true) {
-      if (shards == null) {
-        LOG.info("Shards are not available yet, waiting ...");
-        try { Thread.sleep(SHARDS_WAIT_MS); } catch (Exception e) { LOG.warn(e); }
-      } else {
-        break;
-      }
-    }
-  }
-
-  @Override
-  public boolean onStateChanged(Set<String> liveNodes, DocCollection collectionState) {
-    synchronized (propertiesLock) {
-      if (collectionState != null) {
-        List<String> shards = new ArrayList<>(collectionState.getSlicesMap().keySet());
-        Collections.sort(shards);
-        this.shards = shards;
-      }
-    }
-    return false;
-  }
-
   private void createSolrWorkers() throws Exception, MalformedURLException {
     for (int count = 0; count < workers; count++) {
-      CloudSolrClient solrClient = getSolrClient(count);
+      SolrClient solrClient = getSolrClient(count);
       createSolrWorkerThread(count, solrClient);
     }
   }
 
-  CloudSolrClient getSolrClient(int count) throws Exception, MalformedURLException {
-    CloudSolrClient solrClient = createSolrClient();
+  private SolrClient getSolrClient(int count) throws Exception, MalformedURLException {
+    SolrClient solrClient = new LogFeederSolrClientFactory().createSolrClient(zkConnectString, solrUrls, collection);
     pingSolr(count, solrClient);
-
     return solrClient;
   }
 
-  private CloudSolrClient createSolrClient() throws Exception {
-    LOG.info("Using zookeepr. zkConnectString=" + zkConnectString);
-    LOG.info("Using collection=" + collection);
-
-    CloudSolrClient solrClient = new CloudSolrClient.Builder().withZkHost(zkConnectString).build();
-    solrClient.setDefaultCollection(collection);
-    return solrClient;
-  }
-
-  private void pingSolr(int count, CloudSolrClient solrClient) {
+  private void pingSolr(int count, SolrClient solrClient) {
     try {
-      LOG.info("Pinging Solr server. zkConnectString=" + zkConnectString);
+      LOG.info("Pinging Solr server.");
       SolrPingResponse response = solrClient.ping();
       if (response.getStatus() == 0) {
         LOG.info("Ping to Solr server is successful for worker=" + count);
       } else {
         LOG.warn(
-            String.format("Ping to Solr server failed. It would check again. worker=%d, zkConnectString=%s, collection=%s, " +
-                "response=%s", count, zkConnectString, collection, response));
+            String.format("Ping to Solr server failed. It would check again. worker=%d, collection=%s, " +
+                "response=%s", count, collection, response));
       }
     } catch (Throwable t) {
       LOG.warn(String.format(
-          "Ping to Solr server failed. It would check again. worker=%d, zkConnectString=%s, collection=%s", count,
-          zkConnectString, collection), t);
+          "Ping to Solr server failed. It would check again. worker=%d, collection=%s", count, collection), t);
     }
   }
 
@@ -424,11 +373,9 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
       boolean result = false;
       while (!isDrain()) {
         try {
-          synchronized (propertiesLock) {
-            if (isComputeCurrentCollection) {
-              // Compute the current router value
-              addRouterField();
-            }
+          if (implicitRouting) {
+            // Compute the current router value
+            addRouterField();
           }
           addToSolr(outputData);
           resetLocalBuffer();
@@ -463,7 +410,7 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
         outputData = outgoingBuffer.poll(nextDispatchDuration, TimeUnit.MILLISECONDS);
       }
       if (outputData != null && outputData.jsonObj.get("id") == null) {
-        outputData.jsonObj.put("id", UUID.randomUUID().toString());
+        outputData.jsonObj.put("id", IdGeneratorHelper.generateUUID(outputData.jsonObj, idFields));
       }
       return outputData;
     }
@@ -481,12 +428,19 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
               Level.ERROR);
         }
       }
-      latestInputMarkers.put(outputData.inputMarker.getAllProperties().get("base64_file_key").toString(),
-        outputData.inputMarker);
+      Object fileKey = outputData.inputMarker.getAllProperties().get("file_key");
+      if (fileKey != null) {
+        latestInputMarkers.put(fileKey.toString(), outputData.inputMarker);
+      }
       localBuffer.add(document);
     }
 
     private void addRouterField() {
+      ZkStateReader reader = ((CloudSolrClient) solrClient).getZkStateReader();
+      DocCollection docCollection = reader.getClusterState().getCollection(collection);
+      Collection<Slice> slices = docCollection.getSlices();
+      List<String> shards = slices.stream().map(Slice::getName).collect(Collectors.toList());
+
       Calendar cal = Calendar.getInstance();
       int weekDay = cal.get(Calendar.DAY_OF_WEEK);
       int currHour = cal.get(Calendar.HOUR_OF_DAY);
@@ -549,5 +503,10 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
   @Override
   public void copyFile(File inputFile, InputMarker inputMarker) throws UnsupportedOperationException {
     throw new UnsupportedOperationException("copyFile method is not yet supported for output=solr");
+  }
+
+  @Override
+  public List<String> getIdFields() {
+    return idFields;
   }
 }

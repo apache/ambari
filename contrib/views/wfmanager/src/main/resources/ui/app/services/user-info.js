@@ -37,8 +37,9 @@ export default Ember.Service.extend({
           xhr.setRequestHeader("X-Requested-By", "Ambari");
         }
       }).done(function(data){
-        self.set("userName", data);
-        deferred.resolve(data);
+        let uname = JSON.parse(data).username;
+        self.set("userName", JSON.parse(data).username);
+        deferred.resolve(uname);
       }).fail(function(data){
         self.set("userName", "");
         deferred.reject(data);

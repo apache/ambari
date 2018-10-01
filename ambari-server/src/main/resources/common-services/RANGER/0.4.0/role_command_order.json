@@ -1,8 +1,0 @@
-{
-  "general_deps" : {
-    "_comment" : "dependencies for RANGER",
-    "RANGER_SERVICE_CHECK-SERVICE_CHECK" : ["RANGER_ADMIN-START"],
-    "RANGER_SERVICE_CHECK-SERVICE_CHECK" : ["RANGER_USERSYNC-START"],
-    "RANGER_USERSYNC-START" : ["RANGER_ADMIN-START"]
-  }
-}

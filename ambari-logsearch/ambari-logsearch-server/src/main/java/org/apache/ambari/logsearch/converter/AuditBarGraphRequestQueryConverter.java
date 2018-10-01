@@ -58,6 +58,8 @@ public class AuditBarGraphRequestQueryConverter extends AbstractDateRangeFacetQu
     addInFiltersIfNotNullAndEnabled(query, request.getUserList(),
       SolrConstants.AuditLogConstants.AUDIT_REQUEST_USER,
       StringUtils.isNotBlank(request.getUserList()));
+    addIncludeFieldValues(query, request.getIncludeQuery());
+    addExcludeFieldValues(query, request.getExcludeQuery());
     return query;
   }
 }

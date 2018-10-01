@@ -53,6 +53,8 @@ public interface ServiceComponent {
 
   String getServiceType();
 
+  String getServiceGroupName();
+
   Long getServiceGroupId();
 
   Long getClusterId();

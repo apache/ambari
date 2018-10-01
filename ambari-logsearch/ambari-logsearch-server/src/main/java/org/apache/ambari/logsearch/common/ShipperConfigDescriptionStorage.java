@@ -33,7 +33,7 @@ import java.util.Set;
 @Named
 public class ShipperConfigDescriptionStorage {
 
-  private static final String SHIPPER_CONFIG_PACKAGE = "org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl";
+  private static final String SHIPPER_CONFIG_PACKAGE = "org.apache.ambari.logsearch.config.json.model.inputconfig.impl";
   
   private final List<ShipperConfigDescriptionData> shipperConfigDescription = new ArrayList<>();
 

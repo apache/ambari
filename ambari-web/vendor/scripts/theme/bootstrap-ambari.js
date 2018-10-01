@@ -86,10 +86,14 @@ $(document).ready(function () {
 
       function popStateHandler() {
         var path = window.location.pathname + window.location.hash;
+        if (path[path.length - 1] !== '/') {
+          path += '/';
+        }
         $navigationContainer.find('li a').each(function (index, link) {
           var $link = $(link);
           var href = $link.attr('data-href') || $link.attr('href');
-          if (path.indexOf(href) !== -1 && ['', '#'].indexOf(href) === -1) {
+          var hrefWithSlash = href == null || href[href.length - 1] === '/' ? href : href + '/';
+          if (path.indexOf(hrefWithSlash) !== -1 && ['', '#'].indexOf(href) === -1) {
             $link.parent().addClass('active');
           } else {
             $link.parent().removeClass('active');

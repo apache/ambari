@@ -121,6 +121,18 @@ module.exports = [
     "serviceName": "YARN"
   },
   {
+    "category": "ResourceTypes",
+    "filename": "resource-types.xml",
+    "name": "yarn.resource-types",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "ResourceTypes",
+    "filename": "resource-types.xml",
+    "name": "yarn.resource-types.yarn.io/gpu.maximum-allocation",
+    "serviceName": "YARN"
+  },
+  {
     "category": "RESOURCEMANAGER",
     "filename": "yarn-env.xml",
     "index": 1,
@@ -301,6 +313,120 @@ module.exports = [
     "filename": "ranger-yarn-plugin-properties.xml",
     "index": 1,
     "name": "ranger-yarn-plugin-enabled",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "ContainerExecutor",
+    "filename": "container-executor.xml",
+    "name": "docker_module_enabled",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "ContainerExecutor",
+    "filename": "container-executor.xml",
+    "name": "docker_binary",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "ContainerExecutor",
+    "filename": "container-executor.xml",
+    "name": "docker_allowed_capabilities",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "ContainerExecutor",
+    "filename": "container-executor.xml",
+    "name": "docker_allowed_devices",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "ContainerExecutor",
+    "filename": "container-executor.xml",
+    "name": "docker_allowed_networks",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "ContainerExecutor",
+    "filename": "container-executor.xml",
+    "name": "docker_allowed_ro-mounts",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "ContainerExecutor",
+    "filename": "container-executor.xml",
+    "name": "docker_allowed_rw-mounts",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "ContainerExecutor",
+    "filename": "container-executor.xml",
+    "name": "docker_allowed_volume-drivers",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "ContainerExecutor",
+    "filename": "container-executor.xml",
+    "name": "docker_privileged-containers_enabled",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "ContainerExecutor",
+    "filename": "container-executor.xml",
+    "name": "min_user_id",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "ContainerExecutor",
+    "filename": "container-executor.xml",
+    "name": "gpu_module_enabled",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "ContainerExecutor",
+    "filename": "container-executor.xml",
+    "name": "cgroup_root",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "ContainerExecutor",
+    "filename": "container-executor.xml",
+    "name": "yarn_hierarchy",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "Registry",
+    "filename": "yarn-site.xml",
+    "name": "hadoop.registry.zk.quorum",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "Registry",
+    "filename": "yarn-env.xml",
+    "name": "registry.dns.bind-port",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "Registry",
+    "filename": "yarn-site.xml",
+    "name": "hadoop.registry.dns.zone-mask",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "Registry",
+    "filename": "yarn-site.xml",
+    "name": "hadoop.registry.dns.zone-subnet",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "Registry",
+    "filename": "yarn-site.xml",
+    "name": "hadoop.registry.dns.enabled",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "Registry",
+    "filename": "yarn-site.xml",
+    "name": "hadoop.registry.dns.domain-name",
     "serviceName": "YARN"
   }
 ];

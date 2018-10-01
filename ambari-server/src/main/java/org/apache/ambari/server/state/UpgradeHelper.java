@@ -64,8 +64,10 @@ import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
+import org.apache.ambari.server.state.Mpack.MpackChangeSummary;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.ambari.server.state.stack.upgrade.AddComponentTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.LifecycleType;
@@ -198,9 +200,6 @@ public class UpgradeHelper {
   @Inject
   private Provider<AmbariMetaInfo> m_ambariMetaInfoProvider;
 
-  @Inject
-  private Provider<Clusters> m_clusters;
-
   /**
    * Used to update the configuration properties.
    */
@@ -232,102 +231,78 @@ public class UpgradeHelper {
   private StackDAO m_stackDAO;
 
   /**
-   * Get right Upgrade Pack, depends on stack, direction and upgrade type
-   * information
+   * Generates a list of UpgradeGroupHolder items that are used to execute either
+   * an upgrade or a downgrade.  Each lifecycle is processed one-by-one from the upgrade packs
    *
-   * @param clusterName
-   *          The name of the cluster
-   * @param sourceStackId
-   *          the "from" stack for this upgrade/downgrade
-   * @param targetStackId
-   *          the "to" stack for this upgrade/downgrade
-   * @param direction
-   *          {@code Direction} of the upgrade
-   * @param upgradeType
-   *          The {@code UpgradeType}
-   * @param preferredUpgradePackName
-   *          For unit test, need to prefer an upgrade pack since multiple
-   *          matches can be found.
-   * @return {@code UpgradeType} object
-   * @throws AmbariException
+   * @param context
+   *          the upgrade context
+   * @param upgradePlan
+   *          the upgrade plan to execute
    */
-  public UpgradePack suggestUpgradePack(String clusterName,
-      StackId sourceStackId, StackId targetStackId, Direction direction, UpgradeType upgradeType,
-      String preferredUpgradePackName) throws AmbariException {
+  @Experimental(feature=ExperimentalFeature.UNIT_TEST_REQUIRED,
+      comment = "require testing for lifecycles and mocked clusters, upgrade plans")
+  public List<UpgradeGroupHolder> createSequence(UpgradeContext context) throws AmbariException {
 
-    // Find upgrade packs based on current stack. This is where to upgrade from
-    Cluster cluster = m_clusters.get().getCluster(clusterName);
-    StackId currentStack = cluster.getCurrentStackVersion();
+    Map<ServiceGroup, MpackChangeSummary> groupsInUpgrade = context.getServiceGroups();
 
-    StackId stackForUpgradePack = targetStackId;
+    // !!! TODO there is a ton of work to do here for merging upgrade packs across lifecycles
 
-    if (direction.isDowngrade()) {
-      stackForUpgradePack = sourceStackId;
-    }
+    List<UpgradeGroupHolder> groups = new ArrayList<>();
 
-    Map<String, UpgradePack> packs = m_ambariMetaInfoProvider.get().getUpgradePacks(
-        currentStack.getStackName(), currentStack.getStackVersion());
+    for (LifecycleType lifecycle : LifecycleType.ordered()) {
 
-    UpgradePack pack = null;
+      groupsInUpgrade.forEach((serviceGroup, detail) -> {
 
-    if (StringUtils.isNotEmpty(preferredUpgradePackName) && packs.containsKey(preferredUpgradePackName)) {
-      pack = packs.get(preferredUpgradePackName);
+        Mpack target = detail.getTarget();
+        UpgradePack upgradePack = detail.getUpgradePack();
 
-      LOG.warn("Upgrade pack '{}' not found for stack {}", preferredUpgradePackName, currentStack);
-    }
-
-    // Best-attempt at picking an upgrade pack assuming within the same stack whose target stack version matches.
-    // If multiple candidates are found, raise an exception.
-    if (null == pack) {
-      for (UpgradePack upgradePack : packs.values()) {
-        if (null != upgradePack.getTargetStack()
-            && StringUtils.equals(upgradePack.getTargetStack(), stackForUpgradePack.getStackId())
-            && upgradeType == upgradePack.getType()) {
-          if (null == pack) {
-            // Pick the pack.
-            pack = upgradePack;
-          } else {
-            throw new AmbariException(
-                String.format(
-                    "Unable to perform %s. Found multiple upgrade packs for type %s and stack %s",
-                    direction.getText(false), upgradeType.toString(), stackForUpgradePack));
-          }
+        if (null == upgradePack) {
+          throw new IllegalArgumentException(
+              String.format("Upgrade detail cannot find upgrade pack %s", target));
         }
-      }
+
+        try {
+          groups.addAll(createSequence(context, upgradePack, target, serviceGroup, lifecycle));
+        } catch (AmbariException e) {
+          throw new IllegalArgumentException(e);
+        }
+      });
+
     }
 
-    if (null == pack) {
-      throw new AmbariException(
-          String.format("Unable to perform %s. Could not locate %s upgrade pack for stack %s",
-              direction.getText(false), upgradeType.toString(), stackForUpgradePack));
-    }
-
-   return pack;
+    return groups;
   }
-
 
   /**
    * Generates a list of UpgradeGroupHolder items that are used to execute either
    * an upgrade or a downgrade.
    *
-   * @param upgradePack
-   *          the upgrade pack
    * @param context
    *          the context that wraps key fields required to perform an upgrade
+   * @param upgradePack
+   *          the upgrade pack
+   * @param lifecycleType
+   *          the lifecycle type to search
    * @return the list of holders
    */
-  public List<UpgradeGroupHolder> createSequence(UpgradePack upgradePack,
-      UpgradeContext context) throws AmbariException {
+  private List<UpgradeGroupHolder> createSequence(UpgradeContext context, UpgradePack upgradePack,
+      Mpack mpack, ServiceGroup serviceGroup, LifecycleType lifecycleType) throws AmbariException {
 
     Cluster cluster = context.getCluster();
     MasterHostResolver mhr = context.getResolver();
+    Map<String, AddComponentTask> addedComponentsDuringUpgrade = upgradePack.getAddComponentTasks();
+
+    List<Grouping> groupings = upgradePack.getGroups(lifecycleType, context.getDirection());
+    if (groupings.isEmpty()) {
+      return Collections.emptyList();
+    }
 
     // Note, only a Rolling Upgrade uses processing tasks.
     Map<String, Map<String, ProcessingComponent>> allTasks = upgradePack.getTasks();
     List<UpgradeGroupHolder> groups = new ArrayList<>();
 
     UpgradeGroupHolder previousGroupHolder = null;
-    for (Grouping group : upgradePack.getGroups(LifecycleType.UPGRADE, context.getDirection())) {
+    for (Grouping group : groupings) {
 
       // if there is a condition on the group, evaluate it and skip scheduling
       // of this group if the condition has not been satisfied
@@ -345,6 +320,8 @@ public class UpgradeHelper {
       groupHolder.supportsAutoSkipOnFailure = group.supportsAutoSkipOnFailure;
       groupHolder.allowRetry = group.allowRetry;
       groupHolder.processingGroup = group.isProcessingGroup();
+      groupHolder.upgradePack = upgradePack;
+      groupHolder.serviceGroup = serviceGroup;
 
       // !!! all downgrades are skippable
       if (context.getDirection().isDowngrade()) {
@@ -387,26 +364,13 @@ public class UpgradeHelper {
           continue;
         }
 
-
         for (String component : service.components) {
           // Rolling Upgrade has exactly one task for a Component.
+          // NonRolling Upgrade has several tasks for the same component, since it must first call Stop, perform several
+          // other tasks, and then Start on that Component.
           if (upgradePack.getType() == UpgradeType.ROLLING && !allTasks.get(service.serviceName).containsKey(component)) {
             continue;
           }
-
-          // NonRolling Upgrade has several tasks for the same component, since it must first call Stop, perform several
-          // other tasks, and then Start on that Component.
-
-          HostsType hostsType = mhr.getMasterAndHosts(service.serviceName, component);
-          if (null == hostsType) {
-            continue;
-          }
-
-          if (!hostsType.unhealthy.isEmpty()) {
-            context.addUnhealthy(hostsType.unhealthy);
-          }
-
-          Service svc = cluster.getService(service.serviceName);
 
           // if a function name is present, build the tasks dynamically;
           // otherwise use the tasks defined in the upgrade pack processing
@@ -449,6 +413,58 @@ public class UpgradeHelper {
             continue;
           }
 
+          HostsType hostsType = mhr.getMasterAndHosts(service.serviceName, component);
+
+          // only worry about adding future commands if this is a start/restart task
+          boolean taskIsRestartOrStart = functionName == null || functionName == Type.START
+              || functionName == Type.RESTART;
+
+          // see if this component has an add component task which will indicate
+          // we need to dynamically schedule some more tasks by predicting where
+          // the components will be installed
+          String serviceAndComponentHash = service.serviceName + "/" + component;
+          if (taskIsRestartOrStart && addedComponentsDuringUpgrade.containsKey(serviceAndComponentHash)) {
+            AddComponentTask task = addedComponentsDuringUpgrade.get(serviceAndComponentHash);
+
+            Collection<Host> candidateHosts = MasterHostResolver.getCandidateHosts(cluster,
+                task.hosts, task.hostService, task.hostComponent);
+
+            // if we have candidate hosts, then we can create a structure to be
+            // scheduled
+            if (!candidateHosts.isEmpty()) {
+              if (null == hostsType) {
+                // a null hosts type usually means that the component is not
+                // installed in the cluster - but it's possible that it's going
+                // to be added as part of the upgrade. If this is the case, then
+                // we need to schedule tasks assuming the add works
+                hostsType = HostsType.normal(
+                    candidateHosts.stream().map(host -> host.getHostName()).collect(
+                        Collectors.toCollection(LinkedHashSet::new)));
+              } else {
+                // it's possible that we're adding components that may already
+                // exist in the cluster - in this case, we must append the
+                // structure instead of creating a new one
+                Set<String> hostsForTask = hostsType.getHosts();
+                for (Host host : candidateHosts) {
+                  hostsForTask.add(host.getHostName());
+                }
+              }
+            }
+          }
+
+          // if we still have no hosts, then truly skip this component
+          if (null == hostsType) {
+            continue;
+          }
+
+          if (!hostsType.unhealthy.isEmpty()) {
+            context.addUnhealthy(hostsType.unhealthy);
+          }
+
+          Service svc = cluster.getService(service.serviceName);
+
+          setDisplayNames(context, service.serviceName, component);
+
           // Special case for NAMENODE when there are multiple
           if (service.serviceName.equalsIgnoreCase("HDFS") && component.equalsIgnoreCase("NAMENODE")) {
 
@@ -461,7 +477,7 @@ public class UpgradeHelper {
                 if (!hostsType.getHosts().isEmpty() && hostsType.hasMastersAndSecondaries()) {
                   // The order is important, first do the standby, then the active namenode.
                   hostsType.arrangeHostSecondariesFirst();
-                  builder.add(context, hostsType, service.serviceName,
+                  builder.add(context, mpack, hostsType, service.serviceName,
                       svc.isClientOnlyService(), pc, null);
                 } else {
                   LOG.warn("Could not orchestrate NameNode.  Hosts could not be resolved: hosts={}, active={}, standby={}",
@@ -473,27 +489,27 @@ public class UpgradeHelper {
                 if (isNameNodeHA && hostsType.hasMastersAndSecondaries()) {
                   // This could be any order, but the NameNodes have to know what role they are going to take.
                   // So need to make 2 stages, and add different parameters to each one.
-                  builder.add(context, HostsType.normal(hostsType.getMasters()), service.serviceName,
+                  builder.add(context, mpack, HostsType.normal(hostsType.getMasters()), service.serviceName,
                       svc.isClientOnlyService(), pc, nameNodeRole("active"));
 
-                  builder.add(context, HostsType.normal(hostsType.getSecondaries()), service.serviceName,
+                  builder.add(context, mpack, HostsType.normal(hostsType.getSecondaries()), service.serviceName,
                       svc.isClientOnlyService(), pc, nameNodeRole("standby"));
                 } else {
                   // If no NameNode HA, then don't need to change hostsType.hosts since there should be exactly one.
-                  builder.add(context, hostsType, service.serviceName,
+                  builder.add(context, mpack, hostsType, service.serviceName,
                       svc.isClientOnlyService(), pc, null);
                 }
 
                 break;
             }
           } else {
-            builder.add(context, hostsType, service.serviceName,
+            builder.add(context, mpack, hostsType, service.serviceName,
                 svc.isClientOnlyService(), pc, null);
           }
         }
       }
 
-      List<StageWrapper> proxies = builder.build(context);
+      List<StageWrapper> proxies = builder.build(context, mpack);
 
       if (CollectionUtils.isNotEmpty(proxies)) {
 
@@ -773,6 +789,16 @@ public class UpgradeHelper {
     public List<StageWrapper> items = new ArrayList<>();
 
     /**
+     * Upgrade Pack backing this grouping
+     */
+    public UpgradePack upgradePack;
+
+    /**
+     * Service Group backing this grouping
+     */
+    public ServiceGroup serviceGroup;
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -811,6 +837,50 @@ public class UpgradeHelper {
 
     Set<Resource> task = response.getResources();
     return task.size() == 1 ? task.iterator().next() : null;
+  }
+
+  /**
+   * Helper to set service and component display names on the context
+   * @param context   the context to update
+   * @param service   the service name
+   * @param component the component name
+   */
+  private void setDisplayNames(UpgradeContext context, String service, String component) {
+    StackId currentStackId = context.getCluster().getCurrentStackVersion();
+    // TODO: [AMP] Fix It
+    StackId stackId = currentStackId;
+    //StackId stackId = context.getRepositoryVersion().getStackId();
+
+    try {
+      ServiceInfo serviceInfo = m_ambariMetaInfoProvider.get().getService(stackId.getStackName(),
+          stackId.getStackVersion(), service);
+
+      // if the service doesn't exist in the new stack, try the old one
+      if (null == serviceInfo) {
+        serviceInfo = m_ambariMetaInfoProvider.get().getService(currentStackId.getStackName(),
+            currentStackId.getStackVersion(), service);
+      }
+
+      if (null == serviceInfo) {
+        LOG.debug("Unable to lookup service display name information for {}", service);
+        return;
+      }
+
+      // TODO: [AMP] Fix It
+      // context.setServiceDisplay(service, serviceInfo.getDisplayName());
+
+      ComponentInfo compInfo = serviceInfo.getComponentByName(component);
+      if (null == compInfo) {
+        LOG.debug("Unable to lookup component display name information for {}", component);
+        return;
+      }
+
+      // TODO: [AMP] Fix It
+      //context.setComponentDisplay(service, component, compInfo.getDisplayName());
+
+    } catch (AmbariException e) {
+      LOG.debug("Could not get service detail", e);
+    }
   }
 
   /**
@@ -889,7 +959,7 @@ public class UpgradeHelper {
 
             // !!! if we aren't version advertised, but there IS a version, set it to UNKNOWN
             if (!versionAdvertised && !StringUtils.equals("UNKNOWN", serviceComponentHost.getVersion())) {
-              serviceComponentHost.setVersion("UNKNOWN");
+              serviceComponentHost.setVersions("UNKNOWN", "UNKNOWN");
             }
           }
         }
@@ -1005,6 +1075,9 @@ public class UpgradeHelper {
             String configurationType = currentServiceConfig.getType();
 
             Config currentClusterConfigForService = cluster.getDesiredConfigByType(configurationType);
+            if (currentClusterConfigForService == null) {
+              throw new AmbariException(String.format("configuration type %s did not have a selected version", configurationType));
+            }
             existingServiceConfigs.add(currentClusterConfigForService);
             foundConfigTypes.add(configurationType);
           }
@@ -1151,6 +1224,9 @@ public class UpgradeHelper {
         m_metadataHolder.get().updateData(metadataGenerator.get().getClusterMetadataOnConfigsUpdate(cluster));
         m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
       }
+    }
+    if (configsChanged) {
+      m_configHelperProvider.get().updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
     }
   }
 

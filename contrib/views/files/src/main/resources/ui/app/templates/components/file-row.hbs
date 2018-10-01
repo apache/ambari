@@ -43,4 +43,14 @@
   <div class={{get-value-from-columns columnHeaders 'permission' 'columnClass'}}>
     {{show-permission-string file}}
   </div>
+  <div class={{get-value-from-columns columnHeaders 'erasureCodingPolicyName' 'columnClass'}}>
+    {{file.erasureCodingPolicyName}}
+  </div>
+  <div class={{get-value-from-columns columnHeaders 'isEncrypted' 'columnClass'}}>
+    {{#if file.isEncrypted}}
+      Yes
+    {{else}}
+      No
+    {{/if}}
+  </div>
 </div>

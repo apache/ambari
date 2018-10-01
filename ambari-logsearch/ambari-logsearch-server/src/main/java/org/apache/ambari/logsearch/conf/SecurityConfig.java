@@ -18,23 +18,32 @@
  */
 package org.apache.ambari.logsearch.conf;
 
-import com.google.common.collect.Lists;
+import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
+import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_SESSION_ID;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.apache.ambari.logsearch.common.StatusMessage;
+import org.apache.ambari.logsearch.conf.global.LogLevelFilterManagerState;
 import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
-import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
+import org.apache.ambari.logsearch.dao.RoleDao;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthFailureHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthSuccessHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchLogoutSuccessHandler;
-import org.apache.ambari.logsearch.web.filters.LogsearchAuditLogsStateFilter;
+import org.apache.ambari.logsearch.web.filters.ConfigStateProvider;
+import org.apache.ambari.logsearch.web.filters.GlobalStateProvider;
 import org.apache.ambari.logsearch.web.filters.LogsearchAuthenticationEntryPoint;
 import org.apache.ambari.logsearch.web.filters.LogsearchCorsFilter;
-import org.apache.ambari.logsearch.web.filters.LogSearchConfigStateFilter;
-import org.apache.ambari.logsearch.web.filters.LogsearchKRBAuthenticationFilter;
+import org.apache.ambari.logsearch.web.filters.LogsearchFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchJWTFilter;
+import org.apache.ambari.logsearch.web.filters.LogsearchKRBAuthenticationFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchSecurityContextFormationFilter;
-import org.apache.ambari.logsearch.web.filters.LogsearchServiceLogsStateFilter;
-import org.apache.ambari.logsearch.web.filters.LogsearchEventHistoryStateFilter;
+import org.apache.ambari.logsearch.web.filters.LogsearchTrustedProxyFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchUsernamePasswordAuthenticationFilter;
 import org.apache.ambari.logsearch.web.security.LogsearchAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
@@ -42,19 +51,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_SESSION_ID;
+import com.google.common.collect.Lists;
 
 @Configuration
 @EnableWebSecurity
@@ -88,29 +91,34 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   private SolrCollectionState solrEventHistoryState;
 
   @Inject
+  @Named("logLevelFilterManagerState")
+  private LogLevelFilterManagerState logLevelFilterManagerState;
+
+  @Inject
   private LogSearchConfigState logSearchConfigState;
 
   @Inject
   private LogSearchConfigApiConfig logSearchConfigApiConfig;
 
+  @Inject
+  private RoleDao roleDao;
+
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http
       .csrf().disable()
-      .sessionManagement()
-         .sessionFixation()
-         .newSession()
-         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-      .and()
       .authorizeRequests()
-        .requestMatchers(requestMatcher()).permitAll()
-        .antMatchers("/**").authenticated()
+        .requestMatchers(requestMatcher())
+          .permitAll()
+        .antMatchers("/**")
+          .hasRole("USER")
       .and()
       .authenticationProvider(logsearchAuthenticationProvider())
       .httpBasic()
         .authenticationEntryPoint(logsearchAuthenticationEntryPoint())
       .and()
-      .addFilterBefore(logsearchKRBAuthenticationFilter(), BasicAuthenticationFilter.class)
+      .addFilterBefore(logsearchTrustedProxyFilter(), BasicAuthenticationFilter.class)
+      .addFilterAfter(logsearchKRBAuthenticationFilter(), LogsearchTrustedProxyFilter.class)
       .addFilterBefore(logsearchUsernamePasswordAuthenticationFilter(), LogsearchKRBAuthenticationFilter.class)
       .addFilterAfter(securityContextFormationFilter(), FilterSecurityInterceptor.class)
       .addFilterAfter(logsearchEventHistoryFilter(), LogsearchSecurityContextFormationFilter.class)
@@ -123,6 +131,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .logoutUrl("/logout")
         .deleteCookies(getCookies())
         .logoutSuccessHandler(new LogsearchLogoutSuccessHandler());
+
+    if ((logSearchConfigApiConfig.isSolrFilterStorage() || logSearchConfigApiConfig.isZkFilterStorage())
+            && !logSearchConfigApiConfig.isConfigApiEnabled())
+      http.addFilterAfter(logSearchLogLevelFilterManagerFilter(), LogsearchSecurityContextFormationFilter.class);
   }
 
   @Bean
@@ -137,7 +149,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public LogsearchKRBAuthenticationFilter logsearchKRBAuthenticationFilter() {
-    return new LogsearchKRBAuthenticationFilter();
+    return new LogsearchKRBAuthenticationFilter(requestMatcher());
   }
 
   @Bean
@@ -146,8 +158,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
+  public LogsearchTrustedProxyFilter logsearchTrustedProxyFilter() throws Exception {
+    LogsearchTrustedProxyFilter filter = new LogsearchTrustedProxyFilter(requestMatcher(), authPropsConfig);
+    filter.setAuthenticationManager(authenticationManagerBean());
+    return filter;
+  }
+
+  @Bean
   public LogsearchJWTFilter logsearchJwtFilter() throws Exception {
-    LogsearchJWTFilter filter = new LogsearchJWTFilter(requestMatcher(), authPropsConfig);
+    LogsearchJWTFilter filter = new LogsearchJWTFilter(requestMatcher(), authPropsConfig, roleDao);
     filter.setAuthenticationManager(authenticationManagerBean());
     filter.setAuthenticationSuccessHandler(new LogsearchAuthSuccessHandler());
     filter.setAuthenticationFailureHandler(new LogsearchAuthFailureHandler());
@@ -171,24 +190,32 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     return filter;
   }
 
-  @Bean
-  public LogsearchServiceLogsStateFilter logsearchServiceLogFilter() {
-    return new LogsearchServiceLogsStateFilter(serviceLogsRequestMatcher(), solrServiceLogsState, solrServiceLogPropsConfig);
+  private LogsearchFilter logsearchServiceLogFilter() {
+    return new LogsearchFilter(serviceLogsRequestMatcher(), new GlobalStateProvider(solrServiceLogsState, solrServiceLogPropsConfig));
   }
 
-  @Bean
-  public LogsearchAuditLogsStateFilter logsearchAuditLogFilter() {
-    return new LogsearchAuditLogsStateFilter(auditLogsRequestMatcher(), solrAuditLogsState, solrAuditLogPropsConfig);
+  private LogsearchFilter logsearchAuditLogFilter() {
+    return new LogsearchFilter(auditLogsRequestMatcher(), new GlobalStateProvider(solrAuditLogsState, solrAuditLogPropsConfig));
   }
 
-  @Bean
-  public LogsearchEventHistoryStateFilter logsearchEventHistoryFilter() {
-    return new LogsearchEventHistoryStateFilter(eventHistoryRequestMatcher(), solrEventHistoryState, solrEventHistoryPropsConfig);
+  private LogsearchFilter logsearchEventHistoryFilter() {
+    return new LogsearchFilter(eventHistoryRequestMatcher(), new GlobalStateProvider(solrEventHistoryState, solrEventHistoryPropsConfig));
   }
 
-  @Bean
-  public LogSearchConfigStateFilter logSearchConfigStateFilter() {
-    return new LogSearchConfigStateFilter(logsearchConfigRequestMatcher(), logSearchConfigState, logSearchConfigApiConfig.isConfigApiEnabled());
+  private LogsearchFilter logSearchConfigStateFilter() {
+    RequestMatcher requestMatcher;
+    if (logSearchConfigApiConfig.isSolrFilterStorage() || logSearchConfigApiConfig.isZkFilterStorage()) {
+      requestMatcher = shipperConfigInputRequestMatcher();
+    } else {
+      requestMatcher = logsearchConfigRequestMatcher();
+    }
+
+    return new LogsearchFilter(requestMatcher, new ConfigStateProvider(logSearchConfigState, logSearchConfigApiConfig.isConfigApiEnabled()));
+  }
+
+  private LogsearchFilter logSearchLogLevelFilterManagerFilter() {
+    return new LogsearchFilter(logLevelFilterRequestMatcher(), requestUri ->
+            logLevelFilterManagerState.isLogLevelFilterManagerIsReady() ? null : StatusMessage.with(SERVICE_UNAVAILABLE, "Solr log level filter manager is not available"));
   }
 
   @Bean
@@ -227,6 +254,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   public RequestMatcher logsearchConfigRequestMatcher() {
     return new AntPathRequestMatcher("/api/v1/shipper/**");
+  }
+
+  public RequestMatcher logLevelFilterRequestMatcher() {
+    return new AntPathRequestMatcher("/api/v1/shipper/filters/**");
+  }
+
+  public RequestMatcher shipperConfigInputRequestMatcher() {
+    return new AntPathRequestMatcher("/api/v1/shipper/input/**");
   }
 
   private String[] getCookies() {

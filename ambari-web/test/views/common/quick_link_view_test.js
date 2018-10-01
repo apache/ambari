@@ -58,7 +58,6 @@ describe('App.QuickViewLinks', function () {
     beforeEach(function () {
       quickViewLinks.setProperties({
         configProperties: [{}],
-        actualTags: [""],
         quickLinks: [{}]
       });
       quickViewLinks.willDestroyElement();
@@ -68,10 +67,6 @@ describe('App.QuickViewLinks', function () {
       expect(quickViewLinks.get('configProperties')).to.be.empty;
     });
 
-    it("actualTags empty", function () {
-      expect(quickViewLinks.get('actualTags')).to.be.empty;
-    });
-
     it("quickLinks empty", function () {
       expect(quickViewLinks.get('quickLinks')).to.be.empty;
     });
@@ -79,84 +74,24 @@ describe('App.QuickViewLinks', function () {
 
   describe("#setQuickLinks()", function () {
     beforeEach(function () {
-      this.mock = sinon.stub(App, 'get');
-      sinon.stub(quickViewLinks, 'loadTags', Em.K);
-    });
-    afterEach(function () {
-      this.mock.restore();
-      quickViewLinks.loadTags.restore();
-    });
-    it("data loaded", function () {
-      this.mock.returns(true);
-      quickViewLinks.setQuickLinks();
-      expect(quickViewLinks.loadTags.calledOnce).to.be.true;
-    });
-    it("data not loaded", function () {
-      this.mock.returns(false);
-      quickViewLinks.setQuickLinks();
-      expect(quickViewLinks.loadTags.called).to.be.false;
-    });
-  });
-
-  describe("#loadTags()", function () {
-
-    it("call $.ajax", function () {
-      quickViewLinks.loadTags();
-      var args = testHelpers.findAjaxRequest('name', 'config.tags');
-      expect(args[0]).exists;
-      expect(args[0].sender).to.be.eql(quickViewLinks);
-    });
-  });
-
-  describe("#loadTagsSuccess()", function () {
-    beforeEach(function () {
-      sinon.stub(quickViewLinks, 'setConfigProperties', function () {
-        return {
-          done: Em.clb
-        }
-      });
-      sinon.stub(quickViewLinks, 'getQuickLinksHosts');
-      var data = {
-        Clusters: {
-          desired_configs: {
-            site1: {
-              tag: 'tag1'
-            }
-          }
-        }
+      var mock = {
+        done: Em.clb
       };
-      quickViewLinks.loadTagsSuccess(data);
+      sinon.stub(quickViewLinks, 'setConfigProperties').returns(mock);
+      sinon.stub(quickViewLinks, 'getQuickLinksHosts');
+      sinon.stub(App, 'get').returns(true);
     });
     afterEach(function () {
       quickViewLinks.setConfigProperties.restore();
       quickViewLinks.getQuickLinksHosts.restore();
+      App.get.restore();
     });
-    it("actualTags is valid", function () {
-      expect(quickViewLinks.get('actualTags')[0]).to.eql(Em.Object.create({
-        siteName: 'site1',
-        tagName: 'tag1'
-      }));
-    });
-    it("setConfigProperties is called once", function () {
-      expect(quickViewLinks.setConfigProperties.calledOnce).to.be.true;
-    });
-    it("getQuickLinksHosts is called once", function () {
+    it("getQuickLinksHosts should be called", function () {
+      quickViewLinks.setQuickLinks();
       expect(quickViewLinks.getQuickLinksHosts.calledOnce).to.be.true;
     });
   });
 
-  describe("#loadTagsError()", function () {
-    beforeEach(function () {
-      sinon.stub(quickViewLinks, 'getQuickLinksHosts');
-    });
-    afterEach(function () {
-      quickViewLinks.getQuickLinksHosts.restore();
-    });
-    it("call loadQuickLinksConfigurations", function () {
-      quickViewLinks.loadTagsError();
-      expect(quickViewLinks.getQuickLinksHosts.calledOnce).to.be.true;
-    });
-  });
 
   describe("#loadQuickLinksConfigSuccessCallback()", function () {
     var mock;
@@ -216,13 +151,23 @@ describe('App.QuickViewLinks', function () {
     beforeEach(function () {
       sinon.stub(App.HostComponent, 'find').returns([
         Em.Object.create({
-          isMaster: true,
+          componentName: 'HBASE_MASTER',
           hostName: 'host1'
         })
+      ]);
+      sinon.stub(App.QuickLinksConfig, 'find').returns([
+        {
+          links: [
+            {
+              component_name: 'HBASE_MASTER'
+            }
+          ]
+        }
       ]);
     });
     afterEach(function () {
       App.HostComponent.find.restore();
+      App.QuickLinksConfig.find.restore();
     });
     it("call $.ajax", function () {
       quickViewLinks.getQuickLinksHosts();
@@ -231,7 +176,7 @@ describe('App.QuickViewLinks', function () {
       expect(args[0].sender).to.be.eql(quickViewLinks);
       expect(args[0].data).to.be.eql({
         clusterName: App.get('clusterName'),
-        masterHosts: 'host1',
+        hosts: 'host1',
         urlParams: ''
       });
     });
@@ -243,7 +188,7 @@ describe('App.QuickViewLinks', function () {
       expect(args[0].sender).to.be.eql(quickViewLinks);
       expect(args[0].data).to.be.eql({
         clusterName: App.get('clusterName'),
-        masterHosts: 'host1',
+        hosts: 'host1',
         urlParams: ',host_components/metrics/hbase/master/IsActiveMaster'
       });
     });
@@ -324,20 +269,16 @@ describe('App.QuickViewLinks', function () {
   });
 
   describe("#setConfigProperties()", function () {
-    var mock = {getConfigsByTags: Em.K};
     beforeEach(function () {
-      sinon.stub(App.router, 'get').returns(mock);
-      sinon.spy(mock, 'getConfigsByTags');
+      sinon.stub(App.router.get('configurationController'), 'getCurrentConfigsBySites');
     });
     afterEach(function () {
-      mock.getConfigsByTags.restore();
-      App.router.get.restore();
+      App.router.get('configurationController').getCurrentConfigsBySites.restore();
     });
-    it("getConfigsByTags called with correct data", function () {
-      quickViewLinks.set('actualTags', [{siteName: 'hdfs-site'}]);
+    it("getCurrentConfigsBySites called with correct data", function () {
       quickViewLinks.set('requiredSiteNames', ['hdfs-site']);
       quickViewLinks.setConfigProperties();
-      expect(mock.getConfigsByTags.calledWith([{siteName: 'hdfs-site'}])).to.be.true;
+      expect(App.router.get('configurationController').getCurrentConfigsBySites.calledWith(['hdfs-site'])).to.be.true;
     });
   });
 

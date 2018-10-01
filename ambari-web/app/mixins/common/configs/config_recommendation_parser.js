@@ -55,7 +55,6 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     App.assertFunction(updateCallback);
     App.assertFunction(removeCallback);
     App.assertFunction(updateBoundariesCallback);
-
     var propertiesToDelete = [];
     configs.forEach(function (config) {
       var name = Em.get(config, 'name'),
@@ -87,6 +86,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
                 updateBoundariesCallback(stackProperty, attr, propertyAttributes[attr], name, fileName, configGroup);
               }
             }
+            Em.tryInvoke(config, 'validate');
           }
         }
       }
@@ -137,6 +137,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
           if (configs.length) {
             var mergedConfigs = configs.concat(stepConfig.get('configs'));
             stepConfig.set('configs', mergedConfigs);
+            stepConfig.propertyDidChange('redrawConfigs');
           }
         }
       }
@@ -157,8 +158,8 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     var name = Em.get(config, 'name'),
         fileName = Em.get(config, 'filename'),
         group = Em.get(config, 'group.name'),
-        value = Em.get(config, 'value');
-
+        value = Em.get(config, 'value'),
+        isUserOverriden = Em.get(config, 'didUserOverrideValue');;
     Em.set(config, 'recommendedValue', recommendedValue);
     if (this.allowUpdateProperty(parentProperties, name, fileName, group, value)) {
       var allowConfigUpdate = true;
@@ -169,6 +170,11 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
           allowConfigUpdate = false;
         }
       }
+
+      if (isUserOverriden && name !== "capacity-scheduler") {
+        allowConfigUpdate = false;
+      }
+
       if (allowConfigUpdate) {
         Em.setProperties(config, {
           value: recommendedValue,
@@ -179,7 +185,12 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
       if (!Em.isNone(recommendedValue) && !Em.get(config, 'hiddenBySection')) {
         Em.set(config, 'isVisible', true);
       }
-      this.applyRecommendation(name, fileName, group, recommendedValue, this._getInitialValue(config), parentProperties, Em.get(config, 'isEditable'));
+      let recommendationExists = this.getRecommendation(name, fileName, group);
+      if (recommendationExists && isUserOverriden) {
+        this.removeRecommendation(name, fileName, group);
+      } else if (!isUserOverriden) {
+        this.applyRecommendation(name, fileName, group, recommendedValue, this._getInitialValue(config), parentProperties, Em.get(config, 'isEditable'));
+      }
     }
     if (this.updateInitialOnRecommendations(Em.get(config, 'serviceName'))) {
       Em.set(config, 'initialValue', recommendedValue);
@@ -187,7 +198,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     Em.tryInvoke(config, 'validate');
     return config;
   },
-
+  
   /**
    * Add config based on recommendations
    *

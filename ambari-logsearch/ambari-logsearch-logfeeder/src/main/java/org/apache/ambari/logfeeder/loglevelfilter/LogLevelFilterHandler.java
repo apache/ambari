@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.logfeeder.loglevelfilter;
 
+import com.google.gson.Gson;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
@@ -25,9 +26,14 @@ import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.LogLevelFilterMonitor;
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
+import org.apache.ambari.logsearch.config.zookeeper.LogLevelFilterManagerZK;
+import org.apache.ambari.logsearch.config.zookeeper.LogSearchConfigZKHelper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.TreeCache;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,10 +42,11 @@ import javax.inject.Inject;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LogLevelFilterHandler implements LogLevelFilterMonitor {
   private static final Logger LOG = LoggerFactory.getLogger(LogLevelFilterHandler.class);
@@ -61,15 +68,36 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
   private LogFeederProps logFeederProps;
 
   private LogSearchConfig config;
-  private Map<String, LogLevelFilter> filters = new HashMap<>();
+  private Map<String, LogLevelFilter> filters = new ConcurrentHashMap<>();
+
+  // Use these 2 only if local config is used with zk log level filter storage
+  private TreeCache clusterCache = null;
+  private TreeCacheListener listener = null;
 
   public LogLevelFilterHandler(LogSearchConfig config) {
     this.config = config;
   }
 
   @PostConstruct
-  public void init() {
+  public void init() throws Exception {
     TimeZone.setDefault(TimeZone.getTimeZone(TIMEZONE));
+    if (logFeederProps.isZkFilterStorage() && logFeederProps.isUseLocalConfigs()) {
+      LogLevelFilterManagerZK filterManager = (LogLevelFilterManagerZK) config.getLogLevelFilterManager();
+      CuratorFramework client = filterManager.getClient();
+      client.start();
+      Gson gson = filterManager.getGson();
+      LogSearchConfigZKHelper.waitUntilRootAvailable(client);
+      TreeCache clusterCache = LogSearchConfigZKHelper.createClusterCache(client, logFeederProps.getClusterName());
+      TreeCacheListener listener = LogSearchConfigZKHelper.createTreeCacheListener(
+        logFeederProps.getClusterName(), gson, this);
+      LogSearchConfigZKHelper.addAndStartListenersOnCluster(clusterCache, listener);
+    }
+    if (config.getLogLevelFilterManager() != null) {
+      TreeMap<String, LogLevelFilter> sortedFilters = config.getLogLevelFilterManager()
+        .getLogLevelFilters(logFeederProps.getClusterName())
+        .getFilter();
+      filters = new ConcurrentHashMap<>(sortedFilters);
+    }
   }
 
   @Override
@@ -86,29 +114,34 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     }
   }
 
-  public boolean isAllowed(String hostName, String logId, String level) {
+  @Override
+  public Map<String, LogLevelFilter> getLogLevelFilters() {
+    return filters;
+  }
+
+  public boolean isAllowed(String hostName, String logId, String level, List<String> defaultLogLevels) {
     if (!logFeederProps.isLogLevelFilterEnabled()) {
       return true;
     }
 
-    LogLevelFilter logFilter = findLogFilter(logId);
+    LogLevelFilter logFilter = findLogFilter(logId, defaultLogLevels);
     List<String> allowedLevels = getAllowedLevels(hostName, logFilter);
     return allowedLevels.isEmpty() || allowedLevels.contains(level);
   }
 
-  public boolean isAllowed(String jsonBlock, InputMarker inputMarker) {
+  public boolean isAllowed(String jsonBlock, InputMarker inputMarker, List<String> defaultLogLevels) {
     if (org.apache.commons.lang3.StringUtils.isEmpty(jsonBlock)) {
       return DEFAULT_VALUE;
     }
     Map<String, Object> jsonObj = LogFeederUtil.toJSONObject(jsonBlock);
-    return isAllowed(jsonObj, inputMarker);
+    return isAllowed(jsonObj, inputMarker, defaultLogLevels);
   }
 
-  public boolean isAllowed(Map<String, Object> jsonObj, InputMarker inputMarker) {
+  public boolean isAllowed(Map<String, Object> jsonObj, InputMarker inputMarker, List<String> defaultLogLevels) {
     if ("audit".equals(inputMarker.getInput().getInputDescriptor().getRowtype()))
       return true;
 
-    boolean isAllowed = applyFilter(jsonObj);
+    boolean isAllowed = applyFilter(jsonObj, defaultLogLevels);
     if (!isAllowed) {
       LOG.trace("Filter block the content :" + LogFeederUtil.getGson().toJson(jsonObj));
     }
@@ -116,7 +149,7 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
   }
 
 
-  public boolean applyFilter(Map<String, Object> jsonObj) {
+  public boolean applyFilter(Map<String, Object> jsonObj, List<String> defaultLogLevels) {
     if (MapUtils.isEmpty(jsonObj)) {
       LOG.warn("Output jsonobj is empty");
       return DEFAULT_VALUE;
@@ -126,13 +159,13 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     String logId = (String) jsonObj.get(LogFeederConstants.SOLR_COMPONENT);
     String level = (String) jsonObj.get(LogFeederConstants.SOLR_LEVEL);
     if (org.apache.commons.lang3.StringUtils.isNotBlank(hostName) && org.apache.commons.lang3.StringUtils.isNotBlank(logId) && org.apache.commons.lang3.StringUtils.isNotBlank(level)) {
-      return isAllowed(hostName, logId, level);
+      return isAllowed(hostName, logId, level, defaultLogLevels);
     } else {
       return DEFAULT_VALUE;
     }
   }
 
-  private synchronized LogLevelFilter findLogFilter(String logId) {
+  private synchronized LogLevelFilter findLogFilter(String logId, List<String> defaultLogLevels) {
     LogLevelFilter logFilter = filters.get(logId);
     if (logFilter != null) {
       return logFilter;
@@ -141,10 +174,10 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     LOG.info("Filter is not present for log " + logId + ", creating default filter");
     LogLevelFilter defaultFilter = new LogLevelFilter();
     defaultFilter.setLabel(logId);
-    defaultFilter.setDefaultLevels(logFeederProps.getIncludeDefaultLogLevels());
+    defaultFilter.setDefaultLevels(defaultLogLevels);
 
     try {
-      config.createLogLevelFilter(logFeederProps.getClusterName(), logId, defaultFilter);
+      config.getLogLevelFilterManager().createLogLevelFilter(logFeederProps.getClusterName(), logId, defaultFilter);
       filters.put(logId, defaultFilter);
     } catch (Exception e) {
       LOG.warn("Could not persist the default filter for log " + logId, e);
@@ -197,5 +230,9 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     } else {
       return false;
     }
+  }
+
+  public void setLogFeederProps(LogFeederProps logFeederProps) {
+    this.logFeederProps = logFeederProps;
   }
 }

@@ -18,21 +18,26 @@
 
 package org.apache.ambari.server.controller;
 
-
 import java.util.List;
 
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.controller.internal.ServiceConfigVersionResourceProvider;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.StackId;
+
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
+
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import com.google.inject.Inject;
+
+import io.swagger.annotations.ApiModelProperty;
+
 
 @StaticallyInject
 public class ServiceConfigVersionResponse {
@@ -133,25 +138,32 @@ public class ServiceConfigVersionResponse {
     stackId = new StackId(serviceConfigStackEntity).getStackId();
   }
 
+  @ApiModelProperty(name = ServiceConfigVersionResourceProvider.SERVICE_NAME_PROPERTY_ID)
   public String getServiceName() {
     return serviceName;
   }
 
+  @ApiModelProperty(name = ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_PROPERTY_ID)
   public Long getVersion() {
     return version;
   }
 
+  @ApiModelProperty(name = ServiceConfigVersionResourceProvider.CREATE_TIME_PROPERTY_ID)
   public Long getCreateTime() {
     return createTime;
   }
 
+  @ApiModelProperty(name = ServiceConfigVersionResourceProvider.USER_PROPERTY_ID)
   public String getUserName() {
     return userName;
   }
+
+  @ApiModelProperty(name = ServiceConfigVersionResourceProvider.CLUSTER_NAME_PROPERTY_ID)
   public String getClusterName() {
     return clusterName;
   }
 
+  @ApiModelProperty(name = ServiceConfigVersionResourceProvider.CONFIGURATIONS_PROPERTY_ID)
   public List<ConfigurationResponse> getConfigurations() {
     return configurations;
   }
@@ -160,18 +172,22 @@ public class ServiceConfigVersionResponse {
     this.configurations = configurations;
   }
 
+  @ApiModelProperty(name = ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID)
   public String getNote() {
     return note;
   }
 
+  @ApiModelProperty(name = ServiceConfigVersionResourceProvider.HOSTS_PROPERTY_ID)
   public List<String> getHosts() {
     return hosts;
   }
 
+  @ApiModelProperty(name = ServiceConfigVersionResourceProvider.GROUP_NAME_PROPERTY_ID)
   public String getGroupName() {
     return groupName;
   }
 
+  @ApiModelProperty(name = ServiceConfigVersionResourceProvider.GROUP_ID_PROPERTY_ID)
   public Long getGroupId() {
     return groupId;
   }
@@ -181,10 +197,12 @@ public class ServiceConfigVersionResponse {
    *
    * @return
    */
+  @ApiModelProperty(name = ServiceConfigVersionResourceProvider.STACK_ID_PROPERTY_ID)
   public String getStackId() {
     return stackId;
   }
 
+  @ApiModelProperty(name = ServiceConfigVersionResourceProvider.IS_CURRENT_PROPERTY_ID)
   public Boolean getIsCurrent() {
     return isCurrent;
   }
@@ -199,6 +217,7 @@ public class ServiceConfigVersionResponse {
    *
    * @return {@code true} if compatible, {@code false} otherwise.
    */
+  @ApiModelProperty(name = ServiceConfigVersionResourceProvider.IS_COMPATIBLE_PROPERTY_ID)
   public Boolean isCompatibleWithCurrentStack() {
     return isCompatibleWithCurrentStack;
   }

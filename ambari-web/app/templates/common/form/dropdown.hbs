@@ -16,10 +16,10 @@
 * limitations under the License.
 }}
 
-<div class="dropdown" {{QAAttr "select-host-for-component"}}>
+<div class="dropdown dropdown-select" {{QAAttr "{view.qaAttr}"}}>
   <button {{bindAttr class=":btn :btn-default :dropdown-toggle view.disabled:disabled"}} type="button" data-toggle="dropdown">
+    <span class="caret pull-caret-right"></span>
     {{view App.DropdownOptionView optionBinding="view.selection" optionLabelPathBinding="view.optionLabelPath" class="selected-item"}}
-    <span class="caret"></span>
   </button>
   <ul class="dropdown-menu">
     {{#each option in view.content}}

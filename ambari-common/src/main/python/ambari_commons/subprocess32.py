@@ -142,13 +142,16 @@ else:
     import errno
     import fcntl
     import pickle
+    import platform
+    import importlib
 
+    posixsubprocess_package = "ambari_commons.libs.{0}".format(platform.machine())
     try:
-        from ambari_commons import _posixsubprocess
+        _posixsubprocess = importlib.import_module('._posixsubprocess', posixsubprocess_package)
     except ImportError:
         _posixsubprocess = None
         import warnings
-        warnings.warn("The _posixsubprocess module is not being used. "
+        warnings.warn("The _posixsubprocess module is not being used. Could not import it from " + posixsubprocess_package + " "
                       "Child process reliability may suffer if your "
                       "program uses threads.", RuntimeWarning)
     try:

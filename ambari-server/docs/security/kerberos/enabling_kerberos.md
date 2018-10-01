@@ -83,7 +83,7 @@ curl -H "X-Requested-By:ambari" -u admin:admin -i -X POST http://AMBARI_SERVER:8
 curl -H "X-Requested-By:ambari" -u admin:admin -i -X PUT -d @./payload http://AMBARI_SERVER:8080/api/v1/clusters/CLUSTER_NAME
 ```
 
-Payload when using an MIT KDC:
+Example payload when using an MIT KDC:
 
 ```
 [
@@ -96,7 +96,7 @@ Payload when using an MIT KDC:
           "domains":"",
           "manage_krb5_conf": "true",
           "conf_dir":"/etc",
-          "content" : "[libdefaults]\n  renew_lifetime = 7d\n  forwardable= true\n  default_realm = {{realm|upper()}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes ={{encryption_types}}\n\n{% if domains %}\n[domain_realm]\n{% for domain in domains.split(',') %}\n  {{domain}} = {{realm|upper()}}\n{% endfor %}\n{%endif %}\n\n[logging]\n  default = FILE:/var/log/krb5kdc.log\nadmin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n    admin_server = {{admin_server_host|default(kdc_host, True)}}\n    kdc = {{kdc_host}}\n }\n\n{# Append additional realm declarations below #}\n"
+          "content" : "[libdefaults]\n  renew_lifetime = 7d\n  forwardable = true\n  default_realm = {{realm}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  default_ccache_name = /tmp/krb5cc_%{uid}\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes = {{encryption_types}}\n{% if domains %}\n[domain_realm]\n{%- for domain in domains.split(',') %}\n  {{domain|trim()}} = {{realm}}\n{%- endfor %}\n{% endif %}\n[logging]\n  default = FILE:/var/log/krb5kdc.log\n  admin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n{%- if master_kdc %}\n    master_kdc = {{master_kdc|trim()}}\n{%- endif -%}\n{%- if kdc_hosts > 0 -%}\n{%- set kdc_host_list = kdc_hosts.split(',')  -%}\n{%- if kdc_host_list and kdc_host_list|length > 0 %}\n    admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}\n{%- if kdc_host_list -%}\n{%- if master_kdc and (master_kdc not in kdc_host_list) %}\n    kdc = {{master_kdc|trim()}}\n{%- endif -%}\n{% for kdc_host in kdc_host_list %}\n    kdc = {{kdc_host|trim()}}\n{%- endfor -%}\n{% endif %}\n{%- endif %}\n{%- endif %}\n  }\n\n{# Append additional realm declarations below #}"
         }
       }
     }
@@ -109,18 +109,15 @@ Payload when using an MIT KDC:
         "properties": {
           "kdc_type": "mit-kdc",
           "manage_identities": "true",
+          "create_ambari_principal": "true",
+          "manage_auth_to_local": "true",
           "install_packages": "true",
           "encryption_types": "aes des3-cbc-sha1 rc4 des-cbc-md5",
           "realm" : "EXAMPLE.COM",
-          "kdc_host" : "KDC_SERVER",
-          "admin_server_host" : "KDC_SERVER",
+          "kdc_hosts" : "FQDN.KDC.SERVER",
+          "master_kdc" : "FQDN.MASTER.KDC.SERVER",
+          "admin_server_host" : "FQDN.ADMIN.KDC.SERVER",
           "executable_search_paths" : "/usr/bin, /usr/kerberos/bin, /usr/sbin, /usr/lib/mit/bin, /usr/lib/mit/sbin",
-          "password_length": "20",
-          "password_min_lowercase_letters": "1",
-          "password_min_uppercase_letters": "1",
-          "password_min_digits": "1",
-          "password_min_punctuation": "1",
-          "password_min_whitespace": "0",
           "service_check_principal_name" : "${cluster_name}-${short_date}",
           "case_insensitive_username_rules" : "false"
         }
@@ -130,7 +127,7 @@ Payload when using an MIT KDC:
 ]
 ```
 
-Payload when using an Active Directory:
+Example payload when using an Active Directory:
 
 ```
 [
@@ -143,7 +140,7 @@ Payload when using an Active Directory:
           "domains":"",
           "manage_krb5_conf": "true",
           "conf_dir":"/etc",
-          "content" : "[libdefaults]\n  renew_lifetime = 7d\n  forwardable= true\n  default_realm = {{realm|upper()}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes ={{encryption_types}}\n\n{% if domains %}\n[domain_realm]\n{% for domain in domains.split(',') %}\n  {{domain}} = {{realm|upper()}}\n{% endfor %}\n{%endif %}\n\n[logging]\n  default = FILE:/var/log/krb5kdc.log\nadmin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n    admin_server = {{admin_server_host|default(kdc_host, True)}}\n    kdc = {{kdc_host}}\n }\n\n{# Append additional realm declarations below #}\n"
+          "content" : "[libdefaults]\n  renew_lifetime = 7d\n  forwardable = true\n  default_realm = {{realm}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  default_ccache_name = /tmp/krb5cc_%{uid}\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes = {{encryption_types}}\n{% if domains %}\n[domain_realm]\n{%- for domain in domains.split(',') %}\n  {{domain|trim()}} = {{realm}}\n{%- endfor %}\n{% endif %}\n[logging]\n  default = FILE:/var/log/krb5kdc.log\n  admin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n{%- if master_kdc %}\n    master_kdc = {{master_kdc|trim()}}\n{%- endif -%}\n{%- if kdc_hosts > 0 -%}\n{%- set kdc_host_list = kdc_hosts.split(',')  -%}\n{%- if kdc_host_list and kdc_host_list|length > 0 %}\n    admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}\n{%- if kdc_host_list -%}\n{%- if master_kdc and (master_kdc not in kdc_host_list) %}\n    kdc = {{master_kdc|trim()}}\n{%- endif -%}\n{% for kdc_host in kdc_host_list %}\n    kdc = {{kdc_host|trim()}}\n{%- endfor -%}\n{% endif %}\n{%- endif %}\n{%- endif %}\n  }\n\n{# Append additional realm declarations below #}"
         }
       }
     }
@@ -156,11 +153,14 @@ Payload when using an Active Directory:
         "properties": {
           "kdc_type": "active-directory",
           "manage_identities": "true",
+          "create_ambari_principal": "true",
+          "manage_auth_to_local": "true",
           "install_packages": "true",
           "encryption_types": "aes des3-cbc-sha1 rc4 des-cbc-md5",
           "realm" : "EXAMPLE.COM",
-          "kdc_host" : "AD_HOST",
-          "admin_server_host" : "AD_HOST",
+          "kdc_hosts" : "FQDN.AD.SERVER",
+          "master_kdc" : "FQDN.MASTER.AD.SERVER",
+          "admin_server_host" : "FQDN.AD.SERVER",
           "ldap_url" : "LDAPS://AD_HOST:PORT",
           "container_dn" : "OU=....,....",
           "executable_search_paths" : "/usr/bin, /usr/kerberos/bin, /usr/sbin, /usr/lib/mit/bin, /usr/lib/mit/sbin",
@@ -173,6 +173,49 @@ Payload when using an Active Directory:
           "service_check_principal_name" : "${cluster_name}-${short_date}",
           "case_insensitive_username_rules" : "false",
           "create_attributes_template" :  "{\n \"objectClass\": [\"top\", \"person\", \"organizationalPerson\", \"user\"],\n \"cn\": \"$principal_name\",\n #if( $is_service )\n \"servicePrincipalName\": \"$principal_name\",\n #end\n \"userPrincipalName\": \"$normalized_principal\",\n \"unicodePwd\": \"$password\",\n \"accountExpires\": \"0\",\n \"userAccountControl\": \"66048\"}"
+        }
+      }
+    }
+  }
+]
+```
+Example payload when using IPA:
+
+```
+[
+  {
+    "Clusters": {
+      "desired_config": {
+        "type": "krb5-conf",
+        "tag": "version1",
+        "properties": {
+          "domains":"",
+          "manage_krb5_conf": "true",
+          "conf_dir":"/etc",
+          "content" : "[libdefaults]\n  renew_lifetime = 7d\n  forwardable = true\n  default_realm = {{realm}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  default_ccache_name = /tmp/krb5cc_%{uid}\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes = {{encryption_types}}\n{% if domains %}\n[domain_realm]\n{%- for domain in domains.split(',') %}\n  {{domain|trim()}} = {{realm}}\n{%- endfor %}\n{% endif %}\n[logging]\n  default = FILE:/var/log/krb5kdc.log\n  admin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n{%- if master_kdc %}\n    master_kdc = {{master_kdc|trim()}}\n{%- endif -%}\n{%- if kdc_hosts > 0 -%}\n{%- set kdc_host_list = kdc_hosts.split(',')  -%}\n{%- if kdc_host_list and kdc_host_list|length > 0 %}\n    admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}\n{%- if kdc_host_list -%}\n{%- if master_kdc and (master_kdc not in kdc_host_list) %}\n    kdc = {{master_kdc|trim()}}\n{%- endif -%}\n{% for kdc_host in kdc_host_list %}\n    kdc = {{kdc_host|trim()}}\n{%- endfor -%}\n{% endif %}\n{%- endif %}\n{%- endif %}\n  }\n\n{# Append additional realm declarations below #}"
+        }
+      }
+    }
+  },
+  {
+    "Clusters": {
+      "desired_config": {
+        "type": "kerberos-env",
+        "tag": "version1",
+        "properties": {
+          "kdc_type": "ipa",
+          "manage_identities": "true",
+          "create_ambari_principal": "true",
+          "manage_auth_to_local": "true",
+          "install_packages": "true",
+          "encryption_types": "aes des3-cbc-sha1 rc4 des-cbc-md5",
+          "realm" : "EXAMPLE.COM",
+          "kdc_hosts" : "FQDN.KDC.SERVER",
+          "master_kdc" : "FQDN.MASTER.KDC.SERVER",
+          "admin_server_host" : "FQDN.ADMIN.KDC.SERVER",
+          "executable_search_paths" : "/usr/bin, /usr/kerberos/bin, /usr/sbin, /usr/lib/mit/bin, /usr/lib/mit/sbin",
+          "service_check_principal_name" : "${cluster_name}-${short_date}",
+          "case_insensitive_username_rules" : "false"
         }
       }
     }
@@ -220,14 +263,19 @@ curl -H "X-Requested-By:ambari" -u admin:admin -i -X POST -d @./payload http://A
 Payload:
 
 ```
-The Kerberos Descriptor payload may be a complete Kerberos Descriptor or just the updates to overlay
-on top of the default Kerberos Descriptor.
+{
+  "artifact_data" : {
+    ... 
+  } 
+}
 ```
+
+**_Note:_** The Kerberos Descriptor payload may be a complete Kerberos Descriptor or just the updates to overlay on top of the default Kerberos Descriptor.
 
 #### Set the KDC administrator credentials
 
 ```
-curl -H "X-Requested-By:ambari" -u admin:admin -i -X POST -d @./payload http://AMBARI_SERVER:8080/api/v1/clusters/CLUSTER_NAME/credentials
+curl -H "X-Requested-By:ambari" -u admin:admin -i -X POST -d @./payload http://AMBARI_SERVER:8080/api/v1/clusters/CLUSTER_NAME/credentials/kdc.admin.credential
 ```
 
 Payload:
@@ -276,14 +324,14 @@ curl -H "X-Requested-By:ambari" -u admin:admin -i -X PUT -d '{"ServiceInfo": {"s
 <a name="password-generation"></a>
 #### Password Generation
 
-When Ambari generates keytab files, it uses an internal mechanism rather than rely on the KDC or
-Active Directory to do it.  This is because Ambari cannot request a keytab file from some KDCs
-such as an Active Directory. In order to create keytab files, Ambari needs to know the password for
-each relevant Kerberos identity.  Therefore, Ambari sets or updates the identity's password as needed.
+When enabling Kerberos using an Active Directory, Ambari must use an internal mechanism to build 
+the keytab files. This is because keytab files cannot be requested remotely from an Active Directory. 
+In order to create keytab files, Ambari needs to know the password for each relevant Kerberos 
+identity.  Therefore, Ambari sets or updates the identity's password as needed.
 
-The password for each Ambari-managed account in a KDC or Active Directory is randomly generated and
-stored only long enough to set the account's password and generate the keytab file.  Passwords are
-generated using the following user-settable parameters:
+The password for each Ambari-managed account in an Active Directory is randomly generated and
+stored only long enough in memory to set the account's password and generate the keytab file.  
+Passwords are generated using the following user-settable parameters:
 
 - Password length (`kerberos-env/password_length`)
   - Default Value: 20

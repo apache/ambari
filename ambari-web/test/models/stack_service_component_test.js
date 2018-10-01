@@ -249,8 +249,8 @@ var componentPropertiesValidationTests = [
       isMasterAddableInstallerWizard: false,
       isHAComponentOnly: false,
       isRequiredOnAllHosts: false,
-      coHostedComponents: ['WEBHCAT_SERVER'],
-      isOtherComponentCoHosted: true,
+      coHostedComponents: [],
+      isOtherComponentCoHosted: false,
       isCoHostedComponent: false
     }
   },

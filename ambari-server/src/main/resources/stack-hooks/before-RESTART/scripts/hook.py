@@ -16,13 +16,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management import Hook
 
-from resource_management import *
 
 class BeforeRestartHook(Hook):
 
   def hook(self, env):
     self.run_custom_hook('before-START')
+
 
 if __name__ == "__main__":
   BeforeRestartHook().execute()

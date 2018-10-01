@@ -19,13 +19,13 @@
 {{#unless view.outsideView}}
   <div {{bindAttr class="view.content.isActive::not-active-link"}}>
       {{statusIcon view.content.status}}
-    <a href="#" {{action toggleExpanded view.content view.tasks target="view.parentView"}}>
+    <a href="#" {{action toggleExpanded target="view"}}>
         {{view.content.command_detail}}
     </a>
   </div>
 {{/unless}}
-{{#if view.showContent}}
-  {{#if view.content}}
+{{#if view.isExpanded}}
+  {{#if view.content.isContentLoaded}}
     <div class="task-details task-detail-info">
       <ul class="nav nav-tabs">
         <li class="active"><a data-toggle="tab" {{bindAttr href="view.logTabIdLink"}}>{{t common.stdout}}</a></li>

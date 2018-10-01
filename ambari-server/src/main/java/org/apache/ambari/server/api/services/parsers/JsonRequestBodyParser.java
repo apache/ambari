@@ -45,6 +45,8 @@ public class JsonRequestBodyParser implements RequestBodyParser {
    */
   private final static Logger LOG = LoggerFactory.getLogger(JsonRequestBodyParser.class);
 
+  private final static ObjectMapper mapper = new ObjectMapper();
+
   @Override
   public Set<RequestBody> parse(String body) throws BodyParseException {
 
@@ -53,7 +55,6 @@ public class JsonRequestBodyParser implements RequestBodyParser {
     rootBody.setBody(body);
 
     if (body != null && body.length() != 0) {
-      ObjectMapper mapper = new ObjectMapper();
       try {
         JsonNode root = mapper.readTree(ensureArrayFormat(body));
 
@@ -110,8 +111,7 @@ public class JsonRequestBodyParser implements RequestBodyParser {
   }
 
   private void processNode(JsonNode node, String path, NamedPropertySet propertySet,
-                           Map<String, String> requestInfoProps) {
-
+                           Map<String, String> requestInfoProps) throws IOException {
     Iterator<String> iterator = node.getFieldNames();
     while (iterator.hasNext()) {
       String   name  = iterator.next();

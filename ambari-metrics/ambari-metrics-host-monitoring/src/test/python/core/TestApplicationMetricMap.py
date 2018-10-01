@@ -50,7 +50,7 @@ class TestApplicationMetricMap(TestCase):
     self.assertEqual(p['metrics'][0]['metrics'][str(timestamp)], 'bv')
     
     self.assertEqual(application_metric_map.get_start_time(application_id, "b"), timestamp)
-    
+
     metrics = {}
     metrics.update({"b" : 'bv'})
     metrics.update({"a" : 'av'})
@@ -72,3 +72,37 @@ class TestApplicationMetricMap(TestCase):
     self.assertEqual(len(json_data['metrics']), 1)
     self.assertTrue(json_data['metrics'][0]['metricname'] == 'a')
     self.assertFalse(application_metric_map.app_metric_map)
+
+  def test_flatten_and_align_values_by_minute_mark(self):
+    application_metric_map = ApplicationMetricMap("host", "10.10.10.10")
+    second = 1000
+    timestamp = int(round(1415390640.3806491 * second))
+    application_id = application_metric_map.format_app_id("A","1")
+    metrics = {}
+    metrics.update({"b" : 'bv'})
+
+    #   0s    60s   120s
+    #   (0) (1)   (2)    (3)
+    # (3) should be cut off and cached
+    application_metric_map.put_metric(application_id, metrics, timestamp)
+    application_metric_map.put_metric(application_id, metrics, timestamp + second*24)
+    application_metric_map.put_metric(application_id, metrics, timestamp + second*84)
+    application_metric_map.put_metric(application_id, metrics, timestamp + second*124)
+
+    json_data = json.loads(application_metric_map.flatten(application_id, True))
+    self.assertEqual(len(json_data['metrics'][0]['metrics']), 3)
+    self.assertEqual(len(application_metric_map.cached_metric_map.get(application_id).get("b")), 1)
+    self.assertEqual(application_metric_map.cached_metric_map.get(application_id).get("b"), {timestamp + second*124 : 'bv'})
+
+    #   120s    180s
+    #      (3)  (4)
+    # cached (3) should be added to the post;
+    # (4) should be posted as well because there can't be more data points in the minute
+    application_metric_map.put_metric(application_id, metrics, timestamp + second * 176)
+
+    json_data = json.loads(application_metric_map.flatten(application_id, True))
+    self.assertEqual(len(json_data['metrics'][0]['metrics']), 2)
+
+    # starttime should be set to (3)
+    self.assertEqual(json_data['metrics'][0]['starttime'], timestamp + second*124)
+    self.assertEqual(len(application_metric_map.cached_metric_map.get(application_id)), 0)

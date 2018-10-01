@@ -22,6 +22,8 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 
+import org.apache.ambari.server.collections.PredicateUtils;
+
 import com.google.common.base.MoreObjects;
 
 /**
@@ -32,7 +34,14 @@ import com.google.common.base.MoreObjects;
  * <pre>
  *   &lt;sso&gt;
  *     &lt;supported&gt;true&lt;/supported&gt;
- *     &lt;enabledConfiguration&gt;config-type/sso.enabled.property_name&lt;/enabledConfiguration&gt;
+ *     &lt;ssoEnabledTest&gt;
+ *         {
+ *           "equals": [
+ *             "config-type/sso.enabled.property_name",
+ *             "true"
+ *           ]
+ *         }
+ *     &lt;/ssoEnabledTest&gt;
  *   &lt;/sso&gt;
  * </pre>
  */
@@ -49,9 +58,25 @@ public class SingleSignOnInfo {
    * The configuration that can be used to determine if SSO integration has been enabled.
    * <p>
    * It is expected that this value is in the form of <code>configuration-type/property_name</code>
+   *
+   * @deprecated Use {@link #ssoEnabledTest} instead
    */
   @XmlElement(name = "enabledConfiguration")
   private String enabledConfiguration = null;
+
+  /**
+   * The configuration that can be used to determine if SSO integration has been enabled.
+   * <p>
+   * It is expected that this value is in the form of a valid JSON predicate ({@link PredicateUtils#fromJSON(String)}
+   */
+  @XmlElement(name = "ssoEnabledTest")
+  private String ssoEnabledTest = null;
+
+  /**
+   * Indicates if Kerberos is required for SSO integration (<code>true</code>) or not (<code>false</code>)
+   */
+  @XmlElement(name = "kerberosRequired")
+  private Boolean kerberosRequired = Boolean.FALSE;
 
   /**
    * Default constructor
@@ -65,10 +90,12 @@ public class SingleSignOnInfo {
    *
    * @param supported            true if SSO integration is supported; false otherwise
    * @param enabledConfiguration the configuration that can be used to determine if SSO integration has been enabled
+   * @param kerberosRequired     <code>true</code> if Kerberos is required for SSO integration; <code>false</code> otherwise
    */
-  public SingleSignOnInfo(Boolean supported, String enabledConfiguration) {
+  public SingleSignOnInfo(Boolean supported, String enabledConfiguration, Boolean kerberosRequired) {
     this.supported = supported;
     this.enabledConfiguration = enabledConfiguration;
+    this.kerberosRequired = kerberosRequired;
   }
 
   /**
@@ -101,6 +128,8 @@ public class SingleSignOnInfo {
   }
 
   /**
+   * @deprecated USe {@link #getSsoEnabledTest()} instead
+   * <p>
    * Gets the configuration specification that can be used to determine if SSO has been enabled or not.
    *
    * @return a configuration specification (config-type/property_name)
@@ -110,12 +139,49 @@ public class SingleSignOnInfo {
   }
 
   /**
+   * @deprecated Use {@link #setSsoEnabledTest(String)} instead
+   * <p>
    * Sets the configuration specification that can be used to determine if SSO has been enabled or not.
    *
    * @param enabledConfiguration a configuration specification (config-type/property_name)
    */
   public void setEnabledConfiguration(String enabledConfiguration) {
     this.enabledConfiguration = enabledConfiguration;
+  }
+
+  /**
+   * Gets the configuration specification that can be used to determine if SSO has
+   * been enabled or not.
+   *
+   * @return a configuration specification (a valid JSON predicate)
+   */
+  public String getSsoEnabledTest() {
+    return ssoEnabledTest;
+  }
+
+  /**
+   * Sets the configuration specification that can be used to determine if SSO has
+   * been enabled or not.
+   *
+   * @param enabledConfiguration
+   *          a configuration specification (a valid JSON predicate)
+   */
+  public void setSsoEnabledTest(String ssoEnabledTest) {
+    this.ssoEnabledTest = ssoEnabledTest;
+  }
+
+  /**
+   * @return the flag is Kerberos is required for SSO integration
+   */
+  public boolean isKerberosRequired() {
+    return Boolean.TRUE.equals(kerberosRequired);
+  }
+
+  /**
+   * Sets the flag is Kerberos is required for SSO integration
+   */
+  public void setKerberosRequired(Boolean kerberosRequired) {
+    this.kerberosRequired = kerberosRequired;
   }
 
   /**
@@ -128,6 +194,8 @@ public class SingleSignOnInfo {
     return MoreObjects.toStringHelper(this)
         .add("supported", supported)
         .add("enabledConfiguration", enabledConfiguration)
+        .add("ssoEnabledTest", ssoEnabledTest)
+        .add("kerberosRequired", kerberosRequired)
         .toString();
   }
 }

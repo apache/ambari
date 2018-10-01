@@ -18,37 +18,10 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.common.Marker;
 import org.apache.ambari.logsearch.model.request.FormatParamDefinition;
 import org.apache.ambari.logsearch.model.request.UserParamDefinition;
 
-import javax.ws.rs.QueryParam;
-
-public class UserExportRequest extends FieldAuditLogRequest implements FormatParamDefinition, UserParamDefinition {
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_FORMAT)
-  private String format;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_USERS)
-  private String userList;
-
-  @Override
-  public String getFormat() {
-    return format;
-  }
-
-  @Override
-  public void setFormat(String format) {
-    this.format = format;
-  }
-
-  @Override
-  public String getUserList() {
-    return userList;
-  }
-
-  @Override
-  public void setUserList(String userList) {
-    this.userList = userList;
-  }
+@Marker
+public interface UserExportRequest extends FieldAuditLogRequest, FormatParamDefinition, UserParamDefinition {
 }

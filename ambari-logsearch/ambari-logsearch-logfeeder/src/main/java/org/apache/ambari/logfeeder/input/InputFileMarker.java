@@ -37,7 +37,7 @@ public class InputFileMarker implements InputMarker {
     this.base64FileKey = base64FileKey;
     this.lineNumber = lineNumber;
     properties.put("line_number", lineNumber);
-    properties.put("base64_file_key", base64FileKey);
+    properties.put("file_key", base64FileKey);
   }
 
   @Override

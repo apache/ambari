@@ -17,11 +17,9 @@
 }}
 
 <span>{{t installer.controls.slaveComponentGroups}}&#58;&nbsp;</span>
-<div class="display-inline-block">
-    {{view Em.Select
-    contentBinding="view.parentView.configGroups"
-    optionLabelPath="content.displayName"
-    selectionBinding="view.parentView.selectedConfigGroup"
-    class="form-control"}}
-</div>
+{{view App.DropdownView
+       contentBinding="view.parentView.configGroups"
+       optionLabelPath="displayName"
+       selectionBinding="view.parentView.selectedConfigGroup"
+       class="display-inline-block" }}
 

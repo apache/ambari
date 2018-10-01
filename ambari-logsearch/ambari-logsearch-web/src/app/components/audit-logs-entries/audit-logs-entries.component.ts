@@ -21,7 +21,7 @@ import {GraphEmittedEvent} from '@app/classes/graph';
 import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject} from '@app/classes/object';
 import {AuditLog} from '@app/classes/models/audit-log';
-import {Tab} from '@app/classes/models/tab';
+import {LogTypeTab} from '@app/classes/models/log-type-tab';
 import {LogsContainerService} from '@app/services/logs-container.service';
 
 @Component({
@@ -45,7 +45,7 @@ export class AuditLogsEntriesComponent {
   @Input()
   totalCount: number = 0;
 
-  tabs: Tab[] = [
+  tabs: LogTypeTab[] = [
     {
       id: 'summary',
       isActive: true,
@@ -108,7 +108,7 @@ export class AuditLogsEntriesComponent {
     return this.logsContainer.queryContextMenuItems;
   }
 
-  setActiveTab(tab: Tab): void {
+  setActiveTab(tab: LogTypeTab): void {
     this.activeTab = tab.id;
   }
 

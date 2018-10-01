@@ -25,10 +25,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
-import org.apache.ambari.server.events.AmbariHostUpdateEvent;
-import org.apache.ambari.server.events.AmbariUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.STOMPEvent;
+import org.apache.ambari.server.events.STOMPHostEvent;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,16 +37,16 @@ import org.slf4j.LoggerFactory;
  * Is used to saving and updating last version of event in host scope
  * @param <T> event with hash to control version
  */
-public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hashable> extends AgentDataHolder<T> {
+public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> extends AgentDataHolder<T> {
   public static final Logger LOG = LoggerFactory.getLogger(AgentHostDataHolder.class);
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
-  private final Map<Long, T> data = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Long, T> data = new ConcurrentHashMap<>();
 
   protected abstract T getCurrentData(Long hostId) throws AmbariException;
-  protected abstract boolean handleUpdate(T update) throws AmbariException;
+  protected abstract T handleUpdate(T current, T update) throws AmbariException;
 
   public T getUpdateIfChanged(String agentHash, Long hostId) throws AmbariException {
     T hostData = initializeDataIfNeeded(hostId, true);
@@ -53,13 +54,23 @@ public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hash
   }
 
   public T initializeDataIfNeeded(Long hostId, boolean regenerateHash) throws AmbariException {
-    T hostData = data.get(hostId);
-    if (hostData == null) {
+    try {
+      return data.computeIfAbsent(hostId, id -> initializeData(hostId, regenerateHash));
+    } catch (AmbariRuntimeException e) {
+      throw new AmbariException(e.getMessage(), e);
+    }
+  }
+
+  private T initializeData(Long hostId, boolean regenerateHash) {
+    T hostData;
+    try {
       hostData = getCurrentData(hostId);
-      if (regenerateHash) {
-        regenerateDataIdentifiers(hostData);
-      }
-      data.put(hostId, hostData);
+    } catch (AmbariException e) {
+      LOG.error("Error during retrieving initial value for host: {} and class {}", hostId, getClass().getName(), e);
+      throw new AmbariRuntimeException("Error during retrieving initial value for host: " + hostId + " and class: " + getClass().getName(), e);
+    }
+    if (regenerateHash) {
+      regenerateDataIdentifiers(hostData);
     }
     return hostData;
   }
@@ -68,22 +79,35 @@ public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hash
    * Apply an incremental update to the data (host-specific), and publish the
    * event to listeners.
    */
-  public final void updateData(T update) throws AmbariException {
-    initializeDataIfNeeded(update.getHostId(), false);
-    if (handleUpdate(update)) {
-      T hostData = getData(update.getHostId());
-      regenerateDataIdentifiers(hostData);
-      setIdentifiersToEventUpdate(update, hostData);
-      if (update.getType().equals(AmbariUpdateEvent.Type.AGENT_CONFIGS)) {
-        LOG.info("Configs update with hash {} will be sent to host {}", update.getHash(), hostData.getHostId());
+  public void updateData(T update) throws AmbariException {
+    try {
+      data.compute(update.getHostId(), (id, current) -> {
+        if (current == null) {
+          current = initializeData(id, true);
+        }
+        T updated;
+        try {
+          updated = handleUpdate(current, update);
+        } catch (AmbariException e) {
+          LOG.error("Error during handling update for host: {} and class {}", id, getClass().getName(), e);
+          throw new AmbariRuntimeException("Error during handling update for host: " + id + " and class: " + getClass().getName(), e);
+        }
+        if (updated == null) {
+          return current;
+        } else {
+          regenerateDataIdentifiers(updated);
+          setIdentifiersToEventUpdate(update, updated);
+          return updated;
+        }
+      });
+    } catch(AmbariRuntimeException e) {
+      throw new AmbariException(e.getMessage(), e);
+    }
+    if (isIdentifierValid(update)) {
+      if (update.getType().equals(STOMPEvent.Type.AGENT_CONFIGS)) {
+        LOG.info("Configs update with hash {} will be sent to host {}", update.getHash(), update.getHostId());
       }
-      stateUpdateEventPublisher.publish(update);
-    } else {
-      // in case update does not have changes empty identifiers should be populated anyway
-      T hostData = getData(update.getHostId());
-      if (!isIdentifierValid(hostData)) {
-        regenerateDataIdentifiers(hostData);
-      }
+      STOMPUpdatePublisher.publish(update);
     }
   }
 
@@ -97,13 +121,13 @@ public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hash
   public final void resetData(Long hostId) throws AmbariException {
     T newData = getCurrentData(hostId);
     data.replace(hostId, newData);
-    stateUpdateEventPublisher.publish(newData);
+    STOMPUpdatePublisher.publish(newData);
   }
 
   /**
    * Remove data for the given host.
    */
-  public final void onHostRemoved(String hostId) {
+  public final void onHostRemoved(Long hostId) {
     data.remove(hostId);
   }
 

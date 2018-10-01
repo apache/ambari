@@ -80,8 +80,8 @@ public class ViewInstanceResourceProviderTest {
   public void testToResource() throws Exception {
     ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
     Set<String> propertyIds = new HashSet<>();
-    propertyIds.add(ViewInstanceResourceProvider.PROPERTIES_PROPERTY_ID);
-    propertyIds.add(ViewInstanceResourceProvider.CLUSTER_HANDLE_PROPERTY_ID);
+    propertyIds.add(ViewInstanceResourceProvider.PROPERTIES);
+    propertyIds.add(ViewInstanceResourceProvider.CLUSTER_HANDLE);
     ViewInstanceEntity viewInstanceEntity = createNiceMock(ViewInstanceEntity.class);
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
     expect(viewInstanceEntity.getViewEntity()).andReturn(viewEntity).anyTimes();
@@ -143,10 +143,10 @@ public class ViewInstanceResourceProviderTest {
 
     Map<String, Object> propertyMap = new HashMap<>();
 
-    propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, "V1");
-    propertyMap.put(ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID, "1.0.0");
-    propertyMap.put(ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID, "I1");
-    propertyMap.put(ViewInstanceResourceProvider.PROPERTIES_PROPERTY_ID + "/test_property", "test_value");
+    propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME, "V1");
+    propertyMap.put(ViewInstanceResourceProvider.VERSION, "1.0.0");
+    propertyMap.put(ViewInstanceResourceProvider.INSTANCE_NAME, "I1");
+    propertyMap.put(ViewInstanceResourceProvider.PROPERTIES + "/test_property", "test_value");
 
     properties.add(propertyMap);
 
@@ -210,9 +210,9 @@ public class ViewInstanceResourceProviderTest {
 
     Map<String, Object> propertyMap = new HashMap<>();
 
-    propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, "V1");
-    propertyMap.put(ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID, "1.0.0");
-    propertyMap.put(ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID, "I1");
+    propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME, "V1");
+    propertyMap.put(ViewInstanceResourceProvider.VERSION, "1.0.0");
+    propertyMap.put(ViewInstanceResourceProvider.INSTANCE_NAME, "I1");
 
     properties.add(propertyMap);
 
@@ -254,9 +254,9 @@ public class ViewInstanceResourceProviderTest {
 
     Map<String, Object> propertyMap = new HashMap<>();
 
-    propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, "V1");
-    propertyMap.put(ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID, "1.0.0");
-    propertyMap.put(ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID, "I1");
+    propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME, "V1");
+    propertyMap.put(ViewInstanceResourceProvider.VERSION, "1.0.0");
+    propertyMap.put(ViewInstanceResourceProvider.INSTANCE_NAME, "I1");
 
     properties.add(propertyMap);
 
@@ -297,13 +297,13 @@ public class ViewInstanceResourceProviderTest {
 
     Map<String, Object> propertyMap = new HashMap<>();
 
-    propertyMap.put(ViewInstanceResourceProvider.ICON_PATH_ID, "path");
+    propertyMap.put(ViewInstanceResourceProvider.ICON_PATH, "path");
 
     properties.add(propertyMap);
 
     PredicateBuilder predicateBuilder = new PredicateBuilder();
     Predicate predicate =
-        predicateBuilder.property(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID).equals("V1").toPredicate();
+        predicateBuilder.property(ViewInstanceResourceProvider.VIEW_NAME).equals("V1").toPredicate();
     ViewEntity viewEntity = new ViewEntity();
     viewEntity.setName("V1{1.0.0}");
     viewEntity.setStatus(ViewDefinition.ViewStatus.DEPLOYING);
@@ -340,7 +340,7 @@ public class ViewInstanceResourceProviderTest {
 
     PredicateBuilder predicateBuilder = new PredicateBuilder();
     Predicate predicate =
-        predicateBuilder.property(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID).equals("V1").toPredicate();
+        predicateBuilder.property(ViewInstanceResourceProvider.VIEW_NAME).equals("V1").toPredicate();
 
     ViewEntity viewEntity = new ViewEntity();
     viewEntity.setName("V1{1.0.0}");

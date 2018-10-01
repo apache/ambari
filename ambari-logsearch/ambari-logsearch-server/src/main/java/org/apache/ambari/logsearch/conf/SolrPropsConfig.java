@@ -60,4 +60,8 @@ public interface SolrPropsConfig {
   void setConfigSetFolder(String configSetFolder);
   
   String getLogType();
+
+  boolean isSolrImplicitRouting();
+
+  void setSolrImplicitRouting(boolean solrImplicitRouting);
 }

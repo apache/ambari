@@ -6,15 +6,15 @@
     },
     {
       "name": "ERROR",
-      "value": "0"
+      "value": "1"
     },
     {
       "name": "WARN",
-      "value": "3"
+      "value": "7"
     },
     {
       "name": "INFO",
-      "value": "4"
+      "value": "8"
     },
     {
       "name": "DEBUG",
@@ -26,7 +26,7 @@
     },
     {
       "name": "UNKNOWN",
-      "value": "28"
+      "value": "25"
     }
   ],
   "listSize": 7

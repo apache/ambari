@@ -47,6 +47,24 @@ module.exports = {
   },
 
   /**
+   * download multiple files archived in ZIP
+   * @param {object[]} files
+   */
+  downloadFilesInZip: function(files) {
+    const zip = new JSZip();
+    for (const file of files) {
+      const blob = new Blob([file.data], {
+        type: (this.fileTypeMap[file.type] || 'text/' + file.type) + ';charset=utf-8;'
+      });
+      zip.file(file.name, blob);
+    }
+    zip.generateAsync({type:"blob"})
+      .then(function(content) {
+        saveAs(content, "blueprint.zip");
+      });
+  },
+
+  /**
    * open content of text file in new window
    * @param data {String}
    */

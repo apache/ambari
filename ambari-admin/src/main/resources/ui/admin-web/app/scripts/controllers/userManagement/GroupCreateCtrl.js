@@ -19,8 +19,8 @@
 
 angular.module('ambariAdminConsole')
 .controller('GroupCreateCtrl',
-['$scope', '$rootScope', 'Group', '$location', 'Alert', 'UnsavedDialog', '$translate', '$modalInstance', 'Cluster', 'RoleDetailsModal',
-function($scope, $rootScope, Group, $location, Alert, UnsavedDialog, $translate, $modalInstance, Cluster, RoleDetailsModal) {
+['$scope', '$rootScope', 'Group', '$location', 'Alert', 'UnsavedDialog', '$translate', '$modalInstance', 'Cluster', 'RoleDetailsModal', '$q',
+function($scope, $rootScope, Group, $location, Alert, UnsavedDialog, $translate, $modalInstance, Cluster, RoleDetailsModal, $q) {
   var $t = $translate.instant;
 
   $scope.form = {};
@@ -66,7 +66,7 @@ function($scope, $rootScope, Group, $location, Alert, UnsavedDialog, $translate,
     }).map(function(item) {
       return item.trim();
     });
-    group.saveMembers().catch(function(data) {
+    return group.saveMembers().catch(function(data) {
       Alert.error($t('groups.alerts.cannotUpdateGroupMembers'), "<div class='break-word'>" + data.message + "</div>");
     });
   }
@@ -82,10 +82,13 @@ function($scope, $rootScope, Group, $location, Alert, UnsavedDialog, $translate,
     if ($scope.form.groupCreateForm.$valid) {
       var group = new Group($scope.formData.groupName);
       group.save().then(function () {
-        saveMembers(group, $scope.formData.members);
-        saveRole();
-        $modalInstance.dismiss('created');
-        Alert.success($t('groups.alerts.groupCreated', {groupName: $scope.formData.groupName}));
+        $q.all([
+          saveMembers(group, $scope.formData.members),
+          saveRole()
+        ]).then(function (value) {
+          $modalInstance.dismiss('created');
+          Alert.success($t('groups.alerts.groupCreated', {groupName: $scope.formData.groupName}));
+        });
       })
       .catch(function (data) {
         Alert.error($t('groups.alerts.groupCreationError'), data.data.message);
@@ -97,7 +100,7 @@ function($scope, $rootScope, Group, $location, Alert, UnsavedDialog, $translate,
     if (!$scope.formData.role || $scope.formData.role === 'NONE') {
       return;
     }
-    Cluster.createPrivileges(
+    return Cluster.createPrivileges(
       {
         clusterId: $rootScope.cluster.Clusters.cluster_name
       },

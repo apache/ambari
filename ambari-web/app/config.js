@@ -89,7 +89,8 @@ App.supports = {
   enabledWizardForHostOrderedUpgrade: true,
   manageJournalNode: true,
   enableToggleKerberos: true,
-  enableAddDeleteServices: true
+  enableAddDeleteServices: true,
+  regenerateKeytabsOnSingleHost: false
 };
 
 if (App.enableExperimental) {

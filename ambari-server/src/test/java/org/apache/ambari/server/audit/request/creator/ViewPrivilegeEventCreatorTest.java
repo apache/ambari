@@ -41,24 +41,24 @@ public class ViewPrivilegeEventCreatorTest extends AuditEventCreatorTestBase{
     ViewPrivilegeEventCreator creator = new ViewPrivilegeEventCreator();
 
     Map<String,Object> props = new HashMap<>();
-    props.put(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID, "MyView");
-    props.put(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID, "MyView");
-    props.put(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID, "MyView");
+    props.put(ViewPrivilegeResourceProvider.VIEW_NAME, "MyView");
+    props.put(ViewPrivilegeResourceProvider.VERSION, "MyView");
+    props.put(ViewPrivilegeResourceProvider.INSTANCE_NAME, "MyView");
 
     Map<String,Object> properties = new HashMap<>();
-    properties.put(ViewPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID, "USER");
-    properties.put(ViewPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID, "Permission1");
-    properties.put(ViewPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID, userName);
+    properties.put(ViewPrivilegeResourceProvider.PRINCIPAL_TYPE, "USER");
+    properties.put(ViewPrivilegeResourceProvider.PERMISSION_NAME, "Permission1");
+    properties.put(ViewPrivilegeResourceProvider.PRINCIPAL_NAME, userName);
 
     Map<String,Object> properties2 = new HashMap<>();
-    properties2.put(ViewPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID, "USER");
-    properties2.put(ViewPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID, "Permission2");
-    properties2.put(ViewPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID, userName + "2");
+    properties2.put(ViewPrivilegeResourceProvider.PRINCIPAL_TYPE, "USER");
+    properties2.put(ViewPrivilegeResourceProvider.PERMISSION_NAME, "Permission2");
+    properties2.put(ViewPrivilegeResourceProvider.PRINCIPAL_NAME, userName + "2");
 
     Map<String,Object> properties3 = new HashMap<>();
-    properties3.put(ViewPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID, "GROUP");
-    properties3.put(ViewPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID, "Permission1");
-    properties3.put(ViewPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID, "testgroup");
+    properties3.put(ViewPrivilegeResourceProvider.PRINCIPAL_TYPE, "GROUP");
+    properties3.put(ViewPrivilegeResourceProvider.PERMISSION_NAME, "Permission1");
+    properties3.put(ViewPrivilegeResourceProvider.PRINCIPAL_NAME, "testgroup");
 
     NamedPropertySet nps = new NamedPropertySet("1",properties);
     NamedPropertySet nps2 = new NamedPropertySet("2",properties2);

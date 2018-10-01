@@ -51,7 +51,6 @@ describe('App.Decommissionable', function() {
     var tests = Em.A([
       {
         content: Em.Object.create({componentTextStatus: 'status'}),
-        hostComponent: null,
         isComponentRecommissionAvailable: false,
         isComponentDecommissioning: false,
         e: 'status',
@@ -59,23 +58,6 @@ describe('App.Decommissionable', function() {
       },
       {
         content: Em.Object.create({componentTextStatus: 'status'}),
-        hostComponent: Em.Object.create({componentTextStatus: 'new_status'}),
-        isComponentRecommissionAvailable: false,
-        isComponentDecommissioning: false,
-        e: 'new_status',
-        m: 'get hostComponent status'
-      },
-      {
-        content: Em.Object.create({componentTextStatus: 'status'}),
-        hostComponent: Em.Object.create({componentTextStatus: 'new_status'}),
-        isComponentRecommissionAvailable: false,
-        isComponentDecommissioning: false,
-        e: 'new_status',
-        m: 'get hostComponent status'
-      },
-      {
-        content: Em.Object.create({componentTextStatus: 'status'}),
-        hostComponent: Em.Object.create({componentTextStatus: 'new_status'}),
         isComponentRecommissionAvailable: true,
         isComponentDecommissioning: true,
         e: Em.I18n.t('hosts.host.decommissioning'),
@@ -83,7 +65,6 @@ describe('App.Decommissionable', function() {
       },
       {
         content: Em.Object.create({componentTextStatus: 'status'}),
-        hostComponent: Em.Object.create({componentTextStatus: 'new_status'}),
         isComponentRecommissionAvailable: true,
         isComponentDecommissioning: false,
         e: Em.I18n.t('hosts.host.decommissioned'),

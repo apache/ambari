@@ -27,6 +27,7 @@ import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.serveraction.upgrades.AutoSkipFailedSummaryAction;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
@@ -65,7 +66,7 @@ public class StageWrapperBuilderTest extends EasyMockSupport {
     replayAll();
 
     MockStageWrapperBuilder builder = new MockStageWrapperBuilder(null);
-    List<StageWrapper> stageWrappers = builder.build(upgradeContext);
+    List<StageWrapper> stageWrappers = builder.build(upgradeContext, null);
     List<Integer> invocationOrder = builder.getInvocationOrder();
 
     Assert.assertEquals(Integer.valueOf(0), invocationOrder.get(0));
@@ -108,7 +109,7 @@ public class StageWrapperBuilderTest extends EasyMockSupport {
 
     builder.setMockStageWrappers(mockStageWrappers);
 
-    List<StageWrapper> stageWrappers = builder.build(upgradeContext);
+    List<StageWrapper> stageWrappers = builder.build(upgradeContext, null);
     Assert.assertEquals(2, stageWrappers.size());
 
     StageWrapper skipSummaryWrapper = stageWrappers.get(1);
@@ -156,7 +157,7 @@ public class StageWrapperBuilderTest extends EasyMockSupport {
      * {@inheritDoc}
      */
     @Override
-    public void add(UpgradeContext upgradeContext, HostsType hostsType, String service,
+    public void add(UpgradeContext upgradeContext, Mpack mpack, HostsType hostsType, String service,
         boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
     }
 
@@ -164,7 +165,7 @@ public class StageWrapperBuilderTest extends EasyMockSupport {
      * {@inheritDoc}
      */
     @Override
-    public List<StageWrapper> build(UpgradeContext upgradeContext,
+    public List<StageWrapper> build(UpgradeContext upgradeContext, Mpack mpack,
         List<StageWrapper> stageWrappers) {
       m_invocationOrder.add(1);
       return m_stageWrappers;

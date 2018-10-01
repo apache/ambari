@@ -22,6 +22,7 @@ var InitialData = {
     'loginName': '',
     'authenticated': false,
     'configs': [],
+    'tags': [],
     'tables': {
       'filterConditions': {},
       'displayLength': {},
@@ -267,6 +268,10 @@ App.db.setLocalRepoVDFData = function (data) {
 
 App.db.setConfigs = function (configs) {
   App.db.set('app', 'configs', configs);
+};
+
+App.db.setTags = function (tags) {
+  App.db.set('app', 'tags', tags);
 };
 
 /**
@@ -524,6 +529,10 @@ App.db.getManageJournalNodeWizardConfigTag = function (tag) {
 
 App.db.getConfigs = function () {
   return App.db.get('app', 'configs');
+};
+
+App.db.getTags = function () {
+  return App.db.get('app', 'tags');
 };
 
 App.db.getReassignMasterWizardReassignHosts = function () {

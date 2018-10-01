@@ -118,7 +118,7 @@ describe('App.ServiceConfigGroup', function () {
           value: 'v1'
         }
       ]);
-      expect(model.get('propertiesList')).to.equal('p1 : v1\n');
+      expect(model.get('propertiesList')).to.equal('p1 : v1<br/>');
     });
   });
 

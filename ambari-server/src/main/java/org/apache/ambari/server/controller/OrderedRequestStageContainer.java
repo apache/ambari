@@ -55,8 +55,4 @@ public class OrderedRequestStageContainer {
   public RequestStageContainer getRequestStageContainer() {
     return requestStageContainer;
   }
-
-  public void setClusterHostInfo(String clusterHostInfo) {
-    this.requestStageContainer.setClusterHostInfo(clusterHostInfo);
-  }
 }

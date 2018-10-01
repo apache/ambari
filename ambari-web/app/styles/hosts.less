@@ -49,6 +49,13 @@
     .host-select-all {
       margin-bottom: -1px ;
     }
+    tbody > tr > td {
+      vertical-align: middle;
+    }
+    .alerts-crit-count,
+    .alerts-warn-count {
+      margin-top: 2px;
+    }
   }
 
   .health-status-HEALTHY,
@@ -391,8 +398,20 @@
     }
   }
 
+  .namenode-metrics {
+    .span2p4 {
+      width: 46%;
+      .img-thumbnail {
+        width: 100%;
+      }
+    }
+  }
+
   .host-components {
     padding: 10px;
+    .status-icons {
+      width: 70px;
+    }
     .component-name-block {
       white-space: normal;
       word-wrap: break-word;
@@ -409,6 +428,9 @@
         pointer-events: auto;
       }
     }
+    .table > tbody > tr > td {
+      vertical-align: middle;
+    }
   }
 
   .status-icons span {
@@ -417,14 +439,10 @@
 
   .action-icon {
     padding: 2px 5px 0 5px;
+    top: 2px;
     font-size: 16px;
   }
 
-  .logs-tab-content {
-    a.external-link {
-      font-size: @smaller-font-size;
-    }
-  }
   .host-stack-version-status {
     .label {
       font-size: 14px;
@@ -432,10 +450,49 @@
   }
 
   .logs-tab-content {
+    padding: 0 10px;
+    background-color: #ffffff;
+    a.external-link {
+      font-size: @smaller-font-size;
+    }
     .table {
       table-layout: auto;
+      td:first-child,
+      th:first-child {
+        width: 20%;
+      }
+      td:first-child + td,
+      th:first-child + th {
+        width: 30%;
+      }
+      td:first-child + td + td,
+      th:first-child + th + th {
+        width: 50%;
+      }
     }
   }
+  .nav {
+    .alerts-crit-count,
+    .alerts-warn-count {
+      padding: .4em .5em;
+      display: inline-block;
+      vertical-align: top;
+    }
+  }
+}
+
+.host-breadcrumb {
+  max-width: 50%;
+  display: inline-block;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+#host-alerts {
+  padding: 0 10px;
+  background-color: #ffffff;
 }
 
 @media all and (max-width: 2560px) {
