@@ -434,7 +434,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       step: mirrorStep,
       formatter: function (val) {
         var labelValue = Em.isArray(val) ? val[0] : val;
-        return self.formatTickLabel(labelValue);
+        return self.formatTickLabel(labelValue, ' ');
       }
     });
 
