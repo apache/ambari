@@ -165,7 +165,6 @@ class RecoveryManager:
           component_status = copy.deepcopy(self.default_component_status)
           component_status["current"] = state
           self.statuses[component] = component_status
-          logger.info("New status, current status is set to %s for %s", self.statuses[component]["current"], component)
       finally:
         self.__status_lock.release()
       pass
