@@ -103,6 +103,15 @@ class RecoveryManager:
     self.actions = {}
     self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, auto_install_start)
 
+    # FIXME: Recovery manager does not support multiple clusters as of now.
+    if len(self.initializer_module.configurations_cache):
+      self.cluster_id = self.initializer_module.configurations_cache.keys()[0]
+      self.on_config_update()
+
+    if len(self.initializer_module.host_level_params_cache):
+      self.cluster_id = self.initializer_module.host_level_params_cache.keys()[0]
+      self.update_recovery_config(self.host_level_params_cache[self.cluster_id])
+
   def on_execution_command_start(self):
     with self.__active_command_lock:
       self.active_command_count += 1
