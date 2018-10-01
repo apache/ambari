@@ -25,7 +25,7 @@ import com.google.common.collect.Sets;
 
 public class RepositoryResourceDefinition extends BaseResourceDefinition {
 
-  public static String VALIDATE_ONLY_DIRECTIVE = "validate_only";
+  public static final String VALIDATE_ONLY_DIRECTIVE = "validate_only";
 
   public RepositoryResourceDefinition() {
     super(Resource.Type.Repository);

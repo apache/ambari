@@ -341,7 +341,7 @@ public class DBAccessorImpl implements DBAccessor {
     if (!duplicatedColumns.isEmpty()) {
       throw new IllegalStateException(
               String.format("Request for columns [%s] existing in table [%s] returned too many results [%s] for columns [%s]",
-                      columnName, tableName, duplicatedColumns.size(), duplicatedColumns.toString()));
+                      Arrays.toString(columnName), tableName, duplicatedColumns.size(), duplicatedColumns.toString()));
     }
 
     return columnsList.size() == 0;

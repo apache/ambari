@@ -401,14 +401,6 @@ class ActionScheduler implements Runnable {
 
       int i_stage = 0;
 
-      // get the range of requests in progress
-      long iLowestRequestIdInProgress = firstStageInProgressPerRequest.get(0).getRequestId();
-      long iHighestRequestIdInProgress = firstStageInProgressPerRequest.get(
-          firstStageInProgressPerRequest.size() - 1).getRequestId();
-
-      List<String> hostsWithPendingTasks = hostRoleCommandDAO.getHostsWithPendingTasks(
-          iLowestRequestIdInProgress, iHighestRequestIdInProgress);
-
       // filter the stages in progress down to those which can be scheduled in
       // parallel
       List<Stage> stages = filterParallelPerHostStages(firstStageInProgressPerRequest);

@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableMap;
  * done for Stack Upgrades.
  */
 public class CheckDescription {
-  public static CheckDescription CLIENT_RETRY = new CheckDescription("CLIENT_RETRY",
+  public static final CheckDescription CLIENT_RETRY = new CheckDescription("CLIENT_RETRY",
     PrereqCheckType.SERVICE,
     "Client Retry Properties",
     new ImmutableMap.Builder<String, String>()
@@ -39,28 +39,28 @@ public class CheckDescription {
       .put(ClientRetryPropertyCheck.OOZIE_CLIENT_RETRY_MISSING_KEY,
           "The oozie-env.sh script must contain a retry count such as export OOZIE_CLIENT_OPTS=\"${OOZIE_CLIENT_OPTS} -Doozie.connection.retry.count=5\"").build());
 
-  public static CheckDescription HOSTS_HEARTBEAT = new CheckDescription("HOSTS_HEARTBEAT",
+  public static final CheckDescription HOSTS_HEARTBEAT = new CheckDescription("HOSTS_HEARTBEAT",
     PrereqCheckType.HOST,
     "All hosts must be communicating with Ambari. Hosts which are not reachable should be placed in Maintenance Mode.",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "There are hosts which are not communicating with Ambari.").build());
 
-  public static CheckDescription HEALTH = new CheckDescription("HEALTH",
+  public static final CheckDescription HEALTH = new CheckDescription("HEALTH",
     PrereqCheckType.CLUSTER,
     "Cluster Health",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "The following issues have been detected on this cluster and should be addressed before upgrading: %s").build());
 
-  public static CheckDescription SERVICE_CHECK = new CheckDescription("SERVICE_CHECK",
+  public static final CheckDescription SERVICE_CHECK = new CheckDescription("SERVICE_CHECK",
     PrereqCheckType.SERVICE,
     "Last Service Check should be more recent than the last configuration change for the given service",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "The following service configurations have been updated and their Service Checks should be run again: %s").build());
 
-  public static CheckDescription HOSTS_MAINTENANCE_MODE = new CheckDescription("HOSTS_MAINTENANCE_MODE",
+  public static final CheckDescription HOSTS_MAINTENANCE_MODE = new CheckDescription("HOSTS_MAINTENANCE_MODE",
     PrereqCheckType.HOST,
     "Hosts in Maintenance Mode will be excluded from the upgrade.",
     new ImmutableMap.Builder<String, String>()
@@ -69,7 +69,7 @@ public class CheckDescription {
       .put(HostMaintenanceModeCheck.KEY_CANNOT_START_HOST_ORDERED,
           "The following hosts cannot be in Maintenance Mode: {{fails}}.").build());
 
-  public static CheckDescription HOSTS_MASTER_MAINTENANCE = new CheckDescription("HOSTS_MASTER_MAINTENANCE",
+  public static final CheckDescription HOSTS_MASTER_MAINTENANCE = new CheckDescription("HOSTS_MASTER_MAINTENANCE",
     PrereqCheckType.HOST,
     "Hosts in Maintenance Mode must not have any master components",
     new ImmutableMap.Builder<String, String>()
@@ -80,34 +80,34 @@ public class CheckDescription {
       .put(HostsMasterMaintenanceCheck.KEY_NO_UPGRADE_PACK,
           "Could not find upgrade pack named %s.").build());
 
-  public static CheckDescription HOSTS_REPOSITORY_VERSION = new CheckDescription("HOSTS_REPOSITORY_VERSION",
+  public static final CheckDescription HOSTS_REPOSITORY_VERSION = new CheckDescription("HOSTS_REPOSITORY_VERSION",
     PrereqCheckType.HOST,
     "All hosts should have target version installed",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "The following hosts must have version {{version}} installed: {{fails}}.").build());
 
-  public static CheckDescription SECONDARY_NAMENODE_MUST_BE_DELETED = new CheckDescription("SECONDARY_NAMENODE_MUST_BE_DELETED",
+  public static final CheckDescription SECONDARY_NAMENODE_MUST_BE_DELETED = new CheckDescription("SECONDARY_NAMENODE_MUST_BE_DELETED",
     PrereqCheckType.HOST,
     "The SNameNode component must be deleted from all hosts",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT, "The SNameNode component must be deleted from host: %s.").build());
 
-  public static CheckDescription SERVICES_HIVE_MULTIPLE_METASTORES = new CheckDescription("SERVICES_HIVE_MULTIPLE_METASTORES",
+  public static final CheckDescription SERVICES_HIVE_MULTIPLE_METASTORES = new CheckDescription("SERVICES_HIVE_MULTIPLE_METASTORES",
     PrereqCheckType.SERVICE,
     "Hive Metastore Availability",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "Multiple Hive Metastore instances are recommended for Rolling Upgrade. This ensures that there is at least one Metastore running during the upgrade process.").build());
 
-  public static CheckDescription SERVICES_MAINTENANCE_MODE = new CheckDescription("SERVICES_MAINTENANCE_MODE",
+  public static final CheckDescription SERVICES_MAINTENANCE_MODE = new CheckDescription("SERVICES_MAINTENANCE_MODE",
     PrereqCheckType.SERVICE,
     "No services can be in Maintenance Mode",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "The following Services must not be in Maintenance Mode: {{fails}}.").build());
 
-  public static CheckDescription SERVICES_MR_DISTRIBUTED_CACHE = new CheckDescription("SERVICES_MR_DISTRIBUTED_CACHE",
+  public static final CheckDescription SERVICES_MR_DISTRIBUTED_CACHE = new CheckDescription("SERVICES_MR_DISTRIBUTED_CACHE",
     PrereqCheckType.SERVICE,
     "MapReduce should reference Hadoop libraries from the distributed cache in HDFS",
     new ImmutableMap.Builder<String, String>()
@@ -118,21 +118,21 @@ public class CheckDescription {
       .put(ServicesMapReduceDistributedCacheCheck.KEY_NOT_DFS,
           "The mapred-site.xml property mapreduce.application.framework.path or the core-site.xml property fs.defaultFS should point to *dfs:/ url.").build());
 
-  public static CheckDescription SERVICES_NAMENODE_HA = new CheckDescription("SERVICES_NAMENODE_HA",
+  public static final CheckDescription SERVICES_NAMENODE_HA = new CheckDescription("SERVICES_NAMENODE_HA",
     PrereqCheckType.SERVICE,
     "NameNode High Availability must be enabled",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "NameNode High Availability is not enabled. Verify that dfs.internal.nameservices property is present in hdfs-site.xml.").build());
 
-  public static CheckDescription SERVICES_NAMENODE_TRUNCATE = new CheckDescription("SERVICES_NAMENODE_TRUNCATE",
+  public static final CheckDescription SERVICES_NAMENODE_TRUNCATE = new CheckDescription("SERVICES_NAMENODE_TRUNCATE",
     PrereqCheckType.SERVICE,
     "NameNode Truncate must not be allowed",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "NameNode Truncate is allowed. Verify that dfs.allow.truncate is set to 'false' in hdfs-site.xml.").build());
 
-  public static CheckDescription SERVICES_TEZ_DISTRIBUTED_CACHE = new CheckDescription("SERVICES_TEZ_DISTRIBUTED_CACHE",
+  public static final CheckDescription SERVICES_TEZ_DISTRIBUTED_CACHE = new CheckDescription("SERVICES_TEZ_DISTRIBUTED_CACHE",
     PrereqCheckType.SERVICE,
     "Tez should reference Hadoop libraries from the distributed cache in HDFS",
     new ImmutableMap.Builder<String, String>()
@@ -147,56 +147,56 @@ public class CheckDescription {
       .put(ServicesTezDistributedCacheCheck.KEY_USE_HADOOP_LIBS_FALSE,
           "The tez-site.xml property tez.use.cluster.hadoop-libs should be set to false.").build());
 
-  public static CheckDescription SERVICES_UP = new CheckDescription("SERVICES_UP",
+  public static final CheckDescription SERVICES_UP = new CheckDescription("SERVICES_UP",
     PrereqCheckType.SERVICE,
     "All services must be started",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "The following Services must be started: {{fails}}. Try to do a Stop & Start in case they were started outside of Ambari.").build());
 
-  public static CheckDescription COMPONENTS_INSTALLATION = new CheckDescription("COMPONENTS_INSTALLATION",
+  public static final CheckDescription COMPONENTS_INSTALLATION = new CheckDescription("COMPONENTS_INSTALLATION",
     PrereqCheckType.SERVICE,
     "All service components must be installed",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "The following Services must be reinstalled: {{fails}}. Try to reinstall the service components in INSTALL_FAILED state.").build());
 
-  public static CheckDescription PREVIOUS_UPGRADE_COMPLETED = new CheckDescription("PREVIOUS_UPGRADE_COMPLETED",
+  public static final CheckDescription PREVIOUS_UPGRADE_COMPLETED = new CheckDescription("PREVIOUS_UPGRADE_COMPLETED",
     PrereqCheckType.CLUSTER,
     "A previous upgrade did not complete.",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "The last upgrade attempt did not complete. {{fails}}").build());
 
-  public static CheckDescription INSTALL_PACKAGES_CHECK = new CheckDescription("INSTALL_PACKAGES_CHECK",
+  public static final CheckDescription INSTALL_PACKAGES_CHECK = new CheckDescription("INSTALL_PACKAGES_CHECK",
     PrereqCheckType.CLUSTER,
     "Install packages must be re-run",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "Re-run Install Packages before starting upgrade").build());
 
-  public static CheckDescription SERVICES_YARN_WP = new CheckDescription("SERVICES_YARN_WP",
+  public static final CheckDescription SERVICES_YARN_WP = new CheckDescription("SERVICES_YARN_WP",
     PrereqCheckType.SERVICE,
     "YARN work preserving restart should be enabled",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "YARN should have work preserving restart enabled. The yarn-site.xml property yarn.resourcemanager.work-preserving-recovery.enabled property should be set to true.").build());
 
-  public static CheckDescription SERVICES_YARN_RM_HA = new CheckDescription("SERVICES_YARN_RM_HA",
+  public static final CheckDescription SERVICES_YARN_RM_HA = new CheckDescription("SERVICES_YARN_RM_HA",
     PrereqCheckType.SERVICE,
     "YARN ResourceManager High Availability is not enabled.",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "YARN ResourceManager HA should be enabled to prevent a disruption in service during the upgrade").build());
 
-  public static CheckDescription SERVICES_YARN_TIMELINE_ST = new CheckDescription("SERVICES_YARN_TIMELINE_ST",
+  public static final CheckDescription SERVICES_YARN_TIMELINE_ST = new CheckDescription("SERVICES_YARN_TIMELINE_ST",
     PrereqCheckType.SERVICE,
     "YARN Timeline state preserving restart should be enabled",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "YARN should have state preserving restart enabled for the Timeline server. The yarn-site.xml property yarn.timeline-service.recovery.enabled should be set to true.").build());
 
-  public static CheckDescription SERVICES_MR2_JOBHISTORY_ST = new CheckDescription("SERVICES_MR2_JOBHISTORY_ST",
+  public static final CheckDescription SERVICES_MR2_JOBHISTORY_ST = new CheckDescription("SERVICES_MR2_JOBHISTORY_ST",
     PrereqCheckType.SERVICE,
     "MapReduce2 JobHistory recovery should be enabled",
     new ImmutableMap.Builder<String, String>()
@@ -207,7 +207,7 @@ public class CheckDescription {
       .put(MapReduce2JobHistoryStatePreservingCheck.MAPREDUCE2_JOBHISTORY_RECOVERY_STORE_LEVELDB_PATH_KEY,
           "MapReduce2 should have recovery enabled for the JobHistory server. The mapred-site.xml property mapreduce.jobhistory.recovery.store.leveldb.path should be set. Please note that \"mapreduce.jobhistory.recovery.store.leveldb.path\" should be on a mount with ~3 GB of free space.").build());
 
-  public static CheckDescription SERVICES_HIVE_DYNAMIC_SERVICE_DISCOVERY = new CheckDescription("SERVICES_HIVE_DYNAMIC_SERVICE_DISCOVERY",
+  public static final CheckDescription SERVICES_HIVE_DYNAMIC_SERVICE_DISCOVERY = new CheckDescription("SERVICES_HIVE_DYNAMIC_SERVICE_DISCOVERY",
     PrereqCheckType.SERVICE,
     "Hive Dynamic Service Discovery",
     new ImmutableMap.Builder<String, String>()
@@ -218,7 +218,7 @@ public class CheckDescription {
       .put(HiveDynamicServiceDiscoveryCheck.HIVE_DYNAMIC_SERVICE_ZK_NAMESPACE_KEY,
           "The hive-site.xml property hive.server2.zookeeper.namespace should be set to the value for the root namespace on ZooKeeper.").build());
 
-  public static CheckDescription AMS_HADOOP_SINK_VERSION_COMPATIBILITY = new CheckDescription("AMS_HADOOP_SINK_VERSION_COMPATIBILITY",
+  public static final CheckDescription AMS_HADOOP_SINK_VERSION_COMPATIBILITY = new CheckDescription("AMS_HADOOP_SINK_VERSION_COMPATIBILITY",
     PrereqCheckType.HOST,
     "Ambari Metrics Hadoop Sinks need to be compatible with the stack version. This check ensures that compatibility.",
     new ImmutableMap.Builder<String, String>().put(AbstractCheckDescriptor.DEFAULT,"Hadoop Sink version check failed. " +
@@ -226,14 +226,14 @@ public class CheckDescription {
       .put(AmbariMetricsHadoopSinkVersionCompatibilityCheck.HADOOP_SINK_VERSION_NOT_SPECIFIED, "Hadoop Sink version for pre-check not specified. " +
         "Please use 'min-hadoop-sink-version' property in upgrade pack to specify min hadoop sink version").build());
 
-  public static CheckDescription CONFIG_MERGE = new CheckDescription("CONFIG_MERGE",
+  public static final CheckDescription CONFIG_MERGE = new CheckDescription("CONFIG_MERGE",
     PrereqCheckType.CLUSTER,
     "Configuration Merge Check",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "The following config types will have values overwritten: %s").build());
 
-  public static CheckDescription HARDCODED_STACK_VERSION_PROPERTIES_CHECK = new CheckDescription("HARDCODED_STACK_VERSION_PROPERTIES_CHECK",
+  public static final CheckDescription HARDCODED_STACK_VERSION_PROPERTIES_CHECK = new CheckDescription("HARDCODED_STACK_VERSION_PROPERTIES_CHECK",
     PrereqCheckType.CLUSTER,
     "Found hardcoded stack version in property value.",
     new ImmutableMap.Builder<String, String>()
@@ -241,14 +241,14 @@ public class CheckDescription {
           "Some properties seem to contain hardcoded stack version string \"%s\"." +
           " That is a potential problem when doing stack update.").build());
 
-  public static CheckDescription VERSION_MISMATCH = new CheckDescription("VERSION_MISMATCH",
+  public static final CheckDescription VERSION_MISMATCH = new CheckDescription("VERSION_MISMATCH",
     PrereqCheckType.HOST,
     "All components must be reporting the expected version",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "There are components which are not reporting the expected stack version: \n%s").build());
 
-  public static CheckDescription SERVICES_RANGER_PASSWORD_VERIFY = new CheckDescription("SERVICES_RANGER_PASSWORD_VERIFY",
+  public static final CheckDescription SERVICES_RANGER_PASSWORD_VERIFY = new CheckDescription("SERVICES_RANGER_PASSWORD_VERIFY",
     PrereqCheckType.SERVICE,
     "Verify Ambari and Ranger Password Synchronization",
     new ImmutableMap.Builder<String, String>()
@@ -267,7 +267,7 @@ public class CheckDescription {
       .put(RangerPasswordCheck.KEY_RANGER_CONFIG_MISSING,
           "Could not check credentials.  Missing property %s/%s").build());
 
-  public static CheckDescription ATLAS_SERVICE_PRESENCE_CHECK = new CheckDescription("ATLAS_SERVICE_PRESENCE_CHECK",
+  public static final CheckDescription ATLAS_SERVICE_PRESENCE_CHECK = new CheckDescription("ATLAS_SERVICE_PRESENCE_CHECK",
     PrereqCheckType.SERVICE,
     "Atlas Is Not Supported For Upgrades",
     new ImmutableMap.Builder<String, String>()
@@ -276,7 +276,7 @@ public class CheckDescription {
           "This service does not support upgrades and must be removed before the upgrade can continue. " +
           "After upgrading, Atlas can be reinstalled").build());
 
-  public static CheckDescription SERVICE_PRESENCE_CHECK = new CheckDescription("SERVICE_PRESENCE_CHECK",
+  public static final CheckDescription SERVICE_PRESENCE_CHECK = new CheckDescription("SERVICE_PRESENCE_CHECK",
     PrereqCheckType.SERVICE,
     "Service Is Not Supported For Upgrades",
     new ImmutableMap.Builder<String, String>()
@@ -288,7 +288,7 @@ public class CheckDescription {
           "The %s service is currently installed on the cluster. " +
           "This service is removed from the new release and must be removed before the upgrade can continue.").build());
 
-  public static CheckDescription RANGER_SERVICE_AUDIT_DB_CHECK = new CheckDescription("RANGER_SERVICE_AUDIT_DB_CHECK",
+  public static final CheckDescription RANGER_SERVICE_AUDIT_DB_CHECK = new CheckDescription("RANGER_SERVICE_AUDIT_DB_CHECK",
     PrereqCheckType.SERVICE,
     "Remove the Ranger Audit to Database Capability",
     new ImmutableMap.Builder<String, String>()
@@ -296,28 +296,28 @@ public class CheckDescription {
           "After upgrading, Ranger will no longer support the Audit to Database feature. Instead, Ranger will audit to Solr. " +
           "To migrate the existing audit logs to Solr, follow the steps in Apache Ranger documention for 0.6 release.").build());
 
-  public static CheckDescription KAFKA_KERBEROS_CHECK = new CheckDescription("KAFKA_KERBEROS_CHECK",
+  public static final CheckDescription KAFKA_KERBEROS_CHECK = new CheckDescription("KAFKA_KERBEROS_CHECK",
     PrereqCheckType.SERVICE,
     "Kafka upgrade on Kerberized cluster",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "Kafka is currently not Kerberized, but your cluster is. After upgrading, Kafka will automatically be Kerberized for you.").build());
 
-  public static CheckDescription SERVICES_HIVE_ROLLING_WARNING = new CheckDescription("SERVICES_HIVE_ROLLING_WARNING",
+  public static final CheckDescription SERVICES_HIVE_ROLLING_WARNING = new CheckDescription("SERVICES_HIVE_ROLLING_WARNING",
     PrereqCheckType.SERVICE,
     "HiveServer2 Downtime",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "HiveServer2 does not currently support rolling upgrades. HiveServer2 will be upgraded, however existing queries which have not completed will fail and need to be resubmitted after HiveServer2 has been upgraded.").build());
 
-  public static CheckDescription SERVICES_STORM_ROLLING_WARNING = new CheckDescription("SERVICES_STORM_ROLLING_WARNING",
+  public static final CheckDescription SERVICES_STORM_ROLLING_WARNING = new CheckDescription("SERVICES_STORM_ROLLING_WARNING",
     PrereqCheckType.SERVICE,
     "Storm Downtime During Upgrade",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "Storm does not support rolling upgrades on this version of the stack. If you proceed, you will be required to stop all running topologies before Storm is restarted.").build());
 
-  public static CheckDescription AUTO_START_DISABLED = new CheckDescription("AUTO_START_DISABLED",
+  public static final CheckDescription AUTO_START_DISABLED = new CheckDescription("AUTO_START_DISABLED",
     PrereqCheckType.CLUSTER,
     "Auto-Start Disabled Check",
     new ImmutableMap.Builder<String, String>()
@@ -325,7 +325,7 @@ public class CheckDescription {
         "Auto Start must be disabled before performing an Upgrade. To disable Auto Start, navigate to " +
           "Admin > Service Auto Start. Turn the toggle switch off to Disabled and hit Save.").build());
 
-  public static CheckDescription RANGER_SSL_CONFIG_CHECK = new CheckDescription("RANGER_SSL_CONFIG_CHECK",
+  public static final CheckDescription RANGER_SSL_CONFIG_CHECK = new CheckDescription("RANGER_SSL_CONFIG_CHECK",
     PrereqCheckType.SERVICE,
     "Change Ranger SSL configuration path for Keystore and Truststore.",
     new ImmutableMap.Builder<String, String>()
@@ -333,7 +333,7 @@ public class CheckDescription {
         "As Ranger is SSL enabled, Ranger SSL configurations will need to be changed from default value of /etc/ranger/*/conf folder to /etc/ranger/security. " +
         "Since the certificates/keystores/truststores in this path may affect the upgrade/downgrade process, it is recommended to manually move the certificates/keystores/truststores out of the conf folders and change the appropriate config values before proceeding.").build());
 
-  public static CheckDescription LZO_CONFIG_CHECK = new CheckDescription("LZO_CONFIG_CHECK",
+  public static final CheckDescription LZO_CONFIG_CHECK = new CheckDescription("LZO_CONFIG_CHECK",
       PrereqCheckType.CLUSTER,
       "LZO Codec Check",
       new ImmutableMap.Builder<String, String>()
@@ -342,14 +342,14 @@ public class CheckDescription {
                   "If any hosts require LZO, it should be installed before starting the upgrade. " +
                   "Consult Ambari documentation for instructions on how to do this.").build());
 
-  public static CheckDescription JAVA_VERSION = new CheckDescription("JAVA_VERSION",
+  public static final CheckDescription JAVA_VERSION = new CheckDescription("JAVA_VERSION",
       PrereqCheckType.CLUSTER,
       "Verify Java version requirement",
       new ImmutableMap.Builder<String, String>()
         .put(AbstractCheckDescriptor.DEFAULT, "Ambari requires JDK with minimum version %s. Reconfigure Ambari with a JDK that meets the version requirement.")
           .build());
 
-  public static CheckDescription COMPONENTS_EXIST_IN_TARGET_REPO = new CheckDescription("COMPONENTS_EXIST_IN_TARGET_REPO",
+  public static final CheckDescription COMPONENTS_EXIST_IN_TARGET_REPO = new CheckDescription("COMPONENTS_EXIST_IN_TARGET_REPO",
     PrereqCheckType.CLUSTER,
     "Check installed services which are not supported in the installed stack",
     new ImmutableMap.Builder<String, String>()
@@ -358,7 +358,7 @@ public class CheckDescription {
       .build()
     );
 
-  public static CheckDescription DRUID_HA_WARNING = new CheckDescription(
+  public static final CheckDescription DRUID_HA_WARNING = new CheckDescription(
       "DRUID_HA",
       PrereqCheckType.SERVICE,
       "Druid Downtime During Upgrade",
@@ -370,7 +370,7 @@ public class CheckDescription {
           .build()
   );
 
-  public static CheckDescription VALID_SERVICES_INCLUDED_IN_REPOSITORY = new CheckDescription("VALID_SERVICES_INCLUDED_IN_REPOSITORY",
+  public static final CheckDescription VALID_SERVICES_INCLUDED_IN_REPOSITORY = new CheckDescription("VALID_SERVICES_INCLUDED_IN_REPOSITORY",
       PrereqCheckType.CLUSTER,
       "The repository is missing services which are required",
       new ImmutableMap.Builder<String, String>()
@@ -378,7 +378,7 @@ public class CheckDescription {
             "The following services are included in the upgrade but the repository is missing their dependencies:\n%s").build());
 
 
-  public static CheckDescription ATLAS_MIGRATION_PROPERTY_CHECK = new CheckDescription("ATLAS_MIGRATION_PROPERTY_CHECK",
+  public static final CheckDescription ATLAS_MIGRATION_PROPERTY_CHECK = new CheckDescription("ATLAS_MIGRATION_PROPERTY_CHECK",
     PrereqCheckType.SERVICE, "Check for Atlas Migration Property before upgrade.",
       new ImmutableMap.Builder<String,String>().put(AbstractCheckDescriptor.DEFAULT,
         "The property atlas.migration.data.filename is missing from application-properties. Do not use atlas conf path ie /etc/atlas/conf as the value." +
@@ -386,7 +386,7 @@ public class CheckDescription {
         "Hence need to migrate existing data to newer formats post upgrade. " +
         "To migrate existing data, Kindly refer and follow Apache Atlas documentation for 1.0 release.").build());
 
-  public static CheckDescription KERBEROS_ADMIN_CREDENTIAL_CHECK = new CheckDescription("KERBEROS_ADMIN_CREDENTIAL_CHECK",
+  public static final CheckDescription KERBEROS_ADMIN_CREDENTIAL_CHECK = new CheckDescription("KERBEROS_ADMIN_CREDENTIAL_CHECK",
       PrereqCheckType.CLUSTER,
       "The KDC administrator credentials need to be stored in Ambari persisted credential store.",
       new ImmutableMap.Builder<String, String>()

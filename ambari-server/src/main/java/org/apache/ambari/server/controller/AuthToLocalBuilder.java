@@ -342,7 +342,7 @@ public class AuthToLocalBuilder implements Cloneable {
       if (!m.matches()) {
         throw new IllegalArgumentException("Invalid rule: " + rule);
       }
-      int expectedComponentCount = Integer.valueOf(m.group(1));
+      int expectedComponentCount = Integer.parseInt(m.group(1));
       String matchPattern = m.group(2);
       String optionalPatternRealm = m.group(3);
       String matchingRegexp = m.group(4);

@@ -115,7 +115,7 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
   /**
    * The key property ids for a task resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Cluster, TASK_CLUSTER_NAME_PROPERTY_ID)
       .put(Resource.Type.Request, TASK_REQUEST_ID_PROPERTY_ID)
       .put(Resource.Type.Upgrade, TASK_REQUEST_ID_PROPERTY_ID)
@@ -128,7 +128,7 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
    * Used for querying tasks.
    */
   @Inject
-  protected static HostRoleCommandDAO s_dao;
+  static HostRoleCommandDAO s_dao;
 
   /**
    * Used for constructing instances of {@link HostRoleCommand} from {@link HostRoleCommandEntity}.
@@ -137,7 +137,7 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
   private static HostRoleCommandFactory s_hostRoleCommandFactory;
 
   @Inject
-  protected static TopologyManager s_topologyManager;
+  static TopologyManager s_topologyManager;
 
   /**
    * Thread-safe Jackson JSON mapper.

@@ -75,7 +75,7 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
   /**
    * The key property ids for a StackDependency resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Stack, STACK_NAME_ID)
       .put(Resource.Type.StackVersion, STACK_VERSION_ID)
       .put(Resource.Type.StackService, DEPENDENT_SERVICE_NAME_ID)
@@ -86,7 +86,7 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
   /**
    * The property ids for a StackDependency resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       STACK_NAME_ID,
       STACK_VERSION_ID,
       DEPENDENT_SERVICE_NAME_ID,

@@ -98,6 +98,7 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -113,14 +114,12 @@ public class AmbariCustomCommandExecutionHelper {
       AmbariCustomCommandExecutionHelper.class);
 
   // TODO: Remove the hard-coded mapping when stack definition indicates which slave types can be decommissioned
-  public static final Map<String, String> masterToSlaveMappingForDecom = new HashMap<>();
-
-  static {
-    masterToSlaveMappingForDecom.put("NAMENODE", "DATANODE");
-    masterToSlaveMappingForDecom.put("RESOURCEMANAGER", "NODEMANAGER");
-    masterToSlaveMappingForDecom.put("HBASE_MASTER", "HBASE_REGIONSERVER");
-    masterToSlaveMappingForDecom.put("JOBTRACKER", "TASKTRACKER");
-  }
+  static final Map<String, String> masterToSlaveMappingForDecom = ImmutableMap.<String, String>builder()
+    .put("NAMENODE", "DATANODE")
+    .put("RESOURCEMANAGER", "NODEMANAGER")
+    .put("HBASE_MASTER", "HBASE_REGIONSERVER")
+    .put("JOBTRACKER", "TASKTRACKER")
+    .build();
 
   public final static String DECOM_INCLUDED_HOSTS = "included_hosts";
   public final static String DECOM_EXCLUDED_HOSTS = "excluded_hosts";
@@ -1243,10 +1242,6 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-
-      if (null == stackId && null != cluster) {
-        stackId = cluster.getDesiredStackVersion();
-      }
     }
 
     String hostParamsStageJson = StageUtils.getGson().toJson(hostParamsStage);

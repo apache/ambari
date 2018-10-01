@@ -271,7 +271,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     Set<Map<String, String>> serviceSettingValue = new HashSet<>();
     Set<Map<String, String>> componentSettingValue = new HashSet<>();
 
-    HashMap<String, String> property = new HashMap<>();
+    HashMap<String, String> property;
     HashMap<String, String> componentProperty = new HashMap<>();
     Boolean globalRecoveryEnabled = false;
 

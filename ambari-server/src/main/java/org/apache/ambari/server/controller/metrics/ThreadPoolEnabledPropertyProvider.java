@@ -79,8 +79,6 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
 
   private static final Logger LOG = LoggerFactory.getLogger(ThreadPoolEnabledPropertyProvider.class);
 
-  protected static Configuration configuration;
-
   /**
    * Host states that make available metrics collection
    */

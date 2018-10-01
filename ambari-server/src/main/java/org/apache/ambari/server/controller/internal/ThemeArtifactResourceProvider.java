@@ -19,8 +19,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +42,9 @@ import org.apache.ambari.server.state.ThemeInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
 public class ThemeArtifactResourceProvider extends AbstractControllerResourceProvider {
 
   private static final Logger LOG = LoggerFactory.getLogger(ThemeArtifactResourceProvider.class);
@@ -58,34 +59,30 @@ public class ThemeArtifactResourceProvider extends AbstractControllerResourcePro
   /**
    * primary key fields
    */
-  public static Set<String> pkPropertyIds = new HashSet<>();
+  public static final Set<String> pkPropertyIds = ImmutableSet.<String>builder()
+    .add(THEME_FILE_NAME_PROPERTY_ID)
+    .build();
   /**
    * map of resource type to fk field
    */
-  public static Map<Resource.Type, String> keyPropertyIds =
-    new HashMap<>();
+  public static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+    .put(Resource.Type.Theme, THEME_FILE_NAME_PROPERTY_ID)
+    .put(Resource.Type.Stack, STACK_NAME_PROPERTY_ID)
+    .put(Resource.Type.StackVersion, STACK_VERSION_PROPERTY_ID)
+    .put(Resource.Type.StackService, STACK_SERVICE_NAME_PROPERTY_ID)
+    .build();
 
   /**
    * resource properties
    */
-  public static Set<String> propertyIds = new HashSet<>();
-
-  static {
-    keyPropertyIds.put(Resource.Type.Theme, THEME_FILE_NAME_PROPERTY_ID);
-    keyPropertyIds.put(Resource.Type.Stack, STACK_NAME_PROPERTY_ID);
-    keyPropertyIds.put(Resource.Type.StackVersion, STACK_VERSION_PROPERTY_ID);
-    keyPropertyIds.put(Resource.Type.StackService, STACK_SERVICE_NAME_PROPERTY_ID);
-
-    pkPropertyIds.add(THEME_FILE_NAME_PROPERTY_ID);
-
-    // resource properties
-    propertyIds.add(STACK_NAME_PROPERTY_ID);
-    propertyIds.add(STACK_VERSION_PROPERTY_ID);
-    propertyIds.add(STACK_SERVICE_NAME_PROPERTY_ID);
-    propertyIds.add(THEME_FILE_NAME_PROPERTY_ID);
-    propertyIds.add(THEME_DEFAULT_PROPERTY_ID);
-    propertyIds.add(THEME_DATA_PROPERTY_ID);
-  }
+  public static final Set<String> propertyIds = ImmutableSet.<String>builder()
+    .add(STACK_NAME_PROPERTY_ID)
+    .add(STACK_VERSION_PROPERTY_ID)
+    .add(STACK_SERVICE_NAME_PROPERTY_ID)
+    .add(THEME_FILE_NAME_PROPERTY_ID)
+    .add(THEME_DEFAULT_PROPERTY_ID)
+    .add(THEME_DATA_PROPERTY_ID)
+    .build();
 
   /**
    * Create a  new resource provider for the given management controller.

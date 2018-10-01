@@ -78,18 +78,18 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   /**
    * primary key fields
    */
-  private static Set<String> pkPropertyIds = new HashSet<>();
+  private static final Set<String> pkPropertyIds = new HashSet<>();
 
   /**
    * map of resource type to fk field
    */
-  private static Map<Resource.Type, String> keyPropertyIds =
+  private static final Map<Resource.Type, String> keyPropertyIds =
     new HashMap<>();
 
   /**
    * resource properties
    */
-  private static Set<String> propertyIds = new HashSet<>();
+  private static final Set<String> propertyIds = new HashSet<>();
 
   /**
    * map of resource type to type registration
@@ -698,7 +698,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
 
     @Override
     public String fromPersistId(String value) throws AmbariException {
-      return controller.getClusters().getClusterById(Long.valueOf(value)).getClusterName();
+      return controller.getClusters().getClusterById(Long.parseLong(value)).getClusterName();
     }
 
     @Override

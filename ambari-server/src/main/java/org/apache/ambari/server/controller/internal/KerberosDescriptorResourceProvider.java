@@ -60,14 +60,14 @@ public class KerberosDescriptorResourceProvider extends AbstractControllerResour
   /**
    * The key property ids for a KerberosDescriptor resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.KerberosDescriptor, KERBEROS_DESCRIPTOR_NAME_PROPERTY_ID)
       .build();
 
   /**
    * The property ids for a KerberosDescriptor resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       KERBEROS_DESCRIPTOR_NAME_PROPERTY_ID,
       KERBEROS_DESCRIPTOR_TEXT_PROPERTY_ID);
 

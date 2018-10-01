@@ -109,7 +109,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
   protected static final String INSTALL_PACKAGES_FULL_NAME = "Install Version";
 
 
-  private static Set<String> pkPropertyIds = Sets.newHashSet(
+  private static final Set<String> pkPropertyIds = Sets.newHashSet(
           HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID,
           HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID,
           HOST_STACK_VERSION_ID_PROPERTY_ID,
@@ -117,7 +117,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
           HOST_STACK_VERSION_VERSION_PROPERTY_ID,
           HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID);
 
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
           HOST_STACK_VERSION_ID_PROPERTY_ID,
           HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID,
           HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID,
@@ -129,7 +129,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
           HOST_STACK_VERSION_FORCE_INSTALL_ON_NON_MEMBER_HOST_PROPERTY_ID,
           HOST_STACK_VERSION_COMPONENT_NAMES_PROPERTY_ID);
 
-  private static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
+  private static final Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
       put(Type.Cluster, HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
       put(Type.Host, HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID);

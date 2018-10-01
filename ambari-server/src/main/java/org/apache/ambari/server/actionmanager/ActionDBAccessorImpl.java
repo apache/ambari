@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -514,7 +513,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     long now = System.currentTimeMillis();
 
     List<Long> requestsToCheck = new ArrayList<>();
-    List<Long> abortedCommandUpdates = new ArrayList<>();
 
     List<HostRoleCommandEntity> commandEntities = hostRoleCommandDAO.findByPKs(taskReports.keySet());
     List<HostRoleCommandEntity> commandEntitiesToMerge = new ArrayList<>();
@@ -780,7 +778,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       return requestDAO.findAllRequestIds(maxResults, ascOrder);
     }
 
-    EnumSet<HostRoleStatus> taskStatuses = null;
+    Set<HostRoleStatus> taskStatuses = null;
     switch( status ){
       case IN_PROGRESS:
         taskStatuses = HostRoleStatus.IN_PROGRESS_STATUSES;

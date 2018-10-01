@@ -85,7 +85,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -163,7 +163,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   /**
    * The key property ids for a Host resource.
    */
-  public static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  public static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Host, HOST_HOST_NAME_PROPERTY_ID)
       .put(Resource.Type.Cluster, HOST_CLUSTER_NAME_PROPERTY_ID)
       .build();
@@ -171,7 +171,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   /**
    * The property ids for a Host resource.
    */
-  public static Set<String> propertyIds = Sets.newHashSet(
+  public static final Set<String> propertyIds = ImmutableSet.of(
       HOST_CLUSTER_NAME_PROPERTY_ID,
       HOST_CPU_COUNT_PROPERTY_ID,
       HOST_DESIRED_CONFIGS_PROPERTY_ID,
@@ -375,7 +375,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<HostRequest> requests = new HashSet<>();
-    Map<String, String> requestInfoProperties = request.getRequestInfoProperties();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(getRequest(propertyMap));
@@ -1005,7 +1004,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     Set<String> hostsClusters = new HashSet<>();
     Set<String> hostNames = new HashSet<>();
     Set<Long> hostIds = new HashSet<>();
-    Set<Cluster> allClustersWithHosts = new HashSet<>();
     TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
     for (HostRequest hostRequest : requests) {
       // Assume the user also wants to delete it entirely, including all clusters.

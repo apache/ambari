@@ -3288,10 +3288,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public ExecutionCommand getExecutionCommand(Cluster cluster,
                                               ServiceComponentHost scHost,
                                               RoleCommand roleCommand) throws AmbariException {
-    Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
-    String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-
-
     Map<String, String> hostParamsCmd = customCommandExecutionHelper.createDefaultHostParams(
         cluster, scHost.getServiceComponent().getDesiredStackId());
 
@@ -4961,7 +4957,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Set<RootServiceComponentRequest> requests) throws AmbariException {
     Set<RootServiceComponentResponse> response = new HashSet<>();
     for (RootServiceComponentRequest request : requests) {
-      String serviceName  = request.getServiceName();
       try {
         Set<RootServiceComponentResponse> rootServiceComponents = getRootServiceComponents(request);
         response.addAll(rootServiceComponents);
@@ -5521,7 +5516,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     ExtensionLinkEntity linkEntity = null;
     try {
-      linkEntity = linkDAO.findById(new Long(request.getLinkId()));
+      linkEntity = linkDAO.findById(Long.parseLong(request.getLinkId()));
     } catch (RollbackException e) {
       throw new AmbariException("Unable to find extension link"
             + ", linkId=" + request.getLinkId(), e);
@@ -5598,7 +5593,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     ExtensionLinkEntity linkEntity = null;
     try {
-      linkEntity = linkDAO.findById(new Long(request.getLinkId()));
+      linkEntity = linkDAO.findById(Long.parseLong(request.getLinkId()));
     } catch (RollbackException e) {
       throw new AmbariException("Unable to find extension link"
             + ", linkId=" + request.getLinkId(), e);

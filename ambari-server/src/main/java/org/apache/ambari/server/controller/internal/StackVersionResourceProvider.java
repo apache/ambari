@@ -44,6 +44,8 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.StackEntity;
 
 import com.google.inject.Inject;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 @StaticallyInject
 public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
@@ -99,7 +101,6 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
 
   StackVersionResourceProvider(AmbariManagementController controller) {
     super(Resource.Type.StackVersion, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
-
   }
 
 

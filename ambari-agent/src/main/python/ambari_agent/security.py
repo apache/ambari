@@ -129,7 +129,7 @@ class AmbariStompConnection(WsConnection):
       correlation_id = self.correlation_id
       
     if presend_hook:
-      presend_hook(self.correlation_id)
+      presend_hook(correlation_id)
 
     logged_message = log_message_function(copy.deepcopy(message))
     logger.info("Event to server at {0} (correlation_id={1}): {2}".format(destination, correlation_id, logged_message))
