@@ -23,7 +23,7 @@ class SslContext:
   def build(self, url):
     if not url.startswith('https') or not hasattr(ssl, 'SSLContext'):
       return None
-    return ssl.SSLContext(ssl_protocol()) if ssl_protocol() else ssl.create_default_context()
+    return ssl.SSLContext(self._protocol()) if self._protocol() else ssl.create_default_context()
 
   def _protocol(self):
     if hasattr(ssl, 'PROTOCOL_TLS'): return ssl.PROTOCOL_TLS
@@ -34,7 +34,7 @@ class SslContext:
 
 class PermissiveSslContext:
   def build(self, url):
-    context = SslContext()
+    context = SslContext().build(url)
     if hasattr(context, '_https_verify_certificates'):
       context._https_verify_certificates(False)
     return context
@@ -366,7 +366,7 @@ class FsStorage:
     except IOError as e:
       raise CannotLoad(key + ' not found')
 
-class Upgrade:
+class Conversion:
   def __init__(self, cluster, storage):
     self.cluster = cluster
     self.storage = storage
@@ -524,8 +524,8 @@ if __name__ == '__main__':
   print '  * Ambari must be upgraded to >=v2.7.0'
   print '  * Stack must be upgraded to HDP-3.0'
   print '  * Is highly recommended to backup ambari database before you proceed.'
-  upgrade = Upgrade(cluster, FsStorage())
-  if not upgrade.check_prerequisites():
+  conversion = Conversion(cluster, FsStorage())
+  if not conversion.check_prerequisites():
     sys.exit()
   else:
-    upgrade.perform()
+    conversion.perform()
