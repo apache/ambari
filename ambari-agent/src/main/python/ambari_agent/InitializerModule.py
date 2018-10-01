@@ -84,7 +84,7 @@ class InitializerModule:
     """
     self.is_registered = False
 
-    self.metadata_cache = ClusterMetadataCache(self.config.cluster_cache_dir)
+    self.metadata_cache = ClusterMetadataCache(self.config.cluster_cache_dir, self.config)
     self.topology_cache = ClusterTopologyCache(self.config.cluster_cache_dir, self.config)
     self.host_level_params_cache = ClusterHostLevelParamsCache(self.config.cluster_cache_dir)
     self.configurations_cache = ClusterConfigurationCache(self.config.cluster_cache_dir)
