@@ -143,7 +143,7 @@ class HeartbeatThread(threading.Thread):
         try:
           listener.on_event({}, response)
         except:
-          logger.exception("Exception while handing response to request at {0}. {1}".format(endpoint, response))
+          logger.exception("Exception while handing response to request at {0} {1}".format(endpoint, response))
           raise
       finally:
         with listener.event_queue_lock:

@@ -74,7 +74,7 @@ class ServerResponsesListener(EventListener):
     This string will be used to log received messsage of this type
     """
     if Constants.CORRELATION_ID_STRING in headers:
-      correlation_id = headers[Constants.CORRELATION_ID_STRING]
+      correlation_id = int(headers[Constants.CORRELATION_ID_STRING])
       
       if correlation_id in self.logging_handlers:
         message_json = self.logging_handlers[correlation_id](headers, message_json)
