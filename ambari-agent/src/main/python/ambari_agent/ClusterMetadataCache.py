@@ -30,13 +30,20 @@ class ClusterMetadataCache(ClusterCache):
   topology properties.
   """
 
-  def __init__(self, cluster_cache_dir):
+  def __init__(self, cluster_cache_dir, config):
     """
     Initializes the topology cache.
     :param cluster_cache_dir:
     :return:
     """
+    self.config = config
     super(ClusterMetadataCache, self).__init__(cluster_cache_dir)
+
+  def on_cache_update(self):
+    try:
+      self.config.update_configuration_from_metadata(self['-1']['agentConfigs'])
+    except KeyError:
+      pass
 
   def cache_delete(self, cache_update, cache_hash):
     """

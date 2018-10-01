@@ -74,6 +74,10 @@ class CommandsEventListener(EventListener):
             command['repositoryFile'] = '...'
           if 'commandParams' in command:
             command['commandParams'] = '...'
+          if 'clusterHostInfo' in command:
+            command['clusterHostInfo'] = '...'
+          if 'componentVersionMap' in command:
+            command['componentVersionMap'] = '...'
     except KeyError:
       pass
       
