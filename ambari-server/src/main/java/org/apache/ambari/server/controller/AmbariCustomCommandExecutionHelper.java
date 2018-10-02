@@ -368,8 +368,6 @@ public class AmbariCustomCommandExecutionHelper {
       execCmd.setComponentVersions(cluster);
 
       execCmd.setConfigurations(new TreeMap<>());
-      execCmd.setConfigurationAttributes(new TreeMap<>());
-      execCmd.setConfigurationTags(new TreeMap<>());
 
       // Get the value of credential store enabled from the DB
       Service clusterService = cluster.getService(serviceName);
@@ -714,9 +712,6 @@ public class AmbariCustomCommandExecutionHelper {
     // [ type -> [ key, value ] ]
     Map<String, Map<String, String>> configurations =
         new TreeMap<>();
-    Map<String, Map<String, Map<String, String>>> configurationAttributes =
-        new TreeMap<>();
-    Map<String, Map<String, String>> configTags = new TreeMap<>();
 
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostname,
         smokeTestRole).getExecutionCommand();
@@ -728,8 +723,6 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     execCmd.setConfigurations(configurations);
-    execCmd.setConfigurationAttributes(configurationAttributes);
-    execCmd.setConfigurationTags(configTags);
 
     // Generate localComponents
     for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostname)) {

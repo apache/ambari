@@ -2424,8 +2424,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     ExecutionCommand execCmd = execCmdWrapper.getExecutionCommand();
 
     execCmd.setConfigurations(new TreeMap<>());
-    execCmd.setConfigurationAttributes(new TreeMap<>());
-    execCmd.setConfigurationTags(new TreeMap<>());
 
     // Get the value of credential store enabled from the DB
     Service clusterService = cluster.getService(serviceName);
@@ -2611,10 +2609,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     execCmd.setRepositoryFile(commandRepository);
     execCmdWrapper.setVersions(cluster, null);
 
-    if ((execCmd != null) && (execCmd.getConfigurationTags().containsKey("cluster-env"))) {
-      LOG.debug("AmbariManagementControllerImpl.createHostAction: created ExecutionCommand for host {}, role {}, roleCommand {}, and command ID {}, with cluster-env tags {}",
-        execCmd.getHostname(), execCmd.getRole(), execCmd.getRoleCommand(), execCmd.getCommandId(), execCmd.getConfigurationTags().get("cluster-env").get("tag"));
-    }
     if (useLatestConfigs) {
       execCmd.setUseLatestConfigs(useLatestConfigs);
     }
@@ -3262,25 +3256,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       // Generate localComponents
       for (ServiceComponentHost sch : cluster.getServiceComponentHosts(scHost.getHostName())) {
         ec.getLocalComponents().add(sch.getServiceComponentName());
-      }
-    }
-
-    ConfigHelper.processHiddenAttribute(ec.getConfigurations(), ec.getConfigurationAttributes(), ec.getRole(), false);
-
-    // Add attributes
-    Map<String, Map<String, Map<String, String>>> configAttributes =
-        configHelper.getEffectiveConfigAttributes(cluster,
-          ec.getConfigurationTags());
-
-    for (Map.Entry<String, Map<String, Map<String, String>>> attributesOccurrence : configAttributes.entrySet()) {
-      String type = attributesOccurrence.getKey();
-      Map<String, Map<String, String>> attributes = attributesOccurrence.getValue();
-
-      if (ec.getConfigurationAttributes() != null) {
-        if (!ec.getConfigurationAttributes().containsKey(type)) {
-          ec.getConfigurationAttributes().put(type, new TreeMap<>());
-        }
-        configHelper.cloneAttributesMap(attributes, ec.getConfigurationAttributes().get(type));
       }
     }
 

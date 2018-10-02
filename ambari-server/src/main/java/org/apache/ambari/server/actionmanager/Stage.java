@@ -491,14 +491,6 @@ public class Stage {
 
     cmd.setConfigurations(new TreeMap<>());
 
-    Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<>();
-    cmd.setConfigurationAttributes(configurationAttributes);
-
-    if (configTags == null) {
-      configTags = new TreeMap<>();
-    }
-    cmd.setConfigurationTags(configTags);
-
     Map<String, String> roleParams = new HashMap<>();
     roleParams.put(ServerAction.ACTION_NAME, actionName);
     if (userName != null) {

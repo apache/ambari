@@ -431,7 +431,6 @@ public class AmbariActionExecutionHelper {
       // !!! ensure that these are empty so that commands have the correct tags
       // applied when the execution is about to be scheduled to run
       execCmd.setConfigurations(new TreeMap<>());
-      execCmd.setConfigurationAttributes(new TreeMap<>());
 
       // if the command should fetch brand new configuration tags before
       // execution, then we don't need to fetch them now
@@ -448,8 +447,6 @@ public class AmbariActionExecutionHelper {
           execCmd.setClusterLevelParams(clusterLevelParams);
         }
       }
-
-      execCmd.setConfigurationTags(new TreeMap<>());
 
       execCmd.setServiceName(serviceName == null || serviceName.isEmpty() ?
         resourceFilter.getServiceName() : serviceName);

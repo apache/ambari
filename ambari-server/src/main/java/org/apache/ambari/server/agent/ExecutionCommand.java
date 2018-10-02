@@ -106,14 +106,6 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("configurations")
   private Map<String, Map<String, String>> configurations;
 
-  @SerializedName("configurationAttributes")
-  @JsonIgnore
-  private Map<String, Map<String, Map<String, String>>> configurationAttributes;
-
-  @SerializedName("configurationTags")
-  @JsonIgnore
-  private Map<String, Map<String, String>> configurationTags;
-
   @SerializedName("forceRefreshConfigTagsBeforeExecution")
   @JsonIgnore
   private boolean overrideConfigs = false;
@@ -358,14 +350,6 @@ public class ExecutionCommand extends AgentCommand {
     this.localComponents = localComponents;
   }
 
-  public Map<String, Map<String, Map<String, String>>> getConfigurationAttributes() {
-    return configurationAttributes;
-  }
-
-  public void setConfigurationAttributes(Map<String, Map<String, Map<String, String>>> configurationAttributes) {
-    this.configurationAttributes = configurationAttributes;
-  }
-
   public Map<String, String> getCommandParams() {
     return commandParams;
   }
@@ -417,20 +401,6 @@ public class ExecutionCommand extends AgentCommand {
 
   public void setComponentName(String componentName) {
     this.componentName = componentName;
-  }
-
-  /**
-   * @param configTags the config tag map
-   */
-  public void setConfigurationTags(Map<String, Map<String, String>> configTags) {
-    configurationTags = configTags;
-  }
-
-  /**
-   * @return the configuration tags
-   */
-  public Map<String, Map<String, String>> getConfigurationTags() {
-    return configurationTags;
   }
 
   /**

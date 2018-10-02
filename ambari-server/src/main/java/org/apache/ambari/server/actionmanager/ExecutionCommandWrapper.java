@@ -151,13 +151,6 @@ public class ExecutionCommandWrapper {
         executionCommand.setConfigurations(configurations);
       }
 
-      // now that the tags have been updated (if necessary), fetch the
-      // configurations
-      Map<String, Map<String, String>> configurationTags = executionCommand.getConfigurationTags();
-      configHelper.getAndMergeHostConfigs(configurations, configurationTags, cluster);
-      configHelper.getAndMergeHostConfigAttributes(executionCommand.getConfigurationAttributes(),
-          configurationTags, cluster);
-
       // provide some basic information about a cluster upgrade if there is one
       // in progress
       UpgradeEntity upgrade = cluster.getUpgradeInProgress();
