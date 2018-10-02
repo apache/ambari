@@ -142,8 +142,8 @@ public class ExecutionCommandWrapper {
       // cluster desired-configs. Additionally, there may be no configuration
       // tags set but refresh might be set to *. In this case, they should still
       // be refreshed with the latest.
-      boolean refreshConfigTagsBeforeExecution = executionCommand.getForceRefreshConfigTagsBeforeExecution();
-      if (refreshConfigTagsBeforeExecution) {
+      boolean overrideConfigs = executionCommand.isOverrideConfigs();
+      if (overrideConfigs) {
         Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
 
         Map<String, Map<String, String>> configurationTags = configHelper.getEffectiveDesiredTags(
@@ -155,8 +155,9 @@ public class ExecutionCommandWrapper {
 
         // then clear out any existing configurations so that all of the new
         // configurations are forcefully applied
-        configurations.clear();
-        executionCommand.setConfigurationTags(configurationTags);
+        configurations = configHelper.getEffectiveConfigProperties(cluster, configurationTags);
+
+        executionCommand.setConfigurations(configurations);
       }
 
       // now that the tags have been updated (if necessary), fetch the

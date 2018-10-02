@@ -128,7 +128,7 @@ class RMFTestCase(TestCase):
         script_class_inst = RMFTestCase._get_attr(script_module, classname)()
         script_class_inst.log_out_files = log_out_files
         script_class_inst.available_packages_in_repos = available_packages_in_repos
-        Script.repository_util = RepositoryUtil(self.config_dict, set())
+        Script.repository_util = RepositoryUtil(self.config_dict)
         method = RMFTestCase._get_attr(script_class_inst, command)
     except IOError, err:
       raise RuntimeError("Cannot load class %s from %s: %s" % (classname, norm_path, err.message))

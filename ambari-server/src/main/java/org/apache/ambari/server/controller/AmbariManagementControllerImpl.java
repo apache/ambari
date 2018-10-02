@@ -2386,9 +2386,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private void createHostAction(Cluster cluster,
                                 Stage stage,
                                 ServiceComponentHost scHost,
-                                Map<String, Map<String, String>> configurations,
-                                Map<String, Map<String, Map<String, String>>> configurationAttributes,
-                                Map<String, Map<String, String>> configTags,
                                 RoleCommand roleCommand,
                                 Map<String, String> commandParamsInp,
                                 ServiceComponentHostEvent event,
@@ -2426,9 +2423,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     ExecutionCommandWrapper execCmdWrapper = stage.getExecutionCommandWrapper(hostname, componentName);
     ExecutionCommand execCmd = execCmdWrapper.getExecutionCommand();
 
-    execCmd.setConfigurations(configurations);
-    execCmd.setConfigurationAttributes(configurationAttributes);
-    execCmd.setConfigurationTags(configTags);
+    execCmd.setConfigurations(new TreeMap<>());
+    execCmd.setConfigurationAttributes(new TreeMap<>());
+    execCmd.setConfigurationTags(new TreeMap<>());
 
     // Get the value of credential store enabled from the DB
     Service clusterService = cluster.getService(serviceName);
@@ -3084,16 +3081,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
             }
 
-            Map<String, Map<String, String>> configurations = new TreeMap<>();
-            Map<String, Map<String, Map<String, String>>>
-                configurationAttributes =
-                new TreeMap<>();
-            Host host = clusters.getHost(scHost.getHostName());
             Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs();
-
-            Map<String, Map<String, String>> configTags =
-                    configHelper.getEffectiveDesiredTags(cluster, host.getHostName(), clusterDesiredConfigs);
-
 
             // Skip INSTALL task in case SysPrepped hosts and in case of server components. In case of server component
             // START task should run configuration script.
@@ -3112,7 +3100,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               // !!! can never be null
               RepositoryVersionEntity repoVersion = serviceComponent.getDesiredRepositoryVersion();
 
-              createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
+              createHostAction(cluster, stage, scHost,
                 roleCommand, requestParameters, event, skipFailure, repoVersion, isUpgradeSuspended,
                 databaseType, clusterDesiredConfigs, useLatestConfigs);
             }
@@ -3250,13 +3238,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Stage stage = createNewStage(0, cluster, 1, "", "{}", "");
 
-    Map<String, Map<String, String>> configTags = configHelper.getEffectiveDesiredTags(cluster, scHost.getHostName());
-    Map<String, Map<String, String>> configurations = configHelper.getEffectiveConfigProperties(cluster, configTags);
-
-    Map<String, Map<String, Map<String, String>>>
-        configurationAttributes =
-        new TreeMap<>();
-
     RepositoryVersionEntity repoVersion = null;
     if (null != scHost.getServiceComponent().getDesiredRepositoryVersion()) {
       repoVersion = scHost.getServiceComponent().getDesiredRepositoryVersion();
@@ -3268,7 +3249,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
     DatabaseType databaseType = configs.getDatabaseType();
     Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs();
-    createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
+    createHostAction(cluster, stage, scHost,
                      roleCommand, null, null, false, repoVersion, isUpgradeSuspended, databaseType,
                      clusterDesiredConfigs, false);
     ExecutionCommand ec = stage.getExecutionCommands().get(scHost.getHostName()).get(0).getExecutionCommand();

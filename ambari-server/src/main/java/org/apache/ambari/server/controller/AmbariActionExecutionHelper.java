@@ -24,7 +24,9 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_T
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -434,20 +436,20 @@ public class AmbariActionExecutionHelper {
       // if the command should fetch brand new configuration tags before
       // execution, then we don't need to fetch them now
       if (null != actionParameters && !actionParameters.isEmpty()) {
-        if (actionParameters.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)) {
-          execCmd.setForceRefreshConfigTagsBeforeExecution(true);
+        if (actionParameters.containsKey(KeyNames.OVERRIDE_CONFIGS)) {
+          execCmd.setOverrideConfigs(true);
+        }
+        if (actionParameters.containsKey(KeyNames.OVERRIDE_STACK_NAME)) {
+          Map<String, String> clusterLevelParams = execCmd.getClusterLevelParams();
+          if (clusterLevelParams == null) {
+            clusterLevelParams = new HashMap<>();
+          }
+          clusterLevelParams.put(STACK_NAME, actionContext.getStackId().getStackName());
+          execCmd.setClusterLevelParams(clusterLevelParams);
         }
       }
 
-      // when building complex orchestration ahead of time (such as when
-      // performing ugprades), fetching configuration tags can take a very long
-      // time - if it's not needed, then don't do it
-      Map<String, Map<String, String>> configTags = new TreeMap<>();
-      if (!execCmd.getForceRefreshConfigTagsBeforeExecution()) {
-        configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
-      }
-
-      execCmd.setConfigurationTags(configTags);
+      execCmd.setConfigurationTags(new TreeMap<>());
 
       execCmd.setServiceName(serviceName == null || serviceName.isEmpty() ?
         resourceFilter.getServiceName() : serviceName);

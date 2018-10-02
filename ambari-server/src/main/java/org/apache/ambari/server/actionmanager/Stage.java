@@ -489,8 +489,7 @@ public class Stage {
     }
     cmd.setCommandParams(cmdParams);
 
-    Map<String, Map<String, String>> configurations = new TreeMap<>();
-    cmd.setConfigurations(configurations);
+    cmd.setConfigurations(new TreeMap<>());
 
     Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<>();
     cmd.setConfigurationAttributes(configurationAttributes);

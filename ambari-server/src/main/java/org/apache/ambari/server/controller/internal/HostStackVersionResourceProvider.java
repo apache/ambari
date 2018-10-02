@@ -18,6 +18,8 @@
 package org.apache.ambari.server.controller.internal;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.OVERRIDE_CONFIGS;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.OVERRIDE_STACK_NAME;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -441,8 +443,10 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     RequestResourceFilter filter = new RequestResourceFilter(null, null,
             Collections.singletonList(hostName));
 
+    roleParams.put(OVERRIDE_CONFIGS, null);
+    roleParams.put(OVERRIDE_STACK_NAME, null);
     ActionExecutionContext actionContext = new ActionExecutionContext(
-            cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
+            null, INSTALL_PACKAGES_ACTION,
             Collections.singletonList(filter),
             roleParams);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
@@ -527,7 +531,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     req.addStages(Collections.singletonList(stage));
 
     actionContext = new ActionExecutionContext(
-      cluster.getClusterName(), STACK_SELECT_ACTION,
+      null, STACK_SELECT_ACTION,
       Collections.singletonList(filter),
       Collections.emptyMap());
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
