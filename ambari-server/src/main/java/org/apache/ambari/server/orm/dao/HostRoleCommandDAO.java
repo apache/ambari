@@ -286,30 +286,49 @@ public class HostRoleCommandDAO {
   public HostRoleCommandEntity findByPK(long taskId) {
     return entityManagerProvider.get().find(HostRoleCommandEntity.class, taskId);
   }
+  
+  @RequiresSession
+  public HostRoleCommandEntity findByPK(long taskId, boolean refresh) {
+    final HostRoleCommandEntity hostRoleCommand = entityManagerProvider.get().find(HostRoleCommandEntity.class, taskId);
+    if (refresh) {
+      entityManagerProvider.get().refresh(hostRoleCommand);
+    }
+    return hostRoleCommand;
+  }
 
   @RequiresSession
   public List<HostRoleCommandEntity> findByPKs(Collection<Long> taskIds) {
+    return findByPKs(taskIds, false);
+  }
+
+  @RequiresSession
+  public List<HostRoleCommandEntity> findByPKs(Collection<Long> taskIds, boolean refresh) {
     if (taskIds == null || taskIds.isEmpty()) {
       return Collections.emptyList();
     }
 
-    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery(
+    final List<HostRoleCommandEntity> result = new ArrayList<>();
+    final TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery(
       "SELECT task FROM HostRoleCommandEntity task WHERE task.taskId IN ?1 " +
         "ORDER BY task.taskId",
       HostRoleCommandEntity.class);
 
     if (taskIds.size() > configuration.getTaskIdListLimit()) {
-      List<HostRoleCommandEntity> result = new ArrayList<>();
-
-      List<List<Long>> lists = Lists.partition(new ArrayList<>(taskIds), configuration.getTaskIdListLimit());
+      final List<List<Long>> lists = Lists.partition(new ArrayList<>(taskIds), configuration.getTaskIdListLimit());
       for (List<Long> list : lists) {
         result.addAll(daoUtils.selectList(query, list));
       }
-
-      return result;
+    } else {
+      result.addAll(daoUtils.selectList(query, taskIds));
     }
 
-    return daoUtils.selectList(query, taskIds);
+    if (refresh) {
+      for (HostRoleCommandEntity hostRoleCommand : result) {
+        entityManagerProvider.get().refresh(hostRoleCommand);
+      }
+    }
+
+    return result;
   }
 
   @RequiresSession
