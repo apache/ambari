@@ -911,7 +911,6 @@ public class UpgradeContext {
       parameters.put(COMMAND_PARAM_UPGRADE_TYPE, json.getAsString());
     }
 
-    parameters.put(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION, "true");
     return parameters;
   }
 
