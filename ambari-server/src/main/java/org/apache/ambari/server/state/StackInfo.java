@@ -35,6 +35,7 @@ import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.stack.upgrade.ConfigUpgradePack;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.server.state.stack.LatestRepoCallable;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.utils.VersionUtils;
@@ -442,6 +443,11 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
    * @param upgradePacks map of upgrade packs
    */
   public void setUpgradePacks(Map<String, UpgradePack> upgradePacks) {
+    if (null != upgradePacks) {
+      upgradePacks.values().forEach(pack -> {
+        pack.setOwnerStackId(new StackId(this));
+      });
+    }
     this.upgradePacks = upgradePacks;
   }
 

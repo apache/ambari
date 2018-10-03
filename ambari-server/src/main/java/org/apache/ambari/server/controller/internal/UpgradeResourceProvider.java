@@ -760,6 +760,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     upgrade.setClusterId(cluster.getClusterId());
     upgrade.setDirection(direction);
     upgrade.setUpgradePackage(pack.getName());
+    upgrade.setUpgradePackStackId(pack.getOwnerStackId());
     upgrade.setUpgradeType(pack.getType());
     upgrade.setAutoSkipComponentFailures(upgradeContext.isComponentFailureAutoSkipped());
     upgrade.setAutoSkipServiceCheckFailures(upgradeContext.isServiceCheckFailureAutoSkipped());
