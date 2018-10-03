@@ -523,7 +523,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     List<HostRoleCommandEntity> commandEntities;
     try {
       hrcOperationsLock.readLock().lock();
-      commandEntities = hostRoleCommandDAO.findByPKs(taskReports.keySet(), true);
+      commandEntities = hostRoleCommandDAO.findByPKs(taskReports.keySet());
     } finally {
       hrcOperationsLock.readLock().unlock();
     }
@@ -531,6 +531,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       CommandReport report = taskReports.get(commandEntity.getTaskId());
       HostRoleStatus existingTaskStatus = commandEntity.getStatus();
       HostRoleStatus reportedTaskStatus = HostRoleStatus.valueOf(report.getStatus());
+      if (!existingTaskStatus.isCompletedState()) {
+        //sometimes JPA cache returns a task with incorrect state (i.e. it was aborted just before we queried above); reading it from the DB for the sake of integrity
+        existingTaskStatus = hostRoleCommandDAO.refreshHostRoleCommand(commandEntity).getStatus();
+      }
       if (!existingTaskStatus.isCompletedState() || existingTaskStatus == HostRoleStatus.ABORTED) {
         // if FAILED and marked for holding then set reportedTaskStatus = HOLDING_FAILED
         if (reportedTaskStatus == HostRoleStatus.FAILED && commandEntity.isRetryAllowed()) {

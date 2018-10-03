@@ -284,25 +284,38 @@ public class HostRoleCommandDAO {
 
   @RequiresSession
   public HostRoleCommandEntity findByPK(long taskId) {
-    return entityManagerProvider.get().find(HostRoleCommandEntity.class, taskId);
+    return findByPK(taskId, false);
   }
-  
+
   @RequiresSession
   public HostRoleCommandEntity findByPK(long taskId, boolean refresh) {
-    final HostRoleCommandEntity hostRoleCommand = entityManagerProvider.get().find(HostRoleCommandEntity.class, taskId);
+    final EntityManager entityManager  = entityManagerProvider.get();
+    HostRoleCommandEntity hostRoleCommand = entityManager.find(HostRoleCommandEntity.class, taskId);
     if (refresh) {
-      entityManagerProvider.get().refresh(hostRoleCommand);
+      refreshHostRoleCommand(entityManager, hostRoleCommand);
     }
     return hostRoleCommand;
   }
 
   @RequiresSession
-  public List<HostRoleCommandEntity> findByPKs(Collection<Long> taskIds) {
-    return findByPKs(taskIds, false);
+  public HostRoleCommandEntity refreshHostRoleCommand(HostRoleCommandEntity hostRoleCommand) {
+    return refreshHostRoleCommand(null, hostRoleCommand);
   }
 
   @RequiresSession
-  public List<HostRoleCommandEntity> findByPKs(Collection<Long> taskIds, boolean refresh) {
+  private HostRoleCommandEntity refreshHostRoleCommand(EntityManager entityManager, HostRoleCommandEntity hostRoleCommand) {
+    EntityManager em = entityManager;
+    HostRoleCommandEntity managed = hostRoleCommand;
+    if (entityManager == null) {
+      em = entityManagerProvider.get();
+      managed = em.merge(hostRoleCommand);
+    }
+    em.refresh(managed);
+    return managed;
+  }
+
+  @RequiresSession
+  public List<HostRoleCommandEntity> findByPKs(Collection<Long> taskIds) {
     if (taskIds == null || taskIds.isEmpty()) {
       return Collections.emptyList();
     }
@@ -320,12 +333,6 @@ public class HostRoleCommandDAO {
       }
     } else {
       result.addAll(daoUtils.selectList(query, taskIds));
-    }
-
-    if (refresh) {
-      for (HostRoleCommandEntity hostRoleCommand : result) {
-        entityManagerProvider.get().refresh(hostRoleCommand);
-      }
     }
 
     return result;
