@@ -61,7 +61,7 @@
     <distMgmtStagingName>Apache Release Distribution Repository</distMgmtStagingName>
     <distMgmtStagingUrl>https://repository.apache.org/service/local/staging/deploy/maven2</distMgmtStagingUrl>
     <assemblyPhase>package</assemblyPhase> <!-- use -DassemblyPhase=none to skip building tarball, useful when you want purely compile jar -->
-    <eclipselink.version>2.6.2</eclipselink.version>
+    <eclipselink.version>2.7.3</eclipselink.version>
   </properties>
   <pluginRepositories>
     <pluginRepository>

@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -32,7 +34,7 @@ import javax.persistence.UniqueConstraint;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * The {@link UpgradeHistoryEntity} represents the version history of components
@@ -214,7 +216,7 @@ public class UpgradeHistoryEntity {
    */
   @Override
   public int hashCode() {
-    return Objects.hashCode(id, upgradeId, serviceName, componentName);
+    return Objects.hash(id, upgradeId, serviceName, componentName);
   }
 
   /**
@@ -222,7 +224,7 @@ public class UpgradeHistoryEntity {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("id", id)
         .add("upgradeId", upgradeId)
         .add("serviceName", serviceName)
