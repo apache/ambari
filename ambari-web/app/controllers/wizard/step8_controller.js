@@ -999,7 +999,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
   createServiceGroupsData: function () {
     const addedServiceGroups = this.get('content.addedServiceGroups');
     
-    if (addedServiceGroups) {
+    if (addedServiceGroups && addedServiceGroups.length > 0) {
       const serviceGroups = addedServiceGroups.map(serviceGroup => ({
           "ServiceGroupInfo": {
             "service_group_name": serviceGroup.name,
