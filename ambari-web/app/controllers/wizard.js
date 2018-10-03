@@ -26,6 +26,17 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   isStepDisabled: null,
 
   previousStep: 0,
+
+  totalSteps: function () {
+    const steps = this.get("steps");
+
+    if (steps) {
+      return steps.length;
+    }
+
+    return 0;
+  }.property('steps.[]'),
+
   /**
    * map of actions which load data required by which step
    * used by <code>loadAllPriorSteps</code>
