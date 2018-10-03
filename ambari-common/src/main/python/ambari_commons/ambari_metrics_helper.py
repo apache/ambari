@@ -95,12 +95,12 @@ def load_properties_from_file(filepath, sep='=', comment_char='#'):
 
 
 def get_ams_tokens():
-  return (METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY, AMS_METRICS_COLLECTOR_USE_SSL_KEY)
+  return (METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY, AMS_METRICS_COLLECTOR_USE_SSL_KEY, METRICS_COLLECTOR_VIP_HOST_KEY, METRICS_COLLECTOR_VIP_PORT_KEY)
 
 
 def create_ams_client(alert_id, ams_app_id, configurations, parameters):
   if METRICS_COLLECTOR_VIP_HOST_KEY in configurations and METRICS_COLLECTOR_VIP_PORT_KEY in configurations:
-    ams_collector_hosts = configurations[METRICS_COLLECTOR_VIP_HOST_KEY].split(',')[0]
+    ams_collector_hosts = configurations[METRICS_COLLECTOR_VIP_HOST_KEY].split(',')
     ams_collector_port = int(configurations[METRICS_COLLECTOR_VIP_PORT_KEY])
   else:
     # ams-site/timeline.metrics.service.webapp.address is required
@@ -133,12 +133,6 @@ def _valid_collector_webapp_address(webapp_address):
     return True
 
   return False
-
-def _get_port_from_url(address):
-  if not is_empty(address):
-    return address.split(':')[-1]
-  else:
-    return address
 
 class AmsClient:
 
