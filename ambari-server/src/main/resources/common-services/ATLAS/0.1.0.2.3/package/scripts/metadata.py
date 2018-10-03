@@ -114,7 +114,7 @@ def metadata(type='server'):
           Execute(('chown', format('{metadata_user}:{user_group}'), file),
                   sudo=True
                   )
-          Execute(('chmod', '644', file),
+          Execute(('chmod', '640', file),
                   sudo=True
                   )
 
