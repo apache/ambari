@@ -110,11 +110,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       router.setNavigationFlow(newStepIndex);
       controller.setCurrentStep('configureDownload');
       controller.set('hideBackButton', true);
-      controller.loadAllPriorSteps().done(function () {
-        controller.setStepsEnable();
-        controller.connectOutlet('wizardConfigureDownload', controller.get('content'));
-        self.scrollTop();
-        console.timeEnd('configureDownload connectOutlets');
+      controller.dataLoading().done(() => {
+        controller.loadAllPriorSteps().done(() => {
+          controller.setStepsEnable();
+          controller.connectOutlet('wizardConfigureDownload', controller.get('content'));
+          self.scrollTop();
+          console.timeEnd('configureDownload connectOutlets');
+        });
       });
     },
     
@@ -142,11 +144,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       controller.set('hideBackButton', false);
       var wizardSelectMpacksController = router.get('wizardSelectMpacksController');
       wizardSelectMpacksController.set('wizardController', controller);
-      controller.loadAllPriorSteps().done(function () {
-        controller.setStepsEnable();
-        controller.connectOutlet('wizardSelectMpacks', controller.get('content'));
-        self.scrollTop();
-        console.timeEnd('selectMpacks connectOutlets');
+      controller.dataLoading().done(() => {
+        controller.loadAllPriorSteps().done(() => {
+          controller.setStepsEnable();
+          controller.connectOutlet('wizardSelectMpacks', controller.get('content'));
+          self.scrollTop();
+          console.timeEnd('selectMpacks connectOutlets');
+        });
       });
     },
 
@@ -218,11 +222,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var newStepIndex = controller.getStepIndex('customMpackRepos');
       router.setNavigationFlow(newStepIndex);
       controller.setCurrentStep('customMpackRepos');
-      controller.loadAllPriorSteps().done(function () {
-        controller.setStepsEnable();
-        controller.connectOutlet('wizardCustomMpackRepos', controller.get('content'));
-        self.scrollTop();
-        console.timeEnd('customMpackRepos connectOutlets');
+      controller.dataLoading().done(() => {
+        controller.loadAllPriorSteps().done(() => {
+          controller.setStepsEnable();
+          controller.connectOutlet('wizardCustomMpackRepos', controller.get('content'));
+          self.scrollTop();
+          console.timeEnd('customMpackRepos connectOutlets');
+        });
       });
     },
 
@@ -257,11 +263,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var newStepIndex = controller.getStepIndex('downloadMpacks');
       router.setNavigationFlow(newStepIndex);
       controller.setCurrentStep('downloadMpacks');
-      controller.loadAllPriorSteps().done(function () {
-        controller.setStepsEnable();
-        controller.connectOutlet('wizardDownloadMpacks', controller.get('content'));
-        self.scrollTop();
-        console.timeEnd('downloadMpacks connectOutlets');
+      controller.dataLoading().done(() => {
+        controller.loadAllPriorSteps().done(() => {
+          controller.setStepsEnable();
+          controller.connectOutlet('wizardDownloadMpacks', controller.get('content'));
+          self.scrollTop();
+          console.timeEnd('downloadMpacks connectOutlets');
+        });
       });
     },
 
@@ -316,11 +324,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var newStepIndex = controller.getStepIndex('customProductRepos');
       router.setNavigationFlow(newStepIndex);
       controller.setCurrentStep('customProductRepos');
-      controller.loadAllPriorSteps().done(function () {
-        controller.setStepsEnable();
-        controller.connectOutlet('wizardCustomProductRepos', controller.get('content'));
-        self.scrollTop();
-        console.timeEnd('customProductRepos connectOutlets');
+      controller.dataLoading().done(() => {
+        controller.loadAllPriorSteps().done(() => {
+          controller.setStepsEnable();
+          controller.connectOutlet('wizardCustomProductRepos', controller.get('content'));
+          self.scrollTop();
+          console.timeEnd('customProductRepos connectOutlets');
+        });
       });
     },
 
@@ -357,11 +367,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var newStepIndex = controller.getStepIndex('verifyProducts');
       router.setNavigationFlow(newStepIndex);
       controller.setCurrentStep('verifyProducts');
-      controller.loadAllPriorSteps().done(function () {
-        controller.setStepsEnable();
-        controller.connectOutlet('wizardVerifyProducts', controller.get('content'));
-        self.scrollTop();
-        console.timeEnd('verifyProducts connectOutlets');
+      controller.dataLoading().done(() => {
+        controller.loadAllPriorSteps().done(() => {
+          controller.setStepsEnable();
+          controller.connectOutlet('wizardVerifyProducts', controller.get('content'));
+          self.scrollTop();
+          console.timeEnd('verifyProducts connectOutlets');
+        });
       });
     },
 
@@ -404,11 +416,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         isInitialLayout: true
       });
       controller.setCurrentStep('step5');
-      controller.loadAllPriorSteps().done(function () {
-        controller.setStepsEnable();
-        controller.connectOutlet('wizardStep5', controller.get('content'));
-        self.scrollTop();
-        console.timeEnd('step5 connectOutlets');
+      controller.dataLoading().done(() => {
+        controller.loadAllPriorSteps().done(() => {
+          controller.setStepsEnable();
+          controller.connectOutlet('wizardStep5', controller.get('content'));
+          self.scrollTop();
+          console.timeEnd('step5 connectOutlets');
+        });
       });
     },
     
@@ -461,11 +475,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       router.setNavigationFlow(newStepIndex);
       controller.setCurrentStep('step6');
       wizardStep6Controller.set('hosts', []);
-      controller.loadAllPriorSteps().done(function () {
-        controller.setStepsEnable();
-        controller.connectOutlet('wizardStep6', controller.get('content'));
-        self.scrollTop();
-        console.timeEnd('step6 connectOutlets');
+      controller.dataLoading().done(() => {
+        controller.loadAllPriorSteps().done(() => {
+          controller.setStepsEnable();
+          controller.connectOutlet('wizardStep6', controller.get('content'));
+          self.scrollTop();
+          console.timeEnd('step6 connectOutlets');
+        });
       });
     },
     
@@ -519,11 +535,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       router.setNavigationFlow(newStepIndex);
       controller.setCurrentStep('step7');     
       router.get('preInstallChecksController').loadStep();
-      controller.loadAllPriorSteps().done(function () {
-        controller.setStepsEnable();
-        controller.connectOutlet('wizardStep7', controller.get('content'));
-        self.scrollTop();
-        console.timeEnd('step7 connectOutlets');
+      controller.dataLoading().done(() => {
+        controller.loadAllPriorSteps().done(() => {
+          controller.setStepsEnable();
+          controller.connectOutlet('wizardStep7', controller.get('content'));
+          self.scrollTop();
+          console.timeEnd('step7 connectOutlets');
+        });
       });
     },
 
@@ -592,11 +610,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var newStepIndex = controller.getStepIndex('step8');
       router.setNavigationFlow(newStepIndex);
       controller.setCurrentStep('step8');
-      controller.loadAllPriorSteps().done(function () {
-        controller.setStepsEnable();
-        controller.connectOutlet('wizardStep8', controller.get('content'));
-        self.scrollTop();
-        console.timeEnd('step8 connectOutlets');
+      controller.dataLoading().done(() => {
+        controller.loadAllPriorSteps().done(() => {
+          controller.setStepsEnable();
+          controller.connectOutlet('wizardStep8', controller.get('content'));
+          self.scrollTop();
+          console.timeEnd('step8 connectOutlets');
+        });
       });
       if(!!App.get('router.mainAdminKerberosController.kdc_type')){
         router.get('kerberosWizardStep5Controller').getCSVData(true);
@@ -640,18 +660,20 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var controller = router.get('addServiceController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
       wizardStep9Controller.set('wizardController', controller);
-      controller.loadAllPriorSteps().done(function () {
-        wizardStep9Controller.loadDoServiceChecksFlag().done(function () {
-          var newStepIndex = controller.getStepIndex('step7');
-          router.setNavigationFlow(newStepIndex);
-          controller.setCurrentStep('step9');
-          controller.setStepsEnable();
-          if (!App.get('testMode')) {
-            controller.setLowerStepsDisable(9);
-          }
-          controller.connectOutlet('wizardStep9', controller.get('content'));
-          self.scrollTop();
-          console.timeEnd('step9 connectOutlets');
+      controller.dataLoading().done(() => {
+        controller.loadAllPriorSteps().done(() => {
+          wizardStep9Controller.loadDoServiceChecksFlag().done(function () {
+            var newStepIndex = controller.getStepIndex('step7');
+            router.setNavigationFlow(newStepIndex);
+            controller.setCurrentStep('step9');
+            controller.setStepsEnable();
+            if (!App.get('testMode')) {
+              controller.setLowerStepsDisable(9);
+            }
+            controller.connectOutlet('wizardStep9', controller.get('content'));
+            self.scrollTop();
+            console.timeEnd('step9 connectOutlets');
+          });
         });
       });
     },
@@ -715,16 +737,18 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var controller = router.get('addServiceController');
       var wizardStep10Controller = router.get('wizardStep10Controller');
       wizardStep10Controller.set('wizardController', controller);
-      controller.loadAllPriorSteps().done(function () {
-        if (!App.get('testMode')) {
-          var newStepIndex = controller.getStepIndex('step10');
-          router.setNavigationFlow(newStepIndex);
-          controller.setCurrentStep('step10');
-          controller.setStepsEnable();
-          controller.setLowerStepsDisable(10);
-        }
-        controller.connectOutlet('wizardStep10', controller.get('content'));
-        self.scrollTop();
+      controller.dataLoading().done(() => {
+        controller.loadAllPriorSteps().done(() => {
+          if (!App.get('testMode')) {
+            var newStepIndex = controller.getStepIndex('step10');
+            router.setNavigationFlow(newStepIndex);
+            controller.setCurrentStep('step10');
+            controller.setStepsEnable();
+            controller.setLowerStepsDisable(10);
+          }
+          controller.connectOutlet('wizardStep10', controller.get('content'));
+          self.scrollTop();
+        });
       });
     },
     
