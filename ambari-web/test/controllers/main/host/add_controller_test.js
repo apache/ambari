@@ -329,10 +329,12 @@ describe('App.AddHostController', function () {
   describe('#getClientsToInstall', function () {
     var services = [
       Em.Object.create({
-        serviceName: 'service1'
+        serviceName: 'service1',
+        serviceGroupName: 'sg1'
       }),
       Em.Object.create({
-        serviceName: 'service2'
+        serviceName: 'service2',
+        serviceGroupName: 'sg1'
       })
     ];
     var components = [
@@ -365,15 +367,19 @@ describe('App.AddHostController', function () {
       {
         component_name: 'comp1',
         display_name: 'comp1',
-        isInstalled: false
+        isInstalled: false,
+        serviceGroupName: 'sg1',
+        service_name: 'service1'
       },
       {
         component_name: 'comp2',
         display_name: 'comp2',
-        isInstalled: false
+        isInstalled: false,
+        serviceGroupName: 'sg1',
+        service_name: 'service1'
       }
     ];
-    it("generatel list of clients to install", function () {
+    it("generates list of clients to install", function () {
       expect(controller.getClientsToInstall(services, components)).to.eql(clients);
     })
   });
@@ -717,7 +723,7 @@ describe('App.AddHostController', function () {
       {
         title: 'Component is client',
         data: {
-          services: [Em.Object.create({serviceName: 'S1'})],
+          services: [Em.Object.create({serviceName: 'S1', serviceGroupName: 'sg1'})],
           components: [Em.Object.create({
             serviceName: 'S1',
             isClient: true,
@@ -729,7 +735,9 @@ describe('App.AddHostController', function () {
           {
             component_name: 'C1',
             display_name: 'C1',
-            isInstalled: false
+            isInstalled: false,
+            serviceGroupName: 'sg1',
+            service_name: 'S1'
           }
         ]
       }
