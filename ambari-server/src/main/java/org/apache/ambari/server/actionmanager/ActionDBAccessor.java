@@ -204,11 +204,6 @@ public interface ActionDBAccessor {
   HostRoleCommand getTask(long taskId);
 
   /**
-  * Gets the host role command corresponding to the task id (directly refreshed from the DB if indicated)
-  */
-  HostRoleCommand getTask(long taskId, boolean refresh);
-
-  /**
    * Get first or last maxResults requests that are in the specified status
    *
    * @param status

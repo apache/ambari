@@ -284,34 +284,7 @@ public class HostRoleCommandDAO {
 
   @RequiresSession
   public HostRoleCommandEntity findByPK(long taskId) {
-    return findByPK(taskId, false);
-  }
-
-  @RequiresSession
-  public HostRoleCommandEntity findByPK(long taskId, boolean refresh) {
-    final EntityManager entityManager  = entityManagerProvider.get();
-    HostRoleCommandEntity hostRoleCommand = entityManager.find(HostRoleCommandEntity.class, taskId);
-    if (refresh) {
-      refreshHostRoleCommand(entityManager, hostRoleCommand);
-    }
-    return hostRoleCommand;
-  }
-
-  @RequiresSession
-  public HostRoleCommandEntity refreshHostRoleCommand(HostRoleCommandEntity hostRoleCommand) {
-    return refreshHostRoleCommand(null, hostRoleCommand);
-  }
-
-  @RequiresSession
-  private HostRoleCommandEntity refreshHostRoleCommand(EntityManager entityManager, HostRoleCommandEntity hostRoleCommand) {
-    EntityManager em = entityManager;
-    HostRoleCommandEntity managed = hostRoleCommand;
-    if (entityManager == null) {
-      em = entityManagerProvider.get();
-      managed = em.merge(hostRoleCommand);
-    }
-    em.refresh(managed);
-    return managed;
+    return entityManagerProvider.get().find(HostRoleCommandEntity.class, taskId);
   }
 
   @RequiresSession
@@ -320,22 +293,23 @@ public class HostRoleCommandDAO {
       return Collections.emptyList();
     }
 
-    final List<HostRoleCommandEntity> result = new ArrayList<>();
-    final TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery(
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery(
       "SELECT task FROM HostRoleCommandEntity task WHERE task.taskId IN ?1 " +
         "ORDER BY task.taskId",
       HostRoleCommandEntity.class);
 
     if (taskIds.size() > configuration.getTaskIdListLimit()) {
-      final List<List<Long>> lists = Lists.partition(new ArrayList<>(taskIds), configuration.getTaskIdListLimit());
+      List<HostRoleCommandEntity> result = new ArrayList<>();
+
+      List<List<Long>> lists = Lists.partition(new ArrayList<>(taskIds), configuration.getTaskIdListLimit());
       for (List<Long> list : lists) {
         result.addAll(daoUtils.selectList(query, list));
       }
-    } else {
-      result.addAll(daoUtils.selectList(query, taskIds));
+
+      return result;
     }
 
-    return result;
+    return daoUtils.selectList(query, taskIds);
   }
 
   @RequiresSession

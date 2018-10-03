@@ -175,7 +175,7 @@ public class ActionManager {
    * @return
    */
   public boolean isInProgressCommand(CommandReport report) {
-    HostRoleCommand command = db.getTask(report.getTaskId(), true);
+    HostRoleCommand command = db.getTask(report.getTaskId());
     if (command == null) {
       LOG.warn("The task " + report.getTaskId() + " is invalid");
       return false;

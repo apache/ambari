@@ -155,6 +155,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   private Cache<Long, HostRoleCommand> hostRoleCommandCache;
   private long cacheLimit; //may be exceeded to store tasks from one request
 
+  //We do lock for writing/reading when HRCs are manipulated/read by different threads
+  //For instance we do lock for writing when aborting all HRCs of a request to avoid reading the same HRCs by agent report processor (so that we lock there for reading too)
   private final ReadWriteLock hrcOperationsLock = new ReentrantReadWriteLock();
 
   @Inject
@@ -238,6 +240,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         + " stageId " + command.getStageId());
 
         auditLog(command, requestId);
+        cacheHostRoleCommand(hostRoleCommandFactory.createExisting(command));
       }
 
       endRequest(requestId);
@@ -533,7 +536,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       HostRoleStatus reportedTaskStatus = HostRoleStatus.valueOf(report.getStatus());
       if (!existingTaskStatus.isCompletedState()) {
         //sometimes JPA cache returns a task with incorrect state (i.e. it was aborted just before we queried above); reading it from the DB for the sake of integrity
-        existingTaskStatus = hostRoleCommandDAO.refreshHostRoleCommand(commandEntity).getStatus();
+        //existingTaskStatus = hostRoleCommandDAO.refreshHostRoleCommand(commandEntity).getStatus();
       }
       if (!existingTaskStatus.isCompletedState() || existingTaskStatus == HostRoleStatus.ABORTED) {
         // if FAILED and marked for holding then set reportedTaskStatus = HOLDING_FAILED
@@ -734,39 +737,48 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     }
 
     List<HostRoleCommand> commands = new ArrayList<>();
+    try {
+      hrcOperationsLock.readLock().lock();
+      Map<Long, HostRoleCommand> cached = hostRoleCommandCache.getAllPresent(taskIds);
+      commands.addAll(cached.values());
 
-    Map<Long, HostRoleCommand> cached = hostRoleCommandCache.getAllPresent(taskIds);
-    commands.addAll(cached.values());
+      List<Long> absent = new ArrayList<>();
+      absent.addAll(taskIds);
+      absent.removeAll(cached.keySet());
 
-    List<Long> absent = new ArrayList<>();
-    absent.addAll(taskIds);
-    absent.removeAll(cached.keySet());
-
-    if (!absent.isEmpty()) {
-      boolean allowStore = hostRoleCommandCache.size() <= cacheLimit;
-
-      for (HostRoleCommandEntity commandEntity : hostRoleCommandDAO.findByPKs(absent)) {
-        HostRoleCommand hostRoleCommand = hostRoleCommandFactory.createExisting(commandEntity);
-        commands.add(hostRoleCommand);
-        if (allowStore) {
-          switch (hostRoleCommand.getStatus()) {
-            case ABORTED:
-            case COMPLETED:
-            case TIMEDOUT:
-            case FAILED:
-              hostRoleCommandCache.put(hostRoleCommand.getTaskId(), hostRoleCommand);
-              break;
-          }
+      if (!absent.isEmpty()) {
+        for (HostRoleCommandEntity commandEntity : hostRoleCommandDAO.findByPKs(absent)) {
+          HostRoleCommand hostRoleCommand = hostRoleCommandFactory.createExisting(commandEntity);
+          commands.add(hostRoleCommand);
+          cacheHostRoleCommand(hostRoleCommand);
         }
       }
+      Collections.sort(commands, new Comparator<HostRoleCommand>() {
+        @Override
+        public int compare(HostRoleCommand o1, HostRoleCommand o2) {
+          return (int) (o1.getTaskId()-o2.getTaskId());
+        }
+      });
+    } finally {
+      hrcOperationsLock.readLock().unlock();
     }
-    Collections.sort(commands, new Comparator<HostRoleCommand>() {
-      @Override
-      public int compare(HostRoleCommand o1, HostRoleCommand o2) {
-        return (int) (o1.getTaskId()-o2.getTaskId());
-      }
-    });
     return commands;
+  }
+
+  private void cacheHostRoleCommand(HostRoleCommand hostRoleCommand) {
+    if (hostRoleCommandCache.size() <= cacheLimit) {
+      switch (hostRoleCommand.getStatus()) {
+      case ABORTED:
+      case COMPLETED:
+      case TIMEDOUT:
+      case FAILED:
+        hostRoleCommandCache.put(hostRoleCommand.getTaskId(), hostRoleCommand);
+        break;
+      default:
+        // NOP
+        break;
+      }
+    }
   }
 
   @Override
@@ -779,16 +791,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     return getTasks(hostRoleCommandDAO.findTaskIdsByRoleAndStatus(role, status));
   }
 
-  @Override  
-  public HostRoleCommand getTask(long taskId) {
-    return getTask(taskId, false);
-  }
-
   @Override
-  public HostRoleCommand getTask(long taskId, boolean refresh) {
+  public HostRoleCommand getTask(long taskId) {
     try {
       hrcOperationsLock.readLock().lock();
-      HostRoleCommandEntity commandEntity = hostRoleCommandDAO.findByPK(taskId, refresh);
+      HostRoleCommandEntity commandEntity = hostRoleCommandDAO.findByPK(taskId);
       if (commandEntity == null) {
         return null;
       }
