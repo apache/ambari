@@ -21,31 +21,62 @@ App.ServiceRestartView = Em.View.extend({
 
   templateName: require('templates/common/service_restart'),
 
-  useRolling: true,
-
-  useExpress: false,
-
   didInsertElement: function() {
-    this.set('useRolling', true);
-    this.set('useExpress',  false);
+    this.initDefaultConfigs();
   },
 
-  rollingRestartCheckBox: App.RadioButtonView.extend({
+  initDefaultConfigs: function () {
+    this.set('useRolling', true);
+    this.set('showAdvancedOptions', false);
+    this.set('batchesOfHosts', true);
+    this.set('noOfHostsInBatch', 10);
+    this.set('batchIntervalHosts', 120);
+    this.set('percentRackStarted', 100);
+    this.set('batchIntervalRacks', 120);
+    this.set('isRetryChecked', true);
+    this.set('noOfRetriesPerHost', 2);
+    this.set('maxFailuresTolerated', 10);
+    this.set('maxFailuresBatch', 2);
+    this.set('maxFailuresRack', 2);
+    this.set('suppressAlerts', true);
+    this.set('pauseAfterFirst', false);
+
+  },
+
+  rollingRestartRadioButton: App.RadioButtonView.extend({
     labelTranslate: 'common.rolling',
     checked: Em.computed.alias('parentView.useRolling'),
     click: function () {
       this.set('parentView.useRolling', true);
-      this.set('parentView.useExpress', false);
     }
   }),
 
-  expressRestartCheckBox: App.RadioButtonView.extend({
+  expressRestartRadioButton: App.RadioButtonView.extend({
     labelTranslate: 'common.express',
-    checked: Em.computed.alias('parentView.useExpress'),
+    checked: Em.computed.not('parentView.useRolling'),
     click: function () {
       this.set('parentView.useRolling', false);
-      this.set('parentView.useExpress', true);
     }
-  })
+  }),
+
+  batchesOfHostsRadioButton: App.RadioButtonView.extend({
+    labelTranslate: 'service.restart.rolling.batchesOfHosts',
+    checked: Em.computed.alias('parentView.batchesOfHosts'),
+    click: function () {
+      this.set('parentView.batchesOfHosts', true);
+    }
+  }),
+
+  rackByRackRadioButton: App.RadioButtonView.extend({
+    labelTranslate: 'service.restart.rolling.rackByRack',
+    checked: Em.computed.not('parentView.batchesOfHosts'),
+    click: function () {
+      this.set('parentView.batchesOfHosts', false);
+    }
+  }),
+
+  toggleAdvancedOptions: function () {
+    this.toggleProperty('showAdvancedOptions');
+  }
 
 });
