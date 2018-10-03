@@ -35,7 +35,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-
 import com.google.inject.Injector;
 
 public class UpgradeCatalog280Test {
@@ -61,6 +60,10 @@ public class UpgradeCatalog280Test {
     expectLastCall().once();
 
 
+    Capture<DBAccessor.DBColumnInfo> upgradePackStackColumn = newCapture(CaptureType.ALL);
+    dbAccessor.addColumn(eq("upgrade"), capture(upgradePackStackColumn));
+    expectLastCall().once();
+
     replay(dbAccessor, injector);
 
     UpgradeCatalog280 upgradeCatalog280 = new UpgradeCatalog280(injector);
@@ -73,6 +76,12 @@ public class UpgradeCatalog280Test {
         capturedBlueprintProvisioningStateColumn.getName());
     Assert.assertEquals(null, capturedBlueprintProvisioningStateColumn.getDefaultValue());
     Assert.assertEquals(Short.class, capturedBlueprintProvisioningStateColumn.getType());
+
+    DBAccessor.DBColumnInfo capturedUpgradeColumn = upgradePackStackColumn.getValue();
+    Assert.assertEquals("upgrade_pack_stack_id", capturedUpgradeColumn.getName());
+    Assert.assertEquals(String.class, capturedUpgradeColumn.getType());
+    Assert.assertEquals((Integer) 255, capturedUpgradeColumn.getLength());
+
 
     verify(dbAccessor);
   }

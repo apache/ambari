@@ -38,6 +38,7 @@ import javax.xml.bind.annotation.XmlValue;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.upgrade.Task.Type;
+import org.apache.ambari.server.state.StackId;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,6 +130,9 @@ public class UpgradePack {
   @XmlElementWrapper(name="upgrade-path")
   @XmlElement(name="intermediate-stack")
   private List<IntermediateStack> intermediateStacks;
+
+  @XmlTransient
+  private StackId ownerStackId;
 
   public String getName() {
     return name;
@@ -802,5 +806,23 @@ public class UpgradePack {
       .flatMap(group -> ((ClusterGrouping) group).executionStages.stream())
       .map(executeStage -> executeStage.task)
       .anyMatch(taskPredicate);
+  }
+
+  /**
+   * Sets the stack id that owns this upgrade pack.  This may be set only once.
+   *
+   * @param stackId
+   *          the owner stack id
+   */
+  public void setOwnerStackId(StackId stackId) {
+    ownerStackId = (null == ownerStackId) ? stackId : ownerStackId;
+  }
+
+  /**
+   * @return
+   *      the stack id that owns this upgrade pack.
+   */
+  public StackId getOwnerStackId() {
+    return ownerStackId;
   }
 }

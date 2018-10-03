@@ -671,6 +671,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     upgradeEntity.setDirection(Direction.UPGRADE);
     upgradeEntity.setRepositoryVersion(repoVersionEntity2200);
     upgradeEntity.setUpgradePackage("upgrade_test");
+    upgradeEntity.setUpgradePackStackId(repoVersionEntity2200.getStackId());
     upgradeEntity.setUpgradeType(UpgradeType.ROLLING);
     upgradeEntity.setRequestEntity(requestEntity);
 

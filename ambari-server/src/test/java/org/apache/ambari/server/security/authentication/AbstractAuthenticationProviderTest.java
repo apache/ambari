@@ -46,7 +46,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 
-abstract class AbstractAuthenticationProviderTest extends EasyMockSupport {
+public abstract class AbstractAuthenticationProviderTest extends EasyMockSupport {
 
   static final String TEST_USER_NAME = "userName";
 
