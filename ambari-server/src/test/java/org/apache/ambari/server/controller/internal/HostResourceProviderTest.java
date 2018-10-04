@@ -58,7 +58,6 @@ import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.agent.RecoveryReport;
 import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
-import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
@@ -191,7 +190,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
     EasyMock.expectLastCall().once();
 
     expect(managementController.getClusters()).andReturn(clusters).atLeastOnce();
-    expect(managementController.retrieveHostRepositories(anyObject(), anyObject())).andReturn(createMock(HostRepositories.class));
 
     expect(resourceProviderFactory.getHostResourceProvider(
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();

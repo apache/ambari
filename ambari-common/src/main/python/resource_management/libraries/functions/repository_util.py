@@ -30,14 +30,21 @@ __all__ = ["RepositoryUtil", "CommandRepository"]
 # components_lits = repoName + postfix
 UBUNTU_REPO_COMPONENTS_POSTFIX = "main"
 
+
 class RepositoryUtil:
   def __init__(self, config, tags_to_skip):
+    """
+    Constructor for RepositoryUtil
+
+    :type config dict
+    :type tags_to_skip set
+    """
     self.tags_to_skip = tags_to_skip
 
     # repo templates
     repo_file = config['repositoryFile']
-    repo_rhel_suse =  config['configurations']['cluster-env']['repo_suse_rhel_template']
-    repo_ubuntu =  config['configurations']['cluster-env']['repo_ubuntu_template']
+    repo_rhel_suse = config['configurations']['cluster-env']['repo_suse_rhel_template']
+    repo_ubuntu = config['configurations']['cluster-env']['repo_ubuntu_template']
 
     if is_empty(repo_file):
       return
@@ -87,6 +94,7 @@ class RepositoryUtil:
 
     return repo_files
 
+
 def create_repo_files(template, command_repository):
   """
   DEPRECATED. Is present for usage by old mpacks.
@@ -94,6 +102,7 @@ def create_repo_files(template, command_repository):
   """
   from resource_management.libraries.script import Script
   return RepositoryUtil(Script.get_config(), set()).create_repo_files()
+
 
 def _find_value(dictionary, key, default=None):
   """
@@ -127,7 +136,7 @@ class CommandRepository(object):
 
     if isinstance(repo_object, dict):
       json_dict = dict(repo_object)   # strict dict(from ConfigDict) to avoid hidden type conversions
-    elif isinstance(repo_object, basestring):
+    elif isinstance(repo_object, (str, unicode)):
       json_dict = json.loads(repo_object)
     else:
       raise Fail("Cannot deserialize command repository {0}".format(str(repo_object)))
@@ -137,6 +146,7 @@ class CommandRepository(object):
     self.stack_name = _find_value(json_dict, 'stackName')
     self.version_string = _find_value(json_dict, 'repoVersion')
     self.repo_filename = _find_value(json_dict, 'repoFileName')
+    self.resolved = _find_value(json_dict, 'resolved', False)
     self.feat = CommandRepositoryFeature(_find_value(json_dict, "feature", default={}))
     self.items = []
 

@@ -542,10 +542,8 @@ class TestAlerts(TestCase):
     #initializer_module.metadata_cache.rewrite_cluster_cache('-1',{'clusterLevelParams':{}})
     #initializer_module.metadata_cache.rewrite_cluster_cache('0',{'clusterLevelParams':{}})
     #initializer_module.configurations_cache.rewrite_cluster_cache('0', {})
-    #initializer_module.host_level_params_cache.rewrite_cluster_cache('0', {'hostRepositories':{'componentRepos':{}}})
     #initializer_module.configuration_builder.topology_cache = MagicMock()
-    
-    
+
     return initializer_module
   
   @patch.object(ConfigurationBuilder, "get_configuration")

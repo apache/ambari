@@ -531,7 +531,7 @@ public class UpgradeContext {
 
     /*
      * This feels wrong.  We need the upgrade pack used when creating the upgrade, as that
-     * is really the source, not the target.  Can NOT use upgradeEntity.getRepositoryVersion() here
+     * is really the source, not the target.  Can NOT use upgradeEntity.getRepoVersion() here
      * for the stack id. Consulting the service map should work out since full upgrades are all same source stack,
      * and patches by definition are the same source stack (just different repos of that stack).
      */
