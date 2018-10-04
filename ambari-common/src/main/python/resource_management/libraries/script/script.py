@@ -970,11 +970,13 @@ class Script(object):
 
     upgrade_type_command_param = ""
     direction = None
+    is_rolling_restart = None
     if config is not None:
       command_params = config["commandParams"] if "commandParams" in config else None
       if command_params is not None:
         upgrade_type_command_param = command_params["upgrade_type"] if "upgrade_type" in command_params else ""
         direction = command_params["upgrade_direction"] if "upgrade_direction" in command_params else None
+        is_rolling_restart = command_params["rolling_restart"] if "rolling_restart" in command_params else None
 
     upgrade_type = Script.get_upgrade_type(upgrade_type_command_param)
     is_stack_upgrade = upgrade_type is not None
@@ -1044,24 +1046,29 @@ class Script(object):
           self.start(env)
       self.post_start(env)
 
+      if is_rolling_restart:
+        self.post_rolling_restart(env)
+
       if is_stack_upgrade:
-        # Remain backward compatible with the rest of the services that haven't switched to using
-        # the post_upgrade_restart method. Once done. remove the else-block.
-        if "post_upgrade_restart" in dir(self):
-          self.post_upgrade_restart(env, upgrade_type=upgrade_type)
-        else:
-          self.post_rolling_restart(env)
+        self.post_upgrade_restart(env, upgrade_type=upgrade_type)
+
 
     if self.should_expose_component_version("restart"):
       self.save_component_version_to_structured_out("restart")
 
+  def post_upgrade_restart(env, upgrade_type=None):
+    """
+    To be overridden by subclasses
+    """
+    pass
 
   # TODO, remove after all services have switched to post_upgrade_restart
   def post_rolling_restart(self, env):
     """
     To be overridden by subclasses
     """
-    pass
+    # Mostly Actions are the same for both of these cases. If they are different this method should be overriden.
+    self.post_upgrade_restart(env, UPGRADE_TYPE_ROLLING)
 
   def configure(self, env, upgrade_type=None, config_dir=None):
     """
