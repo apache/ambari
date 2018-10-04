@@ -1272,7 +1272,7 @@ def setup_jce_policy(args):
   print 'NOTE: Restart Ambari Server to apply changes' + \
         ' ("ambari-server restart|stop|start")'
 
-def get_ambari_major_version(cmd_out):
+def get_java_major_version(cmd_out):
   version_short = re.split("[java|openjdk|.*] version", cmd_out)[1].split(" ")[1][1:-1]
   if re.match("1\.8.*", version_short): # 1.8.0_112
     return version_short.split(".")[1]
@@ -1303,7 +1303,7 @@ def check_ambari_java_version_is_valid(java_home, java_bin, min_version, propert
       err = "Checking JDK version command returned with exit code %s" % process.returncode
       raise FatalException(process.returncode, err)
     else:
-      actual_jdk_version = int(get_ambari_major_version(out))
+      actual_jdk_version = int(get_java_major_version(out))
       print 'JDK version found: {0}'.format(actual_jdk_version)
       if actual_jdk_version < min_version:
         print 'Minimum JDK version is {0} for Ambari. Setup JDK again only for Ambari Server.'.format(min_version)
