@@ -25,33 +25,41 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.stack.upgrade.UpgradeType;
+import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.spi.ClusterInformation;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.RepositoryVersion;
+import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
+import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Provider;
 
 import junit.framework.Assert;
 
 /**
- * Unit tests for AbstractCheckDescriptor
+ * Unit tests for ClusterCheck
  */
-public class AbstractCheckDescriptorTest extends EasyMockSupport {
+public class ClusterCheckTest extends EasyMockSupport {
   @Mock
   private Clusters clusters;
 
@@ -67,6 +75,11 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
   @Mock
   private VersionDefinitionXml m_vdfXml;
 
+  private static final UpgradeCheckDescription m_description = new UpgradeCheckDescription(
+      "Test Check", UpgradeCheckType.CLUSTER, "Test Check", null);
+
+  private MockCheckHelper m_mockCheckHelper = new MockCheckHelper();
+
   @Before
   public void setup() throws Exception {
     injectMocks(this);
@@ -74,7 +87,7 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
 
   @Test
   public void testFormatEntityList() {
-    AbstractCheckDescriptor check = new TestCheckImpl(PrereqCheckType.HOST);
+    ClusterCheck check = new TestCheckImpl(UpgradeCheckType.HOST);
 
     Assert.assertEquals("", check.formatEntityList(null));
 
@@ -90,10 +103,10 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     failedOn.add("host3");
     Assert.assertEquals("host1, host2 and host3", check.formatEntityList(failedOn));
 
-    check = new TestCheckImpl(PrereqCheckType.CLUSTER);
+    check = new TestCheckImpl(UpgradeCheckType.CLUSTER);
     Assert.assertEquals("host1, host2 and host3", check.formatEntityList(failedOn));
 
-    check = new TestCheckImpl(PrereqCheckType.SERVICE);
+    check = new TestCheckImpl(UpgradeCheckType.SERVICE);
     Assert.assertEquals("host1, host2 and host3", check.formatEntityList(failedOn));
 
     check = new TestCheckImpl(null);
@@ -120,31 +133,46 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     expect(clusters.getCluster(anyString())).andReturn(cluster).atLeastOnce();
     expect(cluster.getServices()).andReturn(services).atLeastOnce();
 
-    RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
-    expect(repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
-    expect(repositoryVersion.getRepositoryXml()).andReturn(m_vdfXml).atLeastOnce();
+    RepositoryVersion repositoryVersion = createNiceMock(RepositoryVersion.class);
+    expect(repositoryVersion.getId()).andReturn(1L).anyTimes();
+    expect(repositoryVersion.getRepositoryType()).andReturn(RepositoryType.STANDARD).anyTimes();
+
+    RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
+    expect(repositoryVersionEntity.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
+    expect(repositoryVersionEntity.getRepositoryXml()).andReturn(m_vdfXml).atLeastOnce();
     expect(m_vdfXml.getClusterSummary(EasyMock.anyObject(Cluster.class))).andReturn(
         m_clusterVersionSummary).atLeastOnce();
 
     expect(m_clusterVersionSummary.getAvailableServiceNames()).andReturn(
         allServicesList).atLeastOnce();
 
+    m_mockCheckHelper.m_clusters = clusters;
+    Mockito.when(m_mockCheckHelper.m_repositoryVersionDAO.findByPK(Mockito.anyLong())).thenReturn(
+        repositoryVersionEntity);
 
     replayAll();
 
-    TestCheckImpl check = new TestCheckImpl(PrereqCheckType.SERVICE);
-    PrereqCheckRequest request = new PrereqCheckRequest(clusterName, UpgradeType.ROLLING);
-    request.setTargetRepositoryVersion(repositoryVersion);
+    TestCheckImpl check = new TestCheckImpl(UpgradeCheckType.SERVICE);
+    check.checkHelperProvider = new Provider<CheckHelper>() {
+      @Override
+      public CheckHelper get() {
+        return m_mockCheckHelper;
+      }
+    };
+
+    ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
+        repositoryVersion, null);
 
     // case, where we need at least one service to be present
     check.setApplicableServices(oneServiceList);
-    Assert.assertTrue(check.isApplicable(request));
+    Assert.assertTrue(m_mockCheckHelper.getApplicableChecks(request, Lists.newArrayList(check)).size() == 1);
 
     check.setApplicableServices(atLeastOneServiceList);
-    Assert.assertTrue(check.isApplicable(request));
+    Assert.assertTrue(m_mockCheckHelper.getApplicableChecks(request, Lists.newArrayList(check)).size() == 1);
 
     check.setApplicableServices(missingServiceList);
-    Assert.assertFalse(check.isApplicable(request));
+    Assert.assertTrue(m_mockCheckHelper.getApplicableChecks(request, Lists.newArrayList(check)).size() == 0);
   }
 
   /**
@@ -171,9 +199,13 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     expect(clusters.getCluster(anyString())).andReturn(cluster).atLeastOnce();
     expect(cluster.getServices()).andReturn(services).atLeastOnce();
 
-    RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
-    expect(repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
-    expect(repositoryVersion.getRepositoryXml()).andReturn(m_vdfXml).atLeastOnce();
+    RepositoryVersion repositoryVersion = createNiceMock(RepositoryVersion.class);
+    expect(repositoryVersion.getId()).andReturn(1L).anyTimes();
+    expect(repositoryVersion.getRepositoryType()).andReturn(RepositoryType.STANDARD).anyTimes();
+
+    RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
+    expect(repositoryVersionEntity.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
+    expect(repositoryVersionEntity.getRepositoryXml()).andReturn(m_vdfXml).atLeastOnce();
     expect(m_vdfXml.getClusterSummary(EasyMock.anyObject(Cluster.class))).andReturn(
         m_clusterVersionSummary).atLeastOnce();
 
@@ -182,53 +214,65 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     expect(m_clusterVersionSummary.getAvailableServiceNames()).andReturn(
         oneServiceList).atLeastOnce();
 
+    m_mockCheckHelper.m_clusters = clusters;
+    Mockito.when(m_mockCheckHelper.m_repositoryVersionDAO.findByPK(Mockito.anyLong())).thenReturn(
+        repositoryVersionEntity);
+
     replayAll();
 
-    TestCheckImpl check = new TestCheckImpl(PrereqCheckType.SERVICE);
-    PrereqCheckRequest request = new PrereqCheckRequest(clusterName, UpgradeType.ROLLING);
-    request.setTargetRepositoryVersion(repositoryVersion);
+    TestCheckImpl check = new TestCheckImpl(UpgradeCheckType.SERVICE);
+    check.checkHelperProvider = new Provider<CheckHelper>() {
+      @Override
+      public CheckHelper get() {
+        return m_mockCheckHelper;
+      }
+    };
+
+    ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
+        repositoryVersion, null);
 
     // since the check is for SERVICE2, it should not match even though its
     // installed since the repository is only for SERVICE1
     check.setApplicableServices(Sets.newHashSet("SERVICE2"));
-    Assert.assertFalse(check.isApplicable(request));
+    Assert.assertTrue(m_mockCheckHelper.getApplicableChecks(request, Lists.newArrayList(check)).size() == 0);
 
     // ok, so now change the check to match against SERVICE1
     check.setApplicableServices(Sets.newHashSet("SERVICE1"));
-    Assert.assertTrue(check.isApplicable(request));
+    Assert.assertTrue(m_mockCheckHelper.getApplicableChecks(request, Lists.newArrayList(check)).size() == 1);
   }
 
   /**
-   * Tests {@link UpgradeCheck#required()}.
+   * Tests {@link UpgradeCheckRegistry#isRequired(org.apache.ambari.spi.upgrade.UpgradeCheck, UpgradeType)}
    *
    * @throws Exception
    */
   @Test
   public void testRequired() throws Exception {
-    RollingTestCheckImpl rollingCheck = new RollingTestCheckImpl(PrereqCheckType.SERVICE);
-    Assert.assertTrue(rollingCheck.isRequired(UpgradeType.ROLLING));
-    Assert.assertFalse(rollingCheck.isRequired(UpgradeType.NON_ROLLING));
+    RollingTestCheckImpl rollingCheck = new RollingTestCheckImpl(UpgradeCheckType.SERVICE);
+    Assert.assertTrue(UpgradeCheckRegistry.isRequired(rollingCheck, UpgradeType.ROLLING));
+    Assert.assertFalse(UpgradeCheckRegistry.isRequired(rollingCheck, UpgradeType.NON_ROLLING));
 
-    NotRequiredCheckTest notRequiredCheck = new NotRequiredCheckTest(PrereqCheckType.SERVICE);
-    Assert.assertFalse(notRequiredCheck.isRequired(UpgradeType.ROLLING));
-    Assert.assertFalse(notRequiredCheck.isRequired(UpgradeType.NON_ROLLING));
-    Assert.assertFalse(notRequiredCheck.isRequired(UpgradeType.HOST_ORDERED));
+    NotRequiredCheckTest notRequiredCheck = new NotRequiredCheckTest(UpgradeCheckType.SERVICE);
+    Assert.assertFalse(UpgradeCheckRegistry.isRequired(notRequiredCheck, UpgradeType.ROLLING));
+    Assert.assertFalse(UpgradeCheckRegistry.isRequired(notRequiredCheck, UpgradeType.NON_ROLLING));
+    Assert.assertFalse(UpgradeCheckRegistry.isRequired(notRequiredCheck, UpgradeType.HOST_ORDERED));
 
-    TestCheckImpl requiredCheck = new TestCheckImpl(PrereqCheckType.SERVICE);
-    Assert.assertTrue(requiredCheck.isRequired(UpgradeType.ROLLING));
-    Assert.assertTrue(requiredCheck.isRequired(UpgradeType.NON_ROLLING));
-    Assert.assertTrue(requiredCheck.isRequired(UpgradeType.HOST_ORDERED));
+    TestCheckImpl requiredCheck = new TestCheckImpl(UpgradeCheckType.SERVICE);
+    Assert.assertTrue(UpgradeCheckRegistry.isRequired(requiredCheck, UpgradeType.ROLLING));
+    Assert.assertTrue(UpgradeCheckRegistry.isRequired(requiredCheck, UpgradeType.NON_ROLLING));
+    Assert.assertTrue(UpgradeCheckRegistry.isRequired(requiredCheck, UpgradeType.HOST_ORDERED));
   }
 
-  @UpgradeCheck(
+  @UpgradeCheckInfo(
       group = UpgradeCheckGroup.DEFAULT,
       order = 1.0f,
       required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
-  private class TestCheckImpl extends AbstractCheckDescriptor {
-    private PrereqCheckType m_type;
+  private class TestCheckImpl extends ClusterCheck {
+    private UpgradeCheckType m_type;
     private Set<String> m_applicableServices = Sets.newHashSet();
 
-    TestCheckImpl(PrereqCheckType type) {
+    TestCheckImpl(UpgradeCheckType type) {
       super(null);
       m_type = type;
 
@@ -240,14 +284,23 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
       };
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public PrereqCheckType getType() {
+    public UpgradeCheckDescription getCheckDescription() {
+      return m_description;
+    }
+
+    @Override
+    public UpgradeCheckType getType() {
       return m_type;
     }
 
     @Override
-    public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+    public UpgradeCheckResult perform(UpgradeCheckRequest request)
         throws AmbariException {
+      return new UpgradeCheckResult(this);
     }
 
     /**
@@ -263,11 +316,11 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     }
   }
 
-  @UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 1.0f, required = { UpgradeType.ROLLING })
-  private class RollingTestCheckImpl extends AbstractCheckDescriptor {
-    private PrereqCheckType m_type;
+  @UpgradeCheckInfo(group = UpgradeCheckGroup.DEFAULT, order = 1.0f, required = { UpgradeType.ROLLING })
+  private class RollingTestCheckImpl extends ClusterCheck {
+    private UpgradeCheckType m_type;
 
-    RollingTestCheckImpl(PrereqCheckType type) {
+    RollingTestCheckImpl(UpgradeCheckType type) {
       super(null);
       m_type = type;
 
@@ -279,17 +332,27 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
       };
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+    public UpgradeCheckDescription getCheckDescription() {
+      return m_description;
+    }
+
+    @Override
+    public UpgradeCheckResult perform(UpgradeCheckRequest request)
         throws AmbariException {
+      return new UpgradeCheckResult(this);
     }
   }
 
-  @UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 1.0f)
-  private class NotRequiredCheckTest extends AbstractCheckDescriptor {
-    private PrereqCheckType m_type;
+  @UpgradeCheckInfo(group = UpgradeCheckGroup.DEFAULT, order = 1.0f)
+  private class NotRequiredCheckTest extends ClusterCheck {
 
-    NotRequiredCheckTest(PrereqCheckType type) {
+    private UpgradeCheckType m_type;
+
+    NotRequiredCheckTest(UpgradeCheckType type) {
       super(null);
       m_type = type;
 
@@ -301,9 +364,18 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
       };
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+    public UpgradeCheckDescription getCheckDescription() {
+      return m_description;
+    }
+
+    @Override
+    public UpgradeCheckResult perform(UpgradeCheckRequest request)
         throws AmbariException {
+      return new UpgradeCheckResult(this);
     }
   }
 }

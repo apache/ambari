@@ -28,8 +28,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.spi.upgrade.UpgradeCheck;
+import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ClassUtils;
@@ -48,7 +52,7 @@ public class UpgradeCheckRegistry {
   /**
    * The list of upgrade checks to run through.
    */
-  private Set<AbstractCheckDescriptor> m_upgradeChecks = new TreeSet<>(
+  private Set<UpgradeCheck> m_upgradeChecks = new TreeSet<>(
     new PreUpgradeCheckComparator());
 
   /**
@@ -57,7 +61,7 @@ public class UpgradeCheckRegistry {
    * @param upgradeCheck
    *          the check to register (not {@code null}).
    */
-  public void register(AbstractCheckDescriptor upgradeCheck) {
+  public void register(UpgradeCheck upgradeCheck) {
     m_upgradeChecks.add(upgradeCheck);
   }
 
@@ -66,11 +70,11 @@ public class UpgradeCheckRegistry {
    *
    * @return
    */
-  public List<AbstractCheckDescriptor> getUpgradeChecks() {
+  public List<UpgradeCheck> getUpgradeChecks() {
     return new ArrayList<>(m_upgradeChecks);
   }
 
-  public List<AbstractCheckDescriptor> getServiceLevelUpgradeChecks(UpgradePack upgradePack, Map<String, ServiceInfo> services) {
+  public List<UpgradeCheck> getServiceLevelUpgradeChecks(UpgradePack upgradePack, Map<String, ServiceInfo> services) {
     List<String> prerequisiteChecks = upgradePack.getPrerequisiteChecks();
     List<String> missingChecks = new ArrayList<>();
     for (String prerequisiteCheck : prerequisiteChecks) {
@@ -79,7 +83,7 @@ public class UpgradeCheckRegistry {
       }
     }
 
-    List<AbstractCheckDescriptor> checks = new ArrayList<>(missingChecks.size());
+    List<UpgradeCheck> checks = new ArrayList<>(missingChecks.size());
     if (missingChecks.isEmpty()) {
       return checks;
     }
@@ -116,7 +120,7 @@ public class UpgradeCheckRegistry {
       }
       try {
         if (clazz != null) {
-          AbstractCheckDescriptor upgradeCheck = (AbstractCheckDescriptor) clazz.newInstance();
+          UpgradeCheck upgradeCheck = (UpgradeCheck) clazz.newInstance();
           checks.add(upgradeCheck);
         }
       } catch (Exception exception) {
@@ -127,7 +131,7 @@ public class UpgradeCheckRegistry {
   }
 
   private boolean isRegistered(String prerequisiteCheck) {
-    for (AbstractCheckDescriptor descriptor: m_upgradeChecks){
+    for (UpgradeCheck descriptor: m_upgradeChecks){
       if (prerequisiteCheck.equals(descriptor.getClass().getName())){
         return true;
       }
@@ -140,11 +144,11 @@ public class UpgradeCheckRegistry {
    * @param upgradePack Upgrade pack object with the list of required checks to be included
    * @return
    */
-  public List<AbstractCheckDescriptor> getFilteredUpgradeChecks(UpgradePack upgradePack){
+  public List<UpgradeCheck> getFilteredUpgradeChecks(UpgradePack upgradePack){
     List<String> prerequisiteChecks = upgradePack.getPrerequisiteChecks();
-    List<AbstractCheckDescriptor> resultCheckDescriptor = new ArrayList<>();
-    for (AbstractCheckDescriptor descriptor: m_upgradeChecks){
-      if (descriptor.isRequired(upgradePack.getType())) {
+    List<UpgradeCheck> resultCheckDescriptor = new ArrayList<>();
+    for (UpgradeCheck descriptor: m_upgradeChecks){
+      if (isRequired(descriptor, upgradePack.getType())) {
         resultCheckDescriptor.add(descriptor);
       } else if (prerequisiteChecks.contains(descriptor.getClass().getName())){
         resultCheckDescriptor.add(descriptor);
@@ -154,23 +158,42 @@ public class UpgradeCheckRegistry {
   }
 
   /**
+   * Gets whether the upgrade check is required for the specified
+   * {@link UpgradeType}. Checks which are marked as required do not need to be
+   * explicitely declared in the {@link UpgradePack} to be run.
+   *
+   * @return {@code true} if it is required, {@code false} otherwise.
+   */
+  public static boolean isRequired(UpgradeCheck upgradeCheck, UpgradeType upgradeType) {
+    UpgradeType[] upgradeTypes = upgradeCheck.getClass().getAnnotation(UpgradeCheckInfo.class).required();
+    for (UpgradeType requiredType : upgradeTypes) {
+      if (upgradeType == requiredType) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+
+  /**
    * THe {@link PreUpgradeCheckComparator} class is used to compare
-   * {@link AbstractCheckDescriptor} based on their {@link UpgradeCheck}
+   * {@link UpgradeCheck} based on their {@link UpgradeCheck}
    * annotations.
    */
   private static final class PreUpgradeCheckComparator implements
-      Comparator<AbstractCheckDescriptor> {
+      Comparator<UpgradeCheck> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public int compare(AbstractCheckDescriptor check1, AbstractCheckDescriptor check2) {
-      Class<? extends AbstractCheckDescriptor> clazz1 = check1.getClass();
-      Class<? extends AbstractCheckDescriptor> clazz2 = check2.getClass();
+    public int compare(UpgradeCheck check1, UpgradeCheck check2) {
+      Class<? extends UpgradeCheck> clazz1 = check1.getClass();
+      Class<? extends UpgradeCheck> clazz2 = check2.getClass();
 
-      UpgradeCheck annotation1 = clazz1.getAnnotation(UpgradeCheck.class);
-      UpgradeCheck annotation2 = clazz2.getAnnotation(UpgradeCheck.class);
+      UpgradeCheckInfo annotation1 = clazz1.getAnnotation(UpgradeCheckInfo.class);
+      UpgradeCheckInfo annotation2 = clazz2.getAnnotation(UpgradeCheckInfo.class);
 
       UpgradeCheckGroup group1 = UpgradeCheckGroup.DEFAULT;
       UpgradeCheckGroup group2 = UpgradeCheckGroup.DEFAULT;

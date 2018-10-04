@@ -50,7 +50,7 @@ import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
 import org.apache.ambari.server.stack.upgrade.CreateAndConfigureTask;
-import org.apache.ambari.server.stack.upgrade.UpgradeType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;

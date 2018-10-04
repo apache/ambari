@@ -59,7 +59,7 @@ import org.apache.ambari.server.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.stack.upgrade.PropertyKeyState;
 import org.apache.ambari.server.stack.upgrade.TransferCoercionType;
 import org.apache.ambari.server.stack.upgrade.TransferOperation;
-import org.apache.ambari.server.stack.upgrade.UpgradeType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;

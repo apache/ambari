@@ -25,16 +25,21 @@ import java.util.Set;
 import com.google.common.base.MoreObjects;
 
 /**
- * The {@link CheckDescription} is used to provide information about an upgrade
+ * The {@link UpgradeCheckDescription} is used to provide information about an upgrade
  * check, such as its description, applicable upgrade types, and the various
  * reasons which could cause it to fail.
  */
-public class CheckDescription {
+public class UpgradeCheckDescription {
 
   /**
-   * All of the instantiated {@link CheckDescription}s.
+   * The default key to use when creating a new {@link UpgradeCheckDescription} failure.
    */
-  private static final Set<CheckDescription> s_values = new LinkedHashSet<>();
+  public static final String DEFAULT = "default";
+
+  /**
+   * All of the instantiated {@link UpgradeCheckDescription}s.
+   */
+  private static final Set<UpgradeCheckDescription> s_values = new LinkedHashSet<>();
 
   /**
    * A unique identifier.
@@ -48,11 +53,16 @@ public class CheckDescription {
    * Constructor.
    *
    * @param name
+   *          a unique identifier for the description container.
    * @param type
+   *          the area which is being checked.
    * @param description
+   *          a description of what this check is.
    * @param fails
+   *          the mappings of failure reasons which could potentially happen in
+   *          an upgrade check.
    */
-  public CheckDescription(String name, UpgradeCheckType type, String description, Map<String, String> fails) {
+  public UpgradeCheckDescription(String name, UpgradeCheckType type, String description, Map<String, String> fails) {
     m_name = name;
     m_type = type;
     m_description = description;
@@ -67,6 +77,8 @@ public class CheckDescription {
   }
 
   /**
+   * Gets the unique name of the upgrade check.
+   *
    * @return the name of check
    */
   public String name() {
@@ -78,11 +90,13 @@ public class CheckDescription {
    *
    * @return
    */
-  public Set<CheckDescription> values() {
+  public Set<UpgradeCheckDescription> values() {
     return s_values;
   }
 
   /**
+   * Gets the area in Ambari that this check is meant for.
+   *
    * @return the type of check
    */
   public UpgradeCheckType getType() {
@@ -129,7 +143,7 @@ public class CheckDescription {
       return false;
     }
 
-    CheckDescription that = (CheckDescription) object;
+    UpgradeCheckDescription that = (UpgradeCheckDescription) object;
 
     return Objects.equals(m_name, that.m_name);
   }

@@ -18,30 +18,33 @@
 package org.apache.ambari.server.sample.checks;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.checks.AbstractCheckDescriptor;
-import org.apache.ambari.server.checks.CheckDescription;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.checks.ClusterCheck;
+import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeCheckType;
 
 import com.google.common.collect.ImmutableMap;
 
-public class SampleServiceCheck extends AbstractCheckDescriptor {
+public class SampleServiceCheck extends ClusterCheck {
 
   public SampleServiceCheck() {
-    super(new CheckDescription("SAMPLE_SERVICE_CHECK",
-          PrereqCheckType.HOST,
+    super(new UpgradeCheckDescription("SAMPLE_SERVICE_CHECK",
+          UpgradeCheckType.HOST,
           "Sample service check description.",
           new ImmutableMap.Builder<String, String>()
-                          .put(AbstractCheckDescriptor.DEFAULT,
+                          .put(UpgradeCheckDescription.DEFAULT,
                               "Sample service check default property description.").build()));
   }
 
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
-    prerequisiteCheck.setFailReason("Sample service check always fails.");
-    prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+  public UpgradeCheckResult perform(UpgradeCheckRequest request) throws AmbariException {
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
+    result.setFailReason("Sample service check always fails.");
+    result.setStatus(UpgradeCheckStatus.FAIL);
+
+    return result;
   }
 
 

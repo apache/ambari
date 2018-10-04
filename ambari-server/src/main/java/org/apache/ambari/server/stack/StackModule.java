@@ -37,7 +37,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.stack.upgrade.ConfigUpgradePack;
 import org.apache.ambari.server.stack.upgrade.Grouping;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
-import org.apache.ambari.server.stack.upgrade.UpgradeType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.ambari.server.state.BulkCommandDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;

@@ -1,0 +1,778 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-config.xsd">
+  <services>
+    <service name="ZEPPELIN">
+      <component name="ZEPPELIN_MASTER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_zeppelin_master">
+            <type>zeppelin-env</type>
+            <transfer operation="delete" delete-key="shiro_ini_content" />
+            <transfer operation="delete" delete-key="log4j_properties_content" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0__set_zeppelin.server.ssl.port">
+            <type>zeppelin-config</type>
+            <set key="zeppelin.server.ssl.port" value="9995"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_3_0_0_0_zeppelin_notebook_storage">
+            <type>zeppelin-conf</type>
+            <set key="zeppelin.notebook.storage"
+                 value="org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo"
+                 if-type="zeppelin-conf"
+                 if-key="zeppelin.notebook.storage"
+                 if-value="org.apache.zeppelin.notebook.repo.VFSNotebookRepo"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_3_0_0_0_zeppelin_site">
+            <type>zeppelin-site</type>
+            <transfer operation="copy" from-type="zeppelin-env" from-key="zeppelin.server.kerberos.keytab" to-key="zeppelin.server.kerberos.keytab" default-value=""  if-type="zeppelin-site" if-key="zeppelin.server.kerberos.keytab" if-key-state="absent"/>
+            <transfer operation="copy" from-type="zeppelin-env" from-key="zeppelin.server.kerberos.principal" to-key="zeppelin.server.kerberos.principal" default-value=""  if-type="zeppelin-site" if-key="zeppelin.server.kerberos.principal" if-key-state="absent"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_3_0_0_0_zeppelin_env">
+            <type>zeppelin-env</type>
+            <insert key="zeppelin_env_content" insert-type="append" newline-before="true" newline-after="true"
+                value="## Kerberos ticket refresh setting
+                  &#10;export KINIT_FAIL_THRESHOLD=5
+                  &#10;export KERBEROS_REFRESH_INTERVAL=1d"/>
+
+            <transfer operation="delete" delete-key="zeppelin.executor.mem" />
+            <transfer operation="delete" delete-key="zeppelin.executor.instances" />
+            <transfer operation="delete" delete-key="zeppelin.spark.jar.dir" />
+            <transfer operation="delete" delete-key="zeppelin.server.kerberos.principal" />
+            <transfer operation="delete" delete-key="zeppelin.server.kerberos.keytab" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="ACCUMULO">
+      <component name="ACCUMULO_MASTER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_30_accumulo_stack_variables_update" summary="Convert HDP 2.6 variable naming to HDP 3.0">
+            <type>accumulo-env</type>
+            <!-- Accumulo scripts still expect HADOOP_PREFIX, so don't break them by removing HADOOP_PREFIX -->
+            <insert key="content" insert-type="append" newline-before="true" newline-after="true" value="export HADOOP_HOME={{hadoop_prefix}}"/>
+            <insert key="server_content" insert-type="append" newline-before="true" newline-after="true" value="export HADOOP_HOME={{hadoop_prefix}}"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_30_accumulo_classpath_update" summary="Update HDP 2.6 classpath for HDP 3.0">
+            <type>accumulo-site</type>
+            <!-- Expand the regex classpath matching of jersey.*.jar to be [^.].*.jar instead -->
+            <replace key="general.classpaths" find="jersey" replace-with="[^.]"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="HDFS">
+      <component name="NAMENODE">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_hdfs_plugin_cluster_name">
+            <type>ranger-hdfs-audit</type>
+            <set key="ranger.plugin.hdfs.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-hdfs-plugin-properties" if-key="ranger-hdfs-plugin-enabled" if-key-state="present"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_30_hdfs_stack_variables_update" summary="Convert HDP 2.6 variable naming to HDP 3.0">
+            <type>hadoop-env</type>
+            <replace key="content" find="HADOOP_NAMENODE_OPTS" replace-with="HDFS_NAMENODE_OPTS"/>
+            <replace key="content" find="SHARED_HADOOP_NAMENODE_OPTS" replace-with="SHARED_HDFS_NAMENODE_OPTS"/>
+            <replace key="content" find="HADOOP_SECONDARYNAMENODE_OPTS" replace-with="HDFS_SECONDARYNAMENODE_OPTS"/>
+            <replace key="content" find="HADOOP_DATANODE_OPTS" replace-with="HDFS_DATANODE_OPTS"/>
+            <replace key="content" find="HADOOP_SECURE_DN_USER" replace-with="HDFS_DATANODE_SECURE_USER"/>
+            <replace key="content" find="HADOOP_SECURE_DN_LOG_DIR" replace-with="HADOOP_SECURE_LOG_DIR"/>
+            <replace key="content" find="HADOOP_SLAVES" replace-with="HADOOP_WORKERS"/>
+            <replace key="content" find="HADOOP_SLAVE_SLEEP" replace-with="HADOOP_WORKER_SLEEP"/>
+            <replace key="content" find="HADOOP_SECURE_DN_PID_DIR" replace-with="HADOOP_SECURE_PID_DIR"/>
+            <replace key="content" find="HADOOP_ZKFC_OPTS" replace-with="HDFS_ZKFC_OPTS"/>
+            <replace key="content" find="HADOOP_NFS3_OPTS" replace-with="HDFS_NFS3_OPTS"/>
+            <regex-replace key="content" find="^\s*# History server logs$[\r\n]+^\s*export HADOOP_MAPRED_LOG_DIR=\{\{mapred_log_dir_prefix\}\}/\$USER$" replace-with="" match-all="true"/>
+            <regex-replace key="content" find="^\s*# History server pid$[\r\n]+^\s*export HADOOP_MAPRED_PID_DIR=\{\{mapred_pid_dir_prefix\}\}/\$USER$" replace-with="" match-all="true"/>
+          </definition>
+
+          <!-- should be executed in separate action after hdp_30_hdfs_stack_variables_update -->
+          <definition xsi:type="configure" id="hdp_30_hdfs_secure_variables_update" summary="Update HADOOP_SECURE_PID_DIR and HADOOP_SECURE_LOG_DIR">
+            <type>hadoop-env</type>
+            <replace key="content" find="export HADOOP_SECURE_LOG_DIR={{hdfs_log_dir_prefix}}/$HDFS_DATANODE_SECURE_USER" replace-with="export HADOOP_SECURE_LOG_DIR=${HADOOP_SECURE_LOG_DIR:-{{hdfs_log_dir_prefix}}/$HDFS_DATANODE_SECURE_USER}" />
+            <replace key="content" find="export HADOOP_SECURE_PID_DIR={{hadoop_pid_dir_prefix}}/$HDFS_DATANODE_SECURE_USER" replace-with="export HADOOP_SECURE_PID_DIR=${HADOOP_SECURE_PID_DIR:-{{hadoop_pid_dir_prefix}}/$HDFS_DATANODE_SECURE_USER}" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics" summary="Prevent Garbage Collection Heuristics">
+            <type>hadoop-env</type>
+            <replace  key="content" find="-XX:+PrintGCDateStamps -Xms{{namenode_heapsize}}" replace-with="-XX:+PrintGCDateStamps -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{namenode_heapsize}}"/>
+            <replace  key="content" find="-XX:+PrintGCDateStamps ${HADOOP_NAMENODE_INIT_HEAPSIZE}" replace-with="-XX:+PrintGCDateStamps -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly ${HADOOP_NAMENODE_INIT_HEAPSIZE}"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdfs_fix_user_variable" summary="Enable USER variable for hadoop-env">
+            <type>hadoop-env</type>
+            <insert key="content" value="USER=&quot;$(whoami)&quot;" insert-type="prepend" newline-after="true"
+                    if-type="hadoop-env" if-key="content" if-value="USER=&quot;$(whoami)&quot;" if-value-match-type="partial" if-value-not-matched="true"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdfs_log4j_changes" summary="HDFS log4j properties changes">
+            <type>hdfs-log4j</type>
+            <insert key="content" value="# Adding logging for 3rd party library&#xA;log4j.logger.org.apache.commons.beanutils=WARN" insert-type="append" newline-before="true" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdfs_enable_hdfs_acl" summary="Enables HDFS ACL">
+            <type>hdfs-site</type>
+            <set if-key-state="absent" key="dfs.namenode.acls.enabled" value="true" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdfs_remove_initial_ha_properties" summary="Remove temporary HDFS HA properties">
+            <type>hadoop-env</type>
+            <transfer operation="delete" delete-key="dfs_ha_initial_namenode_active" />
+            <transfer operation="delete" delete-key="dfs_ha_initial_namenode_standby" />
+            <transfer operation="delete" delete-key="dfs_ha_initial_namenode_active_set" />
+            <transfer operation="delete" delete-key="dfs_ha_initial_namenode_standby_set" />
+            <transfer operation="delete" delete-key="dfs_ha_initial_cluster_id" />
+          </definition>
+        </changes>
+      </component>
+      <component name="DATANODE">
+        <changes>
+          <definition xsi:type="configure" id="hdfs_set_data_transfer_protection" summary="Enables SASL for authentication of data transfer protocol">
+            <type>hdfs-site</type>
+            <set key="dfs.data.transfer.protection" value="authentication,privacy" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdfs_set_hadoop_rpc_protection_on_kerberized_cluster" summary="Encrypting the data transfered between hadoop services and clients">
+            <type>core-site</type>
+            <set key="hadoop.rpc.protection" value="authentication,privacy" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdfs_hadoop_env_datanode_opts" summary="Hadoop env datanode opts changes">
+            <type>hadoop-env</type>
+            <replace  key="content" find="-XX:+UseConcMarkSweepGC -XX:ErrorFile=/var/log/hadoop/$USER/hs_err_pid%p.log" replace-with="-XX:+UseConcMarkSweepGC -XX:OnOutOfMemoryError=\&quot;/usr/hdp/current/hadoop-hdfs-datanode/bin/kill-data-node\&quot; -XX:ErrorFile=/var/log/hadoop/$USER/hs_err_pid%p.log"/>
+          </definition>
+        </changes>
+      </component>
+      <component name="HDFS_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="hdfs_user_agent" summary="Set User-Agent">
+            <type>core-site</type>
+            <set key="fs.azure.user.agent.prefix" value="User-Agent: APN/1.0 Hortonworks/1.0 HDP/{{version}}" if-type="core-site" if-key="fs.azure.user.agent.prefix" if-key-state="absent" />
+            <set key="fs.s3a.user.agent.prefix" value="User-Agent: APN/1.0 Hortonworks/1.0 HDP/{{version}}" if-type="core-site" if-key="fs.s3a.user.agent.prefix" if-key-state="absent" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="HIVE">
+      <component name="HIVE_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_30_hive_log_file" summary="Configure hive log file names and dir">
+            <type>hive-env</type>
+            <insert key="content" insert-type="append" newline-before="true" newline-after="true"
+                value="&#10;if [[ $HADOOP_OPTS != *-Dhive.log.file* ]]; then&#10;  if [ &quot;$SERVICE&quot; = &quot;metastore&quot; ]; then&#10;    export HADOOP_OPTS=&quot;$HADOOP_OPTS -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hivemetastore.log&quot;&#10;  fi&#10;  if [ &quot;$SERVICE&quot; = &quot;hiveserver2&quot; ]; then&#10;    export HADOOP_OPTS=&quot;$HADOOP_OPTS -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hiveserver2.log&quot;&#10;  fi&#10;fi" />
+          </definition>
+          <definition xsi:type="configure" id="hive_exec_dynamic_partition_mode_nonstrict" summary="Update hive.exec.dynamic.partition.mode to 'nonstrict'">
+            <type>hive-site</type>
+            <set key="hive.exec.dynamic.partition.mode" value="nonstrict"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_cluster_name">
+            <type>ranger-hive-audit</type>
+            <set key="ranger.plugin.hive.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-hive-audit" if-key="xasecure.audit.destination.solr" if-key-state="present"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_urlauth_filesystem_schemes">
+            <type>ranger-hive-security</type>
+            <set key="ranger.plugin.hive.urlauth.filesystem.schemes" value="hdfs:,file:,wasb:,adl:"
+              if-type="ranger-hive-security" if-key="ranger.plugin.hive.service.name" if-key-state="present"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_maint_jaas_config_for_hive_hook" summary="Updating hive atlas application properties">
+            <type>hive-atlas-application.properties</type>
+            <set key ="atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag" value="required"
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
+            <set key ="atlas.jaas.ticketBased-KafkaClient.loginModuleName" value="com.sun.security.auth.module.Krb5LoginModule"
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
+            <set key ="atlas.jaas.ticketBased-KafkaClient.option.useTicketCache" value="true"
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
+          </definition>
+          <!-- HACK: Ambari fails to replace not modified content type properties to the new default due to a bug, it has to be done here. HSI property must be updated here as well, as the HSI component may not be present during the upgrade (not activated yet) the replacement must be done here -->
+          <definition xsi:type="configure" id="update_hive_env_default" summary="Update default hive-env.sh">
+            <type>hive-env</type>
+            <replace key="content"
+              find='export HADOOP_USER_CLASSPATH_FIRST=true  #this prevents old metrics libs from mapreduce lib from bringing in old jar deps overriding HIVE_LIB&#10;if [ "$SERVICE" = "cli" ]; then&#10;  if [ -z "$DEBUG" ]; then&#10;    export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:+UseNUMA -XX:+UseParallelGC -XX:-UseGCOverheadLimit"&#10;  else&#10;    export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:-UseGCOverheadLimit"&#10;  fi&#10;fi&#10;&#10;# The heap size of the jvm stared by hive shell script can be controlled via:&#10;&#10;if [ "$SERVICE" = "metastore" ]; then&#10;  export HADOOP_HEAPSIZE={{hive_metastore_heapsize}} # Setting for HiveMetastore&#10;else&#10;  export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client&#10;fi&#10;&#10;export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m"&#10;export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS{{heap_dump_opts}}"&#10;&#10;# Larger heap size may be required when running queries over large number of files or partitions.&#10;# By default hive shell scripts use a heap size of 256 (MB).  Larger heap size would also be&#10;# appropriate for hive server (hwi etc).&#10;&#10;&#10;# Set HADOOP_HOME to point to a specific hadoop install directory&#10;HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}&#10;&#10;export HIVE_HOME=${HIVE_HOME:-{{hive_home_dir}}}&#10;&#10;# Hive Configuration Directory can be controlled by:&#10;export HIVE_CONF_DIR=${HIVE_CONF_DIR:-{{hive_config_dir}}}&#10;&#10;# Folder containing extra libraries required for hive compilation/execution can be controlled by:&#10;export HIVE_AUX_JARS_PATH={{stack_root}}/current/ext/hive&#10;if [ "${HIVE_AUX_JARS_PATH}" != "" ]; then&#10;  if [ -f "${HIVE_AUX_JARS_PATH}" ] || [ -d "${HIVE_AUX_JARS_PATH}" ] ; then&#10;    export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}&#10;  elif [ -d "/usr/hdp/current/hive-webhcat/share/hcatalog" ]; then&#10;    export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar&#10;  fi&#10;elif [ -d "/usr/hdp/current/hive-webhcat/share/hcatalog" ]; then&#10;  export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar&#10;fi&#10;&#10;export METASTORE_PORT={{hive_metastore_port}}&#10;&#10;{% if sqla_db_used or lib_dir_available %}&#10;export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:{{jdbc_libs_dir}}"&#10;export JAVA_LIBRARY_PATH="$JAVA_LIBRARY_PATH:{{jdbc_libs_dir}}"&#10;{% endif %}'
+              replace-with='# The heap size of the jvm, and jvm args stared by hive shell script can be controlled via:&#10;if [ "$SERVICE" = "metastore" ]; then&#10;&#10;  export HADOOP_HEAPSIZE={{hive_metastore_heapsize}} # Setting for HiveMetastore&#10;  export HADOOP_OPTS="$HADOOP_OPTS -Xloggc:{{hive_log_dir}}/hivemetastore-gc-%t.log -XX:+UseG1GC -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCCause -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath={{hive_log_dir}}/hms_heapdump.hprof -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hivemetastore.log"&#10;&#10;fi&#10;&#10;if [ "$SERVICE" = "hiveserver2" ]; then&#10;&#10;  export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client&#10;  export HADOOP_OPTS="$HADOOP_OPTS -Xloggc:{{hive_log_dir}}/hiveserver2-gc-%t.log -XX:+UseG1GC -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCCause -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath={{hive_log_dir}}/hs2_heapdump.hprof -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hiveserver2.log"&#10;&#10;fi&#10;&#10;export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m"&#10;export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS{{heap_dump_opts}}"&#10;&#10;# Larger heap size may be required when running queries over large number of files or partitions.&#10;# By default hive shell scripts use a heap size of 256 (MB).  Larger heap size would also be&#10;# appropriate for hive server (hwi etc).&#10;&#10;&#10;# Set HADOOP_HOME to point to a specific hadoop install directory&#10;HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}&#10;&#10;export HIVE_HOME=${HIVE_HOME:-{{hive_home_dir}}}&#10;&#10;# Hive Configuration Directory can be controlled by:&#10;export HIVE_CONF_DIR=${HIVE_CONF_DIR:-{{hive_config_dir}}}&#10;&#10;# Folder containing extra libraries required for hive compilation/execution can be controlled by:&#10;if [ "${HIVE_AUX_JARS_PATH}" != "" ]; then&#10;  if [ -f "${HIVE_AUX_JARS_PATH}" ]; then&#10;    export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}&#10;  elif [ -d "/usr/hdp/current/hive-webhcat/share/hcatalog" ]; then&#10;    export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar&#10;  fi&#10;elif [ -d "/usr/hdp/current/hive-webhcat/share/hcatalog" ]; then&#10;  export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar&#10;fi&#10;&#10;export METASTORE_PORT={{hive_metastore_port}}&#10;&#10;{% if sqla_db_used or lib_dir_available %}&#10;export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:{{jdbc_libs_dir}}"&#10;export JAVA_LIBRARY_PATH="$JAVA_LIBRARY_PATH:{{jdbc_libs_dir}}"&#10;{% endif %}'
+            />
+          </definition>
+          <definition xsi:type="configure" id="update_hive_exec_log4j2_default" summary="Update default hive-exec-log4j2.properties">
+            <type>hive-exec-log4j2</type>
+            <replace key="content"
+              find='# Licensed to the Apache Software Foundation (ASF) under one&#10;# or more contributor license agreements.  See the NOTICE file&#10;# distributed with this work for additional information&#10;# regarding copyright ownership.  The ASF licenses this file&#10;# to you under the Apache License, Version 2.0 (the&#10;# "License"); you may not use this file except in compliance&#10;# with the License.  You may obtain a copy of the License at&#10;#&#10;#     http://www.apache.org/licenses/LICENSE-2.0&#10;#&#10;# Unless required by applicable law or agreed to in writing, software&#10;# distributed under the License is distributed on an "AS IS" BASIS,&#10;# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;# See the License for the specific language governing permissions and&#10;# limitations under the License.&#10;&#10;status = INFO&#10;name = HiveExecLog4j2&#10;packages = org.apache.hadoop.hive.ql.log&#10;&#10;# list of properties&#10;property.hive.log.level = {{hive_log_level}}&#10;property.hive.root.logger = FA&#10;property.hive.query.id = hadoop&#10;property.hive.log.dir = ${sys:java.io.tmpdir}/${sys:user.name}&#10;property.hive.log.file = ${sys:hive.query.id}.log&#10;&#10;# list of all appenders&#10;appenders = console, FA&#10;&#10;# console appender&#10;appender.console.type = Console&#10;appender.console.name = console&#10;appender.console.target = SYSTEM_ERR&#10;appender.console.layout.type = PatternLayout&#10;appender.console.layout.pattern = %d{ISO8601} %5p [%t] %c{2}: %m%n&#10;&#10;# simple file appender&#10;appender.FA.type = RandomAccessFile&#10;appender.FA.name = FA&#10;appender.FA.fileName = ${sys:hive.log.dir}/${sys:hive.log.file}&#10;appender.FA.layout.type = PatternLayout&#10;appender.FA.layout.pattern = %d{ISO8601} %5p [%t] %c{2}: %m%n&#10;&#10;# list of all loggers&#10;loggers = NIOServerCnxn, ClientCnxnSocketNIO, DataNucleus, Datastore, JPOX&#10;&#10;logger.NIOServerCnxn.name = org.apache.zookeeper.server.NIOServerCnxn&#10;logger.NIOServerCnxn.level = WARN&#10;&#10;logger.ClientCnxnSocketNIO.name = org.apache.zookeeper.ClientCnxnSocketNIO&#10;logger.ClientCnxnSocketNIO.level = WARN&#10;&#10;logger.DataNucleus.name = DataNucleus&#10;logger.DataNucleus.level = ERROR&#10;&#10;logger.Datastore.name = Datastore&#10;logger.Datastore.level = ERROR&#10;&#10;logger.JPOX.name = JPOX&#10;logger.JPOX.level = ERROR&#10;&#10;# root logger&#10;rootLogger.level = ${sys:hive.log.level}&#10;rootLogger.appenderRefs = root&#10;rootLogger.appenderRef.root.ref = ${sys:hive.root.logger}'
+              replace-with='# Licensed to the Apache Software Foundation (ASF) under one&#10;# or more contributor license agreements.  See the NOTICE file&#10;# distributed with this work for additional information&#10;# regarding copyright ownership.  The ASF licenses this file&#10;# to you under the Apache License, Version 2.0 (the&#10;# "License"); you may not use this file except in compliance&#10;# with the License.  You may obtain a copy of the License at&#10;#&#10;#     http://www.apache.org/licenses/LICENSE-2.0&#10;#&#10;# Unless required by applicable law or agreed to in writing, software&#10;# distributed under the License is distributed on an "AS IS" BASIS,&#10;# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;# See the License for the specific language governing permissions and&#10;# limitations under the License.&#10;&#10;status = INFO&#10;name = HiveExecLog4j2&#10;packages = org.apache.hadoop.hive.ql.log&#10;&#10;# list of properties&#10;property.hive.log.level = {{hive_log_level}}&#10;property.hive.root.logger = FA&#10;property.hive.query.id = hadoop&#10;property.hive.log.dir = ${sys:java.io.tmpdir}/${sys:user.name}&#10;property.hive.log.file = ${sys:hive.query.id}.log&#10;&#10;# list of all appenders&#10;appenders = console, FA&#10;&#10;# console appender&#10;appender.console.type = Console&#10;appender.console.name = console&#10;appender.console.target = SYSTEM_ERR&#10;appender.console.layout.type = PatternLayout&#10;appender.console.layout.pattern = %d{yy/MM/dd HH:mm:ss} [%t]: %p %c{2}: %m%n&#10;&#10;# simple file appender&#10;appender.FA.type = File&#10;appender.FA.name = FA&#10;appender.FA.fileName = ${sys:hive.log.dir}/${sys:hive.log.file}&#10;appender.FA.layout.type = PatternLayout&#10;appender.FA.layout.pattern = %d{ISO8601} %-5p [%t]: %c{2} (%F:%M(%L)) - %m%n&#10;&#10;# list of all loggers&#10;loggers = NIOServerCnxn, ClientCnxnSocketNIO, DataNucleus, Datastore, JPOX&#10;&#10;logger.NIOServerCnxn.name = org.apache.zookeeper.server.NIOServerCnxn&#10;logger.NIOServerCnxn.level = WARN&#10;&#10;logger.ClientCnxnSocketNIO.name = org.apache.zookeeper.ClientCnxnSocketNIO&#10;logger.ClientCnxnSocketNIO.level = WARN&#10;&#10;logger.DataNucleus.name = DataNucleus&#10;logger.DataNucleus.level = ERROR&#10;&#10;logger.Datastore.name = Datastore&#10;logger.Datastore.level = ERROR&#10;&#10;logger.JPOX.name = JPOX&#10;logger.JPOX.level = ERROR&#10;&#10;# root logger&#10;rootLogger.level = ${sys:hive.log.level}&#10;rootLogger.appenderRefs = root&#10;rootLogger.appenderRef.root.ref = ${sys:hive.root.logger}'
+            />
+          </definition>
+          <definition xsi:type="configure" id="update_hsi_hive_env_sh_default" summary="Update default HSI hive-env.sh">
+            <type>hive-interactive-env</type>
+            <replace key="content"
+              find='if [ "$SERVICE" = "cli" ]; then&#10;  if [ -z "$DEBUG" ]; then&#10;    export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:+UseParNewGC -XX:-UseGCOverheadLimit"&#10;  else&#10;    export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:-UseGCOverheadLimit"&#10;  fi&#10;fi&#10;&#10;# The heap size of the jvm stared by hive shell script can be controlled via:&#10;&#10;if [ "$SERVICE" = "metastore" ]; then&#10;  export HADOOP_HEAPSIZE={{hive_metastore_heapsize}} # Setting for HiveMetastore&#10;else&#10;  export HADOOP_HEAPSIZE={{hive_interactive_heapsize}} # Setting for HiveServer2 and Client&#10;fi&#10;&#10;export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m"&#10;export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS{{heap_dump_opts}}"&#10;&#10;# Larger heap size may be required when running queries over large number of files or partitions.&#10;# By default hive shell scripts use a heap size of 256 (MB).  Larger heap size would also be&#10;# appropriate for hive server (hwi etc).&#10;&#10;&#10;# Set HADOOP_HOME to point to a specific hadoop install directory&#10;HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}&#10;&#10;# Hive Configuration Directory can be controlled by:&#10;export HIVE_CONF_DIR={{hive_server_interactive_conf_dir}}&#10;&#10;# Add additional hcatalog jars&#10;if [ "${HIVE_AUX_JARS_PATH}" != "" ]; then&#10;  export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}&#10;else&#10;  export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-server2-hive2/lib/hive-hcatalog-core.jar&#10;fi&#10;&#10;export METASTORE_PORT={{hive_metastore_port}}&#10;&#10;# Spark assembly contains a conflicting copy of HiveConf from hive-1.2&#10;export HIVE_SKIP_SPARK_ASSEMBLY=true'
+              replace-with='export HADOOP_OPTS="$HADOOP_OPTS -Xloggc:{{hive_log_dir}}/hiveserverinteractive-gc-%t.log -XX:+UseG1GC -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCCause -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath={{hive_log_dir}}/hsi_heapdump.hprof -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hiveserver2Interactive.log"&#10;&#10;# The heap size of the jvm stared by hive shell script can be controlled via:&#10;export HADOOP_HEAPSIZE={{hive_interactive_heapsize}} # Setting for HiveServer2 and Client&#10;&#10;export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m"&#10;export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS{{heap_dump_opts}}"&#10;&#10;# Larger heap size may be required when running queries over large number of files or partitions.&#10;# By default hive shell scripts use a heap size of 256 (MB).  Larger heap size would also be&#10;# appropriate for hive server (hwi etc).&#10;&#10;&#10;# Set HADOOP_HOME to point to a specific hadoop install directory&#10;HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}&#10;&#10;# Hive Configuration Directory can be controlled by:&#10;export HIVE_CONF_DIR={{hive_server_interactive_conf_dir}}&#10;&#10;# Add additional hcatalog jars&#10;if [ "${HIVE_AUX_JARS_PATH}" != "" ]; then&#10;  export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}&#10;else&#10;  export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-server2/lib/hive-hcatalog-core.jar&#10;fi&#10;&#10;export METASTORE_PORT={{hive_metastore_port}}'
+            />
+          </definition>
+          <definition xsi:type="configure" id="update_hive_log4j2_default" summary="Update default hive-log4j2.properties">
+            <type>hive-log4j2</type>
+            <replace key="content"
+              find='# Licensed to the Apache Software Foundation (ASF) under one&#10;# or more contributor license agreements.  See the NOTICE file&#10;# distributed with this work for additional information&#10;# regarding copyright ownership.  The ASF licenses this file&#10;# to you under the Apache License, Version 2.0 (the&#10;# "License"); you may not use this file except in compliance&#10;# with the License.  You may obtain a copy of the License at&#10;#&#10;#     http://www.apache.org/licenses/LICENSE-2.0&#10;#&#10;# Unless required by applicable law or agreed to in writing, software&#10;# distributed under the License is distributed on an "AS IS" BASIS,&#10;# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;# See the License for the specific language governing permissions and&#10;# limitations under the License.&#10;&#10;status = INFO&#10;name = HiveLog4j2&#10;packages = org.apache.hadoop.hive.ql.log&#10;&#10;# list of properties&#10;property.hive.log.level = {{hive_log_level}}&#10;property.hive.root.logger = DRFA&#10;property.hive.log.dir = ${sys:java.io.tmpdir}/${sys:user.name}&#10;property.hive.log.file = hive.log&#10;property.hive.perflogger.log.level = INFO&#10;&#10;# list of all appenders&#10;appenders = console, DRFA&#10;&#10;# console appender&#10;appender.console.type = Console&#10;appender.console.name = console&#10;appender.console.target = SYSTEM_ERR&#10;appender.console.layout.type = PatternLayout&#10;appender.console.layout.pattern = %d{ISO8601} %5p [%t] %c{2}: %m%n&#10;&#10;# daily rolling file appender&#10;appender.DRFA.type = RollingRandomAccessFile&#10;appender.DRFA.name = DRFA&#10;appender.DRFA.fileName = ${sys:hive.log.dir}/${sys:hive.log.file}&#10;# Use %pid in the filePattern to append process-id@host-name to the filename if you want separate log files for different CLI session&#10;appender.DRFA.filePattern = ${sys:hive.log.dir}/${sys:hive.log.file}.%d{yyyy-MM-dd}&#10;appender.DRFA.layout.type = PatternLayout&#10;appender.DRFA.layout.pattern = %d{ISO8601} %5p [%t] %c{2}: %m%n&#10;appender.DRFA.policies.type = Policies&#10;appender.DRFA.policies.time.type = TimeBasedTriggeringPolicy&#10;appender.DRFA.policies.time.interval = 1&#10;appender.DRFA.policies.time.modulate = true&#10;appender.DRFA.strategy.type = DefaultRolloverStrategy&#10;appender.DRFA.strategy.max = {{hive2_log_maxbackupindex}}&#10;appender.DRFA.policies.fsize.type = SizeBasedTriggeringPolicy&#10;appender.DRFA.policies.fsize.size = {{hive2_log_maxfilesize}}MB&#10;&#10;# list of all loggers&#10;loggers = NIOServerCnxn, ClientCnxnSocketNIO, DataNucleus, Datastore, JPOX, PerfLogger, AmazonAws, ApacheHttp&#10;&#10;logger.NIOServerCnxn.name = org.apache.zookeeper.server.NIOServerCnxn&#10;logger.NIOServerCnxn.level = WARN&#10;&#10;logger.ClientCnxnSocketNIO.name = org.apache.zookeeper.ClientCnxnSocketNIO&#10;logger.ClientCnxnSocketNIO.level = WARN&#10;&#10;logger.DataNucleus.name = DataNucleus&#10;logger.DataNucleus.level = ERROR&#10;&#10;logger.Datastore.name = Datastore&#10;logger.Datastore.level = ERROR&#10;&#10;logger.JPOX.name = JPOX&#10;logger.JPOX.level = ERROR&#10;&#10;logger.AmazonAws.name=com.amazonaws&#10;logger.AmazonAws.level = INFO&#10;&#10;logger.ApacheHttp.name=org.apache.http&#10;logger.ApacheHttp.level = INFO&#10;&#10;logger.PerfLogger.name = org.apache.hadoop.hive.ql.log.PerfLogger&#10;logger.PerfLogger.level = ${sys:hive.perflogger.log.level}&#10;&#10;# root logger&#10;rootLogger.level = ${sys:hive.log.level}&#10;rootLogger.appenderRefs = root&#10;rootLogger.appenderRef.root.ref = ${sys:hive.root.logger}'
+              replace-with='# Licensed to the Apache Software Foundation (ASF) under one&#10;# or more contributor license agreements.  See the NOTICE file&#10;# distributed with this work for additional information&#10;# regarding copyright ownership.  The ASF licenses this file&#10;# to you under the Apache License, Version 2.0 (the&#10;# "License"); you may not use this file except in compliance&#10;# with the License.  You may obtain a copy of the License at&#10;#&#10;#     http://www.apache.org/licenses/LICENSE-2.0&#10;#&#10;# Unless required by applicable law or agreed to in writing, software&#10;# distributed under the License is distributed on an "AS IS" BASIS,&#10;# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;# See the License for the specific language governing permissions and&#10;# limitations under the License.&#10;&#10;status = INFO&#10;name = HiveLog4j2&#10;packages = org.apache.hadoop.hive.ql.log&#10;&#10;# list of properties&#10;property.hive.log.level = {{hive_log_level}}&#10;property.hive.root.logger = DRFA&#10;property.hive.log.dir = ${sys:java.io.tmpdir}/${sys:user.name}&#10;property.hive.log.file = hive.log&#10;&#10;# list of all appenders&#10;appenders = console, DRFA&#10;&#10;# console appender&#10;appender.console.type = Console&#10;appender.console.name = console&#10;appender.console.target = SYSTEM_ERR&#10;appender.console.layout.type = PatternLayout&#10;appender.console.layout.pattern = %d{yy/MM/dd HH:mm:ss} [%t]: %p %c{2}: %m%n&#10;&#10;# daily rolling file appender&#10;appender.DRFA.type = RollingFile&#10;appender.DRFA.name = DRFA&#10;appender.DRFA.fileName = ${sys:hive.log.dir}/${sys:hive.log.file}&#10;# Use %pid in the filePattern to append process-id@host-name to the filename if you want separate log files for different CLI session&#10;appender.DRFA.filePattern = ${sys:hive.log.dir}/${sys:hive.log.file}.%d{yyyy-MM-dd}_%i.gz&#10;appender.DRFA.layout.type = PatternLayout&#10;appender.DRFA.layout.pattern = %d{ISO8601} %-5p [%t]: %c{2} (%F:%M(%L)) - %m%n&#10;appender.DRFA.policies.type = Policies&#10;appender.DRFA.policies.time.type = TimeBasedTriggeringPolicy&#10;appender.DRFA.policies.time.interval = 1&#10;appender.DRFA.policies.time.modulate = true&#10;appender.DRFA.strategy.type = DefaultRolloverStrategy&#10;appender.DRFA.strategy.max = {{hive2_log_maxbackupindex}}&#10;appender.DRFA.policies.fsize.type = SizeBasedTriggeringPolicy&#10;appender.DRFA.policies.fsize.size = {{hive2_log_maxfilesize}}MB&#10;&#10;# list of all loggers&#10;loggers = NIOServerCnxn, ClientCnxnSocketNIO, DataNucleus, Datastore, JPOX&#10;&#10;logger.NIOServerCnxn.name = org.apache.zookeeper.server.NIOServerCnxn&#10;logger.NIOServerCnxn.level = WARN&#10;&#10;logger.ClientCnxnSocketNIO.name = org.apache.zookeeper.ClientCnxnSocketNIO&#10;logger.ClientCnxnSocketNIO.level = WARN&#10;&#10;logger.DataNucleus.name = DataNucleus&#10;logger.DataNucleus.level = ERROR&#10;&#10;logger.Datastore.name = Datastore&#10;logger.Datastore.level = ERROR&#10;&#10;logger.JPOX.name = JPOX&#10;logger.JPOX.level = ERROR&#10;&#10;# root logger&#10;rootLogger.level = ${sys:hive.log.level}&#10;rootLogger.appenderRefs = root&#10;rootLogger.appenderRef.root.ref = ${sys:hive.root.logger}'
+            />
+          </definition>
+          <definition xsi:type="configure" id="update_llap_cli_log4j2_default" summary="Update default llap-cli-log4j2.properties">
+            <type>llap-cli-log4j2</type>
+            <replace key="content"
+              find='# Licensed to the Apache Software Foundation (ASF) under one&#10;# or more contributor license agreements.  See the NOTICE file&#10;# distributed with this work for additional information&#10;# regarding copyright ownership.  The ASF licenses this file&#10;# to you under the Apache License, Version 2.0 (the&#10;# "License"); you may not use this file except in compliance&#10;# with the License.  You may obtain a copy of the License at&#10;#&#10;#     http://www.apache.org/licenses/LICENSE-2.0&#10;#&#10;# Unless required by applicable law or agreed to in writing, software&#10;# distributed under the License is distributed on an "AS IS" BASIS,&#10;# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;# See the License for the specific language governing permissions and&#10;# limitations under the License.&#10;&#10;status = WARN&#10;name = LlapCliLog4j2&#10;packages = org.apache.hadoop.hive.ql.log&#10;&#10;# list of properties&#10;property.hive.log.level = WARN&#10;property.hive.root.logger = console&#10;property.hive.log.dir = ${sys:java.io.tmpdir}/${sys:user.name}&#10;property.hive.log.file = llap-cli.log&#10;property.hive.llapstatus.consolelogger.level = INFO&#10;&#10;# list of all appenders&#10;appenders = console, DRFA, llapstatusconsole&#10;&#10;# console appender&#10;appender.console.type = Console&#10;appender.console.name = console&#10;appender.console.target = SYSTEM_ERR&#10;appender.console.layout.type = PatternLayout&#10;appender.console.layout.pattern = %p %c{2}: %m%n&#10;&#10;# llapstatusconsole appender&#10;appender.llapstatusconsole.type = Console&#10;appender.llapstatusconsole.name = llapstatusconsole&#10;appender.llapstatusconsole.target = SYSTEM_ERR&#10;appender.llapstatusconsole.layout.type = PatternLayout&#10;appender.llapstatusconsole.layout.pattern = %m%n&#10;&#10;# daily rolling file appender&#10;appender.DRFA.type = RollingRandomAccessFile&#10;appender.DRFA.name = DRFA&#10;appender.DRFA.fileName = ${sys:hive.log.dir}/${sys:hive.log.file}&#10;# Use %pidn in the filePattern to append process-id@host-name to the filename if you want separate log files for different CLI session&#10;appender.DRFA.filePattern = ${sys:hive.log.dir}/${sys:hive.log.file}.%d{yyyy-MM-dd}&#10;appender.DRFA.layout.type = PatternLayout&#10;appender.DRFA.layout.pattern = %d{ISO8601} %5p [%t] %c{2}: %m%n&#10;appender.DRFA.policies.type = Policies&#10;appender.DRFA.policies.time.type = TimeBasedTriggeringPolicy&#10;appender.DRFA.policies.time.interval = 1&#10;appender.DRFA.policies.time.modulate = true&#10;appender.DRFA.strategy.type = DefaultRolloverStrategy&#10;appender.DRFA.strategy.max = {{llap_cli_log_maxbackupindex}}&#10;appender.DRFA.policies.fsize.type = SizeBasedTriggeringPolicy&#10;appender.DRFA.policies.fsize.size = {{llap_cli_log_maxfilesize}}MB&#10;&#10;# list of all loggers&#10;loggers = ZooKeeper, DataNucleus, Datastore, JPOX, HadoopConf, LlapStatusServiceDriverConsole&#10;&#10;logger.ZooKeeper.name = org.apache.zookeeper&#10;logger.ZooKeeper.level = WARN&#10;&#10;logger.DataNucleus.name = DataNucleus&#10;logger.DataNucleus.level = ERROR&#10;&#10;logger.Datastore.name = Datastore&#10;logger.Datastore.level = ERROR&#10;&#10;logger.JPOX.name = JPOX&#10;logger.JPOX.level = ERROR&#10;&#10;logger.HadoopConf.name = org.apache.hadoop.conf.Configuration&#10;logger.HadoopConf.level = ERROR&#10;&#10;logger.LlapStatusServiceDriverConsole.name = LlapStatusServiceDriverConsole&#10;logger.LlapStatusServiceDriverConsole.additivity = false&#10;logger.LlapStatusServiceDriverConsole.level = ${sys:hive.llapstatus.consolelogger.level}&#10;&#10;&#10;# root logger&#10;rootLogger.level = ${sys:hive.log.level}&#10;rootLogger.appenderRefs = root, DRFA&#10;rootLogger.appenderRef.root.ref = ${sys:hive.root.logger}&#10;rootLogger.appenderRef.DRFA.ref = DRFA&#10;logger.LlapStatusServiceDriverConsole.appenderRefs = llapstatusconsole, DRFA&#10;logger.LlapStatusServiceDriverConsole.appenderRef.llapstatusconsole.ref = llapstatusconsole&#10;logger.LlapStatusServiceDriverConsole.appenderRef.DRFA.ref = DRFA'
+              replace-with='# Licensed to the Apache Software Foundation (ASF) under one&#10;# or more contributor license agreements.  See the NOTICE file&#10;# distributed with this work for additional information&#10;# regarding copyright ownership.  The ASF licenses this file&#10;# to you under the Apache License, Version 2.0 (the&#10;# "License"); you may not use this file except in compliance&#10;# with the License.  You may obtain a copy of the License at&#10;#&#10;#     http://www.apache.org/licenses/LICENSE-2.0&#10;#&#10;# Unless required by applicable law or agreed to in writing, software&#10;# distributed under the License is distributed on an "AS IS" BASIS,&#10;# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;# See the License for the specific language governing permissions and&#10;# limitations under the License.&#10;&#10;status = WARN&#10;name = LlapCliLog4j2&#10;packages = org.apache.hadoop.hive.ql.log&#10;&#10;# list of properties&#10;property.hive.log.level = WARN&#10;property.hive.root.logger = console&#10;property.hive.log.dir = ${sys:java.io.tmpdir}/${sys:user.name}&#10;property.hive.log.file = llap-cli.log&#10;property.hive.llapstatus.consolelogger.level = INFO&#10;&#10;# list of all appenders&#10;appenders = console, DRFA, llapstatusconsole&#10;&#10;# console appender&#10;appender.console.type = Console&#10;appender.console.name = console&#10;appender.console.target = SYSTEM_ERR&#10;appender.console.layout.type = PatternLayout&#10;appender.console.layout.pattern = %p %c{2}: %m%n&#10;&#10;# llapstatusconsole appender&#10;appender.llapstatusconsole.type = Console&#10;appender.llapstatusconsole.name = llapstatusconsole&#10;appender.llapstatusconsole.target = SYSTEM_OUT&#10;appender.llapstatusconsole.layout.type = PatternLayout&#10;appender.llapstatusconsole.layout.pattern = %m%n&#10;&#10;# daily rolling file appender&#10;appender.DRFA.type = RollingRandomAccessFile&#10;appender.DRFA.name = DRFA&#10;appender.DRFA.fileName = ${sys:hive.log.dir}/${sys:hive.log.file}&#10;# Use %pid in the filePattern to append process-id@host-name to the filename if you want separate log files for different CLI session&#10;appender.DRFA.filePattern = ${sys:hive.log.dir}/${sys:hive.log.file}.%d{yyyy-MM-dd}_%i&#10;appender.DRFA.layout.type = PatternLayout&#10;appender.DRFA.layout.pattern = %d{ISO8601} %5p [%t] %c{2}: %m%n&#10;appender.DRFA.policies.type = Policies&#10;appender.DRFA.policies.time.type = TimeBasedTriggeringPolicy&#10;appender.DRFA.policies.time.interval = 1&#10;appender.DRFA.policies.time.modulate = true&#10;appender.DRFA.strategy.type = DefaultRolloverStrategy&#10;appender.DRFA.strategy.max = {{llap_cli_log_maxbackupindex}}&#10;appender.DRFA.policies.fsize.type = SizeBasedTriggeringPolicy&#10;appender.DRFA.policies.fsize.size = {{llap_cli_log_maxfilesize}}MB&#10;&#10;# list of all loggers&#10;loggers = ZooKeeper, DataNucleus, Datastore, JPOX, HadoopConf, LlapStatusServiceDriverConsole&#10;&#10;logger.ZooKeeper.name = org.apache.zookeeper&#10;logger.ZooKeeper.level = WARN&#10;&#10;logger.DataNucleus.name = DataNucleus&#10;logger.DataNucleus.level = ERROR&#10;&#10;logger.Datastore.name = Datastore&#10;logger.Datastore.level = ERROR&#10;&#10;logger.JPOX.name = JPOX&#10;logger.JPOX.level = ERROR&#10;&#10;logger.HadoopConf.name = org.apache.hadoop.conf.Configuration&#10;logger.HadoopConf.level = ERROR&#10;&#10;logger.LlapStatusServiceDriverConsole.name = LlapStatusServiceDriverConsole&#10;logger.LlapStatusServiceDriverConsole.additivity = false&#10;logger.LlapStatusServiceDriverConsole.level = ${sys:hive.llapstatus.consolelogger.level}&#10;&#10;&#10;# root logger&#10;rootLogger.level = ${sys:hive.log.level}&#10;rootLogger.appenderRefs = root, DRFA&#10;rootLogger.appenderRef.root.ref = ${sys:hive.root.logger}&#10;rootLogger.appenderRef.DRFA.ref = DRFA&#10;logger.LlapStatusServiceDriverConsole.appenderRefs = llapstatusconsole, DRFA&#10;logger.LlapStatusServiceDriverConsole.appenderRef.llapstatusconsole.ref = llapstatusconsole&#10;logger.LlapStatusServiceDriverConsole.appenderRef.DRFA.ref = DRFA'
+            />
+          </definition>
+          <definition xsi:type="configure" id="update_llap_daemon_log4j_default" summary="Update default llap-daemon-log4j.properties">
+            <type>llap-daemon-log4j</type>
+            <replace key="content"
+              find='# Licensed to the Apache Software Foundation (ASF) under one&#10;# or more contributor license agreements.  See the NOTICE file&#10;# distributed with this work for additional information&#10;# regarding copyright ownership.  The ASF licenses this file&#10;# to you under the Apache License, Version 2.0 (the&#10;# "License"); you may not use this file except in compliance&#10;# with the License.  You may obtain a copy of the License at&#10;#&#10;#     http://www.apache.org/licenses/LICENSE-2.0&#10;#&#10;# Unless required by applicable law or agreed to in writing, software&#10;# distributed under the License is distributed on an "AS IS" BASIS,&#10;# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;# See the License for the specific language governing permissions and&#10;# limitations under the License.&#10;&#10;&#10;# This is the log4j2 properties file used by llap-daemons. There&apos;s several loggers defined, which&#10;# can be selected while configuring LLAP.&#10;# Based on the one selected - UI links etc need to be manipulated in the system.&#10;# Note: Some names and logic is common to this file and llap LogHelpers. Make sure to change that&#10;# as well, if changing this file.&#10;&#10;status = INFO&#10;name = LlapDaemonLog4j2&#10;packages = org.apache.hadoop.hive.ql.log&#10;&#10;# list of properties&#10;property.llap.daemon.log.level = {{llap_log_level}}&#10;property.llap.daemon.root.logger = console&#10;property.llap.daemon.log.dir = .&#10;property.llap.daemon.log.file = llapdaemon.log&#10;property.llap.daemon.historylog.file = llapdaemon_history.log&#10;property.llap.daemon.log.maxfilesize = {{hive_llap_log_maxfilesize}}MB&#10;property.llap.daemon.log.maxbackupindex = {{hive_llap_log_maxbackupindex}}&#10;&#10;# list of all appenders&#10;appenders = console, RFA, HISTORYAPPENDER, query-routing&#10;&#10;# console appender&#10;appender.console.type = Console&#10;appender.console.name = console&#10;appender.console.target = SYSTEM_ERR&#10;appender.console.layout.type = PatternLayout&#10;appender.console.layout.pattern = %d{ISO8601} %5p [%t (%X{fragmentId})] %c{2}: %m%n&#10;&#10;# rolling file appender&#10;appender.RFA.type = RollingRandomAccessFile&#10;appender.RFA.name = RFA&#10;appender.RFA.fileName = ${sys:llap.daemon.log.dir}/${sys:llap.daemon.log.file}&#10;appender.RFA.filePattern = ${sys:llap.daemon.log.dir}/${sys:llap.daemon.log.file}_%d{yyyy-MM-dd-HH}_%i.done&#10;appender.RFA.layout.type = PatternLayout&#10;appender.RFA.layout.pattern = %d{ISO8601} %-5p [%t (%X{fragmentId})] %c: %m%n&#10;appender.RFA.policies.type = Policies&#10;appender.RFA.policies.time.type = TimeBasedTriggeringPolicy&#10;appender.RFA.policies.time.interval = 1&#10;appender.RFA.policies.time.modulate = true&#10;appender.RFA.policies.size.type = SizeBasedTriggeringPolicy&#10;appender.RFA.policies.size.size = ${sys:llap.daemon.log.maxfilesize}&#10;appender.RFA.strategy.type = DefaultRolloverStrategy&#10;appender.RFA.strategy.max = ${sys:llap.daemon.log.maxbackupindex}&#10;&#10;# history file appender&#10;appender.HISTORYAPPENDER.type = RollingRandomAccessFile&#10;appender.HISTORYAPPENDER.name = HISTORYAPPENDER&#10;appender.HISTORYAPPENDER.fileName = ${sys:llap.daemon.log.dir}/${sys:llap.daemon.historylog.file}&#10;appender.HISTORYAPPENDER.filePattern = ${sys:llap.daemon.log.dir}/${sys:llap.daemon.historylog.file}_%d{yyyy-MM-dd-HH}_%i.done&#10;appender.HISTORYAPPENDER.layout.type = PatternLayout&#10;appender.HISTORYAPPENDER.layout.pattern = %m%n&#10;appender.HISTORYAPPENDER.policies.type = Policies&#10;appender.HISTORYAPPENDER.policies.size.type = SizeBasedTriggeringPolicy&#10;appender.HISTORYAPPENDER.policies.size.size = ${sys:llap.daemon.log.maxfilesize}&#10;appender.HISTORYAPPENDER.policies.time.type = TimeBasedTriggeringPolicy&#10;appender.HISTORYAPPENDER.policies.time.interval = 1&#10;appender.HISTORYAPPENDER.policies.time.modulate = true&#10;appender.HISTORYAPPENDER.strategy.type = DefaultRolloverStrategy&#10;appender.HISTORYAPPENDER.strategy.max = ${sys:llap.daemon.log.maxbackupindex}&#10;&#10;# queryId based routing file appender&#10;appender.query-routing.type = Routing&#10;appender.query-routing.name = query-routing&#10;appender.query-routing.routes.type = Routes&#10;appender.query-routing.routes.pattern = $${ctx:queryId}&#10;#Purge polciy for query-based Routing Appender&#10;appender.query-routing.purgePolicy.type = LlapRoutingAppenderPurgePolicy&#10;# Note: Do not change this name without changing the corresponding entry in LlapConstants&#10;appender.query-routing.purgePolicy.name = llapLogPurgerQueryRouting&#10;# default route&#10;appender.query-routing.routes.route-default.type = Route&#10;appender.query-routing.routes.route-default.key = $${ctx:queryId}&#10;appender.query-routing.routes.route-default.ref = RFA&#10;# queryId based route&#10;appender.query-routing.routes.route-mdc.type = Route&#10;appender.query-routing.routes.route-mdc.file-mdc.type = LlapWrappedAppender&#10;appender.query-routing.routes.route-mdc.file-mdc.name = IrrelevantName-query-routing&#10;appender.query-routing.routes.route-mdc.file-mdc.app.type = RandomAccessFile&#10;appender.query-routing.routes.route-mdc.file-mdc.app.name = file-mdc&#10;appender.query-routing.routes.route-mdc.file-mdc.app.fileName = ${sys:llap.daemon.log.dir}/${ctx:queryId}-${ctx:dagId}.log&#10;appender.query-routing.routes.route-mdc.file-mdc.app.layout.type = PatternLayout&#10;appender.query-routing.routes.route-mdc.file-mdc.app.layout.pattern = %d{ISO8601} %5p [%t (%X{fragmentId})] %c{2}: %m%n&#10;&#10;# list of all loggers&#10;loggers = PerfLogger, EncodedReader, NIOServerCnxn, ClientCnxnSocketNIO, DataNucleus, Datastore, JPOX, HistoryLogger, LlapIoImpl, LlapIoOrc, LlapIoCache, LlapIoLocking, TezSM, TezSS, TezHC, LlapDaemon&#10;&#10;logger.LlapDaemon.name = org.apache.hadoop.hive.llap.daemon.impl.LlapDaemon&#10;logger.LlapDaemon.level = INFO&#10;&#10;# shut up the Tez logs that log debug-level stuff on INFO&#10;&#10;logger.TezSM.name = org.apache.tez.runtime.library.common.shuffle.impl.ShuffleManager.fetch&#10;logger.TezSM.level = WARN&#10;logger.TezSS.name = org.apache.tez.runtime.library.common.shuffle.orderedgrouped.ShuffleScheduler.fetch&#10;logger.TezSS.level = WARN&#10;logger.TezHC.name = org.apache.tez.http.HttpConnection.url&#10;logger.TezHC.level = WARN&#10;&#10;logger.PerfLogger.name = org.apache.hadoop.hive.ql.log.PerfLogger&#10;logger.PerfLogger.level = DEBUG&#10;&#10;logger.EncodedReader.name = org.apache.hadoop.hive.ql.io.orc.encoded.EncodedReaderImpl&#10;logger.EncodedReader.level = INFO&#10;&#10;logger.LlapIoImpl.name = LlapIoImpl&#10;logger.LlapIoImpl.level = INFO&#10;&#10;logger.LlapIoOrc.name = LlapIoOrc&#10;logger.LlapIoOrc.level = WARN&#10;&#10;logger.LlapIoCache.name = LlapIoCache&#10;logger.LlapIoCache.level = WARN&#10;&#10;logger.LlapIoLocking.name = LlapIoLocking&#10;logger.LlapIoLocking.level = WARN&#10;&#10;logger.NIOServerCnxn.name = org.apache.zookeeper.server.NIOServerCnxn&#10;logger.NIOServerCnxn.level = WARN&#10;&#10;logger.ClientCnxnSocketNIO.name = org.apache.zookeeper.ClientCnxnSocketNIO&#10;logger.ClientCnxnSocketNIO.level = WARN&#10;&#10;logger.DataNucleus.name = DataNucleus&#10;logger.DataNucleus.level = ERROR&#10;&#10;logger.Datastore.name = Datastore&#10;logger.Datastore.level = ERROR&#10;&#10;logger.JPOX.name = JPOX&#10;logger.JPOX.level = ERROR&#10;&#10;logger.HistoryLogger.name = org.apache.hadoop.hive.llap.daemon.HistoryLogger&#10;logger.HistoryLogger.level = INFO&#10;logger.HistoryLogger.additivity = false&#10;logger.HistoryLogger.appenderRefs = HistoryAppender&#10;logger.HistoryLogger.appenderRef.HistoryAppender.ref = HISTORYAPPENDER&#10;&#10;# root logger&#10;rootLogger.level = ${sys:llap.daemon.log.level}&#10;rootLogger.appenderRefs = root&#10;rootLogger.appenderRef.root.ref = ${sys:llap.daemon.root.logger}'
+              replace-with='# Licensed to the Apache Software Foundation (ASF) under one&#10;# or more contributor license agreements.  See the NOTICE file&#10;# distributed with this work for additional information&#10;# regarding copyright ownership.  The ASF licenses this file&#10;# to you under the Apache License, Version 2.0 (the&#10;# "License"); you may not use this file except in compliance&#10;# with the License.  You may obtain a copy of the License at&#10;#&#10;#     http://www.apache.org/licenses/LICENSE-2.0&#10;#&#10;# Unless required by applicable law or agreed to in writing, software&#10;# distributed under the License is distributed on an "AS IS" BASIS,&#10;# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;# See the License for the specific language governing permissions and&#10;# limitations under the License.&#10;&#10;&#10;# This is the log4j2 properties file used by llap-daemons. There&apos;s several loggers defined, which&#10;# can be selected while configuring LLAP.&#10;# Based on the one selected - UI links etc need to be manipulated in the system.&#10;# Note: Some names and logic is common to this file and llap LogHelpers. Make sure to change that&#10;# as well, if changing this file.&#10;&#10;status = INFO&#10;name = LlapDaemonLog4j2&#10;packages = org.apache.hadoop.hive.ql.log&#10;&#10;# list of properties&#10;property.llap.daemon.log.level = {{hive_log_level}}&#10;property.llap.daemon.root.logger = console&#10;property.llap.daemon.log.dir = .&#10;property.llap.daemon.log.file = llapdaemon.log&#10;property.llap.daemon.historylog.file = llapdaemon_history.log&#10;property.llap.daemon.log.maxfilesize = {{hive_llap_log_maxfilesize}}MB&#10;property.llap.daemon.log.maxbackupindex = {{hive_llap_log_maxbackupindex}}&#10;&#10;# list of all appenders&#10;appenders = console, RFA, HISTORYAPPENDER, query-routing&#10;&#10;# console appender&#10;appender.console.type = Console&#10;appender.console.name = console&#10;appender.console.target = SYSTEM_ERR&#10;appender.console.layout.type = PatternLayout&#10;appender.console.layout.pattern = %d{ISO8601} %5p [%t (%X{fragmentId})] %c{2}: %m%n&#10;&#10;# rolling file appender&#10;appender.RFA.type = RollingRandomAccessFile&#10;appender.RFA.name = RFA&#10;appender.RFA.fileName = ${sys:llap.daemon.log.dir}/${sys:llap.daemon.log.file}&#10;appender.RFA.filePattern = ${sys:llap.daemon.log.dir}/${sys:llap.daemon.log.file}_%d{yyyy-MM-dd-HH}_%i.done&#10;appender.RFA.layout.type = PatternLayout&#10;appender.RFA.layout.pattern = %d{ISO8601} %-5p [%t (%X{fragmentId})] %c: %m%n&#10;appender.RFA.policies.type = Policies&#10;appender.RFA.policies.time.type = TimeBasedTriggeringPolicy&#10;appender.RFA.policies.time.interval = 1&#10;appender.RFA.policies.time.modulate = true&#10;appender.RFA.policies.size.type = SizeBasedTriggeringPolicy&#10;appender.RFA.policies.size.size = ${sys:llap.daemon.log.maxfilesize}&#10;appender.RFA.strategy.type = DefaultRolloverStrategy&#10;appender.RFA.strategy.max = ${sys:llap.daemon.log.maxbackupindex}&#10;&#10;# history file appender&#10;appender.HISTORYAPPENDER.type = RollingRandomAccessFile&#10;appender.HISTORYAPPENDER.name = HISTORYAPPENDER&#10;appender.HISTORYAPPENDER.fileName = ${sys:llap.daemon.log.dir}/${sys:llap.daemon.historylog.file}&#10;appender.HISTORYAPPENDER.filePattern = ${sys:llap.daemon.log.dir}/${sys:llap.daemon.historylog.file}_%d{yyyy-MM-dd}_%i.done&#10;appender.HISTORYAPPENDER.layout.type = PatternLayout&#10;appender.HISTORYAPPENDER.layout.pattern = %m%n&#10;appender.HISTORYAPPENDER.policies.type = Policies&#10;appender.HISTORYAPPENDER.policies.size.type = SizeBasedTriggeringPolicy&#10;appender.HISTORYAPPENDER.policies.size.size = ${sys:llap.daemon.log.maxfilesize}&#10;appender.HISTORYAPPENDER.policies.time.type = TimeBasedTriggeringPolicy&#10;appender.HISTORYAPPENDER.policies.time.interval = 1&#10;appender.HISTORYAPPENDER.policies.time.modulate = true&#10;appender.HISTORYAPPENDER.strategy.type = DefaultRolloverStrategy&#10;appender.HISTORYAPPENDER.strategy.max = ${sys:llap.daemon.log.maxbackupindex}&#10;&#10;# queryId based routing file appender&#10;appender.query-routing.type = Routing&#10;appender.query-routing.name = query-routing&#10;appender.query-routing.routes.type = Routes&#10;appender.query-routing.routes.pattern = $${ctx:queryId}&#10;#Purge polciy for query-based Routing Appender&#10;appender.query-routing.purgePolicy.type = LlapRoutingAppenderPurgePolicy&#10;# Note: Do not change this name without changing the corresponding entry in LlapConstants&#10;appender.query-routing.purgePolicy.name = llapLogPurgerQueryRouting&#10;# default route&#10;appender.query-routing.routes.route-default.type = Route&#10;appender.query-routing.routes.route-default.key = $${ctx:queryId}&#10;appender.query-routing.routes.route-default.ref = RFA&#10;# queryId based route&#10;appender.query-routing.routes.route-mdc.type = Route&#10;appender.query-routing.routes.route-mdc.file-mdc.type = LlapWrappedAppender&#10;appender.query-routing.routes.route-mdc.file-mdc.name = IrrelevantName-query-routing&#10;appender.query-routing.routes.route-mdc.file-mdc.app.type = RandomAccessFile&#10;appender.query-routing.routes.route-mdc.file-mdc.app.name = file-mdc&#10;appender.query-routing.routes.route-mdc.file-mdc.app.fileName = ${sys:llap.daemon.log.dir}/${ctx:queryId}-${ctx:dagId}.log&#10;appender.query-routing.routes.route-mdc.file-mdc.app.layout.type = PatternLayout&#10;appender.query-routing.routes.route-mdc.file-mdc.app.layout.pattern = %d{ISO8601} %5p [%t (%X{fragmentId})] %c{2}: %m%n&#10;&#10;# list of all loggers&#10;loggers = PerfLogger, EncodedReader, NIOServerCnxn, ClientCnxnSocketNIO, DataNucleus, Datastore, JPOX, HistoryLogger, LlapIoImpl, LlapIoOrc, LlapIoCache, LlapIoLocking, TezSM, TezSS, TezHC&#10;&#10;logger.TezSM.name = org.apache.tez.runtime.library.common.shuffle.impl.ShuffleManager.fetch&#10;logger.TezSM.level = WARN&#10;logger.TezSS.name = org.apache.tez.runtime.library.common.shuffle.orderedgrouped.ShuffleScheduler.fetch&#10;logger.TezSS.level = WARN&#10;logger.TezHC.name = org.apache.tez.http.HttpConnection.url&#10;logger.TezHC.level = WARN&#10;&#10;logger.PerfLogger.name = org.apache.hadoop.hive.ql.log.PerfLogger&#10;logger.PerfLogger.level = DEBUG&#10;&#10;logger.EncodedReader.name = org.apache.hadoop.hive.ql.io.orc.encoded.EncodedReaderImpl&#10;logger.EncodedReader.level = INFO&#10;&#10;logger.LlapIoImpl.name = LlapIoImpl&#10;logger.LlapIoImpl.level = INFO&#10;&#10;logger.LlapIoOrc.name = LlapIoOrc&#10;logger.LlapIoOrc.level = WARN&#10;&#10;logger.LlapIoCache.name = LlapIoCache&#10;logger.LlapIoCache.level = WARN&#10;&#10;logger.LlapIoLocking.name = LlapIoLocking&#10;logger.LlapIoLocking.level = WARN&#10;&#10;logger.NIOServerCnxn.name = org.apache.zookeeper.server.NIOServerCnxn&#10;logger.NIOServerCnxn.level = WARN&#10;&#10;logger.ClientCnxnSocketNIO.name = org.apache.zookeeper.ClientCnxnSocketNIO&#10;logger.ClientCnxnSocketNIO.level = WARN&#10;&#10;logger.DataNucleus.name = DataNucleus&#10;logger.DataNucleus.level = ERROR&#10;&#10;logger.Datastore.name = Datastore&#10;logger.Datastore.level = ERROR&#10;&#10;logger.JPOX.name = JPOX&#10;logger.JPOX.level = ERROR&#10;&#10;logger.HistoryLogger.name = org.apache.hadoop.hive.llap.daemon.HistoryLogger&#10;logger.HistoryLogger.level = INFO&#10;logger.HistoryLogger.additivity = false&#10;logger.HistoryLogger.appenderRefs = HistoryAppender&#10;logger.HistoryLogger.appenderRef.HistoryAppender.ref = HISTORYAPPENDER&#10;&#10;# root logger&#10;rootLogger.level = ${sys:llap.daemon.log.level}&#10;rootLogger.appenderRefs = root&#10;rootLogger.appenderRef.root.ref = ${sys:llap.daemon.root.logger}'
+            />
+          </definition>
+          <definition xsi:type="configure" id="hdp_3_0_config_for_hive_das_hook" summary="Configuring Hive to use DAS hooks instead of ATS">
+            <type>hive-site</type>
+            <replace key="hive.exec.pre.hooks" find="org.apache.hadoop.hive.ql.hooks.ATSHook" replace-with="org.apache.hadoop.hive.ql.hooks.HiveProtoLoggingHook"/>
+            <replace key="hive.exec.post.hooks" find="org.apache.hadoop.hive.ql.hooks.ATSHook" replace-with="org.apache.hadoop.hive.ql.hooks.HiveProtoLoggingHook"/>
+            <replace key="hive.exec.failure.hooks" find="org.apache.hadoop.hive.ql.hooks.ATSHook" replace-with="org.apache.hadoop.hive.ql.hooks.HiveProtoLoggingHook"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_3_0_updating_ranger_hive_policy_rest_ssl_file">
+            <type>ranger-hive-security</type>
+            <set key="ranger.plugin.hive.policy.rest.ssl.config.file" value="{{ranger_hive_ssl_config_file}}"
+              if-type="ranger-hive-security" if-key="ranger.plugin.hive.policy.rest.ssl.config.file" if-key-state="present"/>
+          </definition>
+        </changes>
+      </component>
+      <component name="HIVE_SERVER_INTERACTIVE">
+        <changes>
+          <definition xsi:type="configure" id="hdp_30_hsi_log_file" summary="Configure hive log file names and dir">
+            <type>hive-interactive-env</type>
+            <insert key="content" insert-type="append" newline-before="true" newline-after="true"
+                value="&#10;if [ $HADOOP_OPTS != *-Dhive.log.file* ]; then&#10;  export HADOOP_OPTS=&quot;$HADOOP_OPTS -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hiveserver2Interactive.log&quot;&#10;fi" />
+          </definition>
+          <definition xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable" summary="Update additional LLAP-Tez settings">
+            <type>tez-interactive-site</type>
+            <set key="tez.runtime.shuffle.ssl.enable" value="false"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_maint_druid_config_for_hive_hook" summary="Updating druid hive related properties">
+            <type>hive-interactive-site</type>
+            <set key="hive.druid.metadata.password" value="{{druid_metadata_password}}" if-type="druid-common"/>
+            <set key="hive.druid.indexer.segments.granularity" value="DAY" if-type="druid-common"/>
+            <set key="hive.druid.indexer.partition.size.max" value="1000000" if-type="druid-common"/>
+            <set key="hive.druid.indexer.memory.rownum.max" value="75000" if-type="druid-common"/>
+            <set key="hive.druid.select.distribute" value="true" if-type="druid-common"/>
+            <set key="hive.druid.basePersistDirectory" value="" if-type="druid-common"/>
+            <set key="hive.druid.storage.storageDirectory" value="{{druid_storage_dir}}" if-type="druid-common"/>
+            <set key="hive.druid.passiveWaitTimeMs" value="30000" if-type="druid-common"/>
+            <set key="hive.druid.working.directory" value="/tmp/druid-indexing" if-type="druid-common"/>
+            <set key="hive.druid.bitmap.type" value="roaring" if-type="druid-common"/>
+          </definition>
+          <definition xsi:type="configure" id="update_hsi_hive_jar_path" summary="Update HSI hive jar path">
+            <type>hive-interactive-env</type>
+            <replace key="content" find="/usr/hdp/current/hive-server2-hive2" replace-with="/usr/hdp/current/hive-server2"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="HBASE">
+      <component name="HBASE_MASTER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_hbase_plugin_cluster_name">
+            <type>ranger-hbase-audit</type>
+            <set key="ranger.plugin.hbase.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-hbase-plugin-properties" if-key="ranger-hbase-plugin-enabled" if-key-state="present"/>
+          </definition>
+        </changes>
+      </component>
+      <component name="HBASE_REGIONSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hbase_regionserver_cmsinitiatingoccupancyfraction_replace" summary="Apply config changes for HBase Region Servers">
+            <type>hbase-env</type>
+            <replace key="content" find="-XX:CMSInitiatingOccupancyFraction={{regionserver_cms_initiating_occupancy_fraction}}" replace-with=""/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="KNOX">
+      <component name="KNOX_GATEWAY">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_knox_plugin_cluster_name">
+            <type>ranger-knox-audit</type>
+            <set key="ranger.plugin.knox.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-knox-plugin-properties" if-key="ranger-knox-plugin-enabled" if-key-state="present"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="STORM">
+      <component name="NIMBUS">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_storm_plugin_cluster_name">
+            <type>ranger-storm-audit</type>
+            <set key="ranger.plugin.storm.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-storm-plugin-properties" if-key="ranger-storm-plugin-enabled" if-key-state="present"/>
+          </definition>
+          <definition xsi:type="configure" id="storm_remove_jmxetric" summary="Removing jmxetric from childopts.">
+            <type>storm-site</type>
+            <regex-replace key="nimbus.childopts" find=" -javaagent:(.*)JVM" replace-with=""/>
+            <regex-replace key="supervisor.childopts" find=" -javaagent:(.*)JVM" replace-with=""/>
+            <regex-replace key="worker.childopts" find=" -javaagent:(.*)JVM" replace-with=""/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_3_0_remove_empty_storm_topology_submission_notifier_plugin_class" summary="Removing empty storm.topology.submission.notifier.plugin.class property">
+            <type>storm-site</type>
+            <transfer operation="delete" delete-key="storm.topology.submission.notifier.plugin.class" if-key="storm.topology.submission.notifier.plugin.class" if-type="storm-site" if-value=" "/>
+          </definition>
+          <definition xsi:type="configure" id="increase_storm_zookeeper_timeouts" summary="Increase storm.zookeeper.session.timeout and storm.zookeeper.connection.timeout property">
+            <type>storm-site</type>
+            <set key="storm.zookeeper.session.timeout" value="30000" if-key="storm.zookeeper.session.timeout" if-type="storm-site" if-value="20000" />
+            <set key="storm.zookeeper.connection.timeout" value="30000" if-key="storm.zookeeper.connection.timeout" if-type="storm-site" if-value="15000" />
+          </definition>
+          <definition xsi:type="configure" id="storm_nimbus_autocred_config" summary="Update Storm's Nimbus AutoCred config">
+            <type>storm-site</type>
+            <set key="nimbus.autocredential.plugins.classes" value="['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']" if-type="streamline-common" if-key="authorizer.class.name" if-key-state="present"/>
+            <set key="nimbus.credential.renewers.classes" value="['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']" if-type="streamline-common" if-key="authorizer.class.name" if-key-state="present"/>
+            <set key="nimbus.credential.renewers.freq.secs" value="82800" if-type="streamline-common" if-key="authorizer.class.name" if-key-state="present"/>
+          </definition>
+          <definition xsi:type="configure" id="storm_worker_log4j_parameterize" summary="Parameterizing Storm Worker Log4J Properties">
+            <type>storm-worker-log4j</type>
+            <set key="storm_wrkr_a1_maxfilesize" value="100"/>
+            <set key="storm_wrkr_a1_maxbackupindex" value="9"/>
+            <set key="storm_wrkr_out_maxfilesize" value="100"/>
+            <set key="storm_wrkr_out_maxbackupindex" value="4"/>
+            <set key="storm_wrkr_err_maxfilesize" value="100"/>
+            <set key="storm_wrkr_err_maxbackupindex" value="4"/>
+            <regex-replace key="content" find="}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;\$\{pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;(?:[0-9]+) MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;([0-9]+)"
+                                         replace-with="}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;${pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;{{storm_wrkr_a1_maxfilesize}} MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;{{storm_wrkr_a1_maxbackupindex}}"/>
+            <regex-replace key="content" find="}.out.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;\$\{patternNoTime}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;(?:[0-9]+) MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;([0-9]+)"
+                                         replace-with="}.out.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;${patternNoTime}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;{{storm_wrkr_out_maxfilesize}} MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;{{storm_wrkr_out_maxbackupindex}}"/>
+            <regex-replace key="content" find="}.err.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;\$\{patternNoTime}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;(?:[0-9]+) MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;([0-9]+)"
+                                             replace-with="}.err.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;${patternNoTime}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;{{storm_wrkr_err_maxfilesize}} MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;{{storm_wrkr_err_maxbackupindex}}"/>
+          </definition>
+          <definition xsi:type="configure" id="storm_cluster_log4j_parameterize" summary="Parameterizing Storm Cluster Log4J Properties">
+            <type>storm-cluster-log4j</type>
+            <set key="storm_a1_maxfilesize" value="100"/>
+            <set key="storm_a1_maxbackupindex" value="9"/>
+            <regex-replace key="content" find="A1&quot; immediateFlush=&quot;false&quot;&#xA;                 fileName=&quot;\$\{sys:storm.log.dir}/\$\{sys:logfile.name}&quot;&#xA;                 filePattern=&quot;\$\{sys:storm.log.dir}/\$\{sys:logfile.name}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;\$\{pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;(?:[0-9]+) MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;([0-9]+)"
+                                         replace-with="A1&quot; immediateFlush=&quot;false&quot;&#xA;                 fileName=&quot;${sys:storm.log.dir}/${sys:logfile.name}&quot;&#xA;                 filePattern=&quot;${sys:storm.log.dir}/${sys:logfile.name}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;${pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;{{storm_a1_maxfilesize}} MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;{{storm_a1_maxbackupindex}}"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_3_0_update_storm_env_ext_classpath" summary="Change classpath to use wildcard">
+            <type>storm-env</type>
+            <replace key="content" find="export STORM_EXT_CLASSPATH=$STORM_AUTOCREDS_LIB_DIR" replace-with="export STORM_EXT_CLASSPATH=&quot;$STORM_AUTOCREDS_LIB_DIR/*&quot;"/>
+          </definition>
+          <definition xsi:type="configure" id="storm_update_ui_filter_package" summary="Updating UI filter package">
+            <type>storm-site</type>
+            <replace key="ui.filter" find="org.apache.hadoop.security.authentication.server.AuthenticationFilter"
+                     replace-with="org.apache.storm.org.apache.hadoop.security.authentication.server.AuthenticationFilter" />
+          </definition>
+          <definition xsi:type="configure" id="hdp_3_0_0_0_storm_logsearch_conf" summary="remove commented out worker event and add grok patterns">
+                <type>storm-logsearch-conf</type>
+                <replace key="component_mappings" find="storm_logviewer;" replace-with="storm_logviewer,storm_worker_event;"/>
+                <replace key="content" find="{#&#xA;    ,{&#xA;      &quot;type&quot;:&quot;storm_worker&quot;,&#xA;      &quot;rowtype&quot;:&quot;service&quot;,&#xA;      &quot;path&quot;:&quot;{{default(&apos;/configurations/storm-env/storm_log_dir&apos;, &apos;/var/log/storm&apos;)}}/workers-artifacts/*/*/worker.log&quot;,&#xA;      &quot;init_default_fields&quot;: &quot;true&quot;&#xA;    }&#xA;    #}"
+                replace-with="            ,{
+                &#xA;            &quot;type&quot;:&quot;storm_worker&quot;,
+                &#xA;            &quot;rowtype&quot;:&quot;service&quot;,
+                &#xA;            &quot;path&quot;:&quot;{{default(&apos;/configurations/storm-env/storm_log_dir&apos;, &apos;/var/log/storm&apos;)}}/workers-artifacts/*/*/worker.log&quot;,
+                &#xA;            &quot;init_default_fields&quot;: &quot;true&quot;&#xA;            },&#xA;            {&#xA;            &quot;type&quot;:&quot;storm_worker_event&quot;,
+                &#xA;            &quot;rowtype&quot;:&quot;service&quot;,&#xA;            &quot;path&quot;:&quot;{{default(&apos;/configurations/storm-env/storm_log_dir&apos;, &apos;/var/log/storm&apos;)}}/workers-artifacts/*/*/events.log&quot;,
+                &#xA;            &quot;init_default_fields&quot;: &quot;true&quot;,&#xA;            &quot;add_fields&quot;: {&#xA;            &quot;level&quot;:&quot;INFO&quot;&#xA;            }
+                &#xA;            }"/>
+                <replace key="content" find="&#xA;       }&#xA;     ]&#xA;   }" replace-with="},&#xA;            {&#xA;            &quot;filter&quot;:&quot;grok&quot;,&#xA;            &quot;sort_order&quot;: 5,&#xA;            &quot;conditions&quot;:{&#xA;            &quot;fields&quot;:{&#xA;            &quot;type&quot;:[&#xA;            &quot;storm_worker_event&quot;&#xA;            ]&#xA;            }&#xA;            },
+                &#xA;            &quot;log4j_format&quot;:&quot;&quot;,&#xA;            &quot;message_pattern&quot;:&quot;^%{TIMESTAMP_ISO8601:logtime}(!_DELIM_!&amp;lt;STREAMLINE_EVENT&amp;gt;!_DELIM_!%{DATA:sdi_streamline_component_name}!_DELIM_!%{DATA:sdi_streamline_event_id}!_DELIM_!%{DATA:sdi_streamline_root_ids}!_DELIM_!%{DATA:sdi_streamline_parent_ids}!_DELIM_!%{DATA:sdi_streamline_event_fields_and_values}!_DELIM_!%{DATA:sdi_streamline_event_headers}!_DELIM_!%{DATA:sdi_streamline_event_aux_fields_and_values})|(%{GREEDYDATA})&quot;,&#xA;            &quot;post_map_values&quot;:{&#xA;            &quot;logtime&quot;:{&#xA;            &quot;map_date&quot;:{&#xA;            &quot;target_date_pattern&quot;:&quot;yyyy-MM-dd HH:mm:ss.SSS&quot;&#xA;            }&#xA;            }&#xA;            }&#xA;            },
+                &#xA;            {&#xA;            &quot;filter&quot;:&quot;grok&quot;,&#xA;            &quot;sort_order&quot;: 6,&#xA;            &quot;conditions&quot;:{&#xA;            &quot;fields&quot;:{&#xA;            &quot;type&quot;:[&#xA;            &quot;storm_worker_event&quot;&#xA;            ]&#xA;            }&#xA;            },&#xA;            &quot;source_field&quot;: &quot;path&quot;,&#xA;            &quot;remove_source_field&quot;: &quot;false&quot;,&#xA;            &quot;message_pattern&quot;:&quot;{{default(&apos;/configurations/storm-env/storm_log_dir&apos;, &apos;/var/log/storm&apos;)}}/workers-artifacts/%{DATA:sdi_storm_topology_id}/%{DATA:sdi_storm_worker_port}/events\\.log&quot;&#xA;            },
+                &#xA;            {&#xA;            &quot;filter&quot;:&quot;grok&quot;,&#xA;            &quot;sort_order&quot;: 7,&#xA;            &quot;conditions&quot;:{&#xA;            &quot;fields&quot;:{&#xA;            &quot;type&quot;:[&#xA;            &quot;storm_worker_event&quot;&#xA;            ]&#xA;            }&#xA;            },&#xA;            &quot;source_field&quot;: &quot;sdi_storm_topology_id&quot;,&#xA;            &quot;remove_source_field&quot;: &quot;false&quot;,&#xA;            &quot;message_pattern&quot;:&quot;(streamline\\-%{DATA:sdi_streamline_topology_id}\\-%{DATA:sdi_streamline_topology_name}\\-[0-9]+\\-[0-9]+)|(%{DATA:sdi_storm_topology_id})&quot;&#xA;            }&#xA;            ]&#xA;            }"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="YARN">
+      <component name="RESOURCEMANAGER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_yarn_plugin_cluster_name">
+            <type>ranger-yarn-audit</type>
+            <set key="ranger.plugin.yarn.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-yarn-plugin-properties" if-key="ranger-yarn-plugin-enabled" if-key-state="present"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_yarn_preemption" summary="Resource Manager Preemption Settings">
+            <type>yarn-site</type>
+            <set key="yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round" value="0.1"
+              if-type="yarn-site"
+              if-key="yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round"
+              if-key-state="absent" />
+            <set key="yarn.resourcemanager.monitor.capacity.preemption.natural_termination_factor" value="1"
+              if-type="yarn-site"
+              if-key="yarn.resourcemanager.monitor.capacity.preemption.natural_termination_factor"
+              if-key-state="absent" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_yarn_app_classpath_parameterization" summary="Application Classpath Parameterization">
+            <type>yarn-site</type>
+            <replace key="yarn.application.classpath" find="/usr/hdp/current/hadoop-client" replace-with="{{hadoop_home}}"/>
+          </definition>
+
+          <!--
+          ^\s* - line starts with any amount of whitespace
+          YARN_OPTS=(.*)-Dhadoop.log.dir(.*) - Find any YARN_OPTS= with the property -Dhadoop.log.dir
+          $[\r\n]+ - stopping at the end of line
+          -->
+          <definition xsi:type="configure" id="hdp_30_remove_invalid_hadoop_and_yarn_opts" summary="Remove Invalid HADOOP_OPTS and YARN_OPTS">
+            <type>yarn-env</type>
+            <regex-replace key="content" find="^\s*YARN_OPTS=(.*)-Dhadoop.log.dir(.*)$[\r\n]+" replace-with="" match-all="true"/>
+            <regex-replace key="content" find="^\s*YARN_OPTS=(.*)-Dyarn.log.dir(.*)$[\r\n]+" replace-with="" match-all="true"/>
+            <regex-replace key="content" find="^\s*YARN_OPTS=(.*)-Dhadoop.log.file(.*)$[\r\n]+" replace-with="" match-all="true"/>
+            <regex-replace key="content" find="^\s*YARN_OPTS=(.*)-Dyarn.log.file(.*)$[\r\n]+" replace-with="" match-all="true"/>
+            <regex-replace key="content" find="^\s*YARN_OPTS=(.*)-Dyarn.home.dir(.*)$[\r\n]+" replace-with="" match-all="true"/>
+            <regex-replace key="content" find="^\s*YARN_OPTS=(.*)-Dhadoop.root.logger(.*)$[\r\n]+" replace-with="" match-all="true"/>
+            <regex-replace key="content" find="^\s*YARN_OPTS=(.*)-Dyarn.root.logger(.*)$[\r\n]+" replace-with="" match-all="true"/>
+            <regex-replace key="content" find="^\s*YARN_OPTS=(.*)-Djava.library.path(.*)$" replace-with="        : # Removed during upgrade" match-all="true"/>
+
+            <regex-replace key="content" find="^\s*HADOOP_OPTS=(.*)-Dhadoop.log.dir(.*)$[\r\n]+" replace-with="" match-all="true"/>
+            <regex-replace key="content" find="^\s*HADOOP_OPTS=(.*)-Dyarn.log.dir(.*)$[\r\n]+" replace-with="" match-all="true"/>
+            <regex-replace key="content" find="^\s*HADOOP_OPTS=(.*)-Dhadoop.log.file(.*)$[\r\n]+" replace-with="" match-all="true"/>
+            <regex-replace key="content" find="^\s*HADOOP_OPTS=(.*)-Dyarn.log.file(.*)$[\r\n]+" replace-with="" match-all="true"/>
+            <regex-replace key="content" find="^\s*HADOOP_OPTS=(.*)-Dyarn.home.dir(.*)$[\r\n]+" replace-with="" match-all="true"/>
+            <regex-replace key="content" find="^\s*HADOOP_OPTS=(.*)-Dhadoop.root.logger(.*)$[\r\n]+" replace-with="" match-all="true"/>
+            <regex-replace key="content" find="^\s*HADOOP_OPTS=(.*)-Dyarn.root.logger(.*)$[\r\n]+" replace-with="" match-all="true"/>
+            <regex-replace key="content" find="^\s*HADOOP_OPTS=(.*)-Djava.library.path(.*)$[\r\n]+" replace-with="        : # Removed during upgrade" match-all="true"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_30_update_hadoop_and_yarn_loggers" summary="Fix Hadoop and YARN loggers">
+            <type>yarn-env</type>
+            <replace key="content" find="YARN_LOG_DIR" replace-with="HADOOP_LOG_DIR"/>
+            <replace key="content" find="YARN_LOGFILE" replace-with="HADOOP_LOGFILE"/>
+            <replace key="content" find="YARN_PID_DIR" replace-with="HADOOP_PID_DIR"/>
+            <replace key="content" find="YARN_ROOT_LOGGER" replace-with="HADOOP_ROOT_LOGGER"/>
+            <replace key="content" find="YARN_CONF_DIR" replace-with="HADOOP_CONF_DIR"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_30_yarn_stack_variables_update" summary="Convert YARN HDP 2.6 variable naming to HDP 3.0">
+            <type>yarn-env</type>
+            <replace key="content" find="YARN_OPTS" replace-with="HADOOP_OPTS"/>
+            <replace key="content" find="YARN_ROOT_LOGGER " replace-with="HADOOP_ROOT_LOGGER "/>
+            <replace key="content" find="YARN_LOGFILE" replace-with="HADOOP_LOGFILE"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_30_add_secure_pid_and_log_dirs" summary="Add Secure PID and Log Directory Exports">
+            <type>yarn-env</type>
+            <insert key="content" insert-type="append" newline-before="true" newline-after="true" value="export HADOOP_SECURE_LOG_DIR={{yarn_log_dir}}"/>
+            <insert key="content" insert-type="append" newline-before="true" newline-after="true" value="export HADOOP_SECURE_PID_DIR={{yarn_pid_dir}}"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_30_add_registry_dns_secure_opts" summary="Add Registry DNS OPTS">
+            <type>yarn-env</type>
+            <insert key="content" insert-type="append" newline-before="true" newline-after="true"
+                value="{% if registry_dns_needs_privileged_access %}
+                  &#10; export YARN_REGISTRYDNS_SECURE_USER={{yarn_user}}
+                  &#10; export YARN_REGISTRYDNS_SECURE_EXTRA_OPTS=&quot;-jvm server&quot;
+                  &#10;{% endif %}"/>
+
+            <insert key="content" insert-type="append" newline-before="true" newline-after="true"
+                value="{% if security_enabled %}
+                  &#10; export YARN_REGISTRYDNS_OPTS=&quot;-Djava.security.auth.login.config={{yarn_registry_dns_jaas_file}}&quot;
+                  &#10;{% endif %}"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_30_add_timeline_reader_opts" summary="Add Timeline Reader Security OPTS">
+            <type>yarn-env</type>
+            <insert key="content" insert-type="append" newline-before="true" newline-after="true"
+                value="{% if security_enabled %}
+                  &#10; export YARN_TIMELINEREADER_OPTS=&quot;-Djava.security.auth.login.config={{yarn_ats_jaas_file}}&quot;
+                  &#10;{% endif %}"/>
+          </definition>
+
+          <!--
+            This action looking for code-block below:
+
+            INVOKER="${0##*/}"
+            if [ "$INVOKER" == "yarn-daemon.sh" ]; then
+              export YARN_ROOT_LOGGER=${YARN_ROOT_LOGGER:-INFO,EWMA,RFA}
+            fi
+
+          -->
+          <definition xsi:type="configure" id="hdp_30_update_yarn_root_logger" summary="Update YARN root logger">
+            <type>yarn-env</type>
+            <regex-replace key="content" find="^\s*INVOKER=\&quot;\$\{0##\*\/\}\&quot;$[\r\n]+^\s*if\s*\[ \&quot;\$INVOKER\&quot; == \&quot;yarn-daemon\.sh\&quot; \]; then$[\r\n]+^\s*^\s*export HADOOP_ROOT_LOGGER=\$\{HADOOP_ROOT_LOGGER:-INFO,EWMA,RFA\}$[\r\n]+^\s*fi$[\r\n]*"
+                           replace-with="export HADOOP_LOGLEVEL=${HADOOP_LOGLEVEL:-INFO}
+                              &#10;export HADOOP_ROOT_LOGGER=${HADOOP_ROOT_LOGGER:-INFO,console}
+                              &#10;export HADOOP_DAEMON_ROOT_LOGGER=${HADOOP_DAEMON_ROOT_LOGGER:-${HADOOP_LOGLEVEL},EWMA,RFA}"/>
+
+            <replace key="content" find="# We need to add the EWMA appender for the yarn daemons only;" replace-with="# We need to add the EWMA and RFA appender for the yarn daemons only;" />
+          </definition>
+        </changes>
+      </component>
+
+      <component name="NODEMANAGER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_llap_mem">
+            <type>yarn-site</type>
+            <set key="yarn.nodemanager.kill-escape.launch-command-line" value="slider-agent,LLAP"/>
+            <set key="yarn.nodemanager.kill-escape.user" value="hive"/>
+          </definition>
+        </changes>
+      </component>
+
+      <component name="APP_TIMELINE_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_yarn_spark_versioned_classpaths">
+            <type>yarn-site</type>
+            <replace key="yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath" find="${hdp.version}/spark/" replace-with="{{spark_version}}/spark/"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_30_remove_spark_classpaths_injections" summary="Removing Spark classpath entries from ATS">
+            <type>yarn-site</type>
+            <regex-replace key="yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath"
+                           find=",?(\/usr\/hdp\/\$\{hdp\.version\}\/spark\/hdpLib\/\*,?)"
+                           replace-with=""/>
+            <regex-replace key="yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath"
+                           find=",?(\/usr\/hdp\/\{\{spark_version\}\}\/spark\/hdpLib\/\*,?)"
+                           replace-with=""/>
+            <regex-replace key="yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes"
+                           find=",?(org\.apache\.spark\.deploy\.history\.yarn\.plugin\.SparkATSPlugin,?)"
+                           replace-with=""/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_30_add_distributed_shell_class_to_ats" summary="Add DistributedShellTimelinePlugin to ATS">
+            <type>yarn-site</type>
+            <!--
+             here is a trick:
+             if key not exist, we adding it with required value;
+             if property is empty or with spaces, we add just one value without comas;
+             if property does not contain the required class already, and if not - append it at the end with leading coma
+
+             action sequence here is important
+             -->
+            <set key="yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes" value="org.apache.hadoop.yarn.applications.distributedshell.DistributedShellTimelinePlugin"
+                 if-key="yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes" if-key-state="absent"/>
+            <regex-replace key="yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes"
+                           find="^([\s]*)$"
+                           replace-with="org.apache.hadoop.yarn.applications.distributedshell.DistributedShellTimelinePlugin" />
+            <insert key="yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes" value=",org.apache.hadoop.yarn.applications.distributedshell.DistributedShellTimelinePlugin"
+                    insert-type="append"  if-type="yarn-site" if-key="yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes"
+                    if-value="org.apache.hadoop.yarn.applications.distributedshell.DistributedShellTimelinePlugin"
+                    if-value-not-matched="true" if-value-match-type="partial"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_30_removed_tez_plugin_class_from_ats" summary="Removed Tez Plugin from ATS">
+            <type>yarn-site</type>
+            <regex-replace key="yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes"
+                           find=",?(org\.apache\.tez\.dag\.history\.logging\.ats\.TimelineCachePluginImpl,?)"
+                           replace-with=""/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="KAFKA">
+      <component name="KAFKA_BROKER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_kafka_plugin_cluster_name">
+            <type>ranger-kafka-audit</type>
+            <set key="ranger.plugin.kafka.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-kafka-plugin-properties" if-key="ranger-kafka-plugin-enabled" if-key-state="present"/>
+          </definition>
+          <definition xsi:type="configure" id="kafka_log4j_parameterize" summary="Parameterizing Kafka Log4J Properties">
+            <type>kafka-log4j</type>
+            <set key="kafka_log_maxfilesize" value="256"/>
+            <set key="kafka_log_maxbackupindex" value="20"/>
+            <set key="controller_log_maxfilesize" value="256"/>
+            <set key="controller_log_maxbackupindex" value="20"/>
+            <replace key="content" find="log4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kafkaAppender.MaxFileSize = {{kafka_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kafkaAppender.MaxBackupIndex = {{kafka_log_maxbackupindex}}"/>
+            <replace key="content" find="log4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.controllerAppender.MaxFileSize = {{controller_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.controllerAppender.MaxBackupIndex = {{controller_log_maxbackupindex}}"/>
+          </definition>
+          <definition xsi:type="configure" id="add_inter_broker_protocol_version">
+            <type>kafka-broker</type>
+              <set key="inter.broker.protocol.version" value="1.0" />
+          </definition>
+          <definition xsi:type="configure" id="add_skip_log_message_format_version">
+            <type>kafka-broker</type>
+              <set key="log.message.format.version" value="1.0" if-type="kafka-broker" if-key="log.message.format.version" if-key-state="absent"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="ATLAS">
+      <component name="ATLAS_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_atlas_plugin_cluster_name">
+            <type>ranger-atlas-audit</type>
+            <set key="ranger.plugin.atlas.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-atlas-plugin-properties" if-key="ranger-atlas-plugin-enabled" if-key-state="present"/>
+          </definition>
+          <definition xsi:type="configure" id="atlas_env_gc_worker" summary="Updating Atlas Env gc-worker configuration">
+            <type>atlas-env</type>
+            <replace key="content" find="-Xloggc:$ATLAS_LOG_DIRgc-worker.log" replace-with="-Xloggc:$ATLAS_LOG_DIR/gc-worker.log"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_atlas_kafka_auto_commit_enable_property_delete" summary="Updating Atlas Kafka configurations.">
+            <type>application-properties</type>
+            <transfer operation="delete" delete-key="atlas.kafka.auto.commit.enable"/>
+          </definition>
+          <definition xsi:type="configure" id="atlas_log4j_update_logger_settings" summary="Updating logger configurations for Atlas.">
+            <type>atlas-log4j</type>
+            <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.RollingFileAppender&quot;&gt;"/>
+            <replace key="content" find="&lt;logger name=&quot;com.thinkaurelius.titan&quot; additivity=&quot;false&quot;&gt;&#x20;&#x20;&#x20;&#x20;&lt;level value=&quot;info&quot;/&gt;" replace-with="&lt;logger name=&quot;com.thinkaurelius.titan&quot; additivity=&quot;false&quot;&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;level value=&quot;warn&quot;/&gt;"/>
+          </definition>
+          <definition xsi:type="configure" id="atlas_hbase_conf_dir" summary="Adding configuration for hbase conf directory">
+            <type>atlas-env</type>
+            <set key="atlas.hbase.conf.dir" value="/etc/hbase/conf"/>
+          </definition>
+          <definition xsi:type="configure" id="atlas_upgrade_configuration" summary="Updating Atlas configurations.">
+            <type>application-properties</type>
+            <transfer operation="delete" delete-key="atlas.graph.storage.backend" />
+            <transfer operation="delete" delete-key="atlas.graph.index.search.backend" />
+              <transfer operation="delete" delete-key="atlas.auth.policy.file" />
+            <set key="atlas.graph.storage.hbase.table" value="atlas_janus" />
+            <set key="atlas.server.bind.address" value="0.0.0.0" />
+          </definition>
+          <definition xsi:type="configure" id="atlas_log4j_adding_janus_graph" summary="Adding Janus-graph logger configurations for Atlas.">
+            <type>atlas-log4j</type>
+            <replace key="content" find="&lt;logger name=&quot;com.thinkaurelius.titan&quot; additivity=&quot;false&quot;&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;level value=&quot;warn&quot;/&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;appender-ref ref=&quot;FILE&quot;/&gt;&#xA;&#x20;&#x20;&lt;/logger&gt;" replace-with="&lt;logger name=&quot;com.thinkaurelius.titan&quot; additivity=&quot;false&quot;&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;level value=&quot;warn&quot;/&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;appender-ref ref=&quot;FILE&quot;/&gt;&#xA;&#x20;&#x20;&lt;/logger&gt;&#xA;&#xA;&#xA;&#x20;&#x20;&lt;logger name=&quot;org.janusgraph&quot; additivity=&quot;false&quot;&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;level value=&quot;warn&quot;/&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;appender-ref ref=&quot;FILE&quot;/&gt;&#xA;&#x20;&#x20;&lt;/logger&gt;&#xA;"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="RANGER_KMS">
+      <component name="RANGER_KMS_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_kms_plugin_cluster_name">
+            <type>ranger-kms-audit</type>
+            <set key="ranger.plugin.kms.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-kms-audit" if-key="ranger.plugin.kms.ambari.cluster.name" if-key-state="absent"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="SPARK">
+      <component name="SPARK_THRIFTSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_spark_thriftserver">
+            <type>spark-thrift-sparkconf</type>
+            <set key="spark.yarn.executor.failuresValidityInterval" value="2h"/>
+            <set key="spark.yarn.maxAppAttempts" value="1"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="SPARK2">
+      <component name="SPARK2_THRIFTSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_spark2_thriftserver">
+            <type>spark2-thrift-sparkconf</type>
+            <set key="spark.yarn.executor.failuresValidityInterval" value="2h"/>
+            <set key="spark.yarn.maxAppAttempts" value="1"/>
+          </definition>
+
+        </changes>
+      </component>
+      <component name="SPARK2_JOBHISTORYSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_3_0_0_0_spark2_env">
+            <type>spark2-env</type>
+            <insert key="content" insert-type="append" newline-before="true" newline-after="true"
+                value="{% if security_enabled %}
+                  &#10;export SPARK_HISTORY_OPTS=&apos;-Dspark.ui.filters=org.apache.hadoop.security.authentication.server.AuthenticationFilter -Dspark.org.apache.hadoop.security.authentication.server.AuthenticationFilter.params=&quot;type=kerberos,kerberos.principal={{spnego_principal}},kerberos.keytab={{spnego_keytab}}&quot; &apos;${SPARK_HISTORY_OPTS}
+                  &#10;{% endif %}"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="TEZ">
+      <component name="TEZ_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_tez_tarball_ld_library">
+            <type>tez-site</type>
+            <set key="tez.am.launch.env" value="LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64:./tezlib/lib/native:./tezlib/lib/native/Linux-{{architecture}}-64" />
+            <set key="tez.task.launch.env" value="LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64:./tezlib/lib/native:./tezlib/lib/native/Linux-{{architecture}}-64" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="MAPREDUCE2">
+      <component name="MAPREDUCE2_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_mapreduce_tarball_ld_library">
+            <type>mapred-site</type>
+            <set key="mapreduce.admin.user.env" value="LD_LIBRARY_PATH={{hadoop_lib_home}}/native:{{hadoop_lib_home}}/native/Linux-{{architecture}}-64:./mr-framework/hadoop/lib/native:./mr-framework/hadoop/lib/native/Linux-{{architecture}}-64" />
+          </definition>
+        </changes>
+      </component>
+      <component name="HISTORYSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_30_mapred_stack_variables_update" summary="Convert Mapreduce HDP 2.6 variable naming to HDP 3.0">
+            <type>mapred-env</type>
+            <replace key="content" find="HADOOP_MAPRED_ROOT_LOGGER" replace-with="HADOOP_ROOT_LOGGER"/>
+            <replace key="content" find="HADOOP_JOB_HISTORYSERVER_OPTS" replace-with="MAPRED_HISTORYSERVER_OPTS"/>
+            <replace key="content" find="HADOOP_MAPRED_LOG_DIR" replace-with="HADOOP_LOG_DIR"/>
+            <replace key="content" find="HADOOP_MAPRED_PID_DIR" replace-with="HADOOP_PID_DIR"/>
+            <replace key="content" find="HADOOP_MAPRED_IDENT_STRING" replace-with="HADOOP_IDENT_STRING"/>
+            <replace key="content" find="HADOOP_MAPRED_NICENESS" replace-with="HADOOP_NICENESS"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_30_update_mapreduce_loggers" summary="Update Mapreduce loggers">
+            <type>mapred-env</type>
+            <replace key="content" find="#export HADOOP_LOG_DIR=&quot;&quot; # Where log files are stored.  $HADOOP_MAPRED_HOME/logs by default." replace-with=""/>
+            <replace key="content" find="#export HADOOP_PID_DIR= # The pid files are stored. /tmp by default." replace-with="" />
+            <replace key="content" find="export HADOOP_ROOT_LOGGER=INFO,RFA" replace-with=""/>
+            <insert key="content" insert-type="append" newline-after="true" newline-before="true"
+                    value="export HADOOP_LOGLEVEL=${HADOOP_LOGLEVEL:-INFO}
+                      &#10;export HADOOP_ROOT_LOGGER=${HADOOP_ROOT_LOGGER:-INFO,console}
+                      &#10;export HADOOP_DAEMON_ROOT_LOGGER=${HADOOP_DAEMON_ROOT_LOGGER:-${HADOOP_LOGLEVEL},RFA}"/>
+            <insert key="content" insert-type="append" newline-after="true" newline-before="true"
+                    value="# History server logs
+                      &#10;export HADOOP_LOG_DIR={{mapred_log_dir_prefix}}/$USER
+                      &#10;
+                      &#10;# History server pid
+                      &#10;export HADOOP_PID_DIR={{mapred_pid_dir_prefix}}/$USER"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="RANGER">
+      <component name="RANGER_USERSYNC">
+        <changes>
+          <definition xsi:type="configure" id="hdp_3_0_ranger_usersync_maintain_groupsearch_enable_flag">
+            <type>ranger-ugsync-site</type>
+            <set key="ranger.usersync.group.searchenabled" value="false" if-type="ranger-ugsync-site" if-key="ranger.usersync.group.searchenabled" if-value="false" />
+          </definition>
+        </changes>
+      </component>
+
+      <component name="RANGER_TAGSYNC">
+        <changes>
+          <definition xsi:type="configure" id="hdp_3_0_add_ranger_tagsync_cookie_enabled_config">
+            <type>ranger-tagsync-site</type>
+            <set key="ranger.tagsync.cookie.enabled" value="true" if-type="ranger-tagsync-site" if-key="ranger.tagsync.cookie.enabled" if-key-state="absent" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+  </services>
+</upgrade-config-changes>

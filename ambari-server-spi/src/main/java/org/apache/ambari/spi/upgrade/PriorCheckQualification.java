@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,26 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.state.stack;
+package org.apache.ambari.spi.upgrade;
+
+import org.apache.ambari.server.AmbariException;
 
 /**
- * Indicates status of prerequisite check.
+ * The {@link PriorCheckQualification} class is used to determine if a prior
+ * check has run.
  */
-public enum PrereqCheckStatus {
+public class PriorCheckQualification implements CheckQualification {
+
+  private final UpgradeCheckDescription m_checkDescription;
+
+  public PriorCheckQualification(UpgradeCheckDescription checkDescription) {
+    m_checkDescription = checkDescription;
+  }
+
   /**
-   * The check passed with no warnings or errors.
+   * {@inheritDoc}
    */
-  PASS,
-  /**
-   * The check passed but reporting a warning that should be examined.
-   */
-  WARNING,
-  /**
-   * The check failed but a configuration allows bypassing failures.
-   */
-  BYPASS,
-  /**
-   * The check failed and is not allowed to bypass errors.
-   */
-  FAIL
+  @Override
+  public boolean isApplicable(UpgradeCheckRequest request) throws AmbariException {
+    UpgradeCheckStatus checkStatus = request.getResult(m_checkDescription);
+    if (null != checkStatus && checkStatus == UpgradeCheckStatus.FAIL) {
+      return false;
+    }
+
+    return true;
+  }
 }

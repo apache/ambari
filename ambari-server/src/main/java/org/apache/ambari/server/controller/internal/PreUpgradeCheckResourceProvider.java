@@ -27,11 +27,9 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -45,14 +43,22 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.stack.upgrade.Direction;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
-import org.apache.ambari.server.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeHelper;
 import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.spi.ClusterInformation;
+import org.apache.ambari.spi.RepositoryVersion;
+import org.apache.ambari.spi.upgrade.UpgradeCheck;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -170,6 +176,8 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
         throw new NoSuchResourceException(ambariException.getMessage());
       }
 
+      StackId sourceStackId = cluster.getCurrentStackVersion();
+
       String repositoryVersionId = (String) propertyMap.get(
           UPGRADE_CHECK_TARGET_REPOSITORY_VERSION_ID_ID);
 
@@ -179,21 +187,8 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
                 UPGRADE_CHECK_TARGET_REPOSITORY_VERSION_ID_ID));
       }
 
-      final PrereqCheckRequest upgradeCheckRequest = new PrereqCheckRequest(clusterName,
-          upgradeType);
-
-      StackId sourceStackId = cluster.getCurrentStackVersion();
-      upgradeCheckRequest.setSourceStackId(cluster.getCurrentStackVersion());
-
       RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(
           Long.valueOf(repositoryVersionId));
-
-      upgradeCheckRequest.setTargetRepositoryVersion(repositoryVersion);
-
-      if (propertyMap.containsKey(UPGRADE_CHECK_FOR_REVERT_PROPERTY_ID)) {
-        Boolean forRevert = BooleanUtils.toBooleanObject(propertyMap.get(UPGRADE_CHECK_FOR_REVERT_PROPERTY_ID).toString());
-        upgradeCheckRequest.setRevert(forRevert);
-      }
 
       //ambariMetaInfo.getStack(stackName, cluster.getCurrentStackVersion().getStackVersion()).getUpgradePacks()
       // TODO AMBARI-12698, filter the upgrade checks to run based on the stack and upgrade type, or the upgrade pack.
@@ -212,19 +207,59 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
       if (upgradePack == null) {
         throw new SystemException(
             String.format("Upgrade pack not found for the target repository version %s",
-                upgradeCheckRequest.getTargetRepositoryVersion()));
+                repositoryVersion));
+      }
+
+      SecurityType securityType = cluster.getSecurityType();
+      Map<String, Set<String>> topology = new HashMap<>();
+      List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts();
+      for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
+        String hash = serviceComponentHost.getServiceName() + "/" + serviceComponentHost.getServiceComponentName();
+        Set<String> hosts = topology.get(hash);
+        if (null == hosts) {
+          hosts = Sets.newTreeSet();
+          topology.put(hash, hosts);
+        }
+
+        hosts.add(serviceComponentHost.getHostName());
+      }
+
+      Map<String, Map<String, String>> configurations = new HashMap<>();
+      Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+      for (Map.Entry<String, DesiredConfig> desiredConfigEntry : desiredConfigs.entrySet()) {
+        String configType = desiredConfigEntry.getKey();
+        DesiredConfig desiredConfig = desiredConfigEntry.getValue();
+        Config clusterConfig = cluster.getConfig(configType, desiredConfig.getTag());
+        configurations.put(configType, clusterConfig.getProperties());
+      }
+
+      ClusterInformation clusterInformation = new ClusterInformation(clusterName,
+          securityType == SecurityType.KERBEROS, configurations, topology);
+
+      RepositoryVersion targetRepositoryVersion = new RepositoryVersion(repositoryVersion.getId(),
+          repositoryVersion.getStackId().getStackId(), repositoryVersion.getVersion(),
+          repositoryVersion.getType());
+
+      final UpgradeCheckRequest upgradeCheckRequest = new UpgradeCheckRequest(clusterInformation,
+          upgradeType, targetRepositoryVersion,
+          upgradePack.getPrerequisiteCheckConfig().getAllProperties());
+
+      if (propertyMap.containsKey(UPGRADE_CHECK_FOR_REVERT_PROPERTY_ID)) {
+        Boolean forRevert = BooleanUtils.toBooleanObject(propertyMap.get(UPGRADE_CHECK_FOR_REVERT_PROPERTY_ID).toString());
+        upgradeCheckRequest.setRevert(forRevert);
       }
 
       // ToDo: properly handle exceptions, i.e. create fake check with error description
-      List<AbstractCheckDescriptor> upgradeChecksToRun = upgradeCheckRegistry.getFilteredUpgradeChecks(upgradePack);
-      upgradeCheckRequest.setPrerequisiteCheckConfig(upgradePack.getPrerequisiteCheckConfig());
+      List<UpgradeCheck> upgradeChecksToRun = upgradeCheckRegistry.getFilteredUpgradeChecks(upgradePack);
 
       try {
         // Register all the custom prechecks from the services
         Map<String, ServiceInfo> services = getManagementController().getAmbariMetaInfo().getServices(
             sourceStackId.getStackName(), sourceStackId.getStackVersion());
 
-        List<AbstractCheckDescriptor> serviceLevelUpgradeChecksToRun = upgradeCheckRegistry.getServiceLevelUpgradeChecks(upgradePack, services);
+        List<UpgradeCheck> serviceLevelUpgradeChecksToRun = upgradeCheckRegistry.getServiceLevelUpgradeChecks(
+            upgradePack, services);
+
         upgradeChecksToRun.addAll(serviceLevelUpgradeChecksToRun);
       } catch (ParentObjectNotFoundException parentNotFoundException) {
         LOG.error("Invalid stack version: {}", sourceStackId, parentNotFoundException);
@@ -234,7 +269,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
         LOG.error("Failed to register custom prechecks for the services", e);
       }
 
-      for (PrerequisiteCheck prerequisiteCheck : checkHelper.performChecks(upgradeCheckRequest, upgradeChecksToRun, config.get())) {
+      for (UpgradeCheckResult prerequisiteCheck : checkHelper.performChecks(upgradeCheckRequest, upgradeChecksToRun, config.get())) {
         final Resource resource = new ResourceImpl(Resource.Type.PreUpgradeCheck);
         setResourceProperty(resource, UPGRADE_CHECK_ID_PROPERTY_ID, prerequisiteCheck.getId(), requestedIds);
         setResourceProperty(resource, UPGRADE_CHECK_CHECK_PROPERTY_ID, prerequisiteCheck.getDescription(), requestedIds);
@@ -243,7 +278,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
         setResourceProperty(resource, UPGRADE_CHECK_FAILED_ON_PROPERTY_ID, prerequisiteCheck.getFailedOn(), requestedIds);
         setResourceProperty(resource, UPGRADE_CHECK_FAILED_DETAIL_PROPERTY_ID,prerequisiteCheck.getFailedDetail(), requestedIds);
         setResourceProperty(resource, UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID, prerequisiteCheck.getType(), requestedIds);
-        setResourceProperty(resource, UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID, prerequisiteCheck.getClusterName(), requestedIds);
+        setResourceProperty(resource, UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID, cluster.getClusterName(), requestedIds);
         setResourceProperty(resource, UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID, upgradeType, requestedIds);
 
         setResourceProperty(resource, UPGRADE_CHECK_TARGET_REPOSITORY_VERSION_ID_ID, repositoryVersion.getId(), requestedIds);

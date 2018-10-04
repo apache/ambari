@@ -24,7 +24,7 @@ import org.apache.ambari.server.AmbariException;
  * different qualifications against which an upgrade check is determined to be
  * applicable to the upgrade.
  */
-interface CheckQualification {
+public interface CheckQualification {
 
   /**
    * Gets whether the upgrade check meets this qualification and should

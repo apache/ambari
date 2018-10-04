@@ -38,6 +38,7 @@ import javax.xml.bind.annotation.XmlValue;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.upgrade.Task.Type;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -717,6 +718,28 @@ public class UpgradePack {
         result.put(property.name, property.value);
       }
       return result;
+    }
+
+    /**
+     * Gets a mashup of all check properties, including global ones.
+     *
+     * @return a map of all check properties defined in the upgrade pack.
+     */
+    public Map<String, String> getAllProperties() {
+      Map<String, String> properties = new HashMap<>();
+      if( null != globalProperties ) {
+        for (PrerequisiteProperty property : globalProperties) {
+          properties.put(property.name, property.value);
+        }
+      }
+
+      if (null != prerequisiteCheckProperties) {
+        for(PrerequisiteCheckProperties checkProperties : prerequisiteCheckProperties) {
+            properties.putAll(checkProperties.getProperties());
+        }
+      }
+
+      return properties;
     }
 
     /**

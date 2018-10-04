@@ -75,7 +75,7 @@ import org.apache.ambari.server.stack.upgrade.Task.Type;
 import org.apache.ambari.server.stack.upgrade.UpgradeFunction;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.stack.upgrade.UpgradePack.ProcessingComponent;
-import org.apache.ambari.server.stack.upgrade.UpgradeType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;

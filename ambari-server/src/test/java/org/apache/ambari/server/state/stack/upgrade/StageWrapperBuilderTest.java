@@ -30,7 +30,7 @@ import org.apache.ambari.server.stack.upgrade.Direction;
 import org.apache.ambari.server.stack.upgrade.Grouping;
 import org.apache.ambari.server.stack.upgrade.ServerActionTask;
 import org.apache.ambari.server.stack.upgrade.UpgradePack.ProcessingComponent;
-import org.apache.ambari.server.stack.upgrade.UpgradeType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.ambari.server.stack.upgrade.orchestrate.StageWrapper;
 import org.apache.ambari.server.stack.upgrade.orchestrate.StageWrapperBuilder;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;

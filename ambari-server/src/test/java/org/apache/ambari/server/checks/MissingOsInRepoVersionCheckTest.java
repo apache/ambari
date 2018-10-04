@@ -29,7 +29,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -38,8 +38,13 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.spi.ClusterInformation;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.RepositoryVersion;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -61,45 +66,56 @@ public class MissingOsInRepoVersionCheckTest extends EasyMockSupport {
   private Host host;
   @Mock
   private AmbariMetaInfo ambariMetaInfo;
-  private PrerequisiteCheck check;
+
+  @Mock
+  private RepositoryVersionDAO repositoryVersionDAO;
+
+  private MockCheckHelper m_checkHelper = new MockCheckHelper();
 
   @Before
   public void setUp() throws Exception {
     prerequisite = new MissingOsInRepoVersionCheck();
     prerequisite.clustersProvider = () -> clusters;
     prerequisite.ambariMetaInfo = () -> ambariMetaInfo;
-    check = new PrerequisiteCheck(null, CLUSTER_NAME);
+    prerequisite.checkHelperProvider = () -> m_checkHelper;
+    prerequisite.repositoryVersionDaoProvider = () -> repositoryVersionDAO;
+
     expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster).anyTimes();
     expect(cluster.getHosts()).andReturn(singleton(host)).anyTimes();
     expect(cluster.getClusterId()).andReturn(1l).anyTimes();
     expect(host.getOsFamily()).andReturn(OS_FAMILY_IN_CLUSTER).anyTimes();
     expect(host.getMaintenanceState(anyInt())).andReturn(OFF).anyTimes();
+
+    m_checkHelper.m_clusters = clusters;
   }
 
   @Test
   public void testSuccessWhenOsExistsBothInTargetAndSource() throws Exception {
     sourceStackRepoIs(OS_FAMILY_IN_CLUSTER);
+    UpgradeCheckRequest request = request(targetRepo(OS_FAMILY_IN_CLUSTER));
     replayAll();
-    performPrerequisite(request(targetRepo(OS_FAMILY_IN_CLUSTER)));
+    UpgradeCheckResult check = performPrerequisite(request);
     verifyAll();
-    assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
   }
 
   @Test
   public void testFailsWhenOsDoesntExistInSource() throws Exception {
     sourceStackRepoIs("different-os");
+    UpgradeCheckRequest request = request(targetRepo(OS_FAMILY_IN_CLUSTER));
     replayAll();
-    performPrerequisite(request(targetRepo(OS_FAMILY_IN_CLUSTER)));
-    assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    UpgradeCheckResult check = performPrerequisite(request);
+    assertEquals(UpgradeCheckStatus.FAIL, check.getStatus());
     verifyAll();
   }
 
   @Test
   public void testFailsWhenOsDoesntExistInTarget() throws Exception {
     sourceStackRepoIs(OS_FAMILY_IN_CLUSTER);
+    UpgradeCheckRequest request = request(targetRepo("different-os"));
     replayAll();
-    performPrerequisite(request(targetRepo("different-os")));
-    assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    UpgradeCheckResult check = performPrerequisite(request);
+    assertEquals(UpgradeCheckStatus.FAIL, check.getStatus());
     verifyAll();
   }
 
@@ -119,10 +135,19 @@ public class MissingOsInRepoVersionCheckTest extends EasyMockSupport {
     return repo;
   }
 
-  private PrereqCheckRequest request(RepositoryVersionEntity targetRepo) {
-    PrereqCheckRequest request = new PrereqCheckRequest(CLUSTER_NAME);
-    request.setSourceStackId(SOURCE_STACK);
-    request.setTargetRepositoryVersion(targetRepo);
+  private UpgradeCheckRequest request(RepositoryVersionEntity targetRepo) {
+    m_checkHelper.m_repositoryVersionDAO = repositoryVersionDAO;
+    expect(repositoryVersionDAO.findByPK(1L)).andReturn(targetRepo).anyTimes();
+
+    RepositoryVersion repositoryVersion = createNiceMock(RepositoryVersion.class);
+    expect(repositoryVersion.getId()).andReturn(1L).anyTimes();
+    expect(repositoryVersion.getRepositoryType()).andReturn(RepositoryType.STANDARD).anyTimes();
+    expect(repositoryVersion.getStackId()).andReturn(SOURCE_STACK.getStackId()).anyTimes();
+
+    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
+        repositoryVersion, null);
+
     return request;
   }
 
@@ -134,7 +159,7 @@ public class MissingOsInRepoVersionCheckTest extends EasyMockSupport {
     return targetRepo;
   }
 
-  private void performPrerequisite(PrereqCheckRequest request) throws AmbariException {
-    prerequisite.perform(check, request);
+  private UpgradeCheckResult performPrerequisite(UpgradeCheckRequest request) throws AmbariException {
+    return prerequisite.perform(request);
   }
 }

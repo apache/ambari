@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.checks;
+package org.apache.ambari.annotations;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -23,15 +23,16 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.apache.ambari.server.stack.upgrade.UpgradeType;
-import org.apache.ambari.server.state.RepositoryType;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 
 import com.google.inject.ScopeAnnotation;
 import com.google.inject.Singleton;
 
 /**
- * The {@link UpgradeCheck} annotation is used to provide ordering and grouping
- * to any {@link AbstractCheckDescriptor} instance.
+ * The {@link UpgradeCheckInfo} annotation is used to provide ordering and grouping
+ * to any {@link ClusterCheck} instance.
  * <p/>
  * Classes marked with this annotation should also be {@link Singleton}. They
  * will be discovered on the classpath and then registered with the
@@ -40,7 +41,7 @@ import com.google.inject.Singleton;
 @Target({ ElementType.TYPE })
 @Retention(RUNTIME)
 @ScopeAnnotation
-public @interface UpgradeCheck {
+public @interface UpgradeCheckInfo {
 
   /**
    * The group that the pre-upgrade check belongs to.

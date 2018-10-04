@@ -44,6 +44,7 @@ import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
