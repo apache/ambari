@@ -83,11 +83,12 @@ public class CommandRepository {
   /**
    * @param version the repo version
    */
-  public void setRepositoryVersion(String version) {
+  public void setRepoVersion(String version) {
     m_repoVersion = version;
   }
 
-  public String getRepositoryVersion(){
+
+  public String getRepoVersion(){
     return m_repoVersion;
   }
 

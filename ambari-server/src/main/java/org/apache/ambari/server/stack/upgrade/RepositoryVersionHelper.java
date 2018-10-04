@@ -385,7 +385,7 @@ public class RepositoryVersionHelper {
     }
 
     commandRepo.setRepositories(osEntity.getFamily(), osEntity.getRepoDefinitionEntities());
-    commandRepo.setRepositoryVersion(repoVersion.getVersion());
+    commandRepo.setRepoVersion(repoVersion.getVersion());
     commandRepo.setRepositoryVersionId(repoVersion.getId());
     commandRepo.setResolved(repoVersion.isResolved());
     commandRepo.setStackName(repoVersion.getStackId().getStackName());

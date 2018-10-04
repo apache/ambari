@@ -240,9 +240,9 @@ public class ExecutionCommandWrapper {
         }
 
         if (null != commandRepository && repositoryVersion.isResolved() &&
-          !repositoryVersion.getVersion().equals(commandRepository.getRepositoryVersion())) {
+          !repositoryVersion.getVersion().equals(commandRepository.getRepoVersion())) {
 
-          commandRepository.setRepositoryVersion(repositoryVersion.getVersion());
+          commandRepository.setRepoVersion(repositoryVersion.getVersion());
           commandRepository.setResolved(true);
         }
 
