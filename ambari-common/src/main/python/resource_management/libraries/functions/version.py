@@ -52,7 +52,6 @@ def format_stack_version(value):
       else:
         value = value[first_occurrence + 1:last_occurence]
 
-
     value = re.sub(r'^\D+', '', value)
     value = re.sub(r'\D+$', '', value)
     value = value.strip('.')
@@ -85,6 +84,7 @@ def compare_versions(version1, version2, format=False):
   max_segments = max(len(v1.split(".")), len(v2.split(".")))
   return cmp(_normalize(v1, desired_segments=max_segments), _normalize(v2, desired_segments=max_segments))
 
+
 def get_major_version(full_version):
   """
   :param input: Input string, e.g. "2.1.3.0" or "2.2.0.1-885" and other similar
@@ -99,3 +99,29 @@ def get_major_version(full_version):
     major_version = m.group()
 
   return major_version
+
+
+def get_current_component_version():
+  """
+  Returns best available version for the component at different stages (install, start, stop)
+
+  :return best matched version or None
+  :rtype str|None
+  """
+  from resource_management.core.exceptions import Fail
+  from resource_management.libraries.functions.default import default
+  from resource_management.libraries.functions.stack_select import get_role_component_current_stack_version
+  from resource_management.libraries.functions.repository_util import CommandRepository
+
+  version = default("/commandParams/version", None)
+  if not version:
+    repository = CommandRepository(default("/repositoryFile", {}))
+    if not repository.resolved:
+      try:
+        version = get_role_component_current_stack_version()
+      except (Fail, TypeError):
+        pass
+    else:
+      version = repository.version_string
+
+  return version

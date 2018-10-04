@@ -87,6 +87,10 @@ public class CommandRepository {
     m_repoVersion = version;
   }
 
+  public String getRepositoryVersion(){
+    return m_repoVersion;
+  }
+
   /**
    * @param id the repository id
    */

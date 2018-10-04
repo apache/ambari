@@ -27,7 +27,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.LoggingService;
 import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
@@ -53,7 +52,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
@@ -943,8 +941,6 @@ public interface AmbariManagementController {
   ConfigGroupResponse getConfigGroupUpdateResults(ConfigGroupRequest configGroupRequest);
 
   void saveConfigGroupUpdate(ConfigGroupRequest configGroupRequest, ConfigGroupResponse configGroupResponse);
-
-  HostRepositories retrieveHostRepositories(Cluster cluster, Host host) throws AmbariException;
 
   MetadataUpdateEvent getClusterMetadataOnConfigsUpdate(Cluster cluster) throws AmbariException;
 

@@ -30,7 +30,6 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -80,12 +79,6 @@ public class ExecutionCommandWrapper {
 
   @Inject
   private RepositoryVersionHelper repoVersionHelper;
-
-  /**
-   * Used for injecting hooks and common-services into the command.
-   */
-  @Inject
-  private AmbariMetaInfo ambariMetaInfo;
 
   @Inject
   private Configuration configuration;
@@ -175,8 +168,6 @@ public class ExecutionCommandWrapper {
       configHelper.getAndMergeHostConfigAttributes(executionCommand.getConfigurationAttributes(),
           configurationTags, cluster);
 
-      setVersions(cluster);
-
       // provide some basic information about a cluster upgrade if there is one
       // in progress
       UpgradeEntity upgrade = cluster.getUpgradeInProgress();
@@ -190,29 +181,15 @@ public class ExecutionCommandWrapper {
       // setting repositoryFile
       final Host host = cluster.getHost(executionCommand.getHostname());  // can be null on internal commands
       final String serviceName = executionCommand.getServiceName(); // can be null on executing special RU tasks
+      CommandRepository commandRepository = executionCommand.getRepositoryFile();
 
-      if (null == executionCommand.getRepositoryFile() && null != host && null != serviceName) {
-        final CommandRepository commandRepository;
-        final Service service = cluster.getService(serviceName);
-        final String componentName = executionCommand.getComponentName();
-
-        try {
-          if (null != componentName) {
-            ServiceComponent serviceComponent = service.getServiceComponent(componentName);
-            commandRepository = repoVersionHelper.getCommandRepository(cluster, serviceComponent, host);
-          } else {
-            RepositoryVersionEntity repoVersion = service.getDesiredRepositoryVersion();
-            RepoOsEntity osEntity = repoVersionHelper.getOSEntityForHost(host, repoVersion);
-            commandRepository = repoVersionHelper.getCommandRepository(repoVersion, osEntity);
-          }
-          executionCommand.setRepositoryFile(commandRepository);
-
-        } catch (SystemException e) {
-          LOG.debug("Unable to find command repository with a correct operating system for host {}",
-              host, e);
-        }
+      if (null == commandRepository && null != host && null != serviceName) {
+          commandRepository = repoVersionHelper.getCommandRepository(cluster, cluster.getService(serviceName), host, executionCommand.getComponentName());
       }
 
+      setVersions(cluster, commandRepository);
+
+      executionCommand.setRepositoryFile(commandRepository);
     } catch (ClusterNotFoundException cnfe) {
       // it's possible that there are commands without clusters; in such cases,
       // just return the de-serialized command and don't try to read configs
@@ -228,7 +205,7 @@ public class ExecutionCommandWrapper {
     return executionCommand;
   }
 
-  public void setVersions(Cluster cluster) {
+  public void setVersions(Cluster cluster, CommandRepository commandRepository) {
     // set the repository version for the component this command is for -
     // always use the current desired version
     String serviceName = executionCommand.getServiceName();
@@ -262,6 +239,13 @@ public class ExecutionCommandWrapper {
           && repositoryVersion.isResolved()
           && executionCommand.getRoleCommand() != RoleCommand.INSTALL) {
           commandParams.put(VERSION, repositoryVersion.getVersion());
+        }
+
+        if (null != commandRepository && repositoryVersion.isResolved() &&
+          !repositoryVersion.getVersion().equals(commandRepository.getRepositoryVersion())) {
+
+          commandRepository.setRepositoryVersion(repositoryVersion.getVersion());
+          commandRepository.setResolved(true);
         }
 
         if (!commandParams.containsKey(HOOKS_FOLDER)) {

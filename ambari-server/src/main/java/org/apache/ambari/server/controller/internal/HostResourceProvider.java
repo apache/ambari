@@ -42,12 +42,10 @@ import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.HostLevelParamsCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyHost;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
-import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -197,9 +195,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       HOST_ATTRIBUTES_PROPERTY_ID);
 
   @Inject
-  private MaintenanceStateHelper maintenanceStateHelper;
-
-  @Inject
   private OsFamily osFamily;
 
   @Inject
@@ -214,8 +209,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   @Inject
   private RecoveryConfigHelper recoveryConfigHelper;
 
-  @Inject
-  private AmbariMetaInfo ambariMetaInfo;
 
   // ----- Constructors ----------------------------------------------------
 
@@ -249,12 +242,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     if (isHostGroupRequest(request)) {
       createResponse = submitHostRequests(request);
     } else {
-      createResources(new Command<Void>() {
-        @Override
-        public Void invoke() throws AmbariException, AuthorizationException {
-          createHosts(request);
-          return null;
-        }
+      createResources((Command<Void>) () -> {
+        createHosts(request);
+        return null;
       });
     }
     notifyCreate(Resource.Type.Host, request);
@@ -264,7 +254,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
   @Override
   protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
-      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      throws SystemException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<HostRequest> requests = new HashSet<>();
 
@@ -277,12 +267,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
     }
 
-    Set<HostResponse> responses = getResources(new Command<Set<HostResponse>>() {
-      @Override
-      public Set<HostResponse> invoke() throws AmbariException {
-        return getHosts(requests);
-      }
-    });
+    Set<HostResponse> responses = getResources(() -> getHosts(requests));
 
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
     Set<Resource> resources    = new HashSet<>();
@@ -357,12 +342,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       requests.add(getRequest(propertyMap));
     }
 
-    modifyResources(new Command<Void>() {
-      @Override
-      public Void invoke() throws AmbariException, AuthorizationException {
-        updateHosts(requests);
-        return null;
-      }
+    modifyResources((Command<Void>) () -> {
+      updateHosts(requests);
+      return null;
     });
 
     notifyUpdate(Resource.Type.Host, request, predicate);
@@ -380,12 +362,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       requests.add(getRequest(propertyMap));
     }
 
-    DeleteStatusMetaData deleteStatusMetaData = modifyResources(new Command<DeleteStatusMetaData>() {
-      @Override
-      public DeleteStatusMetaData invoke() throws AmbariException {
-        return deleteHosts(requests, request.isDryRunRequest());
-      }
-    });
+    DeleteStatusMetaData deleteStatusMetaData = modifyResources(() -> deleteHosts(requests, request.isDryRunRequest()));
 
     if (!request.isDryRunRequest()) {
       notifyDelete(Resource.Type.Host, predicate);
@@ -560,16 +537,11 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           addedTopologies.put(clusterId, new TopologyCluster());
         }
         Host addedHost = clusters.getHost(hostRequest.getHostname());
-        addedTopologies.get(clusterId).addTopologyHost(new TopologyHost(addedHost.getHostId(),
-            addedHost.getHostName(),
-            addedHost.getRackInfo(),
-            addedHost.getIPv4()));
+        addedTopologies.get(clusterId).addTopologyHost(new TopologyHost(addedHost.getHostId(), addedHost.getHostName(),
+            addedHost.getRackInfo(), addedHost.getIPv4()));
         HostLevelParamsUpdateEvent hostLevelParamsUpdateEvent = new HostLevelParamsUpdateEvent(addedHost.getHostId(),
             clusterId,
-            new HostLevelParamsCluster(
-            getManagementController().retrieveHostRepositories(cl, addedHost),
-            recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(),
-                addedHost.getHostName()),
+            new HostLevelParamsCluster( recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(), addedHost.getHostName()),
             getManagementController().getBlueprintProvisioningStates(cl.getClusterId(), addedHost.getHostId())
         ));
         hostLevelParamsUpdateEvents.add(hostLevelParamsUpdateEvent);
@@ -702,8 +674,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
                                        Collection<String> skipInstallForComponents,
                                        Collection<String> dontSkipInstallForComponents, final boolean skipFailure,
                                        boolean useClusterHostInfo)
-      throws ResourceAlreadyExistsException,
-      SystemException,
+      throws SystemException,
       NoSuchParentResourceException,
       UnsupportedPropertyException {
 
@@ -713,8 +684,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   }
 
   public RequestStatusResponse start(final String cluster, final String hostname)
-      throws ResourceAlreadyExistsException,
-      SystemException,
+      throws SystemException,
       NoSuchParentResourceException,
       UnsupportedPropertyException {
 
