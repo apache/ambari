@@ -18,6 +18,10 @@
 
 package org.apache.ambari.server.scheduler;
 
+import static org.apache.ambari.server.state.scheduler.RequestExecution.Status.ABORTED;
+import static org.apache.ambari.server.state.scheduler.RequestExecution.Status.PAUSED;
+import static org.apache.ambari.server.state.scheduler.RequestExecution.Status.SCHEDULED;
+
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
@@ -29,6 +33,7 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -281,7 +286,17 @@ public class ExecutionScheduleManager {
    * @param requestExecution
    * @throws AmbariException
    */
-  public void scheduleBatch(RequestExecution requestExecution)
+  public void scheduleBatch(RequestExecution requestExecution) throws AmbariException {
+    scheduleBatch(requestExecution, 1);
+  }
+
+  /**
+   * Persist jobs based on the request batches staring from the defined batch and create trigger for the first
+   * job
+   * @param requestExecution
+   * @throws AmbariException
+   */
+  public void scheduleBatch(RequestExecution requestExecution, long startingBatch)
     throws AmbariException {
 
     if (!isSchedulerAvailable()) {
@@ -299,7 +314,7 @@ public class ExecutionScheduleManager {
     }
 
     // Create and persist jobs based on batches
-    JobDetail firstJobDetail = persistBatch(requestExecution);
+    JobDetail firstJobDetail = persistBatch(requestExecution, startingBatch);
 
     if (firstJobDetail == null) {
       throw new AmbariException("Unable to schedule jobs. firstJobDetail = "
@@ -364,7 +379,7 @@ public class ExecutionScheduleManager {
     }
   }
 
-  private JobDetail persistBatch(RequestExecution requestExecution)
+  private JobDetail persistBatch(RequestExecution requestExecution, long startingBatch)
     throws  AmbariException {
 
     Batch batch = requestExecution.getBatch();
@@ -376,7 +391,8 @@ public class ExecutionScheduleManager {
         Collections.sort(batchRequests);
         ListIterator<BatchRequest> iterator = batchRequests.listIterator(batchRequests.size());
         String nextJobName = null;
-        while (iterator.hasPrevious()) {
+        long nextBatchIndex = batchRequests.size();
+        while (nextBatchIndex != startingBatch && iterator.hasPrevious()) {
           BatchRequest batchRequest = iterator.previous();
 
           String jobName = getJobName(requestExecution.getId(),
@@ -409,6 +425,7 @@ public class ExecutionScheduleManager {
           }
 
           nextJobName = jobName;
+          nextBatchIndex = batchRequest.getOrderId();
         }
       }
     }
@@ -427,8 +444,64 @@ public class ExecutionScheduleManager {
    */
   public void updateBatchSchedule(RequestExecution requestExecution)
     throws AmbariException {
+    BatchRequest lastCompletedBatchRequest = calculateLastCompletedBatch(requestExecution);
+    //TODO check if last completed was last at all.
 
-    // TODO: Support delete and update if no jobs are running
+    if (requestExecution.getStatus().equals(SCHEDULED.name())) {
+      long startingBatchId = lastCompletedBatchRequest == null? 1L : lastCompletedBatchRequest.getOrderId() + 1;
+      scheduleBatch(requestExecution, startingBatchId);
+    } else if (requestExecution.getStatus().equals(PAUSED.name()) ||
+               requestExecution.getStatus().equals(ABORTED.name())) {
+      //TODO delete all or only pending?
+      //TODO delete only trigger?
+      deleteAllJobs(requestExecution);
+      long possibleBatchToAbort = lastCompletedBatchRequest == null? 1L : lastCompletedBatchRequest.getOrderId() + 1;
+      //TODO abort only in_progress?
+      Collection<Long> requestIDsToAbort = requestExecution.getBatchRequestRequestsIDs(possibleBatchToAbort);
+      //TODO move to the separate method
+      for (Long requestId : requestIDsToAbort) {
+        //might be null if the request is for not long running job
+        if (requestId == null) continue;
+
+        StrBuilder sb = new StrBuilder();
+        sb.append(DEFAULT_API_PATH)
+          .append("/clusters/")
+          .append(requestExecution.getClusterName())
+          .append("/requests/")
+          .append(requestId);
+
+        String body = "{\"Requests\":{\"request_status\":\"ABORTED\",\"abort_reason\":\"Request schedule status changed to " + requestExecution.getStatus() + "\"}}";
+        //TODO race condition : request during sending the abort, what should we do?
+        performApiRequest(sb.toString(), body, "PUT", requestExecution.getAuthenticatedUserId());
+      }
+    }
+  }
+
+  /**
+   * Iterate through the batches and find the last one with completed status, if none was completed return null
+   * @param requestExecution
+   * @return
+   */
+  private BatchRequest calculateLastCompletedBatch(RequestExecution requestExecution) {
+    BatchRequest result = null;
+    Batch batch = requestExecution.getBatch();
+    if (batch != null) {
+      List<BatchRequest> batchRequests = batch.getBatchRequests();
+      if (batchRequests != null) {
+        Collections.sort(batchRequests);
+
+        ListIterator<BatchRequest> iterator = batchRequests.listIterator();
+        do {
+          BatchRequest tmp = iterator.next();
+          if (tmp.getStatus() == null || !tmp.getStatus().equals(HostRoleStatus.COMPLETED.name())) {
+            return result;
+          }
+          result = tmp;
+        } while (iterator.hasNext());
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -539,6 +612,8 @@ public class ExecutionScheduleManager {
       if (batchRequestResponse.getRequestId() != null) {
         actionDBAccessor.setSourceScheduleForRequest(batchRequestResponse.getRequestId(), executionId);
       }
+
+      batchRequest.setRequestId(batchRequestResponse.getRequestId());
 
       return batchRequestResponse.getRequestId();
     } catch (Exception e) {

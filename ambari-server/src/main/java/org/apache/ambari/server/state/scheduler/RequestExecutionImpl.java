@@ -17,11 +17,13 @@
  */
 package org.apache.ambari.server.state.scheduler;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -115,6 +117,7 @@ public class RequestExecutionImpl implements RequestExecution {
           batchRequestEntities) {
         BatchRequest batchRequest = new BatchRequest();
         batchRequest.setOrderId(batchRequestEntity.getBatchId());
+        batchRequest.setRequestId(batchRequestEntity.getRequestId());
         batchRequest.setType(BatchRequest.Type.valueOf(batchRequestEntity.getRequestType()));
         batchRequest.setUri(batchRequestEntity.getRequestUri());
         batchRequest.setStatus(batchRequestEntity.getRequestStatus());
@@ -276,6 +279,7 @@ public class RequestExecutionImpl implements RequestExecution {
           RequestScheduleBatchRequestEntity batchRequestEntity = new
             RequestScheduleBatchRequestEntity();
           batchRequestEntity.setBatchId(batchRequest.getOrderId());
+          batchRequestEntity.setRequestId(batchRequest.getRequestId());
           batchRequestEntity.setScheduleId(requestScheduleEntity.getScheduleId());
           batchRequestEntity.setRequestScheduleEntity(requestScheduleEntity);
           batchRequestEntity.setRequestType(batchRequest.getType());
@@ -425,6 +429,22 @@ public class RequestExecutionImpl implements RequestExecution {
       }
     }
     return body;
+  }
+
+  @Override
+  public Collection<Long> getBatchRequestRequestsIDs(long batchId) {
+    Collection<Long> requestIDs = new ArrayList<>();
+    if (requestScheduleEntity != null) {
+      Collection<RequestScheduleBatchRequestEntity> requestEntities =
+        requestScheduleEntity.getRequestScheduleBatchRequestEntities();
+      if (requestEntities != null) {
+        requestIDs.addAll(requestEntities.stream()
+          .filter(requestEntity -> requestEntity.getBatchId().equals(batchId))
+          .map(RequestScheduleBatchRequestEntity::getRequestId)
+          .collect(Collectors.toList()));
+      }
+    }
+    return requestIDs;
   }
 
   @Override

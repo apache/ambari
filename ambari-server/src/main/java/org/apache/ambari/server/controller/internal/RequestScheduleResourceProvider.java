@@ -430,11 +430,22 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
       String username = getManagementController().getAuthName();
       Integer userId = getManagementController().getAuthId();
 
-      requestExecution.setBatch(request.getBatch());
-      requestExecution.setDescription(request.getDescription());
-      requestExecution.setSchedule(request.getSchedule());
-      if (request.getStatus() != null && isValidRequestScheduleStatus
-          (request.getStatus())) {
+      if (request.getDescription() != null) {
+        requestExecution.setDescription(request.getDescription());
+      }
+
+      if (request.getSchedule() != null) {
+        requestExecution.setSchedule(request.getSchedule());
+      }
+
+      if (request.getStatus() != null) {
+        //TODO status changes graph
+        if (!isValidRequestScheduleStatus(request.getStatus())) {
+          throw new AmbariException("Request Schedule status not valid"
+            + ", clusterName = " + request.getClusterName()
+            + ", description = " + request.getDescription()
+            + ", id = " + request.getId());
+        }
         requestExecution.setStatus(RequestExecution.Status.valueOf(request.getStatus()));
       }
       requestExecution.setUpdateUser(username);
