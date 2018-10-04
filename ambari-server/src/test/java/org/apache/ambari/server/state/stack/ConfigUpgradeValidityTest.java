@@ -161,8 +161,6 @@ public class ConfigUpgradeValidityTest {
 
         UpgradeContext cx = upgradeContextFactory.create(cluster, upgradeEntity);
 
-        cx.setUpgradePack(upgradePack);
-
         ConfigUpgradePack configUpgradePack = ConfigurationPackBuilder.build(cx);
 
         // do configure tasks in the group section

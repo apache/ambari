@@ -100,14 +100,14 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
   /**
    * The key property ids for a event resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.LdapSyncEvent, EVENT_ID_PROPERTY_ID)
       .build();
 
   /**
    * The property ids for a event resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       EVENT_ID_PROPERTY_ID,
       EVENT_STATUS_PROPERTY_ID,
       EVENT_STATUS_DETAIL_PROPERTY_ID,

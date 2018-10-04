@@ -112,6 +112,7 @@ from ambari_agent.InitializerModule import InitializerModule
 
 logger = logging.getLogger()
 alerts_logger = logging.getLogger('alerts')
+alerts_logger_2 = logging.getLogger('ambari_alerts')
 alerts_logger_global = logging.getLogger('ambari_agent.alerts')
 apscheduler_logger = logging.getLogger('apscheduler')
 apscheduler_logger_global = logging.getLogger('ambari_agent.apscheduler')
@@ -396,6 +397,7 @@ def main(initializer_module, heartbeat_stop_callback=None):
   global is_logger_setup
   is_logger_setup = True
   setup_logging(alerts_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
+  setup_logging(alerts_logger_2, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   setup_logging(alerts_logger_global, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   setup_logging(apscheduler_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   setup_logging(apscheduler_logger_global, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)

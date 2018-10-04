@@ -18,6 +18,7 @@
 package org.apache.ambari.server.orm.entities;
 
 import java.util.List;
+import java.util.Objects;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -163,15 +164,12 @@ public class WidgetLayoutEntity {
 
     WidgetLayoutEntity that = (WidgetLayoutEntity) o;
 
-    if (id != that.id) return false;
-
-    return true;
+    return Objects.equals(id, that.id);
   }
 
   @Override
   public int hashCode() {
-    int result = null != id ? id.hashCode() : 0;
-    return result;
+    return Objects.hashCode(id);
   }
 
 }

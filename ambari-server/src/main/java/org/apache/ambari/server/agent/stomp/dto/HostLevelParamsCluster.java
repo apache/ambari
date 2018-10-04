@@ -29,24 +29,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class HostLevelParamsCluster {
 
-  @JsonProperty("hostRepositories")
-  private HostRepositories hostRepositories;
-
   @JsonProperty("recoveryConfig")
   private RecoveryConfig recoveryConfig;
 
   @JsonProperty("blueprint_provisioning_state")
   private Map<String, BlueprintProvisioningState> blueprintProvisioningState;
 
-  public HostLevelParamsCluster(HostRepositories hostRepositories, RecoveryConfig recoveryConfig,
-                                Map<String, BlueprintProvisioningState> blueprintProvisioningState) {
-    this.hostRepositories = hostRepositories;
+  public HostLevelParamsCluster(RecoveryConfig recoveryConfig, Map<String, BlueprintProvisioningState> blueprintProvisioningState) {
     this.recoveryConfig = recoveryConfig;
     this.blueprintProvisioningState = blueprintProvisioningState;
-  }
-
-  public HostRepositories getHostRepositories() {
-    return hostRepositories;
   }
 
   public RecoveryConfig getRecoveryConfig() {

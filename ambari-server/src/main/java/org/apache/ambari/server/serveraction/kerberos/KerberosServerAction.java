@@ -21,7 +21,6 @@ package org.apache.ambari.server.serveraction.kerberos;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -449,11 +448,12 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       }
 
       try {
-        final Map<String, ? extends Collection<String>> serviceComponentFilter = (pruneServiceFilter())
-            ? kerberosKeytabController.adjustServiceComponentFilter(clusters.getCluster(getClusterName()), true, getServiceComponentFilter())
-            : getServiceComponentFilter();
-        final Collection<KerberosIdentityDescriptor> serviceIdentities = serviceComponentFilter == null ? null : calculateServiceIdentities(getClusterName(), serviceComponentFilter);
-        for (ResolvedKerberosKeytab rkk : kerberosKeytabController.getFilteredKeytabs(serviceComponentFilter, getHostFilter(), getIdentityFilter())) {
+        Map<String, Collection<String>> serviceComponentFilter = getServiceComponentFilter();
+        if (serviceComponentFilter != null && pruneServiceFilter()) {
+          kerberosKeytabController.adjustServiceComponentFilter(clusters.getCluster(getClusterName()), true, serviceComponentFilter);
+        }
+        final Collection<KerberosIdentityDescriptor> serviceIdentities = serviceComponentFilter == null ? null : kerberosKeytabController.getServiceIdentities(getClusterName(), serviceComponentFilter.keySet());
+        for (ResolvedKerberosKeytab rkk : kerberosKeytabController.getFilteredKeytabs(serviceIdentities, getHostFilter(),getIdentityFilter())) {
           for (ResolvedKerberosPrincipal principal : rkk.getPrincipals()) {
             commandReport = processIdentity(principal, handler, kerberosConfiguration, isRelevantIdentity(serviceIdentities, principal), requestSharedDataContext);
             // If the principal processor returns a CommandReport, than it is time to stop
@@ -502,17 +502,6 @@ public abstract class KerberosServerAction extends AbstractServerAction {
     }
 
     return true;
-  }
-
-  private Collection<KerberosIdentityDescriptor> calculateServiceIdentities(String clusterName, Map<String, ? extends Collection<String>> serviceComponentFilter)
-      throws AmbariException {
-    final Collection<KerberosIdentityDescriptor> serviceIdentities = new ArrayList<>();
-    for (String service : serviceComponentFilter.keySet()) {
-      for (Collection<KerberosIdentityDescriptor> activeIdentities : kerberosHelper.getActiveIdentities(clusterName, null, service, null, true).values()) {
-        serviceIdentities.addAll(activeIdentities);
-      }
-    }
-    return serviceIdentities;
   }
 
   /**
@@ -584,7 +573,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   }
 
 
-  protected Map<String, ? extends Collection<String>> getServiceComponentFilter() {
+  protected Map<String, Collection<String>> getServiceComponentFilter() {
     String serializedValue = getCommandParameterValue(SERVICE_COMPONENT_FILTER);
 
     if (serializedValue != null) {

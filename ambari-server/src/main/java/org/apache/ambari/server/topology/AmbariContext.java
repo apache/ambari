@@ -571,7 +571,7 @@ public class AmbariContext {
       for (String actualConfigType : updatedConfigTypes) {
         // get the actual cluster config for comparison
         DesiredConfig actualConfig = cluster.getDesiredConfigs().get(actualConfigType);
-        if (actualConfig == null && actualConfigType.equals("core-site")) {
+        if (actualConfig == null || actualConfigType.equals("core-site")) {
           continue;
         }
         if (!actualConfig.getTag().equals(TopologyManager.TOPOLOGY_RESOLVED_TAG)) {

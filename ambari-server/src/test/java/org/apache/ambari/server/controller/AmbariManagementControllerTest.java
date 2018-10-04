@@ -5651,7 +5651,7 @@ public class AmbariManagementControllerTest {
     clusters.getHost(host3).setState(HostState.WAITING_FOR_HOST_STATUS_UPDATES);
     clusters.getHost(host2).setState(HostState.INIT);
     try {
-      response = controller.createAction(actionRequest, requestProperties);
+      controller.createAction(actionRequest, requestProperties);
       assertTrue("Exception should have been raised.", false);
     } catch (Exception e) {
       assertTrue(e.getMessage().contains("there were no healthy eligible hosts"));
@@ -6003,8 +6003,7 @@ public class AmbariManagementControllerTest {
     scHost = s.getServiceComponent("DATANODE").getServiceComponentHost(host2);
     Assert.assertEquals(HostComponentAdminState.INSERVICE, scHost.getComponentAdminState());
     Assert.assertEquals(MaintenanceState.OFF, scHost.getMaintenanceState());
-    execCmd = storedTasks.get(0).getExecutionCommandWrapper
-        ().getExecutionCommand();
+    execCmd = storedTasks.get(0).getExecutionCommandWrapper().getExecutionCommand();
     Assert.assertNotNull(storedTasks);
     Assert.assertEquals(2, storedTasks.size());
     int countRefresh = 0;
@@ -6102,7 +6101,7 @@ public class AmbariManagementControllerTest {
     ExecuteActionRequest actionRequest = new ExecuteActionRequest(cluster1, null, action1, resourceFilters, null, params, false);
     RequestStatusResponse response = null;
     try {
-      response = controller.createAction(actionRequest, requestProperties);
+      controller.createAction(actionRequest, requestProperties);
     } catch (Exception ae) {
       LOG.info("Expected exception.", ae);
       Assert.assertTrue(ae.getMessage().contains("Custom action definition only " +

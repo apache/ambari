@@ -866,6 +866,7 @@ CREATE TABLE upgrade (
   direction VARCHAR2(255) DEFAULT 'UPGRADE' NOT NULL,
   orchestration VARCHAR2(255) DEFAULT 'STANDARD' NOT NULL,
   upgrade_package VARCHAR2(255) NOT NULL,
+  upgrade_package_stack VARCHAR2(255) NOT NULL,
   upgrade_type VARCHAR2(32) NOT NULL,
   repo_version_id NUMBER(19) NOT NULL,
   skip_failures NUMBER(1) DEFAULT 0 NOT NULL,

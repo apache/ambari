@@ -214,7 +214,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
 
   @Inject
-  protected static UpgradeDAO s_upgradeDAO = null;
+  static UpgradeDAO s_upgradeDAO;
 
   @Inject
   private static Provider<AmbariMetaInfo> s_metaProvider = null;
@@ -760,6 +760,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     upgrade.setClusterId(cluster.getClusterId());
     upgrade.setDirection(direction);
     upgrade.setUpgradePackage(pack.getName());
+    upgrade.setUpgradePackStackId(pack.getOwnerStackId());
     upgrade.setUpgradeType(pack.getType());
     upgrade.setAutoSkipComponentFailures(upgradeContext.isComponentFailureAutoSkipped());
     upgrade.setAutoSkipServiceCheckFailures(upgradeContext.isServiceCheckFailureAutoSkipped());

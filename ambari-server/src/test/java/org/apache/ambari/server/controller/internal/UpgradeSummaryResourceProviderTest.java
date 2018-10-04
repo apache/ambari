@@ -278,6 +278,7 @@ public class UpgradeSummaryResourceProviderTest {
     upgrade.setClusterId(cluster.getClusterId());
     upgrade.setId(1L);
     upgrade.setUpgradePackage("some-name");
+    upgrade.setUpgradePackStackId(new StackId((String) null));
     upgrade.setUpgradeType(UpgradeType.ROLLING);
     upgrade.setDirection(Direction.UPGRADE);
 

@@ -783,6 +783,7 @@ public class UpgradeActionTest {
     upgradeEntity.setClusterId(cluster.getClusterId());
     upgradeEntity.setRequestEntity(requestEntity);
     upgradeEntity.setUpgradePackage("");
+    upgradeEntity.setUpgradePackStackId(new StackId((String) null));
     upgradeEntity.setRepositoryVersion(repositoryVersion);
     upgradeEntity.setUpgradeType(UpgradeType.NON_ROLLING);
 
@@ -827,6 +828,7 @@ public class UpgradeActionTest {
     revert.setClusterId(cluster.getClusterId());
     revert.setRequestEntity(requestEntity);
     revert.setUpgradePackage("");
+    revert.setUpgradePackStackId(new StackId((String) null));
     revert.setRepositoryVersion(upgradeToRevert.getRepositoryVersion());
     revert.setUpgradeType(upgradeToRevert.getUpgradeType());
     revert.setOrchestration(upgradeToRevert.getOrchestration());

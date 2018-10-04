@@ -136,7 +136,7 @@ public class UpgradeContext {
   /**
    * The upgrade pack for this upgrade.
    */
-  private UpgradePack m_upgradePack;
+  private final UpgradePack m_upgradePack;
 
   /**
    * Upgrades will always have a single version being upgraded to and downgrades
@@ -320,7 +320,8 @@ public class UpgradeContext {
   @AssistedInject
   public UpgradeContext(@Assisted Cluster cluster,
       @Assisted Map<String, Object> upgradeRequestMap, Gson gson, UpgradeHelper upgradeHelper,
-      UpgradeDAO upgradeDAO, RepositoryVersionDAO repoVersionDAO, ConfigHelper configHelper)
+      UpgradeDAO upgradeDAO, RepositoryVersionDAO repoVersionDAO, ConfigHelper configHelper,
+      AmbariMetaInfo metaInfo)
       throws AmbariException {
     // injected constructor dependencies
     m_gson = gson;
@@ -329,9 +330,10 @@ public class UpgradeContext {
     m_repoVersionDAO = repoVersionDAO;
     m_cluster = cluster;
     m_isRevert = upgradeRequestMap.containsKey(UPGRADE_REVERT_UPGRADE_ID);
+    m_metaInfo = metaInfo;
 
     if (m_isRevert) {
-      m_revertUpgradeId = Long.valueOf(upgradeRequestMap.get(UPGRADE_REVERT_UPGRADE_ID).toString());
+      m_revertUpgradeId = Long.parseLong(upgradeRequestMap.get(UPGRADE_REVERT_UPGRADE_ID).toString());
       UpgradeEntity revertUpgrade = m_upgradeDAO.findUpgrade(m_revertUpgradeId);
       UpgradeEntity revertableUpgrade = m_upgradeDAO.findRevertable(cluster.getClusterId());
 
@@ -395,6 +397,7 @@ public class UpgradeContext {
       // !!! direction can ONLY be an downgrade on revert
       m_direction = Direction.DOWNGRADE;
       m_orchestration = revertUpgrade.getOrchestration();
+      m_upgradePack = getUpgradePack(revertUpgrade);
     } else {
 
       // determine direction
@@ -421,8 +424,26 @@ public class UpgradeContext {
           m_repositoryVersion = m_repoVersionDAO.findByPK(Long.valueOf(repositoryVersionId));
           m_orchestration = m_repositoryVersion.getType();
 
+
+          Set<String> serviceNames = getServicesForUpgrade(cluster, m_repositoryVersion);
           // add all of the services participating in the upgrade
-          m_services.addAll(getServicesForUpgrade(cluster, m_repositoryVersion));
+          m_services.addAll(serviceNames);
+
+          /*
+           * For the unit tests tests, there are multiple upgrade packs for the same
+           * type, so allow picking one of them. In prod, this is empty.
+           */
+          String preferredUpgradePackName = (String) upgradeRequestMap.get(UPGRADE_PACK);
+
+          @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES,
+              comment="This is wrong; it assumes that any upgrade source AND target are consistent stacks")
+          RepositoryVersionEntity upgradeFromRepositoryVersion = cluster.getService(
+              serviceNames.iterator().next()).getDesiredRepositoryVersion();
+
+          m_upgradePack = m_upgradeHelper.suggestUpgradePack(m_cluster.getClusterName(),
+              upgradeFromRepositoryVersion.getStackId(), m_repositoryVersion.getStackId(), m_direction,
+              m_type, preferredUpgradePackName);
+
           break;
         }
         case DOWNGRADE:{
@@ -440,6 +461,8 @@ public class UpgradeContext {
             m_targetRepositoryMap.put(history.getServiceName(), history.getFromReposistoryVersion());
           }
 
+          m_upgradePack = getUpgradePack(upgrade);
+
           break;
         }
         default:
@@ -447,21 +470,6 @@ public class UpgradeContext {
               String.format("%s is not a valid upgrade direction.", m_direction));
       }
     }
-
-
-    /**
-     * For the unit tests tests, there are multiple upgrade packs for the same
-     * type, so allow picking one of them. In prod, this is empty.
-     */
-    String preferredUpgradePackName = (String) upgradeRequestMap.get(UPGRADE_PACK);
-
-    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment="This is wrong")
-    RepositoryVersionEntity upgradeFromRepositoryVersion = cluster.getService(
-        m_services.iterator().next()).getDesiredRepositoryVersion();
-
-    m_upgradePack = m_upgradeHelper.suggestUpgradePack(m_cluster.getClusterName(),
-        upgradeFromRepositoryVersion.getStackId(), m_repositoryVersion.getStackId(), m_direction,
-        m_type, preferredUpgradePackName);
 
     // the validator will throw an exception if the upgrade request is not valid
     UpgradeRequestValidator upgradeRequestValidator = buildValidator(m_type);
@@ -523,7 +531,7 @@ public class UpgradeContext {
 
     /*
      * This feels wrong.  We need the upgrade pack used when creating the upgrade, as that
-     * is really the source, not the target.  Can NOT use upgradeEntity.getRepositoryVersion() here
+     * is really the source, not the target.  Can NOT use upgradeEntity.getRepoVersion() here
      * for the stack id. Consulting the service map should work out since full upgrades are all same source stack,
      * and patches by definition are the same source stack (just different repos of that stack).
      */
@@ -544,10 +552,7 @@ public class UpgradeContext {
       }
     }
 
-    String upgradePackage = upgradeEntity.getUpgradePackage();
-    stackId = (null != stackId) ? stackId : m_repositoryVersion.getStackId(); // fallback to old value
-    Map<String, UpgradePack> packs = m_metaInfo.getUpgradePacks(stackId.getStackName(), stackId.getStackVersion());
-    m_upgradePack = packs.get(upgradePackage);
+    m_upgradePack = getUpgradePack(upgradeEntity);
 
     m_resolver = new MasterHostResolver(m_cluster, configHelper, this);
     m_orchestration = upgradeEntity.getOrchestration();
@@ -577,16 +582,6 @@ public class UpgradeContext {
    */
   public UpgradePack getUpgradePack() {
     return m_upgradePack;
-  }
-
-  /**
-   * Sets the upgrade pack for this upgrade
-   *
-   * @param upgradePack
-   *          the upgrade pack to set
-   */
-  public void setUpgradePack(UpgradePack upgradePack) {
-    m_upgradePack = upgradePack;
   }
 
   /**
@@ -1080,7 +1075,7 @@ public class UpgradeContext {
       RepositoryVersionEntity repositoryVersion) throws AmbariException {
 
     // keep track of the services which will be in this upgrade
-    Set<String> servicesForUpgrade = new HashSet<>();
+    Set<String> servicesForUpgrade;
 
     // standard repo types use all services of the cluster
     if (repositoryVersion.getType() == RepositoryType.STANDARD) {
@@ -1444,5 +1439,22 @@ public class UpgradeContext {
 
       return hostOrderItems;
     }
+  }
+
+  /**
+   * Loads the upgrade pack used for an upgrade after it has been persisted.
+   *
+   * @param upgrade
+   *          the upgrade entity
+   * @return
+   *          the upgrade pack.  May be {@code null} if it doesn't exist
+   */
+  UpgradePack getUpgradePack(UpgradeEntity upgrade) {
+    StackId stackId = upgrade.getUpgradePackStackId();
+
+    Map<String, UpgradePack> packs = m_metaInfo.getUpgradePacks(
+        stackId.getStackName(), stackId.getStackVersion());
+
+    return packs.get(upgrade.getUpgradePackage());
   }
 }

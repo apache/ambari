@@ -453,8 +453,7 @@ public class OrmTestHelper {
 
     String serviceName = "HDFS";
     Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
-    service = cluster.getService(serviceName);
-    assertNotNull(service);
+    assertNotNull(cluster.getService(serviceName));
 
     ServiceComponent datanode = componentFactory.createNew(service, "DATANODE");
 
@@ -487,8 +486,7 @@ public class OrmTestHelper {
 
     String serviceName = "YARN";
     Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
-    service = cluster.getService(serviceName);
-    assertNotNull(service);
+    assertNotNull(cluster.getService(serviceName));
 
     ServiceComponent resourceManager = componentFactory.createNew(service,
         "RESOURCEMANAGER");

@@ -1084,7 +1084,7 @@ public class ClusterImpl implements Cluster {
         HostVersionEntity hostVersionEntity = null;
         Collection<HostVersionEntity> hostVersions = hostEntity.getHostVersionEntities();
         for (HostVersionEntity existingHostVersion : hostVersions) {
-          if (existingHostVersion.getRepositoryVersion().getId() == repoVersionEntity.getId()) {
+          if (Objects.equals(existingHostVersion.getRepositoryVersion().getId(), repoVersionEntity.getId())) {
             hostVersionEntity = existingHostVersion;
             break;
           }

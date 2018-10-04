@@ -365,41 +365,23 @@ public class StageUtils {
 
       for (String hostComponent : hostComponents) {
         String roleName = getClusterHostInfoKey(hostComponent);
-        if (null == roleName) {
-          roleName = additionalComponentToClusterInfoKeyMap.get(hostComponent);
-        }
-        if (null == roleName) {
-          // even though all mappings are being added, componentToClusterInfoKeyMap is
-          // a higher priority lookup
-          for (Service service : cluster.getServices().values()) {
-            for (ServiceComponent sc : service.getServiceComponents().values()) {
-              if (sc.getName().equals(hostComponent)) {
-                roleName = hostComponent.toLowerCase() + "_hosts";
-                additionalComponentToClusterInfoKeyMap.put(hostComponent, roleName);
-              }
-            }
-          }
+        SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
+
+        if (hostsForComponentsHost == null) {
+          hostsForComponentsHost = new TreeSet<>();
+          hostRolesInfo.put(roleName, hostsForComponentsHost);
         }
 
-        if (roleName != null) {
-          SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
-
-          if (hostsForComponentsHost == null) {
-            hostsForComponentsHost = new TreeSet<>();
-            hostRolesInfo.put(roleName, hostsForComponentsHost);
+        int hostIndex = hostsList.indexOf(hostname);
+        if (hostIndex != -1) {
+          if (!hostsForComponentsHost.contains(hostIndex)) {
+            hostsForComponentsHost.add(hostIndex);
           }
-
-          int hostIndex = hostsList.indexOf(hostname);
-          if (hostIndex != -1) {
-            if (!hostsForComponentsHost.contains(hostIndex)) {
-              hostsForComponentsHost.add(hostIndex);
-            }
-          } else {
-            //todo: I don't think that this can happen
-            //todo: determine if it can and if so, handle properly
-            //todo: if it 'cant' should probably enforce invariant
-            throw new RuntimeException("Unable to get host index for host: " + hostname);
-          }
+        } else {
+          //todo: I don't think that this can happen
+          //todo: determine if it can and if so, handle properly
+          //todo: if it 'cant' should probably enforce invariant
+          throw new RuntimeException("Unable to get host index for host: " + hostname);
         }
       }
     }

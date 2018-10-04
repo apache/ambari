@@ -31,6 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.lang.reflect.Field;
 import java.sql.SQLException;
@@ -239,6 +240,24 @@ public class UpgradeHelperTest extends EasyMockSupport {
       assertEquals(upgradeType, up.getType());
     } catch (AmbariException e){
       assertTrue(false);
+    }
+  }
+
+  @Test
+  public void testSuggestUpgradePackFromSourceStack() throws Exception {
+    final String clusterName = "c1";
+    final StackId sourceStackId = new StackId("HDP", "2.1.1");
+    final StackId targetStackId = new StackId("HDP", "2.2.0");
+    final Direction upgradeDirection = Direction.UPGRADE;
+    final UpgradeType upgradeType = UpgradeType.ROLLING;
+
+    makeCluster();
+    try {
+      UpgradePack up = m_upgradeHelper.suggestUpgradePack(clusterName, sourceStackId, targetStackId, upgradeDirection, upgradeType, null);
+      assertEquals(upgradeType, up.getType());
+    } catch (AmbariException e) {
+      e.printStackTrace();
+      fail("unexpected exception suggesting upgrade pack");
     }
   }
 

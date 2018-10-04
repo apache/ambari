@@ -867,6 +867,7 @@ CREATE TABLE upgrade (
   upgrade_type VARCHAR(32) NOT NULL,
   repo_version_id NUMERIC(19) NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
+  upgrade_package_stack VARCHAR(255) NOT NULL,
   skip_failures BIT NOT NULL DEFAULT 0,
   skip_sc_failures BIT NOT NULL DEFAULT 0,
   downgrade_allowed BIT NOT NULL DEFAULT 1,

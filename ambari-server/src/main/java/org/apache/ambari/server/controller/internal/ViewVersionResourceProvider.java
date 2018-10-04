@@ -87,7 +87,7 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
   /**
    * The key property ids for a view resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.View, VIEW_NAME
   )
       .put(Resource.Type.ViewVersion, VERSION
@@ -97,7 +97,7 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
   /**
    * The property ids for a view resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
           VIEW_NAME,
           VERSION,
           BUILD_NUMBER,

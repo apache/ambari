@@ -137,7 +137,7 @@ class AptParser(GenericParser):
 
       line = line[2:].lstrip()
       data = line.partition(" ")
-      pkg_name = data[0]
+      pkg_name = data[0].partition(":")[0]  # for system packages in format "libuuid1:amd64"
       version = data[2].strip().partition(" ")[0]
 
       if pkg_name and version:

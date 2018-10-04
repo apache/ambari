@@ -81,7 +81,7 @@ public class ValidationResourceProvider extends StackAdvisorResourceProvider {
   /**
    * The key property ids for a Validation resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Type.Validation, VALIDATION_ID_PROPERTY_ID)
       .put(Type.Stack, STACK_NAME_PROPERTY_ID)
       .put(Type.StackVersion, STACK_VERSION_PROPERTY_ID)
@@ -90,7 +90,7 @@ public class ValidationResourceProvider extends StackAdvisorResourceProvider {
   /**
    * The property ids for a Validation resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       VALIDATION_ID_PROPERTY_ID,
       VALIDATE_PROPERTY_ID,
       ITEMS_PROPERTY_ID,

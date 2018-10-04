@@ -395,7 +395,6 @@ public class HeartbeatProcessor extends AbstractService{
               Map<String, String> keytabs = writeKeytabsStructuredOut.getKeytabs();
               if (keytabs != null) {
                 for (Map.Entry<String, String> entry : keytabs.entrySet()) {
-                  String principal = entry.getKey();
                   String keytabPath = entry.getValue();
                   for (KerberosKeytabPrincipalEntity kkpe: kerberosKeytabPrincipalDAO.findByHostAndKeytab(host.getHostId(), keytabPath)) {
                     kkpe.setDistributed(true);

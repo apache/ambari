@@ -39,7 +39,6 @@ import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
@@ -187,10 +186,8 @@ public class InitialAlertEventTest {
 
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
-    Service service = m_serviceFactory.createNew(m_cluster, serviceName, m_repositoryVersion);
-    service = m_cluster.getService(serviceName);
-
-    Assert.assertNotNull(service);
+    m_serviceFactory.createNew(m_cluster, serviceName, m_repositoryVersion);
+    Assert.assertNotNull(m_cluster.getService(serviceName));
   }
 
   /**

@@ -123,8 +123,8 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends ClusterChe
 
     if(checkProperties != null) {
       minHadoopSinkVersion = checkProperties.get(MIN_HADOOP_SINK_VERSION_PROPERTY_NAME);
-      retryInterval = Long.valueOf(checkProperties.getOrDefault(RETRY_INTERVAL_PROPERTY_NAME, "6000"));
-      numTries = Integer.valueOf(checkProperties.getOrDefault(NUM_TRIES_PROPERTY_NAME, "20"));
+      retryInterval = Long.parseLong(checkProperties.getOrDefault(RETRY_INTERVAL_PROPERTY_NAME, "6000"));
+      numTries = Integer.parseInt(checkProperties.getOrDefault(NUM_TRIES_PROPERTY_NAME, "20"));
     }
 
     if (StringUtils.isEmpty(minHadoopSinkVersion)) {

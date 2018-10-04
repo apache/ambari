@@ -3083,7 +3083,9 @@ public class Configuration {
         LOG.error("Unable to write data into " + ambariUpgradeConfigUpdatesFilePath, e);
       } finally {
         try {
-          fileWriter.close();
+          if (fileWriter != null) {
+            fileWriter.close();
+          }
         } catch (IOException e) {
           LOG.error("Unable to close file " + ambariUpgradeConfigUpdatesFilePath, e);
         }
@@ -3143,14 +3145,9 @@ public class Configuration {
   public Map<String, String> getDatabaseConnectorNames() {
     File file = getConfigFile();
     Long currentConfigLastModifiedDate = file.lastModified();
-    Properties properties = null;
     if (currentConfigLastModifiedDate.longValue() != configLastModifiedDateForCustomJDBC.longValue()) {
       LOG.info("Ambari properties config file changed.");
-      if (configLastModifiedDateForCustomJDBC != null) {
-        properties = readConfigFile();
-      } else {
-        properties = this.properties;
-      }
+      Properties properties = readConfigFile();
 
       for (String propertyName : dbConnectorPropertyNames) {
         String propertyValue = properties.getProperty(propertyName);
@@ -3172,14 +3169,9 @@ public class Configuration {
   public Map<String, String> getPreviousDatabaseConnectorNames() {
     File file = getConfigFile();
     Long currentConfigLastModifiedDate = file.lastModified();
-    Properties properties = null;
     if (currentConfigLastModifiedDate.longValue() != configLastModifiedDateForCustomJDBCToRemove.longValue()) {
       LOG.info("Ambari properties config file changed.");
-      if (configLastModifiedDateForCustomJDBCToRemove != null) {
-        properties = readConfigFile();
-      } else {
-        properties = this.properties;
-      }
+      Properties properties = readConfigFile();
 
       for (String propertyName : dbConnectorPropertyNames) {
         propertyName = "previous." + propertyName;
@@ -3205,7 +3197,7 @@ public class Configuration {
   private JsonObject readFileToJSON (String file) {
 
     // Read from File to String
-    JsonObject jsonObject = new JsonObject();
+    JsonObject jsonObject;
 
     try {
       JsonParser parser = new JsonParser();
@@ -4300,7 +4292,7 @@ public class Configuration {
     long value = SERVER_EC_CACHE_SIZE.getDefaultValue();
     if (stringValue != null) {
       try {
-        value = Long.valueOf(stringValue);
+        value = Long.parseLong(stringValue);
       } catch (NumberFormatException ignored) {
       }
 
@@ -4343,7 +4335,7 @@ public class Configuration {
     long value = SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE.getDefaultValue();
     if (stringValue != null) {
       try {
-        value = Long.valueOf(stringValue);
+        value = Long.parseLong(stringValue);
       }
       catch (NumberFormatException ignored) {
       }
@@ -4364,7 +4356,7 @@ public class Configuration {
     long value = SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION.getDefaultValue();
     if (stringValue != null) {
       try {
-        value = Long.valueOf(stringValue);
+        value = Long.parseLong(stringValue);
       }
       catch (NumberFormatException ignored) {
       }
@@ -4455,10 +4447,10 @@ public class Configuration {
   public Long getExecutionSchedulerWait() {
 
     String stringValue = getProperty(EXECUTION_SCHEDULER_WAIT);
-    Long sleepTime = EXECUTION_SCHEDULER_WAIT.getDefaultValue();
+    long sleepTime = EXECUTION_SCHEDULER_WAIT.getDefaultValue();
     if (stringValue != null) {
       try {
-        sleepTime = Long.valueOf(stringValue);
+        sleepTime = Long.parseLong(stringValue);
       } catch (NumberFormatException ignored) {
         LOG.warn("Value of {} ({}) should be a number, " +
             "falling back to default value ({})", EXECUTION_SCHEDULER_WAIT.getKey(), stringValue,
@@ -5224,7 +5216,7 @@ public class Configuration {
   public int getOperationsRetryAttempts() {
     final int RETRY_ATTEMPTS_LIMIT = 10;
     String property = getProperty(OPERATIONS_RETRY_ATTEMPTS);
-    Integer attempts = Integer.valueOf(property);
+    int attempts = Integer.parseInt(property);
     if (attempts < 0) {
       LOG.warn("Invalid operations retry attempts number ({}), should be [0,{}]. Value reset to default {}",
           attempts, RETRY_ATTEMPTS_LIMIT, OPERATIONS_RETRY_ATTEMPTS.getDefaultValue());
@@ -5980,11 +5972,11 @@ public class Configuration {
   }
 
   public int getKerberosOperationRetries() {
-    return Integer.valueOf(getProperty(KERBEROS_OPERATION_RETRIES));
+    return Integer.parseInt(getProperty(KERBEROS_OPERATION_RETRIES));
   }
 
   public int getKerberosOperationRetryTimeout() {
-    return Integer.valueOf(getProperty(KERBEROS_OPERATION_RETRY_TIMEOUT));
+    return Integer.parseInt(getProperty(KERBEROS_OPERATION_RETRY_TIMEOUT));
   }
 
   public boolean validateKerberosOperationSSLCertTrust() {

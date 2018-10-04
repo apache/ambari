@@ -64,6 +64,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -114,9 +116,9 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
   @Inject
   private static CheckHelper checkHelper;
 
-  private static Set<String> pkPropertyIds = Collections.singleton(UPGRADE_CHECK_ID_PROPERTY_ID);
+  private static final Set<String> pkPropertyIds = Collections.singleton(UPGRADE_CHECK_ID_PROPERTY_ID);
 
-  public static Set<String> propertyIds = Sets.newHashSet(
+  public static final Set<String> propertyIds = ImmutableSet.of(
       UPGRADE_CHECK_ID_PROPERTY_ID,
       UPGRADE_CHECK_CHECK_PROPERTY_ID,
       UPGRADE_CHECK_STATUS_PROPERTY_ID,
@@ -132,12 +134,10 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
 
 
   @SuppressWarnings("serial")
-  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
-    {
-      put(Type.PreUpgradeCheck, UPGRADE_CHECK_ID_PROPERTY_ID);
-      put(Type.Cluster, UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID);
-    }
-  };
+  public static final Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String>builder()
+    .put(Type.PreUpgradeCheck, UPGRADE_CHECK_ID_PROPERTY_ID)
+    .put(Type.Cluster, UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID)
+    .build();
 
   /**
    * Constructor.

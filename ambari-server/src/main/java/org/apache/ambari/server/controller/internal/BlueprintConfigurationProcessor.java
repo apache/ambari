@@ -125,31 +125,31 @@ public class BlueprintConfigurationProcessor {
   /**
    * Single host topology updaters
    */
-  protected static Map<String, Map<String, PropertyUpdater>> singleHostTopologyUpdaters =
+  protected static final Map<String, Map<String, PropertyUpdater>> singleHostTopologyUpdaters =
     new HashMap<>();
 
   /**
    * Multi host topology updaters
    */
-  private static Map<String, Map<String, PropertyUpdater>> multiHostTopologyUpdaters =
+  private static final Map<String, Map<String, PropertyUpdater>> multiHostTopologyUpdaters =
     new HashMap<>();
 
   /**
    * Database host topology updaters
    */
-  private static Map<String, Map<String, PropertyUpdater>> dbHostTopologyUpdaters =
+  private static final Map<String, Map<String, PropertyUpdater>> dbHostTopologyUpdaters =
     new HashMap<>();
 
   /**
    * Updaters for properties which need 'm' appended
    */
-  private static Map<String, Map<String, PropertyUpdater>> mPropertyUpdaters =
+  private static final Map<String, Map<String, PropertyUpdater>> mPropertyUpdaters =
     new HashMap<>();
 
   /**
    * Non topology related updaters
    */
-  private static Map<String, Map<String, PropertyUpdater>> nonTopologyUpdaters =
+  private static final Map<String, Map<String, PropertyUpdater>> nonTopologyUpdaters =
     new HashMap<>();
 
   /**
@@ -158,24 +158,24 @@ public class BlueprintConfigurationProcessor {
    * removed from export, but do not require an update during
    * cluster creation
    */
-  private Map<String, Map<String, PropertyUpdater>> removePropertyUpdaters =
+  private final Map<String, Map<String, PropertyUpdater>> removePropertyUpdaters =
     new HashMap<>();
 
   /**
    * Collection of all updaters
    */
-  private static Collection<Map<String, Map<String, PropertyUpdater>>> allUpdaters =
+  private static final Collection<Map<String, Map<String, PropertyUpdater>>> allUpdaters =
     new ArrayList<>();
 
   /**
    * Compiled regex for hostgroup token with port information.
    */
-  private static Pattern HOSTGROUP_PORT_REGEX = Pattern.compile("%HOSTGROUP::(\\S+?)%:?(\\d+)?");
+  private static final Pattern HOSTGROUP_PORT_REGEX = Pattern.compile("%HOSTGROUP::(\\S+?)%:?(\\d+)?");
 
   /**
    * Compiled regex for hostgroup token with port information.
    */
-  private static Pattern LOCALHOST_PORT_REGEX = Pattern.compile("localhost:?(\\d+)?");
+  private static final Pattern LOCALHOST_PORT_REGEX = Pattern.compile("localhost:?(\\d+)?");
 
   /**
    * Compiled regex for placeholder
@@ -185,7 +185,7 @@ public class BlueprintConfigurationProcessor {
   /**
    * Special network address
    */
-  private static String BIND_ALL_IP_ADDRESS = "0.0.0.0";
+  private static final String BIND_ALL_IP_ADDRESS = "0.0.0.0";
 
   /**
    * Statically-defined set of properties that can support HA using a nameservice name
@@ -193,7 +193,7 @@ public class BlueprintConfigurationProcessor {
    *   This set also contains other HA properties that will be exported if the
    *   expected hostname information is not found.
    */
-  private static Set<String> configPropertiesWithHASupport =
+  private static final Set<String> configPropertiesWithHASupport =
     new HashSet<>(Arrays.asList("fs.defaultFS", "hbase.rootdir", "instance.volumes", "policymgr_external_url", "xasecure.audit.destination.hdfs.dir"));
 
   /**
@@ -2290,8 +2290,6 @@ public class BlueprintConfigurationProcessor {
                                          String origValue,
                                          Map<String, Map<String, String>> properties,
                                          ClusterTopology topology) {
-
-      StringBuilder sb = new StringBuilder();
 
       if (!origValue.contains("%HOSTGROUP") && (!origValue.contains("localhost"))) {
         // this property must contain FQDNs specified directly by the user

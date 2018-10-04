@@ -111,7 +111,7 @@ public class StackServiceComponentResourceProvider extends
   /**
    * The key property ids for a StackServiceComponent resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Type.Stack, STACK_NAME_PROPERTY_ID)
       .put(Type.StackVersion, STACK_VERSION_PROPERTY_ID)
       .put(Type.StackService, SERVICE_NAME_PROPERTY_ID)
@@ -121,7 +121,7 @@ public class StackServiceComponentResourceProvider extends
   /**
    * The property ids for a StackServiceComponent resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       STACK_NAME_PROPERTY_ID,
       STACK_VERSION_PROPERTY_ID,
       SERVICE_NAME_PROPERTY_ID,

@@ -267,7 +267,7 @@ public abstract class BaseRequest implements Request {
 
     // TODO : support predicate and comparator
     return new PageRequestImpl(startingPoint,
-        pageSize == null ? DEFAULT_PAGE_SIZE : Integer.valueOf(pageSize), offset, null, null);
+        pageSize == null ? DEFAULT_PAGE_SIZE : Integer.parseInt(pageSize), offset, null, null);
   }
 
   @Override

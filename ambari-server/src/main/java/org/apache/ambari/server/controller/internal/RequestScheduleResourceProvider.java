@@ -143,7 +143,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
   /**
    * The key property ids for a RequestSchedule resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Cluster, CLUSTER_NAME)
       .put(Resource.Type.RequestSchedule, ID)
       .build();
@@ -151,7 +151,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
   /**
    * The property ids for a RequestSchedule resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
     ID,
     CLUSTER_NAME,
     DESCRIPTION,

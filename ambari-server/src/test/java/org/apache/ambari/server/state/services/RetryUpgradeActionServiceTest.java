@@ -280,6 +280,7 @@ public class RetryUpgradeActionServiceTest {
     upgrade.setRequestEntity(requestEntity);
     upgrade.setClusterId(cluster.getClusterId());
     upgrade.setUpgradePackage("some-name");
+    upgrade.setUpgradePackStackId(new StackId((String) null));
     upgrade.setUpgradeType(UpgradeType.ROLLING);
     upgrade.setDirection(Direction.UPGRADE);
     upgrade.setRepositoryVersion(repoVersionEntity);

@@ -18,6 +18,8 @@
 package org.apache.ambari.server.upgrade;
 
 
+import static org.apache.ambari.server.upgrade.UpgradeCatalog280.HOST_COMPONENT_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog280.LAST_LIVE_STATE_COLUMN;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expectLastCall;
@@ -32,7 +34,6 @@ import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
 
 import com.google.inject.Injector;
 
@@ -55,6 +56,13 @@ public class UpgradeCatalog280Test {
     dbAccessor.addColumn(eq("requestschedule"), capture(perBatchLimitColumn));
     expectLastCall().once();
 
+    dbAccessor.dropColumn(eq(HOST_COMPONENT_STATE_TABLE), eq(LAST_LIVE_STATE_COLUMN));
+    expectLastCall().once();
+
+
+    Capture<DBAccessor.DBColumnInfo> upgradePackStackColumn = newCapture(CaptureType.ALL);
+    dbAccessor.addColumn(eq("upgrade"), capture(upgradePackStackColumn));
+    expectLastCall().once();
 
     replay(dbAccessor, injector);
 
@@ -68,6 +76,12 @@ public class UpgradeCatalog280Test {
         capturedBlueprintProvisioningStateColumn.getName());
     Assert.assertEquals(null, capturedBlueprintProvisioningStateColumn.getDefaultValue());
     Assert.assertEquals(Short.class, capturedBlueprintProvisioningStateColumn.getType());
+
+    DBAccessor.DBColumnInfo capturedUpgradeColumn = upgradePackStackColumn.getValue();
+    Assert.assertEquals("upgrade_pack_stack_id", capturedUpgradeColumn.getName());
+    Assert.assertEquals(String.class, capturedUpgradeColumn.getType());
+    Assert.assertEquals((Integer) 255, capturedUpgradeColumn.getLength());
+
 
     verify(dbAccessor);
   }

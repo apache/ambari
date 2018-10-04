@@ -47,15 +47,12 @@ import org.apache.ambari.server.topology.HostGroupImpl;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.TopologyRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Request to export a blueprint from an existing cluster.
  */
 public class ExportBlueprintRequest implements TopologyRequest {
 
-  private final static Logger LOG = LoggerFactory.getLogger(ExportBlueprintRequest.class);
   private static AmbariManagementController controller = AmbariServer.getController();
 
   private String clusterName;
@@ -214,30 +211,10 @@ public class ExportBlueprintRequest implements TopologyRequest {
         group.setName("host_group_" + count++);
         group.addHost(hostName);
       }
-      processHostGroupComponents(group);
     }
 
     return mapHostGroups.values();
   }
-
-
-  /**
-   * Process host group component information for a specific host.
-   *
-   * @param group host group instance
-   *
-   * @return list of component names for the host
-   */
-  private List<Map<String, String>> processHostGroupComponents(ExportedHostGroup group) {
-    List<Map<String, String>> listHostGroupComponents = new ArrayList<>();
-    for (String component : group.getComponents()) {
-      Map<String, String> mapComponentProperties = new HashMap<>();
-      listHostGroupComponents.add(mapComponentProperties);
-      mapComponentProperties.put("name", component);
-    }
-    return listHostGroupComponents;
-  }
-
 
   // ----- Host Group inner class --------------------------------------------
 

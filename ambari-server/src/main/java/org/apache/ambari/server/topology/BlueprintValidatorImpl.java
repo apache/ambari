@@ -138,8 +138,6 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
 
 
     for (HostGroup hostGroup : blueprint.getHostGroups().values()) {
-      Collection<String> processedServices = new HashSet<>();
-      Map<String, Collection<String>> allRequiredProperties = new HashMap<>();
       Map<String, Map<String, String>> operationalConfiguration = new HashMap<>(clusterConfigurations);
 
       operationalConfiguration.putAll(hostGroup.getConfiguration().getProperties());

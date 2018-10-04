@@ -1,6 +1,0 @@
-{
-  "authentication":
-  {
-    "class": "org.apache.solr.security.KerberosPlugin"
-  }
-}

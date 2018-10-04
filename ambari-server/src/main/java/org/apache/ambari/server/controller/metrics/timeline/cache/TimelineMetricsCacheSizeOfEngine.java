@@ -38,8 +38,8 @@ import net.sf.ehcache.pool.sizeof.SizeOf;
 public class TimelineMetricsCacheSizeOfEngine implements SizeOfEngine {
 
   private final static Logger LOG = LoggerFactory.getLogger(TimelineMetricsCacheSizeOfEngine.class);
-  public static int DEFAULT_MAX_DEPTH = 1000;
-  public static boolean DEFAULT_ABORT_WHEN_MAX_DEPTH_EXCEEDED = false;
+  public static final int DEFAULT_MAX_DEPTH = 1000;
+  public static final boolean DEFAULT_ABORT_WHEN_MAX_DEPTH_EXCEEDED = false;
 
   private SizeOfEngine underlying = null;
   SizeOf reflectionSizeOf = new ReflectionSizeOf();

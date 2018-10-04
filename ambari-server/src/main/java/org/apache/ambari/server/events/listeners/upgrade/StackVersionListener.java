@@ -82,7 +82,7 @@ public class StackVersionListener {
   }
 
   @Subscribe
-  public void onAmbariEvent(HostComponentVersionAdvertisedEvent event) throws AmbariException {
+  public void onAmbariEvent(HostComponentVersionAdvertisedEvent event) {
     LOG.debug("Received event {}", event);
 
     Cluster cluster = event.getCluster();
@@ -102,24 +102,15 @@ public class StackVersionListener {
       // exact version is not known in advance.
       RepositoryVersionEntity rve = repositoryVersionDAO.findByPK(event.getRepositoryVersionId());
       if (null != rve) {
-        boolean updated = false;
         String currentRepoVersion = rve.getVersion();
         if (!StringUtils.equals(currentRepoVersion, newVersion)) {
           rve.setVersion(newVersion);
+          rve.setResolved(false);
+        }
+        // the reported versions are the same - we should ensure that the repo is resolved
+        if (!rve.isResolved()) {
           rve.setResolved(true);
           repositoryVersionDAO.merge(rve);
-          updated = true;
-        } else {
-          // the reported versions are the same - we should ensure that the repo
-          // is resolved
-          if (!rve.isResolved()) {
-            rve.setResolved(true);
-            repositoryVersionDAO.merge(rve);
-            updated = true;
-          }
-        }
-        if (updated) {
-          m_hostLevelParamsHolder.get().updateData(m_hostLevelParamsHolder.get().getCurrentData(sch.getHost().getHostId()));
         }
       }
     }

@@ -56,7 +56,6 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHeartbeatLostEvent;
@@ -214,8 +213,6 @@ public class HeartbeatMonitor implements Runnable {
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(
             stackId.getStackName(), stackId.getStackVersion(),
             serviceName, componentName);
-    StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
-        stackId.getStackVersion());
 
     Map<String, Map<String, String>> configurations = new TreeMap<>();
     Map<String, Map<String,  Map<String, String>>> configurationAttributes = new TreeMap<>();
@@ -345,7 +342,6 @@ public class HeartbeatMonitor implements Runnable {
           LOG.warn("Setting component state to UNKNOWN for component " + sc.getName() + " on " + host);
           State oldState = sch.getState();
           sch.setState(State.UNKNOWN);
-          sch.setLastValidState(oldState);
         }
       }
     }

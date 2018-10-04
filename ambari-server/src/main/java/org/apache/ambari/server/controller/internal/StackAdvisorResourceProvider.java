@@ -84,7 +84,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
   private static final String CONFIG_GROUPS_HOSTS_PROPERTY = "hosts";
 
   protected static StackAdvisorHelper saHelper;
-  protected static Configuration configuration;
+  private static Configuration configuration;
   protected static final String USER_CONTEXT_OPERATION_PROPERTY = "user_context/operation";
   protected static final String USER_CONTEXT_OPERATION_DETAILS_PROPERTY = "user_context/operation_details";
 

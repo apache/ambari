@@ -111,7 +111,6 @@ import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
-import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
 import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
 import org.apache.ambari.server.agent.stomp.dto.MetadataServiceInfo;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
@@ -2613,7 +2612,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       throw new RuntimeException(e);
     }
     execCmd.setRepositoryFile(commandRepository);
-    execCmdWrapper.setVersions(cluster);
+    execCmdWrapper.setVersions(cluster, null);
 
     if ((execCmd != null) && (execCmd.getConfigurationTags().containsKey("cluster-env"))) {
       LOG.debug("AmbariManagementControllerImpl.createHostAction: created ExecutionCommand for host {}, role {}, roleCommand {}, and command ID {}, with cluster-env tags {}",
@@ -3246,10 +3245,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public ExecutionCommand getExecutionCommand(Cluster cluster,
                                               ServiceComponentHost scHost,
                                               RoleCommand roleCommand) throws AmbariException {
-    Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
-    String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-
-
     Map<String, String> hostParamsCmd = customCommandExecutionHelper.createDefaultHostParams(
         cluster, scHost.getServiceComponent().getDesiredStackId());
 
@@ -4902,7 +4897,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Set<RootServiceComponentRequest> requests) throws AmbariException {
     Set<RootServiceComponentResponse> response = new HashSet<>();
     for (RootServiceComponentRequest request : requests) {
-      String serviceName  = request.getServiceName();
       try {
         Set<RootServiceComponentResponse> rootServiceComponents = getRootServiceComponents(request);
         response.addAll(rootServiceComponents);
@@ -5462,7 +5456,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     ExtensionLinkEntity linkEntity = null;
     try {
-      linkEntity = linkDAO.findById(new Long(request.getLinkId()));
+      linkEntity = linkDAO.findById(Long.parseLong(request.getLinkId()));
     } catch (RollbackException e) {
       throw new AmbariException("Unable to find extension link"
             + ", linkId=" + request.getLinkId(), e);
@@ -5539,7 +5533,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     ExtensionLinkEntity linkEntity = null;
     try {
-      linkEntity = linkDAO.findById(new Long(request.getLinkId()));
+      linkEntity = linkDAO.findById(Long.parseLong(request.getLinkId()));
     } catch (RollbackException e) {
       throw new AmbariException("Unable to find extension link"
             + ", linkId=" + request.getLinkId(), e);
@@ -5905,25 +5899,5 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     return agentConfigs;
-  }
-
-  @Override
-  public HostRepositories retrieveHostRepositories(Cluster cluster, Host host) throws AmbariException {
-    List<ServiceComponentHost> hostComponents = cluster.getServiceComponentHosts(host.getHostName());
-    SortedMap<Long, CommandRepository> hostRepositories = new TreeMap<>();
-    SortedMap<String, Long> componentsRepos = new TreeMap<>();
-    for (ServiceComponentHost serviceComponentHost : hostComponents) {
-
-      CommandRepository commandRepository;
-      try {
-        commandRepository = repoVersionHelper.getCommandRepository(cluster,
-            serviceComponentHost.getServiceComponent(), host);
-      } catch (SystemException e) {
-        throw new RuntimeException(e);
-      }
-      hostRepositories.put(commandRepository.getRepoVersionId(), commandRepository);
-      componentsRepos.put(serviceComponentHost.getServiceComponentName(), commandRepository.getRepoVersionId());
-    }
-    return new HostRepositories(hostRepositories, componentsRepos);
   }
 }

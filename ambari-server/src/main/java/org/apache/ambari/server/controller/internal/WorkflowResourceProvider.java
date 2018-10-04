@@ -86,7 +86,7 @@ public class WorkflowResourceProvider extends
   /**
    * The key property ids for a Workflow resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Type.Cluster, WORKFLOW_CLUSTER_NAME_PROPERTY_ID)
       .put(Type.Workflow, WORKFLOW_ID_PROPERTY_ID)
       .build();
@@ -94,7 +94,7 @@ public class WorkflowResourceProvider extends
   /**
    * The property ids for a Workflow resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       WORKFLOW_CLUSTER_NAME_PROPERTY_ID,
       WORKFLOW_ID_PROPERTY_ID,
       WORKFLOW_NAME_PROPERTY_ID,

@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.ambari.annotations.Experimental;
@@ -76,7 +77,6 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
@@ -145,13 +145,13 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
    */
   private static final float INSTALL_PACKAGES_SUCCESS_FACTOR = 0.85f;
 
-  private static Set<String> pkPropertyIds = Sets.newHashSet(
+  private static final Set<String> pkPropertyIds = Sets.newHashSet(
       CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, CLUSTER_STACK_VERSION_ID_PROPERTY_ID,
       CLUSTER_STACK_VERSION_STACK_PROPERTY_ID, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID,
       CLUSTER_STACK_VERSION_STATE_PROPERTY_ID,
       CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
 
-  private static Set<String> propertyIds = Sets.newHashSet(CLUSTER_STACK_VERSION_ID_PROPERTY_ID,
+  private static final Set<String> propertyIds = Sets.newHashSet(CLUSTER_STACK_VERSION_ID_PROPERTY_ID,
       CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID,
       CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID,
       CLUSTER_STACK_VERSION_STATE_PROPERTY_ID, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
@@ -159,7 +159,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       CLUSTER_STACK_VERSION_FORCE, CLUSTER_STACK_VERSION_REPO_SUMMARY_PROPERTY_ID,
       CLUSTER_STACK_VERSION_REPO_SUPPORTS_REVERT, CLUSTER_STACK_VERSION_REPO_REVERT_UPGRADE_ID);
 
-  private static Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String> builder()
+  private static final Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String> builder()
       .put(Type.Cluster, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID)
       .put(Type.ClusterStackVersion, CLUSTER_STACK_VERSION_ID_PROPERTY_ID)
       .put(Type.Stack, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID)
@@ -329,7 +329,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       boolean revertable = false;
       if (null != revertableUpgrade) {
         RepositoryVersionEntity revertableRepositoryVersion = revertableUpgrade.getRepositoryVersion();
-        revertable = revertableRepositoryVersion.getId() == repositoryVersionId;
+        revertable = Objects.equals(revertableRepositoryVersion.getId(), repositoryVersionId);
       }
 
       setResourceProperty(resource, CLUSTER_STACK_VERSION_REPO_SUPPORTS_REVERT, revertable, requestedIds);
@@ -662,7 +662,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
 
     // determine packages for all services that are installed on host
-    List<ServiceOsSpecific.Package> packages = new ArrayList<>();
     Set<String> servicesOnHost = new HashSet<>();
     List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
     for (ServiceComponentHost component : components) {

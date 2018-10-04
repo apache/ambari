@@ -61,14 +61,14 @@ public class GroupResourceProvider extends AbstractControllerResourceProvider {
   /**
    * The key property ids for a Group resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Group, GROUP_GROUPNAME_PROPERTY_ID)
       .build();
 
   /**
    * The property ids for a Group resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       GROUP_GROUPNAME_PROPERTY_ID,
       GROUP_LDAP_GROUP_PROPERTY_ID,
       GROUP_GROUPTYPE_PROPERTY_ID);

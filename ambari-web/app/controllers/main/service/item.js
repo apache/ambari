@@ -966,6 +966,11 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     }
   },
 
+  chooseAndRestartHostComponents: function () {
+    let serviceName = this.get('serviceName');
+    batchUtils.showServicRestartPopup(serviceName);
+  },
+
   restartCertainHostComponents: function (context) {
     const serviceDisplayName = this.get('content.displayName'),
       {components, hosts, label, serviceName} = context;

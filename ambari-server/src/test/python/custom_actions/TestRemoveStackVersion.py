@@ -40,7 +40,6 @@ class TestRemoveStackVersion(RMFTestCase):
       ["hdp-select2_1_0_1_885", "2.0", "repo2"]
     ]
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -52,12 +51,11 @@ class TestRemoveStackVersion(RMFTestCase):
                        write_actual_version_to_history_file_mock,
                        read_actual_version_from_history_file_mock,
                        stack_versions_mock,
-                       put_structured_out_mock, get_provider_mock, list_ambari_managed_repos_mock):
+                       put_structured_out_mock, get_provider_mock):
     m = MagicMock()
     m.all_installed_packages.side_effect = TestRemoveStackVersion._add_packages
     get_provider_mock.return_value = m
     stack_versions_mock.return_value = [VERSION_STUB, OLD_VERSION_STUB]
-    list_ambari_managed_repos_mock.return_value = []
 
     self.executeScript("scripts/remove_previous_stacks.py",
                        classname="RemovePreviousStacks",
@@ -79,7 +77,6 @@ class TestRemoveStackVersion(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -91,15 +88,13 @@ class TestRemoveStackVersion(RMFTestCase):
                        write_actual_version_to_history_file_mock,
                        read_actual_version_from_history_file_mock,
                        stack_versions_mock,
-                       put_structured_out_mock, get_provider_mock, list_ambari_managed_repos_mock ):
+                       put_structured_out_mock, get_provider_mock):
 
     stack_versions_mock.return_value = [VERSION_STUB]
 
     m = MagicMock()
     m.all_installed_packages.side_effect = TestRemoveStackVersion._add_packages
     get_provider_mock.return_value = m
-
-    list_ambari_managed_repos_mock.return_value = []
 
     self.executeScript("scripts/remove_previous_stacks.py",
                        classname="RemovePreviousStacks",
@@ -112,7 +107,6 @@ class TestRemoveStackVersion(RMFTestCase):
     self.assertEquals(stack_versions_mock.call_args[0][0], '/usr/hdp')
     self.assertNoMoreResources()
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -124,15 +118,13 @@ class TestRemoveStackVersion(RMFTestCase):
                        write_actual_version_to_history_file_mock,
                        read_actual_version_from_history_file_mock,
                        stack_versions_mock,
-                       put_structured_out_mock, get_provider_mock, list_ambari_managed_repos_mock, ):
+                       put_structured_out_mock, get_provider_mock):
 
     stack_versions_mock.return_value = [VERSION_STUB, OLD_VERSION_STUB]
 
     m = MagicMock()
     m.all_installed_packages.side_effect = TestRemoveStackVersion._add_packages
     get_provider_mock.return_value = m
-
-    list_ambari_managed_repos_mock.return_value = []
 
     try:
       self.executeScript("scripts/remove_previous_stacks.py",
