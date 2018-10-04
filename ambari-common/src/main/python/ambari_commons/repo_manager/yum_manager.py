@@ -450,6 +450,9 @@ Ambari has detected that there are incomplete Yum transactions on this host. Thi
 - Identify the pending transactions with the command 'yum history list <packages failed>'
 - Revert each pending transaction with the command 'yum history undo'
 - Flush the transaction log with 'yum-complete-transaction --cleanup-only'
+
+If the issue persists, old transaction files may be the cause.
+Please delete them from /var/lib/yum/transaction*
 """
 
     for line in help_msg.split("\n"):
