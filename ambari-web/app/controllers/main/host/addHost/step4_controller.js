@@ -18,9 +18,12 @@
 
 var App = require('app');
 
-App.AddHostStep4Controller = Em.Controller.extend({
+App.AddHostStep4Controller = App.WizardStepController.extend({
 
   name: "addHostStep4Controller",
+
+  stepName: 'step4',
+
   isConfigGroupLoaded: false,
 
   loadConfigGroups: function () {

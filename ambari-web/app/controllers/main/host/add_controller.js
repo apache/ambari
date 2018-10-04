@@ -23,7 +23,15 @@ App.AddHostController = App.WizardController.extend({
 
   name: 'addHostController',
 
-  totalSteps: 7,
+  steps: [
+    "step2",
+    "step3",
+    "step6",
+    "step4",
+    "step8",
+    "step9",
+    "step10",
+  ],
 
   /**
    * @type {string}
@@ -67,7 +75,7 @@ App.AddHostController = App.WizardController.extend({
    * Load data for all steps until <code>current step</code>
    */
   loadMap: {
-    '1': [
+    'step2': [
       {
         type: 'sync',
         callback: function () {
@@ -77,7 +85,7 @@ App.AddHostController = App.WizardController.extend({
         }
       }
     ],
-    '2': [
+    'step3': [
       {
         type: 'sync',
         callback: function () {
@@ -85,7 +93,7 @@ App.AddHostController = App.WizardController.extend({
         }
       }
     ],
-    '3': [
+    'step6': [
       {
         type: 'async',
         callback: function () {
@@ -102,7 +110,7 @@ App.AddHostController = App.WizardController.extend({
         }
       }
     ],
-    '5': [
+    'step8': [
       {
         type: 'sync',
         callback: function () {
@@ -124,6 +132,15 @@ App.AddHostController = App.WizardController.extend({
       wizardControllerName: this.get('name'),
       localdb: App.db.data
     });
+  },
+
+  getStepController: function (stepName) {
+    switch (stepName) {
+      case "step4":
+        return App.router.get('addHostStep4Controller');
+      default:
+        return this._super(stepName);
+    }
   },
 
   /**
@@ -166,6 +183,8 @@ App.AddHostController = App.WizardController.extend({
         item.set('isSelected', isInstalled);
         item.set('isInstalled', isInstalled);
         if (isInstalled) {
+          const service = App.Service.find().findProperty('serviceName', item.get('serviceName'));
+          item.set('serviceGroupName', service.get('serviceGroupName'));
           services.selectedServices.push(item.get('serviceName'));
           services.installedServices.push(item.get('serviceName'));
         }
@@ -234,6 +253,8 @@ App.AddHostController = App.WizardController.extend({
       if (serviceClients.length) {
         serviceClients.forEach(function(client) {
           clients.push({
+            serviceGroupName: _service.get('serviceGroupName'),
+            service_name: client.get('serviceName'),
             component_name: client.get('componentName'),
             display_name: client.get('displayName'),
             isInstalled: false
@@ -441,5 +462,61 @@ App.AddHostController = App.WizardController.extend({
       error: 'installServicesErrorCallback'
     }).then(callback, errorCallback || callback);
     return true;
-  }
+  },
+
+  gotoStep2: function () {
+    this.gotoStep('step2');
+  },
+
+  gotoStep3: function () {
+    this.gotoStep('step3');
+  },
+
+  gotoStep6: function () {
+    this.gotoStep('step6');
+  },
+  
+  gotoStep4: function () {
+    this.gotoStep('step4');
+  },
+
+  gotoStep8: function () {
+    this.gotoStep('step8');
+  },
+
+  gotoStep9: function () {
+    this.gotoStep('step9');
+  },
+
+  gotoStep10: function () {
+    this.gotoStep('step10');
+  },
+
+  isStep2: function () {
+    return this.get('currentStep') == this.getStepIndex('step2');
+  }.property('currentStep'),
+
+  isStep3: function () {
+    return this.get('currentStep') == this.getStepIndex('step3');
+  }.property('currentStep'),
+
+  isStep6: function () {
+    return this.get('currentStep') == this.getStepIndex('step6');
+  }.property('currentStep'),
+
+  isStep4: function () {
+    return this.get('currentStep') == this.getStepIndex('step4');
+  }.property('currentStep'),
+
+  isStep8: function () {
+    return this.get('currentStep') == this.getStepIndex('step8');
+  }.property('currentStep'),
+
+  isStep9: function () {
+    return this.get('currentStep') == this.getStepIndex('step9');
+  }.property('currentStep'),
+
+  isStep10: function () {
+    return this.get('currentStep') == this.getStepIndex('step10');
+  }.property('currentStep')
 });
