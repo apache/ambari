@@ -17,11 +17,11 @@
  */
 package org.apache.ambari.spi;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 /**
  * The {@link ClusterInformation} class is used to pass the state of the cluster
@@ -48,7 +48,7 @@ public class ClusterInformation {
   /**
    * {@code true} if the cluster is kerberized.
    */
-  private final boolean m_isKerberized;
+  private final boolean m_isKerberosEnabled;
 
   /**
    * A simple representation of the cluster topology where the key is the
@@ -61,7 +61,7 @@ public class ClusterInformation {
    *
    * @param clusterName
    *          the name of the cluster.
-   * @param isKerberized
+   * @param isKerberosEnabled
    *          {@code true} if the cluster is Kerberized.
    * @param configurations
    *          a mapping of configuration type (such as foo-site) to the specific
@@ -71,11 +71,11 @@ public class ClusterInformation {
    *          of service / component and the value is the hosts where it is
    *          installed.
    */
-  public ClusterInformation(String clusterName, boolean isKerberized,
+  public ClusterInformation(String clusterName, boolean isKerberosEnabled,
       Map<String, Map<String, String>> configurations, Map<String, Set<String>> topology) {
     m_configurations = configurations;
     m_clusterName = clusterName;
-    m_isKerberized = isKerberized;
+    m_isKerberosEnabled = isKerberosEnabled;
     m_topology = topology;
   }
 
@@ -93,8 +93,8 @@ public class ClusterInformation {
    *
    * @return {@code true} if the cluster is Kerberized.
    */
-  public boolean isKerberized() {
-    return m_isKerberized;
+  public boolean isKerberosEnabled() {
+    return m_isKerberosEnabled;
   }
 
   /**
@@ -109,7 +109,7 @@ public class ClusterInformation {
   public Set<String> getHosts(String serviceName, String componentName) {
     Set<String> hosts = m_topology.get(serviceName + "/" + componentName);
     if (null == hosts) {
-      hosts = Sets.newHashSet();
+      hosts = new HashSet<>();
     }
 
     return hosts;
