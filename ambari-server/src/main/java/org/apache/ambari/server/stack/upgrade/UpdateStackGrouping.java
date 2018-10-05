@@ -23,6 +23,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import org.apache.ambari.spi.upgrade.UpgradeType;
+
 
 /**
  * Used to represent operations that update the Stack.

@@ -20,8 +20,8 @@ package org.apache.ambari.server.stack.upgrade.orchestrate;
 import java.util.Map;
 
 import org.apache.ambari.server.stack.upgrade.Direction;
-import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 
 import com.google.gson.annotations.SerializedName;
 

@@ -126,7 +126,6 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.spi.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
@@ -148,6 +147,7 @@ import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.apache.ambari.server.topology.TopologyRequest;
+import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -588,6 +588,7 @@ public class ClusterImpl implements Cluster {
     return serviceComponentHosts.get(serviceName).get(serviceComponentName).get(hostname);
   }
 
+  @Override
   public List<ServiceComponentHost> getServiceComponentHosts() {
     List<ServiceComponentHost> serviceComponentHosts = new ArrayList<>();
     if (!serviceComponentHostsByHost.isEmpty()) {
@@ -2692,6 +2693,7 @@ public class ClusterImpl implements Cluster {
    *
    * @return
    */
+  @Override
   public ClusterEntity getClusterEntity() {
     return clusterDAO.findById(clusterId);
   }

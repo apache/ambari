@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.state.stack;
 
-import static org.apache.ambari.server.stack.upgrade.ConfigUpgradePack.AffectedComponent;
-import static org.apache.ambari.server.stack.upgrade.ConfigUpgradePack.AffectedService;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -34,6 +32,8 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.stack.upgrade.ConfigUpgradeChangeDefinition;
 import org.apache.ambari.server.stack.upgrade.ConfigUpgradePack;
+import org.apache.ambari.server.stack.upgrade.ConfigUpgradePack.AffectedComponent;
+import org.apache.ambari.server.stack.upgrade.ConfigUpgradePack.AffectedService;
 import org.apache.ambari.server.stack.upgrade.TransferOperation;
 import org.junit.After;
 import org.junit.Before;

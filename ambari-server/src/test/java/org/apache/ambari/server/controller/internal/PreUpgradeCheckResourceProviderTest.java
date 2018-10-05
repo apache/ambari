@@ -34,7 +34,6 @@ import java.util.Set;
 
 import javax.persistence.EntityManager;
 
-import org.apache.ambari.metrics.sink.relocated.curator.shaded.com.google.common.collect.Lists;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
@@ -73,6 +72,7 @@ import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;

@@ -52,7 +52,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.spi.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -63,6 +62,7 @@ import org.apache.ambari.server.state.repository.StackPackage.UpgradeDependencyD
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.RepositoryXml.Os;
 import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;

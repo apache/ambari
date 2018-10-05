@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline.cache;
 
-import static net.sf.ehcache.config.PersistenceConfiguration.Strategy;
-
 import org.apache.ambari.server.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +28,7 @@ import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.config.PersistenceConfiguration;
+import net.sf.ehcache.config.PersistenceConfiguration.Strategy;
 import net.sf.ehcache.config.SizeOfPolicyConfiguration;
 import net.sf.ehcache.config.SizeOfPolicyConfiguration.MaxDepthExceededBehavior;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
