@@ -94,7 +94,7 @@
     <distMgmtSnapshotsName>Apache Development Snapshot Repository</distMgmtSnapshotsName>
     <distMgmtSnapshotsUrl>https://repository.apache.org/content/repositories/snapshots</distMgmtSnapshotsUrl>
     <assemblyPhase>package</assemblyPhase> <!-- use -DassemblyPhase=none to skip building tarball, useful when you want purely compile jar -->
-    <eclipselink.version>2.6.2</eclipselink.version>
+    <eclipselink.version>2.7.3</eclipselink.version>
   </properties>
   <pluginRepositories>
     <pluginRepository>
