@@ -115,6 +115,7 @@ import org.apache.ambari.server.security.authorization.internal.InternalAuthenti
 import org.apache.ambari.server.security.authorization.internal.RunWithInternalSecurityContext;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
+import org.apache.ambari.server.security.encryption.EncryptionUtils;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
 import org.apache.ambari.server.serveraction.users.CollectionPersisterService;
 import org.apache.ambari.server.serveraction.users.CollectionPersisterServiceFactory;
@@ -327,6 +328,7 @@ public class ControllerModule extends AbstractModule {
     bind(KerberosHelper.class).to(KerberosHelperImpl.class);
 
     bind(CredentialStoreService.class).to(CredentialStoreServiceImpl.class);
+    bind(EncryptionUtils.class).toInstance(new EncryptionUtils());
 
     bind(Configuration.class).toInstance(configuration);
     bind(OsFamily.class).toInstance(os_family);

@@ -81,7 +81,7 @@ public class CredentialResourceProviderTest {
   public void setUp() throws Exception {
     tmpFolder.create();
     final File masterKeyFile = tmpFolder.newFile(Configuration.MASTER_KEY_FILENAME_DEFAULT);
-    Assert.assertTrue(MasterKeyServiceImpl.initializeMasterKeyFile(masterKeyFile, "secret"));
+    Assert.assertTrue(new MasterKeyServiceImpl("dummyKey").initializeMasterKeyFile(masterKeyFile, "secret"));
 
     injector = Guice.createInjector(new AbstractModule() {
       @Override
