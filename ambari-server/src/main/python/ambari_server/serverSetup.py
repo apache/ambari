@@ -1274,9 +1274,9 @@ def setup_jce_policy(args):
 
 def get_java_major_version(cmd_out):
   version_short = re.split("[java|openjdk|.*] version", cmd_out)[1].split(" ")[1][1:-1]
-  if re.match("1\.8.*", version_short): # 1.8.0_112
+  if re.match("^1\.[0-9].*", version_short): # 1.8.0_112
     return version_short.split(".")[1]
-  elif re.match("[1-9][0-9]*\.[0-9].*", version_short): # 10.0.2
+  elif re.match("^[1-9][0-9]*\.[0-9].*", version_short): # 10.0.2
     return version_short.split(".")[0]
   elif re.match("^[1-9][0-9]*$", version_short): # 11
     return version_short
