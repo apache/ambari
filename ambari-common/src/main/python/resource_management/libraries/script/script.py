@@ -60,6 +60,7 @@ from contextlib import closing
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
@@ -120,6 +121,10 @@ class Script(object):
   4 path to file with structured command output (file will be created)
   """
   config = None
+  execution_command = None
+  module_configs = None
+  cluster_settings = None
+  stack_settings = None
   stack_version_from_distro_select = None
   structuredOut = {}
   command_data_file = ""
@@ -321,6 +326,10 @@ class Script(object):
       with open(self.command_data_file) as f:
         pass
         Script.config = ConfigDictionary(json.load(f))
+        Script.execution_command = ExecutionCommand(Script.config)
+        Script.module_configs = Script.execution_command.get_module_configs()
+        Script.cluster_settings = Script.execution_command.get_cluster_settings()
+        Script.stack_settings = Script.execution_command.get_stack_settings()
         # load passwords here(used on windows to impersonate different users)
         Script.passwords = {}
         for k, v in _PASSWORD_MAP.iteritems():
@@ -593,6 +602,44 @@ class Script(object):
      it a configuration instance.
     """
     return Script.config
+
+  @staticmethod
+  def get_execution_command():
+    """
+    The dot access dict object holds command.json
+    :return:
+    """
+    return Script.execution_command
+
+  @staticmethod
+  def get_module_configs():
+    """
+    The dict object holds configurations block in command.json which maps service configurations
+    :return: module_configs object
+    """
+    if not Script.module_configs:
+      Script.module_configs = Script.execution_command.get_module_configs()
+    return Script.module_configs
+
+  @staticmethod
+  def get_cluster_settings():
+    """
+    The dict object holds cluster_settings block in command.json which maps cluster configurations
+    :return: cluster_settings object
+    """
+    if not Script.cluster_settings and Script.execution_command:
+      Script.cluster_settings = Script.execution_command.get_cluster_settings()
+    return Script.cluster_settings
+
+  @staticmethod
+  def get_stack_settings():
+    """
+    The dict object holds stack_settings block in command.json which maps stack configurations
+    :return: stack_settings object
+    """
+    if not Script.stack_settings and Script.execution_command:
+      Script.stack_settings = Script.execution_command.get_stack_settings()
+    return Script.stack_settings
 
   @staticmethod
   def get_password(user):

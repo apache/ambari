@@ -28,7 +28,7 @@ from resource_management.core.exceptions import Fail
 def expect(name, expected_type, default_value=None):
   """
   Expect configuration to be of certain type. If it is not, give a reasonable error message to user.
-  
+
   Optionally if the configuration is not found default_value for it can be returned.
   """
   subdicts = filter(None, name.split('/'))
@@ -42,7 +42,7 @@ def expect(name, expected_type, default_value=None):
         return default_value
       return UnknownConfiguration(curr_dict[-1])
   value = curr_dict
-  
+
   if expected_type == bool:
     if isinstance(value, bool):
       return value
@@ -56,6 +56,42 @@ def expect(name, expected_type, default_value=None):
     else:
       type_name = type(value).__name__
       raise Fail("Configuration {0} expected to be boolean (true or false), but found instance of unknown type '{1}'".format(name, type_name))
+  elif expected_type in [int, long, float]:
+    try:
+      value = expected_type(value)
+    except (ValueError, TypeError):
+      raise Fail("Configuration {0} expected to be number, but found '{1}'".format(name, value))
+  return value
+
+
+def expect_v2(name, expected_type, default_value=None):
+  """
+  Expect configuration to be of certain type. If it is not, give a reasonable error message to user.
+
+  Optionally if the configuration is not found default_value for it can be returned.
+  """
+
+  value = Script.get_execution_command().get_value(name, default_value)
+  if not value:
+    return UnknownConfiguration(name)
+  elif value == default_value:
+    return value
+
+  if expected_type == bool:
+    if isinstance(value, bool):
+      return value
+    elif isinstance(value, basestring):
+      if value != None and value.lower() == "true":
+        value = True
+      elif value != None and value.lower() == "false":
+        value = False
+      else:
+        raise Fail("Configuration {0} expected to be boolean (true or false), but found '{1}'".format(name, value))
+    else:
+      type_name = type(value).__name__
+      raise Fail(
+        "Configuration {0} expected to be boolean (true or false), but found instance of unknown type '{1}'".format(
+          name, type_name))
   elif expected_type in [int, long, float]:
     try:
       value = expected_type(value)

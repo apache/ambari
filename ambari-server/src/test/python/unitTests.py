@@ -101,7 +101,7 @@ def extract_extends_field_from_file(metainfo):
 def get_extends_field_from_metainfo(service_metainfo):
   """
   Parse the metainfo.xml file to retrieve the <extends> value.
-  
+
   @param service_metainfo: Path to the service metainfo.xml file
   :return Extract the "extends" field if it exists and return its value. Otherwise, return None.
   """
@@ -120,7 +120,7 @@ def resolve_paths_to_import_from_common_services(metainfo_file, base_stack_folde
   Get a list of paths to append to sys.path in order to import all of the needed modules.
   This is important when a service has  multiple definitions in common-services so that we import the correct one
   instead of a higher version.
-  
+
   @param metainfo_file: Path to the metainfo.xml file.
   @param base_stack_folder: Path to stacks folder that does not include the version number. This can potentially be None.
   @param common_services_parent_dir: Path to the common-services directory for a specified service, not including the version.
