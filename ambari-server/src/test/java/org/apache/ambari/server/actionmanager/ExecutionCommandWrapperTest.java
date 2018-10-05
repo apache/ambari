@@ -179,27 +179,8 @@ public class ExecutionCommandWrapperTest {
 
   @Test
   public void testGetExecutionCommand() throws JSONException, AmbariException {
-    Map<String, Map<String, String>> confs = new HashMap<>();
-    Map<String, String> configurationsGlobal = new HashMap<>();
-    configurationsGlobal.put(GLOBAL_NAME1, GLOBAL_VAL1);
-    confs.put(GLOBAL_CONFIG, configurationsGlobal);
-
-    Map<String, Map<String, String>> confTags = new HashMap<>();
-    Map<String, String> confTagServiceSite = new HashMap<>();
-
-    confTagServiceSite.put("tag", CLUSTER_VERSION_TAG);
-    confTagServiceSite.put("service_override_tag", SERVICE_VERSION_TAG);
-    confTagServiceSite.put("host_override_tag", HOST_VERSION_TAG);
-
-    confTags.put(SERVICE_SITE_CONFIG, confTagServiceSite);
-
-    Map<String, String> confTagGlobal = Collections.singletonMap("tag", CLUSTER_VERSION_TAG);
-
-    confTags.put(GLOBAL_CONFIG, confTagGlobal);
-
 
     ExecutionCommand executionCommand = new ExecutionCommand();
-
 
     executionCommand.setClusterName(CLUSTER1);
     executionCommand.setTaskId(1);
@@ -208,8 +189,6 @@ public class ExecutionCommandWrapperTest {
     executionCommand.setRole("NAMENODE");
     executionCommand.setRoleParams(Collections.emptyMap());
     executionCommand.setRoleCommand(RoleCommand.START);
-    executionCommand.setConfigurations(confs);
-    executionCommand.setConfigurationTags(confTags);
     executionCommand.setServiceName("HDFS");
     executionCommand.setCommandType(AgentCommandType.EXECUTION_COMMAND);
     executionCommand.setCommandParams(Collections.emptyMap());
@@ -220,29 +199,6 @@ public class ExecutionCommandWrapperTest {
     injector.injectMembers(execCommWrap);
 
     ExecutionCommand processedExecutionCommand = execCommWrap.getExecutionCommand();
-
-    Map<String, String> serviceSiteConfig = processedExecutionCommand.getConfigurations().get(SERVICE_SITE_CONFIG);
-
-    Assert.assertEquals(SERVICE_SITE_VAL1_S, serviceSiteConfig.get(SERVICE_SITE_NAME1));
-    Assert.assertEquals(SERVICE_SITE_VAL2_H, serviceSiteConfig.get(SERVICE_SITE_NAME2));
-    Assert.assertEquals(SERVICE_SITE_VAL3, serviceSiteConfig.get(SERVICE_SITE_NAME3));
-    Assert.assertEquals(SERVICE_SITE_VAL4, serviceSiteConfig.get(SERVICE_SITE_NAME4));
-    Assert.assertEquals(SERVICE_SITE_VAL5_S, serviceSiteConfig.get(SERVICE_SITE_NAME5));
-    Assert.assertEquals(SERVICE_SITE_VAL6_H, serviceSiteConfig.get(SERVICE_SITE_NAME6));
-
-    Map<String, String> globalConfig = processedExecutionCommand.getConfigurations().get(GLOBAL_CONFIG);
-
-    Assert.assertEquals(GLOBAL_VAL1, globalConfig.get(GLOBAL_NAME1));
-    Assert.assertEquals(GLOBAL_CLUSTER_VAL2, globalConfig.get(GLOBAL_NAME2));
-
-
-    //Union of all keys of service site configs
-    Set<String> serviceSiteKeys = new HashSet<>();
-    serviceSiteKeys.addAll(SERVICE_SITE_CLUSTER.keySet());
-    serviceSiteKeys.addAll(SERVICE_SITE_SERVICE.keySet());
-    serviceSiteKeys.addAll(SERVICE_SITE_HOST.keySet());
-
-    Assert.assertEquals(serviceSiteKeys.size(), serviceSiteConfig.size());
 
     Assert.assertNotNull(processedExecutionCommand.getRepositoryFile());
   }

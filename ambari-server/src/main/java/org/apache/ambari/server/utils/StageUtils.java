@@ -234,7 +234,6 @@ public class StageUtils {
     finalAttribute.put("dfs.block.size", "true");
     hdfsSiteAttributes.put("final", finalAttribute);
     configurationAttributes.put("hdfsSite", hdfsSiteAttributes);
-    execCmd.setConfigurationAttributes(configurationAttributes);
     Map<String, String> params = new TreeMap<>();
     params.put("jdklocation", "/x/y/z");
     params.put("stack_version", "1.2.0");

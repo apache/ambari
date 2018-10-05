@@ -61,7 +61,6 @@ import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.serveraction.ServerActionExecutor;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
@@ -484,7 +483,6 @@ class ActionScheduler implements Runnable {
 
 
         for (ExecutionCommand cmd : commandsToSchedule) {
-          ConfigHelper.processHiddenAttribute(cmd.getConfigurations(), cmd.getConfigurationAttributes(), cmd.getRole(), false);
           processHostRole(request, stage, cmd, commandsToStart, commandsToUpdate);
         }
 

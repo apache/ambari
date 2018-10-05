@@ -1301,13 +1301,7 @@ public class AmbariManagementControllerTest {
     assertEquals(cluster1, ec.getClusterName());
     Map<String, Map<String, String>> configurations = ec.getConfigurations();
     assertNotNull(configurations);
-    assertEquals(3, configurations.size());
-    assertTrue(configurations.containsKey("hdfs-site"));
-    assertTrue(configurations.containsKey("core-site"));
-    assertTrue(configurations.containsKey("hadoop-env"));
-    assertTrue(ec.getConfigurationAttributes().containsKey("hdfs-site"));
-    assertTrue(ec.getConfigurationAttributes().containsKey("core-site"));
-    assertTrue(ec.getConfigurationAttributes().containsKey("hadoop-env"));
+    assertEquals(0, configurations.size());
     assertTrue(ec.getCommandParams().containsKey("max_duration_for_retries"));
     assertEquals("0", ec.getCommandParams().get("max_duration_for_retries"));
     assertTrue(ec.getCommandParams().containsKey("command_retry_enabled"));
@@ -4500,7 +4494,6 @@ public class AmbariManagementControllerTest {
     ExecutionCommand executionCommand = gson.fromJson(new StringReader(
         new String(commandEntity.getCommand())), ExecutionCommand.class);
 
-    assertFalse(executionCommand.getConfigurationTags().isEmpty());
     assertTrue(executionCommand.getConfigurations() == null || executionCommand.getConfigurations().isEmpty());
 
     assertEquals(1, storedTasks.size());
@@ -4518,7 +4511,7 @@ public class AmbariManagementControllerTest {
     assertEquals(Role.HDFS_CLIENT.name(), hostRoleCommand.getEvent().getEvent().getServiceComponentName());
     assertEquals(actionRequest.getParameters(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getRoleParams());
     assertNotNull(hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getConfigurations());
-    assertEquals(2, hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getConfigurations().size());
+    assertEquals(0, hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getConfigurations().size());
     assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), stage.getRequestContext());
     assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
@@ -5050,6 +5043,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  @Ignore // not actual because all configs/attributes/tags were moved to STOMP configurations topic
   public void testReConfigureServiceClient() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
@@ -5140,9 +5134,6 @@ public class AmbariManagementControllerTest {
     long requestId1 = installService(cluster1, serviceName1, true, false);
 
     List<Stage> stages = actionDB.getAllStages(requestId1);
-    Assert.assertEquals(3, stages.get(0).getOrderedHostRoleCommands().get(0)
-      .getExecutionCommandWrapper().getExecutionCommand()
-      .getConfigurationTags().size());
 
     installService(cluster1, serviceName2, false, false);
 
@@ -5197,11 +5188,6 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(hdfsCmdHost2);
     ExecutionCommand execCmd = hdfsCmdHost3.getExecutionCommandWrapper()
       .getExecutionCommand();
-    Assert.assertEquals(3, execCmd.getConfigurationTags().size());
-    Assert.assertEquals("version122", execCmd.getConfigurationTags().get
-      ("core-site").get("tag"));
-    Assert.assertEquals("d", execCmd.getConfigurations().get("core-site")
-      .get("c"));
     // Check if MapReduce client is reinstalled
     Assert.assertNotNull(mapRedCmdHost2);
     Assert.assertNotNull(mapRedCmdHost3);
@@ -5322,9 +5308,6 @@ public class AmbariManagementControllerTest {
         if (hrc.getHostName().equals(host2) && hrc.getRole().toString()
           .equals("HDFS_CLIENT")) {
           clientHrc = hrc;
-          Assert.assertEquals("version122", hrc.getExecutionCommandWrapper()
-            .getExecutionCommand().getConfigurationTags().get("core-site")
-            .get("tag"));
         }
       }
     }
@@ -5924,7 +5907,6 @@ public class AmbariManagementControllerTest {
     ExecutionCommand execCmd = storedTasks.get(0).getExecutionCommandWrapper
       ().getExecutionCommand();
     Assert.assertNotNull(storedTasks);
-    Assert.assertNotNull(execCmd.getConfigurationTags().get("hdfs-site"));
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
     Assert.assertEquals(MaintenanceState.ON, scHost.getMaintenanceState());
@@ -6352,8 +6334,6 @@ public class AmbariManagementControllerTest {
       for (HostRoleCommand hrc : stage.getOrderedHostRoleCommands()) {
         if (hrc.getRole().equals(Role.HDFS_SERVICE_CHECK)) {
           serviceCheckFound = true;
-          Assert.assertEquals(2, hrc.getExecutionCommandWrapper()
-            .getExecutionCommand().getConfigurationTags().size());
         }
       }
     }
@@ -6440,8 +6420,6 @@ public class AmbariManagementControllerTest {
       for (HostRoleCommand hrc : stage.getOrderedHostRoleCommands()) {
         if (hrc.getRole().equals(Role.HDFS_SERVICE_CHECK)) {
           serviceCheckFound = true;
-          Assert.assertEquals(2, hrc.getExecutionCommandWrapper()
-            .getExecutionCommand().getConfigurationTags().size());
         }
       }
     }
@@ -6507,6 +6485,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  @Ignore // not actual because all configs/attributes/tags were moved to STOMP configurations topic
   public void testConfigGroupOverridesWithHostActions() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
@@ -6759,7 +6738,6 @@ public class AmbariManagementControllerTest {
     ExecutionCommand execCmd = storedTasks.get(0).getExecutionCommandWrapper
         ().getExecutionCommand();
     Assert.assertNotNull(storedTasks);
-    Assert.assertNotNull(execCmd.getConfigurationTags().get("hdfs-site"));
     Assert.assertEquals(1, storedTasks.size());
     HostRoleCommand command =  storedTasks.get(0);
     Assert.assertEquals(Role.NAMENODE, command.getRole());
@@ -6770,6 +6748,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  @Ignore // not actual because all configs/attributes/tags were moved to STOMP configurations topic
   public void testConfigGroupOverridesWithServiceCheckActions() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
@@ -6848,8 +6827,6 @@ public class AmbariManagementControllerTest {
     for (Stage stage : stages) {
       for (HostRoleCommand hrc : stage.getOrderedHostRoleCommands()) {
         if (hrc.getRole().equals(Role.HDFS_SERVICE_CHECK)) {
-          Assert.assertEquals(2, hrc.getExecutionCommandWrapper()
-            .getExecutionCommand().getConfigurationTags().size());
           smokeTestCmd = hrc;
         }
       }

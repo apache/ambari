@@ -489,16 +489,7 @@ public class Stage {
     }
     cmd.setCommandParams(cmdParams);
 
-    Map<String, Map<String, String>> configurations = new TreeMap<>();
-    cmd.setConfigurations(configurations);
-
-    Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<>();
-    cmd.setConfigurationAttributes(configurationAttributes);
-
-    if (configTags == null) {
-      configTags = new TreeMap<>();
-    }
-    cmd.setConfigurationTags(configTags);
+    cmd.setConfigurations(new TreeMap<>());
 
     Map<String, String> roleParams = new HashMap<>();
     roleParams.put(ServerAction.ACTION_NAME, actionName);

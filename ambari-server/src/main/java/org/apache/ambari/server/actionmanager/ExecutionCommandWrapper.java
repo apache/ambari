@@ -133,17 +133,11 @@ public class ExecutionCommandWrapper {
 
       Cluster cluster = clusters.getClusterById(clusterId);
 
-      // Execution commands may have config-tags already set during their creation.
-      // However, these tags become stale at runtime when other
-      // ExecutionCommands run and change the desired configs (like
-      // ConfigureAction). Hence an ExecutionCommand can specify which
-      // config-types should be refreshed at runtime. Specifying <code>*</code>
-      // will result in all config-type tags to be refreshed to the latest
-      // cluster desired-configs. Additionally, there may be no configuration
-      // tags set but refresh might be set to *. In this case, they should still
-      // be refreshed with the latest.
-      boolean refreshConfigTagsBeforeExecution = executionCommand.getForceRefreshConfigTagsBeforeExecution();
-      if (refreshConfigTagsBeforeExecution) {
+      // Execution commands may have configs already set during their creation.
+      // However, these configs become stale at runtime when other
+      // ExecutionCommands run and change the desired configs (like ConfigureAction).
+      boolean overrideConfigs = executionCommand.isOverrideConfigs();
+      if (overrideConfigs) {
         Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
 
         Map<String, Map<String, String>> configurationTags = configHelper.getEffectiveDesiredTags(
@@ -153,18 +147,9 @@ public class ExecutionCommandWrapper {
             "While scheduling task {} on cluster {}, configurations are being refreshed using desired configurations of {}",
             executionCommand.getTaskId(), cluster.getClusterName(), desiredConfigs);
 
-        // then clear out any existing configurations so that all of the new
-        // configurations are forcefully applied
-        configurations.clear();
-        executionCommand.setConfigurationTags(configurationTags);
+        configurations = configHelper.getEffectiveConfigProperties(cluster, configurationTags);
+        executionCommand.setConfigurations(configurations);
       }
-
-      // now that the tags have been updated (if necessary), fetch the
-      // configurations
-      Map<String, Map<String, String>> configurationTags = executionCommand.getConfigurationTags();
-      configHelper.getAndMergeHostConfigs(configurations, configurationTags, cluster);
-      configHelper.getAndMergeHostConfigAttributes(executionCommand.getConfigurationAttributes(),
-          configurationTags, cluster);
 
       // provide some basic information about a cluster upgrade if there is one
       // in progress
