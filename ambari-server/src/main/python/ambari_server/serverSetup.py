@@ -1303,11 +1303,12 @@ def check_ambari_java_version_is_valid(java_home, java_bin, min_version, propert
       err = "Checking JDK version command returned with exit code %s" % process.returncode
       raise FatalException(process.returncode, err)
     else:
-      actual_jdk_version = int(get_java_major_version(out))
+      java_major_version = get_java_major_version(out)
+      actual_jdk_version = int(java_major_version)
       print 'JDK version found: {0}'.format(actual_jdk_version)
       if actual_jdk_version < min_version:
         print 'Minimum JDK version is {0} for Ambari. Setup JDK again only for Ambari Server.'.format(min_version)
-        properties.process_pair(STACK_JAVA_VERSION, get_java_major_version(out))
+        properties.process_pair(STACK_JAVA_VERSION, java_major_version)
         result = False
       else:
         print 'Minimum JDK version is {0} for Ambari. Skipping to setup different JDK for Ambari Server.'.format(min_version)
