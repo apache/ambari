@@ -29,7 +29,7 @@ describe('App.ManageJournalNodeWizardStep3Controller', function () {
   });
 
   describe('#pullCheckPointsStatuses', function () {
-    it.only('should removeObserver if HDFS namespaces are loaded', function () {
+    it('should removeObserver if HDFS namespaces are loaded', function () {
       controller.set('isHDFSNameSpacesLoaded', true);
       console.log('isHDFSNameSpacesLoaded from test', controller.get('isHDFSNameSpacesLoaded'));
       controller.set('content.masterComponentHosts', [{component: 'NAMENODE', isInstalled: true, hostName: 'test'}]);
