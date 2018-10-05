@@ -1273,7 +1273,7 @@
     </dependency>
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
-      <artifactId>eclipselink</artifactId>
+      <artifactId>org.eclipse.persistence.jpa</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>

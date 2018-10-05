@@ -552,7 +552,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
      */
     @Override
     public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+      return com.google.common.base.MoreObjects.toStringHelper(this)
           .add("host", hostName)
           .add("component", componentName)
           .add("current", currentVersion)

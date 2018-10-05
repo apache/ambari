@@ -303,7 +303,7 @@ public class ClusterConfigEntity {
    */
   @Override
   public String toString() {
-    return com.google.common.base.Objects.toStringHelper(this)
+    return com.google.common.base.MoreObjects.toStringHelper(this)
       .add("clusterId", clusterId)
       .add("type", type)
       .add("version", version)
