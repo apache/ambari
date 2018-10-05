@@ -219,19 +219,8 @@
       </dependency>
       <dependency>
         <groupId>org.eclipse.persistence</groupId>
-        <artifactId>javax.persistence</artifactId>
-        <version>2.1.1</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.persistence</groupId>
-        <artifactId>eclipselink</artifactId>
+        <artifactId>org.eclipse.persistence.jpa</artifactId>
         <version>${eclipselink.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.eclipse.persistence</groupId>
-            <artifactId>javax.persistence</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.postgresql</groupId>
