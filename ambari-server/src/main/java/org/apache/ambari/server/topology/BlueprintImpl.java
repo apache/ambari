@@ -46,12 +46,15 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 
 /**
  * Blueprint implementation.
  */
 public class BlueprintImpl implements Blueprint {
+
+  private static final Set<String> GLOBAL_CONFIG_TYPES = ImmutableSet.of("global", "core-site", ConfigHelper.CLUSTER_ENV);
 
   private String name;
   private Map<String, HostGroup> hostGroups = new HashMap<>();
@@ -617,10 +620,10 @@ public class BlueprintImpl implements Blueprint {
   }
 
   /**
-   * A config type is valid if there are services related to except cluster-env and global.
+   * A config type is valid if there are services related to except some special "global" ones.
    */
   public boolean isValidConfigType(String configType) {
-    if (ConfigHelper.CLUSTER_ENV.equals(configType) || "global".equals(configType)) {
+    if (GLOBAL_CONFIG_TYPES.contains(configType)) {
       return true;
     }
     return getStack().getServicesForConfigType(configType).stream().anyMatch(getServices()::contains);
@@ -653,4 +656,5 @@ public class BlueprintImpl implements Blueprint {
   public List<RepositorySetting> getRepositorySettings(){
     return repoSettings;
   }
+
 }

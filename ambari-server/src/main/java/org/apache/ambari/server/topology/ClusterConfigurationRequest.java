@@ -352,6 +352,8 @@ public class ClusterConfigurationRequest {
     Blueprint blueprint = clusterTopology.getBlueprint();
     Configuration clusterConfiguration = clusterTopology.getConfiguration();
 
+    Map<String, Map<String, String>> fullProperties = clusterConfiguration.getFullProperties();
+    Map<String, Map<String, Map<String, String>>> fullAttributes = clusterConfiguration.getFullAttributes();
     for (String service : blueprint.getServices()) {
       //todo: remove intermediate request type
       // one bp config request per service
@@ -362,11 +364,7 @@ public class ClusterConfigurationRequest {
         if (!excludedConfigTypes.contains(serviceConfigType)) {
           // skip handling of cluster-env here
           if (! serviceConfigType.equals("cluster-env")) {
-            if (clusterConfiguration.getFullProperties().containsKey(serviceConfigType)) {
-              blueprintConfigRequest.addConfigElement(serviceConfigType,
-                  clusterConfiguration.getFullProperties().get(serviceConfigType),
-                  clusterConfiguration.getFullAttributes().get(serviceConfigType));
-            }
+            addConfigTypeToRequest(blueprintConfigRequest, serviceConfigType, fullProperties, fullAttributes);
           }
         }
       }
@@ -377,13 +375,19 @@ public class ClusterConfigurationRequest {
     // since the stack returns "cluster-env" with each service's config ensure that only one
     // ClusterRequest occurs for the global cluster-env configuration
     BlueprintServiceConfigRequest globalConfigRequest = new BlueprintServiceConfigRequest("GLOBAL-CONFIG");
-    Map<String, String> clusterEnvProps = clusterConfiguration.getFullProperties().get("cluster-env");
-    Map<String, Map<String, String>> clusterEnvAttributes = clusterConfiguration.getFullAttributes().get("cluster-env");
-
-    globalConfigRequest.addConfigElement("cluster-env", clusterEnvProps,clusterEnvAttributes);
+    addConfigTypeToRequest(globalConfigRequest, "cluster-env", fullProperties, fullAttributes);
+    if (!blueprint.getServices().contains("HDFS")) {
+      addConfigTypeToRequest(globalConfigRequest, "core-site", fullProperties, fullAttributes);
+    }
     configurationRequests.add(globalConfigRequest);
 
     setConfigurationsOnCluster(configurationRequests, tag, updatedConfigTypes);
+  }
+
+  private void addConfigTypeToRequest(BlueprintServiceConfigRequest configRequest, String key, Map<String, Map<String, String>> properties, Map<String, Map<String, Map<String, String>>> attributes) {
+    if (properties.containsKey(key)) {
+      configRequest.addConfigElement(key, properties.get(key), attributes.get(key));
+    }
   }
 
   /**

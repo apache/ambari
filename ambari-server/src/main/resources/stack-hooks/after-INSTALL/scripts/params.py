@@ -94,7 +94,7 @@ mapred_pid_dir_prefix = default("/configurations/mapred-env/mapred_pid_dir_prefi
 mapred_log_dir_prefix = default("/configurations/mapred-env/mapred_log_dir_prefix","/var/log/hadoop-mapreduce")
 
 #users and groups
-hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+hdfs_user = default('configurations/hadoop-env/hdfs_user', 'hdfs')
 user_group = config['configurations']['cluster-env']['user_group']
 
 namenode_hosts = default("/clusterHostInfo/namenode_hosts", [])
@@ -103,18 +103,17 @@ has_hdfs_clients = len(hdfs_client_hosts) > 0
 has_namenode = len(namenode_hosts) > 0
 has_hdfs = has_hdfs_clients or has_namenode
 
-if has_hdfs or dfs_type == 'HCFS':
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+mount_table_xml_inclusion_file_full_path = None
+mount_table_content = None
 
-  mount_table_xml_inclusion_file_full_path = None
-  mount_table_content = None
-  if 'viewfs-mount-table' in config['configurations']:
-    xml_inclusion_file_name = 'viewfs-mount-table.xml'
-    mount_table = config['configurations']['viewfs-mount-table']
+if (has_hdfs or dfs_type == 'HCFS') and 'viewfs-mount-table' in config['configurations']:
+  xml_inclusion_file_name = 'viewfs-mount-table.xml'
+  mount_table = config['configurations']['viewfs-mount-table']
 
-    if 'content' in mount_table and mount_table['content'].strip():
-      mount_table_xml_inclusion_file_full_path = os.path.join(hadoop_conf_dir, xml_inclusion_file_name)
-      mount_table_content = mount_table['content']
+  if 'content' in mount_table and mount_table['content'].strip():
+    mount_table_xml_inclusion_file_full_path = os.path.join(hadoop_conf_dir, xml_inclusion_file_name)
+    mount_table_content = mount_table['content']
 
 link_configs_lock_file = get_config_lock_file()
 stack_select_lock_file = os.path.join(tmp_dir, "stack_select_lock_file")
