@@ -3150,7 +3150,7 @@ class TestAmbariServer(TestCase):
     # case 1:  jdk7 is picked for stacks
     properties = Properties()
     p = MagicMock()
-    p.communicate.return_value = ('7', None)
+    p.communicate.return_value = ('java version "1.7.0_80"', None)
     p.returncode = 0
     popenMock.return_value = p
     result = check_ambari_java_version_is_valid('/usr/jdk64/jdk_1.7.0/', 'java', 8, properties)
@@ -3159,7 +3159,7 @@ class TestAmbariServer(TestCase):
 
     # case 2: jdk8 is picked for stacks
     properties = Properties()
-    p.communicate.return_value = ('8', None)
+    p.communicate.return_value = ('java version "1.8.0_112"', None)
     p.returncode = 0
     result = check_ambari_java_version_is_valid('/usr/jdk64/jdk_1.8.0/', 'java', 8, properties)
     self.assertFalse(properties.get_property(STACK_JAVA_VERSION))
