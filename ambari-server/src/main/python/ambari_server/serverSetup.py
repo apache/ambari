@@ -80,7 +80,7 @@ UNTAR_JDK_ARCHIVE = "tar --no-same-owner -xvf {0}"
 JDK_PROMPT = "[{0}] {1}\n"
 JDK_VALID_CHOICES = "^[{0}{1:d}]$"
 
-JDK_VERSION_CHECK_CMD = """{0} -version 2>&1 | grep -i version | sed 's/.*version ".*\.\(.*\)\..*"/\\1/; 1q' 2>&1"""
+JDK_VERSION_CHECK_CMD = """{0} -version 2>&1 | grep -i version 2>&1"""
 
 def get_supported_jdbc_drivers():
   factory = DBMSConfigFactory()
@@ -1272,6 +1272,17 @@ def setup_jce_policy(args):
   print 'NOTE: Restart Ambari Server to apply changes' + \
         ' ("ambari-server restart|stop|start")'
 
+def get_java_major_version(cmd_out):
+  version_short = re.split("[java|openjdk|.*] version", cmd_out)[1].split(" ")[1][1:-1]
+  if re.match("^1\.[0-9].*", version_short): # 1.8.0_112
+    return version_short.split(".")[1]
+  elif re.match("^[1-9][0-9]*\.[0-9].*", version_short): # 10.0.2
+    return version_short.split(".")[0]
+  elif re.match("^[1-9][0-9]*$", version_short): # 11
+    return version_short
+  elif re.match("^[1-9][0-9]*-.*$", version_short): # 12-ea
+    return version_short.split("-")[0]
+
 def check_ambari_java_version_is_valid(java_home, java_bin, min_version, properties):
   """
   Check that ambari uses the proper (minimum) JDK with a shell command.
@@ -1292,11 +1303,12 @@ def check_ambari_java_version_is_valid(java_home, java_bin, min_version, propert
       err = "Checking JDK version command returned with exit code %s" % process.returncode
       raise FatalException(process.returncode, err)
     else:
-      actual_jdk_version = int(out)
+      java_major_version = get_java_major_version(out)
+      actual_jdk_version = int(java_major_version)
       print 'JDK version found: {0}'.format(actual_jdk_version)
       if actual_jdk_version < min_version:
         print 'Minimum JDK version is {0} for Ambari. Setup JDK again only for Ambari Server.'.format(min_version)
-        properties.process_pair(STACK_JAVA_VERSION, out)
+        properties.process_pair(STACK_JAVA_VERSION, java_major_version)
         result = False
       else:
         print 'Minimum JDK version is {0} for Ambari. Skipping to setup different JDK for Ambari Server.'.format(min_version)
