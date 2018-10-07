@@ -44,6 +44,18 @@ public class Configuration {
    */
   private Configuration parentConfiguration;
 
+  public static Configuration newEmpty() {
+    return new Configuration(new HashMap<>(), new HashMap<>());
+  }
+
+  public Configuration copy() {
+    Configuration parent = parentConfiguration;
+    parentConfiguration = null;
+    Configuration copy = new Configuration(getFullProperties(), getFullAttributes());
+    parentConfiguration = parent;
+    return copy;
+  }
+
   /**
    * Constructor.
    *
@@ -386,10 +398,10 @@ public class Configuration {
    * Remove all occurrences of a config type
    */
   public void removeConfigType(String configType) {
-    if (properties != null && properties.containsKey(configType)) {
+    if (properties != null) {
       properties.remove(configType);
     }
-    if (attributes != null && attributes.containsKey(configType)) {
+    if (attributes != null) {
       attributes.remove(configType);
     }
     if (parentConfiguration != null) {

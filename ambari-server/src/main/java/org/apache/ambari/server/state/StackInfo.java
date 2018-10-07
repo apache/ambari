@@ -549,7 +549,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
     return null;
   }
 
-  private Map<String,  Map<String, Map<String, String>>> getDefaultConfigAttributes(){
+  public Map<String, Map<String, Map<String, String>>> getDefaultConfigAttributes() {
     Map<String,  Map<String, Map<String, String>>> result = new HashMap<>();
     for(ServiceInfo si : services){
       for(PropertyInfo pi : si.getProperties())
@@ -623,9 +623,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
     latestVersion = xml;
   }
 
-  /**
-   * @param xml the version definition parsed from {@link LatestRepoCallable}
-   */
   public VersionDefinitionXml getLatestVersionDefinition() {
     return latestVersion;
   }

@@ -47,11 +47,16 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Encapsulates stack information.
  */
 public class Stack {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Stack.class);
+
   /**
    * Stack name
    */
@@ -701,10 +706,27 @@ public class Stack {
         Collections.singleton(new StackLevelConfigurationRequest(name, version, null)));
     serviceConfigs.addAll(stackLevelConfigs);
 
+    Map<String, Map<String, Map<String, String>>> defaultConfigAttributes = controller.getAmbariMetaInfo().getStack(getName(), getVersion()).getDefaultConfigAttributes();
+
     // shouldn't have any required properties in stack level configuration
     for (StackConfigurationResponse config : serviceConfigs) {
       ConfigProperty configProperty = new ConfigProperty(config);
       String type = configProperty.getType();
+      String propertyName = configProperty.getName();
+
+      Map<String, Map<String, String>> attributesForConfigType = defaultConfigAttributes.getOrDefault(type, Collections.emptyMap());
+      if (!attributesForConfigType.isEmpty()) {
+        for (Map.Entry<String, Map<String, String>> entry : attributesForConfigType.entrySet()) {
+          String attributeName = entry.getKey();
+          String attributeValue = entry.getValue().get(propertyName);
+          if (attributeValue != null) {
+            String oldValue = configProperty.getAttributes().putIfAbsent(attributeName, attributeValue);
+            if (oldValue == null) {
+              LOG.debug("Added default attribute {}={} for {}/{}", attributeName, attributeValue, type, propertyName);
+            }
+          }
+        }
+      }
 
       Map<String, ConfigProperty> mapTypeConfig = mapServiceConfig.get(type);
       if (mapTypeConfig == null) {

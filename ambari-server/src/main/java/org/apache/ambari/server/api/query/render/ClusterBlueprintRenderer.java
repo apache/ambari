@@ -41,6 +41,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
+import org.apache.ambari.server.controller.internal.BlueprintExportType;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ExportBlueprintRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
@@ -72,6 +73,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Renderer which renders a cluster resource as a blueprint.
@@ -91,6 +93,12 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    * Management Controller used to get stack information.
    */
   private final AmbariManagementController controller = AmbariServer.getController();
+
+  private final BlueprintExportType exportType;
+
+  public ClusterBlueprintRenderer(BlueprintExportType exportType) {
+    this.exportType = exportType;
+  }
 
 
   // ----- Renderer ----------------------------------------------------------
@@ -184,7 +192,6 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    * Create a blueprint resource.
    *
    * @param clusterNode  cluster tree node
-   *
    * @return a new blueprint resource
    */
   private Resource createBlueprintResource(TreeNode<Resource> clusterNode) {
@@ -198,7 +205,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     }
 
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(exportType);
 
     Stack stack = topology.getBlueprint().getStack();
     blueprintResource.setProperty("Blueprints/stack_name", stack.getName());
@@ -223,10 +230,16 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     List<Map<String, Object>> groupList = formatGroupsAsList(topology);
     blueprintResource.setProperty("host_groups", groupList);
 
-    blueprintResource.setProperty("configurations", processConfigurations(topology));
+    List<Map<String, Map<String, Map<String, ?>>>> configurations = processConfigurations(topology);
+    if (exportType.include(configurations)) {
+      blueprintResource.setProperty("configurations", configurations);
+    }
 
     //Fetch settings section for blueprint
-    blueprintResource.setProperty("settings", getSettings(clusterNode, stack));
+    Collection<Map<String, Object>> settings = getSettings(clusterNode, stack);
+    if (exportType.include(settings)) {
+      blueprintResource.setProperty("settings", settings);
+    }
 
     return blueprintResource;
   }
@@ -261,7 +274,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    * @return A Collection<Map<String, Object>> which represents the Setting Object
    */
   @VisibleForTesting
-  static Collection<Map<String, Object>> getSettings(TreeNode<Resource> clusterNode, Stack stack) {
+  Collection<Map<String, Object>> getSettings(TreeNode<Resource> clusterNode, Stack stack) {
     //Initialize collections to create appropriate json structure
     Collection<Map<String, Object>> blueprintSetting = new ArrayList<>();
 
@@ -289,7 +302,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
       //Fetch the service Components to obtain ServiceComponentInfo
       Collection<TreeNode<Resource>> componentChildren = serviceNode.getChild("components").getChildren();
-      for (TreeNode componentNode : componentChildren) {
+      for (TreeNode<Resource> componentNode : componentChildren) {
         ResourceImpl component = (ResourceImpl) componentNode.getObject();
         Map<String, Object> serviceComponentInfoMap = component.getPropertiesMap().get("ServiceComponentInfo");
         String componentName = serviceComponentInfoMap.get("component_name").toString();
@@ -307,8 +320,13 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
         }
       }
     }
-    blueprintSetting.add(ImmutableMap.of(SERVICE_SETTINGS, serviceSettings));
-    blueprintSetting.add(ImmutableMap.of(COMPONENT_SETTINGS, componentSettings));
+
+    if (exportType.include(serviceSettings)) {
+      blueprintSetting.add(ImmutableMap.of(SERVICE_SETTINGS, serviceSettings));
+    }
+    if (exportType.include(componentSettings)) {
+      blueprintSetting.add(ImmutableMap.of(COMPONENT_SETTINGS, componentSettings));
+    }
 
     return blueprintSetting;
   }
@@ -366,14 +384,23 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     List<Map<String, Map<String, Map<String, ?>>>> configList = new ArrayList<>();
 
     Configuration configuration = topology.getConfiguration();
-    Collection<String> allTypes = new HashSet<>();
-    allTypes.addAll(configuration.getFullProperties().keySet());
-    allTypes.addAll(configuration.getFullAttributes().keySet());
+    Map<String, Map<String, String>> fullProperties = configuration.getFullProperties();
+    Map<String, Map<String, Map<String, String>>> fullAttributes = configuration.getFullAttributes();
+    Collection<String> allTypes = ImmutableSet.<String>builder()
+      .addAll(fullProperties.keySet())
+      .addAll(fullAttributes.keySet())
+      .build();
     for (String type : allTypes) {
       Map<String, Map<String, ?>> typeMap = new HashMap<>();
-      typeMap.put("properties", configuration.getFullProperties().get(type));
-      if (! configuration.getFullAttributes().isEmpty()) {
-        typeMap.put("properties_attributes", configuration.getFullAttributes().get(type));
+      Map<String, String> properties = fullProperties.get(type);
+      if (exportType.include(properties)) {
+        typeMap.put("properties", properties);
+      }
+      if (!fullAttributes.isEmpty()) {
+        Map<String, Map<String, String>> attributes = fullAttributes.get(type);
+        if (exportType.include(attributes)) {
+          typeMap.put("properties_attributes", attributes);
+        }
       }
 
       configList.add(Collections.singletonMap(type, typeMap));
@@ -407,7 +434,9 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
         configList.add(propertyMap);
       }
-      mapGroupProperties.put("configurations", configList);
+      if (exportType.include(configList)) {
+        mapGroupProperties.put("configurations", configList);
+      }
     }
     return listHostGroups;
   }
@@ -433,7 +462,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
   protected ClusterTopology createClusterTopology(TreeNode<Resource> clusterNode)
       throws InvalidTopologyTemplateException, InvalidTopologyException {
 
-    return new ClusterTopologyImpl(new AmbariContext(), new ExportBlueprintRequest(clusterNode));
+    return new ClusterTopologyImpl(new AmbariContext(), new ExportBlueprintRequest(clusterNode, exportType, controller));
   }
 
   /**

@@ -65,6 +65,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -196,12 +197,22 @@ public class BlueprintConfigurationProcessor {
   private static final Set<String> configPropertiesWithHASupport =
     new HashSet<>(Arrays.asList("fs.defaultFS", "hbase.rootdir", "instance.volumes", "policymgr_external_url", "xasecure.audit.destination.hdfs.dir"));
 
+  private static final Set<Pair<String, String>> PROPERTIES_FOR_HADOOP_PROXYUSER = ImmutableSet.of(
+    Pair.of("oozie-env", "oozie_user"),
+    Pair.of("hive-env", "hive_user"),
+    Pair.of("hive-env", "webhcat_user"),
+    Pair.of("hbase-env", "hbase_user"),
+    Pair.of("falcon-env", "falcon_user")
+  );
+  private static final String HADOOP_PROXYUSER_HOSTS_FORMAT = "hadoop.proxyuser.%s.hosts";
+  private static final String HADOOP_PROXYUSER_GROUPS_FORMAT = "hadoop.proxyuser.%s.groups";
+
   /**
    * Statically-defined list of filters to apply on property exports.
    * This will initially be used to filter out the Ranger Passwords, but
    * could be extended in the future for more generic purposes.
    */
-  private PropertyFilter[] getExportPropertyFilters (Map<Long, Set<String>> authToLocalPerClusterMap)
+  private PropertyFilter[] getExportPropertyFilters(Map<Long, Set<String>> authToLocalPerClusterMap)
   {
     return new PropertyFilter[] {
       new PasswordPropertyFilter(),
@@ -451,9 +462,8 @@ public class BlueprintConfigurationProcessor {
     }
 
     // Explicitly set any properties that are required but not currently provided in the stack definition.
+    injectDefaults(clusterConfig, configTypesUpdated, clusterTopology.getBlueprint().getServices());
     setStackToolsAndFeatures(clusterConfig, configTypesUpdated);
-    setRetryConfiguration(clusterConfig, configTypesUpdated);
-    setupHDFSProxyUsers(clusterConfig, configTypesUpdated);
     addExcludedConfigProperties(clusterConfig, configTypesUpdated, clusterTopology.getBlueprint().getStack());
 
     trimProperties(clusterConfig, clusterTopology);
@@ -815,7 +825,7 @@ public class BlueprintConfigurationProcessor {
    * Update properties for blueprint export.
    * This involves converting concrete topology information to host groups.
    */
-  public void doUpdateForBlueprintExport() {
+  public void doUpdateForBlueprintExport(BlueprintExportType exportType) {
     // HA configs are only processed in cluster configuration, not HG configurations
     if (clusterTopology.isNameNodeHAEnabled()) {
       doNameNodeHAUpdate();
@@ -830,7 +840,8 @@ public class BlueprintConfigurationProcessor {
     }
 
     Collection<Configuration> allConfigs = new ArrayList<>();
-    allConfigs.add(clusterTopology.getConfiguration());
+    Configuration clusterConfig = clusterTopology.getConfiguration();
+    allConfigs.add(clusterConfig);
     for (HostGroupInfo groupInfo : clusterTopology.getHostGroupInfo().values()) {
       Configuration hgConfiguration = groupInfo.getConfiguration();
       if (! hgConfiguration.getFullProperties(1).isEmpty()) {
@@ -852,6 +863,12 @@ public class BlueprintConfigurationProcessor {
 
       doFilterPriorToExport(configuration);
     }
+
+    if (exportType == BlueprintExportType.MINIMAL) {
+      // convert back to suffix-less form, to allow comparing to defaults
+      doNonTopologyUpdate(mPropertyUpdaters, clusterConfig);
+    }
+    exportType.filter(clusterConfig, clusterTopology.getBlueprint().getStack().getConfiguration());
   }
 
   /**
@@ -1673,11 +1690,11 @@ public class BlueprintConfigurationProcessor {
     for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaters.entrySet()) {
       String type = entry.getKey();
       for (String propertyName : entry.getValue().keySet()) {
-        NonTopologyUpdater npu = (NonTopologyUpdater) entry.getValue().get(propertyName);
+        PropertyUpdater pu = entry.getValue().get(propertyName);
         Map<String, String> typeProperties = properties.get(type);
 
         if (typeProperties != null && typeProperties.containsKey(propertyName)) {
-          String newValue = npu.updateForBlueprintExport(propertyName, typeProperties.get(propertyName), properties, clusterTopology);
+          String newValue = pu.updateForBlueprintExport(propertyName, typeProperties.get(propertyName), properties, clusterTopology);
           configuration.setProperty(type, propertyName, newValue);
         }
       }
@@ -1702,6 +1719,10 @@ public class BlueprintConfigurationProcessor {
                                   String origValue,
                                   Map<String, Map<String, String>> properties,
                                   ClusterTopology topology);
+
+    default String updateForBlueprintExport(String propertyName, String value, Map<String, Map<String, String>> properties, ClusterTopology topology) {
+      return value;
+    }
 
     /**
      * Determine the required host groups for the provided property.
@@ -2764,13 +2785,6 @@ public class BlueprintConfigurationProcessor {
                                                     ClusterTopology topology) {
       return Collections.emptyList();
     }
-
-    public String updateForBlueprintExport(String propertyName,
-                                           String origValue,
-                                           Map<String, Map<String, String>> properties,
-                                           ClusterTopology topology) {
-      return origValue;
-    }
   }
 
 
@@ -3228,52 +3242,75 @@ public class BlueprintConfigurationProcessor {
     }
   }
 
-  private Collection<String> setupHDFSProxyUsers(Configuration configuration, Set<String> configTypesUpdated) {
-    // AMBARI-5206
-    final Map<String , String> userProps = new HashMap<>();
-
-    Collection<String> services = clusterTopology.getBlueprint().getServices();
-    if (services.contains("HDFS")) {
-      // only add user properties to the map for
-      // services actually included in the blueprint definition
-      if (services.contains("OOZIE")) {
-        userProps.put("oozie_user", "oozie-env");
-      }
-
-      if (services.contains("HIVE")) {
-        userProps.put("hive_user", "hive-env");
-        userProps.put("webhcat_user", "hive-env");
-      }
-
-      if (services.contains("HBASE")) {
-        userProps.put("hbase_user", "hbase-env");
-      }
-
-      if (services.contains("FALCON")) {
-        userProps.put("falcon_user", "falcon-env");
-      }
-
-      String proxyUserHosts = "hadoop.proxyuser.%s.hosts";
-      String proxyUserGroups = "hadoop.proxyuser.%s.groups";
-
-      Map<String, Map<String, String>> existingProperties = configuration.getFullProperties();
-      for (String property : userProps.keySet()) {
-        String configType = userProps.get(property);
-        Map<String, String> configs = existingProperties.get(configType);
-        if (configs != null) {
-          String user = configs.get(property);
-          if (user != null && !user.isEmpty()) {
-            ensureProperty(configuration, "core-site", String.format(proxyUserHosts, user), "*", configTypesUpdated);
-            ensureProperty(configuration, "core-site", String.format(proxyUserGroups, user), "*", configTypesUpdated);
-          }
-        } else {
-          LOG.debug("setMissingConfigurations: no user configuration found for type = {}.  This may be caused by an error in the blueprint configuration.",
-            configType);
+  /**
+   * Generates property names of the format "hadoop.proxyuser.*" based on actual usernames defined in {@code configuration}.
+   * Eg. if "hive-env" defined "hive_user": "cstm-hive", then a generated property name would be "hadoop_proxyuser_cstm-hive_hosts"
+   * @return set of hadoop proxyuser property names, paired with the name of the config type the username is defined in
+   *         (the config type is needed for filtering later)
+   */
+  private static Set<Pair<String, String>> generateHadoopProxyUserPropertyNames(Configuration configuration) {
+    Set<Pair<String, String>> proxyUsers = new HashSet<>();
+    Map<String, Map<String, String>> existingProperties = configuration.getFullProperties();
+    for (Pair<String, String> userProp : PROPERTIES_FOR_HADOOP_PROXYUSER) {
+      String configType = userProp.getLeft();
+      String property = userProp.getRight();
+      Map<String, String> configs = existingProperties.get(configType);
+      if (configs != null) {
+        String user = configs.get(property);
+        if (!Strings.isNullOrEmpty(user)) {
+          proxyUsers.add(Pair.of(configType, String.format(HADOOP_PROXYUSER_HOSTS_FORMAT, user)));
+          proxyUsers.add(Pair.of(configType, String.format(HADOOP_PROXYUSER_GROUPS_FORMAT, user)));
         }
-
       }
     }
-    return services;
+
+    return proxyUsers;
+  }
+
+  /**
+   * Ensures {@code hadoop.proxyuser.*} properties are present in core-site for the services defined in the blueprint.
+   */
+  private static void setupHDFSProxyUsers(Configuration configuration, Set<String> configTypesUpdated, Collection<String> services) {
+    if (services.contains("HDFS")) {
+      Set<Pair<String, String>> configTypePropertyPairs = generateHadoopProxyUserPropertyNames(configuration);
+      Set<String> acceptableConfigTypes = getEligibleConfigTypesForHadoopProxyUsers(services);
+
+      Map<String, Map<String, String>> existingProperties = configuration.getFullProperties();
+      for (Pair<String, String> pair : configTypePropertyPairs) {
+        String configType = pair.getLeft();
+        if (acceptableConfigTypes.contains(configType)) {
+          Map<String, String> configs = existingProperties.get(configType);
+          if (configs != null) {
+            ensureProperty(configuration, "core-site", pair.getRight(), "*", configTypesUpdated);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * @return set of config types with eligible properties for hadoop proxyuser
+   */
+  private static Set<String> getEligibleConfigTypesForHadoopProxyUsers(Collection<String> services) {
+    Set<String> acceptableConfigTypes = new HashSet<>();
+
+    if (services.contains("OOZIE")) {
+      acceptableConfigTypes.add("oozie-env");
+    }
+
+    if (services.contains("HIVE")) {
+      acceptableConfigTypes.add("hive-env");
+    }
+
+    if (services.contains("HBASE")) {
+      acceptableConfigTypes.add("hbase-env");
+    }
+
+    if (services.contains("FALCON")) {
+      acceptableConfigTypes.add("falcon-env");
+    }
+
+    return acceptableConfigTypes;
   }
 
   /**
@@ -3416,6 +3453,14 @@ public class BlueprintConfigurationProcessor {
     }
   }
 
+  /**
+   * Ensures that properties non-stack properties are present in {@code configuration}.
+   */
+  static void injectDefaults(Configuration configuration, Set<String> configTypesUpdated, Collection<String> services) {
+    setRetryConfiguration(configuration, configTypesUpdated);
+    setupHDFSProxyUsers(configuration, configTypesUpdated, services);
+  }
+
   private @Nullable String trimValue(@Nullable String value,
                                      @NotNull Stack stack,
                                      @NotNull String configType,
@@ -3439,7 +3484,7 @@ public class BlueprintConfigurationProcessor {
    * @param property       property name
    * @param defaultValue   default value
    */
-  private void ensureProperty(Configuration configuration, String type, String property, String defaultValue, Set<String> configTypesUpdated) {
+  private static void ensureProperty(Configuration configuration, String type, String property, String defaultValue, Set<String> configTypesUpdated) {
     if (configuration.getPropertyValue(type, property) == null) {
       configuration.setProperty(type, property, defaultValue);
       configTypesUpdated.add(type);
@@ -3503,6 +3548,7 @@ public class BlueprintConfigurationProcessor {
       return !PASSWORD_NAME_REGEX.matcher(propertyName).matches();
     }
   }
+
   /**
    * A Filter that excludes properties if in stack a property is marked as password property or kerberos principal
    *
