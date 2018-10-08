@@ -25,16 +25,6 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, A
 
   isCheckInProgress: false,
 
-  totalSteps: function () {
-    const steps = this.get("steps");
-
-    if (steps) {
-      return steps.length;
-    }
-
-    return 0;
-  }.property('steps.[]'),
-
   steps: [
     "configureDownload",
     "selectMpacks",

@@ -2006,21 +2006,21 @@ describe('App.WizardController', function () {
   describe('#getNextStepName', function () {
     var wizardController;
 
-    before(function () {
+    beforeEach(function () {
       wizardController = App.WizardController.create({
         currentStep: null,
         steps: null
       });
+
       sinon.stub(wizardController, 'setStepsEnable');
     });
 
-    afterEach(function () {
-      wizardController.set('steps', null);
-    });
-
     it('Should return null when last step is current and there is no steps array', function () {
-      wizardController.set('totalSteps', 3);
-      wizardController.set('currentStep', 2);
+      wizardController = App.WizardController.create({
+        totalSteps: 3,
+        currentStep: 2,
+        steps: null
+      });
 
       var stepName = wizardController.getNextStepName();
 
@@ -2058,7 +2058,11 @@ describe('App.WizardController', function () {
     });
 
     it('Should return step name of the form "step<x+1>" when there is no steps array', function () {
-      wizardController.set('currentStep', 1);
+      wizardController = App.WizardController.create({
+        totalSteps: 3,
+        currentStep: 1,
+        steps: null
+      });
 
       var stepName = wizardController.getNextStepName();
 

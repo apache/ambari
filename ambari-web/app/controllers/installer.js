@@ -25,16 +25,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
   isCheckInProgress: false,
 
-  totalSteps: function () {
-    const steps = this.get("steps");
-
-    if (steps) {
-      return steps.length;
-    }
-
-    return 0;
-  }.property('steps.[]'),
-
   steps: [
     "step0",
     "step2",
