@@ -288,11 +288,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   },
 
   loadComponentWithStaleConfigsSuccessCallback: function(json) {
-    json.items.forEach((item) => {
-      const componentName = item.ServiceComponentInfo.component_name;
-      const hosts = item.host_components.mapProperty('HostRoles.host_name') || [];
-      App.componentsStateMapper.updateStaleConfigsHosts(componentName, hosts);
-    });
+    json.items.forEach(item => App.componentsStateMapper.updateStaleConfigsHosts(item.HostRoles.component_name, item.HostRoles.host_name));
   },
 
   loadConfigProperties: function() {

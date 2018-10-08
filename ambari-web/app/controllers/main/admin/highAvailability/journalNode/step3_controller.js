@@ -28,7 +28,6 @@ App.ManageJournalNodeWizardStep3Controller = App.HighAvailabilityWizardStep4Cont
   isDataLoadedAndNextEnabled: Em.computed.and('isNextEnabled', 'isHDFSNameSpacesLoaded'),
 
   pullCheckPointsStatuses: function () {
-    console.log('isHDFSNameSpacesLoaded', this.get('isHDFSNameSpacesLoaded'));
     if (this.get('isHDFSNameSpacesLoaded')) {
       this.removeObserver('isHDFSNameSpacesLoaded', this, 'pullCheckPointsStatuses');
       const hdfsModel = App.HDFSService.find('HDFS'),
