@@ -118,6 +118,7 @@ public class RequestExecutionImpl implements RequestExecution {
         BatchRequest batchRequest = new BatchRequest();
         batchRequest.setOrderId(batchRequestEntity.getBatchId());
         batchRequest.setRequestId(batchRequestEntity.getRequestId());
+        batchRequest.setBody(new String(batchRequestEntity.getRequestBody()));
         batchRequest.setType(BatchRequest.Type.valueOf(batchRequestEntity.getRequestType()));
         batchRequest.setUri(batchRequestEntity.getRequestUri());
         batchRequest.setStatus(batchRequestEntity.getRequestStatus());
@@ -136,6 +137,13 @@ public class RequestExecutionImpl implements RequestExecution {
     schedule.setStartTime(requestScheduleEntity.getStartTime());
     schedule.setEndTime(requestScheduleEntity.getEndTime());
 
+    //if all values are nulls set the general scheduler to null
+    if (schedule.getDayOfWeek() == null && schedule.getDaysOfMonth() == null &&
+          schedule.getMinutes() == null && schedule.getHours() == null &&
+          schedule.getMonth() == null && schedule.getYear() == null &&
+          schedule.getStartTime() == null && schedule.getEndTime() == null) {
+      schedule = null;
+    }
     isPersisted = true;
   }
 
