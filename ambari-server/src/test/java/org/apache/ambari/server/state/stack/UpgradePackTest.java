@@ -53,7 +53,7 @@ import org.apache.ambari.server.stack.upgrade.UpdateStackGrouping;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.stack.upgrade.UpgradePack.PrerequisiteCheckConfig;
 import org.apache.ambari.server.stack.upgrade.UpgradePack.ProcessingComponent;
-import org.apache.ambari.server.stack.upgrade.UpgradeType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

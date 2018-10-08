@@ -22,23 +22,29 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.RepositoryType;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.spi.ClusterInformation;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.RepositoryVersion;
+import org.apache.ambari.spi.upgrade.UpgradeCheck;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Provider;
 
 /**
@@ -50,7 +56,8 @@ public class AutoStartDisabledCheckTest {
   private final Clusters m_clusters = EasyMock.createMock(Clusters.class);
   private Map<String, String> m_configMap = new HashMap<>();
 
-  RepositoryVersionEntity repositoryVersionEntity;
+  RepositoryVersion repositoryVersion;
+  ClusterInformation clusterInformation;
 
   @Before
   public void before() throws Exception {
@@ -77,58 +84,64 @@ public class AutoStartDisabledCheckTest {
 
     expect(m_clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
 
-    repositoryVersionEntity = EasyMock.createNiceMock(RepositoryVersionEntity.class);
-    expect(repositoryVersionEntity.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
+    repositoryVersion = EasyMock.createNiceMock(RepositoryVersion.class);
+    expect(repositoryVersion.getRepositoryType()).andReturn(RepositoryType.STANDARD).anyTimes();
 
-    replay(m_clusters, cluster, config, repositoryVersionEntity);
+    clusterInformation = EasyMock.createNiceMock(ClusterInformation.class);
+    expect(clusterInformation.getClusterName()).andReturn("cluster").anyTimes();
+
+    replay(m_clusters, cluster, config, repositoryVersion, clusterInformation);
 
     m_configMap.clear();
   }
 
   @Test
+  public void testIsApplicable() throws Exception {
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, null,
+        repositoryVersion, m_configMap);
+
+    CheckHelper checkHelper = new CheckHelper();
+    List<UpgradeCheck> applicableChecks = checkHelper.getApplicableChecks(request,
+        Lists.newArrayList(m_check));
+
+    Assert.assertTrue(applicableChecks.size() == 1);
+  }
+
+  @Test
   public void testNoAutoStart() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.AUTO_START_DISABLED, "foo");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setTargetRepositoryVersion(repositoryVersionEntity);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
+        repositoryVersion, null);
 
-    Assert.assertTrue(m_check.isApplicable(request));
+    UpgradeCheckResult check = m_check.perform(request);
 
-    m_check.perform(check, request);
-
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
     Assert.assertTrue(StringUtils.isBlank(check.getFailReason()));
   }
 
   @Test
   public void testAutoStartFalse() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.AUTO_START_DISABLED, "foo");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setTargetRepositoryVersion(repositoryVersionEntity);
-
-    Assert.assertTrue(m_check.isApplicable(request));
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
+        repositoryVersion, null);
 
     m_configMap.put(AutoStartDisabledCheck.RECOVERY_ENABLED_KEY, "false");
 
-    m_check.perform(check, request);
+    UpgradeCheckResult check = m_check.perform(request);
 
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
     Assert.assertTrue(StringUtils.isBlank(check.getFailReason()));
   }
 
   @Test
   public void testAutoStartTrue() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.AUTO_START_DISABLED, "foo");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setTargetRepositoryVersion(repositoryVersionEntity);
-
-    Assert.assertTrue(m_check.isApplicable(request));
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
+        repositoryVersion, null);
 
     m_configMap.put(AutoStartDisabledCheck.RECOVERY_ENABLED_KEY, "true");
     m_configMap.put(AutoStartDisabledCheck.RECOVERY_TYPE_KEY, AutoStartDisabledCheck.RECOVERY_AUTO_START);
 
-    m_check.perform(check, request);
+    UpgradeCheckResult check = m_check.perform(request);
 
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    Assert.assertEquals(UpgradeCheckStatus.FAIL, check.getStatus());
     Assert.assertTrue(StringUtils.isNotBlank(check.getFailReason()));
     Assert.assertEquals("Auto Start must be disabled before performing an Upgrade. To disable Auto Start, navigate to " +
           "Admin > Service Auto Start. Turn the toggle switch off to Disabled and hit Save.", check.getFailReason());

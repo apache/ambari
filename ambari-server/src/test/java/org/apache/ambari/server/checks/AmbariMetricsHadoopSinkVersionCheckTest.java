@@ -19,6 +19,7 @@
 package org.apache.ambari.server.checks;
 
 import static org.apache.ambari.server.checks.AmbariMetricsHadoopSinkVersionCompatibilityCheck.MIN_HADOOP_SINK_VERSION_PROPERTY_NAME;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -34,7 +35,6 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
@@ -47,20 +47,25 @@ import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
-import org.apache.ambari.server.stack.upgrade.UpgradePack;
+import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.spi.ClusterInformation;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.RepositoryVersion;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
@@ -81,7 +86,13 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
 
   private VersionDefinitionXml m_vdfXml;
 
-  private RepositoryVersionEntity m_repositoryVersion;
+  @Mock
+  private RepositoryVersion m_repositoryVersion;
+
+  @Mock
+  private RepositoryVersionEntity m_repositoryVersionEntity;
+
+  private MockCheckHelper m_checkHelper = new MockCheckHelper();
 
   final Map<String, Service> m_services = new HashMap<>();
 
@@ -90,8 +101,7 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
    */
   @Before
   public void setup() throws Exception {
-
-    m_repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+    m_repositoryVersionEntity = Mockito.mock(RepositoryVersionEntity.class);
     m_clusterVersionSummary = Mockito.mock(ClusterVersionSummary.class);
     m_vdfXml = Mockito.mock(VersionDefinitionXml.class);
     MockitoAnnotations.initMocks(this);
@@ -106,16 +116,34 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
     Configuration config = Mockito.mock(Configuration.class);
     m_check.config = config;
 
-    when(m_repositoryVersion.getVersion()).thenReturn("3.0.0.0-1234");
-    when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "3.0"));
+    StackId stackId = new StackId("HDP", "3.0");
+    String version = "3.0.0.0-1234";
+
+    Mockito.when(m_repositoryVersion.getId()).thenReturn(1L);
+    Mockito.when(m_repositoryVersion.getRepositoryType()).thenReturn(RepositoryType.STANDARD);
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(stackId.toString());
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn(version);
+
+
+    when(m_repositoryVersionEntity.getVersion()).thenReturn(version);
+    when(m_repositoryVersionEntity.getStackId()).thenReturn(stackId);
 
     m_services.clear();
 
-    when(m_repositoryVersion.getType()).thenReturn(RepositoryType.STANDARD);
-    when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
+    when(m_repositoryVersionEntity.getType()).thenReturn(RepositoryType.STANDARD);
+    when(m_repositoryVersionEntity.getRepositoryXml()).thenReturn(m_vdfXml);
     when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
     when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
 
+    m_checkHelper.m_clusters = m_clusters;
+    Mockito.when(m_checkHelper.m_repositoryVersionDAO.findByPK(Mockito.anyLong())).thenReturn(m_repositoryVersionEntity);
+
+    m_check.checkHelperProvider = new Provider<CheckHelper>() {
+      @Override
+      public CheckHelper get() {
+        return m_checkHelper;
+      }
+    };
   }
 
   /**
@@ -125,32 +153,8 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
    */
   @Test
   public void testIsApplicable() throws Exception {
-    final Cluster cluster = Mockito.mock(Cluster.class);
-
-    when(cluster.getClusterId()).thenReturn(1L);
-    when(m_clusters.getCluster("cluster")).thenReturn(cluster);
-    when(cluster.getServices()).thenReturn(m_services);
-
-    m_services.put("HIVE", Mockito.mock(Service.class));
-
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setTargetRepositoryVersion(m_repositoryVersion);
-
-    Assert.assertFalse(m_check.isApplicable(request));
-
-    m_services.put("HDFS", Mockito.mock(Service.class));
-
-    m_check.repositoryVersionDaoProvider = new Provider<RepositoryVersionDAO>() {
-      @Override
-      public RepositoryVersionDAO get() {
-        return repositoryVersionDAO;
-      }
-    };
-
-    when(repositoryVersionDAO.findByStackNameAndVersion(Mockito.anyString(),
-      Mockito.anyString())).thenReturn(m_repositoryVersion);
-
-    Assert.assertTrue(m_check.isApplicable(request));
+    assertTrue(m_check.getApplicableServices().contains("HDFS"));
+    assertTrue(m_check.getApplicableServices().contains("AMBARI_METRICS"));
   }
 
   /**
@@ -196,21 +200,15 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
     requestDaoField.setAccessible(true);
     requestDaoField.set(m_check, requestDAOMock);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, "c1");
-    PrereqCheckRequest request = new PrereqCheckRequest("c1");
-    UpgradePack.PrerequisiteCheckConfig prerequisiteCheckConfig = new UpgradePack.PrerequisiteCheckConfig();
-    UpgradePack.PrerequisiteProperty prerequisiteProperty = new UpgradePack.PrerequisiteProperty();
-    prerequisiteProperty.name = MIN_HADOOP_SINK_VERSION_PROPERTY_NAME;
-    prerequisiteProperty.value = "2.7.0.0";
-    UpgradePack.PrerequisiteCheckProperties prerequisiteCheckProperties = new UpgradePack.PrerequisiteCheckProperties();
-    prerequisiteCheckProperties.name = "org.apache.ambari.server.checks.AmbariMetricsHadoopSinkVersionCompatibilityCheck";
-    prerequisiteCheckProperties.properties = Collections.singletonList(prerequisiteProperty);
-    prerequisiteCheckConfig.prerequisiteCheckProperties = Collections.singletonList(prerequisiteCheckProperties);
-    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
-    request.setTargetRepositoryVersion(m_repositoryVersion);
-    m_check.perform(check, request);
+    Map<String, String> checkProperties = new HashMap<>();
+    checkProperties.put(MIN_HADOOP_SINK_VERSION_PROPERTY_NAME, "2.7.0.0");
 
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    ClusterInformation clusterInformation = new ClusterInformation("c1", false, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
+        m_repositoryVersion, checkProperties);
+
+    UpgradeCheckResult check = m_check.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
   }
 
   @Test(timeout = 60000)
@@ -261,21 +259,16 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
     hrcDaoField.setAccessible(true);
     hrcDaoField.set(m_check, hostRoleCommandDAOMock);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, "c1");
-    PrereqCheckRequest request = new PrereqCheckRequest("c1");
-    UpgradePack.PrerequisiteCheckConfig prerequisiteCheckConfig = new UpgradePack.PrerequisiteCheckConfig();
-    UpgradePack.PrerequisiteProperty prerequisiteProperty = new UpgradePack.PrerequisiteProperty();
-    prerequisiteProperty.name = MIN_HADOOP_SINK_VERSION_PROPERTY_NAME;
-    prerequisiteProperty.value = "2.7.0.0";
-    UpgradePack.PrerequisiteCheckProperties prerequisiteCheckProperties = new UpgradePack.PrerequisiteCheckProperties();
-    prerequisiteCheckProperties.name = "org.apache.ambari.server.checks.AmbariMetricsHadoopSinkVersionCompatibilityCheck";
-    prerequisiteCheckProperties.properties = Collections.singletonList(prerequisiteProperty);
-    prerequisiteCheckConfig.prerequisiteCheckProperties = Collections.singletonList(prerequisiteCheckProperties);
-    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
-    request.setTargetRepositoryVersion(m_repositoryVersion);
-    m_check.perform(check, request);
+    Map<String, String> checkProperties = new HashMap<>();
+    checkProperties.put(MIN_HADOOP_SINK_VERSION_PROPERTY_NAME, "2.7.0.0");
 
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    ClusterInformation clusterInformation = new ClusterInformation("c1", false, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
+        m_repositoryVersion, checkProperties);
+
+    UpgradeCheckResult check = m_check.perform(request);
+
+    Assert.assertEquals(UpgradeCheckStatus.FAIL, check.getStatus());
     Assert.assertTrue(check.getFailReason().contains("upgrade 'ambari-metrics-hadoop-sink'"));
     Assert.assertEquals(check.getFailedOn().size(), 1);
     Assert.assertTrue(check.getFailedOn().iterator().next().contains("h1_fail"));

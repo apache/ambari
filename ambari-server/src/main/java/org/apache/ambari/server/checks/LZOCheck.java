@@ -20,12 +20,17 @@ package org.apache.ambari.server.checks;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
+import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeCheckType;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 
 /**
@@ -33,48 +38,62 @@ import com.google.inject.Singleton;
  * is used to check that the LZO codec enabled in the core-site config fnd warning if any hosts require LZO, it should be installed before starting the upgrade.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.INFORMATIONAL_WARNING)
-public class LZOCheck extends AbstractCheckDescriptor {
+@UpgradeCheckInfo(group = UpgradeCheckGroup.INFORMATIONAL_WARNING)
+public class LZOCheck extends ClusterCheck {
 
   final static String IO_COMPRESSION_CODECS = "io.compression.codecs";
   final static String LZO_ENABLE_KEY = "io.compression.codec.lzo.class";
   final static String LZO_ENABLE_VALUE = "com.hadoop.compression.lzo.LzoCodec";
 
+  static final UpgradeCheckDescription LZO_CONFIG_CHECK = new UpgradeCheckDescription("LZO_CONFIG_CHECK",
+      UpgradeCheckType.CLUSTER,
+      "LZO Codec Check",
+      new ImmutableMap.Builder<String, String>()
+          .put(UpgradeCheckDescription.DEFAULT,
+              "You have LZO codec enabled in the core-site config of your cluster. LZO is no longer installed automatically. " +
+                  "If any hosts require LZO, it should be installed before starting the upgrade. " +
+                  "Consult Ambari documentation for instructions on how to do this.").build());
+
   /**
    * Constructor.
    */
   public LZOCheck() {
-    super(CheckDescription.LZO_CONFIG_CHECK);
+    super(LZO_CONFIG_CHECK);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+  public UpgradeCheckResult perform(UpgradeCheckRequest request) throws AmbariException {
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
+
     if (config.getGplLicenseAccepted()){
-      return;
+      return result;
     }
+
     List<String> errorMessages = new ArrayList<>();
-    PrereqCheckStatus checkStatus = PrereqCheckStatus.WARNING;
+    UpgradeCheckStatus checkStatus = UpgradeCheckStatus.WARNING;
 
     String codecs = getProperty(request, "core-site", IO_COMPRESSION_CODECS);
     if (codecs!= null && codecs.contains(LZO_ENABLE_VALUE)) {
-      errorMessages.add(getFailReason(IO_COMPRESSION_CODECS, prerequisiteCheck, request));
+      errorMessages.add(getFailReason(IO_COMPRESSION_CODECS, result, request));
     }
     String classValue = getProperty(request, "core-site", LZO_ENABLE_KEY);
 
     if (LZO_ENABLE_VALUE.equals(classValue)) {
-      errorMessages.add(getFailReason(LZO_ENABLE_KEY, prerequisiteCheck, request));
+      errorMessages.add(getFailReason(LZO_ENABLE_KEY, result, request));
     }
 
     if (!errorMessages.isEmpty()) {
-      prerequisiteCheck.setFailReason(StringUtils.join(errorMessages, "You have LZO codec enabled in the core-site config of your cluster. " +
+      result.setFailReason(StringUtils.join(errorMessages, "You have LZO codec enabled in the core-site config of your cluster. " +
           "You have to accept GPL license during ambari-server setup to have LZO installed automatically. " +
           "If any hosts require LZO, it should be installed before starting the upgrade. " +
           "Consult Ambari documentation for instructions on how to do this."));
-      prerequisiteCheck.getFailedOn().add("LZO");
-      prerequisiteCheck.setStatus(checkStatus);
+      result.getFailedOn().add("LZO");
+      result.setStatus(checkStatus);
     }
+
+    return result;
   }
 }

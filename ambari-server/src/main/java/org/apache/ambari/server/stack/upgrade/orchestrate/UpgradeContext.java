@@ -75,19 +75,19 @@ import org.apache.ambari.server.stack.upgrade.HostOrderItem;
 import org.apache.ambari.server.stack.upgrade.HostOrderItem.HostOrderActionType;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.stack.upgrade.UpgradeScope;
-import org.apache.ambari.server.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -1300,11 +1300,11 @@ public class UpgradeContext {
       List<Resource> failedResources = new LinkedList<>();
       if (preUpgradeCheckResources != null) {
         for (Resource res : preUpgradeCheckResources) {
-          PrereqCheckStatus prereqCheckStatus = (PrereqCheckStatus) res.getPropertyValue(
+          UpgradeCheckStatus prereqCheckStatus = (UpgradeCheckStatus) res.getPropertyValue(
               PreUpgradeCheckResourceProvider.UPGRADE_CHECK_STATUS_PROPERTY_ID);
 
-          if (prereqCheckStatus == PrereqCheckStatus.FAIL
-              || (failOnCheckWarnings && prereqCheckStatus == PrereqCheckStatus.WARNING)) {
+          if (prereqCheckStatus == UpgradeCheckStatus.FAIL
+              || (failOnCheckWarnings && prereqCheckStatus == UpgradeCheckStatus.WARNING)) {
             failedResources.add(res);
           }
         }

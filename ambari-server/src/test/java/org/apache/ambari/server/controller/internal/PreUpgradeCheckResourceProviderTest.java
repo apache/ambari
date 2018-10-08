@@ -36,7 +36,6 @@ import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -53,21 +52,28 @@ import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stack.upgrade.Direction;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.stack.upgrade.UpgradePack.PrerequisiteCheckConfig;
-import org.apache.ambari.server.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeHelper;
 import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.upgrade.UpgradeCheck;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeCheckType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -101,10 +107,28 @@ public class PreUpgradeCheckResourceProviderTest {
     ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
 
+    Config actualConfig = createNiceMock(Config.class);
+    DesiredConfig desiredConfig = createNiceMock(DesiredConfig.class);
+    Map<String, DesiredConfig> configMap = Maps.newHashMap();
+    configMap.put("config-type", desiredConfig);
+
+    expect(desiredConfig.getTag()).andReturn("config-tag-1").atLeastOnce();
+    expect(cluster.getDesiredConfigs()).andReturn(configMap).atLeastOnce();
+    expect(cluster.getConfig("config-type", "config-tag-1")).andReturn(actualConfig).atLeastOnce();
+
     Map<String, Service> allServiceMap = new HashMap<>();
     allServiceMap.put("Service100", service);
+
     Map<String, ServiceInfo> allServiceInfoMap = new HashMap<>();
     allServiceInfoMap.put("Service100", serviceInfo);
+
+    ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
+    expect(serviceComponentHost.getServiceName()).andReturn("Service100").atLeastOnce();
+    expect(serviceComponentHost.getServiceComponentName()).andReturn("Component100").atLeastOnce();
+    expect(serviceComponentHost.getHostName()).andReturn("c6401.ambari.apache.org").atLeastOnce();
+    List<ServiceComponentHost> serviceComponentHosts = Lists.newArrayList();
+    serviceComponentHosts.add(serviceComponentHost);
+    expect(cluster.getServiceComponentHosts()).andReturn(serviceComponentHosts).atLeastOnce();
 
     expect(configuration.isUpgradePrecheckBypass()).andReturn(false).anyTimes();
     // set expectations
@@ -112,20 +136,25 @@ public class PreUpgradeCheckResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterName()).andReturn("Cluster100").atLeastOnce();
     expect(cluster.getServices()).andReturn(allServiceMap).anyTimes();
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(currentStackId).anyTimes();
 
     expect(currentStackId.getStackName()).andReturn("Stack100").anyTimes();
     expect(currentStackId.getStackVersion()).andReturn("1.0").anyTimes();
+    expect(targetStackId.getStackId()).andReturn("Stack100-1.1").anyTimes();
     expect(targetStackId.getStackName()).andReturn("Stack100").anyTimes();
     expect(targetStackId.getStackVersion()).andReturn("1.1").anyTimes();
 
     expect(repoDao.findByPK(1L)).andReturn(repo).anyTimes();
     expect(repo.getStackId()).andReturn(targetStackId).atLeastOnce();
+    expect(repo.getId()).andReturn(1L).atLeastOnce();
+    expect(repo.getType()).andReturn(RepositoryType.STANDARD).atLeastOnce();
+    expect(repo.getVersion()).andReturn("1.1.0.0").atLeastOnce();
     expect(upgradeHelper.suggestUpgradePack("Cluster100", currentStackId, targetStackId, Direction.UPGRADE, UpgradeType.NON_ROLLING, "upgrade_pack11")).andReturn(upgradePack);
 
-    List<AbstractCheckDescriptor> upgradeChecksToRun = new LinkedList<>();
+    List<UpgradeCheck> upgradeChecksToRun = new LinkedList<>();
     List<String> prerequisiteChecks = new LinkedList<>();
     prerequisiteChecks.add("org.apache.ambari.server.sample.checks.SampleServiceCheck");
     expect(upgradePack.getPrerequisiteCheckConfig()).andReturn(config);
@@ -138,7 +167,8 @@ public class PreUpgradeCheckResourceProviderTest {
 
     // replay
     replay(managementController, clusters, cluster, service, serviceInfo, repoDao, repo, upgradeHelper,
-        ambariMetaInfo, upgradePack, config, currentStackId, targetStackId, serviceFactory, configuration);
+        ambariMetaInfo, upgradePack, config, currentStackId, targetStackId, serviceFactory,
+        configuration, serviceComponentHost, actualConfig, desiredConfig);
 
     ResourceProvider provider = getPreUpgradeCheckResourceProvider(managementController, injector);
     // create the request
@@ -152,12 +182,7 @@ public class PreUpgradeCheckResourceProviderTest {
 
     System.out.println("PreUpgradeCheckResourceProvider - " + provider);
     Set<Resource> resources = Collections.emptySet();
-    try {
-      resources = provider.getResources(request, predicate);
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
+    resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(1, resources.size());
     for (Resource resource : resources) {
@@ -165,12 +190,12 @@ public class PreUpgradeCheckResourceProviderTest {
       Assert.assertEquals("SAMPLE_SERVICE_CHECK", id);
       String description = (String) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CHECK_PROPERTY_ID);
       Assert.assertEquals("Sample service check description.", description);
-      PrereqCheckStatus status = (PrereqCheckStatus) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_STATUS_PROPERTY_ID);
-      Assert.assertEquals(PrereqCheckStatus.FAIL, status);
+      UpgradeCheckStatus status = (UpgradeCheckStatus) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_STATUS_PROPERTY_ID);
+      Assert.assertEquals(UpgradeCheckStatus.FAIL, status);
       String reason = (String) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_REASON_PROPERTY_ID);
       Assert.assertEquals("Sample service check always fails.", reason);
-      PrereqCheckType checkType = (PrereqCheckType) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID);
-      Assert.assertEquals(PrereqCheckType.HOST, checkType);
+      UpgradeCheckType checkType = (UpgradeCheckType) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID);
+      Assert.assertEquals(UpgradeCheckType.HOST, checkType);
       String clusterName = (String) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID);
       Assert.assertEquals("Cluster100", clusterName);
       UpgradeType upgradeType = (UpgradeType) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID);
@@ -179,7 +204,8 @@ public class PreUpgradeCheckResourceProviderTest {
 
     // verify
     verify(managementController, clusters, cluster, service, serviceInfo, repoDao, repo, upgradeHelper,
-            ambariMetaInfo, upgradePack, config, currentStackId, targetStackId, serviceFactory);
+        ambariMetaInfo, upgradePack, config, currentStackId, targetStackId, serviceFactory,
+        serviceComponentHost, actualConfig, desiredConfig);
   }
 
   /**

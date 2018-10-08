@@ -22,10 +22,13 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.ldap.LdapModule;
+import org.apache.ambari.spi.upgrade.UpgradeCheck;
+import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -41,7 +44,7 @@ import com.google.inject.Injector;
 public class UpgradeCheckOrderTest {
 
   /**
-   * Tests that instances of {@link AbstractCheckDescriptor} are ordered
+   * Tests that instances of {@link UpgradeCheck} are ordered
    * correctly.
    *
    * @throws Exception
@@ -63,11 +66,11 @@ public class UpgradeCheckOrderTest {
     Assert.assertEquals(registry, registry2);
 
     // get the check list
-    List<AbstractCheckDescriptor> checks = registry.getUpgradeChecks();
+    List<UpgradeCheck> checks = registry.getUpgradeChecks();
 
     // scan for all checks
     ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-    AssignableTypeFilter filter = new AssignableTypeFilter(AbstractCheckDescriptor.class);
+    AssignableTypeFilter filter = new AssignableTypeFilter(UpgradeCheck.class);
     scanner.addIncludeFilter(filter);
 
     // grab all check subclasses using the exact folder they are in to avoid loading the SampleServiceCheck from the test jar
@@ -76,15 +79,15 @@ public class UpgradeCheckOrderTest {
     // verify they are equal
     Assert.assertEquals(beanDefinitions.size(), checks.size());
 
-    AbstractCheckDescriptor lastCheck = null;
-    for (AbstractCheckDescriptor check : checks) {
+    UpgradeCheck lastCheck = null;
+    for (UpgradeCheck check : checks) {
       UpgradeCheckGroup group = UpgradeCheckGroup.DEFAULT;
       UpgradeCheckGroup lastGroup = UpgradeCheckGroup.DEFAULT;
 
       if (null != lastCheck) {
 
-        UpgradeCheck annotation = check.getClass().getAnnotation(UpgradeCheck.class);
-        UpgradeCheck lastAnnotation = lastCheck.getClass().getAnnotation(UpgradeCheck.class);
+        UpgradeCheckInfo annotation = check.getClass().getAnnotation(UpgradeCheckInfo.class);
+        UpgradeCheckInfo lastAnnotation = lastCheck.getClass().getAnnotation(UpgradeCheckInfo.class);
 
         if (null != annotation && null != lastAnnotation) {
           group = annotation.group();

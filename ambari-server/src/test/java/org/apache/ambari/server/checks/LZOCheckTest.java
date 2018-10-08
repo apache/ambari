@@ -18,30 +18,30 @@
 package org.apache.ambari.server.checks;
 
     import java.util.HashMap;
-    import java.util.Map;
+import java.util.Map;
 
-    import org.apache.ambari.server.configuration.Configuration;
-    import org.apache.ambari.server.controller.PrereqCheckRequest;
-    import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-    import org.apache.ambari.server.state.Cluster;
-    import org.apache.ambari.server.state.Clusters;
-    import org.apache.ambari.server.state.Config;
-    import org.apache.ambari.server.state.DesiredConfig;
-    import org.apache.ambari.server.state.RepositoryType;
-    import org.apache.ambari.server.state.Service;
-    import org.apache.ambari.server.state.repository.ClusterVersionSummary;
-    import org.apache.ambari.server.state.repository.VersionDefinitionXml;
-    import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-    import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-    import org.junit.Assert;
-    import org.junit.Before;
-    import org.junit.Test;
-    import org.junit.runner.RunWith;
-    import org.mockito.Mock;
-    import org.mockito.Mockito;
-    import org.mockito.runners.MockitoJUnitRunner;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.spi.ClusterInformation;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.RepositoryVersion;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
-    import com.google.inject.Provider;
+import com.google.inject.Provider;
 
 
 /* Test for LZOCheck */
@@ -52,13 +52,7 @@ public class LZOCheckTest {
   private final LZOCheck lZOCheck = new LZOCheck();
 
   @Mock
-  private ClusterVersionSummary m_clusterVersionSummary;
-
-  @Mock
-  private VersionDefinitionXml m_vdfXml;
-
-  @Mock
-  private RepositoryVersionEntity m_repositoryVersion;
+  private RepositoryVersion m_repositoryVersion;
 
   @Mock
   private Configuration configuration;
@@ -77,24 +71,7 @@ public class LZOCheckTest {
 
     m_services.clear();
 
-    Mockito.when(m_repositoryVersion.getType()).thenReturn(RepositoryType.STANDARD);
-    Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
-    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
-    Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
-  }
-
-  @Test
-  public void testIsApplicable() throws Exception {
-    final Cluster cluster = Mockito.mock(Cluster.class);
-
-    Mockito.when(cluster.getServices()).thenReturn(m_services);
-    Mockito.when(cluster.getClusterId()).thenReturn(1L);
-    Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
-
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setTargetRepositoryVersion(m_repositoryVersion);
-
-    Assert.assertTrue(lZOCheck.isApplicable(request));
+    Mockito.when(m_repositoryVersion.getRepositoryType()).thenReturn(RepositoryType.STANDARD);
   }
 
   @Test
@@ -118,35 +95,32 @@ public class LZOCheckTest {
     Mockito.when(config.getProperties()).thenReturn(properties);
     Mockito.when(configuration.getGplLicenseAccepted()).thenReturn(false);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    lZOCheck.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
+        m_repositoryVersion, null);
 
+    UpgradeCheckResult result = lZOCheck.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, result.getStatus());
 
     properties.put(LZOCheck.IO_COMPRESSION_CODECS,"test," + LZOCheck.LZO_ENABLE_VALUE);
-    check = new PrerequisiteCheck(null, null);
-    lZOCheck.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
+    result = lZOCheck.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.WARNING, result.getStatus());
 
     properties.put(LZOCheck.IO_COMPRESSION_CODECS,"test");
-    check = new PrerequisiteCheck(null, null);
-    lZOCheck.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    result = lZOCheck.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, result.getStatus());
 
     properties.put(LZOCheck.LZO_ENABLE_KEY, LZOCheck.LZO_ENABLE_VALUE);
-    check = new PrerequisiteCheck(null, null);
-    lZOCheck.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
+    result = lZOCheck.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.WARNING, result.getStatus());
 
     properties.put(LZOCheck.LZO_ENABLE_KEY, LZOCheck.LZO_ENABLE_VALUE);
     properties.put(LZOCheck.IO_COMPRESSION_CODECS,"test," + LZOCheck.LZO_ENABLE_VALUE);
-    check = new PrerequisiteCheck(null, null);
-    lZOCheck.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
+    result = lZOCheck.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.WARNING, result.getStatus());
 
     Mockito.when(configuration.getGplLicenseAccepted()).thenReturn(true);
-    check = new PrerequisiteCheck(null, null);
-    lZOCheck.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    result = lZOCheck.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, result.getStatus());
   }
 }

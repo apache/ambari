@@ -151,7 +151,14 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>      
+      </plugin>   
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <configuration>
+          <configLocation>../ambari-server/checkstyle.xml</configLocation>
+        </configuration>
+      </plugin>
     </plugins>
   </build>  
   

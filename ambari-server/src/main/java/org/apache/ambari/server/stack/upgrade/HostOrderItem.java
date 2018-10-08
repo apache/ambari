@@ -19,6 +19,7 @@ package org.apache.ambari.server.stack.upgrade;
 
 import java.util.List;
 
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.base.Objects;

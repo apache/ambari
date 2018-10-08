@@ -20,18 +20,23 @@ package org.apache.ambari.spi.upgrade;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.spi.ClusterInformation;
+import org.apache.ambari.spi.RepositoryVersion;
+
 /**
  * Represents a request to run the upgrade checks before an upgrade begins.
  */
 public class UpgradeCheckRequest {
-  private String m_clusterName;
-  private Map<String, String> m_configurations;
-
-  private UpgradeType m_upgradeType;
-
-  private Map<CheckDescription, UpgradeCheckStatus> m_results = new HashMap<>();
+  private final ClusterInformation m_clusterInformation;
+  private final UpgradeType m_upgradeType;
   private boolean m_revert = false;
+  private final RepositoryVersion m_targetRepositoryVersion;
+  private final Map<String,String> m_checkConfigurations;
 
+  /**
+   * Used for tracking results during a check request.
+   */
+  private Map<UpgradeCheckDescription, UpgradeCheckStatus> m_results = new HashMap<>();
 
   /**
    * Constructor.
@@ -40,28 +45,37 @@ public class UpgradeCheckRequest {
    *          the name of the cluster.
    * @param upgradeType
    *          the type of the upgrade.
+   * @param targetRepositoryVersion
+   *          the target repository version for the upgrade.
    * @param configurations
    *          any configurations specified in the upgrade pack which can be used
    *          to when
    */
-  public UpgradeCheckRequest(String clusterName, UpgradeType upgradeType,
-      Map<String, String> configurations) {
-    m_clusterName = clusterName;
+  public UpgradeCheckRequest(ClusterInformation clusterInformation, UpgradeType upgradeType,
+      RepositoryVersion targetRepositoryVersion, Map<String,String> checkConfigurations) {
+    m_clusterInformation = clusterInformation;
     m_upgradeType = upgradeType;
-    m_configurations = configurations;
+    m_targetRepositoryVersion = targetRepositoryVersion;
+    m_checkConfigurations = checkConfigurations;
   }
 
   /**
-   * Construct a request to performs checks before an Upgrade.
-   * The default type is Rolling.
-   * @param clusterName
+   * Gets information about the cluster's current state, such as configurations,
+   * topology, and security.
+   *
+   * @return information about the cluster.
    */
-  public UpgradeCheckRequest(String clusterName) {
-    this(clusterName, UpgradeType.ROLLING, new HashMap<String, String>());
+  public ClusterInformation getClusterInformation() {
+    return m_clusterInformation;
   }
 
+  /**
+   * Gets the name of the cluster from the {@link ClusterInformation} instance.
+   *
+   * @return  the cluster name.
+   */
   public String getClusterName() {
-    return m_clusterName;
+    return m_clusterInformation.getClusterName();
   }
 
   public UpgradeType getUpgradeType() {
@@ -69,29 +83,12 @@ public class UpgradeCheckRequest {
   }
 
   /**
-   * Sets the result of a check.
-   * @param description the description
-   * @param status      the status result
+   * Gets the target repository version for the upgrade.
+   *
+   * @return  the target for the upgrade.
    */
-  public void addResult(CheckDescription description, UpgradeCheckStatus status) {
-    m_results.put(description, status);
-  }
-
-  /**
-   * Gets the result of a check of the supplied description
-   * @param description the description
-   * @return the return value, or {@code null} if it has not been run
-   */
-  public UpgradeCheckStatus getResult(CheckDescription description) {
-    return m_results.get(description);
-  }
-
-  /**
-   * Gets the prerequisite check config
-   * @return the prereqCheckConfig
-   */
-  public Map<String, String> getConfigurations() {
-    return m_configurations;
+  public RepositoryVersion getTargetRepositoryVersion() {
+    return m_targetRepositoryVersion;
   }
 
   /**
@@ -107,5 +104,32 @@ public class UpgradeCheckRequest {
    */
   public boolean isRevert() {
     return m_revert;
+  }
+
+  /**
+   * Gets any configurations defined in the upgrade pack which can be passed into the checks.
+   *
+   * @return  configurations defined in the upgrade pack, if any.
+   */
+  public Map<String, String> getCheckConfigurations() {
+    return m_checkConfigurations;
+  }
+
+  /**
+   * Sets the result of a check.
+   * @param description the description
+   * @param status      the status result
+   */
+  public void addResult(UpgradeCheckDescription description, UpgradeCheckStatus status) {
+    m_results.put(description, status);
+  }
+
+  /**
+   * Gets the result of a check of the supplied description
+   * @param description the description
+   * @return the return value, or {@code null} if it has not been run
+   */
+  public UpgradeCheckStatus getResult(UpgradeCheckDescription description) {
+    return m_results.get(description);
   }
 }

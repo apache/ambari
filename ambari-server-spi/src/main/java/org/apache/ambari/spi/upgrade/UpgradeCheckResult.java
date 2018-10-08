@@ -22,8 +22,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
- * Contains information about performed prerequisite check. Newly initialized
- * {@link UpgradeCheckResult} instances are always set to
+ * Contains information about upgrade checks which have been performed. Newly
+ * initialized {@link UpgradeCheckResult} instances are always set to
  * {@link UpgradeCheckStatus#PASS}.
  */
 public class UpgradeCheckResult {
@@ -42,30 +42,69 @@ public class UpgradeCheckResult {
     m_status = status;
   }
 
+  /**
+   * Gets the name of the unique {@link UpgradeCheckDescription} assocaited with the
+   * upgrade check.
+   *
+   * @return a unique identifier for the upgrade result which is based on the
+   *         {@link UpgradeCheckDescription}.
+   */
   public String getId() {
-    return m_upgradeCheck.getCheckDescrption().name();
+    return m_upgradeCheck.getCheckDescription().name();
   }
 
+  /**
+   * The associated {@link UpgradeCheckDescription}.
+   *
+   * @return
+   */
   public String getDescription() {
-    return m_upgradeCheck.getCheckDescrption().getText();
+    return m_upgradeCheck.getCheckDescription().getText();
   }
 
+  /**
+   * Gets the status of the executed upgrade check.
+   *
+   * @return the completed check's status.
+   */
   public UpgradeCheckStatus getStatus() {
     return m_status;
   }
 
+  /**
+   * Sets the status of the completed upgrade check.
+   *
+   * @param status
+   *          the completed status of the check.
+   */
   public void setStatus(UpgradeCheckStatus status) {
     m_status = status;
   }
 
+  /**
+   * Gets the full rendered, human-readable failure reason, if any.
+   *
+   * @return the failure reason, or {@code null} for none.
+   */
   public String getFailReason() {
     return m_failReason;
   }
 
+  /**
+   * Sets the full rendered, human-readable failure reason, if any.
+   *
+   * @param failReason
+   *          the failure reason, if any, or {@code null} for none.
+   */
   public void setFailReason(String failReason) {
     m_failReason = failReason;
   }
 
+  /**
+   * Gets the collection of services which have failed the check.
+   *
+   * @return the failed services, or {@code null} for none.
+   */
   public LinkedHashSet<String> getFailedOn() {
     return m_failedOn;
   }
@@ -78,6 +117,11 @@ public class UpgradeCheckResult {
     m_failedOn = failedOn;
   }
 
+  /**
+   * Gets the area of Ambari that the upgrade check is for.
+   *
+   * @return the type of check.
+   */
   public UpgradeCheckType getType() {
     return m_upgradeCheck.getType();
   }

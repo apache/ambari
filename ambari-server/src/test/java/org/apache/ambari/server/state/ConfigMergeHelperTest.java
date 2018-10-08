@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.state;
 
-import static org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -37,6 +36,7 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

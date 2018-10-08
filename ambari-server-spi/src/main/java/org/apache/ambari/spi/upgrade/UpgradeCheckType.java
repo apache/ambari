@@ -21,7 +21,20 @@ package org.apache.ambari.spi.upgrade;
  * Type of prerequisite check.
  */
 public enum UpgradeCheckType {
+  /**
+   * The upgrade check is for a specific service.
+   */
   SERVICE,
+
+  /**
+   * The upgrade check is meant to check information or state regarding a host
+   * or its components/repos.
+   */
   HOST,
+
+  /**
+   * The check is for the cluster's state and is not dependendant on a stack or
+   * service installed.
+   */
   CLUSTER
 }

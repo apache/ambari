@@ -47,16 +47,6 @@ public interface UpgradeCheck {
   List<CheckQualification> getQualifications();
 
   /**
-   * Tests if the prerequisite check is applicable to given upgrade request.
-   *
-   * @param request
-   *          prerequisite check request
-   * @return true if check should be performed
-   * @throws AmbariException
-   */
-  boolean isApplicable(UpgradeCheckRequest request) throws AmbariException;
-
-  /**
    * Executes check against given cluster.
    * @param request pre upgrade check request
    * @return TODO
@@ -74,19 +64,10 @@ public interface UpgradeCheck {
   UpgradeCheckType getType();
 
   /**
-   * Gets whether this upgrade check is required for the specified
-   * {@link UpgradeType}. Checks which are marked as required do not need to be
-   * explicitely declared in the upgrade pack to be run.
-   *
-   * @return {@code true} if it is required, {@code false} otherwise.
-   */
-  boolean isRequired(UpgradeType upgradeType);
-
-  /**
-   * The {@link CheckDescription} which includes the name, description, and
+   * The {@link UpgradeCheckDescription} which includes the name, description, and
    * success/failure messages for a {@link UpgradeCheck}.
    *
    * @return the check description.
    */
-  CheckDescription getCheckDescrption();
+  UpgradeCheckDescription getCheckDescription();
 }
