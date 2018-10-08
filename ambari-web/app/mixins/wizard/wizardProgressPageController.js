@@ -413,12 +413,14 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
    * @param {string[]} hostNames
    * @return {$.ajax}
    */
-  checkInstalledComponents: function (componentName, hostNames) {
+  checkInstalledComponents: function (componentName, hostNames, serviceName, serviceGroupName) {
     return App.ajax.send({
       name: 'host_component.installed.on_hosts',
       sender: this,
       data: {
         componentName: componentName,
+        serviceName: serviceName,
+        serviceGroupName: serviceGroupName,
         hostNames: hostNames.join(',')
       }
     });
@@ -533,13 +535,13 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
    * @param {(string|string[])} hostName - host/hosts where components should be installed
    * @param {string} serviceName - name of the services
    */
-  createComponent: function (componentName, hostName, serviceName) {
+  createComponent: function (componentName, hostName, serviceName, serviceGroupName) {
     var hostNames = (Array.isArray(hostName)) ? hostName : [hostName];
     var self = this;
 
     this.set('showRetry', false);
 
-    this.checkInstalledComponents(componentName, hostNames).then(function (data) {
+    this.checkInstalledComponents(componentName, hostNames, serviceName, serviceGroupName).then(function (data) {
       var hostsWithComponents = data.items.mapProperty('HostRoles.host_name');
       var result = hostNames.map(function(item) {
         return {
@@ -560,14 +562,21 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
           "host_components": [
             {
               "HostRoles": {
-                "component_name": componentName
+                "component_name": componentName,
+                "service_name": serviceName,
+                "service_group_name": serviceGroupName
               }
             }
           ]
         }
       };
       if (!!hostsWithoutComponents.length) {
-        self.updateAndCreateServiceComponent(componentName).done(function () {
+        self.updateAndCreateServiceComponent({
+          componentName: componentName,
+          serviceName: serviceName,
+          displayName: componentName, //probably ok to just use componentName here, since this is only used to pass the Context string to the server
+          serviceGroupName: serviceGroupName
+        }).done(function () {
           App.ajax.send({
             name: 'wizard.step8.register_host_to_component',
             sender: self,
@@ -796,10 +805,10 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
    *
    * @see createComponent
    */
-  createInstallComponentTask: function(componentName, hostName, serviceName, options) {
+  createInstallComponentTask: function(componentName, hostName, serviceName, serviceGroupName) {
     var self = this;
     App.get('router.mainAdminKerberosController').getKDCSessionState(function() {
-      self.createComponent(componentName, hostName, serviceName);
+      self.createComponent(componentName, hostName, serviceName, serviceGroupName);
     }, function() {
       self.onTaskError();
     });

@@ -102,10 +102,12 @@ describe('App.MainHostSummaryView', function() {
 
     beforeEach(function() {
       this.mock = sinon.stub(App.StackServiceComponent, 'find');
+      this.mock2 = sinon.stub(App.Service, 'find');
       sinon.stub(mainHostSummaryView, 'hasCardinalityConflict').returns(false);
     });
     afterEach(function() {
       App.StackServiceComponent.find.restore();
+      App.Service.find.restore();
       mainHostSummaryView.hasCardinalityConflict.restore();
     });
 
@@ -115,22 +117,26 @@ describe('App.MainHostSummaryView', function() {
           Em.Object.create({
             serviceName: 'HDFS',
             componentName: 'DATANODE',
+            stackName: 'serviceGroupName',
             isAddableToHost: true
           }),
           Em.Object.create({
             serviceName: 'HDFS',
             componentName: 'HDFS_CLIENT',
+            stackName: 'serviceGroupName',
             isAddableToHost: true
           })
         ],
         content: Em.Object.create({
           hostComponents: Em.A([
             Em.Object.create({
-              componentName: 'HDFS_CLIENT'
+              serviceName: 'HDFS',
+              componentName: 'HDFS_CLIENT',
+              serviceGroupName: 'serviceGroupName'
             })
           ])
         }),
-        services: ['HDFS'],
+        services: [Em.Object.create({serviceName: 'HDFS', serviceGroupName: 'serviceGroupName'})],
         e: ['DATANODE'],
         m: 'some components are already installed'
       },
@@ -139,17 +145,20 @@ describe('App.MainHostSummaryView', function() {
           Em.Object.create({
             serviceName: 'HDFS',
             componentName: 'HDFS_CLIENT',
-            isAddableToHost: true
+            isAddableToHost: true,
+            stackName: 'serviceGroupName'
           })
         ],
         content: Em.Object.create({
           hostComponents: Em.A([
             Em.Object.create({
-              componentName: 'HDFS_CLIENT'
+              serviceName: 'HDFS',
+              componentName: 'HDFS_CLIENT',
+              serviceGroupName: 'serviceGroupName'
             })
           ])
         }),
-        services: ['HDFS'],
+        services: [Em.Object.create({serviceName: 'HDFS', serviceGroupName: 'serviceGroupName'})],
         e: [],
         m: 'all components are already installed'
       }
@@ -158,10 +167,8 @@ describe('App.MainHostSummaryView', function() {
     tests.forEach(function(test) {
       it(test.m, function() {
         this.mock.returns(test.addableToHostComponents);
+        this.mock2.returns(test.services);
         mainHostSummaryView.set('content', test.content);
-        mainHostSummaryView.reopen({
-          installedServices: test.services
-        });
         mainHostSummaryView.propertyDidChange('addableComponents');
         expect(mainHostSummaryView.get('addableComponents').mapProperty('componentName')).to.eql(test.e);
       });

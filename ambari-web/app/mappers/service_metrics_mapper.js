@@ -25,10 +25,14 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
 
   model: App.Service,
   config: {
-    id: 'ServiceInfo.service_name',
+    id: 'ServiceInfo.id',
     service_name: 'ServiceInfo.service_name',
+    service_group_name: 'ServiceInfo.service_group_name',
     work_status: 'ServiceInfo.state',
     passive_state: 'ServiceInfo.passive_state',
+    mpack_name: 'ServiceInfo.mpack_name',
+    mpack_version: 'ServiceInfo.mpack_version',
+    tool_tip_content: 'ServiceInfo.tool_tip_content',
     $rand: Math.random(),
     $alerts: [1, 2, 3],
     host_components: 'host_components',
@@ -225,7 +229,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       /**
        * services contains constructed service-components structure from components array
        */
-      services.setEach('components', []);
+      services.forEach(s => s.components = []);
 
       json.items.forEach(function (component) {
         var serviceName = component.ServiceComponentInfo.service_name;
@@ -297,9 +301,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           result.push(extendedModelInfo);
         }
       }, this);
-
-      var stackServices = App.StackService.find().mapProperty('serviceName');
-      result = misc.sortByOrder(stackServices, result);
 
       //load services to model
       App.store.safeLoadMany(this.get('model'), result);

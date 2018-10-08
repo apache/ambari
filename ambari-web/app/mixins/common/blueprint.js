@@ -47,7 +47,7 @@ App.BlueprintMixin = Em.Mixin.create({
           return {
             mpack_instance: Em.get(c, 'serviceGroupName'),
             //service_instance: Em.get(c, 'serviceInstance'), // TODO: this should work in the future;
-            service_instance: Em.get(c, 'serviceName'),       // for now, we use the service name as the service instance name.
+            service_instance: Em.get(c, 'serviceName') || Em.get(c, 'service.serviceName'), // for now, we use the service name as the service instance name.
             name: Em.get(c, 'componentName')
           };
         }) : []

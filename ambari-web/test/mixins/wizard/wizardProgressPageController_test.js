@@ -190,9 +190,9 @@ describe('App.wizardProgressPageControllerMixin', function() {
       this.KDCStub.returns({
         getKDCSessionState: Em.clb
       });
-      mixedObjectInstance.createInstallComponentTask('componentName', 'hostName', 'serviceName');
+      mixedObjectInstance.createInstallComponentTask('componentName', 'hostName', 'serviceName', 'serviceGroupName');
       assert.isTrue(mixedObjectInstance.createComponent.calledOnce, 'createComponent should be called');
-      assert.equal(JSON.stringify(mixedObjectInstance.createComponent.args[0]), JSON.stringify(['componentName', 'hostName', 'serviceName']), 'passed argument order should be the same');
+      assert.equal(JSON.stringify(mixedObjectInstance.createComponent.args[0]), JSON.stringify(['componentName', 'hostName', 'serviceName', 'serviceGroupName']), 'passed argument order should be the same');
     });
 
     it('when credentials are expired and KDC dialog cancelled task status should be changed to failed', function() {
