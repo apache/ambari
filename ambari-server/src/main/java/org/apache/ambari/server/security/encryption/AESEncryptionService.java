@@ -27,7 +27,7 @@ import org.apache.commons.codec.binary.Hex;
 import com.google.inject.Singleton;
 
 @Singleton
-public class EncryptionServiceImpl implements EncryptionService {
+public class AESEncryptionService implements EncryptionService {
 
   private static final String ENCODED_TEXT_FIELD_DELIMITER = "::";
   private static final String UTF_8_CHARSET = StandardCharsets.UTF_8.name();

@@ -47,7 +47,7 @@ public class EncryptionServiceTest {
   @Rule
   private final TemporaryFolder tmpFolder = new TemporaryFolder();
 
-  private final EncryptionService encryptionService = new EncryptionServiceImpl();
+  private final EncryptionService encryptionService = new AESEncryptionService();
 
   @Test
   public void testEncryptAndDecryptUsingCustomKeyWithBase64Encoding() throws Exception {

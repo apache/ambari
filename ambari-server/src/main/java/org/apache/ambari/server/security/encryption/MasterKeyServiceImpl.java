@@ -41,7 +41,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
   private static final Logger LOG = LoggerFactory.getLogger(MasterKeyServiceImpl.class);
   private static final String MASTER_PASSPHRASE = "masterpassphrase";
   private static final String MASTER_PERSISTENCE_TAG_PREFIX = "#1.0# ";
-  private final EncryptionService encryptionService = new EncryptionServiceImpl();
+  private final EncryptionService encryptionService = new AESEncryptionService();
 
   private char[] master = null;
 
