@@ -41,7 +41,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
   private static final Logger LOG = LoggerFactory.getLogger(MasterKeyServiceImpl.class);
   private static final String MASTER_PASSPHRASE = "masterpassphrase";
   private static final String MASTER_PERSISTENCE_TAG_PREFIX = "#1.0# ";
-  private final EncryptionUtils encryptionUtils = new EncryptionUtils();
+  private final EncryptionService encryptionService = new EncryptionServiceImpl();
 
   private char[] master = null;
 
@@ -143,7 +143,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
     String encryptedMasterKey = null;
     if (masterKey != null) {
       try {
-        encryptedMasterKey = encryptionUtils.encrypt(masterKey, MASTER_PASSPHRASE);
+        encryptedMasterKey = encryptionService.encrypt(masterKey, MASTER_PASSPHRASE);
       } catch (Exception e) {
         LOG.error(String.format("Failed to encrypt master key, no changes have been made: %s", e.getLocalizedMessage()), e);
         return false;
@@ -275,7 +275,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
       List<String> lines = FileUtils.readLines(masterFile, "UTF8");
       String tag = lines.get(0);
       LOG.info("Loading from persistent master: " + tag);
-      master = encryptionUtils.decrypt(lines.get(1), MASTER_PASSPHRASE).toCharArray();
+      master = encryptionService.decrypt(lines.get(1), MASTER_PASSPHRASE).toCharArray();
     } catch (Exception e) {
       e.printStackTrace();
       throw e;

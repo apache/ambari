@@ -18,7 +18,7 @@
 package org.apache.ambari.server.security.encryption;
 
 import static org.easymock.EasyMock.expect;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.powermock.api.easymock.PowerMock.mockStatic;
 import static org.powermock.api.easymock.PowerMock.replayAll;
 import static org.powermock.api.easymock.PowerMock.verifyAll;
@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.utils.TextEncoding;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -41,19 +42,28 @@ import junit.framework.Assert;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ MasterKeyServiceImpl.class })
 @PowerMockIgnore({ "javax.crypto.*" })
-public class EncryptionUtilsTest {
+public class EncryptionServiceTest {
 
   @Rule
   private final TemporaryFolder tmpFolder = new TemporaryFolder();
 
-  private final EncryptionUtils encryptionUtils = new EncryptionUtils();
+  private final EncryptionService encryptionService = new EncryptionServiceImpl();
 
   @Test
-  public void testEncryptAndDecryptUsingCustomMasterKey() throws Exception {
-    final String customMasterKey = "mySuperS3cr3tMast3rKey!";
+  public void testEncryptAndDecryptUsingCustomKeyWithBase64Encoding() throws Exception {
+    testEncryptAndDecryptUsingCustomKey(TextEncoding.BASE_64);
+  }
+
+  @Test
+  public void testEncryptAndDecryptUsingCustomKeyWithBinHex64Encoding() throws Exception {
+    testEncryptAndDecryptUsingCustomKey(TextEncoding.BIN_HEX);
+  }
+
+  public void testEncryptAndDecryptUsingCustomKey(TextEncoding textEncoding) throws Exception {
+    final String key = "mySuperS3cr3tMast3rKey!";
     final String toBeEncrypted = "mySuperS3cr3tP4ssW0rD!";
-    final String encrypted = encryptionUtils.encrypt(toBeEncrypted, customMasterKey);
-    final String decrypted = encryptionUtils.decrypt(encrypted, customMasterKey);
+    final String encrypted = encryptionService.encrypt(toBeEncrypted, key, textEncoding);
+    final String decrypted = encryptionService.decrypt(encrypted, key, textEncoding);
     assertEquals(toBeEncrypted, decrypted);
   }
 
@@ -68,8 +78,8 @@ public class EncryptionUtilsTest {
     final String toBeEncrypted = "mySuperS3cr3tP4ssW0rD!";
 
     setupEnvironmentVariableExpectations(masterKeyFile);
-    final String encrypted = encryptionUtils.encrypt(toBeEncrypted);
-    final String decrypted = encryptionUtils.decrypt(encrypted);
+    final String encrypted = encryptionService.encrypt(toBeEncrypted);
+    final String decrypted = encryptionService.decrypt(encrypted);
     verifyAll();
     assertEquals(toBeEncrypted, decrypted);
   }
@@ -77,7 +87,7 @@ public class EncryptionUtilsTest {
   @Test(expected = SecurityException.class)
   public void shouldThrowSecurityExceptionInCaseOfEncryptingWithNonExistingPersistedMasterKey() throws Exception {
     final String toBeEncrypted = "mySuperS3cr3tP4ssW0rD!";
-    encryptionUtils.encrypt(toBeEncrypted);
+    encryptionService.encrypt(toBeEncrypted);
   }
 
   private void setupEnvironmentVariableExpectations(final File masterKeyFile) {
