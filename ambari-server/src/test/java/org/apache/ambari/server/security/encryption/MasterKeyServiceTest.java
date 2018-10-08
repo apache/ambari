@@ -64,9 +64,10 @@ public class MasterKeyServiceTest extends TestCase {
   @Test
   public void testInitializeMasterKey() throws Exception {
     File masterKeyFile = new File(fileDir, "master");
-    Assert.assertTrue(MasterKeyServiceImpl.initializeMasterKeyFile(masterKeyFile, "ThisisSomePassPhrase"));
+    MasterKeyServiceImpl ms = new MasterKeyServiceImpl("dummyKey");
+    Assert.assertTrue(ms.initializeMasterKeyFile(masterKeyFile, "ThisisSomePassPhrase"));
 
-    MasterKeyService ms = new MasterKeyServiceImpl(masterKeyFile);
+    ms = new MasterKeyServiceImpl(masterKeyFile);
     Assert.assertTrue(ms.isMasterKeyInitialized());
 
     Assert.assertTrue(masterKeyFile.exists());
@@ -112,9 +113,10 @@ public class MasterKeyServiceTest extends TestCase {
   public void testReadFromEnvAsPath() throws Exception {
     // Create a master key
     File masterKeyFile = new File(fileDir, "master");
-    Assert.assertTrue(MasterKeyServiceImpl.initializeMasterKeyFile(masterKeyFile, "ThisisSomePassPhrase"));
+    MasterKeyServiceImpl ms = new MasterKeyServiceImpl("dummyKey");
+    Assert.assertTrue(ms.initializeMasterKeyFile(masterKeyFile, "ThisisSomePassPhrase"));
 
-    MasterKeyService ms = new MasterKeyServiceImpl(masterKeyFile);
+    ms = new MasterKeyServiceImpl(masterKeyFile);
     Assert.assertTrue(ms.isMasterKeyInitialized());
     Assert.assertTrue(masterKeyFile.exists());
 
