@@ -264,6 +264,8 @@ var files = [
   'test/views/common/configs/widgets/slider_config_widget_view_test',
   'test/views/common/configs/widgets/toggle_config_widget_view_test',
   'test/views/common/helpers/format_word_break_view_test',
+  'test/views/common/helpers/format_null_view_test',
+  'test/views/common/helpers/status_icon_view_test',
   'test/views/common/helpers/pluralize_view_test',
   'test/views/common/ajax_default_error_popup_body_test',
   'test/views/common/filter_combo_cleanable_test',
