@@ -625,6 +625,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertTrue(helper.isTopologyRefreshRequired("START", "c2", "CORE", "HDFS"));
     Assert.assertTrue(helper.isTopologyRefreshRequired("RESTART", "c2", "CORE", "HDFS"));
     Assert.assertFalse(helper.isTopologyRefreshRequired("STOP", "c2", "CORE", "HDFS"));
+    Assert.assertFalse(helper.isTopologyRefreshRequired("RESTART", "c2", null, null));
   }
 
   @Test
