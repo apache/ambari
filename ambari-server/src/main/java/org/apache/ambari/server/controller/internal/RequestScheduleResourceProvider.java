@@ -454,6 +454,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
       LOG.info("Persisting updated Request Schedule "
         + ", clusterName = " + request.getClusterName()
         + ", description = " + request.getDescription()
+        + ", status = " + request.getStatus()
         + ", user = " + username);
 
       requestExecution.persist();
@@ -513,7 +514,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
 
       // Setup batch schedule
       getManagementController().getExecutionScheduleManager()
-        .scheduleBatch(requestExecution);
+        .scheduleAllBatches(requestExecution);
 
       RequestScheduleResponse response = new RequestScheduleResponse
         (requestExecution.getId(), requestExecution.getClusterName(),

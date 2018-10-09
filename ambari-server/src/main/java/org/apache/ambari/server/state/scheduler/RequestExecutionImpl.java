@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.RequestScheduleResponse;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -118,7 +119,9 @@ public class RequestExecutionImpl implements RequestExecution {
         BatchRequest batchRequest = new BatchRequest();
         batchRequest.setOrderId(batchRequestEntity.getBatchId());
         batchRequest.setRequestId(batchRequestEntity.getRequestId());
-        batchRequest.setBody(new String(batchRequestEntity.getRequestBody()));
+        if (batchRequestEntity.getRequestBody() != null) {
+          batchRequest.setBody(new String(batchRequestEntity.getRequestBody()));
+        }
         batchRequest.setType(BatchRequest.Type.valueOf(batchRequestEntity.getRequestType()));
         batchRequest.setUri(batchRequestEntity.getRequestUri());
         batchRequest.setStatus(batchRequestEntity.getRequestStatus());
@@ -478,6 +481,14 @@ public class RequestExecutionImpl implements RequestExecution {
           && entity.getScheduleId() == requestScheduleEntity.getScheduleId()) {
         batchRequestEntity = entity;
       }
+    }
+
+    // Rare race condition when batch request finished during pausing the request execution,
+    //in this case the job details will be deleted,
+    //so we mark it as not completed because otherwise the job detail will be lost
+    //and the whole Request Execution status will not be set to COMPLETED at the end.
+    if (Status.PAUSED.name().equals(getStatus()) && HostRoleStatus.COMPLETED.name().equals(batchRequestResponse.getStatus())) {
+      batchRequestResponse.setStatus(HostRoleStatus.ABORTED.name());
     }
 
     if (batchRequestEntity != null) {

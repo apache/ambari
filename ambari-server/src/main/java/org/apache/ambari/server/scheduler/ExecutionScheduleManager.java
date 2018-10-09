@@ -316,7 +316,7 @@ public class ExecutionScheduleManager {
    * @param requestExecution
    * @throws AmbariException
    */
-  public void scheduleBatch(RequestExecution requestExecution) throws AmbariException {
+  public void scheduleAllBatches(RequestExecution requestExecution) throws AmbariException {
     Long firstBatchOrderId = getFirstJobOrderId(requestExecution);
     scheduleBatch(requestExecution, firstBatchOrderId);
   }
@@ -486,9 +486,8 @@ public class ExecutionScheduleManager {
     } else if (requestExecution.getStatus().equals(PAUSED.name()) ||
                requestExecution.getStatus().equals(ABORTED.name())) {
       LOG.info("Request execution status changed to " + requestExecution.getStatus() + " for request schedule "
-          + requestExecution.getId() + ". Deleting all related jobs.");
-      //TODO maybe delete only starting from active?
-      deleteAllJobs(requestExecution);
+        + requestExecution.getId() + ". Deleting related jobs.");
+      deleteJobs(requestExecution, activeBatch.getOrderId());
       Collection<Long> requestIDsToAbort = requestExecution.getBatchRequestRequestsIDs(activeBatch.getOrderId());
       for (Long requestId : requestIDsToAbort) {
         //might be null if the request is for not long running job
@@ -576,6 +575,15 @@ public class ExecutionScheduleManager {
    * @throws AmbariException
    */
   public void deleteAllJobs(RequestExecution requestExecution) throws AmbariException {
+    Long firstBatchOrderId = getFirstJobOrderId(requestExecution);
+    deleteJobs(requestExecution, firstBatchOrderId);
+  }
+
+  /**
+   * Delete all jobs and triggers if possible.
+   * @throws AmbariException
+   */
+  public void deleteJobs(RequestExecution requestExecution, Long startingBatchOrderId) throws AmbariException {
     if (!isSchedulerAvailable()) {
       throw new AmbariException("Scheduler unavailable.");
     }
@@ -585,7 +593,11 @@ public class ExecutionScheduleManager {
     if (batch != null) {
       List<BatchRequest> batchRequests = batch.getBatchRequests();
       if (batchRequests != null) {
+        Collections.sort(batchRequests);
         for (BatchRequest batchRequest : batchRequests) {
+          //skip all before starting batch
+          if (batchRequest.getOrderId() < startingBatchOrderId) continue;
+
           String jobName = getJobName(requestExecution.getId(),
             batchRequest.getOrderId());
 
@@ -661,7 +673,7 @@ public class ExecutionScheduleManager {
 
   }
 
-  private RequestStatus abortRequestById(RequestExecution requestExecution, Long requestId) throws AmbariException {
+  protected RequestStatus abortRequestById(RequestExecution requestExecution, Long requestId) throws AmbariException {
     LOG.debug("Aborting request " + requestId);
     ResourceProvider provider =
         ambariContext.getClusterController().ensureResourceProvider(Resource.Type.Request);
