@@ -1453,35 +1453,35 @@ public class AmbariCustomCommandExecutionHelper {
       Cluster cluster = clusters.getCluster(clusterName);
       StackId stackId = null;
       String serviceType = null;
-//      TODO add service group null checks when the UI is updated
-//      if (serviceGroupName != null) {
-      if (serviceName != null) {
+
+      if (serviceGroupName != null && serviceName != null) {
         Service service = cluster.getService(serviceGroupName, serviceName);
         stackId = service.getStackId();
         serviceType = service.getServiceType();
-      }
 
-      if (stackId == null) {
-        throw new AmbariException("StackId should not be null. Service " + serviceName + " should have a desiredStackId");
-      }
+        if (stackId == null) {
+          throw new AmbariException("StackId should not be null. Service " + serviceName + " should have a desiredStackId");
+        }
 
-      AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
+        AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
 
-      StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
-      if (stack != null) {
-        ServiceInfo serviceInfo = stack.getService(serviceType);
+        StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+        if (stack != null) {
+          ServiceInfo serviceInfo = stack.getService(serviceType);
 
-        if (serviceInfo != null) {
-          // if there is a chance that this action was triggered by a change in rack info then we want to
-          // force a topology refresh
-          // TODO : we may be able to be smarter about this and only refresh when the rack info has definitely changed
-          Boolean restartRequiredAfterRackChange = serviceInfo.isRestartRequiredAfterRackChange();
-          if (restartRequiredAfterRackChange != null && restartRequiredAfterRackChange) {
-            return true;
+          if (serviceInfo != null) {
+            // if there is a chance that this action was triggered by a change in rack info then we want to
+            // force a topology refresh
+            // TODO : we may be able to be smarter about this and only refresh when the rack info has definitely changed
+            Boolean restartRequiredAfterRackChange = serviceInfo.isRestartRequiredAfterRackChange();
+            if (restartRequiredAfterRackChange != null && restartRequiredAfterRackChange) {
+              return true;
+            }
           }
         }
       }
     }
+      
     return false;
   }
 
