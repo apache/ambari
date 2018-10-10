@@ -319,6 +319,16 @@ def setup_metastore():
        content=StaticFile('startMetastore.sh')
   )
 
+  if params.hadoop_conf_dir and not params.has_hdfs and os.path.exists(params.hadoop_conf_dir):
+    XmlConfig("core-site.xml",
+              conf_dir=params.hadoop_conf_dir,
+              configurations=params.config['configurations']['core-site'],
+              configuration_attributes=params.config['configurationAttributes']['core-site'],
+              owner=params.hdfs_user,
+              group=params.user_group,
+              mode=0644
+    )
+
   if not is_empty(params.hive_exec_scratchdir):
     dirPathStr = urlparse(params.hive_exec_scratchdir).path
     pathComponents = dirPathStr.split("/")

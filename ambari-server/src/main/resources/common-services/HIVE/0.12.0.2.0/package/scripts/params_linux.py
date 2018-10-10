@@ -427,7 +427,7 @@ hive_metastore_pid = status_params.hive_metastore_pid
 # Hive Server Interactive
 slider_am_container_mb = default("/configurations/hive-interactive-env/slider_am_container_mb", 341)
 
-hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+hdfs_user = default('configurations/hadoop-env/hdfs_user', 'hdfs')
 yarn_user = config['configurations']['yarn-env']['yarn_user']
 user_group = config['configurations']['cluster-env']['user_group']
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
@@ -648,6 +648,11 @@ HdfsResource = functools.partial(
  )
 
 has_pig = 'pig-env' in config['configurations']
+namenode_hosts = default("/clusterHostInfo/namenode_hosts", [])
+hdfs_client_hosts = default("/clusterHostInfo/hdfs_client_hosts", [])
+has_hdfs_clients = len(hdfs_client_hosts) > 0
+has_namenode = len(namenode_hosts) > 0
+has_hdfs = has_hdfs_clients or has_namenode
 
 # Hive Interactive related
 hive_interactive_hosts = default('/clusterHostInfo/hive_server_interactive_hosts', [])
