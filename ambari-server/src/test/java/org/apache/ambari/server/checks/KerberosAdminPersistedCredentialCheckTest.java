@@ -44,6 +44,7 @@ import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -244,6 +245,7 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
         bind(UpgradeHelper.class).toInstance(upgradeHelper);
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
 
         bind(CredentialStoreService.class).toInstance(createMock(CredentialStoreService.class));
       }

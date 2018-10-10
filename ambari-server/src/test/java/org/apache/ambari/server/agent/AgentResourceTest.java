@@ -51,6 +51,7 @@ import org.apache.ambari.server.hooks.users.UserCreatedEvent;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -350,6 +351,7 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
       bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
       bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
+      bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
     }
 
     private void installDependencies() {

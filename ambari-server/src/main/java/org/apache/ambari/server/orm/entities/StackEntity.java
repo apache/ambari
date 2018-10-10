@@ -40,6 +40,7 @@ import javax.persistence.UniqueConstraint;
 @TableGenerator(name = "stack_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "stack_id_seq", initialValue = 0)
 @NamedQueries({
     @NamedQuery(name = "StackEntity.findAll", query = "SELECT stack FROM StackEntity stack"),
+    @NamedQuery(name = "StackEntity.findByMpack", query = "SELECT stack FROM StackEntity stack where stack.mpackId = :mpackId"),
     @NamedQuery(name = "StackEntity.findByNameAndVersion", query = "SELECT stack FROM StackEntity stack WHERE stack.stackName = :stackName AND stack.stackVersion = :stackVersion",
                 hints = {
                   @QueryHint(name = "eclipselink.query-results-cache", value = "true"),
@@ -58,6 +59,18 @@ public class StackEntity {
 
   @Column(name = "stack_version", length = 255, nullable = false)
   private String stackVersion;
+
+  @Column(name = "mpack_id")
+  private Long mpackId;
+
+  public Long getMpackId() {
+    return mpackId;
+  }
+
+  public void setMpackId(Long mpackId) {
+    this.mpackId = mpackId;
+  }
+
 
   /**
    * Constructor.
@@ -154,6 +167,7 @@ public class StackEntity {
     buffer.append("id=").append(stackId);
     buffer.append(", name=").append(stackName);
     buffer.append(", version=").append(stackVersion);
+    buffer.append(", mpack_id=").append(mpackId);
     buffer.append("}");
     return buffer.toString();
   }

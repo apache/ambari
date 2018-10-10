@@ -79,6 +79,7 @@ import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
@@ -1429,6 +1430,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
         bind(HostLevelParamsHolder.class).toInstance(createNiceMock(HostLevelParamsHolder.class));
         bind(TopologyHolder.class).toInstance(createNiceMock(TopologyHolder.class));
         bind(RecoveryConfigHelper.class).toInstance(createNiceMock(RecoveryConfigHelper.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
 
         install(new FactoryModuleBuilder().build(StackManagerFactory.class));
         install(new FactoryModuleBuilder().implement(

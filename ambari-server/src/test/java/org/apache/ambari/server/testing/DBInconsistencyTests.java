@@ -24,6 +24,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -68,6 +69,8 @@ public class DBInconsistencyTests {
   private ServiceFactory serviceFactory;
   @Inject
   private ServiceComponentFactory serviceComponentFactory;
+  @Inject
+  private MpackManagerFactory mpackManagerFactory;
   @Inject
   private ServiceComponentHostFactory serviceComponentHostFactory;
   @Inject

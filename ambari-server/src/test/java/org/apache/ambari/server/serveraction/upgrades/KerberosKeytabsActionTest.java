@@ -18,6 +18,7 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -35,6 +36,7 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -103,6 +105,7 @@ public class KerberosKeytabsActionTest {
         bind(EntityManager.class).toInstance(EasyMock.createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(EasyMock.createNiceMock(DBAccessor.class));
         bind(AmbariMetaInfo.class).toInstance(EasyMock.createNiceMock(AmbariMetaInfo.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
       }
     });
 

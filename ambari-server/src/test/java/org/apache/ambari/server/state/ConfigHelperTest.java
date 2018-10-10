@@ -50,6 +50,7 @@ import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -1166,6 +1167,8 @@ public class ConfigHelperTest {
           bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
           bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
           bind(STOMPUpdatePublisher.class).toInstance(createNiceMock(STOMPUpdatePublisher.class));
+          bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+
         }
       });
 

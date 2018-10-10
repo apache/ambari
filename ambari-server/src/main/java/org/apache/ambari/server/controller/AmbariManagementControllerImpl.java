@@ -132,6 +132,7 @@ import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory
 import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
@@ -155,11 +156,13 @@ import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.SettingEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
@@ -197,6 +200,8 @@ import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Module;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
@@ -556,9 +561,46 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     createHostComponents(requests, false);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MpackResponse registerMpack(MpackRequest request)
+    throws IOException, AuthorizationException, ResourceAlreadyExistsException{
+    MpackResponse mpackResponse = ambariMetaInfo.registerMpack(request);
+    updateStacks();
+    return mpackResponse;
+  }
+
+  @Override
+  public Set<MpackResponse> getMpacks(){
+    Collection<Mpack> mpacks = ambariMetaInfo.getMpacks();
+    Set<MpackResponse> responseSet = new HashSet<>();
+    for (Mpack mpack : mpacks){
+      responseSet.add(new MpackResponse(mpack));
+    }
+    return responseSet;
+  }
+
+  @Override
+  public MpackResponse getMpack(Long mpackId) {
+    Mpack mpack = ambariMetaInfo.getMpack(mpackId);
+    if (mpack != null) {
+      return new MpackResponse(mpack);
+    }else{
+      return null;
+    }
+  }
+
+  @Override
+  public List<Module> getModules(Long mpackId) {
+    return ambariMetaInfo.getModules(mpackId);
+  }
+
+
   @Override
   public synchronized void createHostComponents(Set<ServiceComponentHostRequest> requests, boolean isBlueprintProvisioned)
-      throws AmbariException, AuthorizationException {
+     throws AmbariException, AuthorizationException {
 
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
@@ -3710,6 +3752,20 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException{
+
+    ambariMetaInfo.removeMpack(mpackEntity, stackEntity);
+  }
+
+  @Override
+  public Set<ServiceConfigVersionResponse> createServiceConfigVersion(Set<ServiceConfigVersionRequest> requests) throws AmbariException, AuthorizationException {
+    return null;
+  }
+
+  /**
    * Get a request response for the given request ids.  Note that this method
    * fully populates a request resource including the set of task sub-resources
    * in the request response.
@@ -4599,14 +4655,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String stackName = request.getStackName();
     String stackVersion = request.getStackVersion();
     String propertyName = request.getPropertyName();
+    Set<PropertyInfo> configs;
 
-    Set<PropertyInfo> properties;
+    //properties : cluster-env
+    //TODO: Remove after getting rid of cluster-env
     if (propertyName != null) {
-      properties = ambariMetaInfo.getStackPropertiesByName(stackName, stackVersion, propertyName);
+      configs = ambariMetaInfo.getStackPropertiesByName(stackName, stackVersion, propertyName);
     } else {
-      properties = ambariMetaInfo.getStackProperties(stackName, stackVersion);
+      configs = ambariMetaInfo.getStackProperties(stackName, stackVersion);
     }
-    for (PropertyInfo property: properties) {
+
+    for (PropertyInfo property: configs) {
       response.add(property.convertToResponse());
     }
 

@@ -115,7 +115,7 @@ public class StackManager {
   /**
    * Constructor. Initialize stack manager.
    *
-   * @param stackRoot
+   * @param stackRootDir
    *          stack root directory
    * @param commonServicesRoot
    *          common services root directory
@@ -675,5 +675,10 @@ public class StackManager {
           "extensionRoot = " + extensionRoot.getAbsolutePath());
     }
     return extensionModules;
+  }
+
+  public void removeStack(StackEntity stackEntity) {
+    String stackKey = stackEntity.getStackName() + StackManager.PATH_DELIMITER +  stackEntity.getStackVersion();
+    stackMap.remove(stackKey);
   }
 }

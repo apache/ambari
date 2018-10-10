@@ -140,7 +140,7 @@ public class DDLTests {
   }
 
   @Test
-  public void testCompareSQLServer() throws Exception {
+  public void testCompareSQLServer() throws Exception  {
     compareAgainstPostgres("SQLServer");
   }
 

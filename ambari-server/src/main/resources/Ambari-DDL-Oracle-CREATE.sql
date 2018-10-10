@@ -17,11 +17,30 @@
 --
 
 ------create tables---------
+CREATE TABLE registries(
+ id BIGINT NOT NULL,
+ registy_name VARCHAR(255) NOT NULL,
+ registry_type VARCHAR(255) NOT NULL,
+ registry_uri VARCHAR(255) NOT NULL,
+ CONSTRAINT PK_registries PRIMARY KEY (id));
+
+CREATE TABLE mpacks(
+ id BIGINT NOT NULL,
+ mpack_name VARCHAR(255) NOT NULL,
+ mpack_version VARCHAR(255) NOT NULL,
+ mpack_uri VARCHAR(255),
+ registry_id BIGINT,
+ CONSTRAINT PK_mpacks PRIMARY KEY (id),
+ CONSTRAINT uni_mpack_name_version UNIQUE(mpack_name, mpack_version),
+ CONSTRAINT FK_registries FOREIGN KEY (registry_id) REFERENCES registries(id));
+
 CREATE TABLE stack(
   stack_id NUMBER(19) NOT NULL,
   stack_name VARCHAR2(255) NOT NULL,
   stack_version VARCHAR2(255) NOT NULL,
+  mpack_id NUMBER(19),
   CONSTRAINT PK_stack PRIMARY KEY (stack_id),
+  CONSTRAINT FK_mpacks FOREIGN KEY (mpack_id) REFERENCES mpacks(id),
   CONSTRAINT UQ_stack UNIQUE (stack_name, stack_version));
 
 CREATE TABLE extension(
@@ -1154,6 +1173,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_id_
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_item_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('stack_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('mpack_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('extension_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('link_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_id_seq', 0);

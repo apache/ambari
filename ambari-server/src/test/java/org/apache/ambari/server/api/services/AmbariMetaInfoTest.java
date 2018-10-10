@@ -51,6 +51,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -146,6 +147,7 @@ public class AmbariMetaInfoTest {
     File stacks = new File("src/test/resources/stacks");
     File version = new File("src/test/resources/version");
     File resourcesRoot = new File("src/test/resources/");
+
     if (System.getProperty("os.name").contains("Windows")) {
       stacks = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
@@ -1935,7 +1937,10 @@ public class AmbariMetaInfoTest {
     Properties properties = new Properties();
     properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stackRoot.getPath());
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), versionFile.getPath());
+
     properties.setProperty(Configuration.RESOURCES_DIR.getKey(), resourcesRoot.getPath());
+    properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(),"src/test/resources/mpacks-v2");
+
     Configuration configuration = new Configuration(properties);
 
     TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(configuration);
@@ -2009,6 +2014,12 @@ public class AmbariMetaInfoTest {
       f = c.getDeclaredField("stackManagerFactory");
       f.setAccessible(true);
       f.set(this, stackManagerFactory);
+
+      // MpackManagerFactory
+      MpackManagerFactory mpackManagerFactory = injector.getInstance(MpackManagerFactory.class);
+      f = c.getDeclaredField("mpackManagerFactory");
+      f.setAccessible(true);
+      f.set(this, mpackManagerFactory);
 
       //AlertDefinitionDAO
       alertDefinitionDAO = createNiceMock(AlertDefinitionDAO.class);

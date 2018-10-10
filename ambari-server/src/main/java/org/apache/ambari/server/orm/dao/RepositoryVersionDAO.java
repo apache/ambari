@@ -255,8 +255,21 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
   @RequiresSession
   public List<RepositoryVersionEntity> findByServiceDesiredVersion(List<RepositoryVersionEntity> matching) {
     TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().
-          createNamedQuery("findByServiceDesiredVersion", RepositoryVersionEntity.class);
+            createNamedQuery("findByServiceDesiredVersion", RepositoryVersionEntity.class);
 
     return daoUtils.selectList(query, matching);
+  }
+   /**
+   * Removes the specified repoversion entry based on stackid.
+   *
+   * @param stackId
+   *
+   */
+  @Transactional
+  public void removeByStack(StackId stackId) {
+    List<RepositoryVersionEntity> repoVersionDeleteCandidates = findByStack(stackId);
+    for(RepositoryVersionEntity repositoryVersionEntity : repoVersionDeleteCandidates) {
+      entityManagerProvider.get().remove(repositoryVersionEntity);
+    }
   }
 }

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -35,12 +36,15 @@ import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider
 import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
 import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -54,6 +58,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -150,6 +155,15 @@ public interface AmbariManagementController {
    * @throws AmbariException when the members cannot be created.
    */
   void createMembers(Set<MemberRequest> requests) throws AmbariException;
+
+  /**
+   * Register the mpack defined by the attributes in the given request object.
+   *
+   * @param request the request object which defines the mpack to be created
+   * @throws AmbariException        thrown if the mpack cannot be created
+   * @throws AuthorizationException thrown if the authenticated user is not authorized to perform this operation
+   */
+  MpackResponse registerMpack(MpackRequest request) throws IOException, AuthorizationException, ResourceAlreadyExistsException;
 
 
   // ----- Read -------------------------------------------------------------
@@ -948,5 +962,49 @@ public interface AmbariManagementController {
       throws AmbariException;
 
   Map<String, BlueprintProvisioningState> getBlueprintProvisioningStates(Long clusterId, Long hostId) throws AmbariException;
+
+  /**
+   * Fetch the module info for a given mpack.
+   *
+   * @param mpackId
+   * @return List of modules
+   */
+  List<Module> getModules(Long mpackId);
+
+
+  /***
+   * Remove Mpack from the mpackMap and stackMap which is used to power the Mpack and Stack APIs.
+   * @param mpackEntity
+   * @param stackEntity
+   * @throws IOException
+   */
+  void removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException;
+
+  /**
+   * Creates serviceconfigversions and corresponding new configurations if it is an initial request
+   * OR
+   * Rollbacks to an existing serviceconfigversion if request specifies.
+   * @param requests
+   *
+   * @return
+   *
+   * @throws AmbariException
+   *
+   * @throws AuthorizationException
+   */
+  Set<ServiceConfigVersionResponse> createServiceConfigVersion(Set<ServiceConfigVersionRequest> requests) throws AmbariException, AuthorizationException;
+
+  /***
+   * Fetch all mpacks
+   * @return
+   */
+  Set<MpackResponse> getMpacks();
+
+  /***
+   * Fetch an mpack based on id
+   * @param mpackId
+   * @return
+   */
+  MpackResponse getMpack(Long mpackId);
 }
 

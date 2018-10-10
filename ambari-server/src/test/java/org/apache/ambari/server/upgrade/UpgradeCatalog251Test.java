@@ -65,6 +65,7 @@ import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
@@ -316,6 +317,7 @@ public class UpgradeCatalog251Test {
         binder.bind(MetadataHolder.class).toInstance(metadataHolder);
         binder.bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
         binder.bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+        binder.bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
       }
     };
     return Guice.createInjector(module);

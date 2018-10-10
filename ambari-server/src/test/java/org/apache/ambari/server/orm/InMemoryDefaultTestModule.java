@@ -27,6 +27,9 @@ import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.ldap.LdapModule;
+import org.apache.ambari.server.mpack.MpackManager;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
+import org.apache.ambari.server.mpack.MpackManagerMock;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stack.StackManagerMock;
@@ -58,7 +61,6 @@ public class InMemoryDefaultTestModule extends AbstractModule {
 
     private static final AtomicReference<Set<BeanDefinition>> foundUpgradeChecksDefinitions
         = new AtomicReference<>(null);
-
 
     public BeanDefinitionsCachingTestControllerModule(Properties properties) throws Exception {
       super(properties);
@@ -92,6 +94,7 @@ public class InMemoryDefaultTestModule extends AbstractModule {
     String version = "src/test/resources/version";
     String sharedResourcesDir = "src/test/resources/";
     String resourcesDir = "src/test/resources/";
+    String mpacksv2 = "src/main/resources/mpacks-v2";
     if (System.getProperty("os.name").contains("Windows")) {
       stacks = ClassLoader.getSystemClassLoader().getResource("stacks").getPath();
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()), "version").getPath();
@@ -108,6 +111,10 @@ public class InMemoryDefaultTestModule extends AbstractModule {
 
     if (!properties.containsKey(Configuration.SERVER_VERSION_FILE.getKey())) {
       properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), version);
+    }
+
+    if (!properties.containsKey(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey())) {
+      properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(), mpacksv2);
     }
 
     if (!properties.containsKey(Configuration.OS_VERSION.getKey())) {
@@ -129,6 +136,7 @@ public class InMemoryDefaultTestModule extends AbstractModule {
         protected void configure() {
           // Cache parsed stacks.
           install(new FactoryModuleBuilder().implement(StackManager.class, StackManagerMock.class).build(StackManagerFactory.class));
+          install(new FactoryModuleBuilder().implement(MpackManager.class, MpackManagerMock.class).build(MpackManagerFactory.class));
         }
       }));
       AuditLogger al = EasyMock.createNiceMock(AuditLogger.class);

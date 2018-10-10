@@ -78,6 +78,7 @@ public class BootStrapTest extends TestCase {
     properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), metadetadir);
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), serverVersionFilePath);
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), sharedResourcesDir);
+    properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(), "src/main/resources/mpacks-v2");
 
     Configuration conf = new Configuration(properties);
     AmbariMetaInfo ambariMetaInfo = new AmbariMetaInfo(conf);
@@ -144,6 +145,7 @@ public class BootStrapTest extends TestCase {
 
     String sharedResourcesDir = "src/test/resources/";
     String serverKSTRDir = "target" + File.separator + "classes";
+    String mpacksv2staging = "src/main/resources/mpacks-v2";
     if (System.getProperty("os.name").contains("Windows")) {
       sharedResourcesDir = ClassLoader.getSystemClassLoader().getResource("").getPath();
       serverKSTRDir = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "classes").getPath();
@@ -155,6 +157,7 @@ public class BootStrapTest extends TestCase {
     properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), metadetadir);
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), serverVersionFilePath);
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), sharedResourcesDir);
+    properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(), mpacksv2staging);
     Configuration conf = new Configuration(properties);
     AmbariMetaInfo ambariMetaInfo = new AmbariMetaInfo(conf);
     BootStrapImpl impl = new BootStrapImpl(conf, ambariMetaInfo);

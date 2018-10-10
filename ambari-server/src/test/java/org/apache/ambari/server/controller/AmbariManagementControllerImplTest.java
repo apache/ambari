@@ -76,6 +76,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
@@ -94,6 +95,8 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Module;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
@@ -121,7 +124,6 @@ import com.google.gson.Gson;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.util.Modules;
 
@@ -2248,13 +2250,14 @@ public class AmbariManagementControllerImplTest {
     f.set(controller, metaInfo);
   }
 
-  private class MockModule implements Module {
+  private class MockModule implements com.google.inject.Module {
 
     @Override
     public void configure(Binder binder) {
       binder.bind(AmbariLdapDataPopulator.class).toInstance(ldapDataPopulator);
       binder.bind(Clusters.class).toInstance(clusters);
       binder.bind(ActionDBAccessorImpl.class).toInstance(actionDBAccessor);
+      binder.bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
       binder.bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
       binder.bind(Users.class).toInstance(users);
       binder.bind(AmbariSessionManager.class).toInstance(sessionManager);
@@ -2425,6 +2428,52 @@ public class AmbariManagementControllerImplTest {
     verify(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion);
   }
 
+  @Test
+  public void testRegisterMpacks() throws Exception{
+    MpackRequest mpackRequest = createNiceMock(MpackRequest.class);
+    RequestStatusResponse response = new RequestStatusResponse(new Long(201));
+    Mpack mpack = new Mpack();
+    mpack.setResourceId((long)100);
+    mpack.setModules(new ArrayList<Module>());
+    mpack.setPrerequisites(new HashMap<String, String>());
+    mpack.setRegistryId(new Long(100));
+    mpack.setVersion("3.0");
+    mpack.setMpackUri("abc.tar.gz");
+    mpack.setDescription("Test mpack");
+    mpack.setName("testMpack");
+    MpackResponse mpackResponse = new MpackResponse(mpack);
+    Injector injector = createNiceMock(Injector.class);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
+    expect(ambariMetaInfo.registerMpack(mpackRequest)).andReturn(mpackResponse);
+    ambariMetaInfo.init();
+    expectLastCall();
+    replay(ambariMetaInfo,injector);
+    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    setAmbariMetaInfo(ambariMetaInfo, controller);
+    Assert.assertEquals(mpackResponse,controller.registerMpack(mpackRequest));
+  }
+
+  @Test
+  public void testGetPacklets() throws Exception {
+    Long mpackId = new Long(100);
+    ArrayList<Module> packletArrayList = new ArrayList<>();
+    Module samplePacklet = new Module();
+    Injector injector = createNiceMock(Injector.class);
+    //samplePacklet.setType(Packlet.PackletType.SERVICE_PACKLET);
+    samplePacklet.setVersion("3.0.0");
+    samplePacklet.setName("NIFI");
+    samplePacklet.setDefinition("nifi.tar.gz");
+    packletArrayList.add(samplePacklet);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
+    expect(ambariMetaInfo.getModules(mpackId)).andReturn(packletArrayList).atLeastOnce();
+    replay(ambariMetaInfo,injector);
+    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    setAmbariMetaInfo(ambariMetaInfo, controller);
+
+    Assert.assertEquals(packletArrayList,controller.getModules(mpackId));
+
+  }
+
   public static void constructorInit(Injector injector, Capture<AmbariManagementController> controllerCapture, Gson gson,
                                MaintenanceStateHelper maintenanceStateHelper, KerberosHelper kerberosHelper,
                                Provider<MetadataHolder> m_metadataHolder, Provider<AgentConfigsHolder> m_agentConfigsHolder) {
@@ -2433,6 +2482,7 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintenanceStateHelper);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
   }
+
 
   public static void constructorInit(Injector injector, Capture<AmbariManagementController> controllerCapture,
                                KerberosHelper kerberosHelper) {
