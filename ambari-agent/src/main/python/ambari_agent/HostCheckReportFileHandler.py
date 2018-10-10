@@ -28,7 +28,7 @@ import ConfigParser
 
 HADOOP_ROOT_DIR = "/usr/hdp"
 HADOOP_PERM_REMOVE_LIST = ["current"]
-HADOOP_ITEMDIR_REGEX = "(\d\.){3}\d-\d{4}"
+HADOOP_ITEMDIR_REGEXP = re.compile("(\d\.){3}\d-\d{4}")
 logger = logging.getLogger(__name__)
 
 class HostCheckReportFileHandler:
@@ -96,7 +96,6 @@ class HostCheckReportFileHandler:
     if not os.path.exists(HADOOP_ROOT_DIR):
       return []
 
-    matcher = re.compile(HADOOP_ITEMDIR_REGEX)  # pre-compile regexp
     folder_content = os.listdir(HADOOP_ROOT_DIR)
     remove_list = []
 
@@ -108,7 +107,7 @@ class HostCheckReportFileHandler:
         remove_list.append(full_path)
         remlist_items_count += 1
 
-      if matcher.match(item) is not None:
+      if HADOOP_ITEMDIR_REGEXP.match(item) is not None:
         remove_list.append(full_path)
         remlist_items_count += 1
 

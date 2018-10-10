@@ -88,6 +88,7 @@ import time
 import locale
 import platform
 import ConfigParser
+import signal
 import resource
 from logging.handlers import SysLogHandler
 import AmbariConfig
@@ -364,7 +365,7 @@ def run_threads(initializer_module):
   initializer_module.action_queue.start()
 
   while not initializer_module.stop_event.is_set():
-    time.sleep(0.1)
+    signal.pause()
 
   initializer_module.action_queue.interrupt()
 

@@ -372,6 +372,15 @@ class FacterWindows(Facter):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FacterLinux(Facter):
+  FIRST_WORDS_REGEXP = re.compile(r',$')
+  IFNAMES_REGEXP = re.compile("^\d")
+  SE_STATUS_REGEXP = re.compile('(enforcing|permissive|enabled)')
+  DIGITS_REGEXP = re.compile("\d+")
+  FREEMEM_REGEXP = re.compile("MemFree:.*?(\d+) .*")
+  TOTALMEM_REGEXP = re.compile("MemTotal:.*?(\d+) .*")
+  SWAPFREE_REGEXP = re.compile("SwapFree:.*?(\d+) .*")
+  SWAPTOTAL_REGEXP = re.compile("SwapTotal:.*?(\d+) .*")
+
   # selinux command
   GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"
   GET_IFCONFIG_SHORT_CMD = "ifconfig -s"
@@ -436,7 +445,7 @@ class FacterLinux(Facter):
 
     try:
       retcode, out, err = run_os_command(FacterLinux.GET_SE_LINUX_ST_CMD)
-      se_status = re.search('(enforcing|permissive|enabled)', out)
+      se_status = FacterLinux.SE_STATUS_REGEXP.search(out)
       if se_status:
         return True
     except OSError:
@@ -449,19 +458,18 @@ class FacterLinux(Facter):
       if i.strip():
         result = result + i.split()[0].strip() + ","
 
-    result = re.sub(r',$', "", result)
+    result = FacterLinux.FIRST_WORDS_REGEXP.sub("", result)
     return result
 
   def return_ifnames_from_ip_link(self, ip_link_output):
     list = []
-    prog = re.compile("^\d")
     for line in ip_link_output.splitlines():
-      if prog.match(line):
+      if FacterLinux.IFNAMES_REGEXP.match(line):
         list.append(line.split()[1].rstrip(":"))
     return ",".join(list)
 
   def data_return_first(self, patern, data):
-    full_list = re.findall(patern, data)
+    full_list = patern.findall(data)
     result = ""
     if full_list:
       result = full_list[0]
@@ -518,7 +526,7 @@ class FacterLinux(Facter):
   # Return uptime seconds
   def getUptimeSeconds(self):
     try:
-      return int(self.data_return_first("\d+", self.DATA_UPTIME_OUTPUT))
+      return int(self.data_return_first(FacterLinux.DIGITS_REGEXP, self.DATA_UPTIME_OUTPUT))
     except ValueError:
       log.warn("Can't get an uptime value from {0}".format(self.DATA_UPTIME_OUTPUT))
       return 0
@@ -527,7 +535,7 @@ class FacterLinux(Facter):
   def getMemoryFree(self):
     #:memoryfree_mb => "MemFree",
     try:
-      return int(self.data_return_first("MemFree:.*?(\d+) .*", self.DATA_MEMINFO_OUTPUT))
+      return int(self.data_return_first(FacterLinux.FREEMEM_REGEXP, self.DATA_MEMINFO_OUTPUT))
     except ValueError:
       log.warn("Can't get free memory size from {0}".format(self.DATA_MEMINFO_OUTPUT))
       return 0
@@ -535,7 +543,7 @@ class FacterLinux(Facter):
   # Return memorytotal
   def getMemoryTotal(self):
     try:
-      return int(self.data_return_first("MemTotal:.*?(\d+) .*", self.DATA_MEMINFO_OUTPUT))
+      return int(self.data_return_first(FacterLinux.TOTALMEM_REGEXP, self.DATA_MEMINFO_OUTPUT))
     except ValueError:
       log.warn("Can't get total memory size from {0}".format(self.DATA_MEMINFO_OUTPUT))
       return 0
@@ -544,7 +552,7 @@ class FacterLinux(Facter):
   def getSwapFree(self):
     #:swapfree_mb   => "SwapFree"
     try:
-      return int(self.data_return_first("SwapFree:.*?(\d+) .*", self.DATA_MEMINFO_OUTPUT))
+      return int(self.data_return_first(FacterLinux.SWAPFREE_REGEXP, self.DATA_MEMINFO_OUTPUT))
     except ValueError:
       log.warn("Can't get free swap memory size from {0}".format(self.DATA_MEMINFO_OUTPUT))
       return 0
@@ -553,7 +561,7 @@ class FacterLinux(Facter):
   def getSwapSize(self):
     #:swapsize_mb   => "SwapTotal",
     try:
-      return int(self.data_return_first("SwapTotal:.*?(\d+) .*", self.DATA_MEMINFO_OUTPUT))
+      return int(self.data_return_first(FacterLinux.SWAPTOTAL_REGEXP, self.DATA_MEMINFO_OUTPUT))
     except ValueError:
       log.warn("Can't get total swap memory size from {0}".format(self.DATA_MEMINFO_OUTPUT))
       return 0
@@ -562,7 +570,7 @@ class FacterLinux(Facter):
   def getMemorySize(self):
     #:memorysize_mb => "MemTotal"
     try:
-      return int(self.data_return_first("MemTotal:.*?(\d+) .*", self.DATA_MEMINFO_OUTPUT))
+      return int(self.data_return_first(FacterLinux.TOTALMEM_REGEXP, self.DATA_MEMINFO_OUTPUT))
     except ValueError:
       log.warn("Can't get memory size from {0}".format(self.DATA_MEMINFO_OUTPUT))
       return 0

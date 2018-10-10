@@ -51,6 +51,8 @@ def main():
   mergedArgs = [PYTHON, AGENT_SCRIPT] + args
 
   while status == AGENT_AUTO_RESTART_EXIT_CODE:
+    with open("/tmp/x" , "w") as fp:
+      fp.write(str(mergedArgs))
     mainProcess = subprocess32.Popen(mergedArgs)
     mainProcess.communicate()
     status = mainProcess.returncode
