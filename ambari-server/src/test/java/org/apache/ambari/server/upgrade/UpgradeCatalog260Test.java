@@ -85,6 +85,7 @@ import org.apache.ambari.server.hooks.users.UserCreatedEvent;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
@@ -1050,6 +1051,7 @@ public class UpgradeCatalog260Test {
         bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
         bind(STOMPUpdatePublisher.class).toInstance(createNiceMock(STOMPUpdatePublisher.class));
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
       }
     });
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
@@ -1110,6 +1112,8 @@ public class UpgradeCatalog260Test {
         binder.bind(MetadataHolder.class).toInstance(createNiceMock(MetadataHolder.class));
         binder.bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
         binder.bind(ConfigHelper.class).toInstance(createStrictMock(ConfigHelper.class));
+        binder.bind(MpackManagerFactory.class).toInstance(createStrictMock(MpackManagerFactory.class));
+
 
         binder.install(new FactoryModuleBuilder().build(RequestFactory.class));
         binder.install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));

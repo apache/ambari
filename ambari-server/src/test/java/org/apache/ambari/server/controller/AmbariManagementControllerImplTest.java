@@ -24,7 +24,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERS
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
-
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
@@ -77,6 +76,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
@@ -2257,6 +2257,7 @@ public class AmbariManagementControllerImplTest {
       binder.bind(AmbariLdapDataPopulator.class).toInstance(ldapDataPopulator);
       binder.bind(Clusters.class).toInstance(clusters);
       binder.bind(ActionDBAccessorImpl.class).toInstance(actionDBAccessor);
+      binder.bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
       binder.bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
       binder.bind(Users.class).toInstance(users);
       binder.bind(AmbariSessionManager.class).toInstance(sessionManager);
@@ -2444,6 +2445,8 @@ public class AmbariManagementControllerImplTest {
     Injector injector = createNiceMock(Injector.class);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
     expect(ambariMetaInfo.registerMpack(mpackRequest)).andReturn(mpackResponse);
+    ambariMetaInfo.init();
+    expectLastCall();
     replay(ambariMetaInfo,injector);
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
     setAmbariMetaInfo(ambariMetaInfo, controller);

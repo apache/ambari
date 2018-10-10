@@ -26,7 +26,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,7 +45,6 @@ import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Mpack;
-
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
@@ -90,30 +88,36 @@ public class MpackResourceProviderTest {
     resourceExpected2.setProperty(MpackResourceProvider.MPACK_URI, "abc.tar.gz");
     resourceExpected2.setProperty(MpackResourceProvider.REGISTRY_ID, (long)1);
 
-    List<MpackEntity> entities = new ArrayList<>();
-    MpackEntity entity = new MpackEntity();
-    entity.setId((long) 1);
+    Set<MpackResponse> entities = new HashSet<>();
+    Mpack entity = new Mpack();
+    entity.setResourceId(new Long(1));
+    entity.setMpackId("1");
     entity.setMpackUri("abcd.tar.gz");
-    entity.setMpackName("TestMpack1");
-    entity.setMpackVersion("3.0");
-    entities.add(entity);
+    entity.setName("TestMpack1");
+    entity.setVersion("3.0");
+    MpackResponse mr1 = new MpackResponse(entity);
+    entities.add(mr1);
 
-    entity = new MpackEntity();
-    entity.setId((long) 2);
+    entity = new Mpack();
+    entity.setResourceId(new Long(2));
+    entity.setMpackId("2");
     entity.setMpackUri("abc.tar.gz");
-    entity.setMpackName("TestMpack2");
-    entity.setMpackVersion("3.0");
+    entity.setName("TestMpack2");
+    entity.setVersion("3.0");
     entity.setRegistryId(new Long(1));
-    entities.add(entity);
+    MpackResponse mr2 = new MpackResponse(entity);
+    entities.add(mr2);
+
+
 
     // set expectations
-    EasyMock.expect(m_dao.findAll()).andReturn(entities).anyTimes();
+    EasyMock.expect(m_amc.getMpacks()).andReturn(entities).anyTimes();
 
     // replay
-    replay(m_dao);
+    replay(m_amc);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-            type
+            type, m_amc
     );
 
     // create the request
@@ -142,7 +146,7 @@ public class MpackResourceProviderTest {
     }
 
     // verify
-    verify(m_dao);
+    verify(m_amc);
   }
 
   @Test
@@ -159,6 +163,14 @@ public class MpackResourceProviderTest {
     entity.setMpackName("TestMpack1");
     entity.setMpackVersion("3.0");
 
+    Mpack mpack = new Mpack();
+    mpack.setResourceId((long) 1);
+    mpack.setMpackId("1");
+    mpack.setMpackUri("abcd.tar.gz");
+    mpack.setName("TestMpack1");
+    mpack.setVersion("3.0");
+
+    MpackResponse mpackResponse = new MpackResponse(mpack);
 
     ArrayList<Module> packletArrayList = new ArrayList<>();
     org.apache.ambari.server.state.Module module = new Module();
@@ -179,12 +191,13 @@ public class MpackResourceProviderTest {
     // set expectations
     EasyMock.expect(m_dao.findById((long)1)).andReturn(entity).anyTimes();
     EasyMock.expect(m_amc.getModules((long)1)).andReturn(packletArrayList).anyTimes();
+    // set expectations
+    EasyMock.expect(m_amc.getMpack((long)1)).andReturn(mpackResponse).anyTimes();
 
     // replay
     replay(m_dao,m_amc);
 
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-            type);
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(Resource.Type.Mpack, m_amc);
 
     // create the request
     Request request = PropertyHelper.getReadRequest();
@@ -223,9 +236,7 @@ public class MpackResourceProviderTest {
     replay(m_amc,request);
     // end expectations
 
-    MpackResourceProvider provider = (MpackResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
-            Resource.Type.Mpack);
-
+    MpackResourceProvider provider = (MpackResourceProvider) AbstractControllerResourceProvider.getResourceProvider(Resource.Type.Mpack, m_amc);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
     ((ObservableResourceProvider)provider).addObserver(observer);

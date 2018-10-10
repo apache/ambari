@@ -23,7 +23,6 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 

@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Field;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -47,14 +46,11 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.MpackRequest;
-import org.apache.ambari.server.controller.MpackResponse;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
-import org.apache.ambari.server.mpack.MpackManager;
 import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -71,7 +67,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.DependencyInfo;
-import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
@@ -152,6 +147,7 @@ public class AmbariMetaInfoTest {
     File stacks = new File("src/test/resources/stacks");
     File version = new File("src/test/resources/version");
     File resourcesRoot = new File("src/test/resources/");
+
     if (System.getProperty("os.name").contains("Windows")) {
       stacks = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
@@ -346,29 +342,6 @@ public class AmbariMetaInfoTest {
     ServiceInfo si = metaInfo.getService(STACK_NAME_HDP, STACK_VERSION_HDP,
         SERVICE_NAME_HDFS);
     assertNotNull(si);
-  }
-
-  @Test
-  public void testRegisterMpacks() throws Exception{
-    MpackManager mm = metaInfo.getMpackManager();
-    MpackRequest mpackRequest = createNiceMock(MpackRequest.class);
-    Mpack mpacks = new Mpack();
-    mpacks.setMpackId("100");
-    mpacks.setPrerequisites(new HashMap<String, String>());
-    mpacks.setRegistryId(new Long(100));
-    mpacks.setVersion("3.0");
-    mpacks.setMpackUri("abc.tar.gz");
-    mpacks.setDescription("Test mpacks");
-    mpacks.setName("testMpack");
-    MpackResponse mpackResponse = new MpackResponse(mpacks);
-    expect(mm.registerMpack(mpackRequest)).andReturn(mpackResponse);
-    replay(mm);
-    assertEquals(mpackResponse,metaInfo.registerMpack(mpackRequest));
-  }
-
-  @Test
-  public void testGetPacklets() throws Exception{
-
   }
 
   @Test
@@ -1966,7 +1939,7 @@ public class AmbariMetaInfoTest {
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), versionFile.getPath());
 
     properties.setProperty(Configuration.RESOURCES_DIR.getKey(), resourcesRoot.getPath());
-    properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(),"/var/lib/ambari-server/resources/mpacks-v2");
+    properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(),"src/test/resources/mpacks-v2");
 
     Configuration configuration = new Configuration(properties);
 

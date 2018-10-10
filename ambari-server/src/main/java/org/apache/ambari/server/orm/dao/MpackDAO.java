@@ -24,7 +24,6 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.MpackEntity;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -34,5 +34,6 @@ public interface MpackManagerFactory {
    * @param stackRoot
    * @return a mpack manager instance.
    */
-  MpackManager create(@Assisted("mpackv2Staging") File mpackStaging, @Assisted("stackRoot") File stackRoot);
+  MpackManager create(@Assisted("mpacksv2Staging") File mpackStaging, @Assisted("stackRoot") File stackRoot);
 }
+

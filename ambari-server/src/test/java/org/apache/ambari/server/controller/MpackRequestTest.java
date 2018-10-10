@@ -36,7 +36,7 @@ public class MpackRequestTest {
     mpackRequest.setMpackName("testmpack");
 
     Assert.assertEquals("abc.tar.gz", mpackRequest.getMpackUri());
-    Assert.assertEquals("1", mpackRequest.getRegistryId());
+    Assert.assertEquals(new Long("1"), mpackRequest.getRegistryId());
     Assert.assertEquals("3.0", mpackRequest.getMpackVersion());
     Assert.assertEquals("testmpack", mpackRequest.getMpackName());
 

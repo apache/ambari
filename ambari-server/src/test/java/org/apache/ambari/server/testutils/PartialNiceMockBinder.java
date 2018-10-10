@@ -47,6 +47,7 @@ import org.apache.ambari.server.hooks.users.UserCreatedEvent;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
@@ -177,6 +178,7 @@ public class PartialNiceMockBinder implements Module {
     public Builder addDBAccessorBinding(DBAccessor dbAccessor) {
       configurers.add((Binder binder) -> {
           binder.bind(StackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(StackManagerFactory.class));
+          binder.bind(MpackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(MpackManagerFactory.class));
           binder.bind(EntityManager.class).toInstance(easyMockSupport.createNiceMock(EntityManager.class));
           binder.bind(DBAccessor.class).toInstance(dbAccessor);
           binder.bind(Clusters.class).toInstance(easyMockSupport.createNiceMock(Clusters.class));
@@ -188,6 +190,7 @@ public class PartialNiceMockBinder implements Module {
     public Builder addDBAccessorBinding() {
       configurers.add((Binder binder) -> {
           binder.bind(StackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(StackManagerFactory.class));
+          binder.bind(MpackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(MpackManagerFactory.class));
           binder.bind(EntityManager.class).toInstance(easyMockSupport.createNiceMock(EntityManager.class));
           binder.bind(DBAccessor.class).toInstance(easyMockSupport.createNiceMock(DBAccessor.class));
           binder.bind(Clusters.class).toInstance(easyMockSupport.createNiceMock(Clusters.class));
