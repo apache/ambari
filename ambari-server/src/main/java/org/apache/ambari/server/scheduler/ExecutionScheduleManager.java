@@ -19,10 +19,8 @@
 package org.apache.ambari.server.scheduler;
 
 import static org.apache.ambari.server.state.scheduler.RequestExecution.Status.ABORTED;
-import static org.apache.ambari.server.state.scheduler.RequestExecution.Status.COMPLETED;
 import static org.apache.ambari.server.state.scheduler.RequestExecution.Status.PAUSED;
 import static org.apache.ambari.server.state.scheduler.RequestExecution.Status.SCHEDULED;
-
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
@@ -353,6 +351,8 @@ public class ExecutionScheduleManager {
         + firstJobDetail);
     }
 
+    Integer failedCount = countFailedTasksBeforeStartingBatch(requestExecution, startingBatchOrderId);
+
     // Create a cron trigger for the first batch job
     // If no schedule is specified create simple trigger to fire right away
     Schedule schedule = requestExecution.getSchedule();
@@ -379,6 +379,7 @@ public class ExecutionScheduleManager {
           .withSchedule(cronSchedule(triggerExpression)
             .withMisfireHandlingInstructionFireAndProceed())
           .forJob(firstJobDetail)
+          .usingJobData(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY, failedCount)
           .startAt(startDate)
           .endAt(endDate)
           .build();
@@ -398,6 +399,7 @@ public class ExecutionScheduleManager {
         .withIdentity(REQUEST_EXECUTION_TRIGGER_PREFIX + "-" +
           requestExecution.getId(), ExecutionJob.LINEAR_EXECUTION_TRIGGER_GROUP)
         .withSchedule(simpleSchedule().withMisfireHandlingInstructionFireNow())
+        .usingJobData(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY, failedCount)
         .startNow()
         .build();
 
@@ -409,6 +411,30 @@ public class ExecutionScheduleManager {
         throw new AmbariException(e.getMessage());
       }
     }
+  }
+
+  private Integer countFailedTasksBeforeStartingBatch(RequestExecution requestExecution, long startingBatchOrderId) throws AmbariException {
+    int result = 0;
+    Batch batch = requestExecution.getBatch();
+    if (batch != null) {
+      List<BatchRequest> batchRequests = batch.getBatchRequests();
+      if (batchRequests != null) {
+        Collections.sort(batchRequests);
+        for (BatchRequest batchRequest : batchRequests) {
+          if (batchRequest.getOrderId() >= startingBatchOrderId) break;
+
+          if (batchRequest.getRequestId() != null) {
+            BatchRequestResponse batchRequestResponse = getBatchRequestResponse(batchRequest.getRequestId(), requestExecution.getClusterName());
+            if (batchRequestResponse != null) {
+               result += batchRequestResponse.getFailedTaskCount() +
+                         batchRequestResponse.getAbortedTaskCount() +
+                         batchRequestResponse.getTimedOutTaskCount();
+            }
+          }
+        }
+      }
+    }
+    return result;
   }
 
   private JobDetail persistBatch(RequestExecution requestExecution, long startingBatchOrderId)
@@ -481,7 +507,6 @@ public class ExecutionScheduleManager {
       return;
     }
     if (requestExecution.getStatus().equals(SCHEDULED.name())) {
-      //TODO the issue here is that we don't count previously failed tasks
       scheduleBatch(requestExecution, activeBatch.getOrderId());
     } else if (requestExecution.getStatus().equals(PAUSED.name()) ||
                requestExecution.getStatus().equals(ABORTED.name())) {
@@ -512,11 +537,15 @@ public class ExecutionScheduleManager {
         ListIterator<BatchRequest> iterator = batchRequests.listIterator();
         do {
           result = iterator.next();
-        } while (iterator.hasNext() && COMPLETED.name().equals(result.getStatus()));
+        } while (iterator.hasNext() &&
+                 HostRoleStatus.getCompletedStates().contains(HostRoleStatus.valueOf(result.getStatus())) &&
+                 !HostRoleStatus.ABORTED.name().equals(result.getStatus()));
       }
     }
 
-    if (result != null && COMPLETED.name().equals(result.getStatus())) {
+    if (result != null &&
+      HostRoleStatus.getCompletedStates().contains(HostRoleStatus.valueOf(result.getStatus())) &&
+      !HostRoleStatus.ABORTED.name().equals(result.getStatus())) {
       return null;
     }
 

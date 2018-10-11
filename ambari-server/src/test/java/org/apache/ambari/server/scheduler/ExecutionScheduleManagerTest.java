@@ -843,11 +843,11 @@ public class ExecutionScheduleManagerTest {
         add(batchRequestMock2);
       }});
     expect(batchRequestMock1.getOrderId()).andReturn(1L).anyTimes();
-    expect(batchRequestMock1.getStatus()).andReturn(HostRoleStatus.COMPLETED.name()).anyTimes();
+    expect(batchRequestMock1.getStatus()).andReturn(HostRoleStatus.FAILED.name()).anyTimes();
     expect(batchRequestMock1.compareTo(batchRequestMock2)).andReturn(-1).anyTimes();
     expect(batchRequestMock2.compareTo(batchRequestMock1)).andReturn(1).anyTimes();
     expect(batchRequestMock2.getOrderId()).andReturn(3L).anyTimes();
-    expect(batchRequestMock2.getStatus()).andReturn(null).once();
+    expect(batchRequestMock2.getStatus()).andReturn(HostRoleStatus.PENDING.name()).once();
     expect(executionSchedulerMock.getJobDetail((JobKey) anyObject()))
       .andReturn(jobDetailMock).anyTimes();
     expect((List<Trigger>) executionSchedulerMock
