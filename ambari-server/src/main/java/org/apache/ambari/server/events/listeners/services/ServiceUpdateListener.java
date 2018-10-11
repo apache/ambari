@@ -24,18 +24,14 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
-import org.apache.ambari.server.controller.utilities.ServiceCalculatedStateFactory;
-import org.apache.ambari.server.controller.utilities.state.ServiceCalculatedState;
 import org.apache.ambari.server.events.HostComponentUpdate;
 import org.apache.ambari.server.events.HostComponentsUpdateEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
-import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.State;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -45,12 +41,8 @@ import com.google.inject.Singleton;
 @Singleton
 @EagerSingleton
 public class ServiceUpdateListener {
-  private Map<Long, Map<String, State>> states = new HashMap<>();
 
   private STOMPUpdatePublisher STOMPUpdatePublisher;
-
-  @Inject
-  private ServiceDesiredStateDAO serviceDesiredStateDAO;
 
   @Inject
   private Provider<Clusters> m_clusters;
@@ -75,15 +67,8 @@ public class ServiceUpdateListener {
       Long clusterId = clusterServices.getKey();
       String clusterName = m_clusters.get().getClusterById(clusterId).getClusterName();
       for (String serviceName : clusterServices.getValue()) {
-        ServiceCalculatedState serviceCalculatedState = ServiceCalculatedStateFactory.getServiceStateProvider(serviceName);
-        State serviceState = serviceCalculatedState.getState(clusterName, serviceName);
-
-        // retrieve state from cache
-        if (states.containsKey(clusterId) && states.get(clusterId).containsKey(serviceName) && states.get(clusterId).get(serviceName).equals(serviceState)) {
-          continue;
-        }
-        states.computeIfAbsent(clusterId, c -> new HashMap<>()).put(serviceName, serviceState);
-        STOMPUpdatePublisher.publish(new ServiceUpdateEvent(clusterName, null, serviceName, serviceState));
+        STOMPUpdatePublisher.publish(new ServiceUpdateEvent(clusterName, null, serviceName, null,
+            true));
       }
     }
   }
@@ -99,6 +84,7 @@ public class ServiceUpdateListener {
 
     MaintenanceState maintenanceState = event.getMaintenanceState();
 
-    STOMPUpdatePublisher.publish(new ServiceUpdateEvent(clusterName, maintenanceState, serviceName, null));
+    STOMPUpdatePublisher.publish(new ServiceUpdateEvent(clusterName, maintenanceState, serviceName, null,
+        false));
   }
 }

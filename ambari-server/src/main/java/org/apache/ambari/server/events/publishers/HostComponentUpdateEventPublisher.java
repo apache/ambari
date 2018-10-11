@@ -31,30 +31,12 @@ import com.google.inject.Singleton;
 public class HostComponentUpdateEventPublisher extends BufferedUpdateEventPublisher<HostComponentsUpdateEvent> {
 
   @Override
-  protected Runnable getScheduledPublisher(EventBus m_eventBus) {
-    return new HostComponentsEventRunnable(m_eventBus);
-  }
+  public void mergeBufferAndPost(List<HostComponentsUpdateEvent> events, EventBus m_eventBus) {
+    List<HostComponentUpdate> hostComponentUpdates = events.stream().flatMap(
+        u -> u.getHostComponentUpdates().stream()).collect(Collectors.toList());
 
-  private class HostComponentsEventRunnable implements Runnable {
-
-    private final EventBus eventBus;
-
-    public HostComponentsEventRunnable(EventBus eventBus) {
-      this.eventBus = eventBus;
-    }
-
-    @Override
-    public void run() {
-      List<HostComponentsUpdateEvent> hostComponentUpdateEvents = retrieveBuffer();
-      if (hostComponentUpdateEvents.isEmpty()) {
-        return;
-      }
-      List<HostComponentUpdate> hostComponentUpdates = hostComponentUpdateEvents.stream().flatMap(
-          u -> u.getHostComponentUpdates().stream()).collect(Collectors.toList());
-
-      HostComponentsUpdateEvent resultEvents = new HostComponentsUpdateEvent(hostComponentUpdates);
-      //TODO add logging and metrics posting
-      eventBus.post(resultEvents);
-    }
+    HostComponentsUpdateEvent resultEvents = new HostComponentsUpdateEvent(hostComponentUpdates);
+    //TODO add logging and metrics posting
+    m_eventBus.post(resultEvents);
   }
 }
