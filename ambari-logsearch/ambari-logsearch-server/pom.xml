@@ -27,7 +27,7 @@
   <url>http://maven.apache.org</url>
   <name>Ambari Logsearch Server</name>
   <properties>
-    <spring.version>4.3.17.RELEASE</spring.version>
+    <spring.version>4.3.18.RELEASE</spring.version>
     <spring.security.version>4.2.4.RELEASE</spring.security.version>
     <spring.ldap.version>2.2.0.RELEASE</spring.ldap.version>
     <jersey.version>2.25.1</jersey.version>
@@ -35,7 +35,7 @@
     <swagger.version>1.5.16</swagger.version>
     <spring-data-solr.version>2.0.2.RELEASE</spring-data-solr.version>
     <jjwt.version>0.6.0</jjwt.version>
-    <spring-boot.version>1.5.13.RELEASE</spring-boot.version>
+    <spring-boot.version>1.5.14.RELEASE</spring-boot.version>
   </properties>
   <profiles>
     <profile>
@@ -107,7 +107,9 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <excludeArtifactIds>ambari-logsearch-web</excludeArtifactIds>
+                  <excludeArtifactIds>ambari-logsearch-web,spring-boot-starter,spring-boot-starter-actuator,
+                    spring-boot-starter-freemarker,spring-boot-starter-jersey,spring-boot-starter-jetty,spring-boot-starter-json,
+                    spring-boot-starter-log4j,spring-boot-starter-security,spring-boot-starter-validation,spring-boot-starter-web</excludeArtifactIds>
                   <outputAbsoluteArtifactFilename>true</outputAbsoluteArtifactFilename>
                   <outputDirectory>${basedir}/target/libs</outputDirectory>
                   <overWriteReleases>false</overWriteReleases>
@@ -479,7 +481,7 @@
     <dependency>
       <groupId>org.springframework.data</groupId>
       <artifactId>spring-data-commons</artifactId>
-      <version>1.13.11.RELEASE</version>
+      <version>1.13.12.RELEASE</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -494,12 +496,12 @@
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15on</artifactId>
-      <version>1.55</version>
+      <version>1.60</version>
     </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcpkix-jdk15on</artifactId>
-      <version>1.55</version>
+      <version>1.60</version>
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>

@@ -33,8 +33,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring.version>4.3.17.RELEASE</spring.version>
-    <spring-boot.version>1.5.13.RELEASE</spring-boot.version>
+    <spring.version>4.3.18.RELEASE</spring.version>
+    <spring-boot.version>1.5.14.RELEASE</spring-boot.version>
   </properties>
 
   <dependencies>
@@ -298,6 +298,7 @@
 
             </goals>
             <configuration>
+              <excludeArtifactIds>spring-boot-starter,spring-boot-starter-log4j</excludeArtifactIds>
               <outputAbsoluteArtifactFilename>true</outputAbsoluteArtifactFilename>
               <outputDirectory>${basedir}/target/libs</outputDirectory>
               <overWriteReleases>false</overWriteReleases>
