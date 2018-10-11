@@ -17,6 +17,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+try:
+ from stack_advisor_hdp23 import *
+except ImportError:
+ #Ignore ImportError
+ print("stack_advisor_hdp23 not found")
 
 class HDP24StackAdvisor(HDP23StackAdvisor):
  pass

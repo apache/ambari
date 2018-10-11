@@ -188,6 +188,29 @@ public class StackManager {
     populateDB(stackDao, extensionDao);
   }
 
+  /***
+   *  Constructor. Initialize StackManager for merging service definitions and creating merged stack definition
+   * @param stackRoot
+   * @param commonServicesRoot
+   */
+  public StackManager(File stackRoot, File commonServicesRoot, boolean validate) throws AmbariException {
+    LOG.info("Initializing the stack manager...");
+
+    if (validate) {
+      validateStackDirectory(stackRoot);
+      validateCommonServicesDirectory(commonServicesRoot);
+    }
+
+    stackMap = new TreeMap<>();
+
+    parseDirectories(stackRoot, commonServicesRoot, null);
+
+    fullyResolveCommonServices(stackModules, commonServiceModules, extensionModules);
+    fullyResolveExtensions(stackModules, commonServiceModules, extensionModules);
+    fullyResolveStacks(stackModules, commonServiceModules, extensionModules);
+  }
+
+
   protected void parseDirectories(File stackRoot, File commonServicesRoot, File extensionRoot) throws AmbariException {
     commonServiceModules = parseCommonServicesDirectory(commonServicesRoot);
     stackModules = parseStackDirectory(stackRoot);
@@ -380,6 +403,9 @@ public class StackManager {
    * @return true if all of the repo update tasks have completed; false otherwise
    */
   public boolean haveAllRepoUrlsBeenResolved() {
+    if(stackContext == null) {
+      return true;
+    }
     return stackContext.haveAllRepoTasksCompleted();
   }
 
@@ -413,7 +439,9 @@ public class StackManager {
       stack.finalizeModule();
     }
     // Execute all of the repo tasks in a single thread executor
-    stackContext.executeRepoTasks();
+    if(stackContext != null) {
+      stackContext.executeRepoTasks();
+    }
   }
 
   /**
@@ -563,7 +591,7 @@ public class StackManager {
   private Map<String, ServiceModule> parseCommonServicesDirectory(File commonServicesRoot) throws AmbariException {
     Map<String, ServiceModule> commonServiceModules = new HashMap<>();
 
-    if(commonServicesRoot != null) {
+    if(commonServicesRoot != null && commonServicesRoot.exists()) {
       File[] commonServiceFiles = commonServicesRoot.listFiles(StackDirectory.FILENAME_FILTER);
       for (File commonService : commonServiceFiles) {
         if (commonService.isFile()) {

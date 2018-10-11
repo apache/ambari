@@ -22,6 +22,8 @@ package org.apache.ambari.server.state;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlElements;
@@ -31,6 +33,7 @@ import org.apache.commons.collections.CollectionUtils;
 /**
  * Represents stack component dependency information.
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 public class DependencyInfo {
   /**
    * The name of the component which is the dependency.
@@ -64,6 +67,8 @@ public class DependencyInfo {
   /**
    * Conditions for Component dependency to other components.
    */
+  @XmlElementWrapper(name="conditions")
+  @XmlElements(@XmlElement(name="condition"))
   private List<DependencyConditionInfo> dependencyConditions = new ArrayList<>();
   /**
    * Setter for name property.
@@ -150,8 +155,6 @@ public class DependencyInfo {
    *
    * @return dependencyConditions
    */
-  @XmlElementWrapper(name="conditions")
-  @XmlElements(@XmlElement(name="condition"))
   public List<DependencyConditionInfo> getDependencyConditions() {
     return dependencyConditions;
   }

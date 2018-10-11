@@ -44,8 +44,9 @@ public class CommonServiceDirectory extends ServiceDirectory {
    */
   @Override
   public String getAdvisorName(String serviceName) {
-    if (getAdvisorFile() == null || serviceName == null)
+    if (getAdvisorFile() == null || serviceName == null) {
       return null;
+    }
 
     File serviceVersionDir = new File(getAbsolutePath());
     String serviceVersion = serviceVersionDir.getName().replaceAll("\\.", "");

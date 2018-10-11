@@ -25,13 +25,19 @@ import traceback
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../stacks/')
 PARENT_FILE = os.path.join(STACKS_DIR, 'service_advisor.py')
+ABSOLUTE_STACKS_DIR = os.path.join(SCRIPT_DIR, '/var/lib/ambari-server/resources/stacks/')
+ABSOLUTE_PARENT_FILE = os.path.join(ABSOLUTE_STACKS_DIR, 'service_advisor.py')
 
 try:
   with open(PARENT_FILE, 'rb') as fp:
     service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
 except Exception as e:
-  traceback.print_exc()
-  print "Failed to load parent"
+  try:
+    with open(ABSOLUTE_PARENT_FILE, 'rb') as fp:
+      service_advisor = imp.load_module('service_advisor', fp, ABSOLUTE_PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
+  except Exception as e:
+    traceback.print_exc()
+    print "Failed to load parent"
 
 class LogSearchServiceAdvisor(service_advisor.ServiceAdvisor):
 
