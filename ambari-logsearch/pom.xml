@@ -45,7 +45,7 @@
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>${deb.python.ver}</deb.dependency.list>
-    <solr.version>7.4.0</solr.version>
+    <solr.version>7.5.0</solr.version>
     <hadoop.version>3.0.0</hadoop.version>
     <common.io.version>2.5</common.io.version>
     <zookeeper.version>3.4.6.2.3.0.0-2557</zookeeper.version>
