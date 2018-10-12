@@ -21,12 +21,23 @@ package org.apache.ambari.server.stack;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.stack.upgrade.ConfigUpgradePack;
@@ -34,11 +45,13 @@ import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
+import org.apache.ambari.spi.upgrade.UpgradeCheck;
 import org.apache.commons.io.FilenameUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ClassUtils;
 
 /**
  * Encapsulates IO operations on a stack definition stack directory.
@@ -56,6 +69,13 @@ public class StackDirectory extends StackDefinitionDirectory {
   public static final String SERVICE_METRIC_FILE_NAME = "metrics.json";
   public static final String SERVICE_ALERT_FILE_NAME = "alerts.json";
   public static final String SERVICE_ADVISOR_FILE_NAME = "service_advisor.py";
+
+  /**
+   * Allows stacks to provide their own JARs, such as those which implement
+   * classes in the SPI.
+   */
+  public static final String LIB_FOLDER_NAME = "lib";
+
   /**
    * The filename for a Kerberos descriptor preconfigure file at either the stack or service level
    */
@@ -74,6 +94,12 @@ public class StackDirectory extends StackDefinitionDirectory {
    * rco file path
    */
   private String rcoFilePath;
+
+  /**
+   * The fully-qualified path to the stack's library directory where JARs can be
+   * provided, such as those which implment the SPI.
+   */
+  private String libraryDir;
 
   /**
    * kerberos descriptor (preconfigure) file path
@@ -116,6 +142,12 @@ public class StackDirectory extends StackDefinitionDirectory {
   private StackMetainfoXml metaInfoXml;
 
   /**
+   * A {@link ClassLoader} for any JARs discovered in the stack's library
+   * folder.
+   */
+  private URLClassLoader libraryClassLoader = null;
+
+  /**
    * file unmarshaller
    */
   ModuleFileUnmarshaller unmarshaller = new ModuleFileUnmarshaller();
@@ -133,11 +165,6 @@ public class StackDirectory extends StackDefinitionDirectory {
   private final static String REPOSITORY_FOLDER_NAME = "repos";
 
   /**
-   * repository file name
-   */
-  private final static String REPOSITORY_FILE_NAME = "repoinfo.xml";
-
-  /**
    * metainfo file name
    */
   private static final String STACK_METAINFO_FILE_NAME = "metainfo.xml";
@@ -146,11 +173,6 @@ public class StackDirectory extends StackDefinitionDirectory {
    * upgrades directory name
    */
   private static final String UPGRADE_PACK_FOLDER_NAME = "upgrades";
-
-  /**
-   * role command order file name
-   */
-  private static final String ROLE_COMMAND_ORDER_FILE = "role_command_order.json";
 
   /**
    * logger instance
@@ -194,6 +216,15 @@ public class StackDirectory extends StackDefinitionDirectory {
    */
   public String getRcoFilePath() {
     return rcoFilePath;
+  }
+
+  /**
+   * Gets the fully qualified path to the stack's library directory.
+   *
+   * @return the library directory.
+   */
+  public String getLibraryPath() {
+    return libraryDir;
   }
 
   /**
@@ -267,6 +298,17 @@ public class StackDirectory extends StackDefinitionDirectory {
   }
 
   /**
+   * Gets the {@link ClassLoader} that can be used to load classes found in JARs
+   * in the stack's library folder.
+   *
+   * @return the class loader for 3rd party JARs supplied by the stack or
+   *         {@code null} if there are no libraries for this stack.
+   */
+  public @Nullable ClassLoader getLibraryClassLoader() {
+    return libraryClassLoader;
+  }
+
+  /**
    * Parse the stack directory.
    *
    * @throws AmbariException if unable to parse the directory
@@ -276,6 +318,10 @@ public class StackDirectory extends StackDefinitionDirectory {
     if (subDirs.contains(RCO_FILE_NAME)) {
       // rcoFile is expected to be absolute
       rcoFilePath = getAbsolutePath() + File.separator + RCO_FILE_NAME;
+    }
+
+    if (subDirs.contains(LIB_FOLDER_NAME)) {
+      libraryDir = getAbsolutePath() + File.separator + LIB_FOLDER_NAME;
     }
 
     if (subDirs.contains(KERBEROS_DESCRIPTOR_PRECONFIGURE_FILE_NAME)) {
@@ -288,6 +334,8 @@ public class StackDirectory extends StackDefinitionDirectory {
     parseRepoFile(subDirs);
     parseMetaInfoFile();
     parseRoleCommandOrder();
+    parseLibraryClassLoader();
+
   }
 
   /**
@@ -476,6 +524,54 @@ public class StackDirectory extends StackDefinitionDirectory {
       }
     } catch (IOException e) {
       LOG.error(String.format("Can not read role command order info %s", rcoFilePath), e);
+    }
+  }
+
+  /**
+   * Loads any classes found in the {@link #libraryDir} and creates a
+   * {@link URLClassLoader} for them.
+   */
+  private void parseLibraryClassLoader() {
+    if (null == libraryDir) {
+      return;
+    }
+
+    Path libraryPath = Paths.get(libraryDir);
+    if( Files.notExists(libraryPath) || !Files.isDirectory(libraryPath) ) {
+      return;
+    }
+
+    try {
+      List<URI> jarUris = Files.list(libraryPath)
+          .filter(file -> file.toString().endsWith(".jar"))
+          .map(Path::toUri)
+          .collect(Collectors.toList());
+
+      List<URL> jarUrls = new ArrayList<>(jarUris.size());
+      for (URI jarUri : jarUris) {
+        try {
+          jarUrls.add(jarUri.toURL());
+        } catch (MalformedURLException malformedURLException) {
+          LOG.error("Unable to load the stack library {}", jarUri, malformedURLException);
+        }
+      }
+
+      URL[] jarUrlArray = new URL[jarUris.size()];
+      libraryClassLoader = new URLClassLoader(jarUrls.toArray(jarUrlArray),
+          ClassUtils.getDefaultClassLoader());
+
+      try {
+        @SuppressWarnings("unchecked")
+        Class<UpgradeCheck> clazz = (Class<UpgradeCheck>) libraryClassLoader.loadClass(
+            "testbed.FooCheck");
+        UpgradeCheck check = clazz.newInstance();
+        check.perform(null);
+      } catch (Exception exception) {
+        exception.printStackTrace();
+      }
+
+    } catch (IOException ioException) {
+      LOG.error("Unable to load libraries from {}", libraryPath, ioException);
     }
   }
 }

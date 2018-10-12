@@ -117,13 +117,13 @@ public class CheckHelper {
    * @return list of pre-requisite check results
    */
   public List<UpgradeCheckResult> performChecks(UpgradeCheckRequest request,
-                                               List<UpgradeCheck> checksRegistry, Configuration config) {
+                                               List<UpgradeCheck> upgradeChecks, Configuration config) {
 
     final String clusterName = request.getClusterName();
     final List<UpgradeCheckResult> results = new ArrayList<>();
     final boolean canBypassPreChecks = config.isUpgradePrecheckBypass();
 
-    List<UpgradeCheck> applicablePreChecks = getApplicableChecks(request, checksRegistry);
+    List<UpgradeCheck> applicablePreChecks = getApplicableChecks(request, upgradeChecks);
 
     for (UpgradeCheck check : applicablePreChecks) {
       UpgradeCheckResult result = new UpgradeCheckResult(check);

@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
 import org.apache.ambari.server.configuration.Configuration;
@@ -51,7 +50,6 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.spi.ClusterInformation;
 import org.apache.ambari.spi.RepositoryVersion;
@@ -104,8 +102,12 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
   @Inject
   private static RepositoryVersionDAO repositoryVersionDAO;
 
+  /**
+   * Used a {@link Provider} around this instance to force lazy loading so it
+   * doesn't hold up Ambari's startup process.
+   */
   @Inject
-  private static UpgradeCheckRegistry upgradeCheckRegistry;
+  private static Provider<UpgradeCheckRegistry> upgradeCheckRegistryProvider;
 
   @Inject
   private static Provider<UpgradeHelper> upgradeHelper;
@@ -249,24 +251,14 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
         upgradeCheckRequest.setRevert(forRevert);
       }
 
+      UpgradeCheckRegistry upgradeCheckRegistry = upgradeCheckRegistryProvider.get();
+
       // ToDo: properly handle exceptions, i.e. create fake check with error description
-      List<UpgradeCheck> upgradeChecksToRun = upgradeCheckRegistry.getFilteredUpgradeChecks(upgradePack);
-
+      final List<UpgradeCheck> upgradeChecksToRun;
       try {
-        // Register all the custom prechecks from the services
-        Map<String, ServiceInfo> services = getManagementController().getAmbariMetaInfo().getServices(
-            sourceStackId.getStackName(), sourceStackId.getStackVersion());
-
-        List<UpgradeCheck> serviceLevelUpgradeChecksToRun = upgradeCheckRegistry.getServiceLevelUpgradeChecks(
-            upgradePack, services);
-
-        upgradeChecksToRun.addAll(serviceLevelUpgradeChecksToRun);
-      } catch (ParentObjectNotFoundException parentNotFoundException) {
-        LOG.error("Invalid stack version: {}", sourceStackId, parentNotFoundException);
+        upgradeChecksToRun = upgradeCheckRegistry.getFilteredUpgradeChecks(upgradePack);
       } catch (AmbariException ambariException) {
-        LOG.error("Unable to register all the custom prechecks from the services", ambariException);
-      } catch (Exception e) {
-        LOG.error("Failed to register custom prechecks for the services", e);
+        throw new SystemException("Unable to load upgrade checks", ambariException);
       }
 
       for (UpgradeCheckResult prerequisiteCheck : checkHelper.performChecks(upgradeCheckRequest, upgradeChecksToRun, config.get())) {

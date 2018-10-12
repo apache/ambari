@@ -27,7 +27,6 @@ import org.apache.ambari.spi.RepositoryType;
 import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
 import org.apache.ambari.spi.upgrade.UpgradeType;
 
-import com.google.inject.ScopeAnnotation;
 import com.google.inject.Singleton;
 
 /**
@@ -40,7 +39,6 @@ import com.google.inject.Singleton;
  */
 @Target({ ElementType.TYPE })
 @Retention(RUNTIME)
-@ScopeAnnotation
 public @interface UpgradeCheckInfo {
 
   /**

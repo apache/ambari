@@ -77,6 +77,8 @@ public class UpgradeCheckOrderTest {
     Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents("org.apache.ambari.server.checks");
 
     // verify they are equal
+    Assert.assertTrue(checks.size() > 0);
+    Assert.assertTrue(beanDefinitions.size() > 0);
     Assert.assertEquals(beanDefinitions.size(), checks.size());
 
     UpgradeCheck lastCheck = null;

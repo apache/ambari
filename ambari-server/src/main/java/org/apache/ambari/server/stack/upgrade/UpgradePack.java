@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -37,10 +38,12 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlValue;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.audit.event.AbstractAuditEvent;
 import org.apache.ambari.server.stack.upgrade.Task.Type;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,6 +137,34 @@ public class UpgradePack {
 
   @XmlTransient
   private StackId ownerStackId;
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(type, source, sourceStack, target, targetStack, ownerStackId);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) return true;
+
+    if (!(object instanceof UpgradePack)) return false;
+
+    UpgradePack that = (UpgradePack) object;
+
+    return new EqualsBuilder()
+      .append(this.type, that.type)
+      .append(this.source, that.source)
+      .append(this.sourceStack, that.sourceStack)
+      .append(this.target, that.targetStack)
+      .append(this.ownerStackId, that.ownerStackId)
+      .isEquals();
+  }
 
   public String getName() {
     return name;
