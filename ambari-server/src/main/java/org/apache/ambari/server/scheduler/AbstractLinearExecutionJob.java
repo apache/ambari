@@ -137,7 +137,7 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
     }
 
     if(ABORTED.name().equals(status) || PAUSED.name().equals(status)) {
-      LOG.debug("The linear job chain was paused or aborted, not triggering the next one");
+      LOG.info("The linear job chain was paused or aborted, not triggering the next one");
       return;
     }
 

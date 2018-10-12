@@ -51,6 +51,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -69,7 +70,6 @@ import org.apache.ambari.server.state.scheduler.BatchRequestResponse;
 import org.apache.ambari.server.state.scheduler.BatchSettings;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.Schedule;
-import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.utils.DateUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
@@ -110,9 +110,6 @@ public class ExecutionScheduleManager {
   private final Clusters clusters;
   ExecutionScheduler executionScheduler;
   Configuration configuration;
-
-  @javax.inject.Inject
-  private AmbariContext ambariContext;
 
   private volatile boolean schedulerAvailable = false;
   protected static final String BATCH_REQUEST_JOB_PREFIX = "BatchRequestJob";
@@ -437,6 +434,10 @@ public class ExecutionScheduleManager {
     return result;
   }
 
+  /**
+   * Creates and stores the chain of BatchRequestJobs - quartz jobs - in order from the last order Id to the startingBatchOrderId
+   * @return the quartz job that corresponds to startingBatchOrderId
+   */
   private JobDetail persistBatch(RequestExecution requestExecution, long startingBatchOrderId)
     throws  AmbariException {
 
@@ -705,7 +706,7 @@ public class ExecutionScheduleManager {
   protected RequestStatus abortRequestById(RequestExecution requestExecution, Long requestId) throws AmbariException {
     LOG.debug("Aborting request " + requestId);
     ResourceProvider provider =
-        ambariContext.getClusterController().ensureResourceProvider(Resource.Type.Request);
+      AbstractControllerResourceProvider.getResourceProvider(Resource.Type.Request);
 
     Map<String, Object> properties = new HashMap<>();
     properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, requestExecution.getClusterName());
