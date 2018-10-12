@@ -310,9 +310,7 @@ class TestAlerts(TestCase):
     definition_json['source']['extensions_directory'] = os.path.join('ambari_agent', 'extensions')
     definition_json['source']['host_scripts_directory'] = os.path.join('ambari_agent', 'host_scripts')
 
-    configuration = {'foo-site' :
-      { 'bar': 'rendered-bar', 'baz' : 'rendered-baz' }
-    }
+    configuration = {'cluster-env' : { 'stack_name': 'HDP' } }
 
     collector = AlertCollector()
     cluster_configuration = self.__get_cluster_configuration()

@@ -80,6 +80,20 @@ class ClusterSettings(object):
         """
         return self.__get_value("smokeuser")
 
+    def get_smokeuser_keytab(self):
+        """
+        Retrieve smokeuser keytab
+        :return: smkeuser string
+        """
+        return self.__get_value("smokeuser_keytab")
+
+    def get_smokeuser_principal(self):
+        """
+        Retrieve smokeuser keytab
+        :return: smkeuser string
+        """
+        return self.__get_value("smokeuser_principal_name")
+
     def get_user_group(self):
         """
         Retrieve cluster usergroup

@@ -24,6 +24,8 @@ from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 from mock.mock import patch, MagicMock
 from stacks.utils.RMFTestCase import *
+from resource_management.libraries.execution_command.execution_command import ExecutionCommand
+from ambari_agent.ConfigurationBuilder import ConfigurationBuilder
 
 class TestScript(RMFTestCase):
 
@@ -31,6 +33,7 @@ class TestScript(RMFTestCase):
     # disable stdout
     out = StringIO.StringIO()
     sys.stdout = out
+    Script.execution_command = ExecutionCommand(Script.config)
 
   @patch("__builtin__.open")
   def test_structured_out(self, open_mock):

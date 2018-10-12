@@ -157,17 +157,6 @@ class TestHookBeforeInstall(RMFTestCase):
                               mode = 0775,
                               cd_access = 'a',
                               )
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
-                              )
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
-                              )
-    self.assertResourceCalled('Execute', '/tmp/changeUid.sh hbase /home/hbase,/tmp/hbase,/usr/bin/hbase,/var/log/hbase,/tmp/hbase-hbase 1000',
-                              not_if = '(test $(id -u hbase) -gt 1000) || (false)',
-                              )
     self.assertResourceCalled('User', 'test_user1',
                               fetch_nonlocal_groups = True,
                               )
@@ -180,40 +169,42 @@ class TestHookBeforeInstall(RMFTestCase):
                               fetch_nonlocal_groups = True,
                               groups = [u'hadoop', u'hdfs', u'test_group'],
                               )
+
     self.assertResourceCalled('Directory', '/etc/hadoop',
-                              mode = 0755,
+                              mode = 493,
                               )
+
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),
-                              owner = 'hdfs',
-                              group = 'hadoop'
-    )
-    self.assertResourceCalled('Directory', '/tmp/hadoop_java_io_tmpdir',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              mode = 01777,
-                              )
+                              group = u'hadoop',
+                              owner = u'hdfs',
+                             )
+
+    self.assertResourceCalled('Directory', '/tmp/hadoop_java_io_tmpdir', group = u'hadoop', mode = 1023, owner = u'hdfs')
     self.assertResourceCalled('Directory', '/tmp/AMBARI-artifacts/',
                               create_parents = True,
                               )
+
     self.assertResourceCalled('File', '/tmp/jdk-7u67-linux-x64.tar.gz',
                               content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/jdk-7u67-linux-x64.tar.gz'),
                               not_if = 'test -f /tmp/jdk-7u67-linux-x64.tar.gz',
                               )
     self.assertResourceCalled('File', '/tmp/jdk-7u67-linux-x64.tar.gz',
-                              mode = 0755,
+                              mode = 493,
                               )
-    self.assertResourceCalled('Directory', '/usr/jdk64',)
+
+    self.assertResourceCalled('Directory', '/usr/jdk64')
+
     self.assertResourceCalled('Execute', ('chmod', 'a+x', u'/usr/jdk64'),
                               sudo = True,
                               )
     self.assertResourceCalled('Execute', 'cd /tmp/jdk_tmp_dir && tar -xf /tmp/jdk-7u67-linux-x64.tar.gz && ambari-sudo.sh cp -rp /tmp/jdk_tmp_dir/* /usr/jdk64',)
-    self.assertResourceCalled('Directory', '/tmp/jdk_tmp_dir',
-                              action = ['delete'],
-                              )
+
+    self.assertResourceCalled('Directory', '/tmp/jdk_tmp_dir', action = ['delete'],)
+
     self.assertResourceCalled('File', '/usr/jdk64/jdk1.7.0_45/bin/java',
-                              mode = 0755,
                               cd_access = 'a',
+                              mode = 493,
                               )
     self.assertResourceCalled('Execute', ('chmod', '-R', '755', u'/usr/jdk64/jdk1.7.0_45'),
                               sudo = True,

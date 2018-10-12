@@ -269,7 +269,7 @@ class ExecutionCommand(object):
 
     def get_mpack_name(self):
         """
-        Retrieve mpack name from command.json, i.e "stack_name": "HDPCORE"
+        Retrieve mpack name from command.json, i.e "stack_name": "HDP"
         :return: mpack name string
         """
         return self.__get_value("clusterLevelParams/stack_name")
@@ -346,14 +346,11 @@ class ExecutionCommand(object):
     """
     Host related variables section
     """
-    #### TODO : Doesn't exist as of now. Evaluate if we would be having these in hostLevelParams.
-    '''
     def get_repo_info(self):
         return self.__get_value('hostLevelParams/repoInfo')
 
     def get_service_repo_info(self):
         return self.__get_value('hostLevelParams/service_repo_info')
-    '''
 
     """
     Component related variables section
@@ -384,10 +381,11 @@ class ExecutionCommand(object):
         """
         return self.__get_value('commandParams/command_retry_enabled', False)
 
-    # TODO : Doesnt exist as of now.  Evaluate if we would be having these
-    '''
     def check_upgrade_direction(self):
         return self.__get_value('commandParams/upgrade_direction')
+
+    # TODO : Doesnt exist as of now.  Evaluate if we would be having these
+    '''
     def get_upgrade_type(self):
         return self.__get_value('commandParams/upgrade_type', '')
     def is_rolling_restart_in_upgrade(self):
@@ -404,8 +402,9 @@ class ExecutionCommand(object):
     def get_module_package_folder(self):
         return self.__get_value('commandParams/service_package_folder')
 
-    # TODO : Doesnt exist as of now. Evaluate if we need them.
-    '''
+    def get_refresh_topology(self):
+        return self.__get_value('commandParams/refresh_topology', False)
+
     def get_ambari_java_home(self):
         return self.__get_value('commandParams/ambari_java_home')
     def get_ambari_java_name(self):
@@ -414,8 +413,6 @@ class ExecutionCommand(object):
         return self.__get_value('commandParams/ambari_jce_name')
     def get_ambari_jdk_name(self):
         return self.__get_value('commandParams/ambari_jdk_name')
-    def need_refresh_topology(self):
-        return self.__get_value('commandParams/refresh_topology', False)
     def check_only_update_files(self):
         return self.__get_value('commandParams/update_files_only', False)
     def get_desired_namenode_role(self):
@@ -435,7 +432,6 @@ class ExecutionCommand(object):
     """
     def is_upgrade_suspended(self):
         return self.__get_value('roleParams/upgrade_suspended', False)
-    '''
 
 
     """

@@ -19,10 +19,8 @@ limitations under the License.
 
 import os
 import re
-import getpass
 import tempfile
 from copy import copy
-from resource_management.libraries.functions.version import compare_versions
 from resource_management import *
 from resource_management.core import shell
 
@@ -51,7 +49,7 @@ def setup_users():
            fetch_nonlocal_groups = params.fetch_nonlocal_groups,
            )
 
-    if params.override_uid == "true":
+    if params.override_uid == True:
       set_uid(params.smoke_user, params.smoke_user_dirs)
     else:
       Logger.info('Skipping setting uid for smoke user as host is sys prepped')
@@ -121,7 +119,7 @@ def create_users_and_groups(user_and_groups):
 
   if users_list:
     User(users_list,
-          fetch_nonlocal_groups = params.fetch_nonlocal_groups
+         fetch_nonlocal_groups = params.fetch_nonlocal_groups
     )
 
   if groups_list:
@@ -154,13 +152,14 @@ def get_uid(user, return_existing=False):
   """
   import params
   user_str = str(user) + "_uid"
-  service_env = [ serviceEnv for serviceEnv in params.config['configurations'] if user_str in params.config['configurations'][serviceEnv]]
+  service_env = [serviceEnv for serviceEnv in params.module_configs.get_raw_config_dict() if
+                 params.module_configs.get_property_value(params.module_name, serviceEnv, user_str)]
 
-  if service_env and params.config['configurations'][service_env[0]][user_str]:
+  if service_env and params.module_configs.get_property_value(params.module_name, service_env[0], user_str):
     service_env_str = str(service_env[0])
-    uid = params.config['configurations'][service_env_str][user_str]
+    uid = params.module_configs.get_property_value(params.module_name, service_env_str, user_str)
     if len(service_env) > 1:
-      Logger.warning("Multiple values found for %s, using %s"  % (user_str, uid))
+      Logger.warning("Multiple values found for %s, using %s" % (user_str, uid))
     return uid
   else:
     if return_existing:

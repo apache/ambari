@@ -23,6 +23,7 @@ from resource_management.core.logger import Logger
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.script import Script
+from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 from resource_management.core.exceptions import Fail
 from unittest import TestCase
 
@@ -69,6 +70,7 @@ class TestStackFeature(TestCase):
     command_json = TestStackFeature._get_cluster_install_command_json()
     Script.config = command_json
 
+    Script.execution_command = ExecutionCommand(Script.config)
     stack_feature_version = get_stack_feature_version(command_json)
     self.assertEqual("2.4", stack_feature_version)
 
@@ -81,6 +83,7 @@ class TestStackFeature(TestCase):
     command_json = TestStackFeature._get_cluster_upgrade_restart_json()
     Script.config = command_json
 
+    Script.execution_command = ExecutionCommand(Script.config)
     stack_feature_version = get_stack_feature_version(command_json)
     self.assertEqual("2.5.9.9-9999", stack_feature_version)
 
@@ -93,6 +96,7 @@ class TestStackFeature(TestCase):
     command_json = TestStackFeature._get_cluster_downgrade_restart_json()
     Script.config = command_json
 
+    Script.execution_command = ExecutionCommand(Script.config)
     stack_feature_version = get_stack_feature_version(command_json)
     self.assertEqual("2.4.0.0-1234", stack_feature_version)
 
@@ -105,6 +109,7 @@ class TestStackFeature(TestCase):
     command_json = TestStackFeature._get_cluster_downgrade_stop_json()
     Script.config = command_json
 
+    Script.execution_command = ExecutionCommand(Script.config)
     stack_feature_version = get_stack_feature_version(command_json)
     self.assertEqual("2.5.9.9-9999", stack_feature_version)
 
@@ -127,6 +132,7 @@ class TestStackFeature(TestCase):
     Script.config["configurations"]["cluster-env"] = {}
     Script.config["configurations"]["cluster-env"]["stack_features"] = {}
     Script.config["configurations"]["cluster-env"]["stack_features"] = json.dumps(TestStackFeature._get_stack_feature_json())
+    Script.execution_command = ExecutionCommand(Script.config)
 
     stack_feature_version = get_stack_feature_version(command_json)
     self.assertTrue(check_stack_feature("stack-feature-1", stack_feature_version))

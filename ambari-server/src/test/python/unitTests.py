@@ -154,7 +154,7 @@ def resolve_paths_to_import_from_common_services(metainfo_file, base_stack_folde
 def append_paths(server_src_dir, base_stack_folder, service):
   """
   Append paths to sys.path in order to import modules.
-  
+
   @param server_src_dir: Server source directory
   @param base_stack_folder: If present, the directory of the stack.
   @param service: Service name.

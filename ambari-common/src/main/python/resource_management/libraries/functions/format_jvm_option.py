@@ -20,7 +20,7 @@ Ambari Agent
 
 """
 
-__all__ = ["format_jvm_option"]
+__all__ = ["format_jvm_option", "format_jvm_option_value"]
 from resource_management.libraries.script import Script
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 from resource_management.core.logger import Logger
@@ -28,20 +28,23 @@ from resource_management.libraries.functions import *
 
 def format_jvm_option(name, default_value):
   curr_dict = default(name, default_value)
-  if isinstance(curr_dict, ( int, long )):
-    curr_dict = str(curr_dict) + "m"
+  return format_jvm_option_value(curr_dict, default_value)
+
+
+def format_jvm_option_value(value, default_value):
+  if isinstance(value, (int, long)):
+    curr_dict = str(value) + "m"
     return curr_dict
-  elif isinstance(curr_dict, str):
-    if curr_dict.strip() == "":
+  elif isinstance(value, str):
+    if value.strip() == "":
       return default_value
-    elif curr_dict.strip() != "":
-      if "m" in curr_dict:
-        return curr_dict
+    elif value.strip() != "":
+      if "m" in value:
+        return value
       else:
-        if isinstance(int(curr_dict), ( int, long )): 
-          return str(int(curr_dict)) + "m"
+        if isinstance(int(value), (int, long)):
+          return str(int(value)) + "m"
         else:
           return default_value
   else:
     return default_value
-    

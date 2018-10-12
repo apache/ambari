@@ -27,6 +27,7 @@ from resource_management.core.logger import Logger
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.stack_select import get_stack_versions
 from ambari_commons.repo_manager import ManagerFactory
+from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 
 CURRENT_ = "/current/"
 stack_root = Script.get_stack_root()
@@ -38,6 +39,7 @@ class RemovePreviousStacks(Script):
 
   def actionexecute(self, env):
     config = Script.get_config()
+    Script.execution_command = ExecutionCommand(Script.config)
     structured_output = {}
     version = config['commandParams']['version']
     self.stack_tool_package = stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME)

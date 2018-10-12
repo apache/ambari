@@ -41,10 +41,10 @@ def setup_extensions():
   import params
 
   # Hadoop Custom extensions
-  hadoop_custom_extensions_enabled = default("/configurations/core-site/hadoop.custom-extensions.enabled", False)
-  hadoop_custom_extensions_services = default("/configurations/core-site/hadoop.custom-extensions.services", "")
-  hadoop_custom_extensions_owner = default("/configurations/core-site/hadoop.custom-extensions.owner", params.hdfs_user)
-  hadoop_custom_extensions_hdfs_dir = get_config_formatted_value(default("/configurations/core-site/hadoop.custom-extensions.root",
+  hadoop_custom_extensions_enabled = params.module_configs.get_property_value(params.module_name, 'core-site', 'hadoop.custom-extensions.enabled', False)
+  hadoop_custom_extensions_services = params.module_configs.get_property_value(params.module_name, 'core-site', 'hadoop.custom-extensions.services', "")
+  hadoop_custom_extensions_owner = params.module_configs.get_property_value(params.module_name, 'core-site', 'hadoop.custom-extensions.owner', params.hdfs_user)
+  hadoop_custom_extensions_hdfs_dir = get_config_formatted_value(params.module_configs.get_property_value(params.module_name, 'core-site', 'hadoop.custom-extensions.root',
                                                  DEFAULT_HADOOP_HDFS_EXTENSION_DIR.format(params.major_stack_version)))
   hadoop_custom_extensions_services = [ service.strip().upper() for service in hadoop_custom_extensions_services.split(",") ]
   hadoop_custom_extensions_services.append("YARN")
@@ -90,14 +90,14 @@ def setup_hbase_extensions():
 def setup_extensions_hive():
   import params
 
-  hive_custom_extensions_enabled = default("/configurations/hive-site/hive.custom-extensions.enabled", False)
-  hive_custom_extensions_owner = default("/configurations/hive-site/hive.custom-extensions.owner", params.hdfs_user)
+  hive_custom_extensions_enabled = params.module_configs.get_property_value(params.module_name, 'hive-site', 'hive.custom-extensions.enabled', False)
+  hive_custom_extensions_owner = params.module_configs.get_property_value(params.module_name, 'hive-site', 'hive.custom-extensions.owner', params.hdfs_user)
   hive_custom_extensions_hdfs_dir = DEFAULT_HADOOP_HIVE_EXTENSION_DIR.format(params.major_stack_version)
 
   hive_custom_extensions_local_dir = "{0}/current/ext/hive".format(Script.get_stack_root())
 
-  impacted_components = ['HIVE_SERVER', 'HIVE_CLIENT'];
-  role = params.config.get('role','')
+  impacted_components = ['HIVE_SERVER', 'HIVE_CLIENT']
+  role = params.execution_command.get_component_type()
 
   # Run copying for HIVE_SERVER and HIVE_CLIENT
   if params.current_service == 'HIVE' and role in impacted_components:
