@@ -242,28 +242,6 @@ public class ClusterCheckTest extends EasyMockSupport {
     Assert.assertTrue(m_mockCheckHelper.getApplicableChecks(request, Lists.newArrayList(check)).size() == 1);
   }
 
-  /**
-   * Tests {@link UpgradeCheckRegistry#isRequired(org.apache.ambari.spi.upgrade.UpgradeCheck, UpgradeType)}
-   *
-   * @throws Exception
-   */
-  @Test
-  public void testRequired() throws Exception {
-    RollingTestCheckImpl rollingCheck = new RollingTestCheckImpl(UpgradeCheckType.SERVICE);
-    Assert.assertTrue(UpgradeCheckRegistry.isRequired(rollingCheck, UpgradeType.ROLLING));
-    Assert.assertFalse(UpgradeCheckRegistry.isRequired(rollingCheck, UpgradeType.NON_ROLLING));
-
-    NotRequiredCheckTest notRequiredCheck = new NotRequiredCheckTest(UpgradeCheckType.SERVICE);
-    Assert.assertFalse(UpgradeCheckRegistry.isRequired(notRequiredCheck, UpgradeType.ROLLING));
-    Assert.assertFalse(UpgradeCheckRegistry.isRequired(notRequiredCheck, UpgradeType.NON_ROLLING));
-    Assert.assertFalse(UpgradeCheckRegistry.isRequired(notRequiredCheck, UpgradeType.HOST_ORDERED));
-
-    TestCheckImpl requiredCheck = new TestCheckImpl(UpgradeCheckType.SERVICE);
-    Assert.assertTrue(UpgradeCheckRegistry.isRequired(requiredCheck, UpgradeType.ROLLING));
-    Assert.assertTrue(UpgradeCheckRegistry.isRequired(requiredCheck, UpgradeType.NON_ROLLING));
-    Assert.assertTrue(UpgradeCheckRegistry.isRequired(requiredCheck, UpgradeType.HOST_ORDERED));
-  }
-
   @UpgradeCheckInfo(
       group = UpgradeCheckGroup.DEFAULT,
       order = 1.0f,

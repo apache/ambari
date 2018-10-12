@@ -261,7 +261,10 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
         throw new SystemException("Unable to load upgrade checks", ambariException);
       }
 
-      for (UpgradeCheckResult prerequisiteCheck : checkHelper.performChecks(upgradeCheckRequest, upgradeChecksToRun, config.get())) {
+      List<UpgradeCheckResult> results = checkHelper.performChecks(upgradeCheckRequest,
+          upgradeChecksToRun, config.get());
+
+      for (UpgradeCheckResult prerequisiteCheck : results) {
         final Resource resource = new ResourceImpl(Resource.Type.PreUpgradeCheck);
         setResourceProperty(resource, UPGRADE_CHECK_ID_PROPERTY_ID, prerequisiteCheck.getId(), requestedIds);
         setResourceProperty(resource, UPGRADE_CHECK_CHECK_PROPERTY_ID, prerequisiteCheck.getDescription(), requestedIds);

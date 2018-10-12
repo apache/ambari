@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.List;
 import java.util.Set;
 
 import org.apache.ambari.spi.upgrade.UpgradeCheck;
@@ -99,15 +98,11 @@ public class UpgradeCheckRegistryProvider implements Provider<UpgradeCheckRegist
       try {
         UpgradeCheck upgradeCheck = (UpgradeCheck) m_injector.getInstance(clazz);
         m_checkRegistry.register(upgradeCheck);
+
+        LOG.info("Registered pre-upgrade check {}", upgradeCheck.getClass());
       } catch (Exception exception) {
         LOG.error("Unable to bind and register upgrade check {}", clazz, exception);
       }
-    }
-
-    // log the order of the pre-upgrade checks
-    List<UpgradeCheck> upgradeChecks = m_checkRegistry.getUpgradeChecks();
-    for (UpgradeCheck upgradeCheck : upgradeChecks) {
-      LOG.info("Registered pre-upgrade check {}", upgradeCheck.getClass());
     }
 
     return m_checkRegistry;

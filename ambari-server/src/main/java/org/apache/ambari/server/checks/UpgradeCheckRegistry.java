@@ -30,11 +30,14 @@ import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
+import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.spi.upgrade.CheckQualification;
 import org.apache.ambari.spi.upgrade.UpgradeCheck;
 import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
 import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +49,13 @@ import com.google.inject.Provider;
  * The {@link UpgradeCheckRegistry} contains the ordered list of all pre-upgrade
  * checks. This will order the checks according to
  * {@link PreUpgradeCheckComparator}.
+ * <p>
+ * There are two types of checks which can be loaded into this registry:
+ * <ul>
+ * <li>Built-in: checks which ship with Ambari
+ * <li>Plug-in: checks which are specified in the upgrade pack for a stack, and
+ * either come from Ambari's checks or from the library classpath of the stack.
+ * </ul>
  */
 public class UpgradeCheckRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCheckRegistry.class);
@@ -54,7 +64,8 @@ public class UpgradeCheckRegistry {
   private Provider<AmbariMetaInfo> metainfoProvider;
 
   /**
-   * The list of upgrade checks provided by the system.
+   * The list of upgrade checks provided by the system which are required, as
+   * specified by {@link UpgradeCheckInfo#required()}.
    */
   private final Set<UpgradeCheck> m_builtInChecks = new TreeSet<>(
     new PreUpgradeCheckComparator());
@@ -75,24 +86,42 @@ public class UpgradeCheckRegistry {
   }
 
   /**
-   * Gets an ordered list of all of the upgrade checks.
+   * Gets a list of all of the built-in upgrade checks.
    *
    * @return
    */
-  public List<UpgradeCheck> getUpgradeChecks() {
+  public List<UpgradeCheck> getBuiltInUpgradeChecks() {
     return new ArrayList<>(m_builtInChecks);
   }
 
   /**
-   * Gets an ordered and filtered list of the upgrade checks.
-   * @param upgradePack Upgrade pack object with the list of required checks to be included
+   * Gets the ordered upgrade checks which should execute for the specified
+   * upgrade pack. This list of checks will include required built-in checks
+   * from Ambari and plugin checks loaded from the upgrade pack.
+   * <p>
+   * This collection of upgrade checks will be further scrutinized via
+   * {@link CheckQualification}s to determine if they indeed need to run by the
+   * {@link CheckHelper}.
+   *
+   * @param upgradePack
+   *          Upgrade pack object with the list of required checks to be
+   *          included
    * @return
    */
   @SuppressWarnings("unchecked")
   public List<UpgradeCheck> getFilteredUpgradeChecks(UpgradePack upgradePack) throws AmbariException {
-    List<UpgradeCheck> upgradeChecks = new ArrayList<>();
-    upgradeChecks.addAll(m_builtInChecks);
+    List<UpgradeCheck> builtInRequiredChecks = new ArrayList<>();
 
+    // iterate over all of the built-in checks, dropping any which are not
+    // required for the upgrade pack's upgrade type
+    for (UpgradeCheck builtInCheck : m_builtInChecks) {
+      if (isBuiltInCheckRequired(builtInCheck, upgradePack.getType())) {
+        builtInRequiredChecks.add(builtInCheck);
+      }
+    }
+
+    // for any checks defined in the upgrade pack, add them since they have been
+    // explicitely defined
     Set<UpgradeCheck> pluginChecks = m_pluginChecks.get(upgradePack);
 
     // see if the upgrade checks have been processes for this pack yet
@@ -129,30 +158,28 @@ public class UpgradeCheckRegistry {
     }
 
     final Set<UpgradeCheck> combinedUpgradeChecks = new TreeSet<>(new PreUpgradeCheckComparator());
-    combinedUpgradeChecks.addAll(m_builtInChecks);
+    combinedUpgradeChecks.addAll(builtInRequiredChecks);
     combinedUpgradeChecks.addAll(pluginChecks);
 
     return new LinkedList<>(combinedUpgradeChecks);
   }
 
   /**
-   * Gets whether the upgrade check is required for the specified
-   * {@link UpgradeType}. Checks which are marked as required do not need to be
-   * explicitely declared in the {@link UpgradePack} to be run.
-   *
-   * @return {@code true} if it is required, {@code false} otherwise.
+   * Gets whether a built-in upgrade check is required to run.
    */
-  public static boolean isRequired(UpgradeCheck upgradeCheck, UpgradeType upgradeType) {
-    UpgradeType[] upgradeTypes = upgradeCheck.getClass().getAnnotation(UpgradeCheckInfo.class).required();
-    for (UpgradeType requiredType : upgradeTypes) {
-      if (upgradeType == requiredType) {
-        return true;
-      }
+  private boolean isBuiltInCheckRequired(UpgradeCheck upgradeCheck, UpgradeType upgradeType) {
+    UpgradeCheckInfo annotation = upgradeCheck.getClass().getAnnotation(UpgradeCheckInfo.class);
+    if (null == annotation) {
+      return false;
+    }
+
+    UpgradeType[] upgradeTypes = annotation.required();
+    if (ArrayUtils.contains(upgradeTypes, upgradeType)) {
+      return true;
     }
 
     return false;
   }
-
 
   /**
    * THe {@link PreUpgradeCheckComparator} class is used to compare

@@ -25,6 +25,7 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.checks.OrchestrationQualification;
+import org.apache.ambari.server.checks.UpgradeTypeQualification;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -81,7 +82,8 @@ public class CheckHelper {
       // build some required qualifications
       List<CheckQualification> qualifications = Lists.newArrayList(
           new ServiceQualification(check),
-          new OrchestrationQualification(check.getClass()));
+          new OrchestrationQualification(check.getClass()),
+          new UpgradeTypeQualification(check.getClass()));
 
       // add any extras from the check
       qualifications.addAll(check.getQualifications());

@@ -66,7 +66,7 @@ public class UpgradeCheckOrderTest {
     Assert.assertEquals(registry, registry2);
 
     // get the check list
-    List<UpgradeCheck> checks = registry.getUpgradeChecks();
+    List<UpgradeCheck> checks = registry.getBuiltInUpgradeChecks();
 
     // scan for all checks
     ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
@@ -87,7 +87,6 @@ public class UpgradeCheckOrderTest {
       UpgradeCheckGroup lastGroup = UpgradeCheckGroup.DEFAULT;
 
       if (null != lastCheck) {
-
         UpgradeCheckInfo annotation = check.getClass().getAnnotation(UpgradeCheckInfo.class);
         UpgradeCheckInfo lastAnnotation = lastCheck.getClass().getAnnotation(UpgradeCheckInfo.class);
 
