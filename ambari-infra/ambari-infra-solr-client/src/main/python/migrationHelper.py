@@ -949,6 +949,7 @@ def parse_size(human_size):
   import locale
   units = {"bytes": 1, "KB": 1024, "MB": 1024**2, "GB": 1024**3, "TB": 1024**4 }
   number, unit = [string.strip() for string in human_size.split()]
+  locale.setlocale(locale.LC_ALL,'')
   return int(locale.atof(number)*units[unit])
 
 def get_replica_index_size(config, core_url, replica):
