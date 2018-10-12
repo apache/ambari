@@ -57,7 +57,7 @@ public class ServiceUpdateListener {
 
   @Inject
   public ServiceUpdateListener(STOMPUpdatePublisher STOMPUpdatePublisher, AmbariEventPublisher ambariEventPublisher) {
-    STOMPUpdatePublisher.register(this);
+    STOMPUpdatePublisher.registerAPI(this);
     ambariEventPublisher.register(this);
 
     this.STOMPUpdatePublisher = STOMPUpdatePublisher;
