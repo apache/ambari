@@ -212,7 +212,7 @@ def f(args):
     self.minimum_value = metric_info['minimum_value']
 
     if 'value' in metric_info:
-      realcode = REALCODE_REGEXP.sub('(\{(\d+)\})', 'args[\g<2>][k]', metric_info['value'])
+      realcode = REALCODE_REGEXP.sub('args[\g<2>][k]', metric_info['value'])
 
       self.custom_value_module =  imp.new_module(str(uuid.uuid4()))
       code = self.DYNAMIC_CODE_VALUE_TEMPLATE.format(realcode)
