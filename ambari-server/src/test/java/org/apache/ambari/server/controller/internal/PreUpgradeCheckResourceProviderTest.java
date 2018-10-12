@@ -56,6 +56,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -311,6 +312,7 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
         bind(AlertsDAO.class).toInstance(createNiceMock(AlertsDAO.class));
         bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));
         bind(RepositoryVersionDAO.class).toInstance(createNiceMock(RepositoryVersionDAO.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
         Provider<EntityManager> entityManagerProvider = createNiceMock(Provider.class);
         bind(EntityManager.class).toProvider(entityManagerProvider);
 
