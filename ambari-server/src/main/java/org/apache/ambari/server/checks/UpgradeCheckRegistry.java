@@ -114,6 +114,8 @@ public class UpgradeCheckRegistry {
                   pluginCheckClassName);
 
               pluginChecks.add(upgradeCheckClass.newInstance());
+              LOG.info("Registered pre-upgrade check {} for stack {}", upgradeCheckClass,
+                  ownerStackId);
             } catch (Exception exception) {
               LOG.error("Unable to load the upgrade check {}", pluginCheckClassName, exception);
             }

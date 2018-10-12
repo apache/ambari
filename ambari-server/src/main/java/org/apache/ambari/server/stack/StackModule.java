@@ -382,13 +382,6 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   }
 
   /**
-   *
-   */
-  private void mergeLibraryClassLoader() {
-
-  }
-
-  /**
    * Check if parent is common service
    * @param parent  Parent string
    * @return true: if parent is common service, false otherwise
