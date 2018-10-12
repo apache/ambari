@@ -472,7 +472,7 @@ If the script finished successfully and everything looks green on Ambari UI as w
 Migration for `ranger_audits` collection (cores):
 
 ```bash
-# by default, you will mirate to Lucene 6.6.2, if you want to migrate again to Solr 7 (not requred), you can use --version 7.4.0 flag
+# by default, you will mirate to Lucene 6.6.2, if you want to migrate again to Solr 7 (not requred), you can use --version 7.5.0 flag
 /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action migrate -s RANGER
 ```
 
@@ -487,7 +487,7 @@ infra-lucene-index-tool upgrade-index -d /tmp/ranger-backup -f -b -g
 # with 'infra-lucene-index-tool help' command you can checkout the command line options
 ```
 
-By default, the tool will migrate from lucene version 5 to lucene version 6.6.2. (that's ok for Solr 7) If you want a lucene 7 index, you will need to re-run the migration tool command with `-v 7.4.0` option.
+By default, the tool will migrate from lucene version 5 to lucene version 6.6.2. (that's ok for Solr 7) If you want a lucene 7 index, you will need to re-run the migration tool command with `-v 7.5.0` option.
 
 #### <a id="v/2.-migrate-atlas-collections">VI/2. Migrate Atlas collections</a>
 
@@ -509,7 +509,7 @@ infra-lucene-index-tool upgrade-index -d /tmp/fulltext_index_backup -f -b -g
 # with 'infra-lucene-index-tool help' command you can checkout the command line options
 ```
 
-By default, the tool will migrate from lucene version 5 to lucene version 6.6.2. (that's ok for Solr 7) If you want a lucene 7 index, you will need to re-run the migration tool command with `-v 7.4.0` option.
+By default, the tool will migrate from lucene version 5 to lucene version 6.6.2. (that's ok for Solr 7) If you want a lucene 7 index, you will need to re-run the migration tool command with `-v 7.5.0` option.
 
 ### <a id="vi.-restore-collections">VII. Restore Collections</a>
 
@@ -852,7 +852,7 @@ Options:
                         location of the index backups (for ranger). required
                         only if no backup path in the ini file
   --version=INDEX_VERSION
-                        lucene index version for migration (6.6.2 or 7.4.0)
+                        lucene index version for migration (6.6.2 or 7.5.0)
   --solr-async-request-tries=SOLR_ASYNC_REQUEST_TRIES
                         number of max tries for async Solr requests (e.g.:
                         delete operation)

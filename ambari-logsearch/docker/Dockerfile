@@ -54,7 +54,7 @@ RUN echo 'X11DisplayOffset 10\n' /etc/ssh/sshd_config
 RUN git config --global url."https://".insteadOf git://
 
 # Install Solr
-ENV SOLR_VERSION 7.4.0
+ENV SOLR_VERSION 7.5.0
 RUN wget --no-check-certificate -O /root/solr-$SOLR_VERSION.tgz http://public-repo-1.hortonworks.com/ARTIFACTS/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz
 RUN cd /root && tar -zxvf /root/solr-$SOLR_VERSION.tgz
 
