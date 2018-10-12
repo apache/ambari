@@ -193,6 +193,7 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
     expect(upgradePack.getPrerequisiteChecks()).andReturn(prerequisiteChecks).anyTimes();
     expect(upgradePack.getTarget()).andReturn("1.1.*.*").anyTimes();
     expect(upgradePack.getOwnerStackId()).andReturn(targetStackId).atLeastOnce();
+    expect(upgradePack.getType()).andReturn(UpgradeType.ROLLING).atLeastOnce();
 
     expect(ambariMetaInfo.getServices("Stack100", "1.0")).andReturn(allServiceInfoMap).anyTimes();
     String checks = ClassLoader.getSystemClassLoader().getResource("checks").getPath();
@@ -221,8 +222,10 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
     Set<Resource> resources = Collections.emptySet();
     resources = provider.getResources(request, predicate);
 
-    // make sure all of the checks ran and were returned in the response
-    Assert.assertEquals(21, resources.size());
+    // make sure all of the checks ran and were returned in the response; some
+    // of the checks are stripped out b/c they don't define any required upgrade
+    // types
+    Assert.assertEquals(19, resources.size());
 
     // find the service check provided by the library classloader and verify it ran
     Resource customUpgradeCheck = null;

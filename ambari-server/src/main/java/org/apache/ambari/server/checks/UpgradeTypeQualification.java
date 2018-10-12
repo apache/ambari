@@ -55,7 +55,7 @@ import org.apache.commons.lang.ArrayUtils;
 
     UpgradeCheckInfo annotation = m_checkClass.getAnnotation(UpgradeCheckInfo.class);
     if (null == annotation) {
-      return false;
+      return true;
     }
 
     // empty upgrade type or matching should return true

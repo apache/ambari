@@ -168,6 +168,10 @@ public class UpgradeCheckRegistry {
    * Gets whether a built-in upgrade check is required to run.
    */
   private boolean isBuiltInCheckRequired(UpgradeCheck upgradeCheck, UpgradeType upgradeType) {
+    if (upgradeType == null) {
+      return true;
+    }
+
     UpgradeCheckInfo annotation = upgradeCheck.getClass().getAnnotation(UpgradeCheckInfo.class);
     if (null == annotation) {
       return false;

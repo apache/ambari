@@ -20,10 +20,11 @@ package org.apache.ambari.server.state;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.checks.ClusterCheck;
 import org.apache.ambari.server.checks.MockCheckHelper;
@@ -33,6 +34,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.spi.ClusterInformation;
+import org.apache.ambari.spi.RepositoryType;
 import org.apache.ambari.spi.RepositoryVersion;
 import org.apache.ambari.spi.upgrade.UpgradeCheck;
 import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
@@ -84,7 +86,7 @@ public class CheckHelperTest {
   @Mock
   private RepositoryVersionDAO repositoryVersionDao;
 
-  final Map<String, Service> m_services = new HashMap<>();
+  final Set<String> m_services = new HashSet<>();
 
   @Before
   public void setup() throws Exception {
@@ -94,10 +96,11 @@ public class CheckHelperTest {
 
     m_services.clear();
     Mockito.when(m_repositoryVersion.getId()).thenReturn(1L);
+    Mockito.when(m_repositoryVersion.getRepositoryType()).thenReturn(RepositoryType.STANDARD);
     Mockito.when(repositoryVersionDao.findByPK(Mockito.anyLong())).thenReturn(m_repositoryVersionEntity);
     Mockito.when(m_repositoryVersionEntity.getRepositoryXml()).thenReturn(m_vdfXml);
     Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
-    Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
+    Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services);
   }
 
   /**
@@ -106,6 +109,9 @@ public class CheckHelperTest {
   @Test
   public void testPreUpgradeCheck() throws Exception {
     final CheckHelper helper = new CheckHelper();
+    helper.clustersProvider = () -> clusters;
+    helper.repositoryVersionDaoProvider = () -> repositoryVersionDao;
+
     Configuration configuration = EasyMock.createNiceMock(Configuration.class);
     List<UpgradeCheck> updateChecksRegistry = new ArrayList<>();
 
@@ -127,15 +133,17 @@ public class CheckHelperTest {
   @Test
   public void testPreUpgradeCheckNotApplicable() throws Exception {
     final Cluster cluster = Mockito.mock(Cluster.class);
-    final Service service = Mockito.mock(Service.class);
 
-    m_services.put("KAFKA", service);
+    m_services.add("KAFKA");
 
     Mockito.when(cluster.getServices()).thenReturn(new HashMap<>());
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
 
     final CheckHelper helper = new CheckHelper();
+    helper.clustersProvider = () -> clusters;
+    helper.repositoryVersionDaoProvider = () -> repositoryVersionDao;
+
     Configuration configuration = EasyMock.createNiceMock(Configuration.class);
     List<UpgradeCheck> updateChecksRegistry = new ArrayList<>();
 
@@ -144,11 +152,14 @@ public class CheckHelperTest {
     updateChecksRegistry.add(m_mockCheck);
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation,
+        UpgradeType.NON_ROLLING, m_repositoryVersion, null);
 
     helper.performChecks(request, updateChecksRegistry, configuration);
 
     Assert.assertEquals(null, request.getResult(m_mockUpgradeCheckDescription));
+
+    request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null);
   }
 
   /**
@@ -157,6 +168,9 @@ public class CheckHelperTest {
   @Test
   public void testPreUpgradeCheckThrowsException() throws Exception {
     final CheckHelper helper = new CheckHelper();
+    helper.clustersProvider = () -> clusters;
+    helper.repositoryVersionDaoProvider = () -> repositoryVersionDao;
+
     Configuration configuration = EasyMock.createNiceMock(Configuration.class);
     List<UpgradeCheck> updateChecksRegistry = new ArrayList<>();
 
@@ -181,6 +195,9 @@ public class CheckHelperTest {
   @Test
   public void testPreUpgradeCheckBypassesFailure() throws Exception {
     final CheckHelper helper = new CheckHelper();
+    helper.clustersProvider = () -> clusters;
+    helper.repositoryVersionDaoProvider = () -> repositoryVersionDao;
+
     Configuration configuration = EasyMock.createNiceMock(Configuration.class);
     List<UpgradeCheck> updateChecksRegistry = new ArrayList<>();
 
@@ -204,7 +221,7 @@ public class CheckHelperTest {
     final Cluster cluster = Mockito.mock(Cluster.class);
     final Service service = Mockito.mock(Service.class);
 
-    m_services.put("KAFKA", service);
+    m_services.add("KAFKA");
 
     Mockito.when(cluster.getServices()).thenReturn(new HashMap<>());
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
@@ -214,6 +231,7 @@ public class CheckHelperTest {
     final MockCheckHelper helper = new MockCheckHelper();
     helper.m_clusters = clusters;
     helper.m_repositoryVersionDAO = repositoryVersionDao;
+    helper.clustersProvider = () -> clusters;
 
     Configuration configuration = EasyMock.createNiceMock(Configuration.class);
     List<UpgradeCheck> updateChecksRegistry = new ArrayList<>();
@@ -233,6 +251,8 @@ public class CheckHelperTest {
     Assert.assertEquals(UpgradeCheckStatus.FAIL, request.getResult(m_mockUpgradeCheckDescription));
   }
 
+  @UpgradeCheckInfo(
+      required = { UpgradeType.ROLLING })
   class MockCheck extends ClusterCheck {
 
     protected MockCheck() {
@@ -252,7 +272,7 @@ public class CheckHelperTest {
      */
     @Override
     public Set<String> getApplicableServices() {
-      return m_services.keySet();
+      return m_services;
     }
 
     @Override

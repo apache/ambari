@@ -97,7 +97,7 @@ public class AutoStartDisabledCheckTest {
 
   @Test
   public void testIsApplicable() throws Exception {
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, null,
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         repositoryVersion, m_configMap);
 
     CheckHelper checkHelper = new CheckHelper();
