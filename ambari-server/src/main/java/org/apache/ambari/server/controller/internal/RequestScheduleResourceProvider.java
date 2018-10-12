@@ -430,11 +430,22 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
       String username = getManagementController().getAuthName();
       Integer userId = getManagementController().getAuthId();
 
-      requestExecution.setBatch(request.getBatch());
-      requestExecution.setDescription(request.getDescription());
-      requestExecution.setSchedule(request.getSchedule());
-      if (request.getStatus() != null && isValidRequestScheduleStatus
-          (request.getStatus())) {
+      if (request.getDescription() != null) {
+        requestExecution.setDescription(request.getDescription());
+      }
+
+      if (request.getSchedule() != null) {
+        requestExecution.setSchedule(request.getSchedule());
+      }
+
+      if (request.getStatus() != null) {
+        //TODO status changes graph
+        if (!isValidRequestScheduleStatus(request.getStatus())) {
+          throw new AmbariException("Request Schedule status not valid"
+            + ", clusterName = " + request.getClusterName()
+            + ", description = " + request.getDescription()
+            + ", id = " + request.getId());
+        }
         requestExecution.setStatus(RequestExecution.Status.valueOf(request.getStatus()));
       }
       requestExecution.setUpdateUser(username);
@@ -443,6 +454,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
       LOG.info("Persisting updated Request Schedule "
         + ", clusterName = " + request.getClusterName()
         + ", description = " + request.getDescription()
+        + ", status = " + request.getStatus()
         + ", user = " + username);
 
       requestExecution.persist();
@@ -502,7 +514,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
 
       // Setup batch schedule
       getManagementController().getExecutionScheduleManager()
-        .scheduleBatch(requestExecution);
+        .scheduleAllBatches(requestExecution);
 
       RequestScheduleResponse response = new RequestScheduleResponse
         (requestExecution.getId(), requestExecution.getClusterName(),
