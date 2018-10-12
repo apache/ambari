@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Provider;
 
 /**
@@ -62,6 +63,14 @@ public class UpgradeCheckRegistry {
 
   @Inject
   private Provider<AmbariMetaInfo> metainfoProvider;
+
+  /**
+   * Used for injecting dependencies into plugin upgrade check classes. There
+   * are cases where an upgrade pack specifies a built-in check which uses a
+   * dependency, such as the Ambari Configuration singleton.
+   */
+  @Inject
+  private Injector m_injector;
 
   /**
    * The list of upgrade checks provided by the system which are required, as
@@ -142,7 +151,9 @@ public class UpgradeCheckRegistry {
               Class<? extends UpgradeCheck> upgradeCheckClass = (Class<? extends UpgradeCheck>) classLoader.loadClass(
                   pluginCheckClassName);
 
-              pluginChecks.add(upgradeCheckClass.newInstance());
+              UpgradeCheck upgradeCheck = m_injector.getInstance(upgradeCheckClass);
+              pluginChecks.add(upgradeCheck);
+
               LOG.info("Registered pre-upgrade check {} for stack {}", upgradeCheckClass,
                   ownerStackId);
             } catch (Exception exception) {
