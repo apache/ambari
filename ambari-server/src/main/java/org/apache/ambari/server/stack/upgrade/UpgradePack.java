@@ -38,7 +38,6 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlValue;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.audit.event.AbstractAuditEvent;
 import org.apache.ambari.server.stack.upgrade.Task.Type;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.spi.upgrade.UpgradeType;
@@ -151,18 +150,22 @@ public class UpgradePack {
    */
   @Override
   public boolean equals(Object object) {
-    if (this == object) return true;
+    if (this == object) {
+      return true;
+    }
 
-    if (!(object instanceof UpgradePack)) return false;
+    if (!(object instanceof UpgradePack)) {
+      return false;
+    }
 
     UpgradePack that = (UpgradePack) object;
 
     return new EqualsBuilder()
-      .append(this.type, that.type)
-      .append(this.source, that.source)
-      .append(this.sourceStack, that.sourceStack)
-      .append(this.target, that.targetStack)
-      .append(this.ownerStackId, that.ownerStackId)
+      .append(type, that.type)
+      .append(source, that.source)
+      .append(sourceStack, that.sourceStack)
+      .append(target, that.targetStack)
+      .append(ownerStackId, that.ownerStackId)
       .isEquals();
   }
 
