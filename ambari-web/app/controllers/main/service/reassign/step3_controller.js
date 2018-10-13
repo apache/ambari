@@ -118,6 +118,15 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
       }
     },
     {
+      componentName: 'TIMELINE_READER',
+      configs: {
+        'yarn-site': {
+          'yarn.timeline-service.reader.webapp.address': '<replace-value>:8198',
+          'yarn.timeline-service.reader.webapp.https.address': '<replace-value>:8199'
+        }
+      }
+    },
+    {
       componentName: 'OOZIE_SERVER',
       configs: {
         'oozie-site': {
