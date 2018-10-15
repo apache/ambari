@@ -17,7 +17,12 @@
  */
 package org.apache.ambari.server.configuration.spring;
 
+import java.security.cert.X509Certificate;
+import java.util.Map;
+import java.util.Optional;
+
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.ambari.server.agent.stomp.HeartbeatController;
 import org.apache.ambari.server.api.stomp.TestController;
@@ -29,11 +34,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.messaging.simp.config.ChannelRegistration;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
+import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
@@ -44,6 +54,7 @@ import com.google.inject.Injector;
 @ComponentScan(basePackageClasses = {TestController.class, HeartbeatController.class})
 @Import({RootStompConfig.class,GuiceBeansConfig.class})
 public class AgentStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
+  public static final String X509_CERTIFICATE_ATTRIBUTE = "javax.servlet.request.X509Certificate";
   private org.apache.ambari.server.configuration.Configuration configuration;
 
   private final ServletContext servletContext;
@@ -71,9 +82,32 @@ public class AgentStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry.addEndpoint("/v1").setHandshakeHandler(getHandshakeHandler())
-        .setAllowedOrigins("*");
+    registry
+      .addEndpoint("/v1").setHandshakeHandler(getHandshakeHandler())
+      .addInterceptors(new HandshakeInterceptor() {
+        @Override
+        public boolean beforeHandshake(ServerHttpRequest serverHttpRequest, ServerHttpResponse serverHttpResponse, WebSocketHandler webSocketHandler, Map<String, Object> map) {
+          agentCertificate(serverHttpRequest).ifPresent(cert -> map.put(X509_CERTIFICATE_ATTRIBUTE, cert));
+          return true;
+        }
+        @Override
+        public void afterHandshake(ServerHttpRequest serverHttpRequest, ServerHttpResponse serverHttpResponse, WebSocketHandler webSocketHandler, Exception e) { }
+      })
+      .setAllowedOrigins("*");
+  }
 
+  private static Optional<X509Certificate> agentCertificate(ServerHttpRequest serverHttpRequest) {
+    if (!(serverHttpRequest instanceof ServletServerHttpRequest)) {
+      return Optional.empty();
+    }
+    HttpServletRequest request = ((ServletServerHttpRequest) serverHttpRequest).getServletRequest();
+    if (request.getAttribute(X509_CERTIFICATE_ATTRIBUTE) == null) {
+      return Optional.empty();
+    }
+    X509Certificate[] chain = (X509Certificate[]) request.getAttribute(X509_CERTIFICATE_ATTRIBUTE);
+    return chain.length == 0
+      ? Optional.empty()
+      : Optional.of(chain[0]); // 0th element of the chain is the client certificate
   }
 
   @Override
