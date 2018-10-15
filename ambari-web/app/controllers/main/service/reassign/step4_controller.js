@@ -121,7 +121,8 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     var dependenciesToInstall = App.StackServiceComponent.find(componentName)
         .get('dependencies')
         .filter(function (component) {
-          return !(component.scope == 'host' ? hostInstalledComponents : clusterInstalledComponents).contains(component.componentName) && (installedServices.contains(component.serviceName));
+          return !(component.scope == 'host' ? hostInstalledComponents : clusterInstalledComponents).contains(component.componentName) && (installedServices.contains(component.serviceName))
+            && (componentName === 'NAMENODE' ? App.get('isHaEnabled'): true);
         })
         .mapProperty('componentName');
     this.set('dependentHostComponents', dependenciesToInstall);
