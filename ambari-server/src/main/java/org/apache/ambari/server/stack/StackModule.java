@@ -565,7 +565,6 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       }
       stackInfo.setMinJdk(smx.getMinJdk());
       stackInfo.setMaxJdk(smx.getMaxJdk());
-      stackInfo.setMinUpgradeVersion(smx.getVersion().getUpgrade());
       stackInfo.setActive(smx.getVersion().isActive());
       stackInfo.setParentStackVersion(smx.getExtends());
       stackInfo.setRcoFileLocation(stackDirectory.getRcoFilePath());
@@ -574,6 +573,8 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setUpgradePacks(stackDirectory.getUpgradePacks());
       stackInfo.setConfigUpgradePack(stackDirectory.getConfigUpgradePack());
       stackInfo.setRoleCommandOrder(stackDirectory.getRoleCommandOrder());
+      stackInfo.setReleaseVersionClass(smx.getVersion().getReleaseVersion());
+
       populateConfigurationModules();
     }
 

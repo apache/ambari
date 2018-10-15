@@ -34,17 +34,24 @@ import org.apache.ambari.server.controller.StackVersionResponse;
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.stack.upgrade.ConfigUpgradePack;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
+import org.apache.ambari.server.state.repository.DefaultStackVersion;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.LatestRepoCallable;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.ambari.spi.stack.StackReleaseVersion;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.io.Files;
 
 public class StackInfo implements Comparable<StackInfo>, Validable {
+  private static final Logger LOG = LoggerFactory.getLogger(StackInfo.class);
+
   private String minJdk;
   private String maxJdk;
   private String name;
@@ -82,6 +89,8 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
 
   private VersionDefinitionXml latestVersion = null;
 
+  private String releaseVersionClass = null;
+
   /**
    * List of services removed from current stack
    * */
@@ -108,6 +117,10 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
 
   public void setMaxJdk(String maxJdk) {
     this.maxJdk = maxJdk;
+  }
+
+  public void setReleaseVersionClass(String className) {
+    releaseVersionClass = className;
   }
 
   /**
@@ -344,19 +357,11 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
       }
     }
 
-    return new StackVersionResponse(getVersion(), getMinUpgradeVersion(),
+    return new StackVersionResponse(getVersion(),
         isActive(), getParentStackVersion(), getConfigTypeAttributes(),
         serviceDescriptorFiles,
         null == upgradePacks ? Collections.emptySet() : upgradePacks.keySet(),
         isValid(), getErrors(), getMinJdk(), getMaxJdk());
-  }
-
-  public String getMinUpgradeVersion() {
-    return minUpgradeVersion;
-  }
-
-  public void setMinUpgradeVersion(String minUpgradeVersion) {
-    this.minUpgradeVersion = minUpgradeVersion;
   }
 
   public boolean isActive() {
@@ -628,4 +633,27 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   public Set<String> getServiceNames() {
     return getServices().stream().map(ServiceInfo::getName).collect(Collectors.toSet());
   }
+
+  /**
+   * Gets the instance of the {@code StackReleaseVersion}.  If not specified
+   * or there is an error instantiating the class, return a default implementation.
+   *
+   * @return the stack release information.
+   */
+  public StackReleaseVersion getReleaseVersion() {
+
+    if (StringUtils.isNotEmpty(releaseVersionClass)) {
+      try {
+        Class<?> clazz = Class.forName(releaseVersionClass);
+
+        return (StackReleaseVersion) clazz.newInstance();
+      } catch (Exception e) {
+        LOG.error("Could not create stack release instance.  Using default. {}", e.getMessage());
+        return new DefaultStackVersion();
+      }
+    } else {
+      return new DefaultStackVersion();
+    }
+  }
+
 }

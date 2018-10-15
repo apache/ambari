@@ -304,7 +304,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       try {
         VersionDefinitionXml vdf = repositoryVersion.getRepositoryXml();
         if (null != vdf) {
-          versionSummary = vdf.getClusterSummary(cluster);
+          versionSummary = vdf.getClusterSummary(cluster, metaInfo.get());
         }
       } catch (Exception e) {
         throw new IllegalArgumentException(
@@ -446,7 +446,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     // dependencies
     try {
       if (repoVersionEntity.getType().isPartial()) {
-        Set<String> missingDependencies = desiredVersionDefinition.getMissingDependencies(cluster);
+        Set<String> missingDependencies = desiredVersionDefinition.getMissingDependencies(cluster,
+            metaInfo.get());
 
         if (!missingDependencies.isEmpty()) {
           String message = String.format(
@@ -609,7 +610,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       // !!! limit the serviceNames to those that are detailed for the repository.
       // TODO packages don't have component granularity
       if (RepositoryType.STANDARD != repoVersionEnt.getType()) {
-        ClusterVersionSummary clusterSummary = desiredVersionDefinition.getClusterSummary(cluster);
+        ClusterVersionSummary clusterSummary = desiredVersionDefinition.getClusterSummary(
+            cluster, metaInfo.get());
         serviceNames.addAll(clusterSummary.getAvailableServiceNames());
       } else {
         serviceNames.addAll(ami.getStack(stackId).getServiceNames());

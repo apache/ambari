@@ -81,7 +81,8 @@ public class RequiredServicesInRepositoryCheck extends ClusterCheck {
     Cluster cluster = clustersProvider.get().getCluster(clusterName);
 
     VersionDefinitionXml xml = checkHelperProvider.get().getVersionDefinitionXml(request);
-    Set<String> missingDependencies = xml.getMissingDependencies(cluster);
+
+    Set<String> missingDependencies = xml.getMissingDependencies(cluster, ambariMetaInfo.get());
 
     if (!missingDependencies.isEmpty()) {
       String failReasonTemplate = getFailReason(result, request);

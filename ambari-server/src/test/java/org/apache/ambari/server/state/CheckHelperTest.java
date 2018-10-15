@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.checks.ClusterCheck;
 import org.apache.ambari.server.checks.MockCheckHelper;
 import org.apache.ambari.server.configuration.Configuration;
@@ -96,7 +97,7 @@ public class CheckHelperTest {
     Mockito.when(m_repositoryVersion.getId()).thenReturn(1L);
     Mockito.when(repositoryVersionDao.findByPK(Mockito.anyLong())).thenReturn(m_repositoryVersionEntity);
     Mockito.when(m_repositoryVersionEntity.getRepositoryXml()).thenReturn(m_vdfXml);
-    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
+    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class), Mockito.any(AmbariMetaInfo.class))).thenReturn(m_clusterVersionSummary);
     Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
   }
 
@@ -136,6 +137,7 @@ public class CheckHelperTest {
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
 
     final CheckHelper helper = new CheckHelper();
+
     Configuration configuration = EasyMock.createNiceMock(Configuration.class);
     List<UpgradeCheck> updateChecksRegistry = new ArrayList<>();
 
@@ -214,6 +216,14 @@ public class CheckHelperTest {
     final MockCheckHelper helper = new MockCheckHelper();
     helper.m_clusters = clusters;
     helper.m_repositoryVersionDAO = repositoryVersionDao;
+
+    final AmbariMetaInfo metaInfo = Mockito.mock(AmbariMetaInfo.class);
+    helper.metaInfoProvider = new Provider<AmbariMetaInfo>() {
+      @Override
+      public AmbariMetaInfo get() {
+        return metaInfo;
+      }
+    };
 
     Configuration configuration = EasyMock.createNiceMock(Configuration.class);
     List<UpgradeCheck> updateChecksRegistry = new ArrayList<>();

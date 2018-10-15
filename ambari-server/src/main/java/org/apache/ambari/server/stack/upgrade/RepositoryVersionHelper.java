@@ -607,7 +607,7 @@ public class RepositoryVersionHelper {
         final Cluster cluster = clusters.get().getCluster(context.getClusterName());
 
         VersionDefinitionXml xml = repoVersion.getRepositoryXml();
-        summary = xml.getClusterSummary(cluster);
+        summary = xml.getClusterSummary(cluster, ami.get());
       } catch (Exception e) {
         LOG.warn("Could not determine repository from %s/%s.  Will not pass cluster version.");
       }

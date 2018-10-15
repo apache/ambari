@@ -52,7 +52,7 @@ public class StackMetainfoXml implements Validable{
 
   @XmlElement(name="extends")
   private String extendsVersion = null;
-  
+
   @XmlElement(name="versions")
   private Version version = new Version();
 
@@ -60,7 +60,7 @@ public class StackMetainfoXml implements Validable{
   private boolean valid = true;
 
   /**
-   * 
+   *
    * @return valid xml flag
    */
   @Override
@@ -69,17 +69,17 @@ public class StackMetainfoXml implements Validable{
   }
 
   /**
-   * 
+   *
    * @param valid set validity flag
    */
   @Override
   public void setValid(boolean valid) {
     this.valid = valid;
   }
-  
+
   @XmlTransient
   private Set<String> errorSet = new HashSet<>();
-  
+
   @Override
   public void addError(String error) {
     errorSet.add(error);
@@ -88,20 +88,20 @@ public class StackMetainfoXml implements Validable{
   @Override
   public Collection<String> getErrors() {
     return errorSet;
-  }   
+  }
 
   @Override
   public void addErrors(Collection<String> errors) {
     this.errorSet.addAll(errors);
   }
-  
+
   /**
    * @return the parent stack version number
    */
   public String getExtends() {
     return extendsVersion;
   }
-  
+
   /**
    * @return gets the version
    */
@@ -126,28 +126,24 @@ public class StackMetainfoXml implements Validable{
     public Version() {
     }
     private boolean active = false;
-    private String upgrade = null;
-    
+    private String stackReleaseVersion;
+
     /**
      * @return <code>true</code> if the stack is active
      */
     public boolean isActive() {
       return active;
     }
-    
-    /**
-     * @return the upgrade version number, if set
-     */
-    public String getUpgrade() {
-      return upgrade;
-    }
 
+    public String getReleaseVersion() {
+      return stackReleaseVersion;
+    }
 
     public void setActive(boolean active) {
       this.active = active;
     }
-  }  
-  
+  }
+
 }
 
 

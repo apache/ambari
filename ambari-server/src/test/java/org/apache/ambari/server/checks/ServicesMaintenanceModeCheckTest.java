@@ -91,7 +91,7 @@ public class ServicesMaintenanceModeCheckTest {
     Mockito.when(m_repositoryVersionEntity.getVersion()).thenReturn("2.2.0.0-1234");
     Mockito.when(m_repositoryVersionEntity.getStackId()).thenReturn(new StackId("HDP", "2.2"));
     Mockito.when(m_repositoryVersionEntity.getRepositoryXml()).thenReturn(m_vdfXml);
-    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
+    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class), Mockito.any(AmbariMetaInfo.class))).thenReturn(m_clusterVersionSummary);
     Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
 
     m_checkHelper.m_clusters = clusters;
@@ -115,6 +115,8 @@ public class ServicesMaintenanceModeCheckTest {
         return Mockito.mock(AmbariMetaInfo.class);
       }
     };
+
+    m_checkHelper.setMetaInfoProvider(servicesMaintenanceModeCheck.ambariMetaInfo);
 
     servicesMaintenanceModeCheck.checkHelperProvider = new Provider<CheckHelper>() {
     @Override

@@ -184,7 +184,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     expect(m_cluster.getUpgradeInProgress()).andReturn(null).atLeastOnce();
 
     // VDF stuff
-    expect(m_vdfXml.getClusterSummary(EasyMock.anyObject(Cluster.class))).andReturn(
+    expect(m_vdfXml.getClusterSummary(EasyMock.anyObject(Cluster.class), EasyMock.anyObject(AmbariMetaInfo.class))).andReturn(
         m_clusterVersionSummary).anyTimes();
   }
 

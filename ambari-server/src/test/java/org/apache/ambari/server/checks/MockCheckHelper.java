@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.state.Clusters;
@@ -47,5 +48,12 @@ public class MockCheckHelper extends CheckHelper {
         return m_repositoryVersionDAO;
       }
     };
+  }
+
+  /**
+   * Helper to set the AmbariMetaInfo provider instance
+   */
+  public void setMetaInfoProvider(Provider<AmbariMetaInfo> provider) {
+    metaInfoProvider = provider;
   }
 }
