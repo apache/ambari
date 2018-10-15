@@ -27,7 +27,9 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.annotation.Nullable;
+import javax.inject.Named;
 
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.logging.LockFactory;
@@ -37,11 +39,13 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -98,15 +102,18 @@ public class ConfigImpl implements Config {
 
   private final AmbariEventPublisher eventPublisher;
 
+  private final Encryptor<Map<String, String>> passwordPropertiesEncryptor;
+
   @AssistedInject
   ConfigImpl(@Assisted Cluster cluster, @Assisted("type") String type,
       @Assisted("tag") @Nullable String tag,
       @Assisted Map<String, String> properties,
       @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
       ClusterDAO clusterDAO, StackDAO stackDAO,
-      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
+      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory,
+      Configuration serverConfiguration, @Named("PasswordPropertiesEncryptor") Encryptor<Map<String, String>> passwordPropertiesEncryptor) {
     this(cluster.getDesiredStackVersion(), cluster, type, tag, properties, propertiesAttributes,
-        clusterDAO, stackDAO, gson, eventPublisher, lockFactory);
+        clusterDAO, stackDAO, gson, eventPublisher, lockFactory, serverConfiguration, passwordPropertiesEncryptor);
   }
 
 
@@ -116,20 +123,22 @@ public class ConfigImpl implements Config {
       @Assisted Map<String, String> properties,
       @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
       ClusterDAO clusterDAO, StackDAO stackDAO,
-      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
+      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory,
+      Configuration serverConfiguration, @Named("PasswordPropertiesEncryptor") Encryptor<Map<String, String>> passwordPropertiesEncryptor) {
 
     propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
 
     this.cluster = cluster;
     this.type = type;
-    this.properties = properties;
+    this.passwordPropertiesEncryptor = passwordPropertiesEncryptor;
+    this.properties = serverConfiguration.shouldEncryptSensitiveData() ? passwordPropertiesEncryptor.encryptSensitiveData(properties, cluster, type) : properties;
 
     // only set this if it's non-null
     this.propertiesAttributes = null == propertiesAttributes ? null
         : new HashMap<>(propertiesAttributes);
 
     this.clusterDAO = clusterDAO;
-    this.gson = gson;
+    this.gson = new GsonBuilder().disableHtmlEscaping().create();
     this.eventPublisher = eventPublisher;
     version = cluster.getNextConfigVersion(type);
 
@@ -148,10 +157,10 @@ public class ConfigImpl implements Config {
     entity.setTag(this.tag);
     entity.setTimestamp(System.currentTimeMillis());
     entity.setStack(stackEntity);
-    entity.setData(gson.toJson(properties));
+    entity.setData(this.gson.toJson(this.properties));
 
     if (null != propertiesAttributes) {
-      entity.setAttributes(gson.toJson(propertiesAttributes));
+      entity.setAttributes(this.gson.toJson(propertiesAttributes));
     }
 
     // when creating a brand new config without a backing entity, use the
@@ -166,7 +175,8 @@ public class ConfigImpl implements Config {
   @AssistedInject
   ConfigImpl(@Assisted Cluster cluster, @Assisted ClusterConfigEntity entity,
       ClusterDAO clusterDAO, Gson gson, AmbariEventPublisher eventPublisher,
-      LockFactory lockFactory) {
+      LockFactory lockFactory,
+      @Named("PasswordPropertiesEncryptor") Encryptor<Map<String, String>> passwordPropertiesEncryptor) {
     propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
 
     this.cluster = cluster;
@@ -183,6 +193,8 @@ public class ConfigImpl implements Config {
     stackId = new StackId(entity.getStack());
 
     propertiesTypes = cluster.getConfigPropertiesTypes(type);
+
+    this.passwordPropertiesEncryptor = passwordPropertiesEncryptor;
 
     // incur the hit on deserialization since this business object is stored locally
     try {
@@ -230,12 +242,14 @@ public class ConfigImpl implements Config {
       @Assisted("tag") @Nullable String tag,
       @Assisted Map<String, String> properties,
       @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes, ClusterDAO clusterDAO,
-      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
+      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory,
+      @Named("PasswordPropertiesEncryptor") Encryptor<Map<String, String>> passwordPropertiesEncryptor) {
 
     propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
 
     this.tag = tag;
     this.type = type;
+    this.passwordPropertiesEncryptor = passwordPropertiesEncryptor;
     this.properties = new HashMap<>(properties);
     this.propertiesAttributes = null == propertiesAttributes ? null
         : new HashMap<>(propertiesAttributes);
@@ -286,7 +300,7 @@ public class ConfigImpl implements Config {
   public Map<String, String> getProperties() {
     propertyLock.readLock().lock();
     try {
-      return properties == null ? new HashMap<>() : new HashMap<>(properties);
+      return properties == null ? new HashMap<>() : passwordPropertiesEncryptor.decryptSensitiveData(properties);
     } finally {
       propertyLock.readLock().unlock();
     }

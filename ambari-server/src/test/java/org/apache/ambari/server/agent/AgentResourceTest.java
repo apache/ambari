@@ -23,6 +23,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Map;
+
 import javax.persistence.EntityManager;
 import javax.ws.rs.core.MediaType;
 
@@ -59,8 +61,12 @@ import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
+import org.apache.ambari.server.security.encryption.AESEncryptionService;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
+import org.apache.ambari.server.security.encryption.EncryptionService;
+import org.apache.ambari.server.security.encryption.Encryptor;
+import org.apache.ambari.server.security.encryption.PasswordPropertiesEncryptor;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
@@ -107,6 +113,7 @@ import com.google.gson.GsonBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.sun.jersey.api.client.Client;
@@ -352,6 +359,8 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
       bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
       bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+      bind(EncryptionService.class).to(AESEncryptionService.class);
+      bind(new TypeLiteral<Encryptor<Map<String, String>>>() {}).annotatedWith(Names.named("PasswordPropertiesEncryptor")).to(PasswordPropertiesEncryptor.class);
     }
 
     private void installDependencies() {

@@ -245,7 +245,7 @@ public class HostUpdateHelper {
 
             for (Map.Entry<String,String> property : config.getProperties().entrySet()) {
               updatedPropertyValue = replaceHosts(property.getValue(), currentHostNames, hostMapping);
-
+              
               if (updatedPropertyValue != null) {
                 Map<String,String> propertiesWithUpdates = config.getProperties();
                 propertiesWithUpdates.put(property.getKey(), updatedPropertyValue);

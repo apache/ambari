@@ -67,6 +67,8 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.security.encryption.Encryptor;
+import org.apache.ambari.server.security.encryption.PasswordPropertiesEncryptor;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -246,6 +248,7 @@ public class HostUpdateHelperTest {
     ClusterConfigEntity mockClusterConfigEntity1 = easyMockSupport.createNiceMock(ClusterConfigEntity.class);
     ClusterConfigEntity mockClusterConfigEntity2 = easyMockSupport.createNiceMock(ClusterConfigEntity.class);
     StackEntity mockStackEntity = easyMockSupport.createNiceMock(StackEntity.class);
+    final Encryptor<Map<String, String>> passwordEncryptor = new PasswordPropertiesEncryptor(null, null);
     Map<String, Map<String, String>> clusterHostsToChange = new HashMap<>();
     Map<String, String> hosts = new HashMap<>();
     List<ClusterConfigEntity> clusterConfigEntities1 = new ArrayList<>();
@@ -253,7 +256,7 @@ public class HostUpdateHelperTest {
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        PartialNiceMockBinder.newBuilder().addClustersBinding(mockAmbariManagementController).build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addAmbariMetaInfoBinding(mockAmbariManagementController, passwordEncryptor).build().configure(binder());
         bind(StackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(StackManagerFactory.class));
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(EntityManager.class).toInstance(entityManager);
@@ -495,7 +498,8 @@ public class HostUpdateHelperTest {
       @Override
       protected void configure() {
 
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().addPasswordEncryptorBindings()
+        .build().configure(binder());
 
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(EntityManager.class).toInstance(entityManager);

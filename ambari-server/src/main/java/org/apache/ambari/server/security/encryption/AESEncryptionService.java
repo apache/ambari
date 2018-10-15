@@ -24,6 +24,8 @@ import org.apache.ambari.server.utils.TextEncoding;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -31,6 +33,8 @@ public class AESEncryptionService implements EncryptionService {
 
   private static final String ENCODED_TEXT_FIELD_DELIMITER = "::";
   private static final String UTF_8_CHARSET = StandardCharsets.UTF_8.name();
+
+  private final Cache<String, AESEncryptor> aesEncryptorCache = CacheBuilder.newBuilder().build();
 
   private MasterKeyService environmentMasterKeyService;
 
@@ -51,9 +55,18 @@ public class AESEncryptionService implements EncryptionService {
 
   @Override
   public String encrypt(String toBeEncrypted, String key, TextEncoding textEncoding) throws Exception {
-    final AESEncryptor aes = new AESEncryptor(key);
-    final EncryptionResult encryptionResult = aes.encrypt(toBeEncrypted);
+    final EncryptionResult encryptionResult = getAesEncryptor(key).encrypt(toBeEncrypted);
     return TextEncoding.BASE_64 == textEncoding ? encodeEncryptionResultBase64(encryptionResult) : encodeEncryptionResultBinHex(encryptionResult);
+  }
+
+  private AESEncryptor getAesEncryptor(String key) {
+    AESEncryptor aesEncryptor = aesEncryptorCache.getIfPresent(key);
+    if (aesEncryptor == null) {
+      aesEncryptor = new AESEncryptor(key);
+      aesEncryptorCache.put(key, aesEncryptor);
+    }
+
+    return aesEncryptor;
   }
 
   private final String getAmbariMasterKey() {
@@ -100,7 +113,7 @@ public class AESEncryptionService implements EncryptionService {
     final byte[] decodedValue = TextEncoding.BASE_64 == textEncoding ? Base64.decodeBase64(toBeDecrypted) : Hex.decodeHex(toBeDecrypted.toCharArray());
     final String decodedText = new String(decodedValue, UTF_8_CHARSET);
     final String[] decodedParts = decodedText.split(ENCODED_TEXT_FIELD_DELIMITER);
-    final AESEncryptor aes = new AESEncryptor(key);
+    final AESEncryptor aes = getAesEncryptor(key);
     if (TextEncoding.BASE_64 == textEncoding) {
       return new String(aes.decrypt(Base64.decodeBase64(decodedParts[0]), Base64.decodeBase64(decodedParts[1]), Base64.decodeBase64(decodedParts[2])), UTF_8_CHARSET);
     } else {

@@ -21,6 +21,7 @@ import static org.easymock.EasyMock.createNiceMock;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 
@@ -55,6 +56,8 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.security.encryption.EncryptionService;
+import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
@@ -90,6 +93,7 @@ import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
+import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.google.inject.persist.UnitOfWork;
@@ -134,6 +138,10 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addAmbariMetaInfoBinding(AmbariManagementController ambariManagementController) {
+      return addAmbariMetaInfoBinding(ambariManagementController, easyMockSupport.createNiceMock(Encryptor.class));
+    }
+
+    public Builder addAmbariMetaInfoBinding(AmbariManagementController ambariManagementController, Encryptor<Map<String, String>> passwordEncryptor) {
       configurers.add((Binder binder) -> {
           binder.bind(PersistedState.class).toInstance(easyMockSupport.createNiceMock(PersistedState.class));
           binder.bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
@@ -153,6 +161,7 @@ public class PartialNiceMockBinder implements Module {
       });
       addConfigsBindings();
       addFactoriesInstallBinding();
+      addPasswordEncryptorBindings(passwordEncryptor);
       return this;
     }
 
@@ -203,6 +212,18 @@ public class PartialNiceMockBinder implements Module {
       addHostRoleCommandsConfigsBindings();
       addActionSchedulerConfigsBindings();
       addActionDBAccessorConfigsBindings();
+      return this;
+    }
+
+    public Builder addPasswordEncryptorBindings() {
+      return addPasswordEncryptorBindings(easyMockSupport.createNiceMock(Encryptor.class));
+    }
+
+    public Builder addPasswordEncryptorBindings(Encryptor<Map<String, String>> passwordEncryptor) {
+      configurers.add((Binder binder) -> {
+        binder.bind(EncryptionService.class).toInstance(easyMockSupport.createNiceMock(EncryptionService.class));
+        binder.bind(new TypeLiteral<Encryptor<Map<String, String>>>() {}).annotatedWith(Names.named("PasswordPropertiesEncryptor")).toInstance(passwordEncryptor);
+      });
       return this;
     }
 

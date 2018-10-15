@@ -2572,6 +2572,9 @@ public class Configuration {
   @Markdown(description = "Whether security password encryption is enabled or not. In case it is we store passwords in their own file(s); otherwise we store passwords in the Ambari credential store.")
   public static final ConfigurationProperty<Boolean> SECURITY_PASSWORD_ENCRYPTON_ENABLED = new ConfigurationProperty<>("security.passwords.encryption.enabled", false);
 
+  @Markdown(description="Whether to encrypt sensitive data (at rest) on service level configuration.")
+  public static final ConfigurationProperty<Boolean> SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED = new ConfigurationProperty<>("security.server.encrypt_sensitive_data", false);
+
   /**
    * The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures
    */
@@ -5516,6 +5519,14 @@ public class Configuration {
    */
   public boolean isSecurityPasswordEncryptionEnabled() {
     return Boolean.parseBoolean(getProperty(SECURITY_PASSWORD_ENCRYPTON_ENABLED));
+  }
+
+  public boolean isSensitiveDataEncryptionEnabled() {
+    return Boolean.parseBoolean(getProperty(SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED));
+  }
+
+  public boolean shouldEncryptSensitiveData() {
+    return isSecurityPasswordEncryptionEnabled() && isSensitiveDataEncryptionEnabled();
   }
 
   /**
