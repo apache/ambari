@@ -40,17 +40,41 @@ public class ClasspathScannerUtils {
   /**
    * Scans the classpath for classes based on the provided arguments
    *
-   * @param packageName the package to be scanned
-   * @param exclusions  a list with classes excluded from the result
-   * @param selectors   a list with annotation and interface classes that identify classes to be found (lookup criteria)
+   * @param packageName
+   *          the package to be scanned
+   * @param exclusions
+   *          a list with classes excluded from the result
+   * @param selectors
+   *          a list with annotation and interface classes that identify classes
+   *          to be found (lookup criteria)
    * @return a list of classes from the classpath that match the lookup criteria
    */
   public static Set<Class<?>> findOnClassPath(String packageName, List<Class<?>> exclusions,
       List<Class<?>> selectors) {
+    return ClasspathScannerUtils.findOnClassPath(ClasspathScannerUtils.class.getClassLoader(),
+        packageName, exclusions, selectors);
+  }
+
+  /**
+   * Scans the classpath for classes based on the provided arguments
+   *
+   * @param classLoader
+   *          the classloader which should be used for searching.
+   * @param packageName
+   *          the package to be scanned
+   * @param exclusions
+   *          a list with classes excluded from the result
+   * @param selectors
+   *          a list with annotation and interface classes that identify classes
+   *          to be found (lookup criteria)
+   * @return a list of classes from the classpath that match the lookup criteria
+   */
+  public static Set<Class<?>> findOnClassPath(ClassLoader classLoader, String packageName,
+      List<Class<?>> exclusions, List<Class<?>> selectors) {
 
     Set<Class<?>> bindingSet = new LinkedHashSet<>();
     try {
-      ClassPath classpath = ClassPath.from(ClasspathScannerUtils.class.getClassLoader());
+      ClassPath classpath = ClassPath.from(classLoader);
       LOGGER.info("Checking package [{}] for binding candidates.", packageName);
 
       for (ClassPath.ClassInfo classInfo : classpath.getTopLevelClassesRecursive(packageName)) {

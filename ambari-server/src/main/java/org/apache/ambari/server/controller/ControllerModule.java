@@ -55,9 +55,9 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.StageFactoryImpl;
-import org.apache.ambari.server.checks.ClusterCheck;
 import org.apache.ambari.server.checks.DatabaseConsistencyCheckHelper;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
+import org.apache.ambari.server.checks.UpgradeCheckRegistryProvider;
 import org.apache.ambari.server.cleanup.ClasspathScannerUtils;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
@@ -161,7 +161,6 @@ import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
-import org.apache.ambari.spi.upgrade.UpgradeCheck;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -179,6 +178,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.google.inject.persist.PersistModule;
@@ -406,7 +406,8 @@ public class ControllerModule extends AbstractModule {
 
     bindByAnnotation(null);
     bindNotificationDispatchers(null);
-    registerUpgradeChecks(null);
+    
+    bind(UpgradeCheckRegistry.class).toProvider(UpgradeCheckRegistryProvider.class).in(Singleton.class);
     bind(HookService.class).to(UserHookService.class);
 
     InternalAuthenticationInterceptor ambariAuthenticationInterceptor = new InternalAuthenticationInterceptor();
@@ -668,61 +669,6 @@ public class ControllerModule extends AbstractModule {
       }
     }
 
-    return beanDefinitions;
-  }
-
-  /**
-   * Searches for all instances of {@link UpgradeCheck} on the
-   * classpath and registers each as a singleton with the
-   * {@link UpgradeCheckRegistry}.
-   */
-  @SuppressWarnings("unchecked")
-  protected Set<BeanDefinition> registerUpgradeChecks(Set<BeanDefinition> beanDefinitions) {
-
-    // make the registry a singleton
-    UpgradeCheckRegistry registry = new UpgradeCheckRegistry();
-    bind(UpgradeCheckRegistry.class).toInstance(registry);
-
-    if (null == beanDefinitions || beanDefinitions.isEmpty()) {
-      String packageName = ClusterCheck.class.getPackage().getName();
-      LOG.info("Searching package {} for classes matching {}", packageName,
-          UpgradeCheck.class);
-
-      ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-
-      // match all implementations of the base check class
-      AssignableTypeFilter filter = new AssignableTypeFilter(UpgradeCheck.class);
-      scanner.addIncludeFilter(filter);
-
-      beanDefinitions = scanner.findCandidateComponents(packageName);
-    }
-
-    // no dispatchers is a problem
-    if (null == beanDefinitions || beanDefinitions.size() == 0) {
-      LOG.error("No instances of {} found to register", UpgradeCheck.class);
-      return null;
-    }
-
-    // for every discovered check, singleton-ize them and register with the
-    // registry
-    for (BeanDefinition beanDefinition : beanDefinitions) {
-      String className = beanDefinition.getBeanClassName();
-      Class<?> clazz = ClassUtils.resolveClassName(className, ClassUtils.getDefaultClassLoader());
-
-      try {
-        UpgradeCheck upgradeCheck = (UpgradeCheck) clazz.newInstance();
-        bind((Class<UpgradeCheck>) clazz).toInstance(upgradeCheck);
-        registry.register(upgradeCheck);
-      } catch (Exception exception) {
-        LOG.error("Unable to bind and register upgrade check {}", clazz, exception);
-      }
-    }
-
-    // log the order of the pre-upgrade checks
-    List<UpgradeCheck> upgradeChecks = registry.getUpgradeChecks();
-    for (UpgradeCheck upgradeCheck : upgradeChecks) {
-      LOG.info("Registered pre-upgrade check {}", upgradeCheck.getClass());
-    }
     return beanDefinitions;
   }
 }

@@ -58,7 +58,6 @@ import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
 import org.apache.ambari.server.mpack.MpackManager;
 import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
-import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -136,9 +135,6 @@ public class AmbariMetaInfo {
   @Inject
   private OsFamily osFamily;
 
-  @Inject
-  private Gson gson;
-
   /**
    * ALL_SUPPORTED_OS is dynamically generated list from loaded families from os_family.json
    * Instead of append values here, please, add new families in json for tests and production
@@ -160,9 +156,6 @@ public class AmbariMetaInfo {
 
   private File mpacksV2Staging;
 
-
-  @Inject
-  private MetainfoDAO metaInfoDAO;
 
   /**
    * Alert Definition DAO used to merge stack definitions into the database.

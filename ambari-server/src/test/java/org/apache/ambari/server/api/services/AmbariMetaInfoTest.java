@@ -1985,7 +1985,6 @@ public class AmbariMetaInfoTest {
 
   private static class TestAmbariMetaInfo extends AmbariMetaInfo {
 
-    MetainfoDAO metaInfoDAO;
     AlertDefinitionDAO alertDefinitionDAO;
     AlertDefinitionFactory alertDefinitionFactory;
     OsFamily osFamily;
@@ -2002,15 +2001,9 @@ public class AmbariMetaInfoTest {
 
       Class<?> c = getClass().getSuperclass();
 
-      // MetainfoDAO
-      metaInfoDAO = injector.getInstance(MetainfoDAO.class);
-      Field f = c.getDeclaredField("metaInfoDAO");
-      f.setAccessible(true);
-      f.set(this, metaInfoDAO);
-
       // StackManagerFactory
       StackManagerFactory stackManagerFactory = injector.getInstance(StackManagerFactory.class);
-      f = c.getDeclaredField("stackManagerFactory");
+      Field f = c.getDeclaredField("stackManagerFactory");
       f.setAccessible(true);
       f.set(this, stackManagerFactory);
 
@@ -2072,7 +2065,7 @@ public class AmbariMetaInfoTest {
     }
 
     public void replayAllMocks() {
-      replay(metaInfoDAO, alertDefinitionDAO);
+      replay(alertDefinitionDAO);
     }
 
     public class MockModule extends AbstractModule {

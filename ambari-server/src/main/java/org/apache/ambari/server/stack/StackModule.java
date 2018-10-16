@@ -158,7 +158,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   public StackModule(StackDirectory stackDirectory, StackContext stackContext) {
     this.stackDirectory = stackDirectory;
     this.stackContext = stackContext;
-    this.stackInfo = new StackInfo();
+    stackInfo = new StackInfo();
     populateStackInfo();
   }
 
@@ -496,9 +496,9 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         setValid(false);
         addError("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
             + stackInfo.getVersion() + "' extends a non-existent service: '" + parent + "'");
-      }
-      else
+      } else {
         service.resolve(parentService, allStacks, commonServices, extensions);
+      }
     }
   }
 
@@ -574,7 +574,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setConfigUpgradePack(stackDirectory.getConfigUpgradePack());
       stackInfo.setRoleCommandOrder(stackDirectory.getRoleCommandOrder());
       stackInfo.setReleaseVersionClass(smx.getVersion().getReleaseVersion());
-
+      stackInfo.setLibraryClassLoader(stackDirectory.getLibraryClassLoader());
       populateConfigurationModules();
     }
 
@@ -1331,8 +1331,9 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * @param service    service
    */
   private void mergeRoleCommandOrder(ServiceModule service) {
-    if (service.getModuleInfo().getRoleCommandOrder() == null)
+    if (service.getModuleInfo().getRoleCommandOrder() == null) {
       return;
+    }
 
     stackInfo.getRoleCommandOrder().merge(service.getModuleInfo().getRoleCommandOrder(), true);
     if (LOG.isDebugEnabled()) {
@@ -1395,7 +1396,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
   @Override
   public void addErrors(Collection<String> errors) {
-    this.errorSet.addAll(errors);
+    errorSet.addAll(errors);
   }
 
 }
