@@ -358,8 +358,11 @@ class Script(object):
       ex.pre_raise()
       raise
     finally:
-      if self.should_expose_component_version(self.command_name):
-        self.save_component_version_to_structured_out(self.command_name)
+      try:
+        if self.should_expose_component_version(self.command_name):
+          self.save_component_version_to_structured_out(self.command_name)
+      except:
+        Logger.exception("Reporting component version failed")
 
   def get_version(self, env):
     pass
