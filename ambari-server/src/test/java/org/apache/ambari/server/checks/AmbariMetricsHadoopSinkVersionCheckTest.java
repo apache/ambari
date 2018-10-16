@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -132,7 +133,7 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
 
     when(m_repositoryVersionEntity.getType()).thenReturn(RepositoryType.STANDARD);
     when(m_repositoryVersionEntity.getRepositoryXml()).thenReturn(m_vdfXml);
-    when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
+    when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class), Mockito.any(AmbariMetaInfo.class))).thenReturn(m_clusterVersionSummary);
     when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
 
     m_checkHelper.m_clusters = m_clusters;

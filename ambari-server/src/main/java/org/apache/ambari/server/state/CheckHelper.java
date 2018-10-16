@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.checks.OrchestrationQualification;
 import org.apache.ambari.server.checks.UpgradeTypeQualification;
 import org.apache.ambari.server.configuration.Configuration;
@@ -64,6 +65,9 @@ public class CheckHelper {
    */
   @Inject
   protected Provider<Clusters> clustersProvider;
+
+  @Inject
+  protected Provider<AmbariMetaInfo> metaInfoProvider;
 
 
   /**
@@ -193,7 +197,8 @@ public class CheckHelper {
     // services are included in this upgrade
     try {
       VersionDefinitionXml vdf = getVersionDefinitionXml(request);
-      ClusterVersionSummary clusterVersionSummary = vdf.getClusterSummary(cluster);
+      ClusterVersionSummary clusterVersionSummary = vdf.getClusterSummary(cluster,
+          metaInfoProvider.get());
       return clusterVersionSummary.getAvailableServiceNames();
     } catch (Exception exception) {
       throw new AmbariException("Unable to run upgrade checks because of an invalid VDF",

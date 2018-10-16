@@ -1054,7 +1054,8 @@ public class ClusterImpl implements Cluster {
             // does the host gets a different repo state based on VDF and repo
             // type
             boolean hostRequiresRepository = false;
-            ClusterVersionSummary clusterSummary = versionDefinitionXml.getClusterSummary(this);
+            ClusterVersionSummary clusterSummary = versionDefinitionXml.getClusterSummary(this,
+                ambariMetaInfo);
             Set<String> servicesInUpgrade = clusterSummary.getAvailableServiceNames();
 
             List<ServiceComponentHost> schs = getServiceComponentHosts(hostEntity.getHostName());

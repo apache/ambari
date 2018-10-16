@@ -1085,7 +1085,8 @@ public class UpgradeContext {
         // upgrade - this will take into account the type (such as patch/maint)
         // and the version of services installed in the cluster
         VersionDefinitionXml vdf = repositoryVersion.getRepositoryXml();
-        ClusterVersionSummary clusterVersionSummary = vdf.getClusterSummary(cluster);
+        ClusterVersionSummary clusterVersionSummary = vdf.getClusterSummary(
+            cluster, m_metaInfo);
         servicesForUpgrade = clusterVersionSummary.getAvailableServiceNames();
 
         // if this is every true, then just stop the upgrade attempt and

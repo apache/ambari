@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.state.Cluster;
@@ -140,13 +141,22 @@ public class ClusterCheckTest extends EasyMockSupport {
     RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
     expect(repositoryVersionEntity.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
     expect(repositoryVersionEntity.getRepositoryXml()).andReturn(m_vdfXml).atLeastOnce();
-    expect(m_vdfXml.getClusterSummary(EasyMock.anyObject(Cluster.class))).andReturn(
-        m_clusterVersionSummary).atLeastOnce();
+    expect(m_vdfXml.getClusterSummary(EasyMock.anyObject(Cluster.class),
+        EasyMock.anyObject(AmbariMetaInfo.class))).andReturn(m_clusterVersionSummary).atLeastOnce();
 
     expect(m_clusterVersionSummary.getAvailableServiceNames()).andReturn(
         allServicesList).atLeastOnce();
 
-    m_mockCheckHelper.m_clusters = clusters;
+    final AmbariMetaInfo ami = createNiceMock(AmbariMetaInfo.class);
+
+    m_mockCheckHelper.setMetaInfoProvider(new Provider<AmbariMetaInfo>() {
+      @Override
+      public AmbariMetaInfo get() {
+        return ami;
+      }
+    });
+
+
     Mockito.when(m_mockCheckHelper.m_repositoryVersionDAO.findByPK(Mockito.anyLong())).thenReturn(
         repositoryVersionEntity);
 
@@ -206,7 +216,7 @@ public class ClusterCheckTest extends EasyMockSupport {
     RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
     expect(repositoryVersionEntity.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
     expect(repositoryVersionEntity.getRepositoryXml()).andReturn(m_vdfXml).atLeastOnce();
-    expect(m_vdfXml.getClusterSummary(EasyMock.anyObject(Cluster.class))).andReturn(
+    expect(m_vdfXml.getClusterSummary(EasyMock.anyObject(Cluster.class), EasyMock.anyObject(AmbariMetaInfo.class))).andReturn(
         m_clusterVersionSummary).atLeastOnce();
 
     // the cluster summary will only return 1 service for the upgrade, even
@@ -217,6 +227,15 @@ public class ClusterCheckTest extends EasyMockSupport {
     m_mockCheckHelper.m_clusters = clusters;
     Mockito.when(m_mockCheckHelper.m_repositoryVersionDAO.findByPK(Mockito.anyLong())).thenReturn(
         repositoryVersionEntity);
+
+    final AmbariMetaInfo ami = createNiceMock(AmbariMetaInfo.class);
+
+    m_mockCheckHelper.setMetaInfoProvider(new Provider<AmbariMetaInfo>() {
+      @Override
+      public AmbariMetaInfo get() {
+        return ami;
+      }
+    });
 
     replayAll();
 

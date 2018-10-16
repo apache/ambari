@@ -512,7 +512,6 @@ public class AmbariMetaInfoTest {
     StackInfo stackInfo = metaInfo.getStack(STACK_NAME_HDP, STACK_VERSION_HDP);
     Assert.assertEquals(stackInfo.getName(), STACK_NAME_HDP);
     Assert.assertEquals(stackInfo.getVersion(), STACK_VERSION_HDP);
-    Assert.assertEquals(stackInfo.getMinUpgradeVersion(), STACK_MINIMAL_VERSION_HDP);
     try {
       metaInfo.getStack(STACK_NAME_HDP, NON_EXT_VALUE);
     } catch (StackAccessException e) {

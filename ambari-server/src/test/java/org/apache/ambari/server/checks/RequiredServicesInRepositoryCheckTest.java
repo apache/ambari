@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Set;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.state.Cluster;
@@ -89,10 +90,20 @@ public class RequiredServicesInRepositoryCheckTest {
     Mockito.when(m_repositoryVersion.getRepositoryType()).thenReturn(RepositoryType.STANDARD);
 
     Mockito.when(m_repositoryVersionEntity.getRepositoryXml()).thenReturn(m_vdfXml);
-    Mockito.when(m_vdfXml.getMissingDependencies(Mockito.eq(cluster))).thenReturn(m_missingDependencies);
+    Mockito.when(m_vdfXml.getMissingDependencies(Mockito.eq(cluster), Mockito.any(AmbariMetaInfo.class))).thenReturn(m_missingDependencies);
+
 
     m_checkHelper.m_clusters = clusters;
     Mockito.when(m_checkHelper.m_repositoryVersionDAO.findByPK(Mockito.anyLong())).thenReturn(m_repositoryVersionEntity);
+
+    final AmbariMetaInfo metaInfo = Mockito.mock(AmbariMetaInfo.class);
+    m_requiredServicesCheck.ambariMetaInfo = new Provider<AmbariMetaInfo>() {
+      @Override
+      public AmbariMetaInfo get() {
+        return metaInfo;
+      }
+    };
+
 
     m_requiredServicesCheck.checkHelperProvider = new Provider<CheckHelper>() {
       @Override

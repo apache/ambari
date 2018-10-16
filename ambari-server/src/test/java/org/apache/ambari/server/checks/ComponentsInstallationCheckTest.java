@@ -108,8 +108,17 @@ public class ComponentsInstallationCheckTest {
     Mockito.when(m_repositoryVersionEntity.getVersion()).thenReturn(version);
     Mockito.when(m_repositoryVersionEntity.getStackId()).thenReturn(stackId);
     Mockito.when(m_repositoryVersionEntity.getRepositoryXml()).thenReturn(m_vdfXml);
-    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
+    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class), Mockito.any(AmbariMetaInfo.class))).thenReturn(m_clusterVersionSummary);
     Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
+
+    final AmbariMetaInfo metaInfo = Mockito.mock(AmbariMetaInfo.class);
+
+    m_checkHelper.setMetaInfoProvider(new Provider<AmbariMetaInfo>() {
+      @Override
+      public AmbariMetaInfo get() {
+        return metaInfo;
+      }
+    });
 
     m_checkHelper.m_clusters = clusters;
     Mockito.when(m_checkHelper.m_repositoryVersionDAO.findByPK(Mockito.anyLong())).thenReturn(m_repositoryVersionEntity);

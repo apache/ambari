@@ -154,9 +154,6 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
       setResourceProperty(resource, STACK_VERSION_PROPERTY_ID,
           response.getStackVersion(), requestedIds);
 
-      setResourceProperty(resource, STACK_MIN_VERSION_PROPERTY_ID,
-          response.getMinUpgradeVersion(), requestedIds);
-
       setResourceProperty(resource, STACK_ACTIVE_PROPERTY_ID,
           response.isActive(), requestedIds);
 
