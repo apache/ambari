@@ -43,7 +43,7 @@ describe('App.InstallComponent', function () {
     });
 
     it("updateAndCreateServiceComponent should be called", function() {
-      expect(installComponent.updateAndCreateServiceComponent.calledWith('C1')).to.be.true;
+      expect(installComponent.updateAndCreateServiceComponent.calledWith(component)).to.be.true;
     });
 
     it("App.ajax.send should be called", function() {
@@ -151,38 +151,45 @@ describe('App.InstallComponent', function () {
     var dfd = {resolve: Em.K};
 
     beforeEach(function() {
-      sinon.stub(App.StackServiceComponent, 'find').returns([Em.Object.create({
-        componentName: 'C2',
-        serviceName: 'S1'
+      sinon.stub(App.Service, 'find').returns([Em.Object.create({
+        serviceComponents: ['C1'],
+        serviceName: 'S1',
+        serviceGroupName: 'SG1'
       })]);
+
       sinon.spy(dfd, 'resolve');
 
       App.ajax.send.restore();
       sinon.stub(App.ajax, 'send').returns({complete: Em.clb});
-      this.mock = sinon.stub(App.Service, 'find');
-      this.mock.returns([{serviceName: "S1"}]);
-      this.mock.withArgs('S1').returns(Em.Object.create({serviceComponents: ['C1']}))
-
     });
-    afterEach(function() {
-      App.StackServiceComponent.find.restore();
+
+    afterEach(function () {
+      App.Service.find.restore();
       dfd.resolve.restore();
-      this.mock.restore();
     });
 
     it("component already created", function() {
-      expect(installComponent.createServiceComponent('C1', dfd)).to.be.null;
+      expect(installComponent.createServiceComponent(Em.Object.create({
+        serviceName: 'S1',
+        serviceGroupName: 'SG1',
+        componentName: 'C1'
+      }), dfd)).to.be.null;
       expect(dfd.resolve.calledOnce).to.be.true;
     });
 
     it("component not created", function() {
-      installComponent.createServiceComponent('C2', dfd);
+      installComponent.createServiceComponent(Em.Object.create({
+        serviceName: 'S1',
+        serviceGroupName: 'SG1',
+        componentName: 'C2'
+      }), dfd);
       var args = testHelpers.findAjaxRequest('name', 'common.create_component');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(installComponent);
       expect(args[0].data).to.be.eql({
         componentName: 'C2',
-        serviceName: 'S1'
+        serviceName: 'S1',
+        serviceGroupName: 'SG1'
       });
       expect(dfd.resolve.calledOnce).to.be.true;
     });

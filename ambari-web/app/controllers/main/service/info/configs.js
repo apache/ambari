@@ -609,7 +609,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
       var clusterController = App.get('router.clusterController');
       var self = this;
       mainController.isLoading.call(clusterController, 'clusterEnv').done(function () {
-        var isExternalRangerSetup = clusterController.get("clusterEnv")["properties"]["enable_external_ranger"];
+        const clusterEnv = clusterController.get("clusterEnv");
+        let isExternalRangerSetup = false;
+        if (clusterEnv && clusterEnv.properties) {
+          isExternalRangerSetup = clusterEnv.properties.enable_external_ranger;
+        }
         if (isExternalRangerSetup) {
           self.setVisibilityForRangerProperties(selectedService);
         } else {

@@ -124,8 +124,12 @@ App.Service = DS.Model.extend({
     var hc = {};
 
     serviceComponents.forEach(function(component) {
-      var displayName = component.get('displayName');
-      component.get('staleConfigHosts').forEach(function(hostName) {
+      let displayName = component.get('displayName');
+      
+      let staleConfigHosts = component.get('staleConfigHosts');
+      staleConfigHosts = Array.isArray(staleConfigHosts) ? staleConfigHosts : [staleConfigHosts];
+      
+      staleConfigHosts.forEach(function (hostName) {
         if (!hc[hostName]) {
           hc[hostName] = [];
         }

@@ -219,10 +219,10 @@ App.MainHostSummaryView = Em.View.extend(App.HiveInteractiveCheck, App.TimeRange
     if (this.get('content.hostComponents')) {
       var installedComponents = this.get('content.hostComponents').mapProperty('componentName');
       var addableToHostComponents = App.StackServiceComponent.find().filterProperty('isAddableToHost');
-      var installedServices = this.get('installedServices');
+      var installedServices = App.Service.find().map(s => ({ serviceName: s.get('serviceName'), serviceGroupName: s.get('serviceGroupName') }));
 
       addableToHostComponents.forEach(function (addableComponent) {
-        if (installedServices.contains(addableComponent.get('serviceName'))
+        if (installedServices.find(s => s.serviceName === addableComponent.get('serviceName') && s.serviceGroupName === addableComponent.get('stackName'))
             && !installedComponents.contains(addableComponent.get('componentName'))
             && !this.hasCardinalityConflict(addableComponent.get('componentName'))) {
           if ((addableComponent.get('componentName') === 'OOZIE_SERVER') && !App.router.get('mainHostDetailsController.isOozieServerAddable') ||
@@ -231,7 +231,9 @@ App.MainHostSummaryView = Em.View.extend(App.HiveInteractiveCheck, App.TimeRange
           }
           components.pushObject(self.addableComponentObject.create({
             'componentName': addableComponent.get('componentName'),
-            'serviceName': addableComponent.get('serviceName')
+            'serviceName': addableComponent.get('serviceName'),
+            'displayName': addableComponent.get('displayName'),
+            'serviceGroupName': addableComponent.get('stackName') //TODO: service group hard coded for now
           }));
         }
       }, this);

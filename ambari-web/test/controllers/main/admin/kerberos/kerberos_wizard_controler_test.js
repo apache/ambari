@@ -311,7 +311,12 @@ describe('App.KerberosWizardController', function() {
     });
 
     it("updateAndCreateServiceComponent should be called", function() {
-      expect(controller.updateAndCreateServiceComponent.calledWith('KERBEROS_CLIENT')).to.be.true;
+      expect(controller.updateAndCreateServiceComponent.calledWith(Em.Object.create({
+        componentName: 'KERBEROS_CLIENT',
+        serviceName: 'KERBEROS',
+        displayName: 'Kerberos Client',
+        serviceGroupName: 'KERBEROS' //TODO: mpacks - service group hard coded for now; no idea how this will work for Kerberos service
+      }))).to.be.true;
     });
 
     it("createKerberosHostComponents should be called", function() {
@@ -324,7 +329,6 @@ describe('App.KerberosWizardController', function() {
   });
 
   describe("#createKerberosService()", function () {
-
     it("App.ajax.send should be called", function() {
       App.set('clusterName', 'c1');
       controller.createKerberosService();
@@ -333,7 +337,13 @@ describe('App.KerberosWizardController', function() {
         name: 'wizard.step8.create_selected_services',
         sender: controller,
         data: {
-          data: '{"ServiceInfo": { "service_name": "KERBEROS"}}',
+          data: JSON.stringify({
+            'ServiceInfo': {
+              'service_name': 'KERBEROS',
+              'service_type': 'KERBEROS',
+              'service_group_name': 'KERBEROS'
+            }
+          }),
           cluster: 'c1'
         }
       });

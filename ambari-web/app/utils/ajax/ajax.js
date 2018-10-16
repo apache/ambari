@@ -1465,7 +1465,7 @@ var urls = {
     'mock': ''
   },
   'common.create_component': {
-    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services?ServiceInfo/service_name={serviceName}',
+    'real': '/clusters/{clusterName}/servicegroups/{serviceGroupName}/services?ServiceInfo/service_name={serviceName}',
     'mock': '',
     'type': 'POST',
     'format': function (data) {

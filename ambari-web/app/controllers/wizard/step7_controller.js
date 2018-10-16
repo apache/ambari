@@ -639,7 +639,11 @@ App.WizardStep7Controller = App.WizardStepController.extend(App.ServerValidatorM
         var mainController = App.get('router.mainController');
         var clusterController = App.get('router.clusterController');
         mainController.isLoading.call(clusterController, 'clusterEnv').done(function () {
-          isExternalRangerSetup = clusterController.get("clusterEnv")["properties"]["enable_external_ranger"];
+          const clusterEnv = clusterController.get("clusterEnv");
+          let isExternalRangerSetup = false;
+          if (clusterEnv && clusterEnv.properties) {
+            isExternalRangerSetup = clusterEnv.properties.enable_external_ranger;
+          } 
           if (isExternalRangerSetup !== "true") {
             App.config.removeRangerConfigs(self.get('stepConfigs'));
           }

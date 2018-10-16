@@ -830,21 +830,15 @@ describe('App.clusterController', function () {
       var json = {
         items: [
           {
-            ServiceComponentInfo: {
-              component_name: 'C1'
-            },
-            host_components: [
-              {
-                HostRoles: {
-                  host_name: 'host1'
-                }
-              }
-            ]
+            HostRoles: {
+              component_name: 'C1',
+              host_name: 'host1'
+            }
           }
         ]
       };
       controller.loadComponentWithStaleConfigsSuccessCallback(json);
-      expect(App.componentsStateMapper.updateStaleConfigsHosts.calledWith('C1', ['host1'])).to.be.true;
+      expect(App.componentsStateMapper.updateStaleConfigsHosts.calledWith('C1', 'host1')).to.be.true;
     });
   });
 });

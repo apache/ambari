@@ -193,7 +193,12 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
   createKerberosResources: function (callback) {
     var self = this;
     this.createKerberosService().done(function () {
-      self.updateAndCreateServiceComponent('KERBEROS_CLIENT').done(function () {
+      self.updateAndCreateServiceComponent(Em.Object.create({
+        componentName: 'KERBEROS_CLIENT',
+        serviceName: 'KERBEROS',
+        displayName: 'Kerberos Client',
+        serviceGroupName: 'KERBEROS' //TODO: mpacks - service group hard coded for now; no idea how this will work for Kerberos service
+      })).done(function () {
         self.createKerberosHostComponents().done(callback);
       });
     });
@@ -204,7 +209,13 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
       name: 'wizard.step8.create_selected_services',
       sender: this,
       data: {
-        data: '{"ServiceInfo": { "service_name": "KERBEROS"}}',
+        data: JSON.stringify({
+          'ServiceInfo': {
+            'service_name': 'KERBEROS',
+            'service_type': 'KERBEROS',
+            'service_group_name': 'KERBEROS' //TODO: mpacks - needs to be revisited when we are no longer hard coding service groups to be named for mpacks
+          }
+        }),
         cluster: App.get('clusterName')
       }
     });
@@ -264,7 +275,9 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
         "host_components": [
           {
             "HostRoles": {
-              "component_name": 'KERBEROS_CLIENT'
+              "component_name": 'KERBEROS_CLIENT',
+              "service_name": 'KERBEROS',
+              "service_group_name": 'KERBEROS' //TODO: mpacks - hard coded for now
             }
           }
         ]

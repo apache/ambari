@@ -21,11 +21,10 @@ var App = require('app');
 App.InstallComponent = Em.Mixin.create({
 
   installHostComponentCall: function (hostName, component) {
-    const self = this,
-      dfd = $.Deferred(),
-      componentName = component.get('componentName'),
-      displayName = component.get('displayName');
-    this.updateAndCreateServiceComponent(componentName).done(function () {
+    const self = this;
+    const dfd = $.Deferred();
+    
+    this.updateAndCreateServiceComponent(component).done(function () {
       return App.ajax.send({
         name: 'host.host_component.add_new_component',
         sender: self,
@@ -34,13 +33,15 @@ App.InstallComponent = Em.Mixin.create({
           component: component,
           data: JSON.stringify({
             RequestInfo: {
-              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
+              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + component.get('displayName')
             },
             Body: {
               host_components: [
                 {
                   HostRoles: {
-                    component_name: componentName
+                    component_name: component.get('componentName'),
+                    service_name: component.get('serviceName'),
+                    service_group_name: component.get('serviceGroupName')
                   }
                 }
               ]
@@ -51,6 +52,7 @@ App.InstallComponent = Em.Mixin.create({
         error: 'ajaxErrorCallback'
       }).then(dfd.resolve, dfd.reject);
     });
+
     return dfd.promise();
   },
 
@@ -100,13 +102,13 @@ App.InstallComponent = Em.Mixin.create({
    * @param componentName
    * @returns {*}
    */
-  updateAndCreateServiceComponent: function (componentName) {
+  updateAndCreateServiceComponent: function (component) {
     var self = this;
     var dfd = $.Deferred();
     var updater = App.router.get('updateController');
     updater.updateComponentsState(function () {
       updater.updateServiceMetric(function () {
-        self.createServiceComponent(componentName, dfd);
+        self.createServiceComponent(component, dfd);
       });
     });
     return dfd.promise();
@@ -114,18 +116,22 @@ App.InstallComponent = Em.Mixin.create({
 
   /**
    *
-   * @param {string} componentName
+   * @param {object} component
    * @param {$.Deferred} dfd
    * @returns {$.ajax|null}
    */
-  createServiceComponent: function (componentName, dfd) {
-    var allServiceComponents = [];
-    var services = App.Service.find().mapProperty('serviceName');
-    services.forEach(function (_service) {
-      var _serviceComponents = App.Service.find(_service).get('serviceComponents');
-      allServiceComponents = allServiceComponents.concat(_serviceComponents);
-    }, this);
-    if (allServiceComponents.contains(componentName)) {
+  createServiceComponent: function (component, dfd) {
+    let componentExists = false;
+
+    App.Service.find().forEach(service => {
+      if (service.get('serviceName') === component.get('serviceName')
+        && service.get('serviceGroupName') === component.get('serviceGroupName')
+        && service.get('serviceComponents').contains(component.get('componentName'))) {
+        componentExists = true;
+      }
+    });
+
+    if (componentExists) {
       dfd.resolve();
       return null;
     } else {
@@ -133,8 +139,9 @@ App.InstallComponent = Em.Mixin.create({
         name: 'common.create_component',
         sender: this,
         data: {
-          componentName: componentName,
-          serviceName: App.StackServiceComponent.find().findProperty('componentName', componentName).get('serviceName')
+          componentName: component.get('componentName'),
+          serviceName: component.get('serviceName'),
+          serviceGroupName: component.get('serviceGroupName') //TODO: service group hard coded for now
         }
       }).complete(function () {
         dfd.resolve();
