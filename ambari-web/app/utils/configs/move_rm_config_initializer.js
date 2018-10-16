@@ -57,6 +57,7 @@ App.MoveRmConfigInitializer = App.MoveComponentConfigInitializerClass.create({
     'yarn.resourcemanager.hostname.{{suffix}}': getRmHaDependedConfig(true),
     'yarn.resourcemanager.webapp.address.{{suffix}}': getRmHaDependedConfig(true),
     'yarn.resourcemanager.webapp.https.address.{{suffix}}': getRmHaDependedConfig(true),
+    'yarn.resourcemanager.resource-tracker.address.{{suffix}}': getRmHaDependedConfig(true),
     'yarn.resourcemanager.ha': getRmHaHawqConfig(true),
     'yarn.resourcemanager.scheduler.ha': getRmHaHawqConfig(true)
   },
