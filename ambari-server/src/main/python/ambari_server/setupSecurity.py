@@ -821,7 +821,7 @@ def setup_ldap(options):
 
   ssl_truststore_type_default = get_value_from_properties(properties, SSL_TRUSTSTORE_TYPE_PROPERTY, "jks")
   ssl_truststore_path_default = get_value_from_properties(properties, SSL_TRUSTSTORE_PATH_PROPERTY)
-  disable_endpoint_identification_default = get_value_from_properties(properties, LDAP_DISABLE_ENDPOINT_IDENTIFICATION, "True")
+  disable_endpoint_identification_default = get_value_from_properties(properties, LDAP_DISABLE_ENDPOINT_IDENTIFICATION, "False")
 
   ldap_property_value_map = {}
   ldap_property_values_in_ambari_properties = {}
