@@ -654,8 +654,15 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   public StackReleaseVersion getReleaseVersion() {
 
     if (StringUtils.isNotEmpty(releaseVersionClass)) {
+
       try {
-        Class<?> clazz = Class.forName(releaseVersionClass);
+        Class<?> clazz = null;
+
+        if (null != libraryClassLoader) {
+          clazz = libraryClassLoader.loadClass(releaseVersionClass);
+        } else {
+          clazz = Class.forName(releaseVersionClass);
+        }
 
         return (StackReleaseVersion) clazz.newInstance();
       } catch (Exception e) {
