@@ -30,6 +30,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.controller.StackVersionResponse;
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.stack.upgrade.ConfigUpgradePack;
@@ -52,9 +54,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   private String minUpgradeVersion;
   private boolean active;
   private String rcoFileLocation;
-  private String kerberosDescriptorFileLocation;
   private String kerberosDescriptorPreConfigurationFileLocation;
-  private String widgetsDescriptorFileLocation;
   private List<RepositoryInfo> repositories;
   private Collection<ServiceInfo> services;
   private Collection<ExtensionInfo> extensions;
@@ -69,11 +69,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   private Map<String, Map<PropertyInfo.PropertyType, Set<String>>> propertiesTypesCache =
       Collections.synchronizedMap(new HashMap<String, Map<PropertyInfo.PropertyType, Set<String>>>());
   private Map<String, Map<String, Map<String, String>>> configPropertyAttributes =  null;
-  /**
-   * Meaning: stores subpath from stack root to exact hooks folder for stack. These hooks are
-   * applied to all commands for services in current stack.
-   */
-  private String stackHooksFolder;
   private String upgradesFolder = null;
   private volatile Map<String, PropertyInfo> requiredProperties;
   private Map<String, VersionDefinitionXml> versionDefinitions = new ConcurrentHashMap<>();
@@ -81,6 +76,12 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   private RepositoryXml repoXml = null;
 
   private VersionDefinitionXml latestVersion = null;
+
+  /**
+   * A {@link ClassLoader} for any JARs discovered in the stack's library
+   * folder.
+   */
+  private ClassLoader libraryClassLoader = null;
 
   /**
    * List of services removed from current stack
@@ -140,7 +141,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
 
   @Override
   public void addErrors(Collection<String> errors) {
-    this.errorSet.addAll(errors);
+    errorSet.addAll(errors);
   }
 
   public String getName() {
@@ -160,7 +161,9 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   }
 
   public List<RepositoryInfo> getRepositories() {
-    if( repositories == null ) repositories = new ArrayList<>();
+    if( repositories == null ) {
+      repositories = new ArrayList<>();
+    }
     return repositories;
   }
 
@@ -172,7 +175,9 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   }
 
   public synchronized Collection<ServiceInfo> getServices() {
-    if (services == null) services = new ArrayList<>();
+    if (services == null) {
+      services = new ArrayList<>();
+    }
     return services;
   }
 
@@ -192,7 +197,9 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   }
 
   public synchronized Collection<ExtensionInfo> getExtensions() {
-    if (extensions == null) extensions = new ArrayList<>();
+    if (extensions == null) {
+      extensions = new ArrayList<>();
+    }
     return extensions;
   }
 
@@ -212,8 +219,9 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
     for (ExtensionInfo extension : extensions) {
       Collection<ServiceInfo> services = extension.getServices();
       for (ServiceInfo service : services) {
-        if (service.getName().equals(serviceName))
+        if (service.getName().equals(serviceName)) {
           return extension;
+        }
       }
     }
     //todo: exception?
@@ -239,7 +247,9 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   }
 
   public List<PropertyInfo> getProperties() {
-    if (properties == null) properties = new ArrayList<>();
+    if (properties == null) {
+      properties = new ArrayList<>();
+    }
     return properties;
   }
 
@@ -266,7 +276,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
    * @param typeAttributes  attributes associated with the type
    */
   public synchronized void setConfigTypeAttributes(String type, Map<String, Map<String, String>> typeAttributes) {
-    if (this.configTypes == null) {
+    if (configTypes == null) {
       configTypes = new HashMap<>();
     }
     // todo: no exclusion mechanism for stack config types
@@ -506,8 +516,9 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
           if (propertyInfo.getFilename().contains(configType) && !propertyInfo.getPropertyTypes().isEmpty()) {
             Set<PropertyInfo.PropertyType> types = propertyInfo.getPropertyTypes();
             for (PropertyInfo.PropertyType propertyType : types) {
-              if (!propertiesTypes.containsKey(propertyType))
+              if (!propertiesTypes.containsKey(propertyType)) {
                 propertiesTypes.put(propertyType, new HashSet<>());
+              }
               propertiesTypes.get(propertyType).add(propertyInfo.getName());
             }
           }
@@ -627,5 +638,27 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
    */
   public Set<String> getServiceNames() {
     return getServices().stream().map(ServiceInfo::getName).collect(Collectors.toSet());
+  }
+
+  /**
+   * Gets the {@link ClassLoader} that can be used to load classes found in JARs
+   * in the stack's library folder.
+   *
+   * @return the class loader for 3rd party JARs supplied by the stack or
+   *         {@code null} if there are no libraries for this stack.
+   */
+  public @Nullable ClassLoader getLibraryClassLoader() {
+    return libraryClassLoader;
+  }
+
+  /**
+   * Sets the {@link ClassLoader} that can be used to load classes found in JARs
+   * in the stack's library folder.
+   *
+   * @param libraryClassLoader
+   *          the class loader.
+   */
+  public void setLibraryClassLoader(ClassLoader libraryClassLoader) {
+    this.libraryClassLoader = libraryClassLoader;
   }
 }

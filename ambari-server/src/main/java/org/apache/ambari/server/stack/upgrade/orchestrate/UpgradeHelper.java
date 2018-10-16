@@ -260,7 +260,7 @@ public class UpgradeHelper {
       StackId upgradeStack = compareToSource ?
           new StackId(upgradePack.getSourceStack()) : new StackId(upgradePack.getTargetStack());
 
-      if (upgradeStack.equals(stackToFind)) {
+      if (upgradeStack.equals(stackToFind) && upgradePack.getType().equals(upgradeType)) {
         if (null == result) {
           result = upgradePack;
         } else {

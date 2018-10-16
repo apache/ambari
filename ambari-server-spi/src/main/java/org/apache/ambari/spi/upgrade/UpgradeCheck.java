@@ -20,11 +20,15 @@ package org.apache.ambari.spi.upgrade;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
 
 /**
  * The {@link UpgradeCheck} is used before an upgrade in order to present the
- * administrator with a warning or a failure about an upgrade.
+ * administrator with a warning or a failure about an upgrade. All
+ * implementations of this class should used the {@link UpgradeCheckInfo}
+ * annotation to specify information about the check, such as its associated
+ * upgrade type(s) and ordering.
  */
 public interface UpgradeCheck {
 

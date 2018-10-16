@@ -25,6 +25,7 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.checks.OrchestrationQualification;
+import org.apache.ambari.server.checks.UpgradeTypeQualification;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -81,7 +82,8 @@ public class CheckHelper {
       // build some required qualifications
       List<CheckQualification> qualifications = Lists.newArrayList(
           new ServiceQualification(check),
-          new OrchestrationQualification(check.getClass()));
+          new OrchestrationQualification(check.getClass()),
+          new UpgradeTypeQualification(check.getClass()));
 
       // add any extras from the check
       qualifications.addAll(check.getQualifications());
@@ -117,13 +119,13 @@ public class CheckHelper {
    * @return list of pre-requisite check results
    */
   public List<UpgradeCheckResult> performChecks(UpgradeCheckRequest request,
-                                               List<UpgradeCheck> checksRegistry, Configuration config) {
+                                               List<UpgradeCheck> upgradeChecks, Configuration config) {
 
     final String clusterName = request.getClusterName();
     final List<UpgradeCheckResult> results = new ArrayList<>();
     final boolean canBypassPreChecks = config.isUpgradePrecheckBypass();
 
-    List<UpgradeCheck> applicablePreChecks = getApplicableChecks(request, checksRegistry);
+    List<UpgradeCheck> applicablePreChecks = getApplicableChecks(request, upgradeChecks);
 
     for (UpgradeCheck check : applicablePreChecks) {
       UpgradeCheckResult result = new UpgradeCheckResult(check);

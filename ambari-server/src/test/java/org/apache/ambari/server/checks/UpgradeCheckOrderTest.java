@@ -66,7 +66,7 @@ public class UpgradeCheckOrderTest {
     Assert.assertEquals(registry, registry2);
 
     // get the check list
-    List<UpgradeCheck> checks = registry.getUpgradeChecks();
+    List<UpgradeCheck> checks = registry.getBuiltInUpgradeChecks();
 
     // scan for all checks
     ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
@@ -77,6 +77,8 @@ public class UpgradeCheckOrderTest {
     Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents("org.apache.ambari.server.checks");
 
     // verify they are equal
+    Assert.assertTrue(checks.size() > 0);
+    Assert.assertTrue(beanDefinitions.size() > 0);
     Assert.assertEquals(beanDefinitions.size(), checks.size());
 
     UpgradeCheck lastCheck = null;
@@ -85,7 +87,6 @@ public class UpgradeCheckOrderTest {
       UpgradeCheckGroup lastGroup = UpgradeCheckGroup.DEFAULT;
 
       if (null != lastCheck) {
-
         UpgradeCheckInfo annotation = check.getClass().getAnnotation(UpgradeCheckInfo.class);
         UpgradeCheckInfo lastAnnotation = lastCheck.getClass().getAnnotation(UpgradeCheckInfo.class);
 
