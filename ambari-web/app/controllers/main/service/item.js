@@ -967,8 +967,72 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   chooseAndRestartHostComponents: function () {
-    let serviceName = this.get('serviceName');
-    batchUtils.showServicRestartPopup(serviceName);
+    let serviceName = this.get('content.serviceName');
+    const mastersForRestart = serviceName === 'HDFS' ? this.getMastersForHdfsRestart(): this.getMastersForRestart(serviceName);
+    batchUtils.showServiceRestartPopup(serviceName, mastersForRestart);
+  },
+
+  getMastersForRestart: function (serviceName) {
+    return this.get('content.hostComponents').filter((component) =>{
+      return component.get('service.serviceName') === serviceName && component.get('isMaster');
+    });
+  },
+
+  getMastersForHdfsRestart: function () {
+    const self = this;
+    let hostCompOrdered = [];
+    const hdfsService = App.HDFSService.find().toArray()[0];
+
+    if (App.get('isHAEnabled')) {
+      let journalNodes = this.get('content.hostComponents').filterProperty('componentName', 'JOURNALNODE');
+      //Restart journal nodes one by one
+      if (journalNodes && journalNodes.length) {
+        journalNodes.forEach((journalNode) => hostCompOrdered.push(journalNode));
+      }
+
+      //Restart Standby NN and then Standby ZKFC
+      const standbyNameNodes = hdfsService.get('standbyNameNodes').toArray();
+      if (standbyNameNodes.length > 0) {
+        hdfsService.get('standbyNameNodes').forEach(function (snn) {
+          hostCompOrdered.push(snn);
+          const snnHostName = snn.get('hostName');
+          const zkfcForSnn = self.get('content.hostComponents').filter((component) => {
+            return component.get('componentName') === 'ZKFC' && component.get('hostName') === snnHostName;
+          });
+          if (zkfcForSnn) {
+            hostCompOrdered.push(zkfcForSnn[0]);
+          }
+        });
+      }
+
+      //Restart Active NN and then Active ZKFC
+      const activeNameNodes = hdfsService.get('activeNameNodes').toArray();
+      if (activeNameNodes.length > 0) {
+        hdfsService.get('activeNameNodes').forEach(function (ann) {
+          hostCompOrdered.push(ann);
+          const annHostName = ann.get('hostName');
+          const zkfcForAnn = self.get('content.hostComponents').filter((component) => {
+            return component.get('componentName') === 'ZKFC' && component.get('hostName') === annHostName;
+          });
+          if (zkfcForAnn) {
+            hostCompOrdered.push(zkfcForAnn[0]);
+          }
+        });
+      }
+    } else {
+
+      //Add SNamenode
+      if (!standbyNameNodes.length > 0 && hdfsService.get('snameNode')) {
+        hostCompOrdered.push(hdfsService.get('snameNode'));
+      }
+      const sNameNode = hdfsService.get('snameNode') || App.HostComponent.find().findProperty('componentName', 'SECONDARY_NAMENODE')
+      if (sNameNode) hostCompOrdered.push(sNameNode);
+
+      //Add NameNode
+      const namenode = hdfsService.get('namenode') || App.HostComponent.find().findProperty('componentName', 'SECONDARY_NAMENODE');
+      if (namenode) hostCompOrdered.push(namenode);
+    }
+    return hostCompOrdered;
   },
 
   restartCertainHostComponents: function (context) {

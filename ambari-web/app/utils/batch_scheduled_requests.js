@@ -500,7 +500,9 @@ module.exports = {
   },
 
 
-  showServicRestartPopup: function (serviceName) {
+  showServiceRestartPopup: function (serviceName, masterComponents, slaveComponents) {
+
+    let self = this;
 
     App.ModalPopup.show({
       header: Em.I18n.t('common.configure.restart'),
@@ -510,9 +512,61 @@ module.exports = {
       primary: Em.I18n.t('common.restart'),
       primaryClass: 'btn-warning',
       classNames: ['common-modal-wrapper'],
-      modalDialogClasses: ['modal-lg']
+      modalDialogClasses: ['modal-lg'],
+      onPrimary: function () {
+        let batches = [];
+        for (let i=0; i<masterComponents.length; i++) {
+          const hostName = masterComponents[i].get('hostName');
+          const component = masterComponents[i].get('componentName');
+          const context = "RESTART " + masterComponents[i].get('displayName');
+          batches.push({
+            "order_id": i+1,
+            "type": 'POST',
+            "uri": "/clusters/" + App.get('clusterName') + "/requests/",
+            "RequestBodyInfo": {
+              "RequestInfo": {
+                "command": "RESTART",
+                "context": context,
+              },
+              "Requests/resource_filters": [{
+                "service_name": serviceName,
+                "component_name": component,
+                "hosts": hostName
+              }]
+            }
+          })
+        }
+        App.ajax.send({
+          name: 'common.batch.request_schedules',
+          sender: self,
+          data: {
+            intervalTimeSeconds: 1,
+            tolerateSize: 0,
+            batches: batches
+          },
+          success: 'serviceRestartSuccess',
+          showLoadingPopup: true
+        });
+        this._super();
+      }
     })
 
+  },
+
+  serviceRestartSuccess: function (data) {
+    if (data && (data.Requests || data.resources[0].RequestSchedule)) {
+      App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+        if (typeof callback === 'function') {
+          callback();
+        }
+      });
+      return true;
+    } else {
+      return false;
+    }
   },
 
   /**

@@ -40,7 +40,6 @@ App.ServiceRestartView = Em.View.extend({
     this.set('maxFailuresRack', 2);
     this.set('suppressAlerts', true);
     this.set('pauseAfterFirst', false);
-
   },
 
   rollingRestartRadioButton: App.RadioButtonView.extend({
