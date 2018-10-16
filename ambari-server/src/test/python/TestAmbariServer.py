@@ -7161,6 +7161,7 @@ class TestAmbariServer(TestCase):
     urlopen_mock.return_value = response
 
     options = self._create_empty_options_mock()
+    options.ldap_type = LDAP_GENERIC
     setup_ldap(options)
     
     requestCall = urlopen_mock.call_args_list[0]
