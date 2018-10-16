@@ -310,7 +310,7 @@ else:
     
   # shutil.copy replacement
   def copy(src, dst):
-    shell.checked_call(["sudo", "cp", "-r", src, dst], sudo=True)
+    shell.checked_call(["cp", "-r", src, dst], sudo=True)
 
   # os.listdir replacement
   def listdir(path):
