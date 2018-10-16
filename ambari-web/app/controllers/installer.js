@@ -1402,9 +1402,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     
     if (!this.get('stackConfigsLoaded')) {
       // Load stack configs before loading themes
-      App.config.loadClusterConfigsFromStack().always(self.loadServiceConfigs.bind(self)).always(() => {
-        dfd.resolve();
-      });
+      App.config.loadClusterConfigsFromStack().always(() => self.loadServiceConfigs().always(() => dfd.resolve()));
     } else {
       dfd.resolve();
     }
