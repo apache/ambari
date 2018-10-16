@@ -117,7 +117,6 @@ public class UpgradeCheckRegistry {
    *          included
    * @return
    */
-  @SuppressWarnings("unchecked")
   public List<UpgradeCheck> getFilteredUpgradeChecks(UpgradePack upgradePack) throws AmbariException {
     List<UpgradeCheck> builtInRequiredChecks = new ArrayList<>();
 
@@ -140,31 +139,7 @@ public class UpgradeCheckRegistry {
 
       List<String> pluginCheckClassNames = upgradePack.getPrerequisiteChecks();
       if (null != pluginCheckClassNames && !pluginCheckClassNames.isEmpty()) {
-
-        StackId ownerStackId = upgradePack.getOwnerStackId();
-        StackInfo stackInfo = metainfoProvider.get().getStack(ownerStackId);
-
-        ClassLoader classLoader = stackInfo.getLibraryClassLoader();
-        if (null != classLoader) {
-          for (String pluginCheckClassName : pluginCheckClassNames) {
-            try {
-              Class<? extends UpgradeCheck> upgradeCheckClass = (Class<? extends UpgradeCheck>) classLoader.loadClass(
-                  pluginCheckClassName);
-
-              UpgradeCheck upgradeCheck = m_injector.getInstance(upgradeCheckClass);
-              pluginChecks.add(upgradeCheck);
-
-              LOG.info("Registered pre-upgrade check {} for stack {}", upgradeCheckClass,
-                  ownerStackId);
-            } catch (Exception exception) {
-              LOG.error("Unable to load the upgrade check {}", pluginCheckClassName, exception);
-            }
-          }
-        } else {
-          LOG.error(
-              "Unable to perform the following upgrade checks because no libraries could be loaded for the {} stack: {}",
-              ownerStackId, StringUtils.join(pluginCheckClassNames, ","));
-        }
+        loadPluginUpgradeChecksFromStack(upgradePack, pluginChecks);
       }
     }
 
@@ -173,6 +148,44 @@ public class UpgradeCheckRegistry {
     combinedUpgradeChecks.addAll(pluginChecks);
 
     return new LinkedList<>(combinedUpgradeChecks);
+  }
+
+  /**
+   * Uses the library classloader from the the target stack in order to find any
+   * plugin-in {@link UpgradeCheck}s which are declared in the upgrade pack.
+   *
+   * @param upgradePack
+   *          the upgrade pack which defines the upgrade check classes.
+   * @param pluginChecks
+   *          the collection to popoulate.
+   */
+  @SuppressWarnings("unchecked")
+  private void loadPluginUpgradeChecksFromStack(UpgradePack upgradePack,
+      Set<UpgradeCheck> pluginChecks) throws AmbariException {
+    List<String> pluginCheckClassNames = upgradePack.getPrerequisiteChecks();
+    StackId ownerStackId = upgradePack.getOwnerStackId();
+    StackInfo stackInfo = metainfoProvider.get().getStack(ownerStackId);
+
+    ClassLoader classLoader = stackInfo.getLibraryClassLoader();
+    if (null != classLoader) {
+      for (String pluginCheckClassName : pluginCheckClassNames) {
+        try {
+          Class<? extends UpgradeCheck> upgradeCheckClass = (Class<? extends UpgradeCheck>) classLoader.loadClass(
+              pluginCheckClassName);
+
+          UpgradeCheck upgradeCheck = m_injector.getInstance(upgradeCheckClass);
+          pluginChecks.add(upgradeCheck);
+
+          LOG.info("Registered pre-upgrade check {} for stack {}", upgradeCheckClass, ownerStackId);
+        } catch (Exception exception) {
+          LOG.error("Unable to load the upgrade check {}", pluginCheckClassName, exception);
+        }
+      }
+    } else {
+      LOG.error(
+          "Unable to perform the following upgrade checks because no libraries could be loaded for the {} stack: {}",
+          ownerStackId, StringUtils.join(pluginCheckClassNames, ","));
+    }
   }
 
   /**
@@ -189,11 +202,7 @@ public class UpgradeCheckRegistry {
     }
 
     UpgradeType[] upgradeTypes = annotation.required();
-    if (ArrayUtils.contains(upgradeTypes, upgradeType)) {
-      return true;
-    }
-
-    return false;
+    return ArrayUtils.contains(upgradeTypes, upgradeType);
   }
 
   /**

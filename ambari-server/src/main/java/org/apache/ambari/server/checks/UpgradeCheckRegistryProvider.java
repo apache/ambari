@@ -66,7 +66,6 @@ public class UpgradeCheckRegistryProvider implements Provider<UpgradeCheckRegist
    */
   @Override
   public UpgradeCheckRegistry get() {
-    // make the registry a singleton
     if (null == m_beanDefinitions || m_beanDefinitions.isEmpty()) {
       String packageName = ClusterCheck.class.getPackage().getName();
       LOG.info("Searching package {} for classes matching {}", packageName, UpgradeCheck.class);

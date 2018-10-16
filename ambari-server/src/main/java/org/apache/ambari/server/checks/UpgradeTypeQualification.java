@@ -60,10 +60,6 @@ import org.apache.commons.lang.ArrayUtils;
 
     // empty upgrade type or matching should return true
     UpgradeType[] upgradeTypes = annotation.required();
-    if (ArrayUtils.isEmpty(upgradeTypes) || ArrayUtils.contains(upgradeTypes, upgradeType)) {
-      return true;
-    }
-
-    return false;
+    return (ArrayUtils.isEmpty(upgradeTypes) || ArrayUtils.contains(upgradeTypes, upgradeType));
   }
 }

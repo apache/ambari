@@ -42,8 +42,6 @@ public class UpgradeTypeQualificationTest {
   /**
    * Tests whether the {@link UpgradeCheckInfo} annotation is correctly
    * analyzed.
-   *
-   * @throws Exception
    */
   @Test
   public void testRequired() throws Exception {

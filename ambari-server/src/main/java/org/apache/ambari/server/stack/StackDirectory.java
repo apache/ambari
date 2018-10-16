@@ -45,7 +45,6 @@ import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
-import org.apache.ambari.spi.upgrade.UpgradeCheck;
 import org.apache.commons.io.FilenameUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -97,7 +96,7 @@ public class StackDirectory extends StackDefinitionDirectory {
 
   /**
    * The fully-qualified path to the stack's library directory where JARs can be
-   * provided, such as those which implment the SPI.
+   * provided, such as those which implement the SPI.
    */
   private String libraryDir;
 
@@ -145,7 +144,7 @@ public class StackDirectory extends StackDefinitionDirectory {
    * A {@link ClassLoader} for any JARs discovered in the stack's library
    * folder.
    */
-  private URLClassLoader libraryClassLoader = null;
+  private URLClassLoader libraryClassLoader;
 
   /**
    * file unmarshaller
@@ -537,15 +536,13 @@ public class StackDirectory extends StackDefinitionDirectory {
     }
 
     Path libraryPath = Paths.get(libraryDir);
-    if( Files.notExists(libraryPath) || !Files.isDirectory(libraryPath) ) {
+    if (Files.notExists(libraryPath) || !Files.isDirectory(libraryPath)) {
       return;
     }
 
     try {
-      List<URI> jarUris = Files.list(libraryPath)
-          .filter(file -> file.toString().endsWith(".jar"))
-          .map(Path::toUri)
-          .collect(Collectors.toList());
+      List<URI> jarUris = Files.list(libraryPath).filter(
+          file -> file.toString().endsWith(".jar")).map(Path::toUri).collect(Collectors.toList());
 
       List<URL> jarUrls = new ArrayList<>(jarUris.size());
       for (URI jarUri : jarUris) {
@@ -559,17 +556,6 @@ public class StackDirectory extends StackDefinitionDirectory {
       URL[] jarUrlArray = new URL[jarUris.size()];
       libraryClassLoader = new URLClassLoader(jarUrls.toArray(jarUrlArray),
           ClassUtils.getDefaultClassLoader());
-
-      try {
-        @SuppressWarnings("unchecked")
-        Class<UpgradeCheck> clazz = (Class<UpgradeCheck>) libraryClassLoader.loadClass(
-            "testbed.FooCheck");
-        UpgradeCheck check = clazz.newInstance();
-        check.perform(null);
-      } catch (Exception exception) {
-        exception.printStackTrace();
-      }
-
     } catch (IOException ioException) {
       LOG.error("Unable to load libraries from {}", libraryPath, ioException);
     }
