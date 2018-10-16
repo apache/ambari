@@ -692,8 +692,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       unitLabel = units[unitLabelIndex];
       valueLabel = this._extraRound(tick);
     }
-    var separator = (separator && unitLabel) ? separator : '';
-    label = valueLabel + separator + unitLabel;
+    label = valueLabel + ((separator && unitLabel) ? separator : '') + unitLabel;
     return label;
   }
 
