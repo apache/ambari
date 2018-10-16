@@ -550,7 +550,7 @@ def init_ldap_setup_parser_options(parser):
   parser.add_option('--ldap-secondary-host', action="callback", callback=check_ldap_url_options, type='str', default=None, help="Secondary Host for LDAP (must not be used together with --ldap-secondary-url)", dest="ldap_secondary_host")
   parser.add_option('--ldap-secondary-port', action="callback", callback=check_ldap_url_options, type='int', default=None, help="Secondary Port for LDAP (must not be used together with --ldap-secondary-url)", dest="ldap_secondary_port")
   parser.add_option('--ldap-ssl', default=None, help="Use SSL [true/false] for LDAP", dest="ldap_ssl")
-  parser.add_option('--ldap-use-generic-defaults', action="store_true", default=None, help="Disables ldap type query and generic defaults will be offered for non existent properties".format("/".join(LDAP_TYPES)), dest="ldap_use_generic_defaults")
+  parser.add_option('--ldap-type', default=None, help="Specify ldap type [{}] for offering defaults for missing options.".format("/".join(LDAP_TYPES)), dest="ldap_type")
   parser.add_option('--ldap-user-class', default=None, help="User Attribute Object Class for LDAP", dest="ldap_user_class")
   parser.add_option('--ldap-user-attr', default=None, help="User Attribute Name for LDAP", dest="ldap_user_attr")
   parser.add_option('--ldap-group-class', default=None, help="Group Attribute Object Class for LDAP", dest="ldap_group_class")
