@@ -31,9 +31,10 @@ from resource_management.core.source import InlineTemplate
 from resource_management.core.source import StaticFile
 from resource_management.libraries.functions.format import format
 from resource_management.core.environment import Environment
-from resource_management.core.shell import checked_call
+from resource_management.core.shell import checked_call, call
 from resource_management.core import sudo
 from resource_management.core.logger import Logger
+from resource_management.core.exceptions import ExecutionFailed
 import re
 
 REPO_TEMPLATE_FOLDER = 'data'
@@ -119,18 +120,42 @@ class UbuntuRepositoryProvider(Provider):
                content = StaticFile(tmpf.name)
           )
           
-          update_cmd_formatted = [format(x) for x in self.update_cmd]
-          # this is time expensive
-          retcode, out = checked_call(update_cmd_formatted, sudo=True, quiet=False)
-          
-          # add public keys for new repos
-          missing_pkeys = set(re.findall(self.missing_pkey_regex, out))
-          for pkey in missing_pkeys:
-            Execute(self.app_pkey_cmd_prefix + (pkey,),
-                    timeout = 15, # in case we are on the host w/o internet (using localrepo), we should ignore hanging
-                    ignore_failures = True,
-                    sudo = True,
+          try:
+            self.update(repo_file_path)
+          except:
+            # remove created file or else ambari will consider that update was successful and skip repository operations
+            File(repo_file_path,
+                 action = "delete",
             )
+            raise
+
+  def update(self, repo_file_path):
+    repo_file_name = os.path.basename(repo_file_path)
+    update_cmd_formatted = [format(x) for x in self.update_cmd]
+
+    update_failed_exception = None
+
+    try:
+      # this is time expensive
+      retcode, out = call(update_cmd_formatted, sudo=True, quiet=False)
+    except ExecutionFailed as ex:
+      out = ex.out
+      update_failed_exception = ex
+
+    # add public keys for new repos
+    missing_pkeys = set(re.findall(self.missing_pkey_regex, out))
+
+    # failed but NOT due to missing pubkey
+    if update_failed_exception and not missing_pkeys:
+      raise update_failed_exception
+
+    for pkey in missing_pkeys:
+      # add public keys for new repos
+      Execute(self.app_pkey_cmd_prefix + (pkey,),
+              timeout = 15, # in case we are on the host w/o internet (using localrepo), we should ignore hanging
+              ignore_failures = True,
+              sudo = True,
+      )
   
   def action_remove(self):
     repo_file_name = format("{repo_file_name}.list", repo_file_name=self.resource.repo_file_name)

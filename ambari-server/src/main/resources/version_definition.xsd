@@ -60,6 +60,7 @@
       <xs:enumeration value="ubuntu12" />
       <xs:enumeration value="ubuntu14" />
       <xs:enumeration value="ubuntu16" />
+      <xs:enumeration value="ubuntu18" />
       <xs:enumeration value="suse11" />
       <xs:enumeration value="suse12" />
       <xs:enumeration value="amazonlinux2" />
