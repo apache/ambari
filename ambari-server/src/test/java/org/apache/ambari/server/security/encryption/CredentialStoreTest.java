@@ -18,6 +18,7 @@
 package org.apache.ambari.server.security.encryption;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.security.credential.Credential;
@@ -27,6 +28,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import com.google.common.base.Ticker;
 
 import junit.framework.Assert;
 
@@ -161,14 +164,35 @@ public class CredentialStoreTest {
     MasterKeyService masterKeyService = masterKeyServiceFactory.create(masterKey);
     CredentialStore credentialStore = credentialStoreServiceFactory.create(directory, masterKeyService);
 
+    // replace cache ticker with manual to avoid timeout issues during check
+    TestTicker ticker = new TestTicker(0);
+
+    Field cacheFiled = InMemoryCredentialStore.class.getDeclaredField("cache");
+    cacheFiled.setAccessible(true);
+
+    Object cache = cacheFiled.get(credentialStore);
+
+    Class localManualCacheClass = Class.forName("com.google.common.cache.LocalCache$LocalManualCache");
+    Field localCacheField = localManualCacheClass.getDeclaredField("localCache");
+    localCacheField.setAccessible(true);
+
+    Class localCacheClass = Class.forName("com.google.common.cache.LocalCache");
+    Object localCache = localCacheField.get(cache);
+
+    Field tickerField = localCacheClass.getDeclaredField("ticker");
+    tickerField.setAccessible(true);
+    tickerField.set(localCache, ticker);
+
     String password = "mypassword";
     credentialStore.addCredential("myalias", new GenericKeyCredential(password.toCharArray()));
     Assert.assertEquals(password, new String(credentialStore.getCredential("myalias").toValue()));
 
-    Thread.sleep(250);
+    // 250 msec
+    ticker.setCurrentNanos(250*1000*1000);
     Assert.assertEquals(password, new String(credentialStore.getCredential("myalias").toValue()));
 
-    Thread.sleep(550);
+    // 550 msec
+    ticker.setCurrentNanos(550*1000*1000);
     Assert.assertNull(password, credentialStore.getCredential("myalias"));
 
   }
@@ -220,7 +244,7 @@ public class CredentialStoreTest {
   private class InMemoryCredentialStoreServiceFactory implements CredentialStoreServiceFactory {
     @Override
     public CredentialStore create(File path, MasterKeyService masterKeyService) {
-      CredentialStore credentialStore = new InMemoryCredentialStore(500, TimeUnit.MILLISECONDS, true);
+      CredentialStore credentialStore = new InMemoryCredentialStore(500, TimeUnit.MILLISECONDS, false);
       credentialStore.setMasterKeyService(masterKeyService);
       return credentialStore;
     }
@@ -243,6 +267,24 @@ public class CredentialStoreTest {
     public MasterKeyService createPersisted(File masterKeyFile, String masterKey) {
       new MasterKeyServiceImpl("dummyKey").initializeMasterKeyFile(masterKeyFile, masterKey);
       return new MasterKeyServiceImpl(masterKeyFile);
+    }
+  }
+
+  private class TestTicker extends Ticker {
+
+    private long currentNanos;
+
+    public TestTicker(long currentNanos) {
+      this.currentNanos = currentNanos;
+    }
+
+    @Override
+    public long read() {
+      return currentNanos;
+    }
+
+    public void setCurrentNanos(long currentNanos) {
+      this.currentNanos = currentNanos;
     }
   }
 
