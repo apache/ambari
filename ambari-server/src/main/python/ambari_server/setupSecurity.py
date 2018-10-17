@@ -727,7 +727,7 @@ def init_ldap_properties_list_reqd(properties, options):
     LdapPropTemplate(properties, options.ldap_user_attr, "ambari.ldap.attributes.user.name_attr", "User ID attribute{0}: ", REGEX_ANYTHING, False, LdapDefaultMap({LDAP_AD:'sAMAccountName', LDAP_IPA:'uid', LDAP_GENERIC:'uid'})),
     LdapPropTemplate(properties, options.ldap_group_class, "ambari.ldap.attributes.group.object_class", "Group object class{0}: ", REGEX_ANYTHING, False, LdapDefaultMap({LDAP_AD:'group', LDAP_IPA:'posixGroup', LDAP_GENERIC:'posixGroup'})),
     LdapPropTemplate(properties, options.ldap_group_attr, "ambari.ldap.attributes.group.name_attr", "Group name attribute{0}: ", REGEX_ANYTHING, False, LdapDefault("cn")),
-    LdapPropTemplate(properties, options.ldap_member_attr, "ambari.ldap.attributes.group.member_attr", "Group member attribute{0}: ", REGEX_ANYTHING, False, LdapDefaultMap({LDAP_AD:'member', LDAP_IPA:'memberUid', LDAP_GENERIC:'memberUid'})),
+    LdapPropTemplate(properties, options.ldap_member_attr, "ambari.ldap.attributes.group.member_attr", "Group member attribute{0}: ", REGEX_ANYTHING, False, LdapDefaultMap({LDAP_AD:'member', LDAP_IPA:'member', LDAP_GENERIC:'memberUid'})),
     LdapPropTemplate(properties, options.ldap_dn, "ambari.ldap.attributes.dn_attr", "Distinguished name attribute{0}: ", REGEX_ANYTHING, False, LdapDefaultMap({LDAP_AD:'distinguishedName', LDAP_IPA:'dn', LDAP_GENERIC:'dn'})),
     LdapPropTemplate(properties, options.ldap_base_dn, "ambari.ldap.attributes.user.search_base", "Search Base{0}: ", REGEX_ANYTHING, False, LdapDefaultMap({LDAP_AD:'dc=ambari,dc=apache,dc=org', LDAP_IPA:'cn=accounts,dc=ambari,dc=apache,dc=org', LDAP_GENERIC:'dc=ambari,dc=apache,dc=org'})),
     LdapPropTemplate(properties, options.ldap_referral, "ambari.ldap.advanced.referrals", "Referral method [follow/ignore]{0}: ", REGEX_REFERRAL, True, LdapDefault("follow")),
@@ -755,13 +755,14 @@ def should_query_ldap_type(ldap_property_list_reqd):
       return True
   return False
 
-def query_ldap_type():
+def query_ldap_type(ldap_type_option):
   return get_validated_string_input("Please select the type of LDAP you want to use [{}]({}):".format("/".join(LDAP_TYPES), LDAP_GENERIC),
                                     LDAP_GENERIC,
                                     REGEX_LDAP_TYPE,
                                     "Please enter one of the followings '{}'!".format("', '".join(LDAP_TYPES)),
                                     False,
-                                    False)
+                                    False,
+                                    answer = ldap_type_option)
 
 def setup_ldap(options):
   logger.info("Setup LDAP.")
@@ -807,8 +808,7 @@ def setup_ldap(options):
     LDAP_AD:'cn=ldapbind,dc=ambari,dc=apache,dc=org',
     LDAP_IPA:'uid=ldapbind,cn=users,cn=accounts,dc=ambari,dc=apache,dc=org',
     LDAP_GENERIC:'uid=ldapbind,cn=users,dc=ambari,dc=apache,dc=org'}))
-  ldap_type = LDAP_GENERIC if options.ldap_use_generic_defaults or not should_query_ldap_type(ldap_property_list_reqd) else query_ldap_type()
-
+  ldap_type = query_ldap_type(options.ldap_type) if options.ldap_type or should_query_ldap_type(ldap_property_list_reqd) else LDAP_GENERIC
   ldap_property_list_opt = [LDAP_MGR_USERNAME_PROPERTY,
                             LDAP_MGR_PASSWORD_PROPERTY,
                             LDAP_DISABLE_ENDPOINT_IDENTIFICATION,
