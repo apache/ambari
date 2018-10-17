@@ -22,7 +22,7 @@ _speedups folder content:
    |-_speedups.so
    |-__init__.py
 
-Why we need separate libs for linux:
+USC2/USC4 Explanation:
      - https://docs.python.org/2/faq/extending.html#when-importing-module-x-why-do-i-get-undefined-symbol-pyunicodeucs2
 
 How to build _speedups.so manually for custom distributive or architecture
@@ -37,8 +37,7 @@ How to build _speedups.so manually for custom distributive or architecture
          Extension("ambari_commons._speedups", ["_speedups.c"])
        ])
 
- - run python setup.py build
- - check build folder for compiled library
-
- - place resulting file to "ambari_simplejson/_speedups/<your platform>/" folder and create additionally empty __init__.py
- - add yor library path to c extension loader: ambari_simplejson/_import_paths.py#get -> _import_paths
+ - Run python setup.py build
+ - Check build folder for compiled library
+ - Place resulting file to "ambari_simplejson/_speedups/<your platform>/" folder and create empty __init__.py at the same path
+ - Add newly added library path to c extension loader at ambari_simplejson/_import_paths.py#get -> _import_paths

@@ -280,9 +280,7 @@ case "${1:-}" in
             echo "Agent log at: ${LOGFILE}"
           fi
         else
-          tput bold
-          echo "${AMBARI_AGENT} currently not running"
-          tput sgr0
+          print_bold "${AMBARI_AGENT} currently not running"
           retcode=3
         fi
         ;;
