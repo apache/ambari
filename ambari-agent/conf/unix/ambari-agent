@@ -317,7 +317,7 @@ case "${1:-}" in
         scriptpath=$0
         ${_SCRIPT} stop
         shift
-        ${scriptpath} start "$@"
+        ${_SCRIPT} start "$@"
         retcode=$?
         ;;
   reset)
