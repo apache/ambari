@@ -314,7 +314,6 @@ case "${1:-}" in
         ;;
   restart)
         echo -e "Restarting $AMBARI_AGENT"
-        scriptpath=$0
         ${_SCRIPT} stop
         shift
         ${_SCRIPT} start "$@"
