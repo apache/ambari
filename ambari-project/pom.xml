@@ -27,6 +27,7 @@
   <name>Apache Ambari Project POM</name>
   <packaging>pom</packaging>
   <properties>
+    <skipPythonTests>false</skipPythonTests>
     <solr.version>5.5.2</solr.version>
     <ambari.dir>${project.parent.basedir}</ambari.dir>
     <powermock.version>1.6.3</powermock.version>
@@ -81,6 +82,17 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>skipTestRun</id>
+      <activation>
+        <property>
+          <name>skipTests</name>
+        </property>
+      </activation>
+      <properties>
+        <skipPythonTests>true</skipPythonTests>
+      </properties>
     </profile>
   </profiles>
   <dependencyManagement>

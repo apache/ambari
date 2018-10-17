@@ -214,7 +214,7 @@
               <environmentVariables>
                 <PYTHONPATH>${path.python.1}${pathsep}$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
-              <skip>${skipTests}</skip>
+              <skip>${skipPythonTests}</skip>
             </configuration>
             <id>python-test</id>
             <phase>test</phase>
