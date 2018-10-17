@@ -18,6 +18,7 @@
 package org.apache.ambari.server.security.encryption;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -96,13 +97,8 @@ public class PasswordPropertiesEncryptor implements Encryptor<Map<String, String
 
   private Set<String> getPasswordProperties(Cluster cluster, String configType) throws AmbariException {
     final long clusterId = cluster.getClusterId();
-    if (!clusterPasswordProperties.containsKey(clusterId)) {
-      clusterPasswordProperties.put(clusterId, new ConcurrentHashMap<>());
-    }
-    if (!clusterPasswordProperties.get(clusterId).containsKey(configType)) {
-      clusterPasswordProperties.get(clusterId).put(configType, cluster.getConfigPropertiesTypes(configType).get(PropertyType.PASSWORD));
-    }
-
+    clusterPasswordProperties.computeIfAbsent(clusterId, (x -> new ConcurrentHashMap<>())).computeIfAbsent(configType, k -> new HashSet<>())
+        .addAll(cluster.getConfigPropertiesTypes(configType).get(PropertyType.PASSWORD));
     return clusterPasswordProperties.get(clusterId).get(configType);
   }
 
