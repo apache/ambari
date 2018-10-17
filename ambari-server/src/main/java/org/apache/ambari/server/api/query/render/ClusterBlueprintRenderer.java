@@ -56,6 +56,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.ClusterTopologyImpl;
@@ -69,23 +70,27 @@ import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
+
 /**
  * Renderer which renders a cluster resource as a blueprint.
  */
 public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
+  private final static Logger LOG = LoggerFactory.getLogger(ClusterBlueprintRenderer.class);
+
+  static final String SERVICE_SETTINGS = "service_settings";
+  static final String COMPONENT_SETTINGS = "component_settings";
+  static final String CREDENTIAL_STORE_ENABLED = "credential_store_enabled";
+  static final String RECOVERY_ENABLED = "recovery_enabled";
+  static final String TRUE = Boolean.TRUE.toString();
+  static final String FALSE = Boolean.FALSE.toString();
+
   /**
    * Management Controller used to get stack information.
    */
-  private AmbariManagementController controller = AmbariServer.getController();
-
-//  /**
-//   * Map of configuration type to configuration properties which are required that a user
-//   * input.  These properties will be stripped from the exported blueprint.
-//   */
-//  private Map<String, Collection<String>> propertiesToStrip = new HashMap<String, Collection<String>>();
-
-  private final static Logger LOG = LoggerFactory.getLogger(ClusterBlueprintRenderer.class);
+  private final AmbariManagementController controller = AmbariServer.getController();
 
 
   // ----- Renderer ----------------------------------------------------------
@@ -189,7 +194,6 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     try {
       topology = createClusterTopology(clusterNode);
     } catch (InvalidTopologyTemplateException | InvalidTopologyException e) {
-      //todo
       throw new RuntimeException("Unable to process blueprint export request: " + e, e);
     }
 
@@ -206,8 +210,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
       try {
         String clusterName = topology.getAmbariContext().getClusterName(topology.getClusterId());
-        Map<String, Object> kerberosDescriptor = getKerberosDescriptor(topology.getAmbariContext()
-          .getClusterController(), clusterName);
+        Map<String, Object> kerberosDescriptor = getKerberosDescriptor(AmbariContext.getClusterController(), clusterName);
         if (kerberosDescriptor != null) {
           securityConfigMap.put(SecurityConfigurationFactory.KERBEROS_DESCRIPTOR_PROPERTY_ID, kerberosDescriptor);
         }
@@ -220,13 +223,10 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     List<Map<String, Object>> groupList = formatGroupsAsList(topology);
     blueprintResource.setProperty("host_groups", groupList);
 
-    //todo: ensure that this is properly handled in config processor
-    //determinePropertiesToStrip(topology);
-
     blueprintResource.setProperty("configurations", processConfigurations(topology));
 
     //Fetch settings section for blueprint
-    blueprintResource.setProperty("settings", getSettings(clusterNode));
+    blueprintResource.setProperty("settings", getSettings(clusterNode, stack));
 
     return blueprintResource;
   }
@@ -258,80 +258,57 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    "recovery_enabled": "true"
    }   ]   }   ]
    *
-   * @param clusterNode
    * @return A Collection<Map<String, Object>> which represents the Setting Object
    */
-  private Collection<Map<String, Object>> getSettings(TreeNode<Resource> clusterNode) {
-    LOG.info("ClusterBlueprintRenderer: getSettings()");
-
+  @VisibleForTesting
+  static Collection<Map<String, Object>> getSettings(TreeNode<Resource> clusterNode, Stack stack) {
     //Initialize collections to create appropriate json structure
     Collection<Map<String, Object>> blueprintSetting = new ArrayList<>();
 
-    Set<Map<String, String>> recoverySettingValue = new HashSet<>();
-    Set<Map<String, String>> serviceSettingValue = new HashSet<>();
-    Set<Map<String, String>> componentSettingValue = new HashSet<>();
-
-    HashMap<String, String> property;
-    HashMap<String, String> componentProperty = new HashMap<>();
-    Boolean globalRecoveryEnabled = false;
+    Set<Map<String, String>> serviceSettings = new HashSet<>();
+    Set<Map<String, String>> componentSettings = new HashSet<>();
 
     //Fetch the services, to obtain ServiceInfo and ServiceComponents
     Collection<TreeNode<Resource>> serviceChildren = clusterNode.getChild("services").getChildren();
-    for (TreeNode serviceNode : serviceChildren) {
+    for (TreeNode<Resource> serviceNode : serviceChildren) {
       ResourceImpl service = (ResourceImpl) serviceNode.getObject();
-      Map<String, Object> ServiceInfoMap = service.getPropertiesMap().get("ServiceInfo");
+      Map<String, Object> serviceInfoMap = service.getPropertiesMap().get("ServiceInfo");
 
       //service_settings population
-      property = new HashMap<>();
-      if (ServiceInfoMap.get("credential_store_enabled").equals("true")) {
-        property.put("name", ServiceInfoMap.get("service_name").toString());
-        property.put("credential_store_enabled", "true");
+      Map<String, String> serviceSetting = new HashMap<>();
+      String serviceName = serviceInfoMap.get("service_name").toString();
+      ServiceInfo serviceInfo = stack.getServiceInfo(serviceName).orElseThrow(IllegalStateException::new);
+      boolean serviceDefaultCredentialStoreEnabled = serviceInfo.isCredentialStoreEnabled();
+      String credentialStoreEnabledString = String.valueOf(serviceInfoMap.get(CREDENTIAL_STORE_ENABLED));
+      boolean credentialStoreEnabled = Boolean.parseBoolean(credentialStoreEnabledString);
+      if (credentialStoreEnabled != serviceDefaultCredentialStoreEnabled) {
+        serviceSetting.put(CREDENTIAL_STORE_ENABLED, credentialStoreEnabledString);
+        serviceSetting.put("name", serviceName);
+        serviceSettings.add(serviceSetting);
       }
 
       //Fetch the service Components to obtain ServiceComponentInfo
       Collection<TreeNode<Resource>> componentChildren = serviceNode.getChild("components").getChildren();
       for (TreeNode componentNode : componentChildren) {
         ResourceImpl component = (ResourceImpl) componentNode.getObject();
-        Map<String, Object> ServiceComponentInfoMap = component.getPropertiesMap().get("ServiceComponentInfo");
+        Map<String, Object> serviceComponentInfoMap = component.getPropertiesMap().get("ServiceComponentInfo");
+        String componentName = serviceComponentInfoMap.get("component_name").toString();
+        boolean componentDefaultRecoveryEnabled = serviceInfo.getComponentByName(componentName).isRecoveryEnabled();
 
-        if (ServiceComponentInfoMap.get("recovery_enabled").equals("true")) {
-          globalRecoveryEnabled = true;
-          property.put("name", ServiceInfoMap.get("service_name").toString());
-          property.put("recovery_enabled", "true");
-
-          //component_settings population
-          componentProperty = new HashMap<>();
-          componentProperty.put("name", ServiceComponentInfoMap.get("component_name").toString());
-          componentProperty.put("recovery_enabled", "true");
+        if (serviceComponentInfoMap.containsKey(RECOVERY_ENABLED)) {
+          String recoveryEnabledString = String.valueOf(serviceComponentInfoMap.get(RECOVERY_ENABLED));
+          boolean recoveryEnabled = Boolean.parseBoolean(recoveryEnabledString);
+          if (recoveryEnabled != componentDefaultRecoveryEnabled) {
+            componentSettings.add(ImmutableMap.of(
+              "name", componentName,
+              RECOVERY_ENABLED, recoveryEnabledString
+            ));
+          }
         }
       }
-
-      if (!property.isEmpty())
-        serviceSettingValue.add(property);
-      if (!componentProperty.isEmpty())
-        componentSettingValue.add(componentProperty);
     }
-    //recovery_settings population
-    property = new HashMap<>();
-    if (globalRecoveryEnabled) {
-      property.put("recovery_enabled", "true");
-    } else {
-      property.put("recovery_enabled", "false");
-    }
-    recoverySettingValue.add(property);
-
-    //Add all the different setting values.
-    Map<String, Object> settingMap = new HashMap<>();
-    settingMap.put("recovery_settings", recoverySettingValue);
-    blueprintSetting.add(settingMap);
-
-    settingMap = new HashMap<>();
-    settingMap.put("service_settings", serviceSettingValue);
-    blueprintSetting.add(settingMap);
-
-    settingMap = new HashMap<>();
-    settingMap.put("component_settings", componentSettingValue);
-    blueprintSetting.add(settingMap);
+    blueprintSetting.add(ImmutableMap.of(SERVICE_SETTINGS, serviceSettings));
+    blueprintSetting.add(ImmutableMap.of(COMPONENT_SETTINGS, componentSettings));
 
     return blueprintSetting;
   }
@@ -348,7 +325,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.emptySet(),
       Collections.emptySet(), Collections.emptyMap(), null);
 
-    Set<Resource> response = null;
+    Set<Resource> response;
     try {
       response = artifactProvider.getResources(request, predicate);
     } catch (SystemException | UnsupportedPropertyException | NoSuchResourceException | NoSuchParentResourceException
@@ -479,76 +456,6 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
   protected AmbariManagementController getController() {
     return controller;
   }
-
-
-  //  /**
-//   * Determine which configuration properties need to be stripped from the configuration prior to exporting.
-//   * Stripped properties are any property which are marked as required in the stack definition.  For example,
-//   * all passwords are required properties and are therefore not exported.
-//   *
-//   * @param servicesNode  services node
-//   * @param stackName     stack name
-//   * @param stackVersion  stack version
-//   */
-//  private void determinePropertiesToStrip(TreeNode<Resource> servicesNode, String stackName, String stackVersion) {
-//    AmbariMetaInfo ambariMetaInfo = getController().getAmbariMetaInfo();
-//    StackInfo stack;
-//    try {
-//      stack = ambariMetaInfo.getStack(stackName, stackVersion);
-//    } catch (AmbariException e) {
-//      // shouldn't ever happen.
-//      // Exception indicates that stack is not defined
-//      // but we are getting the stack name from a running cluster.
-//      throw new RuntimeException("Unexpected exception occurred while generating a blueprint. "  +
-//          "The stack '" + stackName + ":" + stackVersion + "' does not exist");
-//    }
-//    Map<String, PropertyInfo> requiredStackProperties = stack.getRequiredProperties();
-//    updatePropertiesToStrip(requiredStackProperties);
-//
-//    for (TreeNode<Resource> serviceNode : servicesNode.getChildren()) {
-//      String name = (String) serviceNode.getObject().getPropertyValue("ServiceInfo/service_name");
-//      ServiceInfo service;
-//      try {
-//        service = ambariMetaInfo.getService(stackName, stackVersion, name);
-//      } catch (AmbariException e) {
-//        // shouldn't ever happen.
-//        // Exception indicates that service is not in the stack
-//        // but we are getting the name from a running cluster.
-//        throw new RuntimeException("Unexpected exception occurred while generating a blueprint.  The service '" +
-//            name + "' was not found in the stack: '" + stackName + ":" + stackVersion);
-//      }
-//
-//      Map<String, PropertyInfo> requiredProperties = service.getRequiredProperties();
-//      updatePropertiesToStrip(requiredProperties);
-//    }
-//  }
-
-//  /**
-//   * Helper method to update propertiesToStrip with properties that are marked as required
-//   *
-//   * @param requiredProperties  Properties marked as required
-//   */
-//  private void updatePropertiesToStrip(Map<String, PropertyInfo> requiredProperties) {
-//
-//    for (Map.Entry<String, PropertyInfo> entry : requiredProperties.entrySet()) {
-//      String propertyName = entry.getKey();
-//      PropertyInfo propertyInfo = entry.getValue();
-//      String configCategory = propertyInfo.getFilename();
-//      if (configCategory.endsWith(".xml")) {
-//        configCategory = configCategory.substring(0, configCategory.indexOf(".xml"));
-//      }
-//      Collection<String> categoryProperties = propertiesToStrip.get(configCategory);
-//      if (categoryProperties == null) {
-//        categoryProperties = new ArrayList<String>();
-//        propertiesToStrip.put(configCategory, categoryProperties);
-//      }
-//      categoryProperties.add(propertyName);
-//    }
-//  }
-
-
-
-
 
   // ----- Blueprint Post Processor inner class ------------------------------
 
