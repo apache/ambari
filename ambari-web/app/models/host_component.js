@@ -358,11 +358,13 @@ App.HostComponentActionMap = {
       },
       //Ongoing feature. Will later replace RESTART_ALL
       RESTART_SERVICE: {
-        action: 'chooseAndRestartHostComponents',
+        action: 'restartServiceAllComponents',
         context: ctx.get('serviceName'),
         label: Em.I18n.t('restart.service.rest.context').format(ctx.get('displayName')),
         cssClass: 'glyphicon glyphicon-time',
-        disabled: false
+        disabled: false,
+        hasSubmenu: true,
+        submenuOptions: ctx.get('controller.restartOptions')
       },
       RESTART_NAMENODES: {
         action: '',

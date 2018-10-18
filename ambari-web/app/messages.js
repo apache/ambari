@@ -3284,7 +3284,7 @@ Em.I18n.translations = {
   'service.rolling.restart.choose.info': 'Critical services remain running while the upgrade is performed. </br>Minimized disruption, but is a slower upgrade.',
   'service.express.restart.choose.info': 'Services are stopped when this upgrade is performed. </br>Incurs downtime, but is a faster upgrade.',
   'service.restart.show.advanced.info': 'Show advanced configurations options <p style="font-size: 12px; color: #999999; display: inline;">(Restart by batches/hosts, interval between restarts, etc.)</p>',
-  'service.restart.rolling.title.info': 'RESTART HOSTS BY',
+  'service.restart.rolling.restart.hosts.by': 'RESTART HOSTS BY',
   'service.restart.rolling.batchesOfHosts': 'Batches of Hosts',
   'service.restart.rolling.rackByRack': 'Rack by Rack',
   'service.restart.rolling.advanced.noOfHosts': 'NUMBER OF HOSTS IN A BATCH',

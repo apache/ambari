@@ -22,12 +22,14 @@ App.ServiceRestartView = Em.View.extend({
   templateName: require('templates/common/service_restart'),
 
   didInsertElement: function() {
+    this.set('parentView.innerView', this);
     this.initDefaultConfigs();
   },
 
   initDefaultConfigs: function () {
     this.set('useRolling', true);
     this.set('showAdvancedOptions', false);
+    this.set('showBatchRackOptions', this.get('isRestartAll') || this.get('isSlavesOnly'));
     this.set('batchesOfHosts', true);
     this.set('noOfHostsInBatch', 10);
     this.set('batchIntervalHosts', 120);
