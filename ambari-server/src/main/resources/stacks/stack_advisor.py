@@ -1181,7 +1181,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
 
 
-  def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
+  def getConfigurationClusterSummary(self, servicesList, hosts, components, services, cpu_only_mode = False):
     """
     Copied from HDP 2.0.6 so that it could be used by Service Advisors.
     :return: Dictionary of memory and CPU attributes in the cluster
@@ -1304,8 +1304,9 @@ class DefaultStackAdvisor(StackAdvisor):
 
 
     '''containers = max(3, min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE))))'''
+    core_multiplier = 2 if not cpu_only_mode else 1
     cluster["containers"] = int(round(max(3,
-                                          min(2 * cluster["cpu"],
+                                          min(core_multiplier * cluster["cpu"],
                                               min(ceil(1.8 * cluster["disk"]),
                                                   cluster["totalAvailableRam"] / cluster["minContainerSize"])))))
     self.logger.info("Containers per node - cluster[containers]: " + str(cluster["containers"]))
