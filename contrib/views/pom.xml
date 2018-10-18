@@ -19,17 +19,16 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.0.0.0-SNAPSHOT</version>
+    <version>${revision}</version>
     <relativePath>../../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari.contrib.views</groupId>
   <artifactId>ambari-contrib-views</artifactId>
   <packaging>pom</packaging>
-  <version>2.0.0.0-SNAPSHOT</version>
   <name>Ambari Contrib Views</name>
   <properties>
-    <ambari.version>2.0.0.0-SNAPSHOT</ambari.version>
+    <ambari.version>${revision}</ambari.version>
     <ambari.dir>${project.parent.parent.basedir}</ambari.dir>
     <jetty.version>9.3.19.v20170502</jetty.version>
     <hadoop.version>3.1.0</hadoop.version>
@@ -267,7 +266,7 @@
       <dependency>
         <groupId>org.apache.ambari</groupId>
         <artifactId>ambari-views</artifactId>
-        <version>2.0.0.0-SNAPSHOT</version>
+        <version>${revision}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

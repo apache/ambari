@@ -19,13 +19,12 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.0.0.0-SNAPSHOT</version>
+    <version>${revision}</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-agent</artifactId>
-  <version>2.0.0.0-SNAPSHOT</version>
   <name>Ambari Agent</name>
   <description>Ambari Agent</description>
   <properties>
@@ -145,7 +144,7 @@
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-utility</artifactId>
       <scope>test</scope>
-      <version>1.0.0.0-SNAPSHOT</version>
+      <version>${revision}</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
