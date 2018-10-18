@@ -966,16 +966,49 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     }
   },
 
-  chooseAndRestartHostComponents: function () {
-    let serviceName = this.get('content.serviceName');
-    const mastersForRestart = serviceName === 'HDFS' ? this.getMastersForHdfsRestart(): this.getMastersForRestart(serviceName);
-    batchUtils.showServiceRestartPopup(serviceName, mastersForRestart);
+  restartServiceAllComponents: function () {
+    batchUtils.showServiceRestartPopup(this.get('content.serviceName'), this.getMastersForRestart.bind(this), this.getSlavesForRestart.bind(this));
+  },
+  restartServiceMastersOnly: function () {
+    batchUtils.showServiceRestartPopup(this.get('content.serviceName'), this.getMastersForRestart.bind(this));
   },
 
+  restartServiceSlavesOnly: function () {
+    batchUtils.showServiceRestartPopup(this.get('content.serviceName'), null, this.getSlavesForRestart.bind(this));
+  },
+
+  restartOptions: [
+    Em.Object.create({
+      action: 'restartServiceAllComponents',
+      context: {
+        label: 'Restart All',
+        name: 'RESTART_ALL'
+      }
+    }),
+    Em.Object.create({
+      action: 'restartServiceMastersOnly',
+      context: {
+        label: 'Restart Masters',
+        name: 'RESTART_MASTERS'
+      }
+    }),
+    Em.Object.create({
+      action: 'restartServiceSlavesOnly',
+      context: {
+        label: 'Restart Slaves',
+        name: 'RESTART_SLAVES'
+      }
+    }),
+  ],
+
   getMastersForRestart: function (serviceName) {
-    return this.get('content.hostComponents').filter((component) =>{
-      return component.get('service.serviceName') === serviceName && component.get('isMaster');
-    });
+    if (serviceName === 'HDFS') {
+      return this.getMastersForHdfsRestart();
+    } else {
+      return this.get('content.hostComponents').filter((component) => {
+        return component.get('service.serviceName') === serviceName && component.get('isMaster');
+      });
+    }
   },
 
   getMastersForHdfsRestart: function () {
@@ -1020,11 +1053,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         });
       }
     } else {
-
       //Add SNamenode
-      if (!standbyNameNodes.length > 0 && hdfsService.get('snameNode')) {
-        hostCompOrdered.push(hdfsService.get('snameNode'));
-      }
       const sNameNode = hdfsService.get('snameNode') || App.HostComponent.find().findProperty('componentName', 'SECONDARY_NAMENODE')
       if (sNameNode) hostCompOrdered.push(sNameNode);
 
@@ -1034,6 +1063,13 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     }
     return hostCompOrdered;
   },
+
+  getSlavesForRestart: function (serviceName) {
+    return this.get('content.hostComponents').filter((component) => {
+      return component.get('service.serviceName') === serviceName && component.get('isSlave');
+    });
+  },
+
 
   restartCertainHostComponents: function (context) {
     const serviceDisplayName = this.get('content.displayName'),

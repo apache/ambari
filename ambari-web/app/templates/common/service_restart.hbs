@@ -39,37 +39,39 @@
     </div>
     {{#if view.showAdvancedOptions}}
       <div class="rolling-restart-advanced">
-        {{t service.restart.rolling.title.info}}
-        <div class="rolling-restart-by">
-          <div class="radio big-radio">
-            {{view view.batchesOfHostsRadioButton labelIdentifier="use-batches-of-hosts"}}
-            <i class="fa fa-question-circle"></i>
+        {{#if view.showBatchRackOptions}}
+          {{t service.restart.rolling.restart.hosts.by}}
+          <div class="rolling-restart-by">
+            <div class="radio big-radio">
+              {{view view.batchesOfHostsRadioButton labelIdentifier="use-batches-of-hosts"}}
+              <i class="fa fa-question-circle"></i>
+            </div>
+            <div class="radio big-radio">
+              {{view view.rackByRackRadioButton labelIdentifier="use-rack-by-rack"}}
+              <i class="fa fa-question-circle"></i>
+            </div>
           </div>
-          <div class="radio big-radio">
-            {{view view.rackByRackRadioButton labelIdentifier="use-rack-by-rack"}}
-            <i class="fa fa-question-circle"></i>
-          </div>
-        </div>
-        {{#if view.batchesOfHosts}}
-          <div class="input-option row">
-            <div>{{t service.restart.rolling.advanced.noOfHosts}}</div>
-            {{view Ember.TextField type="number" class="input-sm col-xs-2" valueBinding="view.noOfHostsInBatch"}}<br>
-          </div>
-          <div class=" input-option row">
-            <div>{{t service.restart.rolling.advanced.batchIntervalHosts}}</div>
-            {{view Ember.TextField type="number" class="input-sm col-xs-2" valueBinding="view.batchIntervalHosts"}}
-          </div>
-        {{else}}
-          <div class="input-option row">
-            <div>{{t service.restart.rolling.advanced.percentRacks}}</div>
-            {{view Ember.TextField type="number" class="input-sm col-xs-2" valueBinding="view.percentRackStarted"}}<br>
-          </div>
-          <div class="input-option row">
-            <div>{{t service.restart.rolling.advanced.batchIntervalRacks}}</div>
-            {{view Ember.TextField type="number" class="input-sm col-xs-2" valueBinding="view.batchIntervalRacks"}}
-          </div>
+          {{#if view.batchesOfHosts}}
+            <div class="input-option row">
+              <div>{{t service.restart.rolling.advanced.noOfHosts}}</div>
+              {{view Ember.TextField type="number" class="input-sm col-xs-2" valueBinding="view.noOfHostsInBatch"}}<br>
+            </div>
+            <div class=" input-option row">
+              <div>{{t service.restart.rolling.advanced.batchIntervalHosts}}</div>
+              {{view Ember.TextField type="number" class="input-sm col-xs-2" valueBinding="view.batchIntervalHosts"}}
+            </div>
+          {{else}}
+            <div class="input-option row">
+              <div>{{t service.restart.rolling.advanced.percentRacks}}</div>
+              {{view Ember.TextField type="number" class="input-sm col-xs-2" valueBinding="view.percentRackStarted"}}<br>
+            </div>
+            <div class="input-option row">
+              <div>{{t service.restart.rolling.advanced.batchIntervalRacks}}</div>
+              {{view Ember.TextField type="number" class="input-sm col-xs-2" valueBinding="view.batchIntervalRacks"}}
+            </div>
+          {{/if}}
+          <hr class="separator">
         {{/if}}
-        <hr class="separator">
         <div style="margin-top: 20px;">
           {{view App.CheckboxView checkedBinding="view.isRetryChecked" labelTranslate="service.restart.rolling.advanced.automatic.retry"}}
         </div>
