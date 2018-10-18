@@ -40,6 +40,36 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+  <mailingLists>
+    <mailingList>
+      <name>Dev</name>
+      <subscribe>dev-subscribe@ambari.apache.org</subscribe>
+      <unsubscribe>dev-unsubscribe@ambari.apache.org</unsubscribe>
+      <post>dev@ambari.apache.org</post>
+      <archive>http://mail-archives.apache.org/mod_mbox/ambari-dev/</archive>
+    </mailingList>
+    <mailingList>
+      <name>Users</name>
+      <subscribe>users-subscribe@ambari.apache.org</subscribe>
+      <unsubscribe>users-unsubscribe@ambari.apache.org</unsubscribe>
+      <post>users@ambari.apache.org</post>
+      <archive>http://mail-archives.apache.org/mod_mbox/ambari-users</archive>
+    </mailingList>
+    <mailingList>
+      <name>Commits</name>
+      <subscribe>commits-subscribe@ambari.apache.org</subscribe>
+      <unsubscribe>commits-unsubscribe@ambari.apache.org</unsubscribe>
+      <post>commits@ambari.apache.org</post>
+      <archive>http://mail-archives.apache.org/mod_mbox/ambari-commits</archive>
+    </mailingList>
+    <mailingList>
+      <name>Issues</name>
+      <subscribe>issues-subscribe@ambari.apache.org</subscribe>
+      <unsubscribe>issues-unsubscribe@ambari.apache.org</unsubscribe>
+      <post>issues@ambari.apache.org</post>
+      <archive>http://mail-archives.apache.org/mod_mbox/ambari-issues</archive>
+    </mailingList>
+  </mailingLists>
   <organization>
     <name>Apache Software Foundation</name>
     <url>http://www.apache.org</url>
@@ -428,6 +458,32 @@
             <goals>
               <goal>clean</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.0.0-M2</version>
+        <executions>
+          <execution>
+            <id>enforce-versions</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>3.5.0</version>
+                </requireMavenVersion>
+                <requireJavaVersion>
+                  <version>1.8</version>
+                </requireJavaVersion>
+                <requireOS>
+                  <family>unix</family>
+                </requireOS>
+              </rules>
+            </configuration>
           </execution>
         </executions>
       </plugin>
