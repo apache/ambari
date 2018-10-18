@@ -18,7 +18,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-server</artifactId>
-  <packaging>${packagingFormat}</packaging>
+  <packaging>jar</packaging>
   <name>Ambari Server</name>
   <description>Ambari Server</description>
   <properties>
@@ -925,7 +925,6 @@
         <assemblydescriptor>src/main/assemblies/server-windows.xml</assemblydescriptor>
         <assemblybootstrap>src/main/assemblies/bootstrap-windows.xml</assemblybootstrap>
         <assemblychocodescriptor>src/main/assemblies/server-windows-choco.xml</assemblychocodescriptor>
-        <packagingFormat>jar</packagingFormat>
       </properties>
       <build>
         <plugins>
@@ -1027,7 +1026,6 @@
         <fileextension.dot.shell-default></fileextension.dot.shell-default>
         <path.python.1>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_jinja2:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/main/resources/custom_actions:${project.basedir}/src/main/resources/scripts:${project.basedir}/src/test/python</path.python.1>
         <assemblydescriptor>src/main/assemblies/server.xml</assemblydescriptor>
-        <packagingFormat>jar</packagingFormat>
       </properties>
     </profile>
     <profile>
