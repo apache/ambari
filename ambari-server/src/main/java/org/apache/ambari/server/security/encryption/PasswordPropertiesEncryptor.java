@@ -25,14 +25,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.AmbariRuntimeException;
-import org.apache.ambari.server.events.StackUpgradeFinishEvent;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.TextEncoding;
 import org.apache.commons.collections.CollectionUtils;
 
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -48,12 +46,11 @@ public class PasswordPropertiesEncryptor implements Encryptor<Map<String, String
   private static final String ENCRYPTED_PROPERTY_SCHEME = ENCRYPTED_PROPERTY_PREFIX + "%s}";
 
   private final EncryptionService encryptionService;
-  private final Map<Long, Map<String, Set<String>>> clusterPasswordProperties = new ConcurrentHashMap<>();
+  private final Map<Long, Map<StackId, Map<String, Set<String>>>> clusterPasswordProperties = new ConcurrentHashMap<>(); //Map<clusterId, <Map<stackId, Map<configType, Set<passwordPropertyKeys>>>>;
 
   @Inject
-  public PasswordPropertiesEncryptor(EncryptionService encryptionService, AmbariEventPublisher ambariEventPublisher) {
+  public PasswordPropertiesEncryptor(EncryptionService encryptionService) {
     this.encryptionService = encryptionService;
-    ambariEventPublisher.register(this);
   }
 
   /**
@@ -70,22 +67,21 @@ public class PasswordPropertiesEncryptor implements Encryptor<Map<String, String
   @Override
   public Map<String, String> encryptSensitiveData(Map<String, String> properties, Object... additionaInfo) {
     try {
-      final Map<String, String> encryptedProperties = new HashMap<>(properties.size());
       if (properties != null) {
+        final Map<String, String> encryptedProperties = new HashMap<>(properties);
         final Cluster cluster = (Cluster) additionaInfo[0];
         final String configType = (String) additionaInfo[1];
         final Set<String> passwordProperties = getPasswordProperties(cluster, configType);
         if (CollectionUtils.isNotEmpty(passwordProperties)) {
-          String encryptedValue;
           for (Map.Entry<String, String> property : properties.entrySet()) {
-            encryptedValue = passwordProperties.contains(property.getKey()) && !isEncryptedPassword(property.getValue())
-                ? encryptAndDecoratePropertyValue(property.getValue())
-                : property.getValue();
-            encryptedProperties.put(property.getKey(), encryptedValue);
+            if (passwordProperties.contains(property.getKey()) && !isEncryptedPassword(property.getValue())) {
+              encryptedProperties.put(property.getKey(), encryptAndDecoratePropertyValue(property.getValue()));
+            }
           }
         }
+        return encryptedProperties;
       }
-      return encryptedProperties;
+      return properties;
     } catch (Exception e) {
       throw new AmbariRuntimeException("Error while encrypting sensitive data", e);
     }
@@ -96,10 +92,20 @@ public class PasswordPropertiesEncryptor implements Encryptor<Map<String, String
   }
 
   private Set<String> getPasswordProperties(Cluster cluster, String configType) throws AmbariException {
+    //in case of normal configuration change on the UI - or via the API - the current and desired stacks are equal
+    //in case of an upgrade they are different; in this case we want to get password properties from the desired stack
+    if (cluster.getCurrentStackVersion().equals(cluster.getDesiredStackVersion())) {
+      return getPasswordProperties(cluster, cluster.getCurrentStackVersion(), configType);
+    } else {
+      return getPasswordProperties(cluster, cluster.getDesiredStackVersion(), configType);
+    }
+  }
+
+  private Set<String> getPasswordProperties(Cluster cluster, StackId stackId, String configType) {
     final long clusterId = cluster.getClusterId();
-    clusterPasswordProperties.computeIfAbsent(clusterId, (x -> new ConcurrentHashMap<>())).computeIfAbsent(configType, k -> new HashSet<>())
-        .addAll(cluster.getConfigPropertiesTypes(configType).get(PropertyType.PASSWORD));
-    return clusterPasswordProperties.get(clusterId).get(configType);
+    clusterPasswordProperties.computeIfAbsent(clusterId, v -> new ConcurrentHashMap<>()).computeIfAbsent(stackId, v -> new ConcurrentHashMap<>())
+        .computeIfAbsent(configType, v -> cluster.getConfigPropertiesTypes(configType, stackId).getOrDefault(PropertyType.PASSWORD, new HashSet<>()));
+    return clusterPasswordProperties.get(clusterId).get(stackId).getOrDefault(configType, new HashSet<>());
   }
 
   private String encryptAndDecoratePropertyValue(String propertyValue) throws Exception {
@@ -109,15 +115,16 @@ public class PasswordPropertiesEncryptor implements Encryptor<Map<String, String
 
   @Override
   public Map<String, String> decryptSensitiveData(Map<String, String> properties, Object... additionalInfo) {
-    final Map<String, String> decryptedProperties = new HashMap<>(properties.size());
     if (properties != null) {
-      String decryptedValue;
+      final Map<String, String> decryptedProperties = new HashMap<>(properties);
       for (Map.Entry<String, String> property : properties.entrySet()) {
-        decryptedValue = isEncryptedPassword(property.getValue()) ? decryptProperty(property.getValue()) : property.getValue();
-        decryptedProperties.put(property.getKey(), decryptedValue);
+        if (isEncryptedPassword(property.getValue())) {
+          decryptedProperties.put(property.getKey(), decryptProperty(property.getValue()));
+        }
       }
+      return decryptedProperties;
     }
-    return decryptedProperties;
+    return properties;
   }
 
   private String decryptProperty(String property) {
@@ -129,18 +136,4 @@ public class PasswordPropertiesEncryptor implements Encryptor<Map<String, String
       throw new AmbariRuntimeException("Error while decrypting property", e);
     }
   }
-
-  @Subscribe
-  public void onStackUpgradeFinished(StackUpgradeFinishEvent event) {
-    // during stack upgrade it is very unlikely that one edits cluster configuration
-    // therefore it's safe to assume that other threads will not encrypting
-    // sensitive data at the same time we clear the cached password properties. Thus
-    // additional Java locking is not needed (using concurrent map to store this
-    // information is enough)
-    final long clusterId = event.getClusterId();
-    if (clusterPasswordProperties.containsKey(clusterId)) {
-      clusterPasswordProperties.get(clusterId).clear();
-    }
-  }
-
 }
