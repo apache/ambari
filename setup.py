@@ -51,7 +51,7 @@ def create_package_dir_map():
 
   return package_dirs
 
-__version__ = "2.0.0.0-SNAPSHOT"
+__version__ = "3.0.0.0-SNAPSHOT"
 
 def get_version():
   """
@@ -91,7 +91,7 @@ Example usage:
   python setup.py sdist -d "my/dist/location" upload -r "http://localhost:8080"
 
 Installing from pip:
-- pip install --extra-index-url=http://localhost:8080 ambari-python==2.7.1.0  // 2.0.0.0-SNAPSHOT is the snapshot version
+- pip install --extra-index-url=http://localhost:8080 ambari-python==2.7.1.0  // 3.0.0.0-SNAPSHOT is the snapshot version
 """
 setup(
   name = "ambari-python",
