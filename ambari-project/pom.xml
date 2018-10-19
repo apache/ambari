@@ -34,7 +34,7 @@
     <ldap-api.version>1.0.0</ldap-api.version>
     <checkstyle.version>8.9</checkstyle.version>
     <swagger.version>1.5.19</swagger.version>
-    <swagger.maven.plugin.version>3.1.4</swagger.maven.plugin.version>
+    <swagger.maven.plugin.version>3.1.5</swagger.maven.plugin.version>
     <slf4j.version>1.7.20</slf4j.version>
     <guice.version>4.1.0</guice.version>
     <spring.version>4.3.18.RELEASE</spring.version>
