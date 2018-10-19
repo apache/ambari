@@ -102,8 +102,6 @@ public class ConfigImpl implements Config {
 
   private final AmbariEventPublisher eventPublisher;
 
-  private final Encryptor<Map<String, String>> passwordPropertiesEncryptor;
-
   @AssistedInject
   ConfigImpl(@Assisted Cluster cluster, @Assisted("type") String type,
       @Assisted("tag") @Nullable String tag,
@@ -111,9 +109,9 @@ public class ConfigImpl implements Config {
       @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
       ClusterDAO clusterDAO, StackDAO stackDAO,
       Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory,
-      Configuration serverConfiguration, @Named("PasswordPropertiesEncryptor") Encryptor<Map<String, String>> passwordPropertiesEncryptor) {
+      Configuration serverConfiguration, @Named("ConfigPropertiesEncryptor") Encryptor<Config> configPropertiesEncryptor) {
     this(cluster.getDesiredStackVersion(), cluster, type, tag, properties, propertiesAttributes,
-        clusterDAO, stackDAO, gson, eventPublisher, lockFactory, serverConfiguration, passwordPropertiesEncryptor);
+        clusterDAO, stackDAO, gson, eventPublisher, lockFactory, serverConfiguration, configPropertiesEncryptor);
   }
 
 
@@ -124,14 +122,16 @@ public class ConfigImpl implements Config {
       @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
       ClusterDAO clusterDAO, StackDAO stackDAO,
       Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory,
-      Configuration serverConfiguration, @Named("PasswordPropertiesEncryptor") Encryptor<Map<String, String>> passwordPropertiesEncryptor) {
+      Configuration serverConfiguration, @Named("ConfigPropertiesEncryptor") Encryptor<Config> configPropertiesEncryptor) {
 
     propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
 
     this.cluster = cluster;
     this.type = type;
-    this.passwordPropertiesEncryptor = passwordPropertiesEncryptor;
-    this.properties = serverConfiguration.shouldEncryptSensitiveData() ? passwordPropertiesEncryptor.encryptSensitiveData(properties, cluster, type) : properties;
+    this.properties = properties;
+    if (serverConfiguration.shouldEncryptSensitiveData()) {
+      configPropertiesEncryptor.encryptSensitiveData(this);
+    }
 
     // only set this if it's non-null
     this.propertiesAttributes = null == propertiesAttributes ? null
@@ -170,13 +170,13 @@ public class ConfigImpl implements Config {
     persist(entity);
 
     configId = entity.getConfigId();
+    configPropertiesEncryptor.decryptSensitiveData(this);
   }
 
   @AssistedInject
   ConfigImpl(@Assisted Cluster cluster, @Assisted ClusterConfigEntity entity,
       ClusterDAO clusterDAO, Gson gson, AmbariEventPublisher eventPublisher,
-      LockFactory lockFactory,
-      @Named("PasswordPropertiesEncryptor") Encryptor<Map<String, String>> passwordPropertiesEncryptor) {
+      LockFactory lockFactory) {
     propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
 
     this.cluster = cluster;
@@ -193,8 +193,6 @@ public class ConfigImpl implements Config {
     stackId = new StackId(entity.getStack());
 
     propertiesTypes = cluster.getConfigPropertiesTypes(type);
-
-    this.passwordPropertiesEncryptor = passwordPropertiesEncryptor;
 
     // incur the hit on deserialization since this business object is stored locally
     try {
@@ -242,14 +240,12 @@ public class ConfigImpl implements Config {
       @Assisted("tag") @Nullable String tag,
       @Assisted Map<String, String> properties,
       @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes, ClusterDAO clusterDAO,
-      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory,
-      @Named("PasswordPropertiesEncryptor") Encryptor<Map<String, String>> passwordPropertiesEncryptor) {
+      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
 
     propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
 
     this.tag = tag;
     this.type = type;
-    this.passwordPropertiesEncryptor = passwordPropertiesEncryptor;
     this.properties = new HashMap<>(properties);
     this.propertiesAttributes = null == propertiesAttributes ? null
         : new HashMap<>(propertiesAttributes);
@@ -300,7 +296,7 @@ public class ConfigImpl implements Config {
   public Map<String, String> getProperties() {
     propertyLock.readLock().lock();
     try {
-      return properties == null ? new HashMap<>() : passwordPropertiesEncryptor.decryptSensitiveData(properties);
+      return properties == null ? new HashMap<>() : new HashMap<>(properties);
     } finally {
       propertyLock.readLock().unlock();
     }
@@ -335,6 +331,11 @@ public class ConfigImpl implements Config {
     } finally {
       propertyLock.writeLock().unlock();
     }
+  }
+
+  @Override
+  public Cluster getCluster() {
+    return cluster;
   }
 
   @Override

@@ -21,7 +21,6 @@ import static org.easymock.EasyMock.createNiceMock;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.EntityManager;
 
@@ -138,10 +137,6 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addAmbariMetaInfoBinding(AmbariManagementController ambariManagementController) {
-      return addAmbariMetaInfoBinding(ambariManagementController, easyMockSupport.createNiceMock(Encryptor.class));
-    }
-
-    public Builder addAmbariMetaInfoBinding(AmbariManagementController ambariManagementController, Encryptor<Map<String, String>> passwordEncryptor) {
       configurers.add((Binder binder) -> {
           binder.bind(PersistedState.class).toInstance(easyMockSupport.createNiceMock(PersistedState.class));
           binder.bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
@@ -161,7 +156,7 @@ public class PartialNiceMockBinder implements Module {
       });
       addConfigsBindings();
       addFactoriesInstallBinding();
-      addPasswordEncryptorBindings(passwordEncryptor);
+      addPasswordEncryptorBindings();
       return this;
     }
 
@@ -216,13 +211,9 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addPasswordEncryptorBindings() {
-      return addPasswordEncryptorBindings(easyMockSupport.createNiceMock(Encryptor.class));
-    }
-
-    public Builder addPasswordEncryptorBindings(Encryptor<Map<String, String>> passwordEncryptor) {
       configurers.add((Binder binder) -> {
         binder.bind(EncryptionService.class).toInstance(easyMockSupport.createNiceMock(EncryptionService.class));
-        binder.bind(new TypeLiteral<Encryptor<Map<String, String>>>() {}).annotatedWith(Names.named("PasswordPropertiesEncryptor")).toInstance(passwordEncryptor);
+        binder.bind(new TypeLiteral<Encryptor<Config>>() {}).annotatedWith(Names.named("ConfigPropertiesEncryptor")).toInstance(easyMockSupport.createNiceMock(Encryptor.class));
       });
       return this;
     }

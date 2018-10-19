@@ -23,8 +23,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Map;
-
 import javax.persistence.EntityManager;
 import javax.ws.rs.core.MediaType;
 
@@ -62,11 +60,11 @@ import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.security.encryption.AESEncryptionService;
+import org.apache.ambari.server.security.encryption.ConfigPropertiesEncryptor;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.security.encryption.EncryptionService;
 import org.apache.ambari.server.security.encryption.Encryptor;
-import org.apache.ambari.server.security.encryption.PasswordPropertiesEncryptor;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
@@ -360,7 +358,7 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
       bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
       bind(EncryptionService.class).to(AESEncryptionService.class);
-      bind(new TypeLiteral<Encryptor<Map<String, String>>>() {}).annotatedWith(Names.named("PasswordPropertiesEncryptor")).to(PasswordPropertiesEncryptor.class);
+      bind(new TypeLiteral<Encryptor<Config>>() {}).annotatedWith(Names.named("ConfigPropertiesEncryptor")).to(ConfigPropertiesEncryptor.class);
     }
 
     private void installDependencies() {

@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.TextEncoding;
@@ -36,11 +37,11 @@ import com.google.inject.Singleton;
 
 /**
  * {@link Encryptor} implementation for encrypting/decrypting PASSWORD type
- * properties
+ * properties in {@link Config}'s properties
  */
 
 @Singleton
-public class PasswordPropertiesEncryptor implements Encryptor<Map<String, String>> {
+public class ConfigPropertiesEncryptor implements Encryptor<Config> {
 
   private static final String ENCRYPTED_PROPERTY_PREFIX = "${enc=aes256_hex, value=";
   private static final String ENCRYPTED_PROPERTY_SCHEME = ENCRYPTED_PROPERTY_PREFIX + "%s}";
@@ -49,39 +50,26 @@ public class PasswordPropertiesEncryptor implements Encryptor<Map<String, String
   private final Map<Long, Map<StackId, Map<String, Set<String>>>> clusterPasswordProperties = new ConcurrentHashMap<>(); //Map<clusterId, <Map<stackId, Map<configType, Set<passwordPropertyKeys>>>>;
 
   @Inject
-  public PasswordPropertiesEncryptor(EncryptionService encryptionService) {
+  public ConfigPropertiesEncryptor(EncryptionService encryptionService) {
     this.encryptionService = encryptionService;
   }
 
-  /**
-   * It is a must that any caller of this method adds the following additional
-   * information on the following indexes in <code>additionalInfo</code> with the
-   * following types:
-   * <ul>
-   * <li>[0] - <code>org.apache.ambari.server.state.Cluster</code> (the cluster
-   * whose properties should be scanned for PASSWORD properties)</li>
-   * <li>[1] - <code>java.lang.String</code> (to keep properties only that match
-   * this configuration type )</li>
-   * </ul>
-   */
   @Override
-  public Map<String, String> encryptSensitiveData(Map<String, String> properties, Object... additionaInfo) {
+  public void encryptSensitiveData(Config config) {
     try {
-      if (properties != null) {
-        final Map<String, String> encryptedProperties = new HashMap<>(properties);
-        final Cluster cluster = (Cluster) additionaInfo[0];
-        final String configType = (String) additionaInfo[1];
-        final Set<String> passwordProperties = getPasswordProperties(cluster, configType);
+      final Map<String, String> configProperties = config.getProperties();
+      if (configProperties != null) {
+        final Set<String> passwordProperties = getPasswordProperties(config.getCluster(), config.getType());
         if (CollectionUtils.isNotEmpty(passwordProperties)) {
-          for (Map.Entry<String, String> property : properties.entrySet()) {
+          final Map<String, String> encryptedProperties = new HashMap<>(configProperties);
+          for (Map.Entry<String, String> property : configProperties.entrySet()) {
             if (passwordProperties.contains(property.getKey()) && !isEncryptedPassword(property.getValue())) {
               encryptedProperties.put(property.getKey(), encryptAndDecoratePropertyValue(property.getValue()));
             }
           }
+          config.setProperties(encryptedProperties);
         }
-        return encryptedProperties;
       }
-      return properties;
     } catch (Exception e) {
       throw new AmbariRuntimeException("Error while encrypting sensitive data", e);
     }
@@ -114,17 +102,17 @@ public class PasswordPropertiesEncryptor implements Encryptor<Map<String, String
   }
 
   @Override
-  public Map<String, String> decryptSensitiveData(Map<String, String> properties, Object... additionalInfo) {
-    if (properties != null) {
-      final Map<String, String> decryptedProperties = new HashMap<>(properties);
-      for (Map.Entry<String, String> property : properties.entrySet()) {
+  public void decryptSensitiveData(Config config) {
+    final Map<String, String> configProperties = config.getProperties();
+    if (configProperties != null) {
+      final Map<String, String> decryptedProperties = new HashMap<>(configProperties);
+      for (Map.Entry<String, String> property : configProperties.entrySet()) {
         if (isEncryptedPassword(property.getValue())) {
           decryptedProperties.put(property.getKey(), decryptProperty(property.getValue()));
         }
       }
-      return decryptedProperties;
+      config.setProperties(decryptedProperties);
     }
-    return properties;
   }
 
   private String decryptProperty(String property) {

@@ -27,23 +27,17 @@ public interface Encryptor<T> {
    * 
    * @param encryptible
    *          to be encrypted
-   * @param additionalInfo
-   *          any additional information that is needed during the encryption
-   *          process (may be null)
    * @return the encrypted value
    */
-  T encryptSensitiveData(T encryptible, Object... additionalInfo);
+  void encryptSensitiveData(T encryptible);
 
   /**
    * Decrypts the given decryptible object
    * 
    * @param decryptible
    *          to be decrypted
-   * @param additionalInfo
-   *          any additional information that is needed during the decryption
-   *          process (may be null)
    * @return the decrypted value
    */
-  T decryptSensitiveData(T decryptible, Object... additionalInfo);
+  void decryptSensitiveData(T decryptible);
 
 }

@@ -67,7 +67,6 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
-import org.apache.ambari.server.security.encryption.PasswordPropertiesEncryptor;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -87,7 +86,6 @@ import org.junit.Test;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.inject.AbstractModule;
@@ -248,7 +246,6 @@ public class HostUpdateHelperTest {
     ClusterConfigEntity mockClusterConfigEntity1 = easyMockSupport.createNiceMock(ClusterConfigEntity.class);
     ClusterConfigEntity mockClusterConfigEntity2 = easyMockSupport.createNiceMock(ClusterConfigEntity.class);
     StackEntity mockStackEntity = easyMockSupport.createNiceMock(StackEntity.class);
-    final PasswordPropertiesEncryptor passwordEncryptorMock = easyMockSupport.createNiceMock(PasswordPropertiesEncryptor.class);
     Map<String, Map<String, String>> clusterHostsToChange = new HashMap<>();
     Map<String, String> hosts = new HashMap<>();
     List<ClusterConfigEntity> clusterConfigEntities1 = new ArrayList<>();
@@ -256,7 +253,7 @@ public class HostUpdateHelperTest {
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        PartialNiceMockBinder.newBuilder().addAmbariMetaInfoBinding(mockAmbariManagementController, passwordEncryptorMock).build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addClustersBinding(mockAmbariManagementController).build().configure(binder());
         bind(StackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(StackManagerFactory.class));
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(EntityManager.class).toInstance(entityManager);
@@ -304,9 +301,6 @@ public class HostUpdateHelperTest {
     expect(mockClusterConfigEntity1.getType()).andReturn("testType1").atLeastOnce();
     expect(mockClusterConfigEntity1.getVersion()).andReturn(1L).atLeastOnce();
     expect(mockClusterDAO.findConfig(1L)).andReturn(mockClusterConfigEntity1).atLeastOnce();
-    final Map<String, String> expectedMap1 = new HashMap<>(ImmutableMap.of("testProperty1", "testValue_host1", "testProperty2", "testValue_host5", "testProperty3",
-        "testValue_host11", "testProperty4", "testValue_host55"));
-    expect(passwordEncryptorMock.decryptSensitiveData(expectedMap1)).andReturn(expectedMap1).atLeastOnce();
 
     expect(mockClusterConfigEntity2.getClusterId()).andReturn(1L).atLeastOnce();
     expect(mockClusterConfigEntity2.getConfigId()).andReturn(2L).anyTimes();
@@ -316,8 +310,6 @@ public class HostUpdateHelperTest {
     expect(mockClusterConfigEntity2.getType()).andReturn("testType2").atLeastOnce();
     expect(mockClusterConfigEntity2.getVersion()).andReturn(2L).atLeastOnce();
     expect(mockClusterDAO.findConfig(2L)).andReturn(mockClusterConfigEntity2).atLeastOnce();
-    final Map<String, String> expectedMap2 = new HashMap<>(ImmutableMap.of("testProperty5", "test_host1_test_host5_test_host11_test_host55"));
-    expect(passwordEncryptorMock.decryptSensitiveData(expectedMap2)).andReturn(expectedMap2).atLeastOnce();
 
     Capture<String> dataCapture = EasyMock.newCapture();
     mockClusterConfigEntity1.setData(EasyMock.capture(dataCapture));
@@ -325,7 +317,7 @@ public class HostUpdateHelperTest {
 
     mockClusterConfigEntity2.setData("{\"testProperty5\":\"test_host5_test_host1_test_host55_test_host11\"}");
     expectLastCall();
-    
+
     HostUpdateHelper hostUpdateHelper = new HostUpdateHelper(null, null, mockInjector);
 
     hostUpdateHelper.setHostChangesFileMap(clusterHostsToChange);
