@@ -55,6 +55,8 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.security.encryption.EncryptionService;
+import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
@@ -90,6 +92,7 @@ import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
+import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.google.inject.persist.UnitOfWork;
@@ -153,6 +156,7 @@ public class PartialNiceMockBinder implements Module {
       });
       addConfigsBindings();
       addFactoriesInstallBinding();
+      addPasswordEncryptorBindings();
       return this;
     }
 
@@ -203,6 +207,14 @@ public class PartialNiceMockBinder implements Module {
       addHostRoleCommandsConfigsBindings();
       addActionSchedulerConfigsBindings();
       addActionDBAccessorConfigsBindings();
+      return this;
+    }
+
+    public Builder addPasswordEncryptorBindings() {
+      configurers.add((Binder binder) -> {
+        binder.bind(EncryptionService.class).toInstance(easyMockSupport.createNiceMock(EncryptionService.class));
+        binder.bind(new TypeLiteral<Encryptor<Config>>() {}).annotatedWith(Names.named("ConfigPropertiesEncryptor")).toInstance(easyMockSupport.createNiceMock(Encryptor.class));
+      });
       return this;
     }
 

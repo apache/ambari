@@ -2548,8 +2548,15 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   public Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType){
+    return getConfigPropertiesTypes(configType, getCurrentStackVersion());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType, StackId stackId) {
     try {
-      StackId stackId = getCurrentStackVersion();
       StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
       return stackInfo.getConfigPropertiesTypes(configType);
     } catch (AmbariException ignored) {

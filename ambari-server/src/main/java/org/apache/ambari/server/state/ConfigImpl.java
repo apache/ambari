@@ -27,7 +27,9 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.annotation.Nullable;
+import javax.inject.Named;
 
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.logging.LockFactory;
@@ -37,11 +39,13 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -104,9 +108,10 @@ public class ConfigImpl implements Config {
       @Assisted Map<String, String> properties,
       @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
       ClusterDAO clusterDAO, StackDAO stackDAO,
-      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
+      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory,
+      Configuration serverConfiguration, @Named("ConfigPropertiesEncryptor") Encryptor<Config> configPropertiesEncryptor) {
     this(cluster.getDesiredStackVersion(), cluster, type, tag, properties, propertiesAttributes,
-        clusterDAO, stackDAO, gson, eventPublisher, lockFactory);
+        clusterDAO, stackDAO, gson, eventPublisher, lockFactory, serverConfiguration, configPropertiesEncryptor);
   }
 
 
@@ -116,20 +121,24 @@ public class ConfigImpl implements Config {
       @Assisted Map<String, String> properties,
       @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
       ClusterDAO clusterDAO, StackDAO stackDAO,
-      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
+      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory,
+      Configuration serverConfiguration, @Named("ConfigPropertiesEncryptor") Encryptor<Config> configPropertiesEncryptor) {
 
     propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
 
     this.cluster = cluster;
     this.type = type;
     this.properties = properties;
+    if (serverConfiguration.shouldEncryptSensitiveData()) {
+      configPropertiesEncryptor.encryptSensitiveData(this);
+    }
 
     // only set this if it's non-null
     this.propertiesAttributes = null == propertiesAttributes ? null
         : new HashMap<>(propertiesAttributes);
 
     this.clusterDAO = clusterDAO;
-    this.gson = gson;
+    this.gson = new GsonBuilder().disableHtmlEscaping().create();
     this.eventPublisher = eventPublisher;
     version = cluster.getNextConfigVersion(type);
 
@@ -148,10 +157,10 @@ public class ConfigImpl implements Config {
     entity.setTag(this.tag);
     entity.setTimestamp(System.currentTimeMillis());
     entity.setStack(stackEntity);
-    entity.setData(gson.toJson(properties));
+    entity.setData(this.gson.toJson(this.properties));
 
     if (null != propertiesAttributes) {
-      entity.setAttributes(gson.toJson(propertiesAttributes));
+      entity.setAttributes(this.gson.toJson(propertiesAttributes));
     }
 
     // when creating a brand new config without a backing entity, use the
@@ -161,12 +170,13 @@ public class ConfigImpl implements Config {
     persist(entity);
 
     configId = entity.getConfigId();
+    configPropertiesEncryptor.decryptSensitiveData(this);
   }
 
   @AssistedInject
   ConfigImpl(@Assisted Cluster cluster, @Assisted ClusterConfigEntity entity,
       ClusterDAO clusterDAO, Gson gson, AmbariEventPublisher eventPublisher,
-      LockFactory lockFactory) {
+      LockFactory lockFactory,  @Named("ConfigPropertiesEncryptor") Encryptor<Config> configPropertiesEncryptor) {
     propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
 
     this.cluster = cluster;
@@ -194,6 +204,7 @@ public class ConfigImpl implements Config {
       }
 
       properties = deserializedProperties;
+      configPropertiesEncryptor.decryptSensitiveData(this);
     } catch (JsonSyntaxException e) {
       LOG.error("Malformed configuration JSON stored in the database for {}/{}", entity.getType(),
           entity.getTag());
@@ -321,6 +332,11 @@ public class ConfigImpl implements Config {
     } finally {
       propertyLock.writeLock().unlock();
     }
+  }
+
+  @Override
+  public Cluster getCluster() {
+    return cluster;
   }
 
   @Override

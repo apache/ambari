@@ -268,11 +268,19 @@ public interface Cluster {
   Map<String, Config> getConfigsByType(String configType);
 
   /**
-   * Gets all properties types that mach the specified type.
+   * Gets all properties types that matches the specified type for the current stack.
    * @param configType the config type to return
    * @return properties types for given config type
    */
   Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType);
+
+  /**
+   * Gets all properties types that matches the specified type for the given stack.
+   * @param configType the config type to return
+   * @param stackId the stack to scan properties for
+   * @return properties types for given config type
+   */
+  Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType, StackId stackId);
 
   /**
    * Gets the specific config that matches the specified type and tag.  This not

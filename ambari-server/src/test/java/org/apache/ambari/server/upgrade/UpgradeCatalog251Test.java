@@ -292,7 +292,8 @@ public class UpgradeCatalog251Test {
     Module module = new Module() {
       @Override
       public void configure(Binder binder) {
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder);
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding()
+        .addPasswordEncryptorBindings().build().configure(binder);
 
         binder.bind(DBAccessor.class).toInstance(dbAccessor);
         binder.bind(OsFamily.class).toInstance(osFamily);

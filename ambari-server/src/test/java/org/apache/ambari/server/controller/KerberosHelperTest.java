@@ -238,7 +238,7 @@ public class KerberosHelperTest extends EasyMockSupport {
       @Override
       protected void configure() {
         PartialNiceMockBinder.newBuilder().addActionDBAccessorConfigsBindings().addFactoriesInstallBinding()
-            .build().configure(binder());
+            .addPasswordEncryptorBindings().build().configure(binder());
 
         bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
         bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
