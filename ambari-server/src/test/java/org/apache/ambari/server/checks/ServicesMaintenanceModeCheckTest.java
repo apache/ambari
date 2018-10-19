@@ -83,13 +83,6 @@ public class ServicesMaintenanceModeCheckTest {
     String version = "1.0.0.0-1234";
 
     Mockito.when(m_repositoryVersion.getId()).thenReturn(1L);
-    Mockito.when(m_repositoryVersion.getRepositoryType()).thenReturn(RepositoryType.STANDARD);
-    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(stackId.toString());
-    Mockito.when(m_repositoryVersion.getVersion()).thenReturn(version);
-
-    Mockito.when(m_repositoryVersionEntity.getType()).thenReturn(RepositoryType.STANDARD);
-    Mockito.when(m_repositoryVersionEntity.getVersion()).thenReturn("2.2.0.0-1234");
-    Mockito.when(m_repositoryVersionEntity.getStackId()).thenReturn(new StackId("HDP", "2.2"));
     Mockito.when(m_repositoryVersionEntity.getRepositoryXml()).thenReturn(m_vdfXml);
     Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class), Mockito.any(AmbariMetaInfo.class))).thenReturn(m_clusterVersionSummary);
     Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
@@ -126,15 +119,8 @@ public class ServicesMaintenanceModeCheckTest {
   };
 
     final Cluster cluster = Mockito.mock(Cluster.class);
-    Mockito.when(cluster.getClusterId()).thenReturn(1L);
-    Mockito.when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP", "2.2"));
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
     final Service service = Mockito.mock(Service.class);
-    Mockito.when(cluster.getServices()).thenReturn(Collections.singletonMap("service", service));
-    Mockito.when(service.isClientOnlyService()).thenReturn(false);
-
-    // We don't bother checking service desired state as it's performed by a separate check
-    Mockito.when(service.getDesiredState()).thenReturn(State.UNKNOWN);
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
@@ -142,8 +128,6 @@ public class ServicesMaintenanceModeCheckTest {
 
     UpgradeCheckResult check = servicesMaintenanceModeCheck.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
-
-    Mockito.when(service.getDesiredState()).thenReturn(State.STARTED);
 
     check = servicesMaintenanceModeCheck.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
