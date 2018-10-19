@@ -176,7 +176,7 @@ public class ConfigImpl implements Config {
   @AssistedInject
   ConfigImpl(@Assisted Cluster cluster, @Assisted ClusterConfigEntity entity,
       ClusterDAO clusterDAO, Gson gson, AmbariEventPublisher eventPublisher,
-      LockFactory lockFactory) {
+      LockFactory lockFactory,  @Named("ConfigPropertiesEncryptor") Encryptor<Config> configPropertiesEncryptor) {
     propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
 
     this.cluster = cluster;
@@ -204,6 +204,7 @@ public class ConfigImpl implements Config {
       }
 
       properties = deserializedProperties;
+      configPropertiesEncryptor.decryptSensitiveData(this);
     } catch (JsonSyntaxException e) {
       LOG.error("Malformed configuration JSON stored in the database for {}/{}", entity.getType(),
           entity.getTag());
