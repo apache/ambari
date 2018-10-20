@@ -168,8 +168,10 @@ public class ClusterBlueprintRendererTest {
     expect(blueprint.getHostGroups()).andReturn(hostGroups).anyTimes();
     expect(blueprint.getHostGroup("host_group_1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("host_group_2")).andReturn(group2).anyTimes();
+    expect(blueprint.getServices()).andReturn(ImmutableSet.of("HDFS", "YARN")).anyTimes();
     expect(stack.getName()).andReturn("HDP").anyTimes();
     expect(stack.getVersion()).andReturn("1.3.3").anyTimes();
+    expect(stack.getConfiguration()).andReturn(Configuration.newEmpty()).anyTimes();
     expect(group1.getName()).andReturn("host_group_1").anyTimes();
     expect(group2.getName()).andReturn("host_group_2").anyTimes();
     expect(group1.getComponents()).andReturn(group1Components).anyTimes();

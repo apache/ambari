@@ -46,8 +46,6 @@ import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.TopologyRequest;
 
-import com.google.common.annotations.VisibleForTesting;
-
 /**
  * Request to export a blueprint from an existing cluster.
  */
@@ -62,7 +60,7 @@ public class ExportBlueprintRequest implements TopologyRequest {
   private final Map<String, HostGroupInfo> hostGroupInfo = new HashMap<>();
 
 
-  public ExportBlueprintRequest(TreeNode<Resource> clusterNode, BlueprintExportType exportType, AmbariManagementController controller) throws InvalidTopologyTemplateException {
+  public ExportBlueprintRequest(TreeNode<Resource> clusterNode, AmbariManagementController controller) throws InvalidTopologyTemplateException {
     this.controller = controller;
 
     Resource clusterResource = clusterNode.getObject();
@@ -73,7 +71,7 @@ public class ExportBlueprintRequest implements TopologyRequest {
             ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID)));
 
 
-    configuration = createConfiguration(clusterNode, stack, exportType);
+    configuration = createConfiguration(clusterNode);
 
     Collection<ExportedHostGroup> exportedHostGroups = processHostGroups(clusterNode.getChild("hosts"));
     createHostGroupInfo(exportedHostGroups);
@@ -162,8 +160,7 @@ public class ExportBlueprintRequest implements TopologyRequest {
    *
    * @param clusterNode  cluster node
    */
-  @VisibleForTesting
-  static Configuration createConfiguration(TreeNode<Resource> clusterNode, Stack stack, BlueprintExportType exportType) {
+  private static Configuration createConfiguration(TreeNode<Resource> clusterNode) {
     Map<String, Map<String, String>> properties = new HashMap<>();
     Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
 
@@ -173,17 +170,12 @@ public class ExportBlueprintRequest implements TopologyRequest {
       ExportedConfiguration configuration = new ExportedConfiguration(config);
       DesiredConfig desiredConfig = (DesiredConfig) desiredConfigMap.get(configuration.getType());
       if (desiredConfig != null && desiredConfig.getTag().equals(configuration.getTag())) {
-        Map<String, String> configProperties = configuration.getProperties();
-        properties.put(configuration.getType(), configProperties);
-
-        Map<String, Map<String, String>> configAttributes = configuration.getPropertyAttributes();
-        attributes.put(configuration.getType(), configAttributes);
+        properties.put(configuration.getType(), configuration.getProperties());
+        attributes.put(configuration.getType(), configuration.getPropertyAttributes());
       }
     }
 
-    Configuration stackDefaultConfiguration = stack.getConfiguration();
-    BlueprintConfigurationProcessor.injectDefaults(stackDefaultConfiguration, new HashSet<>(), stack.getServices());
-    Configuration configuration = exportType.filter(new Configuration(properties, attributes), stackDefaultConfiguration);
+    Configuration configuration = new Configuration(properties, attributes);
     configuration.setParentConfiguration(new Configuration(Collections.emptyMap(), Collections.emptyMap()));
 
     return configuration;

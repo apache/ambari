@@ -167,6 +167,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // return false for all components since for this test we don't care about the value
     expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyObject(String.class), anyObject(String.class))).andReturn(emptyMap()).anyTimes();
+    expect(stack.getConfiguration()).andReturn(Configuration.newEmpty()).anyTimes();
 
     expect(serviceInfo.getRequiredProperties()).andReturn(
       emptyMap()).anyTimes();
@@ -10039,6 +10040,66 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertNull(updatedRangerTagsyncSiteConfigurations);
   }
 
+  @Test
+  public void defaultConfigs() {
+    Configuration stackConfig = createTestStack();
+    Configuration clusterConfig = stackConfig.copy();
+    Configuration customConfig = Configuration.newEmpty();
+
+    ClusterTopology topology = createNiceMock(ClusterTopology.class);
+    Stack stack = createNiceMock(Stack.class);
+    Collection<String> services = ImmutableList.of("HDFS");
+    expect(stack.getServices()).andReturn(services).anyTimes();
+    expect(stack.getConfiguration()).andReturn(stackConfig).anyTimes();
+    expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
+    expect(topology.getHostGroupInfo()).andReturn(emptyMap()).anyTimes();
+    replay(stack, topology);
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+    updater.applyTypeSpecificFilter(BlueprintExportType.MINIMAL, clusterConfig, stackConfig, services);
+
+    assertEquals(customConfig.getProperties(), clusterConfig.getProperties());
+  }
+
+  @Test
+  public void customConfigs() {
+    Configuration stackConfig = createTestStack();
+    Configuration clusterConfig = stackConfig.copy();
+    Configuration customConfig = Configuration.newEmpty();
+    customize(clusterConfig, customConfig, "core-site", "hadoop.security.authorization", "true");
+    customize(clusterConfig, customConfig, "core-site", "fs.trash.interval", "0");
+    customize(clusterConfig, customConfig, "hdfs-site", "dfs.webhdfs.enabled",  "false");
+
+    ClusterTopology topology = createNiceMock(ClusterTopology.class);
+    Stack stack = createNiceMock(Stack.class);
+    Collection<String> services = ImmutableList.of("HDFS");
+    expect(stack.getServices()).andReturn(services).anyTimes();
+    expect(stack.getConfiguration()).andReturn(stackConfig).anyTimes();
+    expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
+    expect(topology.getHostGroupInfo()).andReturn(emptyMap()).anyTimes();
+    replay(stack, topology);
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+    updater.applyTypeSpecificFilter(BlueprintExportType.MINIMAL, clusterConfig, stackConfig, services);
+
+    assertEquals(customConfig.getProperties(), clusterConfig.getProperties());
+  }
+
+  private static Configuration createTestStack() {
+    Configuration stackConfig = Configuration.newEmpty();
+    stackConfig.setProperty("core-site", "io.file.buffer.size",  "131072");
+    stackConfig.setProperty("core-site", "hadoop.security.authorization",  "false");
+    stackConfig.setProperty("core-site", "fs.trash.interval",  "360");
+    stackConfig.setProperty("hdfs-site", "dfs.namenode.name.dir",  "/hadoop/hdfs/namenode");
+    stackConfig.setProperty("hdfs-site", "dfs.datanode.data.dir",  "/hadoop/hdfs/data");
+    stackConfig.setProperty("hdfs-site", "dfs.webhdfs.enabled",  "true");
+    return stackConfig;
+  }
+
+  private static void customize(Configuration clusterConfig, Configuration customConfig, String configType, String propertyName, String value) {
+    clusterConfig.setProperty(configType, propertyName, value);
+    customConfig.setProperty(configType, propertyName, value);
+  }
 
   private static String createExportedAddress(String expectedPortNum, String expectedHostGroupName) {
     return createExportedHostName(expectedHostGroupName, expectedPortNum);

@@ -63,6 +63,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.base.Strings;
@@ -864,11 +865,19 @@ public class BlueprintConfigurationProcessor {
       doFilterPriorToExport(configuration);
     }
 
+    Blueprint blueprint = clusterTopology.getBlueprint();
+    applyTypeSpecificFilter(exportType, clusterConfig, blueprint.getStack().getConfiguration(), blueprint.getServices());
+  }
+
+  @VisibleForTesting
+  void applyTypeSpecificFilter(BlueprintExportType exportType, Configuration clusterConfig, Configuration stackConfig, Collection<String> services) {
     if (exportType == BlueprintExportType.MINIMAL) {
       // convert back to suffix-less form, to allow comparing to defaults
       doNonTopologyUpdate(mPropertyUpdaters, clusterConfig);
     }
-    exportType.filter(clusterConfig, clusterTopology.getBlueprint().getStack().getConfiguration());
+
+    injectDefaults(stackConfig, new HashSet<>(), services);
+    exportType.filter(clusterConfig, stackConfig);
   }
 
   /**
@@ -3456,7 +3465,7 @@ public class BlueprintConfigurationProcessor {
   /**
    * Ensures that properties non-stack properties are present in {@code configuration}.
    */
-  static void injectDefaults(Configuration configuration, Set<String> configTypesUpdated, Collection<String> services) {
+  private static void injectDefaults(Configuration configuration, Set<String> configTypesUpdated, Collection<String> services) {
     setRetryConfiguration(configuration, configTypesUpdated);
     setupHDFSProxyUsers(configuration, configTypesUpdated, services);
   }
