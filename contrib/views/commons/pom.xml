@@ -53,6 +53,11 @@
           <groupId>tomcat</groupId>
           <artifactId>jasper-runtime</artifactId>
         </exclusion>
+        <!--removed for security bugs in version : 9.3.19.v20170502-->
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-util</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -70,6 +75,11 @@
         <exclusion>
           <groupId>tomcat</groupId>
           <artifactId>jasper-runtime</artifactId>
+        </exclusion>
+        <!--removed for security bugs in version : 9.3.19.v20170502-->
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-util</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
