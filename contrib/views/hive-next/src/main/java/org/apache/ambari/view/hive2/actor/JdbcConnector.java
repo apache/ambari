@@ -323,7 +323,7 @@ public class JdbcConnector extends HiveActor {
     int index = statementsCount - statementQueue.size();
     String statement = statementQueue.poll();
     if (statementExecutor == null) {
-      statementExecutor = getStatementExecutor();
+      statementExecutor = createStatementExecutor();
     }
 
     if (isAsync()) {
@@ -378,11 +378,13 @@ public class JdbcConnector extends HiveActor {
     executing = true;
     executionType = message.getType();
     commandSender = getSender();
-    statementExecutor = getStatementExecutor();
+    if(null == statementExecutor) {
+      statementExecutor = createStatementExecutor();
+    }
     statementExecutor.tell(message, self());
   }
 
-  private ActorRef getStatementExecutor() {
+  private ActorRef createStatementExecutor() {
     return getContext().actorOf(Props.create(StatementExecutor.class, hdfsApi, storage, connectable.getConnection().get(), connectionDelegate)
       .withDispatcher("akka.actor.result-dispatcher"),
       "StatementExecutor:" + UUID.randomUUID().toString());
