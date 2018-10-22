@@ -39,7 +39,6 @@ with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_
   from ambari_agent import main
   from ambari_agent.AmbariConfig import AmbariConfig
   from ambari_agent.PingPortListener import PingPortListener
-  from ambari_agent.Controller import Controller
   from ambari_agent.DataCleaner import DataCleaner
   import ambari_agent.HeartbeatHandlers as HeartbeatHandlers
   from ambari_commons.os_check import OSConst, OSCheck
@@ -336,9 +335,6 @@ class TestMain:#(unittest.TestCase):
   @patch.object(main, "daemonize")
   @patch.object(main, "update_log_level")
   @patch.object(NetUtil.NetUtil, "try_to_connect")
-  @patch.object(Controller, "__init__")
-  @patch.object(Controller, "is_alive")
-  @patch.object(Controller, "start")
   @patch("optparse.OptionParser.parse_args")
   @patch.object(DataCleaner,"start")
   @patch.object(DataCleaner,"__init__")
@@ -346,17 +342,14 @@ class TestMain:#(unittest.TestCase):
   @patch.object(PingPortListener,"__init__")
   @patch.object(ExitHelper,"execute_cleanup")
   @patch.object(ExitHelper, "exit")
-  @patch.object(Controller, "get_status_commands_executor")
-  def test_main(self, get_status_commands_executor_mock, exithelper_exit_mock, cleanup_mock, ping_port_init_mock,
+  def test_main(self, exithelper_exit_mock, cleanup_mock, ping_port_init_mock,
                 ping_port_start_mock, data_clean_init_mock,data_clean_start_mock,
-                parse_args_mock, start_mock, Controller_is_alive_mock, Controller_init_mock, try_to_connect_mock,
+                parse_args_mock, try_to_connect_mock,
                 update_log_level_mock, daemonize_mock, perform_prestart_checks_mock,
                 ambari_config_mock,
                 stop_mock, bind_signal_handlers_mock,
                 setup_logging_mock, socket_mock):
     data_clean_init_mock.return_value = None
-    Controller_init_mock.return_value = None
-    Controller_is_alive_mock.return_value = False
     ping_port_init_mock.return_value = None
     options = MagicMock()
     parse_args_mock.return_value = (options, MagicMock)
