@@ -18,6 +18,7 @@
 package org.apache.ambari.server.checks;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
@@ -80,9 +82,10 @@ public class UpgradeCheckRegistry {
     new PreUpgradeCheckComparator());
 
   /**
-   * The upgrade checks discovered on a per-stack, per-upgrade pack basis.
+   * Represents the upgrade checks (both those which were able to be loaded and
+   * which failed to be loaded) which were discovered in the upgrade pack.
    */
-  private final Map<UpgradePack, Set<UpgradeCheck>> m_pluginChecks = new HashMap<>();
+  private final Map<UpgradePack, PluginUpgradeChecks> m_pluginChecks = new HashMap<>();
 
   /**
    * Register an upgrade check.
@@ -130,11 +133,13 @@ public class UpgradeCheckRegistry {
 
     // for any checks defined in the upgrade pack, add them since they have been
     // explicitely defined
-    Set<UpgradeCheck> pluginChecks = m_pluginChecks.get(upgradePack);
+    PluginUpgradeChecks pluginChecks = m_pluginChecks.get(upgradePack);
 
     // see if the upgrade checks have been processes for this pack yet
     if (null == pluginChecks) {
-      pluginChecks = new TreeSet<>(new PreUpgradeCheckComparator());
+      pluginChecks = new PluginUpgradeChecks(new TreeSet<>(new PreUpgradeCheckComparator()),
+          new TreeSet<>());
+
       m_pluginChecks.put(upgradePack, pluginChecks);
 
       List<String> pluginCheckClassNames = upgradePack.getPrerequisiteChecks();
@@ -145,9 +150,23 @@ public class UpgradeCheckRegistry {
 
     final Set<UpgradeCheck> combinedUpgradeChecks = new TreeSet<>(new PreUpgradeCheckComparator());
     combinedUpgradeChecks.addAll(builtInRequiredChecks);
-    combinedUpgradeChecks.addAll(pluginChecks);
+    combinedUpgradeChecks.addAll(pluginChecks.m_loadedChecks);
 
     return new LinkedList<>(combinedUpgradeChecks);
+  }
+
+  /**
+   * Gets all of the upgrade check classes defined in upgrade packs which were
+   * not able to be loaded and instantiated.
+   *
+   * @return all of the failed upgrade check classes.
+   */
+  public Set<String> getFailedPluginClassNames() {
+    Collection<PluginUpgradeChecks> pluginUpgradeChecks = m_pluginChecks.values();
+
+    return pluginUpgradeChecks.stream()
+        .flatMap(plugins -> plugins.m_failedChecks.stream())
+        .collect(Collectors.toSet());
   }
 
   /**
@@ -161,7 +180,7 @@ public class UpgradeCheckRegistry {
    */
   @SuppressWarnings("unchecked")
   private void loadPluginUpgradeChecksFromStack(UpgradePack upgradePack,
-      Set<UpgradeCheck> pluginChecks) throws AmbariException {
+      PluginUpgradeChecks pluginChecks) throws AmbariException {
     List<String> pluginCheckClassNames = upgradePack.getPrerequisiteChecks();
     StackId ownerStackId = upgradePack.getOwnerStackId();
     StackInfo stackInfo = metainfoProvider.get().getStack(ownerStackId);
@@ -174,11 +193,14 @@ public class UpgradeCheckRegistry {
               pluginCheckClassName);
 
           UpgradeCheck upgradeCheck = m_injector.getInstance(upgradeCheckClass);
-          pluginChecks.add(upgradeCheck);
+          pluginChecks.m_loadedChecks.add(upgradeCheck);
 
           LOG.info("Registered pre-upgrade check {} for stack {}", upgradeCheckClass, ownerStackId);
         } catch (Exception exception) {
           LOG.error("Unable to load the upgrade check {}", pluginCheckClassName, exception);
+
+          // keep track of the failed check
+          pluginChecks.m_failedChecks.add(pluginCheckClassName);
         }
       }
     } else {
@@ -256,5 +278,37 @@ public class UpgradeCheckRegistry {
 
       return clazz1.getName().compareTo(clazz2.getName());
     }
+  }
+
+  /**
+   * Encapsulates information about which plugins could and could not be loaded
+   * from a stack.
+   */
+  public static final class PluginUpgradeChecks {
+    /**
+     * The upgrade checks discovered on a per-stack, per-upgrade pack basis.
+     */
+    private final Set<UpgradeCheck> m_loadedChecks;
+
+    /**
+     * The upgrade checks discovered on a per-stack, per-upgrade pack basis
+     * which could not be loaded from the stack's 3rd party library
+     * {@link ClassLoader}.
+     */
+    private final Set<String> m_failedChecks;
+
+    /**
+     * Constructor.
+     *
+     * @param loadedChecks
+     *          the checks which have been successfully loaded from the stack.
+     * @param failedChecks
+     *          the checks which failed to load from the stack and cannot run.
+     */
+    private PluginUpgradeChecks(Set<UpgradeCheck> loadedChecks, Set<String> failedChecks) {
+      m_loadedChecks = loadedChecks;
+      m_failedChecks = failedChecks;
+    }
+
   }
 }

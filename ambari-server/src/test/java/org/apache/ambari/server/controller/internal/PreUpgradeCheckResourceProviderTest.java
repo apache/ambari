@@ -227,7 +227,7 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
     // types. The value being asserted here is a combination of built-in checks
     // which are required for the upgrade type as well as any provided checks
     // discovered in the stack
-    Assert.assertEquals(19, resources.size());
+    Assert.assertEquals(20, resources.size());
 
     // find the service check provided by the library classloader and verify it ran
     Resource customUpgradeCheck = null;
