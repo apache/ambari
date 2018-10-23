@@ -51,7 +51,8 @@ public class PluginChecksLoadedCheck extends ClusterCheck {
       "PLUGIN_CHECK_LOAD_FAILURE", UpgradeCheckType.CLUSTER, "Plugin Upgrade Checks",
       new ImmutableMap.Builder<String, String>().put(UpgradeCheckDescription.DEFAULT,
           "The following upgrade checks could not be loaded and were not run. "
-              + "Although this will not stop your upgrade, it is advised that these checks be corrected to ensure a successful upgrade.").build());
+              + "Although this will not prevent your ability to upgrade, it is advised that you "
+              + "correct these checks before proceeding.").build());
 
   @Inject
   Provider<UpgradeCheckRegistry> m_upgradeCheckRegistryProvider;
@@ -84,7 +85,7 @@ public class PluginChecksLoadedCheck extends ClusterCheck {
         .collect(Collectors.toSet());
 
     // check for failure
-    if( failedPluginClasses.size() > 0 ) {
+    if (failedPluginClasses.size() > 0) {
       result.setStatus(UpgradeCheckStatus.WARNING);
       result.getFailedDetail().addAll(failedPluginSimpleClasses);
       result.setFailReason(getFailReason(result, request));
