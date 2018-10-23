@@ -33,9 +33,23 @@ module.exports = [
   },
   {
     "category": "RANGER_ADMIN",
-    "filename": "admin-properties.xml",
+    "filename": "ranger-env.xml",
     "index": 2,
-    "name": "SQL_CONNECTOR_JAR",
+    "name": "rangerusersync_user_password",
+    "serviceName": "RANGER"
+  },
+  {
+    "category": "RANGER_ADMIN",
+    "filename": "ranger-env.xml",
+    "index": 3,
+    "name": "rangertagsync_user_password",
+    "serviceName": "RANGER"
+  },
+  {
+    "category": "RANGER_ADMIN",
+    "filename": "ranger-env.xml",
+    "index": 4,
+    "name": "keyadmin_user_password",
     "serviceName": "RANGER"
   },
   {
