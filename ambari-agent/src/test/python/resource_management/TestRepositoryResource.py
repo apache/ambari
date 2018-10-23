@@ -64,6 +64,8 @@ class TestRepositoryResource(TestCase):
     @patch.object(OSCheck, "is_ubuntu_family")
     @patch.object(OSCheck, "is_redhat_family")
     @patch("resource_management.libraries.providers.repository.File")
+    @patch("filecmp.cmp", new=MagicMock(return_value=False))
+    @patch("os.path.isfile", new=MagicMock(return_value=True))
     @patch.object(System, "os_family", new='redhat')
     def test_create_repo_redhat(self, file_mock,
                                 is_redhat_family, is_ubuntu_family, is_suse_family):
@@ -77,6 +79,8 @@ class TestRepositoryResource(TestCase):
                        mirror_list='https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
                        repo_file_name='Repository',
                        repo_template=RHEL_SUSE_DEFAULT_TEMPLATE)
+                       
+            Repository(None, action="create")
 
             self.assertTrue('hadoop' in env.resources['Repository'])
             defined_arguments = env.resources['Repository']['hadoop'].arguments
@@ -91,20 +95,16 @@ class TestRepositoryResource(TestCase):
             self.assertEqual(defined_arguments, expected_arguments)
             self.assertEqual(file_mock.call_args[0][0], '/etc/yum.repos.d/Repository.repo')
 
-            template_item = file_mock.call_args[1]['content']
-            template = str(template_item.name)
-            expected_template_arguments.update({'repo_id': 'hadoop'})
-
-            self.assertEqual(expected_template_arguments, template_item.context._dict)
-            self.assertEqual(RHEL_SUSE_DEFAULT_TEMPLATE, template)
-
 
     @patch.object(OSCheck, "is_suse_family")
     @patch.object(OSCheck, "is_ubuntu_family")
     @patch.object(OSCheck, "is_redhat_family")
     @patch.object(System, "os_family", new='suse')
+    @patch("resource_management.libraries.providers.repository.checked_call")
+    @patch("os.path.isfile", new=MagicMock(return_value=True))
+    @patch("filecmp.cmp", new=MagicMock(return_value=False))
     @patch("resource_management.libraries.providers.repository.File")
-    def test_create_repo_suse(self, file_mock,
+    def test_create_repo_suse(self, file_mock, checked_call,
                               is_redhat_family, is_ubuntu_family, is_suse_family):
         is_redhat_family.return_value = False
         is_ubuntu_family.return_value = False
@@ -116,6 +116,8 @@ class TestRepositoryResource(TestCase):
                        mirror_list='https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
                        repo_template = RHEL_SUSE_DEFAULT_TEMPLATE,
                        repo_file_name='Repository')
+                       
+            Repository(None, action="create")
 
             self.assertTrue('hadoop' in env.resources['Repository'])
             defined_arguments = env.resources['Repository']['hadoop'].arguments
@@ -130,13 +132,6 @@ class TestRepositoryResource(TestCase):
             self.assertEqual(defined_arguments, expected_arguments)
             self.assertEqual(file_mock.call_args[0][0], '/etc/zypp/repos.d/Repository.repo')
 
-            template_item = file_mock.call_args[1]['content']
-            template = str(template_item.name)
-            expected_template_arguments.update({'repo_id': 'hadoop'})
-
-            self.assertEqual(expected_template_arguments, template_item.context._dict)
-            self.assertEqual(RHEL_SUSE_DEFAULT_TEMPLATE, template)
-
 
     @patch.object(OSCheck, "is_suse_family")
     @patch.object(OSCheck, "is_ubuntu_family")
@@ -146,8 +141,10 @@ class TestRepositoryResource(TestCase):
     @patch("resource_management.libraries.providers.repository.checked_call")
     @patch("resource_management.core.sudo.read_file")
     @patch("os.path.isfile", new=MagicMock(return_value=True))
-    def test_recreate_repo_suse(self, read_file_mock, checked_call_mock, file_mock,
+    @patch("filecmp.cmp")
+    def test_recreate_repo_suse(self, filecmp_mock, read_file_mock, checked_call_mock, file_mock,
                               is_redhat_family, is_ubuntu_family, is_suse_family):
+        filecmp_mock.return_value = False
         is_redhat_family.return_value = False
         is_ubuntu_family.return_value = False
         is_suse_family.return_value = True
@@ -161,27 +158,30 @@ class TestRepositoryResource(TestCase):
                        mirror_list='https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
                        repo_template = RHEL_SUSE_DEFAULT_TEMPLATE,
                        repo_file_name='Repository')
-
+            
+            Repository(None, action="create")
+            
             self.assertTrue(checked_call_mock.called)
 
             expected_repo_file_content = "[hadoop]\nname=hadoop\nmirrorlist=https://mirrors.base_url.org/?repo=Repository&arch=$basearch\n\npath=/\nenabled=1\ngpgcheck=0"
-            template = file_mock.call_args[1]['content']
+            template = file_mock.call_args_list[0][1]['content']
             self.assertEqual(expected_repo_file_content, template)
 
             # Check that if content is equal, zypper cache is not flushed
             checked_call_mock.reset_mock()
-            read_file_mock.return_value = expected_repo_file_content
+            filecmp_mock.return_value = True
 
             Repository('hadoop',
                        base_url='http://download.base_url.org/rpm/',
                        mirror_list='https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
                        repo_template = RHEL_SUSE_DEFAULT_TEMPLATE,
                        repo_file_name='Repository')
+            Repository(None, action="create")
 
             self.assertFalse(checked_call_mock.called)
 
             expected_repo_file_content = "[hadoop]\nname=hadoop\nmirrorlist=https://mirrors.base_url.org/?repo=Repository&arch=$basearch\n\npath=/\nenabled=1\ngpgcheck=0"
-            template = file_mock.call_args[1]['content']
+            template = file_mock.call_args_list[0][1]['content']
             self.assertEqual(expected_repo_file_content, template)
 
 
@@ -213,6 +213,7 @@ class TestRepositoryResource(TestCase):
                      repo_template = DEBIAN_DEFAUTL_TEMPLATE,
                      components = ['a','b','c']
           )
+          Repository(None, action="create")
 
       call_content = file_mock.call_args_list[0]
       template_name = call_content[0][0]
@@ -256,6 +257,7 @@ class TestRepositoryResource(TestCase):
                      repo_template = DEBIAN_DEFAUTL_TEMPLATE,
                      components = ['a','b','c']
           )
+          Repository(None, action="create")
 
       call_content = file_mock.call_args_list[0]
       template_name = call_content[0][0]
@@ -292,6 +294,7 @@ class TestRepositoryResource(TestCase):
                      repo_template = DEBIAN_DEFAUTL_TEMPLATE,
                      components = ['a','b','c']
           )
+          Repository(None, action="create")
 
       call_content = file_mock.call_args_list[0]
       template_name = call_content[0][0]
@@ -347,7 +350,7 @@ class TestRepositoryResource(TestCase):
                        action='remove',
                        base_url='http://download.base_url.org/rpm/',
                        mirror_list='https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
-                       repo_file_name='Repository')
+                       repo_file_name='Repository')        
 
             self.assertTrue('hadoop' in env.resources['Repository'])
             defined_arguments = env.resources['Repository']['hadoop'].arguments
