@@ -476,6 +476,7 @@ Em.I18n.translations = {
   'popup.clusterCheck.Upgrade.configsMerge.alert': 'During upgrade, the following configuration changes will be applied.',
   'popup.clusterCheck.Upgrade.configsMerge.configType': 'Config Type',
   'popup.clusterCheck.Upgrade.configsMerge.propertyName': 'Property Name',
+  'popup.clusterCheck.Upgrade.configsMerge.serviceName': 'Service Name',
   'popup.clusterCheck.Upgrade.configsMerge.currentValue': 'Current Value',
   'popup.clusterCheck.Upgrade.configsMerge.recommendedValue': 'Recommended Value',
   'popup.clusterCheck.Upgrade.configsMerge.resultingValue': 'Resulting Value',
