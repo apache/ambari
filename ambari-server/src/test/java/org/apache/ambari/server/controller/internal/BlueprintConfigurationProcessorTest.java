@@ -167,6 +167,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // return false for all components since for this test we don't care about the value
     expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyObject(String.class), anyObject(String.class))).andReturn(emptyMap()).anyTimes();
+    expect(stack.getConfiguration()).andReturn(Configuration.newEmpty()).anyTimes();
 
     expect(serviceInfo.getRequiredProperties()).andReturn(
       emptyMap()).anyTimes();
@@ -314,7 +315,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     String updatedVal = properties.get("yarn-site").get("yarn.resourcemanager.hostname");
     assertEquals("%HOSTGROUP::group1%", updatedVal);
@@ -362,7 +363,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals(properties.size(), 3);
     assertEquals(((Map) properties.get("kerberos-env")).size(), 0);
@@ -398,7 +399,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     // Then
     assertEquals("policymgr_external_url property's original value should be exported when Ranger Admin is deployed to multiple hosts.", "test_policymgr_external_url", properties.get("admin-properties").get("policymgr_external_url"));
@@ -440,7 +441,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals("%HOSTGROUP::group1%", clusterConfig.getPropertyValue("yarn-site", "yarn.resourcemanager.hostname"));
     assertEquals("%HOSTGROUP::group1%", clusterConfig.getPropertyValue("yarn-site", "yarn.resourcemanager.resource-tracker.address"));
@@ -488,7 +489,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals("%HOSTGROUP::group1%", properties.get("yarn-site").get("yarn.resourcemanager.hostname"));
     assertEquals("%HOSTGROUP::group1%",
@@ -523,7 +524,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     String updatedVal = properties.get("core-site").get("fs.defaultFS");
     assertEquals("%HOSTGROUP::group1%:8020", updatedVal);
@@ -556,7 +557,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertFalse(properties.get("yarn-site").containsKey("yarn.resourcemanager.hostname"));
   }
@@ -602,7 +603,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     String updatedVal = properties.get("hbase-site").get("hbase.zookeeper.quorum");
     assertEquals("%HOSTGROUP::group1%,%HOSTGROUP::group2%", updatedVal);
@@ -649,7 +650,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     String updatedVal = properties.get("webhcat-site").get("templeton.zookeeper.hosts");
     assertEquals("%HOSTGROUP::group1%:5050,%HOSTGROUP::group2%:9090", updatedVal);
@@ -680,7 +681,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     String updatedVal = properties.get("application-properties").get("atlas.server.bind.address");
     assertEquals("http://%HOSTGROUP::group1%:21000,http://%HOSTGROUP::group2%:21000", updatedVal);
@@ -735,7 +736,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     String updatedVal = properties.get("storm-site").get("storm.zookeeper.servers");
     assertEquals("['%HOSTGROUP::group1%:5050','%HOSTGROUP::group2%:9090']", updatedVal);
@@ -778,7 +779,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     String updatedVal = properties.get("hive-site").get("javax.jdo.option.ConnectionURL");
     assertEquals("jdbc:mysql://%HOSTGROUP::group1%/hive?createDatabaseIfNotExist=true", updatedVal);
@@ -811,7 +812,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertFalse(properties.get("hive-site").containsKey("javax.jdo.option.ConnectionURL"));
   }
@@ -863,7 +864,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
 
     assertEquals("Exported properties map was not of the expected size", 2,
@@ -946,7 +947,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals("Falcon Broker URL property not properly exported",
       createExportedAddress(expectedPortNum, expectedHostGroupName), falconStartupProperties.get("*.broker.url"));
@@ -983,7 +984,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertFalse("tez.tez-ui.history-url.base should not be present in exported blueprint in tez-site",
       tezSiteProperties.containsKey("tez.tez-ui.history-url.base"));
@@ -1034,7 +1035,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     // verify that these properties are filtered out of the exported configuration
     assertFalse("admin_server_host should not be present in exported blueprint in kerberos-env",
@@ -1098,7 +1099,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals("HTTPS address HA property not properly exported",
       createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne));
@@ -1171,7 +1172,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals("HTTPS address HA property not properly exported",
       createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne));
@@ -1235,7 +1236,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     // verify that any properties that include nameservices are not removed from the exported blueprint's configuration
     assertEquals("Property containing an HA nameservice (fs.defaultFS), was not correctly exported by the processor",
@@ -1271,7 +1272,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals("Incorrect state for hdfs-site config after HA call in non-HA environment, should be zero",
       0, hdfsSiteProperties.size());
@@ -1334,7 +1335,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     // verify results for name service one
     assertEquals("HTTPS address HA property not properly exported",
@@ -1413,7 +1414,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals("Yarn Log Server URL was incorrectly exported",
       "http://" + "%HOSTGROUP::" + expectedHostGroupName + "%" + ":19888/jobhistory/logs", yarnSiteProperties.get("yarn.log.server.url"));
@@ -1485,7 +1486,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals("Yarn Log Server URL was incorrectly exported",
       "http://" + "%HOSTGROUP::" + expectedHostGroupName + "%" + ":19888/jobhistory/logs", yarnSiteProperties.get("yarn.log.server.url"));
@@ -1565,7 +1566,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals("hdfs config property not exported properly",
       createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.http.address"));
@@ -1654,7 +1655,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals("hive property not properly exported",
       "thrift://" + createExportedAddress(expectedPortNum, expectedHostGroupName), hiveSiteProperties.get("hive.metastore.uris"));
@@ -1747,7 +1748,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     System.out.println("RWN: exported value of hive.metastore.uris = " + hiveSiteProperties.get("hive.metastore.uris"));
 
@@ -1843,7 +1844,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     // check that jdbc url and related properties are removed if oozie external db is on host which not included to cluster
     assertFalse(BlueprintConfigurationProcessor.singleHostTopologyUpdaters.get("oozie-site").containsKey("oozie.service.JPAService.jdbc.url"));
@@ -2008,7 +2009,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals("zookeeper config not properly exported",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
@@ -2085,7 +2086,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals("Knox for core-site config not properly exported",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
@@ -2134,7 +2135,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals("kafka Ganglia config not properly exported",
       createExportedHostName(expectedHostGroupName, expectedPortNumberOne),
@@ -2173,7 +2174,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals("Property was incorrectly exported",
       "%HOSTGROUP::" + expectedHostGroupName + "%", properties.get("storm.zookeeper.servers"));
@@ -3460,7 +3461,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
-    updater.doUpdateForBlueprintExport();
+    updater.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     final String expectedPropertyValue = createExportedAddress("2181", expectedHostGroupName) + "," + createExportedAddress("2181", expectedHostGroupNameTwo);
     assertEquals("hive.llap.zk.sm.connectionString property not updated correctly", expectedPropertyValue, hiveInteractiveSiteProperties.get(llapZkProperty));
@@ -3580,7 +3581,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
-    updater.doUpdateForBlueprintExport();
+    updater.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertEquals("oozie property not updated correctly",
       createExportedHostName(expectedHostGroupName, expectedPortNum), oozieSiteProperties.get("oozie.base.url"));
@@ -3731,7 +3732,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
-    updater.doUpdateForBlueprintExport();
+    updater.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     // verify that the properties with hostname information was correctly preserved
     assertEquals("Yarn Log Server URL was incorrectly updated",
@@ -8135,7 +8136,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     // Then
     String expectedAuditHdfsDir = "hdfs://%HOSTGROUP::group2%:100";
@@ -8207,7 +8208,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     // Then
     String expectedAuditHdfsDir = "hdfs://my_name_service:100";
@@ -9044,7 +9045,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("hive-site", typeProps);
 
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     String updatedVal = properties.get("hive-site").get("atlas.cluster.name");
     assertEquals("primary", updatedVal);
@@ -9083,7 +9084,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("storm-site", stormSiteProps);
 
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     String hiveExecPostHooks = properties.get("hive-site").get("hive.exec.post.hooks");
     String kafkaMetricsReporters = properties.get("kafka-broker").get("kafka.metrics.reporters");
@@ -9249,7 +9250,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.isPasswordProperty((String) anyObject(), (String) anyObject(), (String) anyObject())).andReturn(true).once();
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-    configProcessor.doUpdateForBlueprintExport();
+    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     assertFalse(properties.get("ranger-admin-site").containsKey("ranger.service.https.attrib.keystore.pass"));
   }
@@ -10039,6 +10040,66 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertNull(updatedRangerTagsyncSiteConfigurations);
   }
 
+  @Test
+  public void defaultConfigs() {
+    Configuration stackConfig = createTestStack();
+    Configuration clusterConfig = stackConfig.copy();
+    Configuration customConfig = Configuration.newEmpty();
+
+    ClusterTopology topology = createNiceMock(ClusterTopology.class);
+    Stack stack = createNiceMock(Stack.class);
+    Collection<String> services = ImmutableList.of("HDFS");
+    expect(stack.getServices()).andReturn(services).anyTimes();
+    expect(stack.getConfiguration()).andReturn(stackConfig).anyTimes();
+    expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
+    expect(topology.getHostGroupInfo()).andReturn(emptyMap()).anyTimes();
+    replay(stack, topology);
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+    updater.applyTypeSpecificFilter(BlueprintExportType.MINIMAL, clusterConfig, stackConfig, services);
+
+    assertEquals(customConfig.getProperties(), clusterConfig.getProperties());
+  }
+
+  @Test
+  public void customConfigs() {
+    Configuration stackConfig = createTestStack();
+    Configuration clusterConfig = stackConfig.copy();
+    Configuration customConfig = Configuration.newEmpty();
+    customize(clusterConfig, customConfig, "core-site", "hadoop.security.authorization", "true");
+    customize(clusterConfig, customConfig, "core-site", "fs.trash.interval", "0");
+    customize(clusterConfig, customConfig, "hdfs-site", "dfs.webhdfs.enabled",  "false");
+
+    ClusterTopology topology = createNiceMock(ClusterTopology.class);
+    Stack stack = createNiceMock(Stack.class);
+    Collection<String> services = ImmutableList.of("HDFS");
+    expect(stack.getServices()).andReturn(services).anyTimes();
+    expect(stack.getConfiguration()).andReturn(stackConfig).anyTimes();
+    expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
+    expect(topology.getHostGroupInfo()).andReturn(emptyMap()).anyTimes();
+    replay(stack, topology);
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+    updater.applyTypeSpecificFilter(BlueprintExportType.MINIMAL, clusterConfig, stackConfig, services);
+
+    assertEquals(customConfig.getProperties(), clusterConfig.getProperties());
+  }
+
+  private static Configuration createTestStack() {
+    Configuration stackConfig = Configuration.newEmpty();
+    stackConfig.setProperty("core-site", "io.file.buffer.size",  "131072");
+    stackConfig.setProperty("core-site", "hadoop.security.authorization",  "false");
+    stackConfig.setProperty("core-site", "fs.trash.interval",  "360");
+    stackConfig.setProperty("hdfs-site", "dfs.namenode.name.dir",  "/hadoop/hdfs/namenode");
+    stackConfig.setProperty("hdfs-site", "dfs.datanode.data.dir",  "/hadoop/hdfs/data");
+    stackConfig.setProperty("hdfs-site", "dfs.webhdfs.enabled",  "true");
+    return stackConfig;
+  }
+
+  private static void customize(Configuration clusterConfig, Configuration customConfig, String configType, String propertyName, String value) {
+    clusterConfig.setProperty(configType, propertyName, value);
+    customConfig.setProperty(configType, propertyName, value);
+  }
 
   private static String createExportedAddress(String expectedPortNum, String expectedHostGroupName) {
     return createExportedHostName(expectedHostGroupName, expectedPortNum);

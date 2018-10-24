@@ -59,6 +59,7 @@ import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
+import org.apache.ambari.server.controller.internal.BlueprintExportType;
 import org.apache.ambari.server.controller.internal.ClusterControllerImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.Stack;
@@ -124,6 +125,9 @@ public class ClusterBlueprintRendererTest {
     new HashMap<>();
 
   private static final Configuration clusterConfig = new Configuration(clusterProps, clusterAttributes);
+  private final ClusterBlueprintRenderer minimalRenderer = new ClusterBlueprintRenderer(BlueprintExportType.MINIMAL);
+  private final ClusterBlueprintRenderer fullRenderer = new ClusterBlueprintRenderer(BlueprintExportType.FULL);
+
   @Before
   public void setup() throws Exception {
 
@@ -164,8 +168,10 @@ public class ClusterBlueprintRendererTest {
     expect(blueprint.getHostGroups()).andReturn(hostGroups).anyTimes();
     expect(blueprint.getHostGroup("host_group_1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("host_group_2")).andReturn(group2).anyTimes();
+    expect(blueprint.getServices()).andReturn(ImmutableSet.of("HDFS", "YARN")).anyTimes();
     expect(stack.getName()).andReturn("HDP").anyTimes();
     expect(stack.getVersion()).andReturn("1.3.3").anyTimes();
+    expect(stack.getConfiguration()).andReturn(Configuration.newEmpty()).anyTimes();
     expect(group1.getName()).andReturn("host_group_1").anyTimes();
     expect(group2.getName()).andReturn("host_group_2").anyTimes();
     expect(group1.getComponents()).andReturn(group1Components).anyTimes();
@@ -256,8 +262,7 @@ public class ClusterBlueprintRendererTest {
     QueryInfo hostComponentInfo = new QueryInfo(new HostComponentResourceDefinition(), new HashSet<>());
     queryTree.getChild("Host").addChild(hostComponentInfo, "HostComponent");
 
-    ClusterBlueprintRenderer renderer = new ClusterBlueprintRenderer();
-    TreeNode<Set<String>> propertyTree = renderer.finalizeProperties(queryTree, false);
+    TreeNode<Set<String>> propertyTree = fullRenderer.finalizeProperties(queryTree, false);
 
     Set<String> rootProperties = propertyTree.getObject();
     assertEquals(2, rootProperties.size());
@@ -276,12 +281,13 @@ public class ClusterBlueprintRendererTest {
       defaultCredentialStoreSettings(),
       defaultRecoverySettings());
 
-    Collection<Map<String, Object>> settings = ClusterBlueprintRenderer.getSettings(clusterNode, stack);
-
+    Collection<Map<String, Object>> settings = fullRenderer.getSettings(clusterNode, stack);
     assertEquals(Lists.newArrayList(
       ImmutableMap.of(ClusterBlueprintRenderer.SERVICE_SETTINGS, ImmutableSet.of()),
       ImmutableMap.of(ClusterBlueprintRenderer.COMPONENT_SETTINGS, ImmutableSet.of())
     ), settings);
+
+    assertEquals(ImmutableList.of(), minimalRenderer.getSettings(clusterNode, stack));
   }
 
   @Test
@@ -292,8 +298,7 @@ public class ClusterBlueprintRendererTest {
       customCredentialStoreSettingFor(stack, "service1", "service2"),
       customRecoverySettingsFor(stack, "component1", "component2"));
 
-    Collection<Map<String, Object>> settings = ClusterBlueprintRenderer.getSettings(clusterNode, stack);
-
+    Collection<Map<String, Object>> settings = fullRenderer.getSettings(clusterNode, stack);
     assertEquals(Lists.newArrayList(
       ImmutableMap.of(ClusterBlueprintRenderer.SERVICE_SETTINGS, ImmutableSet.of(
         ImmutableMap.of(
@@ -310,6 +315,8 @@ public class ClusterBlueprintRendererTest {
         ImmutableMap.of("name", "component2", ClusterBlueprintRenderer.RECOVERY_ENABLED, ClusterBlueprintRenderer.TRUE)
       ))
     ), settings);
+
+    assertEquals(settings, minimalRenderer.getSettings(clusterNode, stack));
   }
 
   @Test
@@ -320,7 +327,7 @@ public class ClusterBlueprintRendererTest {
       defaultCredentialStoreSettings(),
       customRecoverySettingsFor(stack, "component1"));
 
-    Collection<Map<String, Object>> settings = ClusterBlueprintRenderer.getSettings(clusterNode, stack);
+    Collection<Map<String, Object>> settings = fullRenderer.getSettings(clusterNode, stack);
 
     assertEquals(Lists.newArrayList(
       ImmutableMap.of(ClusterBlueprintRenderer.SERVICE_SETTINGS, ImmutableSet.of()),
@@ -328,6 +335,11 @@ public class ClusterBlueprintRendererTest {
         ImmutableMap.of("name", "component1", ClusterBlueprintRenderer.RECOVERY_ENABLED, ClusterBlueprintRenderer.FALSE)
       ))
     ), settings);
+    assertEquals(Lists.newArrayList(
+      ImmutableMap.of(ClusterBlueprintRenderer.COMPONENT_SETTINGS, ImmutableSet.of(
+        ImmutableMap.of("name", "component1", ClusterBlueprintRenderer.RECOVERY_ENABLED, ClusterBlueprintRenderer.FALSE)
+      ))
+    ), minimalRenderer.getSettings(clusterNode, stack));
   }
 
   private static TreeNode<Resource> clusterWith(Stack stack,
@@ -456,8 +468,7 @@ public class ClusterBlueprintRendererTest {
     rootQuery.getProperties().add("foo/bar");
     rootQuery.getProperties().add("prop1");
 
-    ClusterBlueprintRenderer renderer = new ClusterBlueprintRenderer();
-    TreeNode<Set<String>> propertyTree = renderer.finalizeProperties(queryTree, false);
+    TreeNode<Set<String>> propertyTree = fullRenderer.finalizeProperties(queryTree, false);
 
     Set<String> rootProperties = propertyTree.getObject();
     assertEquals(2, rootProperties.size());
@@ -476,7 +487,7 @@ public class ClusterBlueprintRendererTest {
     Result result = new ResultImpl(true);
     createClusterResultTree(result.getResultTree());
 
-    ClusterBlueprintRenderer renderer = new TestBlueprintRenderer(topology);
+    ClusterBlueprintRenderer renderer = new TestBlueprintRenderer(topology, BlueprintExportType.FULL);
     Result blueprintResult = renderer.finalizeResult(result);
 
     TreeNode<Resource> blueprintTree = blueprintResult.getResultTree();
@@ -502,7 +513,7 @@ public class ClusterBlueprintRendererTest {
     Result result = new ResultImpl(true);
     createClusterResultTree(result.getResultTree());
 
-    ClusterBlueprintRenderer renderer = new TestBlueprintRenderer(topology);
+    ClusterBlueprintRenderer renderer = new TestBlueprintRenderer(topology, BlueprintExportType.FULL);
     Result blueprintResult = renderer.finalizeResult(result);
 
     TreeNode<Resource> blueprintTree = blueprintResult.getResultTree();
@@ -575,7 +586,7 @@ public class ClusterBlueprintRendererTest {
 
     createClusterResultTree(result.getResultTree(), testDesiredConfigMap);
 
-    ClusterBlueprintRenderer renderer = new TestBlueprintRenderer(topology);
+    ClusterBlueprintRenderer renderer = new TestBlueprintRenderer(topology, BlueprintExportType.FULL);
     Result blueprintResult = renderer.finalizeResult(result);
 
     TreeNode<Resource> blueprintTree = blueprintResult.getResultTree();
@@ -678,11 +689,8 @@ public class ClusterBlueprintRendererTest {
 
   @Test
   public void testClusterRendererDefaults() {
-    Renderer clusterBlueprintRenderer =
-      new ClusterBlueprintRenderer();
-
     assertFalse("ClusterBlueprintRenderer should not require property provider input",
-      clusterBlueprintRenderer.requiresPropertyProviderInput());
+      fullRenderer.requiresPropertyProviderInput());
   }
 
   //todo: collection resource
@@ -827,7 +835,8 @@ public class ClusterBlueprintRendererTest {
 
     private ClusterTopology topology;
 
-    TestBlueprintRenderer(ClusterTopology topology) {
+    TestBlueprintRenderer(ClusterTopology topology, BlueprintExportType exportType) {
+      super(exportType);
       this.topology = topology;
     }
 

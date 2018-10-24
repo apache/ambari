@@ -10,8 +10,7 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distribut
- * ed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -23,66 +22,40 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.StackLevelConfigurationRequest;
-import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
  * ExportBlueprintRequest unit tests.
  */
-@SuppressWarnings("unchecked")
 public class ExportBlueprintRequestTest {
   private static final String CLUSTER_NAME = "c1";
   private static final String CLUSTER_ID = "2";
 
-  private AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
-
-  @Before
-  public void setupTest() throws Exception {
-    Field f = ExportBlueprintRequest.class.getDeclaredField("controller");
-    f.setAccessible(true);
-    f.set(null, controller);
-
-    expect(controller.getStackServices((Set<StackServiceRequest>)  anyObject())).andReturn(
-        Collections.emptySet()).anyTimes();
-    expect(controller.getStackLevelConfigurations((Set<StackLevelConfigurationRequest>) anyObject())).andReturn(
-        Collections.emptySet()).anyTimes();
-
-    replay(controller);
-  }
-
-  @After
-  public void tearDown() {
-    reset(controller);
-  }
-
-  //todo: test configuration processing
-
   @Test
   public void testExport_noConfigs() throws Exception {
+    AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
+    expect(controller.getStackServices(anyObject())).andReturn(Collections.emptySet()).anyTimes();
+    expect(controller.getStackLevelConfigurations(anyObject())).andReturn(Collections.emptySet()).anyTimes();
+    replay(controller);
+
     Resource clusterResource = new ResourceImpl(Resource.Type.Cluster);
     clusterResource.setProperty(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME);
     clusterResource.setProperty(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID, CLUSTER_ID);
@@ -116,7 +89,7 @@ public class ExportBlueprintRequestTest {
     processHostGroupComponents(host3Node, host3ComponentsList);
 
     // test
-    ExportBlueprintRequest exportBlueprintRequest = new ExportBlueprintRequest(clusterNode);
+    ExportBlueprintRequest exportBlueprintRequest = new ExportBlueprintRequest(clusterNode, controller);
 
     // assertions
     assertEquals(CLUSTER_NAME, exportBlueprintRequest.getClusterName());
@@ -163,4 +136,5 @@ public class ExportBlueprintRequestTest {
       hostComponentsNode.addChild(componentResource, "host_component_" + componentCount++);
     }
   }
+
 }
