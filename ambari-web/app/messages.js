@@ -29,7 +29,7 @@ Em.I18n.translations = {
   'app.redirectIssuePopup.header': 'Login Redirect Issue',
   'app.redirectIssuePopup.body': 'For single sign-on, make sure that Knox Gateway and Ambari Server are located on the same host or subdomain.' +
     '<br/>Alternatively login as an Ambari local user using the local login page.<br />' +
-    '<a href="{0}" target="_blank">{0}</a>',
+    '<a rel="noopener noreferrer" href="{0}" target="_blank">{0}</a>',
 
   'app.loadingPlaceholder': 'Loading...',
   'app.versionMismatchAlert.title': 'Ambari Server / Web Client Version Mismatch',
@@ -370,6 +370,7 @@ Em.I18n.translations = {
   'common.critical.error': 'Critical',
   'common.with': 'with',
   'common.propertyName': 'Property Name',
+  'common.configure.restart': 'Configure Restart',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -475,6 +476,7 @@ Em.I18n.translations = {
   'popup.clusterCheck.Upgrade.configsMerge.alert': 'During upgrade, the following configuration changes will be applied.',
   'popup.clusterCheck.Upgrade.configsMerge.configType': 'Config Type',
   'popup.clusterCheck.Upgrade.configsMerge.propertyName': 'Property Name',
+  'popup.clusterCheck.Upgrade.configsMerge.serviceName': 'Service Name',
   'popup.clusterCheck.Upgrade.configsMerge.currentValue': 'Current Value',
   'popup.clusterCheck.Upgrade.configsMerge.recommendedValue': 'Recommended Value',
   'popup.clusterCheck.Upgrade.configsMerge.resultingValue': 'Resulting Value',
@@ -643,6 +645,9 @@ Em.I18n.translations = {
   'installer.step1.useLocalRepo.uploadFile': 'Upload Version Definition File',
   'installer.step1.useLocalRepo.uploadFile.error.title': 'Upload Version Definition File Error',
   'installer.step1.useLocalRepo.getSurpottedOs.error.title': 'Cannot get supported OS types',
+  'installer.step1.useLocalRepo.getSurpottedOs.stackError.title': 'Stack {0} {1} errors ',
+  'installer.step1.useLocalRepo.getSurpottedOs.noStacksError.title': 'There is no available Stack to install',
+  'installer.step1.useLocalRepo.getSurpottedOs.noStacksError.body': 'All stacks contains errors. Installation can\'t be completed',
   'installer.step1.useLocalRepo.addRepo.button': 'Add Repository',
   'installer.step1.addVersion': 'Add Version',
   'installer.step1.addVersion.stackChanged.popup.body': 'Stack is changed from {0} to {1}.',
@@ -682,6 +687,7 @@ Em.I18n.translations = {
   'installer.step1.invalidURLAttention': '<b>Attention:</b> Please make sure all repository URLs are valid before proceeding.',
   'installer.step1.checkAtLeastOneAttention': '<b>Attention:</b> Please check at least one repository.',
   'installer.step1.retryRepoUrls': 'Click <b>here</b> to retry.',
+  'installer.step1.noVersionDefinitions': 'Unable to load versions data from server.',
 
   'installer.step2.header':'Install Options',
   'installer.step2.body':'Enter the list of hosts to be included in the cluster and provide your SSH key.',
@@ -2349,7 +2355,7 @@ Em.I18n.translations = {
   'services.service.config.configHistory.makeCurrent.message': 'Created from service config version {0}',
   'services.service.config.configHistory.comparing': 'Comparing Changes in',
   'services.service.config.setRecommendedValue': 'Set Recommended',
-  'services.service.config.database.msg.jdbcSetup.detailed': 'To use {0} with {6}, you must <a href="{3}" target="_blank">' +
+  'services.service.config.database.msg.jdbcSetup.detailed': 'To use {0} with {6}, you must <a rel="noopener noreferrer" href="{3}" target="_blank">' +
     'download the {4} from {0}</a>. Once downloaded to the Ambari Server host, run: <br/>' +
     '<b>ambari-server setup --jdbc-db={1} --jdbc-driver=/path/to/{1}/{2}</b>',
 
@@ -3274,6 +3280,25 @@ Em.I18n.translations = {
   'rollingrestart.context.allOnSelectedHost':'Restart all components on {0}',
   'rollingrestart.context.selectedComponentOnSelectedHost':'Restart {0}',
   'rollingrestart.context.default':'Restart components',
+
+  'service.restart.choose.text': 'Please choose which type of restart should be performed.',
+  'service.rolling.restart.choose.info': 'Critical services remain running while the upgrade is performed. </br>Minimized disruption, but is a slower upgrade.',
+  'service.express.restart.choose.info': 'Services are stopped when this upgrade is performed. </br>Incurs downtime, but is a faster upgrade.',
+  'service.restart.show.advanced.info': 'Show advanced configurations options <p style="font-size: 12px; color: #999999; display: inline;">(Restart by batches/hosts, interval between restarts, etc.)</p>',
+  'service.restart.rolling.restart.hosts.by': 'RESTART HOSTS BY',
+  'service.restart.rolling.batchesOfHosts': 'Batches of Hosts',
+  'service.restart.rolling.rackByRack': 'Rack by Rack',
+  'service.restart.rolling.advanced.noOfHosts': 'NUMBER OF HOSTS IN A BATCH',
+  'service.restart.rolling.advanced.batchIntervalHosts': 'INTERVAL BETWEEN BATCHES (SEC)',
+  'service.restart.rolling.advanced.percentRacks': '% OF RACKS STARTED AT A TIME',
+  'service.restart.rolling.advanced.batchIntervalRacks': 'INTERVAL BETWEEN RACKS (SEC)',
+  'service.restart.rolling.advanced.automatic.retry': 'Automatically retry on failed hosts',
+  'service.restart.rolling.advanced.noOfRetries': 'NUMBER OF RETRIES PER HOST',
+  'service.restart.rolling.advanced.max.failures.tolerated': 'MAXIMUM FAILURES TOLERATED<p style="font-size: 11px;">(Restart process is suspended after threshold is reached)</p>',
+  'service.restart.rolling.advanced.max.failures.batch': 'MAXIMUM FAILURES TOLERATED/BATCH',
+  'service.restart.rolling.advanced.max.failures.rack': 'MAXIMUM FAILURES TOLERATED/RACK',
+  'service.restart.rolling.advanced.suppress.alerts': 'Suppress alerts during rolling restart',
+  'service.restart.rolling.advanced.pause.after.first': 'Pause after first batch',
 
   'rolling.command.context': 'Rolling set {0} to state "{1}" - batch {2} of {3}',
   'rolling.nothingToDo.header': 'Nothing to do',

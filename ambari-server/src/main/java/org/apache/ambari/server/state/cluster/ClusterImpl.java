@@ -56,7 +56,7 @@ import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
-import org.apache.ambari.server.agent.stomp.MetadataHolder;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariSessionManager;
@@ -70,7 +70,6 @@ import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMet
 import org.apache.ambari.server.events.AmbariEvent.AmbariEventType;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.ClusterEvent;
-import org.apache.ambari.server.events.ClusterProvisionStartedEvent;
 import org.apache.ambari.server.events.ClusterProvisionedEvent;
 import org.apache.ambari.server.events.ConfigsUpdateEvent;
 import org.apache.ambari.server.events.jpa.EntityManagerCacheInvalidationEvent;
@@ -113,6 +112,8 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterHealthReport;
@@ -125,7 +126,6 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
@@ -138,8 +138,6 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.UpgradeContext;
-import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -149,6 +147,7 @@ import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.apache.ambari.server.topology.TopologyRequest;
+import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -284,7 +283,7 @@ public class ClusterImpl implements Cluster {
   private STOMPComponentsDeleteHandler STOMPComponentsDeleteHandler;
 
   @Inject
-  private MetadataHolder metadataHolder;
+  private HostLevelParamsHolder hostLevelParamsHolder;
 
   /**
    * Data access object used for looking up stacks from the database.
@@ -589,6 +588,7 @@ public class ClusterImpl implements Cluster {
     return serviceComponentHosts.get(serviceName).get(serviceComponentName).get(hostname);
   }
 
+  @Override
   public List<ServiceComponentHost> getServiceComponentHosts() {
     List<ServiceComponentHost> serviceComponentHosts = new ArrayList<>();
     if (!serviceComponentHostsByHost.isEmpty()) {
@@ -972,17 +972,23 @@ public class ClusterImpl implements Cluster {
     clusterEntity = clusterDAO.merge(clusterEntity);
   }
 
-  @Override
-  public BlueprintProvisioningState getBlueprintProvisioningState() {
-    ClusterEntity clusterEntity = getClusterEntity();
-    return clusterEntity.getBlueprintProvisioningState();
-  }
-
-  @Override
-  public void setBlueprintProvisioningState(BlueprintProvisioningState blueprintProvisioningState) {
-    ClusterEntity clusterEntity = getClusterEntity();
-    clusterEntity.setBlueprintProvisioningState(blueprintProvisioningState);
-    clusterEntity = clusterDAO.merge(clusterEntity);
+  private boolean setBlueprintProvisioningState(BlueprintProvisioningState blueprintProvisioningState) {
+    boolean updated = false;
+    for (Service s : getServices().values()) {
+      for (ServiceComponent sc : s.getServiceComponents().values()) {
+        if (!sc.isClientComponent()) {
+          for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+            HostComponentDesiredStateEntity desiredStateEntity = sch.getDesiredStateEntity();
+            if (desiredStateEntity.getBlueprintProvisioningState() != blueprintProvisioningState) {
+              desiredStateEntity.setBlueprintProvisioningState(blueprintProvisioningState);
+              hostComponentDesiredStateDAO.merge(desiredStateEntity);
+              updated = true;
+            }
+          }
+        }
+      }
+    }
+    return updated;
   }
 
   @Override
@@ -1048,7 +1054,8 @@ public class ClusterImpl implements Cluster {
             // does the host gets a different repo state based on VDF and repo
             // type
             boolean hostRequiresRepository = false;
-            ClusterVersionSummary clusterSummary = versionDefinitionXml.getClusterSummary(this);
+            ClusterVersionSummary clusterSummary = versionDefinitionXml.getClusterSummary(this,
+                ambariMetaInfo);
             Set<String> servicesInUpgrade = clusterSummary.getAvailableServiceNames();
 
             List<ServiceComponentHost> schs = getServiceComponentHosts(hostEntity.getHostName());
@@ -1079,7 +1086,7 @@ public class ClusterImpl implements Cluster {
         HostVersionEntity hostVersionEntity = null;
         Collection<HostVersionEntity> hostVersions = hostEntity.getHostVersionEntities();
         for (HostVersionEntity existingHostVersion : hostVersions) {
-          if (existingHostVersion.getRepositoryVersion().getId() == repoVersionEntity.getId()) {
+          if (Objects.equals(existingHostVersion.getRepositoryVersion().getId(), repoVersionEntity.getId())) {
             hostVersionEntity = existingHostVersion;
             break;
           }
@@ -2541,8 +2548,15 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   public Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType){
+    return getConfigPropertiesTypes(configType, getCurrentStackVersion());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType, StackId stackId) {
     try {
-      StackId stackId = getCurrentStackVersion();
       StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
       return stackInfo.getConfigPropertiesTypes(configType);
     } catch (AmbariException ignored) {
@@ -2687,6 +2701,7 @@ public class ClusterImpl implements Cluster {
    *
    * @return
    */
+  @Override
   public ClusterEntity getClusterEntity() {
     return clusterDAO.findById(clusterId);
   }
@@ -2814,19 +2829,15 @@ public class ClusterImpl implements Cluster {
     }
   }
 
-  @Subscribe
-  public void onClusterProvisionStarted(ClusterProvisionStartedEvent event) {
-    if (event.getClusterId() == getClusterId()) {
-      changeBlueprintProvisioningState(BlueprintProvisioningState.IN_PROGRESS);
-    }
-  }
-
   private void changeBlueprintProvisioningState(BlueprintProvisioningState newState) {
-    setBlueprintProvisioningState(newState);
-    try {
-      metadataHolder.updateData(controller.getClusterMetadataOnConfigsUpdate(this));
-    } catch (AmbariException e) {
-      LOG.error("Metadata update failed after setting blueprint provision state to {}", newState, e);
+    boolean updated = setBlueprintProvisioningState(newState);
+    if (updated) {
+      try {
+        //host level params update
+        hostLevelParamsHolder.updateAllHosts();
+      } catch (AmbariException e) {
+        LOG.error("Topology update failed after setting blueprint provision state to {}", newState, e);
+      }
     }
   }
 

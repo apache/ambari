@@ -310,7 +310,7 @@ public class AlertDefinitionEntity {
    * otherwise.
    */
   public boolean getEnabled() {
-    return enabled == Integer.valueOf(0) ? false : true;
+    return !Objects.equals(enabled, 0);
   }
 
   /**
@@ -332,7 +332,7 @@ public class AlertDefinitionEntity {
    * otherwise.
    */
   public boolean isHostIgnored() {
-    return ignoreHost == Integer.valueOf(0) ? false : true;
+    return !Objects.equals(ignoreHost, 0);
   }
 
   /**
@@ -530,7 +530,7 @@ public class AlertDefinitionEntity {
    *         value.
    */
   public boolean isRepeatToleranceEnabled() {
-    return repeatToleranceEnabled == Short.valueOf((short) 0) ? false : true;
+    return !Objects.equals(repeatToleranceEnabled, (short) 0);
   }
 
   /**

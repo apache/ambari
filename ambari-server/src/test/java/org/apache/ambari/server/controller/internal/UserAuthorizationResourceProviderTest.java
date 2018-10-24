@@ -52,6 +52,7 @@ import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
@@ -67,13 +68,13 @@ import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
-import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -428,6 +429,7 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
         bind(HookService.class).toInstance(createMock(HookService.class));
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
         bind(PersistedState.class).to(PersistedStateImpl.class);
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
       }
     });
   }

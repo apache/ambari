@@ -17,10 +17,8 @@
  */
 package org.apache.ambari.server.controller.metrics;
 
-import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.GANGLIA;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
-import static org.apache.ambari.server.controller.spi.Resource.InternalType;
 
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +27,7 @@ import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
+import org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 import org.apache.ambari.server.controller.metrics.ganglia.GangliaComponentPropertyProvider;
 import org.apache.ambari.server.controller.metrics.ganglia.GangliaHostComponentPropertyProvider;
 import org.apache.ambari.server.controller.metrics.ganglia.GangliaHostPropertyProvider;
@@ -41,6 +40,7 @@ import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetric
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Resource.InternalType;
 import org.apache.ambari.server.controller.spi.SystemException;
 
 public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.eq;
@@ -57,7 +58,6 @@ import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.agent.RecoveryReport;
 import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
-import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
@@ -79,6 +79,7 @@ import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
@@ -158,6 +159,8 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Capture<String> rackChangeAffectedClusterName = EasyMock.newCapture();
     managementController.registerRackChange(capture(rackChangeAffectedClusterName));
     EasyMock.expectLastCall().once();
+    expect(managementController.getBlueprintProvisioningStates(anyLong(), anyLong()))
+        .andReturn(Collections.EMPTY_MAP).anyTimes();
 
 
     Clusters clusters = injector.getInstance(Clusters.class);
@@ -188,7 +191,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
     EasyMock.expectLastCall().once();
 
     expect(managementController.getClusters()).andReturn(clusters).atLeastOnce();
-    expect(managementController.retrieveHostRepositories(anyObject(), anyObject())).andReturn(createMock(HostRepositories.class));
 
     expect(resourceProviderFactory.getHostResourceProvider(
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
@@ -1401,7 +1403,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Injector injector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().addPasswordEncryptorBindings().build().configure(binder());
 
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
@@ -1428,6 +1430,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
         bind(HostLevelParamsHolder.class).toInstance(createNiceMock(HostLevelParamsHolder.class));
         bind(TopologyHolder.class).toInstance(createNiceMock(TopologyHolder.class));
         bind(RecoveryConfigHelper.class).toInstance(createNiceMock(RecoveryConfigHelper.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
 
         install(new FactoryModuleBuilder().build(StackManagerFactory.class));
         install(new FactoryModuleBuilder().implement(

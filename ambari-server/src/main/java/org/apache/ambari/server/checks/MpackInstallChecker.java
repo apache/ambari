@@ -33,7 +33,6 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
@@ -71,7 +70,6 @@ public class MpackInstallChecker {
 
   private static MpackContext processArguments(String... args) {
     CommandLineParser cmdLineParser = new DefaultParser();
-    HelpFormatter formatter = new HelpFormatter();
     MpackContext ctx = null;
 
     try {

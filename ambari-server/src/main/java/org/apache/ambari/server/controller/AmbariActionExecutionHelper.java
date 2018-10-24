@@ -24,7 +24,9 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_T
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.customactions.ActionDefinition;
+import org.apache.ambari.server.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -52,7 +55,6 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
@@ -429,25 +431,22 @@ public class AmbariActionExecutionHelper {
       // !!! ensure that these are empty so that commands have the correct tags
       // applied when the execution is about to be scheduled to run
       execCmd.setConfigurations(new TreeMap<>());
-      execCmd.setConfigurationAttributes(new TreeMap<>());
 
       // if the command should fetch brand new configuration tags before
       // execution, then we don't need to fetch them now
       if (null != actionParameters && !actionParameters.isEmpty()) {
-        if (actionParameters.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)) {
-          execCmd.setForceRefreshConfigTagsBeforeExecution(true);
+        if (actionParameters.containsKey(KeyNames.OVERRIDE_CONFIGS)) {
+          execCmd.setOverrideConfigs(true);
+        }
+        if (actionParameters.containsKey(KeyNames.OVERRIDE_STACK_NAME)) {
+          Map<String, String> clusterLevelParams = execCmd.getClusterLevelParams();
+          if (clusterLevelParams == null) {
+            clusterLevelParams = new HashMap<>();
+          }
+          clusterLevelParams.put(STACK_NAME, actionContext.getStackId().getStackName());
+          execCmd.setClusterLevelParams(clusterLevelParams);
         }
       }
-
-      // when building complex orchestration ahead of time (such as when
-      // performing ugprades), fetching configuration tags can take a very long
-      // time - if it's not needed, then don't do it
-      Map<String, Map<String, String>> configTags = new TreeMap<>();
-      if (!execCmd.getForceRefreshConfigTagsBeforeExecution()) {
-        configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
-      }
-
-      execCmd.setConfigurationTags(configTags);
 
       execCmd.setServiceName(serviceName == null || serviceName.isEmpty() ?
         resourceFilter.getServiceName() : serviceName);

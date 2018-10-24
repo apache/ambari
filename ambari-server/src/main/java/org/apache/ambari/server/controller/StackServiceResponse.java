@@ -41,6 +41,7 @@ public class StackServiceResponse {
   private String comments;
   private String serviceVersion;
   private ServiceInfo.Selection selection;
+  private String maintainer;
   private boolean serviceCheckSupported;
   private List<String> customCommands;
 
@@ -100,6 +101,7 @@ public class StackServiceResponse {
     requiredServices = service.getRequiredServices();
     serviceCheckSupported = null != service.getCommandScript();
     selection = service.getSelection();
+    maintainer = service.getMaintainer();
 
     // the custom command names defined at the service (not component) level
     List<CustomCommandDefinition> definitions = service.getCustomCommands();
@@ -128,6 +130,11 @@ public class StackServiceResponse {
 
   public void setSelection(ServiceInfo.Selection selection) {
     this.selection = selection;
+  }
+
+  @ApiModelProperty(name = "maintainer")
+  public String getMaintainer(){
+    return maintainer;
   }
 
   @ApiModelProperty(name = "stack_name")

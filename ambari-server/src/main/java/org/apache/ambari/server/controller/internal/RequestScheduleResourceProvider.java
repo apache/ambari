@@ -78,6 +78,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
 
   public static final String BATCH_SEPARATION_IN_SECONDS_PROPERTY_ID = "batch_separation_in_seconds";
   public static final String TASK_FAILURE_TOLERANCE_PROPERTY_ID = "task_failure_tolerance";
+  public static final String TASK_FAILURE_TOLERANCE_PER_BATCH_PROPERTY_ID = "task_failure_tolerance_per_batch";
   public static final String TASK_FAILURE_TOLERANCE_LIMIT_PROPERTY_ID = "task_failure_tolerance_limit";
   public static final String REQUESTS_PROPERTY_ID = "requests";
 
@@ -122,6 +123,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
           BATCH_SEPARATION_IN_SECONDS_PROPERTY_ID);
   public static final String TASK_FAILURE_TOLERANCE = PropertyHelper.getPropertyId(BATCH_SETTINGS,
           TASK_FAILURE_TOLERANCE_PROPERTY_ID);
+  public static final String TASK_FAILURE_TOLERANCE_PER_BATCH = PropertyHelper.getPropertyId(BATCH_SETTINGS, TASK_FAILURE_TOLERANCE_PER_BATCH_PROPERTY_ID);
   public static final String REQUESTS = PropertyHelper.getPropertyId(null, REQUESTS_PROPERTY_ID);
 
   public static final String TYPE = PropertyHelper.getPropertyId(null, TYPE_PROPERTY_ID);
@@ -141,7 +143,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
   /**
    * The key property ids for a RequestSchedule resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Cluster, CLUSTER_NAME)
       .put(Resource.Type.RequestSchedule, ID)
       .build();
@@ -149,7 +151,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
   /**
    * The property ids for a RequestSchedule resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
     ID,
     CLUSTER_NAME,
     DESCRIPTION,
@@ -164,6 +166,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
     UPDATE_TIME,
     BATCH_SEPARATION_IN_SECONDS,
     TASK_FAILURE_TOLERANCE,
+    TASK_FAILURE_TOLERANCE_PER_BATCH,
     REQUESTS,
     TYPE,
     URI,
@@ -427,11 +430,22 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
       String username = getManagementController().getAuthName();
       Integer userId = getManagementController().getAuthId();
 
-      requestExecution.setBatch(request.getBatch());
-      requestExecution.setDescription(request.getDescription());
-      requestExecution.setSchedule(request.getSchedule());
-      if (request.getStatus() != null && isValidRequestScheduleStatus
-          (request.getStatus())) {
+      if (request.getDescription() != null) {
+        requestExecution.setDescription(request.getDescription());
+      }
+
+      if (request.getSchedule() != null) {
+        requestExecution.setSchedule(request.getSchedule());
+      }
+
+      if (request.getStatus() != null) {
+        //TODO status changes graph
+        if (!isValidRequestScheduleStatus(request.getStatus())) {
+          throw new AmbariException("Request Schedule status not valid"
+            + ", clusterName = " + request.getClusterName()
+            + ", description = " + request.getDescription()
+            + ", id = " + request.getId());
+        }
         requestExecution.setStatus(RequestExecution.Status.valueOf(request.getStatus()));
       }
       requestExecution.setUpdateUser(username);
@@ -440,6 +454,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
       LOG.info("Persisting updated Request Schedule "
         + ", clusterName = " + request.getClusterName()
         + ", description = " + request.getDescription()
+        + ", status = " + request.getStatus()
         + ", user = " + username);
 
       requestExecution.persist();
@@ -499,7 +514,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
 
       // Setup batch schedule
       getManagementController().getExecutionScheduleManager()
-        .scheduleBatch(requestExecution);
+        .scheduleAllBatches(requestExecution);
 
       RequestScheduleResponse response = new RequestScheduleResponse
         (requestExecution.getId(), requestExecution.getClusterName(),
@@ -633,6 +648,10 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
                   (TASK_FAILURE_TOLERANCE)) {
                 batchSettings.setTaskFailureToleranceLimit(Integer.valueOf
                   ((String) batchMapEntry.getValue()));
+              }  else if (batchMapEntry.getKey().equals
+                  (TASK_FAILURE_TOLERANCE_PER_BATCH)) {
+                batchSettings.setTaskFailureToleranceLimitPerBatch(Integer.valueOf
+                    ((String) batchMapEntry.getValue()));
               } else if (batchMapEntry.getKey().equals
                   (BATCH_SEPARATION_IN_SECONDS)) {
                 batchSettings.setBatchSeparationInSeconds(Integer.valueOf

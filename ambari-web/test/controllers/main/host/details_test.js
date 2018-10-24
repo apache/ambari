@@ -3426,7 +3426,7 @@ describe('App.MainHostDetailsController', function () {
 
     var cases = [
       {
-        'kmsHosts': ['host1'],
+        'zookeeperHosts': ['host1'],
         'kmsPort': 'port',
         'title': 'single host',
         'hostToInstall': undefined,
@@ -3459,7 +3459,7 @@ describe('App.MainHostDetailsController', function () {
         ]
       },
       {
-        'kmsHosts': ['host1', 'host2'],
+        'zookeeperHosts': ['host1', 'host2'],
         'kmsPort': 'port',
         'title': 'two hosts',
         'hostToInstall': 'host2',
@@ -3549,8 +3549,13 @@ describe('App.MainHostDetailsController', function () {
 
         beforeEach(function () {
           controller.set('rangerKMSServerHost', item.hostToInstall);
-          sinon.stub(controller, 'getRangerKMSServerHosts').returns(item.kmsHosts);
+          sinon.stub(App.MasterComponent, 'find').returns(Em.Object.create({hostNames: item.zookeeperHosts}))
+          sinon.stub(controller, 'getRangerKMSServerHosts').returns(item.zookeeperHosts);
           controller.onLoadRangerConfigs(data);
+        });
+
+        afterEach(function () {
+          App.MasterComponent.find.restore();
         });
 
         it('setConfigsChanges is called with valid arguments', function () {

@@ -120,6 +120,7 @@ require('views/common/helpers/pluralize_view');
 require('views/common/helpers/status_icon_view');
 require('views/common/chosen_plugin');
 require('views/common/export_metrics_menu_view');
+require('views/common/service_restart_view');
 require('views/login');
 require('views/main');
 require('views/main/menu');

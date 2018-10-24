@@ -17,12 +17,11 @@
  */
 package org.apache.ambari.server.api.query.render;
 
-import static org.apache.ambari.server.controller.metrics.MetricsPaddingMethod.PADDING_STRATEGY;
-
 import java.util.Set;
 
 import org.apache.ambari.server.api.query.QueryInfo;
 import org.apache.ambari.server.api.util.TreeNode;
+import org.apache.ambari.server.controller.metrics.MetricsPaddingMethod.PADDING_STRATEGY;
 
 public class MetricsPaddingRenderer extends DefaultRenderer {
   PADDING_STRATEGY paddingMethod = PADDING_STRATEGY.ZEROS;

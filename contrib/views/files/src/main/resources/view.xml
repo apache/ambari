@@ -48,50 +48,23 @@
         <cluster-config>fake</cluster-config>
     </parameter>
     <parameter>
-        <name>webhdfs.ha.namenode.rpc-address.nn1</name>
-        <description>RPC address for first name node.
-            Value of hdfs-site/dfs.namenode.rpc-address.[nameservice].[namenode1] property</description>
-        <label>First NameNode RPC Address</label>
+        <name>webhdfs.ha.namenode.rpc-address.list</name>
+        <description>Comma separated RPC address for name nodes.</description>
+        <label>Comma separated NameNode RPC Addresses</label>
         <required>false</required>
         <cluster-config>fake</cluster-config>
     </parameter>
     <parameter>
-        <name>webhdfs.ha.namenode.rpc-address.nn2</name>
-        <description>RPC address for second name node.
-            Value of hdfs-site/dfs.namenode.rpc-address.[nameservice].[namenode2] property</description>
-        <label>Second NameNode RPC Address</label>
+        <name>webhdfs.ha.namenode.http-address.list</name>
+        <description>Comma separated WebHDFS address for name nodes.</description>
+        <label>Comma separated NameNode HTTP (WebHDFS) Addresses</label>
         <required>false</required>
         <cluster-config>fake</cluster-config>
     </parameter>
     <parameter>
-        <name>webhdfs.ha.namenode.http-address.nn1</name>
-        <description>WebHDFS address for first name node.
-            Value of hdfs-site/dfs.namenode.http-address.[nameservice].[namenode1] property</description>
-        <label>First NameNode HTTP (WebHDFS) Address</label>
-        <required>false</required>
-        <cluster-config>fake</cluster-config>
-    </parameter>
-    <parameter>
-        <name>webhdfs.ha.namenode.http-address.nn2</name>
-        <description>WebHDFS address for second name node.
-            Value of hdfs-site/dfs.namenode.http-address.[nameservice].[namenode2] property</description>
-        <label>Second NameNode HTTP (WebHDFS) Address</label>
-        <required>false</required>
-        <cluster-config>fake</cluster-config>
-    </parameter>
-    <parameter>
-        <name>webhdfs.ha.namenode.https-address.nn1</name>
-        <description>WebHDFS Https address for first name node.
-            Value of hdfs-site/dfs.namenode.https-address.[nameservice].[namenode1] property</description>
-        <label>First NameNode HTTPS (WebHDFS) Address</label>
-        <required>false</required>
-        <cluster-config>fake</cluster-config>
-    </parameter>
-    <parameter>
-        <name>webhdfs.ha.namenode.https-address.nn2</name>
-        <description>WebHDFS Https address for second name node.
-            Value of hdfs-site/dfs.namenode.https-address.[nameservice].[namenode2] property</description>
-        <label>Second NameNode HTTPS (WebHDFS) Address</label>
+        <name>webhdfs.ha.namenode.https-address.list</name>
+        <description>Comma separated WebHDFS Https addresses for name nodes.</description>
+        <label>Comma separated NameNode HTTPS (WebHDFS) Addresses</label>
         <required>false</required>
         <cluster-config>fake</cluster-config>
     </parameter>

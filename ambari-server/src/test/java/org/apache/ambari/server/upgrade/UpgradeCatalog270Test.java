@@ -194,6 +194,7 @@ import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
@@ -203,6 +204,7 @@ import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.serveraction.kerberos.PrepareKerberosIdentitiesServerAction;
 import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -215,7 +217,6 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
@@ -320,7 +321,6 @@ public class UpgradeCatalog270Test {
     Method setStatusOfStagesAndRequests = UpgradeCatalog270.class.getDeclaredMethod("setStatusOfStagesAndRequests");
     Method updateLogSearchConfigs = UpgradeCatalog270.class.getDeclaredMethod("updateLogSearchConfigs");
     Method updateKerberosConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateKerberosConfigurations");
-    Method updateHostComponentLastStateTable = UpgradeCatalog270.class.getDeclaredMethod("updateHostComponentLastStateTable");
     Method upgradeLdapConfiguration = UpgradeCatalog270.class.getDeclaredMethod("moveAmbariPropertiesToAmbariConfiguration");
     Method createRoleAuthorizations = UpgradeCatalog270.class.getDeclaredMethod("createRoleAuthorizations");
     Method addUserAuthenticationSequence = UpgradeCatalog270.class.getDeclaredMethod("addUserAuthenticationSequence");
@@ -337,7 +337,6 @@ public class UpgradeCatalog270Test {
         .addMockedMethod(setStatusOfStagesAndRequests)
         .addMockedMethod(updateLogSearchConfigs)
         .addMockedMethod(updateKerberosConfigurations)
-        .addMockedMethod(updateHostComponentLastStateTable)
         .addMockedMethod(upgradeLdapConfiguration)
         .addMockedMethod(createRoleAuthorizations)
         .addMockedMethod(addUserAuthenticationSequence)
@@ -363,8 +362,6 @@ public class UpgradeCatalog270Test {
     expectLastCall().once();
 
     upgradeCatalog270.updateLogSearchConfigs();
-    upgradeCatalog270.updateHostComponentLastStateTable();
-    expectLastCall().once();
 
     upgradeCatalog270.updateKerberosConfigurations();
     expectLastCall().once();
@@ -603,7 +600,7 @@ public class UpgradeCatalog270Test {
     Module module = new AbstractModule() {
       @Override
       public void configure() {
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addPasswordEncryptorBindings().addFactoriesInstallBinding().build().configure(binder());
 
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(OsFamily.class).toInstance(osFamily);
@@ -627,6 +624,7 @@ public class UpgradeCatalog270Test {
         bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
         bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
 
         install(new FactoryModuleBuilder().implement(

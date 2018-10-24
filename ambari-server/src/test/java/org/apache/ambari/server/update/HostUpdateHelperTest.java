@@ -50,6 +50,7 @@ import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
@@ -259,6 +260,7 @@ public class HostUpdateHelperTest {
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(ClusterDAO.class).toInstance(mockClusterDAO);
         bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
+        bind(MpackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(MpackManagerFactory.class));
         bind(AmbariMetaInfo.class).toInstance(EasyMock.createNiceMock(AmbariMetaInfo.class));
         bind(AgentConfigsHolder.class).toInstance(EasyMock.createNiceMock(AgentConfigsHolder.class));
 
@@ -493,7 +495,8 @@ public class HostUpdateHelperTest {
       @Override
       protected void configure() {
 
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().addPasswordEncryptorBindings()
+        .build().configure(binder());
 
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(EntityManager.class).toInstance(entityManager);
@@ -506,6 +509,7 @@ public class HostUpdateHelperTest {
         bind(AlertDefinitionDAO.class).toInstance(mockAlertDefinitionDAO);
         bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
         bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
         bind(UnitOfWork.class).toInstance(createNiceMock(UnitOfWork.class));

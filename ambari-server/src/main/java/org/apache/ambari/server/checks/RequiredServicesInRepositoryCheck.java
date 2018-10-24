@@ -22,16 +22,21 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
+import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeCheckType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 
 /**
@@ -44,50 +49,61 @@ import com.google.inject.Singleton;
  * things like hard coded versions.
  */
 @Singleton
-@UpgradeCheck(
+@UpgradeCheckInfo(
     group = UpgradeCheckGroup.REPOSITORY_VERSION,
     order = 1.0f,
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED },
     orchestration = { RepositoryType.PATCH, RepositoryType.MAINT, RepositoryType.SERVICE })
-public class RequiredServicesInRepositoryCheck extends AbstractCheckDescriptor {
+public class RequiredServicesInRepositoryCheck extends ClusterCheck {
+
+  static final UpgradeCheckDescription VALID_SERVICES_INCLUDED_IN_REPOSITORY = new UpgradeCheckDescription("VALID_SERVICES_INCLUDED_IN_REPOSITORY",
+      UpgradeCheckType.CLUSTER,
+      "The repository is missing services which are required",
+      new ImmutableMap.Builder<String, String>()
+        .put(UpgradeCheckDescription.DEFAULT,
+            "The following services are included in the upgrade but the repository is missing their dependencies:\n%s").build());
 
   /**
    * Constructor.
    */
   public RequiredServicesInRepositoryCheck() {
-    super(CheckDescription.VALID_SERVICES_INCLUDED_IN_REPOSITORY);
+    super(VALID_SERVICES_INCLUDED_IN_REPOSITORY);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+  public UpgradeCheckResult perform(UpgradeCheckRequest request) throws AmbariException {
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
+
     String clusterName = request.getClusterName();
     Cluster cluster = clustersProvider.get().getCluster(clusterName);
 
-    VersionDefinitionXml xml = getVersionDefinitionXml(request);
-    Set<String> missingDependencies = xml.getMissingDependencies(cluster);
+    VersionDefinitionXml xml = checkHelperProvider.get().getVersionDefinitionXml(request);
+
+    Set<String> missingDependencies = xml.getMissingDependencies(cluster, ambariMetaInfo.get());
 
     if (!missingDependencies.isEmpty()) {
-      String failReasonTemplate = getFailReason(prerequisiteCheck, request);
+      String failReasonTemplate = getFailReason(result, request);
 
       String message = String.format(
           "The following services are also required to be included in this upgrade: %s",
           StringUtils.join(missingDependencies, ", "));
 
-      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(missingDependencies));
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(String.format(failReasonTemplate, message));
+      result.setFailedOn(new LinkedHashSet<>(missingDependencies));
+      result.setStatus(UpgradeCheckStatus.FAIL);
+      result.setFailReason(String.format(failReasonTemplate, message));
 
       Set<ServiceDetail> missingServiceDetails = missingDependencies.stream().map(
           missingService -> new ServiceDetail(missingService)).collect(
               Collectors.toCollection(TreeSet::new));
 
-      prerequisiteCheck.getFailedDetail().addAll(missingServiceDetails);
-      return;
+      result.getFailedDetail().addAll(missingServiceDetails);
+      return result;
     }
 
-    prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
+    result.setStatus(UpgradeCheckStatus.PASS);
+    return result;
   }
 }

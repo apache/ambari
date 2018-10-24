@@ -33,6 +33,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -64,7 +65,14 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.state.ClientConfigFileDefinition;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
@@ -103,7 +111,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   /**
    * The key property ids for a ClientConfig resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Cluster, COMPONENT_CLUSTER_NAME_PROPERTY_ID)
       .put(Resource.Type.Service, COMPONENT_SERVICE_NAME_PROPERTY_ID)
       .put(Resource.Type.Component, COMPONENT_COMPONENT_NAME_PROPERTY_ID)
@@ -113,7 +121,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   /**
    * The property ids for a ClientConfig resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       COMPONENT_CLUSTER_NAME_PROPERTY_ID,
       COMPONENT_SERVICE_NAME_PROPERTY_ID,
       COMPONENT_COMPONENT_NAME_PROPERTY_ID,
@@ -133,6 +141,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   ClientConfigResourceProvider(@Assisted AmbariManagementController managementController) {
     super(Resource.Type.ClientConfig, propertyIds, keyPropertyIds, managementController);
     gson = new Gson();
+
+    setRequiredGetAuthorizations(EnumSet.of(RoleAuthorization.HOST_VIEW_CONFIGS, RoleAuthorization.SERVICE_VIEW_CONFIGS, RoleAuthorization.CLUSTER_VIEW_CONFIGS));
   }
 
   // ----- ResourceProvider ------------------------------------------------
@@ -148,7 +158,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate)
+  public Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
           throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     Set<Resource> resources = new HashSet<>();
@@ -809,6 +819,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         BufferedOutputStream bOut = new BufferedOutputStream(fOut);
         GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(bOut);
         TarArchiveOutputStream tOut = new TarArchiveOutputStream(gzOut);
+        tOut.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
+        tOut.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
 
         try {
           for (ServiceComponentHostResponse schResponse : serviceComponentHostResponses) {

@@ -121,11 +121,11 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
   /**
    * The key property ids for a User resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.User, USER_USERNAME_PROPERTY_ID)
       .build();
 
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       USER_USERNAME_PROPERTY_ID,
       USER_DISPLAY_NAME_PROPERTY_ID,
       USER_LOCAL_USERNAME_PROPERTY_ID,

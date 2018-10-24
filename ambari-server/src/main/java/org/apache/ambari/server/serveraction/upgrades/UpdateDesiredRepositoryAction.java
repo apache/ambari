@@ -33,12 +33,12 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
+import org.apache.ambari.server.stack.upgrade.Direction;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.UpgradeContext;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +48,7 @@ import com.google.inject.persist.Transactional;
 
 /**
  * Action that represents updating the Desired Stack Id during the middle of a stack upgrade (typically NonRolling).
- * In a {@link org.apache.ambari.server.state.stack.upgrade.UpgradeType#NON_ROLLING}, the effective Stack Id is
+ * In a {@link org.apache.ambari.spi.upgrade.UpgradeType#NON_ROLLING}, the effective Stack Id is
  * actually changed half-way through calculating the Actions, and this serves to update the database to make it
  * evident to the user at which point it changed.
  */

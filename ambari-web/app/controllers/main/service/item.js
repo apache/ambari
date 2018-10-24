@@ -576,7 +576,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           sender: this,
           data: {
             context,
-            serviceName: serviceName.toUpperCase(),
+            serviceName: serviceName,
             state: serviceHealth,
             query: requestQuery
           },
@@ -966,6 +966,111 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     }
   },
 
+  restartServiceAllComponents: function () {
+    batchUtils.showServiceRestartPopup(this.get('content.serviceName'), this.getMastersForRestart.bind(this), this.getSlavesForRestart.bind(this));
+  },
+  restartServiceMastersOnly: function () {
+    batchUtils.showServiceRestartPopup(this.get('content.serviceName'), this.getMastersForRestart.bind(this));
+  },
+
+  restartServiceSlavesOnly: function () {
+    batchUtils.showServiceRestartPopup(this.get('content.serviceName'), null, this.getSlavesForRestart.bind(this));
+  },
+
+  restartOptions: [
+    Em.Object.create({
+      action: 'restartServiceAllComponents',
+      context: {
+        label: 'Restart All',
+        name: 'RESTART_ALL'
+      }
+    }),
+    Em.Object.create({
+      action: 'restartServiceMastersOnly',
+      context: {
+        label: 'Restart Masters',
+        name: 'RESTART_MASTERS'
+      }
+    }),
+    Em.Object.create({
+      action: 'restartServiceSlavesOnly',
+      context: {
+        label: 'Restart Slaves',
+        name: 'RESTART_SLAVES'
+      }
+    }),
+  ],
+
+  getMastersForRestart: function (serviceName) {
+    if (serviceName === 'HDFS') {
+      return this.getMastersForHdfsRestart();
+    } else {
+      return this.get('content.hostComponents').filter((component) => {
+        return component.get('service.serviceName') === serviceName && component.get('isMaster');
+      });
+    }
+  },
+
+  getMastersForHdfsRestart: function () {
+    const self = this;
+    let hostCompOrdered = [];
+    const hdfsService = App.HDFSService.find().toArray()[0];
+
+    if (App.get('isHAEnabled')) {
+      let journalNodes = this.get('content.hostComponents').filterProperty('componentName', 'JOURNALNODE');
+      //Restart journal nodes one by one
+      if (journalNodes && journalNodes.length) {
+        journalNodes.forEach((journalNode) => hostCompOrdered.push(journalNode));
+      }
+
+      //Restart Standby NN and then Standby ZKFC
+      const standbyNameNodes = hdfsService.get('standbyNameNodes').toArray();
+      if (standbyNameNodes.length > 0) {
+        hdfsService.get('standbyNameNodes').forEach(function (snn) {
+          hostCompOrdered.push(snn);
+          const snnHostName = snn.get('hostName');
+          const zkfcForSnn = self.get('content.hostComponents').filter((component) => {
+            return component.get('componentName') === 'ZKFC' && component.get('hostName') === snnHostName;
+          });
+          if (zkfcForSnn) {
+            hostCompOrdered.push(zkfcForSnn[0]);
+          }
+        });
+      }
+
+      //Restart Active NN and then Active ZKFC
+      const activeNameNodes = hdfsService.get('activeNameNodes').toArray();
+      if (activeNameNodes.length > 0) {
+        hdfsService.get('activeNameNodes').forEach(function (ann) {
+          hostCompOrdered.push(ann);
+          const annHostName = ann.get('hostName');
+          const zkfcForAnn = self.get('content.hostComponents').filter((component) => {
+            return component.get('componentName') === 'ZKFC' && component.get('hostName') === annHostName;
+          });
+          if (zkfcForAnn) {
+            hostCompOrdered.push(zkfcForAnn[0]);
+          }
+        });
+      }
+    } else {
+      //Add SNamenode
+      const sNameNode = hdfsService.get('snameNode') || App.HostComponent.find().findProperty('componentName', 'SECONDARY_NAMENODE')
+      if (sNameNode) hostCompOrdered.push(sNameNode);
+
+      //Add NameNode
+      const namenode = hdfsService.get('namenode') || App.HostComponent.find().findProperty('componentName', 'SECONDARY_NAMENODE');
+      if (namenode) hostCompOrdered.push(namenode);
+    }
+    return hostCompOrdered;
+  },
+
+  getSlavesForRestart: function (serviceName) {
+    return this.get('content.hostComponents').filter((component) => {
+      return component.get('service.serviceName') === serviceName && component.get('isSlave');
+    });
+  },
+
+
   restartCertainHostComponents: function (context) {
     const serviceDisplayName = this.get('content.displayName'),
       {components, hosts, label, serviceName} = context;
@@ -1176,10 +1281,21 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     return App.MasterComponent.find().toArray().concat(App.SlaveComponent.find().toArray()).filterProperty('service.serviceName', this.get('content.serviceName'));
   }.property('content.serviceName'),
 
-  isStartDisabled: Em.computed.or('isPending', 'content.isStarted'),
+  isStartDisabled: function () {
+    let allComponentsStarted = true;
+    if (this.get('isPending')) return true;
+    this.get('nonClientServiceComponents').forEach(function (component) {
+      if (component.get('installedCount') > 0)
+        allComponentsStarted = false;
+    });
+    return allComponentsStarted && this.get('content.isStarted');
+  }.property('content.isStarted', 'isPending'),
+
 
   isStopDisabled: function () {
+    let allComponentsStopped = true;
     if(this.get('isPending')) return true;
+
     if (App.get('isHaEnabled') && this.get('content.serviceName') == 'HDFS' && this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
       return false;
     }
@@ -1189,7 +1305,13 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     if (this.get('content.serviceName') == 'PXF' && App.HostComponent.find().filterProperty('componentName', 'PXF').someProperty('workStatus', App.HostComponentStatus.started)) {
       return false;
     }
-    return !this.get('content.isStarted');
+
+    this.get('nonClientServiceComponents').forEach(function (component) {
+      if (component.get('startedCount') > 0)
+        allComponentsStopped = false;
+    });
+
+    return allComponentsStopped && !this.get('content.isStarted');
   }.property('content.isStarted','isPending', 'App.isHaEnabled'),
 
   isSmokeTestDisabled: function () {

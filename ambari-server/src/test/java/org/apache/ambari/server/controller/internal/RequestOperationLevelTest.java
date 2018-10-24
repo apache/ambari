@@ -18,8 +18,8 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.fail;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.fail;
 
 import java.util.HashMap;
 import java.util.Map;

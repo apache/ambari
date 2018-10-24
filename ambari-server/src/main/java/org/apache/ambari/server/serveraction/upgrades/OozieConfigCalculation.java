@@ -28,12 +28,12 @@ import java.util.stream.Collectors;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.ServiceComponentSupport;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.commons.collections.CollectionUtils;
 
 import com.google.inject.Inject;

@@ -24,6 +24,7 @@ __all__ = ["Script"]
 import re
 import os
 import sys
+import ssl
 import logging
 import platform
 import inspect
@@ -60,6 +61,7 @@ from contextlib import closing
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
@@ -120,6 +122,10 @@ class Script(object):
   4 path to file with structured command output (file will be created)
   """
   config = None
+  execution_command = None
+  module_configs = None
+  cluster_settings = None
+  stack_settings = None
   stack_version_from_distro_select = None
   structuredOut = {}
   command_data_file = ""
@@ -129,7 +135,7 @@ class Script(object):
 
   # Class variable
   tmp_dir = ""
-  force_https_protocol = "PROTOCOL_TLSv1_2"
+  force_https_protocol = "PROTOCOL_TLSv1_2" if hasattr(ssl, "PROTOCOL_TLSv1_2") else "PROTOCOL_TLSv1"
   ca_cert_file_path = None
 
   def load_structured_out(self):
@@ -321,6 +327,10 @@ class Script(object):
       with open(self.command_data_file) as f:
         pass
         Script.config = ConfigDictionary(json.load(f))
+        Script.execution_command = ExecutionCommand(Script.config)
+        Script.module_configs = Script.execution_command.get_module_configs()
+        Script.cluster_settings = Script.execution_command.get_cluster_settings()
+        Script.stack_settings = Script.execution_command.get_stack_settings()
         # load passwords here(used on windows to impersonate different users)
         Script.passwords = {}
         for k, v in _PASSWORD_MAP.iteritems():
@@ -331,13 +341,7 @@ class Script(object):
       Logger.logger.exception("Can not read json file with command parameters: ")
       sys.exit(1)
 
-    from resource_management.libraries.functions import lzo_utils
-
-    repo_tags_to_skip = set()
-    if not lzo_utils.is_gpl_license_accepted():
-      repo_tags_to_skip.add("GPL")
-
-    Script.repository_util = RepositoryUtil(Script.config, repo_tags_to_skip)
+    Script.repository_util = RepositoryUtil(Script.config)
 
     # Run class method depending on a command type
     try:
@@ -357,8 +361,11 @@ class Script(object):
       ex.pre_raise()
       raise
     finally:
-      if self.should_expose_component_version(self.command_name):
-        self.save_component_version_to_structured_out(self.command_name)
+      try:
+        if self.should_expose_component_version(self.command_name):
+          self.save_component_version_to_structured_out(self.command_name)
+      except:
+        Logger.exception("Reporting component version failed")
 
   def get_version(self, env):
     pass
@@ -595,6 +602,44 @@ class Script(object):
     return Script.config
 
   @staticmethod
+  def get_execution_command():
+    """
+    The dot access dict object holds command.json
+    :return:
+    """
+    return Script.execution_command
+
+  @staticmethod
+  def get_module_configs():
+    """
+    The dict object holds configurations block in command.json which maps service configurations
+    :return: module_configs object
+    """
+    if not Script.module_configs:
+      Script.module_configs = Script.execution_command.get_module_configs()
+    return Script.module_configs
+
+  @staticmethod
+  def get_cluster_settings():
+    """
+    The dict object holds cluster_settings block in command.json which maps cluster configurations
+    :return: cluster_settings object
+    """
+    if not Script.cluster_settings and Script.execution_command:
+      Script.cluster_settings = Script.execution_command.get_cluster_settings()
+    return Script.cluster_settings
+
+  @staticmethod
+  def get_stack_settings():
+    """
+    The dict object holds stack_settings block in command.json which maps stack configurations
+    :return: stack_settings object
+    """
+    if not Script.stack_settings and Script.execution_command:
+      Script.stack_settings = Script.execution_command.get_stack_settings()
+    return Script.stack_settings
+
+  @staticmethod
   def get_password(user):
     return Script.passwords[user]
 
@@ -622,7 +667,6 @@ class Script(object):
 
     :return: protocol value
     """
-    import ssl
     return getattr(ssl, Script.get_force_https_protocol_name())
 
   @staticmethod
@@ -781,14 +825,6 @@ class Script(object):
 
     service_name = config['serviceName'] if 'serviceName' in config else None
     repos = CommandRepository(config['repositoryFile'])
-
-    from resource_management.libraries.functions import lzo_utils
-
-    # remove repos with 'GPL' tag when GPL license is not approved
-    repo_tags_to_skip = set()
-    if not lzo_utils.is_gpl_license_accepted():
-      repo_tags_to_skip.add("GPL")
-    repos.items = [r for r in repos.items if not (repo_tags_to_skip & r.tags)]
 
     repo_ids = [repo.repo_id for repo in repos.items]
     Logger.info("Command repositories: {0}".format(", ".join(repo_ids)))

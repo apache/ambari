@@ -97,4 +97,9 @@ public interface Config {
    * Persist the configuration.
    */
   void save();
+
+  /**
+   * @return the cluster where this config belongs to
+   */
+  Cluster getCluster();
 }

@@ -72,6 +72,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
   private static final String SELECTION_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServices", "selection");
 
+  private static final String MAINTAINER_PROPERTY_ID = PropertyHelper.getPropertyId(
+          "StackServices", "maintainer");
+
   private static final String VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServices", "service_version");
 
@@ -111,7 +114,7 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
   /**
    * The key property ids for a StackVersion resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Type.Stack, STACK_NAME_PROPERTY_ID)
       .put(Type.StackVersion, STACK_VERSION_PROPERTY_ID)
       .put(Type.StackService, SERVICE_NAME_PROPERTY_ID)
@@ -120,7 +123,7 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
   /**
    * The property ids for a StackVersion resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       SERVICE_NAME_PROPERTY_ID,
       SERVICE_TYPE_PROPERTY_ID,
       STACK_NAME_PROPERTY_ID,
@@ -129,6 +132,7 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
       USER_NAME_PROPERTY_ID,
       COMMENTS_PROPERTY_ID,
       SELECTION_PROPERTY_ID,
+      MAINTAINER_PROPERTY_ID,
       VERSION_PROPERTY_ID,
       CONFIG_TYPES,
       REQUIRED_SERVICES_ID,
@@ -219,6 +223,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
     setResourceProperty(resource, SELECTION_PROPERTY_ID,
         response.getSelection(), requestedIds);
+
+    setResourceProperty(resource, MAINTAINER_PROPERTY_ID,
+        response.getMaintainer(), requestedIds);
 
     setResourceProperty(resource, CONFIG_TYPES,
         response.getConfigTypes(), requestedIds);

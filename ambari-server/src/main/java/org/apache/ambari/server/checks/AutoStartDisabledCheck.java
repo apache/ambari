@@ -17,16 +17,18 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.Collections;
-import java.util.Set;
-
+import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
+import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeCheckType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 
 /**
@@ -34,10 +36,16 @@ import com.google.inject.Singleton;
  * not have auto-restart enabled.
  */
 @Singleton
-@UpgradeCheck(
+@UpgradeCheckInfo(
     group = UpgradeCheckGroup.CONFIGURATION_WARNING,
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
-public class AutoStartDisabledCheck extends AbstractCheckDescriptor {
+public class AutoStartDisabledCheck extends ClusterCheck {
+
+  static final UpgradeCheckDescription AUTO_START_DISABLED = new UpgradeCheckDescription(
+      "AUTO_START_DISABLED", UpgradeCheckType.CLUSTER, "Auto-Start Disabled Check",
+      new ImmutableMap.Builder<String, String>().put(UpgradeCheckDescription.DEFAULT,
+          "Auto Start must be disabled before performing an Upgrade. To disable Auto Start, navigate to "
+              + "Admin > Service Auto Start. Turn the toggle switch off to Disabled and hit Save.").build());
 
   static final String CLUSTER_ENV_TYPE = "cluster-env";
   static final String RECOVERY_ENABLED_KEY = "recovery_enabled";
@@ -48,38 +56,32 @@ public class AutoStartDisabledCheck extends AbstractCheckDescriptor {
    * Constructor.
    */
   public AutoStartDisabledCheck() {
-    super(CheckDescription.AUTO_START_DISABLED);
+    super(AUTO_START_DISABLED);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Set<String> getApplicableServices() {
-    return Collections.emptySet();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+  public UpgradeCheckResult perform(UpgradeCheckRequest request) throws AmbariException {
+    UpgradeCheckResult result = new UpgradeCheckResult(this, UpgradeCheckStatus.PASS);
 
     String autoStartEnabled = getProperty(request, CLUSTER_ENV_TYPE, RECOVERY_ENABLED_KEY);
 
     // !!! auto-start is already disabled
     if (!Boolean.valueOf(autoStartEnabled)) {
-      return;
+      return result;
     }
 
     // !!! double check the value is AUTO_START.  it's the only supported value (and there's no enum for it)
     String recoveryType = getProperty(request, CLUSTER_ENV_TYPE, RECOVERY_TYPE_KEY);
     if (StringUtils.equals(recoveryType, RECOVERY_AUTO_START)) {
 
-      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.getFailedOn().add(request.getClusterName());
-
+      result.setFailReason(getFailReason(result, request));
+      result.setStatus(UpgradeCheckStatus.FAIL);
+      result.getFailedOn().add(request.getClusterInformation().getClusterName());
     }
+
+    return result;
   }
 }

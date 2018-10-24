@@ -22,19 +22,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.spi.ClusterInformation;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.RepositoryVersion;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,7 +63,12 @@ public class ServicesMaintenanceModeCheckTest {
   private VersionDefinitionXml m_vdfXml;
 
   @Mock
-  private RepositoryVersionEntity m_repositoryVersion;
+  private RepositoryVersion m_repositoryVersion;
+
+  @Mock
+  private RepositoryVersionEntity m_repositoryVersionEntity;
+
+  private MockCheckHelper m_checkHelper = new MockCheckHelper();
 
   final Map<String, Service> m_services = new HashMap<>();
 
@@ -71,24 +79,23 @@ public class ServicesMaintenanceModeCheckTest {
   public void setup() throws Exception {
     m_services.clear();
 
-    Mockito.when(m_repositoryVersion.getType()).thenReturn(RepositoryType.STANDARD);
-    Mockito.when(m_repositoryVersion.getVersion()).thenReturn("2.2.0.0-1234");
-    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.2"));
-    Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
-    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
+    StackId stackId = new StackId("HDP", "1.0");
+    String version = "1.0.0.0-1234";
+
+    Mockito.when(m_repositoryVersion.getId()).thenReturn(1L);
+    Mockito.when(m_repositoryVersion.getRepositoryType()).thenReturn(RepositoryType.STANDARD);
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(stackId.toString());
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn(version);
+
+    Mockito.when(m_repositoryVersionEntity.getType()).thenReturn(RepositoryType.STANDARD);
+    Mockito.when(m_repositoryVersionEntity.getVersion()).thenReturn("2.2.0.0-1234");
+    Mockito.when(m_repositoryVersionEntity.getStackId()).thenReturn(new StackId("HDP", "2.2"));
+    Mockito.when(m_repositoryVersionEntity.getRepositoryXml()).thenReturn(m_vdfXml);
+    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class), Mockito.any(AmbariMetaInfo.class))).thenReturn(m_clusterVersionSummary);
     Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
-  }
 
-  @Test
-  public void testIsApplicable() throws Exception {
-    PrereqCheckRequest checkRequest = new PrereqCheckRequest("c1");
-    checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
-    checkRequest.setTargetRepositoryVersion(m_repositoryVersion);
-
-    ServicesMaintenanceModeCheck smmc = new ServicesMaintenanceModeCheck();
-    Configuration config = Mockito.mock(Configuration.class);
-    smmc.config = config;
-    Assert.assertTrue(smmc.isApplicable(checkRequest));
+    m_checkHelper.m_clusters = clusters;
+    Mockito.when(m_checkHelper.m_repositoryVersionDAO.findByPK(Mockito.anyLong())).thenReturn(m_repositoryVersionEntity);
   }
 
   @Test
@@ -109,6 +116,15 @@ public class ServicesMaintenanceModeCheckTest {
       }
     };
 
+    m_checkHelper.setMetaInfoProvider(servicesMaintenanceModeCheck.ambariMetaInfo);
+
+    servicesMaintenanceModeCheck.checkHelperProvider = new Provider<CheckHelper>() {
+    @Override
+    public CheckHelper get() {
+      return m_checkHelper;
+    }
+  };
+
     final Cluster cluster = Mockito.mock(Cluster.class);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP", "2.2"));
@@ -119,17 +135,17 @@ public class ServicesMaintenanceModeCheckTest {
 
     // We don't bother checking service desired state as it's performed by a separate check
     Mockito.when(service.getDesiredState()).thenReturn(State.UNKNOWN);
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
 
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setTargetRepositoryVersion(m_repositoryVersion);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
+        m_repositoryVersion, null);
 
-    servicesMaintenanceModeCheck.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    UpgradeCheckResult check = servicesMaintenanceModeCheck.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
 
     Mockito.when(service.getDesiredState()).thenReturn(State.STARTED);
-    check = new PrerequisiteCheck(null, null);
-    servicesMaintenanceModeCheck.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+
+    check = servicesMaintenanceModeCheck.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
   }
 }

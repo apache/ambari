@@ -39,16 +39,15 @@ import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
@@ -56,6 +55,9 @@ import org.apache.ambari.server.security.credential.Credential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.stack.upgrade.Direction;
+import org.apache.ambari.server.stack.upgrade.UpgradePack;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -63,16 +65,17 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
-import org.apache.ambari.server.state.UpgradeHelper;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
+import org.apache.ambari.spi.ClusterInformation;
+import org.apache.ambari.spi.RepositoryVersion;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -93,75 +96,70 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
 
   @Test
   public void testMissingCredentialStoreKerberosEnabledManagingIdentities() throws Exception {
-    PrerequisiteCheck result = executeCheck(true, true, false, false);
-    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
+    UpgradeCheckResult result = executeCheck(true, true, false, false);
+    Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
     Assert.assertTrue(result.getFailReason().startsWith("Ambari's credential store has not been configured."));
   }
 
   @Test
   public void testMissingCredentialStoreKerberosEnabledNotManagingIdentities() throws Exception {
-    PrerequisiteCheck result = executeCheck(true, false, false, false);
-    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    UpgradeCheckResult result = executeCheck(true, false, false, false);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, result.getStatus());
   }
 
   @Test
   public void testMissingCredentialStoreKerberosNotEnabled() throws Exception {
-    PrerequisiteCheck result = executeCheck(false, false, false, false);
-    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    UpgradeCheckResult result = executeCheck(false, false, false, false);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, result.getStatus());
   }
 
   @Test
   public void testMissingCredentialKerberosEnabledManagingIdentities() throws Exception {
-    PrerequisiteCheck result = executeCheck(true, true, true, false);
-    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
+    UpgradeCheckResult result = executeCheck(true, true, true, false);
+    Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
     Assert.assertTrue(result.getFailReason().startsWith("The KDC administrator credential has not been stored in the persisted credential store."));
   }
 
   @Test
   public void testMissingCredentialKerberosEnabledNotManagingIdentities() throws Exception {
-    PrerequisiteCheck result = executeCheck(true, false, true, false);
-    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    UpgradeCheckResult result = executeCheck(true, false, true, false);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, result.getStatus());
   }
 
   @Test
   public void testMissingCredentialKerberosNotEnabled() throws Exception {
-    PrerequisiteCheck result = executeCheck(false, true, true, false);
-    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    UpgradeCheckResult result = executeCheck(false, true, true, false);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, result.getStatus());
   }
 
   @Test
   public void testCredentialsSetKerberosNotEnabled() throws Exception {
-    PrerequisiteCheck result = executeCheck(false, false, true, true);
-    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    UpgradeCheckResult result = executeCheck(false, false, true, true);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, result.getStatus());
   }
 
   @Test
   public void testCredentialsSetKerberosEnabledNotManagingIdentities() throws Exception {
-    PrerequisiteCheck result = executeCheck(true, false, true, true);
-    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    UpgradeCheckResult result = executeCheck(true, false, true, true);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, result.getStatus());
   }
 
   @Test
   public void testCredentialsSetKerberosEnabledManagingIdentities() throws Exception {
-    PrerequisiteCheck result = executeCheck(true, true, true, true);
-    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    UpgradeCheckResult result = executeCheck(true, true, true, true);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, result.getStatus());
   }
 
-  private PrerequisiteCheck executeCheck(boolean kerberosEnabled, boolean manageIdentities, boolean credentialStoreInitialized, boolean credentialSet) throws Exception {
+  private UpgradeCheckResult executeCheck(boolean kerberosEnabled, boolean manageIdentities, boolean credentialStoreInitialized, boolean credentialSet) throws Exception {
 
     String clusterName = "c1";
 
     Map<String, String> checkProperties = new HashMap<>();
+    RepositoryVersion repositoryVersion = createNiceMock(RepositoryVersion.class);
 
-    UpgradePack.PrerequisiteCheckConfig prerequisiteCheckConfig = createMock(UpgradePack.PrerequisiteCheckConfig.class);
-    expect(prerequisiteCheckConfig.getCheckProperties(KerberosAdminPersistedCredentialCheck.class.getName())).andReturn(checkProperties).anyTimes();
-
-    PrerequisiteCheck prerequisiteCheck = new PrerequisiteCheck(null, null);
-    PrereqCheckRequest request = new PrereqCheckRequest(clusterName);
-
-    RepositoryVersionEntity repositoryVersion = new RepositoryVersionEntity();
-    request.setTargetRepositoryVersion(repositoryVersion);
-    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
+    ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
+        repositoryVersion, checkProperties);
 
     expect(upgradeHelper.suggestUpgradePack(eq(clusterName), anyObject(), anyObject(), eq(Direction.UPGRADE), eq(UpgradeType.ROLLING), anyObject()))
       .andReturn(upgradePackWithRegenKeytab()).anyTimes();
@@ -178,6 +176,7 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
     expect(cluster.getSecurityType()).andReturn(kerberosEnabled ? SecurityType.KERBEROS : SecurityType.NONE).anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigs).anyTimes();
     expect(cluster.getConfig("kerberos-env", "tag")).andReturn(kerberosEnv).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(createNiceMock(StackId.class)).anyTimes();
 
     Clusters clusters = createMock(Clusters.class);
     expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
@@ -199,11 +198,11 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
     injector.injectMembers(check);
 
     check.clustersProvider = clustersProvider;
-    check.perform(prerequisiteCheck, request);
+    UpgradeCheckResult result = check.perform(request);
 
     verifyAll();
 
-    return prerequisiteCheck;
+    return result;
   }
 
   private UpgradePack upgradePackWithRegenKeytab() {
@@ -218,7 +217,7 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
       @Override
       protected void configure() {
         PartialNiceMockBinder.newBuilder().addActionDBAccessorConfigsBindings().addFactoriesInstallBinding()
-            .build().configure(binder());
+            .addPasswordEncryptorBindings().build().configure(binder());
 
         bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionSchedulerImpl.class));
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
@@ -246,6 +245,7 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
         bind(UpgradeHelper.class).toInstance(upgradeHelper);
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
 
         bind(CredentialStoreService.class).toInstance(createMock(CredentialStoreService.class));
       }

@@ -25,20 +25,25 @@ import static org.apache.ambari.server.state.AlertState.WARNING;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
+import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeCheckType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -48,29 +53,37 @@ import com.google.inject.Singleton;
  * That is a potential problem when doing stack update.
  */
 @Singleton
-@UpgradeCheck(
+@UpgradeCheckInfo(
     group = UpgradeCheckGroup.DEFAULT,
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
-public class HealthCheck extends AbstractCheckDescriptor {
+public class HealthCheck extends ClusterCheck {
 
   private static final List<AlertState> ALERT_STATES = asList(WARNING, CRITICAL);
 
   @Inject
   Provider<AlertsDAO> alertsDAOProvider;
 
+  static final UpgradeCheckDescription HEALTH = new UpgradeCheckDescription("HEALTH",
+      UpgradeCheckType.CLUSTER,
+      "Cluster Health",
+      new ImmutableMap.Builder<String, String>()
+        .put(UpgradeCheckDescription.DEFAULT,
+            "The following issues have been detected on this cluster and should be addressed before upgrading: %s").build());
+
   /**
    * Constructor.
    */
   public HealthCheck() {
-    super(CheckDescription.HEALTH);
+    super(HEALTH);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+  public UpgradeCheckResult perform(UpgradeCheckRequest request)
       throws AmbariException {
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
 
     AlertsDAO alertsDAO = alertsDAOProvider.get();
     final String clusterName = request.getClusterName();
@@ -92,17 +105,19 @@ public class HealthCheck extends AbstractCheckDescriptor {
         } else {
           errorMessages.add(state + ": " + label + ": " + hostName);
         }
-        prerequisiteCheck.getFailedDetail().add(new AlertDetail(state, label, hostName));
+        result.getFailedDetail().add(new AlertDetail(state, label, hostName));
       }
     }
 
     if (!errorMessages.isEmpty()) {
-      prerequisiteCheck.getFailedOn().add(clusterName);
-      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
-      String failReason = getFailReason(prerequisiteCheck, request);
-      prerequisiteCheck.setFailReason(
+      result.getFailedOn().add(clusterName);
+      result.setStatus(UpgradeCheckStatus.WARNING);
+      String failReason = getFailReason(result, request);
+      result.setFailReason(
           String.format(failReason, StringUtils.join(errorMessages, System.lineSeparator())));
     }
+
+    return result;
   }
 
   /**

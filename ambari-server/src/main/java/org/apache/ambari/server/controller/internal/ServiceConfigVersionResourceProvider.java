@@ -100,7 +100,7 @@ public class ServiceConfigVersionResourceProvider extends
   /**
    * The primary key property ids for the service config version resource type.
    */
-  private static Set<String> pkPropertyIds =
+  private static final Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
             CLUSTER_NAME_PROPERTY_ID,
             SERVICE_NAME_PROPERTY_ID}));

@@ -40,6 +40,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -122,31 +125,31 @@ public class BlueprintConfigurationProcessor {
   /**
    * Single host topology updaters
    */
-  protected static Map<String, Map<String, PropertyUpdater>> singleHostTopologyUpdaters =
+  protected static final Map<String, Map<String, PropertyUpdater>> singleHostTopologyUpdaters =
     new HashMap<>();
 
   /**
    * Multi host topology updaters
    */
-  private static Map<String, Map<String, PropertyUpdater>> multiHostTopologyUpdaters =
+  private static final Map<String, Map<String, PropertyUpdater>> multiHostTopologyUpdaters =
     new HashMap<>();
 
   /**
    * Database host topology updaters
    */
-  private static Map<String, Map<String, PropertyUpdater>> dbHostTopologyUpdaters =
+  private static final Map<String, Map<String, PropertyUpdater>> dbHostTopologyUpdaters =
     new HashMap<>();
 
   /**
    * Updaters for properties which need 'm' appended
    */
-  private static Map<String, Map<String, PropertyUpdater>> mPropertyUpdaters =
+  private static final Map<String, Map<String, PropertyUpdater>> mPropertyUpdaters =
     new HashMap<>();
 
   /**
    * Non topology related updaters
    */
-  private static Map<String, Map<String, PropertyUpdater>> nonTopologyUpdaters =
+  private static final Map<String, Map<String, PropertyUpdater>> nonTopologyUpdaters =
     new HashMap<>();
 
   /**
@@ -155,24 +158,24 @@ public class BlueprintConfigurationProcessor {
    * removed from export, but do not require an update during
    * cluster creation
    */
-  private Map<String, Map<String, PropertyUpdater>> removePropertyUpdaters =
+  private final Map<String, Map<String, PropertyUpdater>> removePropertyUpdaters =
     new HashMap<>();
 
   /**
    * Collection of all updaters
    */
-  private static Collection<Map<String, Map<String, PropertyUpdater>>> allUpdaters =
+  private static final Collection<Map<String, Map<String, PropertyUpdater>>> allUpdaters =
     new ArrayList<>();
 
   /**
    * Compiled regex for hostgroup token with port information.
    */
-  private static Pattern HOSTGROUP_PORT_REGEX = Pattern.compile("%HOSTGROUP::(\\S+?)%:?(\\d+)?");
+  private static final Pattern HOSTGROUP_PORT_REGEX = Pattern.compile("%HOSTGROUP::(\\S+?)%:?(\\d+)?");
 
   /**
    * Compiled regex for hostgroup token with port information.
    */
-  private static Pattern LOCALHOST_PORT_REGEX = Pattern.compile("localhost:?(\\d+)?");
+  private static final Pattern LOCALHOST_PORT_REGEX = Pattern.compile("localhost:?(\\d+)?");
 
   /**
    * Compiled regex for placeholder
@@ -182,7 +185,7 @@ public class BlueprintConfigurationProcessor {
   /**
    * Special network address
    */
-  private static String BIND_ALL_IP_ADDRESS = "0.0.0.0";
+  private static final String BIND_ALL_IP_ADDRESS = "0.0.0.0";
 
   /**
    * Statically-defined set of properties that can support HA using a nameservice name
@@ -190,7 +193,7 @@ public class BlueprintConfigurationProcessor {
    *   This set also contains other HA properties that will be exported if the
    *   expected hostname information is not found.
    */
-  private static Set<String> configPropertiesWithHASupport =
+  private static final Set<String> configPropertiesWithHASupport =
     new HashSet<>(Arrays.asList("fs.defaultFS", "hbase.rootdir", "instance.volumes", "policymgr_external_url", "xasecure.audit.destination.hdfs.dir"));
 
   /**
@@ -2288,8 +2291,6 @@ public class BlueprintConfigurationProcessor {
                                          Map<String, Map<String, String>> properties,
                                          ClusterTopology topology) {
 
-      StringBuilder sb = new StringBuilder();
-
       if (!origValue.contains("%HOSTGROUP") && (!origValue.contains("localhost"))) {
         // this property must contain FQDNs specified directly by the user
         // of the Blueprint, so the processor should not attempt to update them
@@ -3377,7 +3378,7 @@ public class BlueprintConfigurationProcessor {
    *          to this).
    * @throws ConfigurationTopologyException
    */
-  private void setStackToolsAndFeatures(Configuration configuration, Set<String> configTypesUpdated)
+  protected void setStackToolsAndFeatures(Configuration configuration, Set<String> configTypesUpdated)
     throws ConfigurationTopologyException {
     ConfigHelper configHelper = clusterTopology.getAmbariContext().getConfigHelper();
     Stack stack = clusterTopology.getBlueprint().getStack();
@@ -3386,8 +3387,10 @@ public class BlueprintConfigurationProcessor {
 
     StackId stackId = new StackId(stackName, stackVersion);
 
-    Set<String> properties = Sets.newHashSet(ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY,
-      ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY, ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
+    Set<String> properties = Sets.newHashSet(
+      ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY,
+      ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY,
+      ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
       ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY,
       ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY);
 
@@ -3397,16 +3400,33 @@ public class BlueprintConfigurationProcessor {
 
       for( String property : properties ){
         if (clusterEnvDefaultProperties.containsKey(property)) {
-          configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property,
-            clusterEnvDefaultProperties.get(property));
-
-          // make sure to include the configuration type as being updated
-          configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
+          String newValue = clusterEnvDefaultProperties.get(property);
+          String previous = configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property, newValue);
+          if (!Objects.equals(
+            trimValue(previous, stack, CLUSTER_ENV_CONFIG_TYPE_NAME, property),
+            trimValue(newValue, stack, CLUSTER_ENV_CONFIG_TYPE_NAME, property))) {
+            // in case a property is updated make sure to include cluster-env as being updated
+            configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
+          }
         }
       }
     } catch( AmbariException ambariException ){
       throw new ConfigurationTopologyException("Unable to retrieve the stack tools and features",
         ambariException);
+    }
+  }
+
+  private @Nullable String trimValue(@Nullable String value,
+                                     @NotNull Stack stack,
+                                     @NotNull String configType,
+                                     @NotNull String propertyName) {
+    if (null == value) {
+      return null;
+    }
+    else {
+      TrimmingStrategy trimmingStrategy =
+        PropertyValueTrimmingStrategyDefiner.defineTrimmingStrategy(stack, propertyName, configType);
+      return trimmingStrategy.trim(value);
     }
   }
 

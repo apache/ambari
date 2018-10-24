@@ -23,6 +23,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 public class BatchSettings {
   private Integer batchSeparationInSeconds;
   private Integer taskFailureTolerance;
+  private Integer taskFailureTolerancePerBatch;
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
   @JsonProperty("batch_separation_in_seconds")
@@ -44,4 +45,13 @@ public class BatchSettings {
     this.taskFailureTolerance = taskFailureTolerance;
   }
 
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonProperty("task_failure_tolerance_limit_per_batch")
+  public Integer getTaskFailureToleranceLimitPerBatch() {
+    return taskFailureTolerancePerBatch;
+  }
+
+  public void setTaskFailureToleranceLimitPerBatch(Integer taskFailureTolerancePerBatch) {
+    this.taskFailureTolerancePerBatch = taskFailureTolerancePerBatch;
+  }
 }

@@ -98,10 +98,19 @@ class RecoveryManager:
     self.active_command_count = 0
     self.cluster_id = None
     self.initializer_module = initializer_module
-    self.metadata_cache = initializer_module.metadata_cache
+    self.host_level_params_cache = initializer_module.host_level_params_cache
 
     self.actions = {}
     self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, auto_install_start)
+
+    # FIXME: Recovery manager does not support multiple clusters as of now.
+    if len(self.initializer_module.configurations_cache):
+      self.cluster_id = self.initializer_module.configurations_cache.keys()[0]
+      self.on_config_update()
+
+    if len(self.initializer_module.host_level_params_cache):
+      self.cluster_id = self.initializer_module.host_level_params_cache.keys()[0]
+      self.update_recovery_config(self.host_level_params_cache[self.cluster_id])
 
   def on_execution_command_start(self):
     with self.__active_command_lock:
@@ -111,9 +120,9 @@ class RecoveryManager:
     with self.__active_command_lock:
       self.active_command_count -= 1
 
-  def is_blueprint_provisioning(self):
+  def is_blueprint_provisioning_for_component(self, component_name):
     try:
-      blueprint_state = self.metadata_cache[self.cluster_id]['clusterLevelParams']['blueprint_provisioning_state']
+      blueprint_state = self.host_level_params_cache[self.cluster_id]['blueprint_provisioning_state'][component_name]
     except KeyError:
       blueprint_state = 'NONE'
 
@@ -165,7 +174,6 @@ class RecoveryManager:
           component_status = copy.deepcopy(self.default_component_status)
           component_status["current"] = state
           self.statuses[component] = component_status
-          logger.info("New status, current status is set to %s for %s", self.statuses[component]["current"], component)
       finally:
         self.__status_lock.release()
       pass
@@ -650,7 +658,7 @@ class RecoveryManager:
       logger.info("Recovery is paused, tasks waiting in pipeline for this host.")
       return None
 
-    if self.is_blueprint_provisioning():
+    if self.is_blueprint_provisioning_for_component(component):
       logger.info("Recovery is paused, blueprint is being provisioned.")
       return None
 

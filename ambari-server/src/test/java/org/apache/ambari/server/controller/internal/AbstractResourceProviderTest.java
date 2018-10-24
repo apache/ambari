@@ -838,7 +838,7 @@ public class AbstractResourceProviderTest {
   public static class TestResourceProvider extends AbstractResourceProvider {
 
     protected TestResourceProvider() {
-      super(propertyIds, keyPropertyIds);
+      super(propertyIds, AbstractResourceProviderTest.keyPropertyIds);
     }
 
     @Override

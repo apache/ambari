@@ -92,14 +92,14 @@ class TestUpdateRepo(TestCase):
       updateRepo.actionexecute(None)
 
     self.assertTrue(file_mock.called)
-    self.assertEquals(file_mock.call_args[0][0], "/etc/yum.repos.d/HDP-UTILS.repo")
+    self.assertEquals(file_mock.call_args[0][0], "/etc/yum.repos.d/HDP.repo")
     self.assertEquals(structured_out_mock.call_args[0][0], {'repo_update': {'message': 'Repository files successfully updated!', 'exit_code': 0}})
 
     ###### invalid repo info
     file_mock.reset_mock()
     failed = False
     mock_config.return_value = { "configurations": {
-                                        "cluster-env": {
+                                        "clugit ster-env": {
                                                 "repo_suse_rhel_template": "REPO_SUSE_RHEL_TEST_TEMPLATE",
                                                 "repo_ubuntu_template": "REPO_UBUNTU_TEMPLATE"
                                         }

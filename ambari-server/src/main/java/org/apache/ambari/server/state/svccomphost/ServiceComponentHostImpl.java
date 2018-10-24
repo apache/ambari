@@ -31,6 +31,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -61,6 +62,8 @@ import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.stack.upgrade.RepositoryVersionHelper;
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -85,7 +88,6 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
-import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,6 +141,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Inject
   private Provider<TopologyHolder> m_topologyHolder;
+
+  @Inject
+  private Provider<HostLevelParamsHolder> m_hostLevelParamsHolder;
 
   /**
    * Used for creating commands to send to the agents when alert definitions are
@@ -908,39 +913,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     HostComponentStateEntity stateEntity = getStateEntity();
     if (stateEntity != null) {
       stateEntity.setCurrentState(state);
-      if (state != State.UNKNOWN) {
-        stateEntity.setLastLiveState(state);
-      }
       stateEntity = hostComponentStateDAO.merge(stateEntity);
       if (!oldState.equals(state)) {
         STOMPUpdatePublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
             HostComponentUpdate.createHostComponentStatusUpdate(stateEntity, oldState))));
       }
-    } else {
-      LOG.warn("Setting a member on an entity object that may have been "
-          + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
-          + getServiceComponentName() + ", " + "hostName = " + getHostName());
-    }
-  }
-
-  @Override
-  public State getLastValidState() {
-    HostComponentStateEntity stateEntity = getStateEntity();
-    if (stateEntity != null) {
-      return stateEntity.getLastLiveState();
-    }
-    return State.UNKNOWN;
-  }
-
-  @Override
-  public void setLastValidState(State state) {
-    if (state == State.UNKNOWN) {
-      return;
-    }
-    HostComponentStateEntity stateEntity = getStateEntity();
-    if (stateEntity != null) {
-      stateEntity.setLastLiveState(state);
-      hostComponentStateDAO.merge(stateEntity);
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
           + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
@@ -1043,6 +1020,14 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           STOMPUpdatePublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
               HostComponentUpdate.createHostComponentStatusUpdate(stateEntity, oldState))));
         }
+        if (event.getType().equals(ServiceComponentHostEventType.HOST_SVCCOMP_START)) {
+          HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
+          if (desiredStateEntity.getBlueprintProvisioningState() == BlueprintProvisioningState.IN_PROGRESS) {
+            desiredStateEntity.setBlueprintProvisioningState(BlueprintProvisioningState.FINISHED);
+            hostComponentDesiredStateDAO.merge(desiredStateEntity);
+            m_hostLevelParamsHolder.get().updateData(m_hostLevelParamsHolder.get().getCurrentData(getHost().getHostId()));
+          }
+        }
         // TODO Audit logs
       } catch (InvalidStateTransitionException e) {
         LOG.error("Can't handle ServiceComponentHostEvent event at"
@@ -1053,6 +1038,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
             + ", eventType=" + event.getType()
             + ", event=" + event);
         throw e;
+      } catch (AmbariException e) {
+        LOG.error("Can't update topology on hosts on ServiceComponentHostEvent event: "
+            + "serviceComponentName=" + getServiceComponentName()
+            + ", hostName=" + getHostName()
+            + ", currentState=" + oldState
+            + ", eventType=" + event.getType()
+            + ", event=" + event);
       }
     } finally {
       writeLock.unlock();
@@ -1260,6 +1252,16 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       LOG.error("Could not determine stale config", e);
     }
 
+    try {
+      Cluster cluster = clusters.getCluster(clusterName);
+      ServiceComponent serviceComponent = cluster.getService(serviceName).getServiceComponent(serviceComponentName);
+      ServiceComponentHost sch = serviceComponent.getServiceComponentHost(hostName);
+      String refreshConfigsCommand = helper.getRefreshConfigsCommand(cluster,sch);
+      r.setReloadConfig(refreshConfigsCommand != null);
+    } catch (Exception e) {
+      LOG.error("Could not determine reload config flag", e);
+    }
+
     return r;
   }
 
@@ -1285,16 +1287,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       }
     } else {
       r.setStaleConfig(false);
-    }
-
-    try {
-      Cluster cluster = clusters.getCluster(clusterName);
-      ServiceComponent serviceComponent = cluster.getService(serviceName).getServiceComponent(serviceComponentName);
-      ServiceComponentHost sch = serviceComponent.getServiceComponentHost(hostName);
-      String refreshConfigsCommand = helper.getRefreshConfigsCommand(cluster,sch);
-      r.setReloadConfig(refreshConfigsCommand != null);
-    } catch (Exception e) {
-      LOG.error("Could not determine reload config flag", e);
     }
 
     return r;

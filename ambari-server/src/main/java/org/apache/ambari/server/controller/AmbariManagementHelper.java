@@ -76,7 +76,6 @@ public class AmbariManagementHelper {
 
     try {
       linkDAO.create(linkEntity);
-      linkEntity = linkDAO.merge(linkEntity);
     } catch (RollbackException e) {
       String message = "Unable to create extension link";
       LOG.debug(message, e);

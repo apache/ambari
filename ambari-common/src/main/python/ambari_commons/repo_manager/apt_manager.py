@@ -67,8 +67,6 @@ class AptManagerProperties(GenericManagerProperties):
 
   install_cmd_env = {'DEBIAN_FRONTEND': 'noninteractive'}
 
-  check_cmd = pkg_manager_bin + " --get-selections | grep -v deinstall | awk '{print $1}' | grep ^%s$"
-
   repo_url_exclude = "ubuntu.com"
   configuration_dump_cmd = [AMBARI_SUDO_BINARY, "apt-config", "dump"]
 
@@ -215,7 +213,7 @@ class AptManager(GenericManager):
     pattern = re.compile("has missing dependency|E:")
 
     if r.code or (r.out and pattern.search(r.out)):
-      err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '%s' returned %s. %s" % (VERIFY_DEPENDENCY_CMD, code, out))
+      err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '%s' returned %s. %s" % (self.properties.verify_dependency_cmd, r.code, r.out))
       Logger.error(err_msg)
       return False
 
@@ -237,7 +235,7 @@ class AptManager(GenericManager):
 
     if not name:
       raise ValueError("Installation command was executed with no package name")
-    elif context.is_upgrade or context.use_repos or not self._check_existence(name):
+    elif not self._check_existence(name) or context.action_force:
       cmd = self.properties.install_cmd[context.log_output]
       copied_sources_files = []
       is_tmp_dir_created = False
@@ -251,7 +249,7 @@ class AptManager(GenericManager):
         if use_repos:
           is_tmp_dir_created = True
           apt_sources_list_tmp_dir = tempfile.mkdtemp(suffix="-ambari-apt-sources-d")
-          Logger.info("Temporary sources directory was created: %s" % apt_sources_list_tmp_dir)
+          Logger.info("Temporary sources directory was created: {}".format(apt_sources_list_tmp_dir))
 
           for repo in use_repos:
             new_sources_file = os.path.join(apt_sources_list_tmp_dir, repo + '.list')
@@ -327,6 +325,12 @@ class AptManager(GenericManager):
     apt-get in inconsistant state (locked, used, having invalid repo). Once packages are installed
     we should not rely on that.
     """
+    # this method is more optimised than #installed_packages, as here we do not call available packages(as we do not
+    # interested in repository, from where package come)
+    cmd = self.properties.installed_packages_cmd + [name]
 
-    r = shell.subprocess_executor(self.properties.check_cmd % name)
-    return not bool(r.code)
+    with shell.process_executor(cmd, strategy=shell.ReaderStrategy.BufferedChunks, silent=True) as output:
+      for package, version in AptParser.packages_installed_reader(output):
+        return package == name
+
+    return False

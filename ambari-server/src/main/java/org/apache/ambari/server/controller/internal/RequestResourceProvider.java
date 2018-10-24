@@ -21,6 +21,10 @@ import static org.apache.ambari.server.controller.internal.HostComponentResource
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.COMPONENT_NAME;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_NAME;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.SERVICE_NAME;
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.AMBARI_VIEW_STATUS_INFO;
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.CLUSTER_VIEW_STATUS_INFO;
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.HOST_VIEW_STATUS_INFO;
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.SERVICE_VIEW_STATUS_INFO;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -147,7 +151,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   /**
    * The key property ids for a Request resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Request, REQUEST_ID_PROPERTY_ID)
       .put(Resource.Type.Cluster, REQUEST_CLUSTER_NAME_PROPERTY_ID)
       .build();
@@ -256,9 +260,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
             }
           } else {
             // A custom action has been requested
-            ActionDefinition actionDefinition = (actionName == null)
-                ? null
-                : getManagementController().getAmbariMetaInfo().getActionDefinition(actionName);
+            ActionDefinition actionDefinition = getManagementController().getAmbariMetaInfo().getActionDefinition(actionName);
 
             Set<RoleAuthorization> permissions = (actionDefinition == null)
                 ? null
@@ -295,9 +297,9 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     Boolean ascOrder = (ascOrderRaw == null ? null : Boolean.parseBoolean(ascOrderRaw));
 
     if (null == predicate) {
+      authorizeGetResources(null);
       // the no-arg call to /requests is here
-      resources.addAll(
-          getRequestResources(null, null, null, maxResults, ascOrder, requestedIds));
+      resources.addAll(getRequestResources(null, null, null, maxResults, ascOrder, requestedIds));
     } else {
       // process /requests with a predicate
       // process /clusters/[cluster]/requests
@@ -316,12 +318,30 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
           requestStatus = (String) properties.get(REQUEST_STATUS_PROPERTY_ID);
         }
 
+        authorizeGetResources(clusterName);
         resources.addAll(getRequestResources(clusterName, requestId, requestStatus, maxResults,
             ascOrder, requestedIds));
       }
     }
 
     return resources;
+  }
+
+  private void authorizeGetResources(String clusterName) throws NoSuchParentResourceException, AuthorizationException {
+    final boolean ambariLevelRequest = StringUtils.isBlank(clusterName);
+    final ResourceType resourceType = ambariLevelRequest ? ResourceType.AMBARI : ResourceType.CLUSTER;
+    Long resourceId;
+    try {
+      resourceId = ambariLevelRequest ? null : getClusterResourceId(clusterName);
+    } catch (AmbariException e) {
+      throw new NoSuchParentResourceException("Error while fetching cluster resource ID", e);
+    }
+    final Set<RoleAuthorization> requiredAuthorizations = ambariLevelRequest ? Sets.newHashSet(AMBARI_VIEW_STATUS_INFO)
+        : Sets.newHashSet(CLUSTER_VIEW_STATUS_INFO, HOST_VIEW_STATUS_INFO, SERVICE_VIEW_STATUS_INFO);
+
+    if (!AuthorizationHelper.isAuthorized(resourceType, resourceId, requiredAuthorizations)) {
+      throw new AuthorizationException(String.format("The authenticated user is not authorized to fetch request related information."));
+    }
   }
 
   @Override
@@ -401,7 +421,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     // Cluster name may be empty for custom actions
     String clusterNameStr = (String) propertyMap.get(REQUEST_CLUSTER_NAME_PROPERTY_ID);
     String requestIdStr = (String) propertyMap.get(REQUEST_ID_PROPERTY_ID);
-    long requestId = Integer.valueOf(requestIdStr);
+    long requestId = Integer.parseInt(requestIdStr);
     String requestStatusStr = (String) propertyMap.get(REQUEST_STATUS_PROPERTY_ID);
     HostRoleStatus requestStatus = null;
     if (requestStatusStr != null) {

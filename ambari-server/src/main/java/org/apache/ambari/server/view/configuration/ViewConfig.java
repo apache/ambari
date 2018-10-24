@@ -347,7 +347,7 @@ public class ViewConfig {
    * @return the data version
    */
   public int getDataVersion() {
-    return (dataVersion == null) ? 0 : Integer.valueOf(dataVersion);
+    return (dataVersion == null) ? 0 : Integer.parseInt(dataVersion);
   }
 
   /**

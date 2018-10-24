@@ -18,7 +18,6 @@
 package org.apache.ambari.server.controller.utilities;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Collections.singletonList;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -78,7 +77,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   @Test
   public void removesAllKerberosIdentitesOfComponentAfterComponentWasUninstalled() throws Exception {
     installComponent(OOZIE, OOZIE_SERVER, HOST);
-    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER, -1l)), newHashSet("/OOZIE/OOZIE_SERVER/oozie_server1", "/OOZIE/OOZIE_SERVER/oozie_server2"));
+    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER, -1l)), null);
     expectLastCall().once();
     replayAll();
     uninstallComponent(OOZIE, OOZIE_SERVER, HOST);
@@ -86,17 +85,10 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   }
 
   @Test
-  public void skipsRemovingIdentityWhenServiceDoesNotExist() throws Exception {
-    replayAll();
-    uninstallComponent("NO_SUCH_SERVICE", OOZIE_SERVER, HOST);
-    verifyAll();
-  }
-
-  @Test
   public void skipsRemovingIdentityThatIsSharedByPrincipalName() throws Exception {
     installComponent(OOZIE, OOZIE_SERVER, HOST);
     installComponent(OOZIE_2, OOZIE_SERVER_2, HOST);
-    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER, -1l)), newHashSet("/OOZIE/OOZIE_SERVER/oozie_server1"));
+    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER, -1l)), null);
     expectLastCall().once();
     replayAll();
     uninstallComponent(OOZIE, OOZIE_SERVER, HOST);
@@ -107,7 +99,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   public void skipsRemovingIdentityThatIsSharedByKeyTabFilePath() throws Exception {
     installComponent(YARN, RESOURCE_MANAGER, HOST);
     installComponent(YARN_2, RESOURCE_MANAGER_2, HOST);
-    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, YARN, RESOURCE_MANAGER, -1l)), newHashSet("/YARN/RESOURCE_MANAGER/rm_unique"));
+    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, YARN, RESOURCE_MANAGER, -1l)), null);
     expectLastCall().once();
     replayAll();
     uninstallComponent(YARN, RESOURCE_MANAGER, HOST);
@@ -118,16 +110,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   public void skipsRemovingIdentityWhenClusterIsNotKerberized() throws Exception {
     reset(cluster);
     expect(cluster.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
-    expect(cluster.getUpgradeInProgress()).andReturn(null).once();
 
-    replayAll();
-    uninstallComponent(OOZIE, OOZIE_SERVER, HOST);
-    verifyAll();
-  }
-
-  @Test
-  public void skipsRemovingIdentityIfComponentIsStillInstalledOnADifferentHost() throws Exception {
-    installComponent(OOZIE, OOZIE_SERVER, HOST, HOST2);
     replayAll();
     uninstallComponent(OOZIE, OOZIE_SERVER, HOST);
     verifyAll();
@@ -136,7 +119,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   @Test
   public void removesServiceIdentitiesSkipComponentIdentitiesAfterServiceWasUninstalled() throws Exception {
     installComponent(OOZIE, OOZIE_SERVER, HOST);
-    kerberosHelper.deleteIdentities(cluster, hdfsComponents(), newHashSet("/HDFS/hdfs-service"));
+    kerberosHelper.deleteIdentities(cluster, hdfsComponents(), null);
     expectLastCall().once();
     replayAll();
     uninstallService(HDFS, hdfsComponents());
@@ -154,6 +137,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   public void skipsRemovingIdentityWhenClusterIsUpgrading() throws Exception {
     installComponent(OOZIE, OOZIE_SERVER, HOST);
     reset(cluster);
+    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).once();
     expect(cluster.getUpgradeInProgress()).andReturn(createNiceMock(UpgradeEntity.class)).once();
 
     replayAll();

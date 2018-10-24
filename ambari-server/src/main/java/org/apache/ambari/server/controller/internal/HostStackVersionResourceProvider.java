@@ -18,6 +18,8 @@
 package org.apache.ambari.server.controller.internal;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.OVERRIDE_CONFIGS;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.OVERRIDE_STACK_NAME;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -54,12 +56,12 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
@@ -109,7 +111,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
   protected static final String INSTALL_PACKAGES_FULL_NAME = "Install Version";
 
 
-  private static Set<String> pkPropertyIds = Sets.newHashSet(
+  private static final Set<String> pkPropertyIds = Sets.newHashSet(
           HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID,
           HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID,
           HOST_STACK_VERSION_ID_PROPERTY_ID,
@@ -117,7 +119,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
           HOST_STACK_VERSION_VERSION_PROPERTY_ID,
           HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID);
 
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
           HOST_STACK_VERSION_ID_PROPERTY_ID,
           HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID,
           HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID,
@@ -129,7 +131,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
           HOST_STACK_VERSION_FORCE_INSTALL_ON_NON_MEMBER_HOST_PROPERTY_ID,
           HOST_STACK_VERSION_COMPONENT_NAMES_PROPERTY_ID);
 
-  private static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
+  private static final Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
       put(Type.Cluster, HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
       put(Type.Host, HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID);
@@ -441,8 +443,10 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     RequestResourceFilter filter = new RequestResourceFilter(null, null,
             Collections.singletonList(hostName));
 
+    roleParams.put(OVERRIDE_CONFIGS, null);
+    roleParams.put(OVERRIDE_STACK_NAME, null);
     ActionExecutionContext actionContext = new ActionExecutionContext(
-            cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
+            null, INSTALL_PACKAGES_ACTION,
             Collections.singletonList(filter),
             roleParams);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
@@ -527,7 +531,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     req.addStages(Collections.singletonList(stage));
 
     actionContext = new ActionExecutionContext(
-      cluster.getClusterName(), STACK_SELECT_ACTION,
+      null, STACK_SELECT_ACTION,
       Collections.singletonList(filter),
       Collections.emptyMap());
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));

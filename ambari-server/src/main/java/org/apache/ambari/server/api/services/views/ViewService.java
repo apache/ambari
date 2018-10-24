@@ -39,7 +39,6 @@ import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.controller.ViewResponse;
 import org.apache.ambari.server.controller.spi.Resource;
-
 import org.apache.http.HttpStatus;
 
 import io.swagger.annotations.Api;

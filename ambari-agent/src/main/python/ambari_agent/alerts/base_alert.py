@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 AlertUri = namedtuple('AlertUri', 'uri is_ssl_enabled')
 
 class BaseAlert(object):
+  CONFIG_KEY_REGEXP = re.compile('{{(\S+?)}}')
   # will force a kinit even if klist says there are valid tickets (4 hour default)
   _DEFAULT_KINIT_TIMEOUT = 14400000
 
@@ -214,7 +215,7 @@ class BaseAlert(object):
     # parse {{foo-bar/baz}}/whatever/{{foobar-site/blah}}
     # into
     # ['foo-bar/baz', 'foobar-site/blah']
-    placeholder_keys = re.findall("{{(\S+?)}}", key)
+    placeholder_keys = BaseAlert.CONFIG_KEY_REGEXP.findall(key)
 
     # if none found, then return the original
     if placeholder_keys is None or len(placeholder_keys) == 0:

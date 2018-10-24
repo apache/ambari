@@ -579,9 +579,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         );
         expect(controller.upgrade.callCount).to.equal(item.upgradeCalledCount);
         expect(App.showClusterCheckPopup.callCount).to.equal(item.showClusterCheckPopupCalledCount);
-        if (item.check.id === 'CONFIG_MERGE') {
-          expect(App.showClusterCheckPopup.firstCall.args[2]).to.eql(item.configs);
-        }
       });
     });
   });
@@ -2162,6 +2159,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           {
             type: 't0',
             name: 'p0',
+            serviceName: 'HDFS',
             currentValue: 'c0',
             recommendedValue: 'n0',
             isDeprecated: false,
@@ -2172,6 +2170,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           {
             type: 't1',
             name: 'p1',
+            serviceName: 'HDFS',
             currentValue: 'c1',
             recommendedValue: 'n1',
             isDeprecated: false,
@@ -2182,6 +2181,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           {
             type: 't2',
             name: 'p2',
+            serviceName: 'HDFS',
             currentValue: 'c2',
             recommendedValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated'),
             isDeprecated: true,
@@ -2230,6 +2230,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           {
             type: 't0',
             name: 'p0',
+            serviceName: 'HDFS',
             currentValue: 'c0',
             recommendedValue: 'n0',
             isDeprecated: false,
@@ -2240,6 +2241,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           {
             type: 't1',
             name: 'p1',
+            serviceName: 'HDFS',
             currentValue: 'c1',
             recommendedValue: 'n1',
             isDeprecated: false,
@@ -2250,6 +2252,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           {
             type: 't2',
             name: 'p2',
+            serviceName: 'HDFS',
             currentValue: 'c2',
             recommendedValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated'),
             isDeprecated: true,
@@ -2264,6 +2267,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             "recommendedValue": "c2",
             "resultingValue": "c3",
             "type": "t3",
+            serviceName: 'HDFS',
             "wasModified": true,
             "willBeRemoved": false
           }
@@ -2274,7 +2278,9 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
     cases.forEach(function (item) {
       it(item.title, function () {
+        sinon.stub(App.configsCollection, 'getConfigByName').returns({serviceName: 'HDFS'});
         expect(controller.getConfigsWarnings(item.configsMergeWarning)).to.eql(item.configs);
+        App.configsCollection.getConfigByName.restore();
       });
     });
 
@@ -2415,6 +2421,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           {
             type: 'type1',
             name: 'name1',
+            serviceName: 'S1',
             currentValue: 'currentValue1',
             recommendedValue: 'recommendedValue1',
             resultingValue: 'resultingValue1'
@@ -2422,6 +2429,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           {
             type: 'type2',
             name: 'name2',
+            serviceName: 'S2',
             currentValue: 'currentValue2',
             recommendedValue: 'recommendedValue2',
             resultingValue: 'resultingValue2'
@@ -2444,6 +2452,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       /*eslint-disable no-useless-concat */
       expect(mock.document.write.calledWith('<table style="text-align: left;"><thead><tr>' +
         '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.configType') + '</th>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.serviceName') + '</th>' +
         '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.propertyName') + '</th>' +
         '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.currentValue') + '</th>' +
         '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.recommendedValue') + '</th>' +
@@ -2451,6 +2460,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         '</tr></thead><tbody>' +
         '<tr>' +
         '<td>' + 'type1' + '</td>' +
+        '<td>' + 'S1' + '</td>' +
         '<td>' + 'name1' + '</td>' +
         '<td>' + 'currentValue1' + '</td>' +
         '<td>' + 'recommendedValue1' + '</td>' +
@@ -2458,6 +2468,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         '</tr>' +
         '<tr>' +
         '<td>' + 'type2' + '</td>' +
+        '<td>' + 'S2' + '</td>' +
         '<td>' + 'name2' + '</td>' +
         '<td>' + 'currentValue2' + '</td>' +
         '<td>' + 'recommendedValue2' + '</td>' +

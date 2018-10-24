@@ -58,13 +58,13 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.stack.RepoUtil;
+import org.apache.ambari.server.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.RepositoryInfo;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.RepoTag;
-import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
+import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.BooleanUtils;
@@ -613,15 +613,22 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     List<RepositoryInfo> repos = holder.xml.repositoryInfo.getRepositories();
 
+    StackInfo stack = s_metaInfo.get().getStack(stackId);
+
     // Add service repositories (these are not contained by the VDF but are there in the stack model)
-    ListMultimap<String, RepositoryInfo> stackReposByOs =
-        s_metaInfo.get().getStack(stackId.getStackName(), stackId.getStackVersion()).getRepositoriesByOs();
+    ListMultimap<String, RepositoryInfo> stackReposByOs = stack.getRepositoriesByOs();
     repos.addAll(RepoUtil.getServiceRepos(repos, stackReposByOs));
 
     entity.addRepoOsEntities(s_repoVersionHelper.get().createRepoOsEntities(repos));
 
-    entity.setVersion(holder.xml.release.getFullVersion());
-    entity.setDisplayName(stackId, holder.xml.release);
+    entity.setVersion(holder.xml.release.getFullVersion(stack.getReleaseVersion()));
+
+    if (StringUtils.isNotEmpty(holder.xml.release.display)) {
+      entity.setDisplayName(holder.xml.release.display);
+    } else {
+      entity.setDisplayName(stackId.getStackName() + "-" + entity.getVersion());
+    }
+
     entity.setType(holder.xml.release.repositoryType);
     entity.setVersionUrl(holder.url);
     entity.setVersionXml(holder.xmlString);
@@ -658,7 +665,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     }
 
     setResourceProperty(resource, VERSION_DEF_TYPE_PROPERTY_ID, xml.release.repositoryType, requestedIds);
-    setResourceProperty(resource, VERSION_DEF_FULL_VERSION, xml.release.getFullVersion(), requestedIds);
+    setResourceProperty(resource, VERSION_DEF_FULL_VERSION, xml.release.getFullVersion(stack.getReleaseVersion()), requestedIds);
     setResourceProperty(resource, VERSION_DEF_RELEASE_BUILD, xml.release.build, requestedIds);
     setResourceProperty(resource, VERSION_DEF_RELEASE_COMPATIBLE_WITH, xml.release.compatibleWith, requestedIds);
     setResourceProperty(resource, VERSION_DEF_RELEASE_NOTES, xml.release.releaseNotes, requestedIds);

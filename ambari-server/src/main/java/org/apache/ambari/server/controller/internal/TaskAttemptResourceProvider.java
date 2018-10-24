@@ -45,7 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Resource provider for task attempt resources.
@@ -88,7 +88,7 @@ public class TaskAttemptResourceProvider extends
   /**
    * The key property ids for a TaskAttempt resource.
    */
-  protected static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  protected static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Type.Cluster, TASK_ATTEMPT_CLUSTER_NAME_PROPERTY_ID)
       .put(Type.Workflow, TASK_ATTEMPT_WORKFLOW_ID_PROPERTY_ID)
       .put(Type.Job, TASK_ATTEMPT_JOB_ID_PROPERTY_ID)
@@ -98,7 +98,7 @@ public class TaskAttemptResourceProvider extends
   /**
    * The property ids for a TaskAttempt resource.
    */
-  protected static Set<String> propertyIds = Sets.newHashSet(
+  protected static final Set<String> propertyIds = ImmutableSet.of(
       TASK_ATTEMPT_CLUSTER_NAME_PROPERTY_ID,
       TASK_ATTEMPT_WORKFLOW_ID_PROPERTY_ID,
       TASK_ATTEMPT_JOB_ID_PROPERTY_ID,

@@ -196,7 +196,7 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
       }
 
       KerberosKeytabEntity kke = kerberosKeytabDAO.find(destKeytabFilePath);
-      if (!kerberosKeytabDAO.exists(destKeytabFilePath)) {
+      if (kke == null) {
         kke = new KerberosKeytabEntity(destKeytabFilePath);
         kke.setOwnerName(ownerName);
         kke.setOwnerAccess(ownerAccess);
@@ -205,16 +205,25 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
         kerberosKeytabDAO.create(kke);
       }
 
+      KerberosPrincipalEntity kpe = kerberosPrincipalDAO.find(principal.getPrincipal());
+      if(kpe == null) {
+        kpe = new KerberosPrincipalEntity(principal.getPrincipal(), principal.isService(), principal.getCacheFile());
+        kerberosPrincipalDAO.create(kpe);
+      }
+
       for(Map.Entry<String, String> mapping : principal.getServiceMapping().entries()) {
         String serviceName = mapping.getKey();
         String componentName = mapping.getValue();
-        KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(principal.getPrincipal());
-        KerberosKeytabPrincipalEntity entity = kerberosKeytabPrincipalDAO.findOrCreate(kke, hostEntity, principalEntity);
+        KerberosKeytabPrincipalEntity entity = kerberosKeytabPrincipalDAO.findOrCreate(kke, hostEntity, kpe);
         entity.setDistributed(true);
         entity.putServiceMapping(serviceName, componentName);
         kerberosKeytabPrincipalDAO.merge(entity);
+
         kke.addKerberosKeytabPrincipal(entity);
         kerberosKeytabDAO.merge(kke);
+
+        kpe.addKerberosKeytabPrincipal(entity);
+        kerberosPrincipalDAO.merge(kpe);
       }
 
       if (actionLog != null) {

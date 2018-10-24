@@ -28,7 +28,7 @@ import org.apache.ambari.server.controller.spi.Resource;
  */
 public class UpgradeResourceDefinition extends SimpleResourceDefinition {
 
-  public static String SKIP_SERVICE_CHECKS_DIRECTIVE = "skip_service_checks";
+  public static final String SKIP_SERVICE_CHECKS_DIRECTIVE = "skip_service_checks";
 
   /**
    * Constructor.

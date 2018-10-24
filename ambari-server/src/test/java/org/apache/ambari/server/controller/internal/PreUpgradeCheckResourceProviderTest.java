@@ -18,10 +18,9 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.util.Collections;
@@ -35,39 +34,77 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.actionmanager.RequestFactory;
+import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.checks.AbstractCheckDescriptor;
+import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
-import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.checks.UpgradeCheckRegistryProvider;
+import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.AlertsDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.sample.checks.SampleServiceCheck;
+import org.apache.ambari.server.scheduler.ExecutionScheduler;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFileWriterFactory;
+import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriterFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.stack.upgrade.Direction;
+import org.apache.ambari.server.stack.upgrade.UpgradePack;
+import org.apache.ambari.server.stack.upgrade.UpgradePack.PrerequisiteCheckConfig;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeHelper;
+import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.UpgradeHelper;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
-import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeCheckType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.commons.lang3.StringUtils;
+import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -76,16 +113,18 @@ import com.google.inject.Provider;
 /**
  * PreUpgradeCheckResourceProvider tests.
  */
-public class PreUpgradeCheckResourceProviderTest {
+public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
+
+  private static final String TEST_SERVICE_CHECK_CLASS_NAME = "org.apache.ambari.server.sample.checks.SampleServiceCheck";
 
   @Test
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   public void testGetResources() throws Exception{
     Injector injector = createInjector();
     AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
 
     Clusters clusters = injector.getInstance(Clusters.class);
     UpgradeHelper upgradeHelper = injector.getInstance(UpgradeHelper.class);
-    Configuration configuration = injector.getInstance(Configuration.class);
 
     RepositoryVersionDAO repoDao = injector.getInstance(RepositoryVersionDAO.class);
     RepositoryVersionEntity repo = createNiceMock(RepositoryVersionEntity.class);
@@ -98,47 +137,78 @@ public class PreUpgradeCheckResourceProviderTest {
 
     StackId currentStackId = createNiceMock(StackId.class);
     StackId targetStackId = createNiceMock(StackId.class);
-    ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    ambariMetaInfo.init();
+    expectLastCall().anyTimes();
+
+    Config actualConfig = createNiceMock(Config.class);
+    DesiredConfig desiredConfig = createNiceMock(DesiredConfig.class);
+    Map<String, DesiredConfig> configMap = Maps.newHashMap();
+    configMap.put("config-type", desiredConfig);
+
+    expect(desiredConfig.getTag()).andReturn("config-tag-1").atLeastOnce();
+    expect(cluster.getDesiredConfigs()).andReturn(configMap).atLeastOnce();
+    expect(cluster.getConfig("config-type", "config-tag-1")).andReturn(actualConfig).atLeastOnce();
 
     Map<String, Service> allServiceMap = new HashMap<>();
     allServiceMap.put("Service100", service);
+
     Map<String, ServiceInfo> allServiceInfoMap = new HashMap<>();
     allServiceInfoMap.put("Service100", serviceInfo);
 
-    expect(configuration.isUpgradePrecheckBypass()).andReturn(false).anyTimes();
+    ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
+    expect(serviceComponentHost.getServiceName()).andReturn("Service100").atLeastOnce();
+    expect(serviceComponentHost.getServiceComponentName()).andReturn("Component100").atLeastOnce();
+    expect(serviceComponentHost.getHostName()).andReturn("c6401.ambari.apache.org").atLeastOnce();
+    List<ServiceComponentHost> serviceComponentHosts = Lists.newArrayList();
+    serviceComponentHosts.add(serviceComponentHost);
+    expect(cluster.getServiceComponentHosts()).andReturn(serviceComponentHosts).atLeastOnce();
+
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterName()).andReturn("Cluster100").atLeastOnce();
     expect(cluster.getServices()).andReturn(allServiceMap).anyTimes();
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(currentStackId).anyTimes();
 
     expect(currentStackId.getStackName()).andReturn("Stack100").anyTimes();
     expect(currentStackId.getStackVersion()).andReturn("1.0").anyTimes();
+    expect(targetStackId.getStackId()).andReturn("Stack100-1.1").anyTimes();
     expect(targetStackId.getStackName()).andReturn("Stack100").anyTimes();
     expect(targetStackId.getStackVersion()).andReturn("1.1").anyTimes();
 
     expect(repoDao.findByPK(1L)).andReturn(repo).anyTimes();
     expect(repo.getStackId()).andReturn(targetStackId).atLeastOnce();
+    expect(repo.getId()).andReturn(1L).atLeastOnce();
+    expect(repo.getType()).andReturn(RepositoryType.STANDARD).atLeastOnce();
+    expect(repo.getVersion()).andReturn("1.1.0.0").atLeastOnce();
     expect(upgradeHelper.suggestUpgradePack("Cluster100", currentStackId, targetStackId, Direction.UPGRADE, UpgradeType.NON_ROLLING, "upgrade_pack11")).andReturn(upgradePack);
 
-    List<AbstractCheckDescriptor> upgradeChecksToRun = new LinkedList<>();
     List<String> prerequisiteChecks = new LinkedList<>();
-    prerequisiteChecks.add("org.apache.ambari.server.sample.checks.SampleServiceCheck");
+    prerequisiteChecks.add(TEST_SERVICE_CHECK_CLASS_NAME);
     expect(upgradePack.getPrerequisiteCheckConfig()).andReturn(config);
     expect(upgradePack.getPrerequisiteChecks()).andReturn(prerequisiteChecks).anyTimes();
     expect(upgradePack.getTarget()).andReturn("1.1.*.*").anyTimes();
+    expect(upgradePack.getOwnerStackId()).andReturn(targetStackId).atLeastOnce();
+    expect(upgradePack.getType()).andReturn(UpgradeType.ROLLING).atLeastOnce();
 
     expect(ambariMetaInfo.getServices("Stack100", "1.0")).andReturn(allServiceInfoMap).anyTimes();
     String checks = ClassLoader.getSystemClassLoader().getResource("checks").getPath();
     expect(serviceInfo.getChecksFolder()).andReturn(new File(checks));
 
+    ClassLoader classLoader = createNiceMock(ClassLoader.class);
+    Class clazz = SampleServiceCheck.class;
+    expect(classLoader.loadClass(TEST_SERVICE_CHECK_CLASS_NAME)).andReturn(clazz).atLeastOnce();
+
+    StackInfo stackInfo = createNiceMock(StackInfo.class);
+    expect(ambariMetaInfo.getStack(targetStackId)).andReturn(stackInfo).atLeastOnce();
+    expect(stackInfo.getLibraryClassLoader()).andReturn(classLoader).atLeastOnce();
+
     // replay
-    replay(managementController, clusters, cluster, service, serviceInfo, repoDao, repo, upgradeHelper,
-        ambariMetaInfo, upgradePack, config, currentStackId, targetStackId, serviceFactory, configuration);
+    replayAll();
 
     ResourceProvider provider = getPreUpgradeCheckResourceProvider(managementController, injector);
     // create the request
@@ -149,37 +219,40 @@ public class PreUpgradeCheckResourceProviderTest {
         .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(UpgradeType.NON_ROLLING).and()
         .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_TARGET_REPOSITORY_VERSION_ID_ID).equals("1").toPredicate();
 
-
-    System.out.println("PreUpgradeCheckResourceProvider - " + provider);
     Set<Resource> resources = Collections.emptySet();
-    try {
-      resources = provider.getResources(request, predicate);
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
+    resources = provider.getResources(request, predicate);
 
-    Assert.assertEquals(1, resources.size());
+    // make sure all of the checks ran and were returned in the response; some
+    // of the checks are stripped out b/c they don't define any required upgrade
+    // types. The value being asserted here is a combination of built-in checks
+    // which are required for the upgrade type as well as any provided checks
+    // discovered in the stack
+    Assert.assertEquals(20, resources.size());
+
+    // find the service check provided by the library classloader and verify it ran
+    Resource customUpgradeCheck = null;
     for (Resource resource : resources) {
       String id = (String) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_ID_PROPERTY_ID);
-      Assert.assertEquals("SAMPLE_SERVICE_CHECK", id);
-      String description = (String) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CHECK_PROPERTY_ID);
-      Assert.assertEquals("Sample service check description.", description);
-      PrereqCheckStatus status = (PrereqCheckStatus) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_STATUS_PROPERTY_ID);
-      Assert.assertEquals(PrereqCheckStatus.FAIL, status);
-      String reason = (String) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_REASON_PROPERTY_ID);
-      Assert.assertEquals("Sample service check always fails.", reason);
-      PrereqCheckType checkType = (PrereqCheckType) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID);
-      Assert.assertEquals(PrereqCheckType.HOST, checkType);
-      String clusterName = (String) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID);
-      Assert.assertEquals("Cluster100", clusterName);
-      UpgradeType upgradeType = (UpgradeType) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID);
-      Assert.assertEquals(UpgradeType.NON_ROLLING, upgradeType);
+      if (StringUtils.equals(id, "SAMPLE_SERVICE_CHECK")) {
+        customUpgradeCheck = resource;
+        break;
+      }
     }
 
-    // verify
-    verify(managementController, clusters, cluster, service, serviceInfo, repoDao, repo, upgradeHelper,
-            ambariMetaInfo, upgradePack, config, currentStackId, targetStackId, serviceFactory);
+    assertNotNull(customUpgradeCheck);
+
+    String description = (String) customUpgradeCheck.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CHECK_PROPERTY_ID);
+    Assert.assertEquals("Sample service check description.", description);
+    UpgradeCheckStatus status = (UpgradeCheckStatus) customUpgradeCheck.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_STATUS_PROPERTY_ID);
+    Assert.assertEquals(UpgradeCheckStatus.FAIL, status);
+    String reason = (String) customUpgradeCheck.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_REASON_PROPERTY_ID);
+    Assert.assertEquals("Sample service check always fails.", reason);
+    UpgradeCheckType checkType = (UpgradeCheckType) customUpgradeCheck.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID);
+    Assert.assertEquals(UpgradeCheckType.HOST, checkType);
+    String clusterName = (String) customUpgradeCheck.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID);
+    Assert.assertEquals("Cluster100", clusterName);
+    UpgradeType upgradeType = (UpgradeType) customUpgradeCheck.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID);
+    Assert.assertEquals(UpgradeType.NON_ROLLING, upgradeType);
   }
 
   /**
@@ -192,53 +265,61 @@ public class PreUpgradeCheckResourceProviderTest {
     return provider;
   }
 
-  static class TestClustersProvider implements Provider<Clusters> {
-    private static Clusters clusters = createNiceMock(Clusters.class);
-
-    @Override
-    public Clusters get() {
-      return clusters;
-    }
-  }
-
-  static class TestConfigurationProvider implements Provider<Configuration> {
-    private static Configuration configuration = createNiceMock(Configuration.class);
-
-    @Override
-    public Configuration get(){
-      return configuration;
-    }
-  }
-
-  static class TestUpgradeHelperProvider implements Provider<UpgradeHelper> {
-    private static UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
-
-    @Override
-    public UpgradeHelper get() {
-      return upgradeHelper;
-    }
-  }
-
   private Injector createInjector() throws Exception {
     return Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        Provider<Clusters> clustersProvider = new TestClustersProvider();
-        Provider<UpgradeHelper> upgradeHelperProvider = new TestUpgradeHelperProvider();
-        CheckHelper checkHelper = new CheckHelper();
-        UpgradeCheckRegistry registry = new UpgradeCheckRegistry();
 
-        bind(Configuration.class).toProvider(TestConfigurationProvider.class);
-        bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
+      @Override
+      @SuppressWarnings("unchecked")
+      protected void configure() {
+        Clusters clusters = createNiceMock(Clusters.class);
+        Provider<Clusters> clusterProvider = () -> clusters;
+
+        UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
+        Provider<UpgradeHelper> upgradeHelperProvider = () -> upgradeHelper;
+
+        CheckHelper checkHelper = new CheckHelper();
+
         bind(CheckHelper.class).toInstance(checkHelper);
-        bind(Clusters.class).toProvider(TestClustersProvider.class);
-        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
-        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+        bind(Clusters.class).toProvider(clusterProvider);
+        bind(UpgradeCheckRegistry.class).toProvider(UpgradeCheckRegistryProvider.class);
+        bind(UpgradeHelper.class).toProvider(upgradeHelperProvider);
+        bind(KerberosHelper.class).to(KerberosHelperImpl.class);
+        bind(KerberosIdentityDataFileWriterFactory.class).toInstance(createNiceMock(KerberosIdentityDataFileWriterFactory.class));
+        bind(KerberosConfigDataFileWriterFactory.class).toInstance(createNiceMock(KerberosConfigDataFileWriterFactory.class));
+        bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
+        bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
+        bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
+        bind(ActionManager.class).toInstance(createNiceMock(ActionManager.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-        bind(RepositoryVersionDAO.class).toInstance(createNiceMock(RepositoryVersionDAO.class));
+        bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
+        bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
+        bind(ActionDBAccessor.class).toInstance(createNiceMock(ActionDBAccessor.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-        bind(UpgradeCheckRegistry.class).toInstance(registry);
-        bind(UpgradeHelper.class).toProvider(TestUpgradeHelperProvider.class);
+        bind(ConfigFactory.class).toInstance(createNiceMock(ConfigFactory.class));
+        bind(ConfigGroupFactory.class).toInstance(createNiceMock(ConfigGroupFactory.class));
+        bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
+        bind(RequestExecutionFactory.class).toInstance(createNiceMock(RequestExecutionFactory.class));
+        bind(RequestFactory.class).toInstance(createNiceMock(RequestFactory.class));
+        bind(RoleCommandOrderProvider.class).toInstance(createNiceMock(RoleCommandOrderProvider.class));
+        bind(RoleGraphFactory.class).toInstance(createNiceMock(RoleGraphFactory.class));
+        bind(AbstractRootServiceResponseFactory.class).toInstance(createNiceMock(AbstractRootServiceResponseFactory.class));
+        bind(ServiceComponentFactory.class).toInstance(createNiceMock(ServiceComponentFactory.class));
+        bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
+        bind(StageFactory.class).toInstance(createNiceMock(StageFactory.class));
+        bind(HostRoleCommandFactory.class).toInstance(createNiceMock(HostRoleCommandFactory.class));
+        bind(HookContextFactory.class).toInstance(createNiceMock(HookContextFactory.class));
+        bind(HookService.class).toInstance(createNiceMock(HookService.class));
+        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+        bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
+        bind(ConfigureClusterTaskFactory.class).toInstance(createNiceMock(ConfigureClusterTaskFactory.class));
+        bind(TopologyManager.class).toInstance(createNiceMock(TopologyManager.class));
+        bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
+        bind(AlertsDAO.class).toInstance(createNiceMock(AlertsDAO.class));
+        bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));
+        bind(RepositoryVersionDAO.class).toInstance(createNiceMock(RepositoryVersionDAO.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+        Provider<EntityManager> entityManagerProvider = createNiceMock(Provider.class);
+        bind(EntityManager.class).toProvider(entityManagerProvider);
 
         requestStaticInjection(PreUpgradeCheckResourceProvider.class);
       }

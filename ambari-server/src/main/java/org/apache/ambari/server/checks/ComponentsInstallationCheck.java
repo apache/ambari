@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.models.HostComponentSummary;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
@@ -33,32 +33,46 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
+import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeCheckType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 
 /**
  * Checks that service components are installed.
  */
 @Singleton
-@UpgradeCheck(
+@UpgradeCheckInfo(
     group = UpgradeCheckGroup.LIVELINESS,
     order = 2.0f,
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
-public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
+public class ComponentsInstallationCheck extends ClusterCheck {
+
+  static final UpgradeCheckDescription COMPONENTS_INSTALLATION = new UpgradeCheckDescription("COMPONENTS_INSTALLATION",
+      UpgradeCheckType.SERVICE,
+      "All service components must be installed",
+      new ImmutableMap.Builder<String, String>()
+        .put(UpgradeCheckDescription.DEFAULT,
+            "The following Services must be reinstalled: {{fails}}. Try to reinstall the service components in INSTALL_FAILED state.").build());
 
   /**
    * Constructor.
    */
   public ComponentsInstallationCheck() {
-    super(CheckDescription.COMPONENTS_INSTALLATION);
+    super(COMPONENTS_INSTALLATION);
   }
 
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+  public UpgradeCheckResult perform(UpgradeCheckRequest request) throws AmbariException {
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
+
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     Set<String> failedServiceNames = new HashSet<>();
@@ -66,7 +80,7 @@ public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
     // Preq-req check should fail if any service component is in INSTALL_FAILED state
     Set<String> installFailedHostComponents = new HashSet<>();
 
-    Set<String> servicesInUpgrade = getServicesInUpgrade(request);
+    Set<String> servicesInUpgrade = checkHelperProvider.get().getServicesInUpgrade(request);
     for (String serviceName : servicesInUpgrade) {
       final Service service = cluster.getService(serviceName);
       // Skip service if it is in maintenance mode
@@ -87,7 +101,7 @@ public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
             if (host.getMaintenanceState(cluster.getClusterId()) != MaintenanceState.ON) {
               if (hcs.getCurrentState() == State.INSTALL_FAILED) {
 
-                prerequisiteCheck.getFailedDetail().add(hcs);
+                result.getFailedDetail().add(hcs);
 
                 failedServiceNames.add(service.getName());
                 installFailedHostComponents.add(MessageFormat.format("[{0}:{1} on {2}]",
@@ -103,10 +117,12 @@ public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
       String message = MessageFormat.format("Service components in INSTALL_FAILED state: {0}.",
           StringUtils.join(installFailedHostComponents, ", "));
 
-      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(failedServiceNames));
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(
+      result.setFailedOn(new LinkedHashSet<>(failedServiceNames));
+      result.setStatus(UpgradeCheckStatus.FAIL);
+      result.setFailReason(
           "Found service components in INSTALL_FAILED state. Please re-install these components. " + message);
     }
+
+    return result;
   }
 }

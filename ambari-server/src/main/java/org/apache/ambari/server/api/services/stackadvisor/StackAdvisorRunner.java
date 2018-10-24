@@ -121,7 +121,7 @@ public class StackAdvisorRunner {
    * @throws StackAdvisorException
    */
   private void processLogs(int exitCode, String outputFile, String errorFile) throws StackAdvisorException {
-    String outMessage = printMessage("stdout", outputFile);
+    printMessage("stdout", outputFile);
     String errMessage = printMessage("stderr", errorFile);
 
     try {

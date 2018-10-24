@@ -41,20 +41,20 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.stack.upgrade.Direction;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.repository.AvailableService;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.text.StrBuilder;
@@ -208,9 +208,9 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
       // mark revertable
       if (repositoryType.isRevertable() && direction == Direction.UPGRADE) {
-        UpgradeEntity upgrade = cluster.getUpgradeInProgress();
-        upgrade.setRevertAllowed(true);
-        upgrade = m_upgradeDAO.merge(upgrade);
+        UpgradeEntity upgradeEntity = cluster.getUpgradeInProgress();
+        upgradeEntity.setRevertAllowed(true);
+        upgradeEntity = m_upgradeDAO.merge(upgradeEntity);
       }
 
       // Reset upgrade state
@@ -425,11 +425,11 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
     List<HostVersionEntity> currentHostVersions = hostVersionDAO.findByClusterAndState(
         cluster.getClusterName(), RepositoryVersionState.CURRENT);
 
-    for (HostVersionEntity hostVersion : currentHostVersions) {
-      RepositoryVersionEntity hostRepoVersion = hostVersion.getRepositoryVersion();
+    for (HostVersionEntity hostVersionEntity : currentHostVersions) {
+      RepositoryVersionEntity hostRepoVersion = hostVersionEntity.getRepositoryVersion();
       if (!desiredRepoVersions.contains(hostRepoVersion)) {
-        hostVersion.setState(RepositoryVersionState.INSTALLED);
-        hostVersion = hostVersionDAO.merge(hostVersion);
+        hostVersionEntity.setState(RepositoryVersionState.INSTALLED);
+        hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
       }
     }
 

@@ -82,31 +82,31 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
+import org.apache.ambari.server.stack.upgrade.AddComponentTask;
+import org.apache.ambari.server.stack.upgrade.ConfigUpgradePack;
+import org.apache.ambari.server.stack.upgrade.ConfigureTask;
+import org.apache.ambari.server.stack.upgrade.CreateAndConfigureTask;
+import org.apache.ambari.server.stack.upgrade.Direction;
+import org.apache.ambari.server.stack.upgrade.ManualTask;
+import org.apache.ambari.server.stack.upgrade.ServerSideActionTask;
+import org.apache.ambari.server.stack.upgrade.Task;
+import org.apache.ambari.server.stack.upgrade.UpdateStackGrouping;
+import org.apache.ambari.server.stack.upgrade.UpgradePack;
+import org.apache.ambari.server.stack.upgrade.UpgradeScope;
+import org.apache.ambari.server.stack.upgrade.orchestrate.StageWrapper;
+import org.apache.ambari.server.stack.upgrade.orchestrate.TaskWrapper;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeGroupHolder;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.UpgradeContext;
-import org.apache.ambari.server.state.UpgradeContextFactory;
-import org.apache.ambari.server.state.UpgradeHelper;
-import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
-import org.apache.ambari.server.state.stack.ConfigUpgradePack;
-import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.ambari.server.state.stack.upgrade.AddComponentTask;
-import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
-import org.apache.ambari.server.state.stack.upgrade.CreateAndConfigureTask;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.state.stack.upgrade.ManualTask;
-import org.apache.ambari.server.state.stack.upgrade.ServerSideActionTask;
-import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
-import org.apache.ambari.server.state.stack.upgrade.Task;
-import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
-import org.apache.ambari.server.state.stack.upgrade.UpdateStackGrouping;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -214,7 +214,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
 
   @Inject
-  protected static UpgradeDAO s_upgradeDAO = null;
+  static UpgradeDAO s_upgradeDAO;
 
   @Inject
   private static Provider<AmbariMetaInfo> s_metaProvider = null;
@@ -760,6 +760,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     upgrade.setClusterId(cluster.getClusterId());
     upgrade.setDirection(direction);
     upgrade.setUpgradePackage(pack.getName());
+    upgrade.setUpgradePackStackId(pack.getOwnerStackId());
     upgrade.setUpgradeType(pack.getType());
     upgrade.setAutoSkipComponentFailures(upgradeContext.isComponentFailureAutoSkipped());
     upgrade.setAutoSkipServiceCheckFailures(upgradeContext.isServiceCheckFailureAutoSkipped());

@@ -375,6 +375,7 @@ class HostCleanup:
     pidList = []
     cmd = "ps auxww"
     (returncode, stdoutdata, stderrdata) = self.run_os_command(cmd)
+    line_regexp = re.compile("\s\s+")
 
     if 0 == returncode and stdoutdata:
       lines = stdoutdata.split('\n')
@@ -384,7 +385,7 @@ class HostCleanup:
           identifier = identifier.strip()
           if identifier in line:
             logger.debug("Found " + line + " for " + identifier);
-            line = re.sub("\s\s+" , " ", line) #replace multi spaces with single space before calling the split
+            line = line_regexp.sub(" ", line) #replace multi spaces with single space before calling the split
             tokens = line.split(' ')
             logger.debug(tokens)
             logger.debug(len(tokens))

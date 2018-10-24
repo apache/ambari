@@ -36,12 +36,30 @@ prepare statement from @engine_stmt;
 execute statement;
 DEALLOCATE PREPARE statement;
 
+CREATE TABLE registries(
+ id BIGINT NOT NULL,
+ registy_name VARCHAR(255) NOT NULL,
+ registry_type VARCHAR(255) NOT NULL,
+ registry_uri VARCHAR(255) NOT NULL,
+ CONSTRAINT PK_registries PRIMARY KEY (id));
+
+CREATE TABLE mpacks(
+ id BIGINT NOT NULL,
+ mpack_name VARCHAR(255) NOT NULL,
+ mpack_version VARCHAR(255) NOT NULL,
+ mpack_uri VARCHAR(255),
+ registry_id BIGINT,
+ CONSTRAINT PK_mpacks PRIMARY KEY (id),
+ CONSTRAINT uni_mpack_name_version UNIQUE(mpack_name, mpack_version),
+ CONSTRAINT FK_registries FOREIGN KEY (registry_id) REFERENCES registries(id));
 
 CREATE TABLE stack(
   stack_id BIGINT NOT NULL,
   stack_name VARCHAR(100) NOT NULL,
   stack_version VARCHAR(100) NOT NULL,
+  mpack_id BIGINT,
   CONSTRAINT PK_stack PRIMARY KEY (stack_id),
+  CONSTRAINT FK_mpacks FOREIGN KEY (mpack_id) REFERENCES mpacks(id),
   CONSTRAINT UQ_stack UNIQUE (stack_name, stack_version));
 
 CREATE TABLE extension(
@@ -78,7 +96,6 @@ CREATE TABLE clusters (
   cluster_info VARCHAR(255) NOT NULL,
   cluster_name VARCHAR(100) NOT NULL UNIQUE,
   provisioning_state VARCHAR(255) NOT NULL DEFAULT 'INIT',
-  blueprint_provisioning_state VARCHAR(255) DEFAULT 'NONE',
   security_type VARCHAR(32) NOT NULL DEFAULT 'NONE',
   desired_cluster_state VARCHAR(255) NOT NULL,
   desired_stack_id BIGINT NOT NULL,
@@ -246,6 +263,7 @@ CREATE TABLE hostcomponentdesiredstate (
   service_name VARCHAR(100) NOT NULL,
   admin_state VARCHAR(32),
   maintenance_state VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
+  blueprint_provisioning_state VARCHAR(255) DEFAULT 'NONE',
   restart_required TINYINT(1) NOT NULL DEFAULT 0,
   CONSTRAINT PK_hostcomponentdesiredstate PRIMARY KEY (id),
   CONSTRAINT UQ_hcdesiredstate_name UNIQUE (component_name, service_name, host_id, cluster_id),
@@ -365,6 +383,7 @@ CREATE TABLE requestschedule (
   status varchar(255),
   batch_separation_seconds smallint,
   batch_toleration_limit smallint,
+  batch_toleration_limit_per_batch smallint,
   authenticated_user_id INTEGER,
   create_user varchar(255),
   create_timestamp bigint,
@@ -886,6 +905,7 @@ CREATE TABLE upgrade (
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
   orchestration VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
+  upgrade_package_stack VARCHAR(255) NOT NULL,
   upgrade_type VARCHAR(32) NOT NULL,
   repo_version_id BIGINT NOT NULL,
   skip_failures TINYINT(1) NOT NULL DEFAULT 0,
@@ -1173,6 +1193,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('upgrade_group_id_seq', 0),
   ('upgrade_item_id_seq', 0),
   ('stack_id_seq', 0),
+  ('mpack_id_seq', 0),
   ('extension_id_seq', 0),
   ('link_id_seq', 0),
   ('widget_id_seq', 0),
@@ -1280,6 +1301,7 @@ INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'CLUSTER.RUN_CUSTOM_COMMAND', 'Perform custom cluster-level actions' UNION ALL
   SELECT 'CLUSTER.MANAGE_AUTO_START', 'Manage service auto-start configuration' UNION ALL
   SELECT 'CLUSTER.MANAGE_ALERT_NOTIFICATIONS', 'Manage alert notifications configuration' UNION ALL
+  SELECT 'CLUSTER.MANAGE_WIDGETS', 'Manage widgets' UNION ALL
   SELECT 'AMBARI.ADD_DELETE_CLUSTERS', 'Create new clusters' UNION ALL
   SELECT 'AMBARI.RENAME_CLUSTER', 'Rename clusters' UNION ALL
   SELECT 'AMBARI.MANAGE_SETTINGS', 'Manage administrative settings' UNION ALL
@@ -1290,6 +1312,7 @@ INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'AMBARI.ASSIGN_ROLES', 'Assign roles' UNION ALL
   SELECT 'AMBARI.MANAGE_STACK_VERSIONS', 'Manage stack versions' UNION ALL
   SELECT 'AMBARI.EDIT_STACK_REPOS', 'Edit stack repository URLs' UNION ALL
+  SELECT 'AMBARI.VIEW_STATUS_INFO', 'View status information' UNION ALL
   SELECT 'AMBARI.RUN_CUSTOM_COMMAND', 'Perform custom administrative actions';
 
 -- Set authorizations for View User role
@@ -1394,6 +1417,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_CREDENTIALS' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_AUTO_START' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.MANAGE_WIDGETS' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR';
 
 -- Set authorizations for Cluster Administrator role
@@ -1439,6 +1463,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_AUTO_START' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_ALERT_NOTIFICATIONS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.MANAGE_WIDGETS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.RUN_CUSTOM_COMMAND' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR';
 
 -- Set authorizations for Administrator role
@@ -1485,6 +1510,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_AUTO_START' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_ALERT_NOTIFICATIONS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.MANAGE_WIDGETS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.RUN_CUSTOM_COMMAND' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.ADD_DELETE_CLUSTERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.RENAME_CLUSTER' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
@@ -1496,6 +1522,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'AMBARI.ASSIGN_ROLES' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_STACK_VERSIONS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.EDIT_STACK_REPOS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'AMBARI.VIEW_STATUS_INFO' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.RUN_CUSTOM_COMMAND' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR';
 
 INSERT INTO adminprivilege (privilege_id, permission_id, resource_id, principal_id) VALUES

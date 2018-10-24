@@ -200,23 +200,48 @@ describe('App.ManageJournalNodeWizardStep2Controller', function () {
       sinon.stub(controller, '_prepareLocalDB').returns({});
       sinon.stub(controller, '_prepareDependencies').returns({});
       sinon.stub(App.NnHaConfigInitializer, 'initialValue');
+      sinon.stub(controller, 'setNameSpaceConfigs').returns({});
     });
 
     afterEach(function() {
+      controller.set('moveJNConfig.configs', []);
+      controller.set('content', {});
       controller._prepareLocalDB.restore();
       controller._prepareDependencies.restore();
+      controller.setNameSpaceConfigs.restore();
       App.NnHaConfigInitializer.initialValue.restore();
+      App.get.restore();
     });
 
-    it('App.NnHaConfigInitializer.initialValue should be called', function() {
-      controller.tweakServiceConfigs([{}]);
+    it('should push an object to array of configs and call App.NnHaConfigInitializer', function() {
+      sinon.stub(App, 'get').withArgs('hasNameNodeFederation').returns(false);
+      controller.tweakServiceConfigs();
+      expect(controller.get('moveJNConfig.configs')[0]['name'] ==='dfs.namenode.shared.edits.dir').to.be.eql(true);
+      expect(controller.get('moveJNConfig.configs').length).to.be.eql(1);
       expect(App.NnHaConfigInitializer.initialValue.calledOnce).to.be.true;
     });
 
-    it('should return array of configs', function() {
-      expect(controller.tweakServiceConfigs([{}])).to.be.eql([{
-        isOverridable: false
-      }]);
+    it('should call setNameSpaceConfigs', function() {
+      sinon.stub(App, 'get').withArgs('hasNameNodeFederation').returns(true);
+      controller.set('content', Em.Object.create({nameServiceId: 'b,c'}));
+      controller.tweakServiceConfigs();
+      expect(controller.setNameSpaceConfigs.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#setNameSpaceConfigs', function() {
+    it('set moveJNConfig.configs', function() {
+      controller.set('moveJNConfig.configs', []);
+      controller.set('content', Em.Object.create({
+        nameServiceId: 'b,c',
+        masterComponentHosts: [
+          {component: 'JOURNALNODE', hostName: 'c7403.ambari.apache.org'},
+          {component: 'JOURNALNODE', hostName: 'c7402.ambari.apache.org'},
+          {component: 'JOURNALNODE', hostName: 'c7401.ambari.apache.org'},
+        ]
+      }));
+      controller.setNameSpaceConfigs(controller.get('content.nameServiceId').split(','));
+      expect(controller.get('moveJNConfig.configs').length).to.be.eql(2);
     });
   });
 

@@ -500,6 +500,107 @@ module.exports = {
   },
 
   /**
+   * Service rolling restart popup
+   * @param {String} serviceName: name of the service that should be restarted
+   * @param {function} mastersForRestart: Callback function to retrieve master components for restart
+   * @param {function} workersForRestart: Callback function to retrieve worker components for restart
+   */
+  showServiceRestartPopup: function (serviceName, mastersForRestart, workersForRestart) {
+
+    let self = this;
+    const isRestartAll = !!(mastersForRestart && workersForRestart);
+    const isMastersOnly = !!(mastersForRestart && !workersForRestart);
+    const isSlavesOnly = !!(!mastersForRestart && workersForRestart);
+
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.configure.restart'),
+      bodyClass: App.ServiceRestartView.extend({
+        isRestartAll, isMastersOnly, isSlavesOnly
+      }),
+      primary: Em.I18n.t('common.restart'),
+      primaryClass: 'btn-warning',
+      classNames: ['common-modal-wrapper'],
+      modalDialogClasses: ['modal-lg'],
+      onPrimary: function () {
+        let isRollingRestart = this.get('innerView.useRolling');
+        if (isRollingRestart) {
+          //TODO introduce masters and workers logic
+          const masters = mastersForRestart(serviceName);
+          self.rollingRestartRequest(masters, serviceName);
+        } else {
+          const query = Em.Object.create({status: 'INIT'});
+          const serviceDisplayName = App.Service.find().findProperty('serviceName', serviceName).get('displayName');
+          self.restartAllServiceHostComponents(serviceDisplayName, serviceName, false, query, false);
+        }
+        this._super();
+      }
+    })
+  },
+
+  /**
+   * Creates batches and send rolling restart request.
+   * TODO modify this to include request to restart workers.
+   * @param {App.hostComponent[]} [hostComponents] list of hostComponents that should be restarted
+   * @param {String} serviceName: Name of the service to be restarted.
+   */
+
+  rollingRestartRequest: function (hostComponents, serviceName) {
+    let batches = [];
+    for (let i=0; i<hostComponents.length; i++) {
+      const hostName = hostComponents[i].get('hostName');
+      const component = hostComponents[i].get('componentName');
+      const context = "RESTART " + hostComponents[i].get('displayName');
+      batches.push({
+        "order_id": i+1,
+        "type": 'POST',
+        "uri": "/clusters/" + App.get('clusterName') + "/requests/",
+        "RequestBodyInfo": {
+          "RequestInfo": {
+            "command": "RESTART",
+            "context": context,
+          },
+          "Requests/resource_filters": [{
+            "service_name": serviceName,
+            "component_name": component,
+            "hosts": hostName
+          }]
+        }
+      })
+    }
+    App.ajax.send({
+      name: 'common.batch.request_schedules',
+      sender: this,
+      data: {
+        intervalTimeSeconds: 1,
+        tolerateSize: 0,
+        batches: batches
+      },
+      success: 'serviceRestartSuccess',
+      showLoadingPopup: true
+    });
+  },
+
+  /**
+   * Callback function for rollingRestartRequest that shows BG Modal if restart request sent successfully
+   * TODO replace it with a progress view that shows rolling restart tasks
+   */
+  serviceRestartSuccess: function (data) {
+    if (data && (data.Requests || data.resources[0].RequestSchedule)) {
+      App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+        if (typeof callback === 'function') {
+          callback();
+        }
+      });
+      return true;
+    } else {
+      return false;
+    }
+  },
+
+  /**
    * Show warning popup about not supported host components
    * @param {String} hostComponentName
    */

@@ -17,7 +17,10 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.CLUSTER_MANAGE_WIDGETS;
+
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -40,18 +43,16 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
-import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
-import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 
@@ -81,38 +82,32 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<String>() {
-    {
-      add(WIDGET_ID_PROPERTY_ID);
-    }
-  };
+  private static final Set<String> pkPropertyIds = ImmutableSet.<String>builder()
+    .add(WIDGET_ID_PROPERTY_ID)
+    .build();
 
   @SuppressWarnings("serial")
-  public static Set<String> propertyIds = new HashSet<String>() {
-    {
-      add(WIDGET_ID_PROPERTY_ID);
-      add(WIDGET_WIDGET_NAME_PROPERTY_ID);
-      add(WIDGET_WIDGET_TYPE_PROPERTY_ID);
-      add(WIDGET_TIME_CREATED_PROPERTY_ID);
-      add(WIDGET_CLUSTER_NAME_PROPERTY_ID);
-      add(WIDGET_AUTHOR_PROPERTY_ID);
-      add(WIDGET_DESCRIPTION_PROPERTY_ID);
-      add(WIDGET_SCOPE_PROPERTY_ID);
-      add(WIDGET_METRICS_PROPERTY_ID);
-      add(WIDGET_VALUES_PROPERTY_ID);
-      add(WIDGET_PROPERTIES_PROPERTY_ID);
-      add(WIDGET_TAG_PROPERTY_ID);
-    }
-  };
+  public static final Set<String> propertyIds = ImmutableSet.<String>builder()
+    .add(WIDGET_ID_PROPERTY_ID)
+    .add(WIDGET_WIDGET_NAME_PROPERTY_ID)
+    .add(WIDGET_WIDGET_TYPE_PROPERTY_ID)
+    .add(WIDGET_TIME_CREATED_PROPERTY_ID)
+    .add(WIDGET_CLUSTER_NAME_PROPERTY_ID)
+    .add(WIDGET_AUTHOR_PROPERTY_ID)
+    .add(WIDGET_DESCRIPTION_PROPERTY_ID)
+    .add(WIDGET_SCOPE_PROPERTY_ID)
+    .add(WIDGET_METRICS_PROPERTY_ID)
+    .add(WIDGET_VALUES_PROPERTY_ID)
+    .add(WIDGET_PROPERTIES_PROPERTY_ID)
+    .add(WIDGET_TAG_PROPERTY_ID)
+    .build();
 
   @SuppressWarnings("serial")
-  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
-    {
-      put(Type.Widget, WIDGET_ID_PROPERTY_ID);
-      put(Type.Cluster, WIDGET_CLUSTER_NAME_PROPERTY_ID);
-      put(Type.User, WIDGET_AUTHOR_PROPERTY_ID);
-    }
-  };
+  public static final Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String>builder()
+    .put(Type.Widget, WIDGET_ID_PROPERTY_ID)
+    .put(Type.Cluster, WIDGET_CLUSTER_NAME_PROPERTY_ID)
+    .put(Type.User, WIDGET_AUTHOR_PROPERTY_ID)
+    .build();
 
   @Inject
   private static WidgetDAO widgetDAO;
@@ -157,7 +152,7 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
           String clusterName = properties.get(WIDGET_CLUSTER_NAME_PROPERTY_ID).toString();
           String scope = properties.get(WIDGET_SCOPE_PROPERTY_ID).toString();
 
-          if (!isScopeAllowedForUser(scope)) {
+          if (!isScopeAllowedForUser(scope, clusterName)) {
             throw new AccessDeniedException("Only cluster operator can create widgets with cluster scope");
           }
 
@@ -310,7 +305,8 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
 
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGET_SCOPE_PROPERTY_ID)))) {
             String scope = propertyMap.get(WIDGET_SCOPE_PROPERTY_ID).toString();
-            if (!isScopeAllowedForUser(scope)) {
+            String clusterName = propertyMap.get(WIDGET_CLUSTER_NAME_PROPERTY_ID).toString();
+            if (!isScopeAllowedForUser(scope, clusterName)) {
               throw new AmbariException("Only cluster operator can create widgets with cluster scope");
             }
             entity.setScope(scope);
@@ -383,28 +379,11 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
     return pkPropertyIds;
   }
 
-  private boolean isScopeAllowedForUser(String scope) {
-    if (scope.equals(WidgetEntity.USER_SCOPE)) {
+  private boolean isScopeAllowedForUser(String scope, String clusterName) throws AmbariException {
+    if (WidgetEntity.USER_SCOPE.equals(scope)) {
       return true;
     }
-
-    // Only cluster operators are allowed to create widgets with cluster scope
-    SecurityContext securityContext = SecurityContextHolder.getContext();
-    securityContext.getAuthentication().getAuthorities();
-    boolean hasPermissionForClusterScope = false;
-    for (GrantedAuthority grantedAuthority : securityContext.getAuthentication().getAuthorities()) {
-      if (((AmbariGrantedAuthority) grantedAuthority).getPrivilegeEntity().getPermission().getId()
-              == PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION ||
-              ((AmbariGrantedAuthority) grantedAuthority).getPrivilegeEntity().getPermission().getId()
-                      == PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION) {
-        hasPermissionForClusterScope = true;
-      }
-    }
-    if (hasPermissionForClusterScope) {
-      return true;
-    } else {
-      return false;
-    }
+    return AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(clusterName), EnumSet.of(CLUSTER_MANAGE_WIDGETS));
   }
 
   private String getAuthorName(Map<String, Object> properties) {

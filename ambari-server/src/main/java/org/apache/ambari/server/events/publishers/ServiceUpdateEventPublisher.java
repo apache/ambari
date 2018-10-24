@@ -19,52 +19,62 @@
 package org.apache.ambari.server.events.publishers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.ambari.server.controller.utilities.ServiceCalculatedStateFactory;
+import org.apache.ambari.server.controller.utilities.state.ServiceCalculatedState;
 import org.apache.ambari.server.events.ServiceUpdateEvent;
+import org.apache.ambari.server.state.State;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Singleton;
 
 @Singleton
 public class ServiceUpdateEventPublisher extends BufferedUpdateEventPublisher<ServiceUpdateEvent> {
+  private Map<String, Map<String, State>> states = new HashMap<>();
+
 
   @Override
-  protected Runnable getScheduledPublisher(EventBus m_eventBus) {
-    return new ServiceEventRunnable(m_eventBus);
-  }
-
-  private class ServiceEventRunnable implements Runnable {
-
-    private final EventBus eventBus;
-
-    public ServiceEventRunnable(EventBus eventBus) {
-      this.eventBus = eventBus;
-    }
-
-    @Override
-    public void run() {
-      List<ServiceUpdateEvent> serviceUpdates = retrieveBuffer();
-      if (serviceUpdates.isEmpty()) {
-        return;
-      }
-      List<ServiceUpdateEvent> filtered = new ArrayList<>();
-      for (ServiceUpdateEvent event : serviceUpdates) {
-        int pos = filtered.indexOf(event);
-        if (pos != -1) {
-          if (event.getState() != null) {
-            filtered.get(pos).setState(event.getState());
-          }
-          if (event.getMaintenanceState() != null) {
-            filtered.get(pos).setMaintenanceState(event.getMaintenanceState());
-          }
-        } else {
-          filtered.add(event);
+  public void mergeBufferAndPost(List<ServiceUpdateEvent> events, EventBus eventBus) {
+    List<ServiceUpdateEvent> filtered = new ArrayList<>();
+    for (ServiceUpdateEvent event : events) {
+      int pos = filtered.indexOf(event);
+      if (pos != -1) {
+        if (event.isStateChanged()) {
+          filtered.get(pos).setStateChanged(true);
         }
+        if (event.getMaintenanceState() != null) {
+          filtered.get(pos).setMaintenanceState(event.getMaintenanceState());
+        }
+      } else {
+        filtered.add(event);
       }
-      for (ServiceUpdateEvent serviceUpdateEvent : serviceUpdates) {
-        eventBus.post(serviceUpdateEvent);
+    }
+    for (ServiceUpdateEvent serviceUpdateEvent : filtered) {
+      // calc state
+      if (serviceUpdateEvent.isStateChanged()) {
+        ServiceCalculatedState serviceCalculatedState =
+            ServiceCalculatedStateFactory.getServiceStateProvider(serviceUpdateEvent.getServiceName());
+        State serviceState =
+            serviceCalculatedState.getState(serviceUpdateEvent.getClusterName(), serviceUpdateEvent.getServiceName());
+
+        String serviceName = serviceUpdateEvent.getServiceName();
+        String clusterName = serviceUpdateEvent.getClusterName();
+
+        // retrieve state from cache
+        // don't send update when state was not changed and update doesn't have maintenance info
+        if (states.containsKey(clusterName) && states.get(clusterName).containsKey(serviceName)
+            && states.get(clusterName).get(serviceName).equals(serviceState)
+            && serviceUpdateEvent.getMaintenanceState() == null) {
+          continue;
+        }
+        states.computeIfAbsent(clusterName, c -> new HashMap<>()).put(serviceName, serviceState);
+        serviceUpdateEvent.setState(serviceState);
       }
+
+      eventBus.post(serviceUpdateEvent);
     }
   }
 }

@@ -37,13 +37,13 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
-import org.apache.ambari.server.state.stack.ConfigUpgradePack;
+import org.apache.ambari.server.stack.upgrade.ConfigUpgradePack;
+import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.state.stack.ConfigurationXml;
 import org.apache.ambari.server.state.stack.ExtensionMetainfoXml;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
-import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;

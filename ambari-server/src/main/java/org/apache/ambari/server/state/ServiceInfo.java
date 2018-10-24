@@ -77,6 +77,7 @@ public class ServiceInfo implements Validable {
   private String comment;
   private String serviceType;
   private Selection selection;
+  private String maintainer;
 
   /**
    * Default to Python if not specified.
@@ -424,6 +425,18 @@ public class ServiceInfo implements Validable {
    */
   public boolean isSelectionEmpty() {
     return selection == null;
+  }
+
+  public String getMaintainer() {
+    return maintainer;
+  }
+
+  public void setMaintainer(String maintainer) {
+    this.maintainer = maintainer;
+  }
+
+  public boolean isMaintainerEmpty() {
+    return maintainer == null;
   }
 
   public String getComment() {

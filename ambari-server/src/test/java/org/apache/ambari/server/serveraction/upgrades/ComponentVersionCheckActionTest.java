@@ -67,8 +67,8 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -209,6 +209,7 @@ public class ComponentVersionCheckActionTest {
     upgradeEntity.setClusterId(c.getClusterId());
     upgradeEntity.setRequestEntity(requestEntity);
     upgradeEntity.setUpgradePackage("");
+    upgradeEntity.setUpgradePackStackId(new StackId((String) null));
     upgradeEntity.setRepositoryVersion(toRepositoryVersion);
     upgradeEntity.setUpgradeType(UpgradeType.NON_ROLLING);
     upgradeDAO.create(upgradeEntity);
@@ -282,6 +283,7 @@ public class ComponentVersionCheckActionTest {
     upgradeEntity.setClusterId(c.getClusterId());
     upgradeEntity.setRequestEntity(requestEntity);
     upgradeEntity.setUpgradePackage("");
+    upgradeEntity.setUpgradePackStackId(new StackId((String) null));
     upgradeEntity.setRepositoryVersion(toRepositoryVersion);
     upgradeEntity.setUpgradeType(UpgradeType.NON_ROLLING);
     upgradeDAO.create(upgradeEntity);

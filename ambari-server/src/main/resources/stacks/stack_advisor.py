@@ -1181,7 +1181,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
 
 
-  def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
+  def getConfigurationClusterSummary(self, servicesList, hosts, components, services, cpu_only_mode = False):
     """
     Copied from HDP 2.0.6 so that it could be used by Service Advisors.
     :return: Dictionary of memory and CPU attributes in the cluster
@@ -1304,8 +1304,9 @@ class DefaultStackAdvisor(StackAdvisor):
 
 
     '''containers = max(3, min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE))))'''
+    core_multiplier = 2 if not cpu_only_mode else 1
     cluster["containers"] = int(round(max(3,
-                                          min(2 * cluster["cpu"],
+                                          min(core_multiplier * cluster["cpu"],
                                               min(ceil(1.8 * cluster["disk"]),
                                                   cluster["totalAvailableRam"] / cluster["minContainerSize"])))))
     self.logger.info("Containers per node - cluster[containers]: " + str(cluster["containers"]))
@@ -2987,6 +2988,10 @@ class DefaultStackAdvisor(StackAdvisor):
       return None
 
     dir = re.sub("^file://", "", dir, count=1)
+
+    if not dir:
+      return self.getErrorItem("Value has wrong format")
+
     mountPoints = {}
     for mountPoint in hostInfo["disk_info"]:
       mountPoints[mountPoint["mountpoint"]] = self.to_number(mountPoint["available"])
@@ -2994,6 +2999,9 @@ class DefaultStackAdvisor(StackAdvisor):
 
     if not mountPoints:
       return self.getErrorItem("No disk info found on host %s" % hostInfo["host_name"])
+
+    if mountPoint is None:
+      return self.getErrorItem("No mount point in directory %s. Mount points: %s" % (dir, ', '.join(mountPoints.keys())))
 
     if mountPoints[mountPoint] < reqiuredDiskSpace:
       msg = "Ambari Metrics disk space requirements not met. \n" \

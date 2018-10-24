@@ -20,10 +20,12 @@ package org.apache.ambari.server.serveraction.kerberos;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +47,7 @@ import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerbero
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
@@ -77,8 +80,8 @@ public class KerberosServerActionTest extends EasyMockSupport {
     ExecutionCommand mockExecutionCommand = createMock(ExecutionCommand.class);
     HostRoleCommand mockHostRoleCommand = createMock(HostRoleCommand.class);
     kerberosKeytabController = createMock(KerberosKeytabController.class);
-    expect(kerberosKeytabController.adjustServiceComponentFilter(anyObject(), anyObject())).andReturn(null).anyTimes();
-    expect(kerberosKeytabController.getFilteredKeytabs(null, null, null))
+    expect(kerberosKeytabController.adjustServiceComponentFilter(anyObject(), eq(true), anyObject())).andReturn(null).anyTimes();
+    expect(kerberosKeytabController.getFilteredKeytabs((Collection<KerberosIdentityDescriptor>)null, null, null))
       .andReturn(
         Sets.newHashSet(new ResolvedKerberosKeytab(
           null,
@@ -161,7 +164,6 @@ public class KerberosServerActionTest extends EasyMockSupport {
     expect(mockExecutionCommand.getClusterId()).andReturn("1").anyTimes();
     expect(mockExecutionCommand.getConfigurations()).andReturn(Collections.emptyMap()).anyTimes();
     expect(mockExecutionCommand.getRoleCommand()).andReturn(null).anyTimes();
-    expect(mockExecutionCommand.getConfigurationTags()).andReturn(null).anyTimes();
     expect(mockExecutionCommand.getRole()).andReturn(null).anyTimes();
     expect(mockExecutionCommand.getServiceName()).andReturn(null).anyTimes();
     expect(mockExecutionCommand.getTaskId()).andReturn(1L).anyTimes();

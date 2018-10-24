@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -39,6 +41,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
  * Wrapper around a collection of hosts for components.  Some components
  * also have master/secondary designators.
  */
+@Experimental(feature=ExperimentalFeature.REFACTOR_TO_SPI)
 public class HostsType {
   /**
    * List of HA hosts (master - secondaries pairs), if any.

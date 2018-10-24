@@ -72,14 +72,14 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
   /**
    * The key property ids for a Action resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Type.Action, ACTION_NAME_PROPERTY_ID)
       .build();
 
   /**
    * The property ids for a Action resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       ACTION_NAME_PROPERTY_ID,
       ACTION_TYPE_PROPERTY_ID,
       INPUTS_PROPERTY_ID,

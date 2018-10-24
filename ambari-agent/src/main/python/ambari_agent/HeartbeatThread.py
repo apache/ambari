@@ -67,6 +67,7 @@ class HeartbeatThread(threading.Thread):
     self.host_level_params_events_listener = HostLevelParamsEventListener(initializer_module)
     self.alert_definitions_events_listener = AlertDefinitionsEventListener(initializer_module)
     self.agent_actions_events_listener = AgentActionsListener(initializer_module)
+    self.component_status_executor = initializer_module.component_status_executor
     self.listeners = [self.server_responses_listener, self.commands_events_listener, self.metadata_events_listener, self.topology_events_listener, self.configuration_events_listener, self.host_level_params_events_listener, self.alert_definitions_events_listener, self.agent_actions_events_listener]
 
     self.post_registration_requests = [
@@ -134,15 +135,21 @@ class HeartbeatThread(threading.Thread):
     self.handle_registration_response(response)
 
     for endpoint, cache, listener, subscribe_to in self.post_registration_requests:
-      # should not hang forever on these requests
-      response = self.blocking_request({'hash': cache.hash}, endpoint, log_handler=listener.get_log_message)
       try:
-        listener.on_event({}, response)
-      except:
-        logger.exception("Exception while handing response to request at {0}. {1}".format(endpoint, response))
-        raise
+        listener.enabled = False
+        self.subscribe_to_topics([subscribe_to])
+        response = self.blocking_request({'hash': cache.hash}, endpoint, log_handler=listener.get_log_message)
 
-      self.subscribe_to_topics([subscribe_to])
+        try:
+          listener.on_event({}, response)
+        except:
+          logger.exception("Exception while handing response to request at {0} {1}".format(endpoint, response))
+          raise
+      finally:
+        with listener.event_queue_lock:
+          listener.enabled = True
+          # Process queued messages if any
+          listener.dequeue_unprocessed_events()
 
     self.subscribe_to_topics(Constants.POST_REGISTRATION_TOPICS_TO_SUBSCRIBE)
 
@@ -153,6 +160,7 @@ class HeartbeatThread(threading.Thread):
     self.initializer_module._connection = self.connection
 
     self.report_components_initial_versions()
+    self.force_component_status_update()
 
   def run_post_registration_actions(self):
     for post_registration_action in self.post_registration_actions:
@@ -160,6 +168,9 @@ class HeartbeatThread(threading.Thread):
 
   def report_components_initial_versions(self):
     ComponentVersionReporter(self.initializer_module).start()
+
+  def force_component_status_update(self):
+    self.component_status_executor.force_send_component_statuses()
 
   def unregister(self):
     """

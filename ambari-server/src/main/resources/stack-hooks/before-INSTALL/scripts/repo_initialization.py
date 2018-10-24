@@ -48,12 +48,14 @@ def _alter_repo(action, repo_dicts, repo_template):
                         + [repo['components'].replace(",", " ") if 'components' in repo and repo['components'] else UBUNTU_REPO_COMPONENTS_POSTFIX]
 
     Repository(repo['repoId'],
-               action = action,
+               action = "prepare",
                base_url = repo['baseUrl'],
                mirror_list = repo['mirrorsList'],
                repo_file_name = repo['repoName'],
                repo_template = repo_template,
                components = ubuntu_components) # ubuntu specific
+
+  Repository(None, action = "create")
 
 
 def install_repos():

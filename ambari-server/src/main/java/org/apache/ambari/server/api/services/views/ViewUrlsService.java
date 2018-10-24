@@ -39,7 +39,6 @@ import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.controller.ViewUrlResponseSwagger;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
-
 import org.apache.http.HttpStatus;
 
 import com.google.common.base.Optional;
