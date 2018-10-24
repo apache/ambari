@@ -20,6 +20,8 @@ package org.apache.ambari.server.controller.internal;
 
 public class DirectoriesTrimmingStrategy implements TrimmingStrategy {
 
+  public static final TrimmingStrategy INSTANCE = new DirectoriesTrimmingStrategy();
+
   @Override
   public String trim(String stringToTrim) {
     return stringToTrim.replaceAll("\\s*,+\\s*", ",").trim();

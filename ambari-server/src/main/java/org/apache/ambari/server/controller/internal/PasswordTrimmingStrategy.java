@@ -19,6 +19,9 @@
 package org.apache.ambari.server.controller.internal;
 
 public class PasswordTrimmingStrategy implements TrimmingStrategy {
+
+  public static final TrimmingStrategy INSTANCE = new PasswordTrimmingStrategy();
+
   @Override
   public String trim(String stringToTrim) {
     return stringToTrim;

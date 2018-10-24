@@ -19,6 +19,9 @@
 package org.apache.ambari.server.controller.internal;
 
 public class DefaultTrimmingStrategy implements TrimmingStrategy {
+
+  public static final TrimmingStrategy INSTANCE = new DefaultTrimmingStrategy();
+
   @Override
   public String trim(String stringToTrim) {
     return stringToTrim.trim();

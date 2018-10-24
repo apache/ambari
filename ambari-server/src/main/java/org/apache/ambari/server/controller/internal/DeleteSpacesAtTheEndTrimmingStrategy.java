@@ -19,6 +19,9 @@
 package org.apache.ambari.server.controller.internal;
 
 public class DeleteSpacesAtTheEndTrimmingStrategy implements TrimmingStrategy {
+
+  public static final TrimmingStrategy INSTANCE = new DeleteSpacesAtTheEndTrimmingStrategy();
+
   @Override
   public String trim(String stringToTrim) {
     if (" ".equals(stringToTrim)) {
