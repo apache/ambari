@@ -20,21 +20,19 @@ package org.apache.ambari.view.hive20.actor;
 
 import akka.actor.ActorRef;
 import akka.actor.Cancellable;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import org.apache.ambari.view.hive20.actor.message.GetMoreLogs;
 import org.apache.ambari.view.hive20.actor.message.HiveMessage;
-import org.apache.ambari.view.hive20.actor.message.LogAggregationFinished;
 import org.apache.ambari.view.hive20.actor.message.StartLogAggregation;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
-import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hive.jdbc.HiveStatement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import scala.concurrent.duration.Duration;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -43,7 +41,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class LogAggregator extends HiveActor {
 
-  private final Logger LOG = LoggerFactory.getLogger(getClass());
+  private final LoggingAdapter LOG = Logging.getLogger(getContext().system(), this);
 
   public static final int AGGREGATION_INTERVAL = 5 * 1000;
   private final HdfsApi hdfsApi;
@@ -52,8 +50,6 @@ public class LogAggregator extends HiveActor {
 
   private Cancellable moreLogsScheduler;
   private ActorRef parent;
-  private boolean hasStartedFetching = false;
-  private boolean shouldFetchMore = true;
   private String allLogs = "";
 
   public LogAggregator(HdfsApi hdfsApi, String logFile) {
@@ -69,57 +65,62 @@ public class LogAggregator extends HiveActor {
     }
 
     if (message instanceof GetMoreLogs) {
-      try {
-        getMoreLogs();
-      } catch (SQLException e) {
-        LOG.warn("SQL Error while getting logs. Tried writing to: {}. Exception: {}", logFile, e.getMessage());
-      } catch (HdfsApiException e) {
-        LOG.warn("HDFS Error while writing logs to {}. Exception: {}", logFile, e.getMessage());
-
-      }
+      getMoreLogs();
     }
   }
 
   private void start(StartLogAggregation message) {
+
+    if (null != this.statement) {
+      LOG.debug("fetching logs for previous statement before switching to the new one. for {}", getSelf());
+      getMoreLogs();
+    }
     this.statement = message.getHiveStatement();
     parent = this.getSender();
-    hasStartedFetching = false;
-    shouldFetchMore = true;
     String logTitle = "Logs for Query '" + message.getStatement() + "'";
     String repeatSeperator = StringUtils.repeat("=", logTitle.length());
     allLogs += String.format("\n\n%s\n%s\n%s\n", repeatSeperator, logTitle, repeatSeperator);
 
-    if (!(moreLogsScheduler == null || moreLogsScheduler.isCancelled())) {
-      moreLogsScheduler.cancel();
+    if( null == moreLogsScheduler) {
+      setupScheduler();
     }
-    this.moreLogsScheduler = getContext().system().scheduler().schedule(
-      Duration.Zero(), Duration.create(AGGREGATION_INTERVAL, TimeUnit.MILLISECONDS),
-      this.getSelf(), new GetMoreLogs(), getContext().dispatcher(), null);
   }
 
-  private void getMoreLogs() throws SQLException, HdfsApiException {
-    List<String> logs = statement.getQueryLog();
-    if (logs.size() > 0 && shouldFetchMore) {
-      allLogs = allLogs + "\n" + Joiner.on("\n").skipNulls().join(logs);
-      HdfsUtil.putStringToFile(hdfsApi, logFile, allLogs);
-      if(!statement.hasMoreLogs()) {
-        shouldFetchMore = false;
+  @VisibleForTesting
+  protected void setupScheduler() {
+    this.moreLogsScheduler = getContext().system().scheduler().schedule(
+    Duration.Zero(), Duration.create(AGGREGATION_INTERVAL, TimeUnit.MILLISECONDS),
+    getSelf(), new GetMoreLogs(), getContext().dispatcher(), null);
+  }
+
+
+  private void getMoreLogs() {
+    LOG.debug("fetching more logs for : {}", getSelf());
+    if ((null != this.statement)){
+      List<String> logs;
+      try{
+        logs = this.statement.getQueryLog();
+        LOG.debug("got more logs : {} for : {}", logs, getSelf());
+        if (logs.size() > 0){
+          this.allLogs = (this.allLogs + "\n" + Joiner.on("\n").skipNulls().join(logs));
+          HdfsUtil.putStringToFile(this.hdfsApi, this.logFile, this.allLogs);
+        }
       }
-    } else {
-      // Cancel the timer only when log fetching has been started
-      if(!shouldFetchMore) {
-        moreLogsScheduler.cancel();
-        parent.tell(new LogAggregationFinished(), ActorRef.noSender());
+      catch (Exception e){
+        LOG.error("Error occurred while fetching logs  for : {}", getSelf(), e);
       }
     }
   }
 
   @Override
   public void postStop() throws Exception {
+    LOG.debug("Stopping logaggregator after fetching the logs one last time : {}", getSelf());
+
+    getMoreLogs();
+
     if (moreLogsScheduler != null && !moreLogsScheduler.isCancelled()) {
       moreLogsScheduler.cancel();
     }
-
   }
 
 }

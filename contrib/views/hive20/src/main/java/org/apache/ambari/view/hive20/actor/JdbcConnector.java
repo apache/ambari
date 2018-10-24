@@ -354,7 +354,7 @@ public class JdbcConnector extends HiveActor {
     int index = statementsCount - statementQueue.size();
     String statement = statementQueue.poll();
     if (statementExecutor == null) {
-      statementExecutor = getStatementExecutor();
+      statementExecutor = createStatementExecutor();
     }
 
     if (isAsync()) {
@@ -409,7 +409,9 @@ public class JdbcConnector extends HiveActor {
     executing = true;
     executionType = message.getType();
     commandSender = getSender();
-    statementExecutor = getStatementExecutor();
+    if (statementExecutor == null) {
+      statementExecutor = createStatementExecutor();
+    }
     statementExecutor.tell(message, self());
   }
 
@@ -419,14 +421,18 @@ public class JdbcConnector extends HiveActor {
     executing = true;
     executionType = message.getType();
     commandSender = getSender();
-    statementExecutor = getStatementExecutor();
+    if (statementExecutor == null) {
+      statementExecutor = createStatementExecutor();
+    }
     statementExecutor.tell(message, self());
   }
 
-  private ActorRef getStatementExecutor() {
-    return getContext().actorOf(Props.create(StatementExecutor.class, hdfsApi, storage, connectable.getConnection().get(), connectionDelegate)
-      .withDispatcher("akka.actor.result-dispatcher"),
-      "StatementExecutor:" + UUID.randomUUID().toString());
+  private ActorRef createStatementExecutor() {
+    ActorRef actorRef = getContext().actorOf(Props.create(StatementExecutor.class, hdfsApi, storage, connectable.getConnection().get(), connectionDelegate)
+            .withDispatcher("akka.actor.result-dispatcher"),
+        "StatementExecutor:" + UUID.randomUUID().toString());
+    LOG.debug("Created new statement executor: {}", actorRef);
+    return actorRef;
   }
 
   private boolean isAsync() {

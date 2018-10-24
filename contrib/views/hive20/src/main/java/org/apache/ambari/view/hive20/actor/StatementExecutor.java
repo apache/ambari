@@ -130,16 +130,11 @@ public class StatementExecutor extends HiveActor {
     logAggregator.tell(new StartLogAggregation(sqlStatement, statement), getSelf());
   }
 
-  private void stopLogAggregation() {
-    if (logAggregator != null) {
-      getContext().stop(logAggregator);
-    }
-    logAggregator = null;
-  }
-
   @Override
   public void postStop() throws Exception {
-    stopLogAggregation();
+    LOG.info("stopping StatementExecutor : {}", getSelf());
+    this.logAggregator = null;
+
   }
 
 
