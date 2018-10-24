@@ -39,14 +39,14 @@ public class PropertyValueTrimmingStrategyDefiner {
       if (valueAttributesInfo != null) {
         String type = valueAttributesInfo.getType();
         if ("directory".equals(type) || "directories".equals(type)) {
-          return DirectoriesTrimmingStrategy.INSTANCE;
+          return TrimmingStrategy.DIRECTORIES;
         } else if ("host".equals(type)) {
-          return DefaultTrimmingStrategy.INSTANCE;
+          return TrimmingStrategy.DEFAULT;
         }
       }
       if (configProperty.getPropertyTypes() != null && configProperty.getPropertyTypes().
               contains(org.apache.ambari.server.state.PropertyInfo.PropertyType.PASSWORD)) {
-        return PasswordTrimmingStrategy.INSTANCE;
+        return TrimmingStrategy.PASSWORD;
       }
     }
     return null;
@@ -54,9 +54,9 @@ public class PropertyValueTrimmingStrategyDefiner {
 
   private static TrimmingStrategy getTrimmingStrategyByPropertyName(String propertyName) {
     if (SET_OF_URL_PROPERTIES.contains(propertyName)) {
-      return DefaultTrimmingStrategy.INSTANCE;
+      return TrimmingStrategy.DEFAULT;
     } else {
-      return DeleteSpacesAtTheEndTrimmingStrategy.INSTANCE;
+      return TrimmingStrategy.DELETE_SPACES_AT_END;
     }
   }
 
