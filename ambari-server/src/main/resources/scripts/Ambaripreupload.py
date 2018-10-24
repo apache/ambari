@@ -32,6 +32,9 @@ import time
 import functools
 from xml.dom import minidom
 
+from ambari_server.serverClassPath import JDBC_DRIVER_PATH_PROPERTY
+from ambari_server.serverConfiguration import get_value_from_properties, get_ambari_properties
+
 from resource_management.core import File
 from resource_management.core import shell
 from resource_management.core.environment import Environment
@@ -45,13 +48,16 @@ from resource_management.libraries.functions.oozie_prepare_war import prepare_wa
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
 
-SQL_DRIVER_PATH = "/var/lib/ambari-server/resources/sqljdbc41.jar"
- 
+ambari_properties = get_ambari_properties()
+DEFAULT_SQL_DRIVER_PATH = "/var/lib/ambari-server/resources/sqljdbc41.jar"
+SQL_DRIVER_PATH = get_value_from_properties(ambari_properties, JDBC_DRIVER_PATH_PROPERTY, DEFAULT_SQL_DRIVER_PATH) if ambari_properties != -1 else DEFAULT_SQL_DRIVER_PATH
+print("Using SQL driver from {}".format(SQL_DRIVER_PATH))
+
 """
 This file provides helper methods needed for the versioning of RPMs. Specifically, it does dynamic variable
 interpretation to replace strings like {{ stack_version_formatted }}  where the value of the
 variables cannot be determined ahead of time, but rather, depends on what files are found.
- 
+
 It assumes that {{ stack_version_formatted }} is constructed as ${major.minor.patch.rev}-${build_number}
 E.g., 998.2.2.1.0-998
 Please note that "-${build_number}" is optional.
