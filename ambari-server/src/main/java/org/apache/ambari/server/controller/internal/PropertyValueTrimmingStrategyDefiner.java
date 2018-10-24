@@ -19,19 +19,19 @@
 package org.apache.ambari.server.controller.internal;
 
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.state.ValueAttributesInfo;
 
-public class PropertyValueTrimmingStrategyDefiner {
-  static final Set<String> setOfUrlProperties = new HashSet<>();
+import com.google.common.collect.ImmutableSet;
 
-  static {
-    setOfUrlProperties.add("javax.jdo.option.ConnectionURL");
-    setOfUrlProperties.add("oozie.service.JPAService.jdbc.url");
-  }
+public class PropertyValueTrimmingStrategyDefiner {
+
+  private static final Set<String> SET_OF_URL_PROPERTIES = ImmutableSet.of(
+    "javax.jdo.option.ConnectionURL",
+    "oozie.service.JPAService.jdbc.url"
+  );
 
   private static TrimmingStrategy getTrimmingStrategyForConfigProperty(Stack.ConfigProperty configProperty) {
     if (configProperty != null) {
@@ -39,24 +39,24 @@ public class PropertyValueTrimmingStrategyDefiner {
       if (valueAttributesInfo != null) {
         String type = valueAttributesInfo.getType();
         if ("directory".equals(type) || "directories".equals(type)) {
-          return new DirectoriesTrimmingStrategy();
+          return TrimmingStrategy.DIRECTORIES;
         } else if ("host".equals(type)) {
-          return new DefaultTrimmingStrategy();
+          return TrimmingStrategy.DEFAULT;
         }
       }
       if (configProperty.getPropertyTypes() != null && configProperty.getPropertyTypes().
               contains(org.apache.ambari.server.state.PropertyInfo.PropertyType.PASSWORD)) {
-        return new PasswordTrimmingStrategy();
+        return TrimmingStrategy.PASSWORD;
       }
     }
     return null;
   }
 
   private static TrimmingStrategy getTrimmingStrategyByPropertyName(String propertyName) {
-    if (setOfUrlProperties.contains(propertyName)) {
-      return new DefaultTrimmingStrategy();
+    if (SET_OF_URL_PROPERTIES.contains(propertyName)) {
+      return TrimmingStrategy.DEFAULT;
     } else {
-      return new DeleteSpacesAtTheEndTrimmingStrategy();
+      return TrimmingStrategy.DELETE_SPACES_AT_END;
     }
   }
 
