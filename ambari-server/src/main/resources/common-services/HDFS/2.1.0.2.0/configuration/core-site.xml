@@ -213,6 +213,17 @@ DEFAULT
     <on-ambari-upgrade add="false" />
   </property>
   <property>
+    <name>fs.gs.path.encoding</name>
+    <value>uri-path</value>
+    <description>The path encoding codec to be used for GCS</description>
+    <on-ambari-upgrade add="false" />
+  </property>
+  <property>
+    <name>fs.gs.working.dir</name>
+    <value>/</value>
+    <on-ambari-upgrade add="false" />
+  </property>
+  <property>
     <name>fs.s3a.user.agent.prefix</name>
     <value>User-Agent: APN/1.0 Hortonworks/1.0 HDP/{{version}}</value>
     <on-ambari-upgrade add="false" />
