@@ -43,19 +43,26 @@
       <div class="form-group col-xs-4 cluster-name"
            ng-class="{'has-error': editClusterNameForm.clusterName.$invalid}">
         <label for="clusterName">{{'views.clusterName' | translate}}*</label>
-        <input type="text"
-               class="form-control"
-               id="clusterName"
-               name="clusterName"
-               ng-change="toggleSaveButton()"
-               ng-model="edit.clusterName"
-               required
-               autofocus
-               ng-maxlength="100"
-               tooltip="{{'common.renameClusterTip' | translate}}"
-               tooltip-trigger="focus"
-               tooltip-placement="bottom"
-               ng-class="{edited: isClusterNameEdited}">
+        <div class="cluster-input-block">
+          <input type="text"
+                 class="form-control"
+                 id="clusterName"
+                 name="clusterName"
+                 ng-change="toggleSaveButton()"
+                 ng-model="edit.clusterName"
+                 required
+                 autofocus
+                 ng-maxlength="100"
+                 tooltip="{{'common.renameClusterTip' | translate}}"
+                 tooltip-trigger="focus"
+                 tooltip-placement="bottom"
+                 ng-pattern="/^([a-zA-Z0-9_-\s]+)$/"
+                 ng-class="{edited: isClusterNameEdited}">
+          <span class="help-block validation-block"
+                ng-show='editClusterNameForm.clusterName.$invalid'>
+            {{'common.alerts.noSpecialCharsAndNoEmpty' | translate}}
+          </span>
+        </div>
         <button
           type="submit"
           ng-class="{'disabled': editClusterNameForm.clusterName.$invalid}"

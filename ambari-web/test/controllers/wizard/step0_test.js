@@ -51,7 +51,21 @@ describe('App.WizardStep0Controller', function () {
       wizardStep0Controller.set('hasSubmitted', true);
       wizardStep0Controller.set('content', {'cluster':{'name':'$cluster'}});
       expect(wizardStep0Controller.get('invalidClusterName')).to.equal(true);
-    })
+      wizardStep0Controller.set('content', {'cluster':{'name':']^cluster\\'}});
+      expect(wizardStep0Controller.get('invalidClusterName')).to.equal(true);
+      wizardStep0Controller.set('content', {'cluster':{'name':'[cluster]'}});
+      expect(wizardStep0Controller.get('invalidClusterName')).to.equal(true);
+    });
+    it('should return true if cluster name contains more than 100 symbols', function () {
+      wizardStep0Controller.set('hasSubmitted', true);
+      wizardStep0Controller.set('content', {'cluster':{'name':'0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0'}});
+      expect(wizardStep0Controller.get('invalidClusterName')).to.equal(true);
+    });
+    it('should return true if cluster name contains special chars', function () {
+      wizardStep0Controller.set('hasSubmitted', true);
+      wizardStep0Controller.set('content', {'cluster':{'name':'$cluster'}});
+      expect(wizardStep0Controller.get('invalidClusterName')).to.equal(true);
+    });
   });
 
   describe('#loadStep', function() {
