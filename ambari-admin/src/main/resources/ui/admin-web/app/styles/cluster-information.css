@@ -27,13 +27,13 @@
 #cluster-information .dev-blueprint span {
   vertical-align: text-top;
 }
-
-#cluster-information .cluster-name input {
+#cluster-information .cluster-name .cluster-input-block{
+  float: left;
   width: 75%;
 }
 
 #cluster-information .cluster-name button {
-  margin-top: -34px;
+  float: right;
 }
 
 #cluster-information .cluster-name input.edited {
