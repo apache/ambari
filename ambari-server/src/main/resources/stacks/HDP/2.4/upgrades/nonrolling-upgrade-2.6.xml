@@ -456,6 +456,10 @@
         <task xsi:type="configure" id="hdfs_user_agent" />
       </execute-stage>
 
+      <execute-stage service="HDFS" component="HDFS_CLIENT" title="Set properties for GCS">
+        <task xsi:type="configure" id="gcs_properties" />
+      </execute-stage>
+
       <!--SPARK-->
       <execute-stage service="SPARK" component="SPARK_CLIENT" title="Apply config changes for Spark">
         <task xsi:type="configure" id="hdp_2_5_0_0_spark_yarn_queue">
