@@ -88,7 +88,7 @@ public class UpgradeCheckDescription {
   /**
    * Gets all of the registered check descriptions.
    *
-   * @return
+   * @return all of the registered {@link UpgradeCheckDescription} instances.
    */
   public Set<UpgradeCheckDescription> values() {
     return s_values;

@@ -24,18 +24,19 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.upgrade.UpgradeCheck;
 import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
 import org.apache.ambari.spi.upgrade.UpgradeType;
 
 import com.google.inject.Singleton;
 
 /**
- * The {@link UpgradeCheckInfo} annotation is used to provide ordering and grouping
- * to any {@link ClusterCheck} instance.
- * <p/>
+ * The {@link UpgradeCheckInfo} annotation is used to provide ordering and
+ * grouping to any {@link UpgradeCheck} instance.
+ * <p>
  * Classes marked with this annotation should also be {@link Singleton}. They
  * will be discovered on the classpath and then registered with the
- * {@link UpgradeCheckRegistry}.
+ * {@code UpgradeCheckRegistry}.
  */
 @Target({ ElementType.TYPE })
 @Retention(RUNTIME)
@@ -50,7 +51,7 @@ public @interface UpgradeCheckInfo {
 
   /**
    * The order of the pre-upgrade check within its group.
-   * <p/>
+   * <p>
    * The order is determined by a {@code float} so that new checks can be added
    * in between others without the need to reorder all of the existing checks.
    *
@@ -62,7 +63,7 @@ public @interface UpgradeCheckInfo {
    * Gets the upgrade types for which an upgrade check is required. By default,
    * a pre-upgrade check needs to be declared in the upgrade pack. This flag
    * will override that setting.
-   * <p/>
+   * <p>
    * Leaving this blank assumes that the check is not required.
    *
    * @return the upgrade types which do not need the check to be explicitely

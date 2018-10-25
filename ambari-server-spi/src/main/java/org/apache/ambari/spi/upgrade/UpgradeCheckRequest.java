@@ -41,13 +41,14 @@ public class UpgradeCheckRequest {
   /**
    * Constructor.
    *
-   * @param clusterName
-   *          the name of the cluster.
+   * @param clusterInformation
+   *          the name of a cluster along with its hosts, services, and
+   *          topology.
    * @param upgradeType
    *          the type of the upgrade.
    * @param targetRepositoryVersion
    *          the target repository version for the upgrade.
-   * @param configurations
+   * @param checkConfigurations
    *          any configurations specified in the upgrade pack which can be used
    *          to when
    */

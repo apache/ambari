@@ -20,7 +20,7 @@ package org.apache.ambari.spi.upgrade;
 /**
  * The {@link UpgradeCheckGroup} enum is used to organize pre-upgrade checks
  * into specific groups that have their own relational ordering.
- * <p/>
+ * <p>
  * The order for each group is determined by a {@code float} so that new groups
  * can be added in between others without the need to reorder all of the groups.
  */

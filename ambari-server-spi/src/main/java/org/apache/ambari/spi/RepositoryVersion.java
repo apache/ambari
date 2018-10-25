@@ -49,7 +49,7 @@ public class RepositoryVersion {
   /**
    * Gets the internal ID of the repository version stored in Ambari's database.
    *
-   * @return
+   * @return the internal ID of the repository, such as {code 51L}.
    */
   public long getId() {
     return m_id;

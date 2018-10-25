@@ -54,9 +54,9 @@ public class UpgradeCheckResult {
   }
 
   /**
-   * The associated {@link UpgradeCheckDescription}.
+   * The associated {@link UpgradeCheckDescription}'s text.
    *
-   * @return
+   * @return the desccription for the upgrade check which provided this result.
    */
   public String getDescription() {
     return m_upgradeCheck.getCheckDescription().getText();
