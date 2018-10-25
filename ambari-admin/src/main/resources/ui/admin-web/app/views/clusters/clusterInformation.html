@@ -65,6 +65,7 @@
         </div>
         <button
           type="submit"
+          ng-disabled="editClusterNameForm.clusterName.$invalid"
           ng-class="{'disabled': editClusterNameForm.clusterName.$invalid}"
           class="btn btn-default pull-right"
           ng-show="isClusterNameEdited">
