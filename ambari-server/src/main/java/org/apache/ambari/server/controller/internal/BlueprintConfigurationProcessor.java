@@ -2152,6 +2152,8 @@ public class BlueprintConfigurationProcessor {
       try {
         return super.updateForClusterCreate(propertyName, origValue, properties, topology);
       } catch (IllegalArgumentException illegalArgumentException) {
+        LOG.warn("Error while updating property [{}] with original value [{}]. Exception message: {}",
+          propertyName, origValue, illegalArgumentException.getMessage());
         // return the original value, since the optional component is not available in this cluster
         return origValue;
       }
@@ -2922,13 +2924,13 @@ public class BlueprintConfigurationProcessor {
 
 
     // NAMENODE
-    hdfsSiteMap.put("dfs.http.address", new SingleHostTopologyUpdater("NAMENODE"));
-    hdfsSiteMap.put("dfs.https.address", new SingleHostTopologyUpdater("NAMENODE"));
-    coreSiteMap.put("fs.default.name", new SingleHostTopologyUpdater("NAMENODE"));
-    hdfsSiteMap.put("dfs.namenode.http-address", new SingleHostTopologyUpdater("NAMENODE"));
-    hdfsSiteMap.put("dfs.namenode.https-address", new SingleHostTopologyUpdater("NAMENODE"));
-    hdfsSiteMap.put("dfs.namenode.rpc-address", new SingleHostTopologyUpdater("NAMENODE"));
-    coreSiteMap.put("fs.defaultFS", new SingleHostTopologyUpdater("NAMENODE"));
+    hdfsSiteMap.put("dfs.http.address", new OptionalSingleHostTopologyUpdater("NAMENODE"));
+    hdfsSiteMap.put("dfs.https.address", new OptionalSingleHostTopologyUpdater("NAMENODE"));
+    coreSiteMap.put("fs.default.name", new OptionalSingleHostTopologyUpdater("NAMENODE"));
+    hdfsSiteMap.put("dfs.namenode.http-address", new OptionalSingleHostTopologyUpdater("NAMENODE"));
+    hdfsSiteMap.put("dfs.namenode.https-address", new OptionalSingleHostTopologyUpdater("NAMENODE"));
+    hdfsSiteMap.put("dfs.namenode.rpc-address", new OptionalSingleHostTopologyUpdater("NAMENODE"));
+    coreSiteMap.put("fs.defaultFS", new OptionalSingleHostTopologyUpdater("NAMENODE"));
     hbaseSiteMap.put("hbase.rootdir", new OptionalSingleHostTopologyUpdater("NAMENODE"));
     accumuloSiteMap.put("instance.volumes", new SingleHostTopologyUpdater("NAMENODE"));
     // HDFS shared.edits JournalNode Quorum URL uses semi-colons as separators
@@ -2939,8 +2941,8 @@ public class BlueprintConfigurationProcessor {
     clusterEnvMap.put(HDFS_STANDBY_NAMENODE_PROPERTY_NAME, new SingleHostTopologyUpdater("NAMENODE"));
 
     // SECONDARY_NAMENODE
-    hdfsSiteMap.put("dfs.secondary.http.address", new SingleHostTopologyUpdater("SECONDARY_NAMENODE"));
-    hdfsSiteMap.put("dfs.namenode.secondary.http-address", new SingleHostTopologyUpdater("SECONDARY_NAMENODE"));
+    hdfsSiteMap.put("dfs.secondary.http.address", new OptionalSingleHostTopologyUpdater("SECONDARY_NAMENODE"));
+    hdfsSiteMap.put("dfs.namenode.secondary.http-address", new OptionalSingleHostTopologyUpdater("SECONDARY_NAMENODE"));
 
     // JOBTRACKER
     mapredSiteMap.put("mapred.job.tracker", new SingleHostTopologyUpdater("JOBTRACKER"));
@@ -2955,13 +2957,13 @@ public class BlueprintConfigurationProcessor {
     mapredSiteMap.put("mapreduce.jobhistory.address", new SingleHostTopologyUpdater("HISTORYSERVER"));
 
     // RESOURCEMANAGER
-    yarnSiteMap.put("yarn.resourcemanager.hostname", new SingleHostTopologyUpdater("RESOURCEMANAGER"));
-    yarnSiteMap.put("yarn.resourcemanager.resource-tracker.address", new SingleHostTopologyUpdater("RESOURCEMANAGER"));
-    yarnSiteMap.put("yarn.resourcemanager.webapp.address", new SingleHostTopologyUpdater("RESOURCEMANAGER"));
-    yarnSiteMap.put("yarn.resourcemanager.scheduler.address", new SingleHostTopologyUpdater("RESOURCEMANAGER"));
-    yarnSiteMap.put("yarn.resourcemanager.address", new SingleHostTopologyUpdater("RESOURCEMANAGER"));
-    yarnSiteMap.put("yarn.resourcemanager.admin.address", new SingleHostTopologyUpdater("RESOURCEMANAGER"));
-    yarnSiteMap.put("yarn.resourcemanager.webapp.https.address", new SingleHostTopologyUpdater("RESOURCEMANAGER"));
+    yarnSiteMap.put("yarn.resourcemanager.hostname", new OptionalSingleHostTopologyUpdater("RESOURCEMANAGER"));
+    yarnSiteMap.put("yarn.resourcemanager.resource-tracker.address", new OptionalSingleHostTopologyUpdater("RESOURCEMANAGER"));
+    yarnSiteMap.put("yarn.resourcemanager.webapp.address", new OptionalSingleHostTopologyUpdater("RESOURCEMANAGER"));
+    yarnSiteMap.put("yarn.resourcemanager.scheduler.address", new OptionalSingleHostTopologyUpdater("RESOURCEMANAGER"));
+    yarnSiteMap.put("yarn.resourcemanager.address", new OptionalSingleHostTopologyUpdater("RESOURCEMANAGER"));
+    yarnSiteMap.put("yarn.resourcemanager.admin.address", new OptionalSingleHostTopologyUpdater("RESOURCEMANAGER"));
+    yarnSiteMap.put("yarn.resourcemanager.webapp.https.address", new OptionalSingleHostTopologyUpdater("RESOURCEMANAGER"));
 
     // APP_TIMELINE_SERVER
     yarnSiteMap.put("yarn.timeline-service.address", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
