@@ -970,7 +970,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     batchUtils.showServiceRestartPopup(this.get('content.serviceName'), this.getMastersForRestart.bind(this), this.getSlavesForRestart.bind(this));
   },
   restartServiceMastersOnly: function () {
-    batchUtils.showServiceRestartPopup(this.get('content.serviceName'), this.getMastersForRestart.bind(this));
+    batchUtils.showServiceRestartPopup(this.get('content.serviceName'), this.getMastersForRestart.bind(this), null);
   },
 
   restartServiceSlavesOnly: function () {
@@ -1058,7 +1058,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       if (sNameNode) hostCompOrdered.push(sNameNode);
 
       //Add NameNode
-      const namenode = hdfsService.get('namenode') || App.HostComponent.find().findProperty('componentName', 'SECONDARY_NAMENODE');
+      const namenode = hdfsService.get('namenode') || App.HostComponent.find().findProperty('componentName', 'NAMENODE');
       if (namenode) hostCompOrdered.push(namenode);
     }
     return hostCompOrdered;
