@@ -145,7 +145,7 @@ public class StackDirectory extends StackDefinitionDirectory {
   /**
    * upgrades directory name
    */
-  private static final String UPGRADE_PACK_FOLDER_NAME = "upgrades";
+  public static final String UPGRADE_PACK_FOLDER_NAME = "upgrades";
 
   /**
    * role command order file name

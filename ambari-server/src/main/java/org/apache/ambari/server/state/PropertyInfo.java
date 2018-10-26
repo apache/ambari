@@ -34,6 +34,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlList;
+import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.ambari.server.controller.StackConfigurationResponse;
 import org.w3c.dom.Element;
@@ -47,7 +48,9 @@ public class PropertyInfo {
   @XmlElement(name = "display-name")
   private String displayName;
 
+  @XmlTransient
   private String filename;
+
   private boolean deleted;
 
   @XmlElement(name="on-ambari-upgrade", required = true)

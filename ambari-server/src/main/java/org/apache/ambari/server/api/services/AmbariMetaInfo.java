@@ -860,6 +860,10 @@ public class AmbariMetaInfo {
     return stackRoot;
   }
 
+  public File getCommonServicesRoot() {
+    return commonServicesRoot;
+  }
+
   public File getExtensionsRoot() {
     return extensionsRoot;
   }

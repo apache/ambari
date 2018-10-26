@@ -29,6 +29,11 @@ import xml.etree.ElementTree as ET
 
 # Local Imports
 
+try:
+  from stack_advisor_hdp21 import *
+except ImportError:
+  #Ignore ImportError
+  print("stack_advisor_hdp21 not found")
 
 class HDP22StackAdvisor(HDP21StackAdvisor):
 
