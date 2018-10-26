@@ -1161,7 +1161,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     Collection<RepositoryInfo> serviceRepos = getUniqueServiceRepos(stackRepos);
     stackInfo.getRepositories().addAll(serviceRepos);
 
-    if (null != rxml && null != rxml.getLatestURI() && stackRepos.size() > 0 && stackContext != null) {
+    if (null != rxml && null != rxml.getLatestURI() && stackRepos.size() > 0) {
       registerRepoUpdateTask(rxml);
     }
   }

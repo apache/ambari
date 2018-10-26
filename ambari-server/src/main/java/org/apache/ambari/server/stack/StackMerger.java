@@ -29,12 +29,19 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.audit.AuditLoggerModule;
+import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.ldap.LdapModule;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.QuickLinksConfigurationInfo;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -48,6 +55,12 @@ import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.theme.Theme;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -57,59 +70,126 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+
 /**
  * Utility tool for merging stack hierarchy and generate flattened stack definitions for legal stacks
  */
 public class StackMerger {
+
+  private static final String MERGED_STACKS_ROOT = "mergedStacksRoot";
+  private static final String STACKS_ARG = "stacks";
+
   private static final Logger LOG = LoggerFactory.getLogger
     (StackMerger.class);
+
+  private PersistService persistService;
+  private DBAccessor dbAccessor;
+  private Injector injector;
 
   private static final ObjectMapper mapper = new ObjectMapper();
   private File commonServicesRoot;
   private File stackRoot;
-  private File mergeRoot;
-  private StackId srcStackId;
-  private StackId destStackId;
   private StackManager stackManager;
   private Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
+  @Inject
+  public StackMerger(Injector injector) throws Exception {
+    this.injector = injector;
+    AmbariMetaInfo metaInfo = injector.getInstance(AmbariMetaInfo.class);
+    metaInfo.init();
+    this.stackRoot = metaInfo.getStackRoot();
+    this.commonServicesRoot = metaInfo.getCommonServicesRoot();
+    this.stackManager = metaInfo.getStackManager();
+  }
+
   /**
-   * {@link StackMerger} constructor
-   * @param stackRoot           Stack root directory
-   * @param commonServicesRoot  Common services root directory
-   * @param srcStackId          Source stack id
-   * @param mergeRoot           Merged stack root directory
-   * @throws Exception
+   * Extension of audit logger module
    */
-  public StackMerger(File stackRoot, File commonServicesRoot, StackId srcStackId, File mergeRoot)
-    throws Exception {
-    this.commonServicesRoot = commonServicesRoot;
-    this.stackRoot = stackRoot;
-    this.mergeRoot = mergeRoot;
-    this.srcStackId = srcStackId;
-    this.stackManager = new StackManager(stackRoot, commonServicesRoot, false);
-    this.destStackId = srcStackId;
+  public static class StackMergerAuditModule extends AuditLoggerModule {
+
+    public StackMergerAuditModule() throws Exception {
+    }
+
+    @Override
+    protected void configure() {
+      super.configure();
+    }
+  }
+
+  /**
+   * Context object that encapsulates values passed in as arguments to the {@link StackMerger} class.
+   */
+  private static class StackMergerContext {
+    private String mergedStacksRoot;
+    private HashSet<StackId> stackIds;
+
+    public StackMergerContext(String mergedStacksRoot, HashSet<StackId> stackIds) {
+      this.stackIds = stackIds;
+      this.mergedStacksRoot = mergedStacksRoot;
+    }
+
+    public HashSet<StackId> getStackIds() {
+      return stackIds;
+    }
+
+    public String getMergedStacksRoot() {
+      return mergedStacksRoot;
+    }
+  }
+
+  private static Options getOptions() {
+    Options options = new Options();
+    options.addOption(Option.builder().longOpt(STACKS_ARG).desc(
+            "Comma-separated list of stacks to be merged and exported").required().type(String.class).hasArg().valueSeparator(' ').build());
+    options.addOption(Option.builder().longOpt(MERGED_STACKS_ROOT).desc(
+            "Root directory where the merged stacks should be exported").required().type(String.class).hasArg().valueSeparator(' ').build());
+    return options;
+  }
+
+  private static StackMergerContext processArguments(String... args) throws Exception {
+    CommandLineParser cmdLineParser = new DefaultParser();
+    HelpFormatter formatter = new HelpFormatter();
+
+    CommandLine line = cmdLineParser.parse(getOptions(), args);
+    String mergedStacksRoot = (String) line.getParsedOptionValue(MERGED_STACKS_ROOT);
+    String stacksStr = (String) line.getParsedOptionValue(STACKS_ARG);
+    HashSet<StackId> stackIds = new HashSet<>();
+    for (String s : stacksStr.split(",")) {
+      stackIds.add(new StackId(s));
+    }
+    return new StackMergerContext(mergedStacksRoot, stackIds);
+  }
+
+  public void mergeStacks(StackMergerContext ctx) throws Exception {
+    File mergeRoot = new File(ctx.mergedStacksRoot);
+    for(StackId stackId : ctx.stackIds) {
+      mergeStack(mergeRoot, stackId);
+    }
   }
 
   /**
    * Merge stack hierarchy to create flattened stack definition
    * @throws Exception
    */
-  public void mergeStack() throws Exception {
-    String destStackName = destStackId.getStackName();
+  public void mergeStack(File mergeRoot, StackId srcStackId) throws Exception {
+    StackId destStackId = srcStackId;
     String stackName = destStackId.getStackName();
     String stackVersion = destStackId.getStackVersion();
     File mergedStackDir = new File(mergeRoot.getAbsolutePath()
             + File.separator + stackName + File.separator + stackVersion);
 
-    System.out.println("===========================================================");
-    System.out.println("Source Stacks Root " + stackRoot);
-    System.out.println("Common Services Root " + commonServicesRoot);
-    System.out.println("Merged Stacks Root " + mergeRoot);
-    System.out.println("Source Stack Id: " + srcStackId);
-    System.out.println("Destination Stack Id: " + destStackId);
-    System.out.println("Merged Stack Path " + mergedStackDir);
-    System.out.println("===========================================================");
+    LOG.info("===========================================================");
+    LOG.info("Source Stacks Root: " + stackRoot);
+    LOG.info("Common Services Root: " + commonServicesRoot);
+    LOG.info("Merged Stacks Root: " + mergeRoot);
+    LOG.info("Source Stack Id: " + srcStackId);
+    LOG.info("Destination Stack Id: " + destStackId);
+    LOG.info("Merged Stack Path " + mergedStackDir);
+    LOG.info("===========================================================");
 
     // Create merged stack directory
     if (!mergeRoot.exists()) {
@@ -443,6 +523,10 @@ public class StackMerger {
         FileUtils.copyFile(srcServiceAdvisor, destServiceAdvisor);
       }
     }
+
+    // Delete *.pyc, *.pyo, archive.zip
+    FileUtils.listFiles(mergedStackDir, new String[]{"pyc", "pyo", "zip"}, true).forEach(File::delete);
+    LOG.info("Merged Stack " + destStackId + " has been successfully exported at " + mergedStackDir);
   }
 
   /**
@@ -499,23 +583,24 @@ public class StackMerger {
   /**
    * Main method for merging stack definitions
    *
-   * Usage: StackMerger <stackRoot> <commonServicesRoot> <stackId> <mergedStackRoot>
+   * Usage:
+   *   java -cp /etc/ambari-server/conf:/usr/lib/ambari-server/*:/usr/share/java/postgresql-jdbc.jar
+   *        org.apache.ambari.server.stack.StackMerger --mergedStacksRoot=/tmp/merged-root --stacks=HDP-2.5,HDP-2.6
    * @param args
    * @throws Exception
    */
   public static void main(String[] args) throws Exception {
-    System.out.println("Stack Merger Started");
-    String stackDir = args[0];
-    String commonServicesDir = args[1];
-    String srcStack = args[2];
-    String mergeDir = args[3];
+    StackMergerContext ctx = processArguments(args);
 
-    StackMerger stackMerger = new StackMerger(
-      new File(stackDir),
-      new File(commonServicesDir),
-      new StackId(srcStack),
-      new File(mergeDir));
-    stackMerger.mergeStack();
-    System.out.println("Stack Merger Finished");
+    LOG.info("********* Initializing Stack Merger *********");
+    Injector injector = Guice.createInjector(new ControllerModule(), new StackMergerAuditModule(), new LdapModule());
+    GuiceJpaInitializer jpaInitializer = injector.getInstance(GuiceJpaInitializer.class);
+    jpaInitializer.setInitialized();
+    StackMerger stackMerger = injector.getInstance(StackMerger.class);
+    LOG.info("********* Stack Merger Initialized *********");
+    stackMerger.mergeStacks(ctx);
+    LOG.info("********* Stack Merger Finished *********");
+
+    System.exit(0);
   }
 }
