@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 
 /**
  * The {@link SwaggerOverwriteNestedAPI} is used to overwrite default values of
- * {@link org.apache.ambari.swagger.NestedApiRecord} when {@link org.apache.ambari.swagger.AmbariSwaggerReader}
+ * {@code NestedApiRecord} when {@link org.apache.ambari.swagger.AmbariSwaggerReader}
  * processes nested API classes for Swagger annotations.
  *
  * It can be useful to overcome the limitations of multi-nested service endpoints or endpoints without Path
@@ -38,26 +38,22 @@ import java.lang.annotation.Target;
 public @interface SwaggerOverwriteNestedAPI {
 
     /**
-     * Class name of parent object
-     * @return
+     * @return class name of parent object
      */
-    Class parentApi();
+    Class<?> parentApi();
 
     /**
-     * Parent API path, usually top-level API path starting with slash.
-     * @return
+     * @return parent API path, usually top-level API path starting with slash.
      */
     String parentApiPath();
 
     /**
-     * Path annotation value of the method in parent class.
-     * @return
+     * @return path annotation value of the method in parent class.
      */
     String parentMethodPath();
 
     /**
-     * Array of Strings to provide path parameters. Only string types are supported as of now.
-     * @return
+     * @return array of Strings to provide path parameters. Only string types are supported as of now.
      */
     String[] pathParameters();
 }
