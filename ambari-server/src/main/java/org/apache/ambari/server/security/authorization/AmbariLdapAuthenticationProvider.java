@@ -52,7 +52,8 @@ import com.google.inject.Inject;
  * Provides LDAP user authorization logic for Ambari Server
  */
 public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvider {
-  static Logger LOG = LoggerFactory.getLogger(AmbariLdapAuthenticationProvider.class); // exposed and mutable for "test"
+  private static final String SYSTEM_PROPERTY_DISABLE_ENDPOINT_IDENTIFICATION = "com.sun.jndi.ldap.object.disableEndpointIdentification";
+  private static Logger LOG = LoggerFactory.getLogger(AmbariLdapAuthenticationProvider.class);
 
   final AmbariLdapConfigurationProvider ldapConfigurationProvider;
 
@@ -169,6 +170,14 @@ public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvid
       if (!ldapServerProperties.get().isAnonymousBind()) {
         springSecurityContextSource.setUserDn(ldapServerProperties.get().getManagerDn());
         springSecurityContextSource.setPassword(ldapServerProperties.get().getManagerPassword());
+      }
+
+      if (ldapServerProperties.get().isUseSsl() && ldapServerProperties.get().isDisableEndpointIdentification()) {
+        System.setProperty(SYSTEM_PROPERTY_DISABLE_ENDPOINT_IDENTIFICATION, "true");
+        LOG.info("Disabled endpoint identification");
+      } else {
+        System.clearProperty(SYSTEM_PROPERTY_DISABLE_ENDPOINT_IDENTIFICATION);
+        LOG.info("Removed endpoint identification disabling");
       }
 
       try {
