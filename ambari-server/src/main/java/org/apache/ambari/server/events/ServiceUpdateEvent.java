@@ -21,6 +21,7 @@ package org.apache.ambari.server.events;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.State;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -42,12 +43,17 @@ public class ServiceUpdateEvent extends STOMPEvent {
   @JsonProperty("state")
   private State state;
 
-  public ServiceUpdateEvent(String clusterName, MaintenanceState maintenanceState, String serviceName, State state) {
+  @JsonIgnore
+  private boolean stateChanged = false;
+
+  public ServiceUpdateEvent(String clusterName, MaintenanceState maintenanceState, String serviceName, State state,
+                            boolean stateChanged) {
     super(Type.SERVICE);
     this.clusterName = clusterName;
     this.maintenanceState = maintenanceState;
     this.serviceName = serviceName;
     this.state = state;
+    this.stateChanged = stateChanged;
   }
 
   public String getClusterName() {
@@ -80,6 +86,14 @@ public class ServiceUpdateEvent extends STOMPEvent {
 
   public void setState(State state) {
     this.state = state;
+  }
+
+  public boolean isStateChanged() {
+    return stateChanged;
+  }
+
+  public void setStateChanged(boolean stateChanged) {
+    this.stateChanged = stateChanged;
   }
 
   @Override

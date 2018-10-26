@@ -25,7 +25,7 @@
 
   <properties>
     <jdk.version>1.8</jdk.version>
-    <solr.version>7.4.0</solr.version>
+    <solr.version>7.5.0</solr.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <python.ver>python &gt;= 2.6</python.ver>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
