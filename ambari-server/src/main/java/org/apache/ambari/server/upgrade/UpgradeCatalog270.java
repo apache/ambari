@@ -1764,6 +1764,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     map.put(AmbariServerConfigurationKey.PAGINATION_ENABLED, "authentication.ldap.pagination.enabled");
     map.put(AmbariServerConfigurationKey.COLLISION_BEHAVIOR, "ldap.sync.username.collision.behavior");
 
+    // Added in the event a previous version of Ambari had AMBARI-24827 back-ported to it
+    map.put(AmbariServerConfigurationKey.DISABLE_ENDPOINT_IDENTIFICATION, "ldap.sync.disable.endpoint.identification");
+
     // SSO-related properties
     map.put(AmbariServerConfigurationKey.SSO_PROVIDER_URL, "authentication.jwt.providerUrl");
     map.put(AmbariServerConfigurationKey.SSO_PROVIDER_CERTIFICATE, "authentication.jwt.publicKey");
