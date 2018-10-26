@@ -2152,6 +2152,8 @@ public class BlueprintConfigurationProcessor {
       try {
         return super.updateForClusterCreate(propertyName, origValue, properties, topology);
       } catch (IllegalArgumentException illegalArgumentException) {
+        LOG.warn("Error while updating property [{}] with original value [{}]. Exception message: {}",
+          propertyName, origValue, illegalArgumentException.getMessage());
         // return the original value, since the optional component is not available in this cluster
         return origValue;
       }
