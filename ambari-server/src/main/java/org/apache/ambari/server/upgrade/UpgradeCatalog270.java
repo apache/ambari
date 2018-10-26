@@ -1058,7 +1058,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     setStatusOfStagesAndRequests();
     updateLogSearchConfigs();
     updateKerberosConfigurations();
-    updateHostComponentLastStateTable();
     moveAmbariPropertiesToAmbariConfiguration();
     createRoleAuthorizations();
     addUserAuthenticationSequence();
@@ -1774,24 +1773,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     map.put(AmbariServerConfigurationKey.SSO_JWT_COOKIE_NAME, "authentication.jwt.cookieName");
 
     return map;
-  }
-
-  protected void updateHostComponentLastStateTable() throws SQLException {
-    executeInTransaction(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
-          List<HostComponentStateEntity> hostComponentStateEntities = hostComponentStateDAO.findAll();
-          for (HostComponentStateEntity hostComponentStateEntity : hostComponentStateEntities) {
-            hostComponentStateEntity.setLastLiveState(hostComponentStateEntity.getCurrentState());
-            hostComponentStateDAO.merge(hostComponentStateEntity);
-          }
-        } catch (Exception e) {
-          LOG.warn("Setting status for stages and Requests threw exception. ", e);
-        }
-      }
-    });
   }
 
   protected void updateSolrConfigurations() throws AmbariException {
