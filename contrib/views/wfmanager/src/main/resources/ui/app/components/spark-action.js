@@ -54,6 +54,7 @@ export default Ember.Component.extend(Validations,{
     this.set('isJar', this.get('actionModel.jar') && this.get('actionModel.jar').endsWith('.jar'));
     this.sendAction('register','sparkAction', this);
   }.on('init'),
+  appendNameNode: false,
   initialize : function(){
     this.on('fileSelected',function(fileName){
       this.set(this.get('filePathModel'), fileName);
@@ -105,6 +106,20 @@ export default Ember.Component.extend(Validations,{
       this.$('#collapseOne').collapse('show');
     }
   }.on('didUpdate'),
+  validateJarPathAndAppend() {
+      let nameNode = this.get('actionModel.nameNode'), jar = this.get('actionModel.jar');
+      if(!jar) {
+        return;
+      }
+      this.toggleProperty('appendNameNode');
+      if(!jar.startsWith('${nameNode}') && this.get('appendNameNode')) {
+        this.set('actionModel.jar', `${nameNode}${jar}`);
+      } else if(jar.startsWith('${nameNode}') && this.get('appendNameNode')) {
+        this.set('actionModel.jar', `${jar}`);
+      } else {
+        this.set('actionModel.jar', jar.replace('${nameNode}', ''));
+      }
+  },
   actions : {
     openFileBrowser(model, context){
       if(undefined === context){
@@ -115,6 +130,9 @@ export default Ember.Component.extend(Validations,{
     },
     register (name, context){
       this.sendAction('register',name , context);
+    },
+    appendNamenode() {
+      this.validateJarPathAndAppend();
     },
     onMasterChange (elt){
       var value = this.$(elt).val();
