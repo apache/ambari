@@ -321,7 +321,11 @@ with Environment() as env:
     with closing(tarfile.open(params.yarn_service_tarball, "w:gz")) as tar:
       for folder in folders:
         for filepath in glob.glob(format("{folder}/*.jar")):
-          tar.add(os.path.realpath(filepath), arcname=os.path.basename(filepath))
+          if os.path.exists(filepath):
+            Logger.debug(format("Adding {filepath}"))
+            tar.add(os.path.realpath(filepath), arcname=os.path.basename(filepath))
+          else:
+            Logger.warning(format("Skipping broken link {filepath}"))
 
   env.set_params(params)
   hadoop_conf_dir = params.hadoop_conf_dir
