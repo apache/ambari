@@ -478,7 +478,7 @@ with Environment() as env:
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/pig/pig.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/pig/", params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/hadoop-mapreduce/hadoop-streaming.jar"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/mapreduce/", params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/sqoop/sqoop.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/sqoop/", params.mapred_user, params.hdfs_user, params.user_group)
-  copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/hadoop-yarn/lib/service-dep.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/yarn/", params.hdfs_user, params.hdfs_user, params.user_group)
+  copy_tarballs_to_hdfs(params.yarn_service_tarball, hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/yarn/", params.hdfs_user, params.hdfs_user, params.user_group)
 
   createHdfsResources()
   copy_zeppelin_dependencies_to_hdfs(format("/usr/hdp/{stack_version}/zeppelin/interpreter/spark/dep/zeppelin-spark-dependencies*.jar"))
