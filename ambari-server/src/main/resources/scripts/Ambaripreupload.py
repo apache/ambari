@@ -17,20 +17,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import functools
+import glob
 import os
+import re
 import sys
 import tarfile
-from contextlib import closing
-from optparse import OptionParser
-os.environ["PATH"] += os.pathsep + "/var/lib/ambari-agent"
-sys.path.append("/usr/lib/ambari-server/lib")
-
-import glob
-import re
 import tempfile
 import time
-import functools
+
+from contextlib import closing
+from optparse import OptionParser
 from xml.dom import minidom
+
+os.environ["PATH"] += os.pathsep + "/var/lib/ambari-agent"
+sys.path.append("/usr/lib/ambari-server/lib")
 
 from ambari_server.serverClassPath import JDBC_DRIVER_PATH_PROPERTY
 from ambari_server.serverConfiguration import get_value_from_properties, get_ambari_properties
