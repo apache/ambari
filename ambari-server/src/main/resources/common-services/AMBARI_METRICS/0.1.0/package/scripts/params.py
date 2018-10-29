@@ -183,6 +183,9 @@ ams_grafana_cert_file = default("/configurations/ams-grafana-ini/cert_file", '/e
 ams_grafana_cert_key = default("/configurations/ams-grafana-ini/cert_key", '/etc/ambari-metrics/conf/ams-grafana.key')
 ams_grafana_ca_cert = default("/configurations/ams-grafana-ini/ca_cert", None)
 
+grafana_connect_attempts = max(int(default('/configurations/ams-grafana-env/metrics_grafana_connect_attempts', 15)), 1)
+grafana_connect_retry_delay = max(int(default('/configurations/ams-grafana-env/metrics_grafana_connect_retry_delay', 20)), 1)
+
 ams_hbase_home_dir = "/usr/lib/ams-hbase/"
 
 ams_hbase_init_check_enabled = default("/configurations/ams-site/timeline.metrics.hbase.init.check.enabled", True)
