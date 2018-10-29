@@ -88,7 +88,7 @@ with Environment() as env:
                     help="flag to indicate script is being run for upgrade", default=False)
   (options, args) = parser.parse_args()
 
-  print("Using SQL driver from {}".format(options.sql_driver_path))
+  Logger.info("Using SQL driver from {}".format(options.sql_driver_path))
   sql_driver_filename = os.path.basename(options.sql_driver_path)
 
   # See if hdfs path prefix is provided on the command line. If yes, use that value, if no
@@ -121,11 +121,10 @@ with Environment() as env:
       if fsdefaultName and fsdefaultName.startswith(expected_fs_protocol):
         break
 
-      print "Waiting to read appropriate value of fs.defaultFS from /etc/hadoop/conf/core-site.xml ..."
+      Logger.info("Waiting to read appropriate value of fs.defaultFS from /etc/hadoop/conf/core-site.xml ...")
       time.sleep(10)
-      pass
 
-    print "Returning fs.defaultFS -> " + fsdefaultName
+    Logger.info("Returning fs.defaultFS -> " + fsdefaultName)
     return fsdefaultName
 
   # These values must be the suffix of the properties in cluster-env.xml
@@ -250,7 +249,7 @@ with Environment() as env:
     return _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
 
   def createHdfsResources():
-    print "Creating hdfs directories..."
+    Logger.info("Creating hdfs directories...")
     params.HdfsResource(format('{hdfs_path_prefix}/atshistory'), user='hdfs', change_permissions_for_parents=True, owner='yarn', group='hadoop', type='directory', action= ['create_on_execute'], mode=0755)
     params.HdfsResource(format('{hdfs_path_prefix}/user/hcat'), owner='hcat', type='directory', action=['create_on_execute'], mode=0755)
     params.HdfsResource(format('{hdfs_path_prefix}/hive/warehouse'), owner='hive', type='directory', action=['create_on_execute'], mode=0777)
@@ -433,7 +432,7 @@ with Environment() as env:
         try:
           Execute(format("rm -f {oozie_shared_lib}/lib/spark/spark-examples*.jar"))
         except:
-          print "No spark-examples jar files found in Spark client lib."
+          Logger.warning("No spark-examples jar files found in Spark client lib.")
 
         # Copy /usr/hdp/{stack_version}/spark-client/python/lib/*.zip & *.jar to /usr/hdp/{stack_version}/oozie/share/lib/spark
         Execute(format("cp -f {spark_client_dir}/python/lib/*.zip {oozie_shared_lib}/lib/spark"))
@@ -441,7 +440,7 @@ with Environment() as env:
         try:
           Execute(format("cp -f {spark_client_dir}/python/lib/*.jar {oozie_shared_lib}/lib/spark"))
         except:
-          print "No jar files found in Spark client python lib."
+          Logger.warning("No jar files found in Spark client python lib.")
 
         Execute(("chmod", "-R", "0755", format('{oozie_shared_lib}/lib/spark')),
                 sudo=True)
@@ -454,7 +453,7 @@ with Environment() as env:
         #          format("{oozie_shared_lib}/lib_{millis}")),
         #         sudo=True)
       except Exception, e:
-        print 'Exception occurred while preparing oozie share lib: '+ repr(e)
+        Logger.warning('Exception occurred while preparing oozie share lib: '+ repr(e))
 
     params.HdfsResource(format("{oozie_hdfs_user_dir}/share"),
       action="create_on_execute",
@@ -465,7 +464,7 @@ with Environment() as env:
       source = oozie_shared_lib
     )
 
-  print "Copying tarballs..."
+  Logger.info("Copying tarballs...")
   # TODO, these shouldn't hardcode the stack root or destination stack name.
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/hadoop/mapreduce.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/mapreduce/", params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/tez/lib/tez.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/tez/", params.mapred_user, params.hdfs_user, params.user_group)
@@ -499,13 +498,13 @@ with Environment() as env:
   except:
     os.remove("/var/lib/ambari-agent/data/.hdfs_resource_ignore")
     raise
-  print "Completed tarball copy."
+  Logger.info("Completed tarball copy.")
 
   if not options.upgrade:
-    print "Executing stack-selector-tool for stack {0} ...".format(stack_version)
+    Logger.info("Executing stack-selector-tool for stack {0} ...".format(stack_version))
     Execute(
       ('/usr/bin/hdp-select', 'set', 'all', stack_version),
       sudo = True
     )
 
-  print "Ambari preupload script completed."
+  Logger.info("Ambari preupload script completed.")
