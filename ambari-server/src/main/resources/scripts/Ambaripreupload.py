@@ -54,16 +54,6 @@ DEFAULT_SQL_DRIVER_PATH = "/var/lib/ambari-server/resources/sqljdbc41.jar"
 SQL_DRIVER_PATH = get_value_from_properties(ambari_properties, JDBC_DRIVER_PATH_PROPERTY, DEFAULT_SQL_DRIVER_PATH) if ambari_properties != -1 else DEFAULT_SQL_DRIVER_PATH
 print("Using SQL driver from {}".format(SQL_DRIVER_PATH))
 
-"""
-This file provides helper methods needed for the versioning of RPMs. Specifically, it does dynamic variable
-interpretation to replace strings like {{ stack_version_formatted }}  where the value of the
-variables cannot be determined ahead of time, but rather, depends on what files are found.
-
-It assumes that {{ stack_version_formatted }} is constructed as ${major.minor.patch.rev}-${build_number}
-E.g., 998.2.2.1.0-998
-Please note that "-${build_number}" is optional.
-"""
-
 with Environment() as env:
   def get_stack_version():
     if not options.hdp_version:
