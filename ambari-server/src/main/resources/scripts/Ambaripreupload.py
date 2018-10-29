@@ -326,6 +326,7 @@ with Environment() as env:
             tar.add(os.path.realpath(filepath), arcname=os.path.basename(filepath))
           else:
             Logger.warning(format("Skipping broken link {filepath}"))
+    Execute(("chmod", "0644", params.yarn_service_tarball))
 
   env.set_params(params)
   hadoop_conf_dir = params.hadoop_conf_dir
