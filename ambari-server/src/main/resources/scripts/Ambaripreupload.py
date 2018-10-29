@@ -7,15 +7,15 @@ regarding copyright ownership.  The ASF licenses this file
 to you under the Apache License, Version 2.0 (the
 "License"); you may not use this file except in compliance
 with the License.  You may obtain a copy of the License at
- 
+
     http://www.apache.org/licenses/LICENSE-2.0
- 
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- 
+
 """
 import os
 import sys
@@ -78,34 +78,34 @@ with Environment() as env:
         Logger.warning("Could not verify HDP version by calling '%s'. Return Code: %s, Output: %s." %
                        (get_stack_version_cmd, str(code), str(out)))
         return 1
-     
+
       matches = re.findall(r"([\d\.]+\-\d+)", out)
       stack_version = matches[0] if matches and len(matches) > 0 else None
-     
+
       if not stack_version:
         Logger.error("Could not parse HDP version from output of hdp-select: %s" % str(out))
         return 1
     else:
       stack_version = options.hdp_version
-      
+
     return stack_version
-  
+
   parser = OptionParser()
   parser.add_option("-v", "--hdp-version", dest="hdp_version", default="",
                     help="hdp-version used in path of tarballs")
   parser.add_option("-u", "--upgrade", dest="upgrade", action="store_true",
-                    help="flag to indicate script is being run for upgrade", default=False)  
+                    help="flag to indicate script is being run for upgrade", default=False)
   (options, args) = parser.parse_args()
 
-  
+
   # See if hdfs path prefix is provided on the command line. If yes, use that value, if no
   # use empty string as default.
   hdfs_path_prefix = ""
   if len(args) > 0:
     hdfs_path_prefix = args[0]
-  
+
   stack_version = get_stack_version()
-  
+
   def getPropertyValueFromConfigXMLFile(xmlfile, name, defaultValue=None):
     xmldoc = minidom.parse(xmlfile)
     propNodes = [node.parentNode for node in xmldoc.getElementsByTagName("name") if node.childNodes[0].nodeValue == name]
@@ -117,27 +117,27 @@ with Environment() as env:
           else:
             return defaultValue
     return defaultValue
-  
+
   def get_fs_root(fsdefaultName=None):
     fsdefaultName = "fake"
-     
+
     while True:
       fsdefaultName =  getPropertyValueFromConfigXMLFile("/etc/hadoop/conf/core-site.xml", "fs.defaultFS")
-  
+
       if fsdefaultName and fsdefaultName.startswith("wasb://"):
         break
-        
+
       print "Waiting to read appropriate value of fs.defaultFS from /etc/hadoop/conf/core-site.xml ..."
       time.sleep(10)
       pass
-  
+
     print "Returning fs.defaultFS -> " + fsdefaultName
     return fsdefaultName
-   
+
   # These values must be the suffix of the properties in cluster-env.xml
   TAR_SOURCE_SUFFIX = "_tar_source"
   TAR_DESTINATION_FOLDER_SUFFIX = "_tar_destination_folder"
-  
+
   class params:
     hdfs_path_prefix = hdfs_path_prefix
     hdfs_user = "hdfs"
@@ -170,7 +170,7 @@ with Environment() as env:
     oozie_env_sh_template = \
   '''
   #!/bin/bash
-  
+
   export OOZIE_CONFIG=${{OOZIE_CONFIG:-/usr/hdp/{0}/oozie/conf}}
   export OOZIE_DATA=${{OOZIE_DATA:-/var/lib/oozie/data}}
   export OOZIE_LOG=${{OOZIE_LOG:-/var/log/oozie}}
@@ -179,7 +179,7 @@ with Environment() as env:
   export CATALINA_PID=${{CATALINA_PID:-/var/run/oozie/oozie.pid}}
   export OOZIE_CATALINA_HOME=/usr/lib/bigtop-tomcat
   '''.format(stack_version)
-    
+
     HdfsResource = functools.partial(
       HdfsResource,
       user=hdfs_user,
@@ -194,7 +194,7 @@ with Environment() as env:
       hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
       dfs_type = dfs_type
     )
-   
+
   def _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed):
     """
     :param source_and_dest_pairs: List of tuples (x, y), where x is the source file in the local file system,
@@ -203,10 +203,10 @@ with Environment() as env:
     :param group_owner: Owning group to set for the file copied to HDFS (typically hadoop group)
     :param kinit_if_needed: kinit command if it is needed, otherwise an empty string
     :return: Returns 0 if at least one file was copied and no exceptions occurred, and 1 otherwise.
-   
+
     Must kinit before calling this function.
     """
-   
+
     for (source, destination) in source_and_dest_pairs:
       params.HdfsResource(destination,
                     action="create_on_execute",
