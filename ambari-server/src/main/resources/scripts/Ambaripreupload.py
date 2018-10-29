@@ -91,6 +91,8 @@ with Environment() as env:
     return stack_version
 
   parser = OptionParser()
+  parser.add_option("-f", "--fs-type", dest="fs_type", default="wasb",
+                    help="Expected protocol of fs.defaultFS")
   parser.add_option("-v", "--hdp-version", dest="hdp_version", default="",
                     help="hdp-version used in path of tarballs")
   parser.add_option("-u", "--upgrade", dest="upgrade", action="store_true",
@@ -120,11 +122,12 @@ with Environment() as env:
 
   def get_fs_root(fsdefaultName=None):
     fsdefaultName = "fake"
+    expected_fs_protocol = options.fs_type + '://'
 
     while True:
       fsdefaultName =  getPropertyValueFromConfigXMLFile("/etc/hadoop/conf/core-site.xml", "fs.defaultFS")
 
-      if fsdefaultName and fsdefaultName.startswith("wasb://"):
+      if fsdefaultName and fsdefaultName.startswith(expected_fs_protocol):
         break
 
       print "Waiting to read appropriate value of fs.defaultFS from /etc/hadoop/conf/core-site.xml ..."
@@ -151,7 +154,7 @@ with Environment() as env:
     ambari_libs_dir = "/var/lib/ambari-agent/lib"
     hdfs_site = ConfigDictionary({'dfs.webhdfs.enabled':False,})
     fs_default = get_fs_root()
-    dfs_type = "WASB"
+    dfs_type = options.fs_type.upper()
     yarn_home_dir = '/usr/hdp/' + stack_version + '/hadoop-yarn'
     yarn_lib_dir = yarn_home_dir + '/lib'
     yarn_service_tarball = yarn_lib_dir + '/service-dep.tar.gz'
