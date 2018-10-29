@@ -38,6 +38,7 @@ public class UpgradeCatalog280 extends AbstractUpgradeCatalog {
   private static final String REQUEST_SCHEDULE_TABLE_NAME = "requestschedule";
   protected static final String HOST_COMPONENT_STATE_TABLE = "hostcomponentstate";
   private static final String REQUEST_SCHEDULE_BATCH_TOLERATION_LIMIT_PER_BATCH_COLUMN_NAME = "batch_toleration_limit_per_batch";
+  private static final String REQUEST_SCHEDULE_PAUSE_AFTER_FIRST_BATCH_COLUMN_NAME = "pause_after_first_batch";
   protected static final String LAST_LIVE_STATE_COLUMN = "last_live_state";
 
   private static final String UPGRADE_TABLE = "upgrade";
@@ -82,6 +83,9 @@ public class UpgradeCatalog280 extends AbstractUpgradeCatalog {
   protected void addColumnsToUpgradeTable() throws SQLException {
     dbAccessor.addColumn(REQUEST_SCHEDULE_TABLE_NAME,
         new DBAccessor.DBColumnInfo(REQUEST_SCHEDULE_BATCH_TOLERATION_LIMIT_PER_BATCH_COLUMN_NAME, Short.class, null,
+            null, true));
+    dbAccessor.addColumn(REQUEST_SCHEDULE_TABLE_NAME,
+        new DBAccessor.DBColumnInfo(REQUEST_SCHEDULE_PAUSE_AFTER_FIRST_BATCH_COLUMN_NAME, Boolean.class, null,
             null, true));
 
   }

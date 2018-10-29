@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.scheduler;
 
+import static org.apache.ambari.server.state.scheduler.BatchRequestJob.BATCH_REQUEST_BATCH_ID_KEY;
 import static org.apache.ambari.server.state.scheduler.BatchRequestJob.BATCH_REQUEST_CLUSTER_NAME_KEY;
 import static org.apache.ambari.server.state.scheduler.BatchRequestJob.BATCH_REQUEST_EXECUTION_ID_KEY;
 import static org.apache.ambari.server.state.scheduler.RequestExecution.Status.ABORTED;
@@ -127,6 +128,13 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
         LOG.warn("Unable to finalize execution for job: " + jobKey);
       }
       return;
+    }
+
+    try {
+      executionScheduleManager.pauseAfterBatchIfNeeded(jobDataMap.getLong(BATCH_REQUEST_EXECUTION_ID_KEY),
+          jobDataMap.getLong(BATCH_REQUEST_BATCH_ID_KEY), jobDataMap.getString(BATCH_REQUEST_CLUSTER_NAME_KEY));
+    } catch (AmbariException e) {
+      LOG.warn("Received exception while trying to auto pause the scheduled request execution :", e);
     }
 
     String status = null;

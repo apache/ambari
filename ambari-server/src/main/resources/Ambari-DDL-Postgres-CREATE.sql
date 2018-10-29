@@ -366,6 +366,7 @@ CREATE TABLE requestschedule (
   batch_separation_seconds smallint,
   batch_toleration_limit smallint,
   batch_toleration_limit_per_batch smallint,
+  pause_after_first_batch BOOL,
   authenticated_user_id INTEGER,
   create_user varchar(255),
   create_timestamp bigint,
