@@ -48,11 +48,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.oozie_prepare_war import prepare_war
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
-
-ambari_properties = get_ambari_properties()
-DEFAULT_SQL_DRIVER_PATH = "/var/lib/ambari-server/resources/sqljdbc41.jar"
-SQL_DRIVER_PATH = get_value_from_properties(ambari_properties, JDBC_DRIVER_PATH_PROPERTY, DEFAULT_SQL_DRIVER_PATH) if ambari_properties != -1 else DEFAULT_SQL_DRIVER_PATH
-print("Using SQL driver from {}".format(SQL_DRIVER_PATH))
+DEFAULT_SQL_DRIVER_PATH = get_value_from_properties(get_ambari_properties(), JDBC_DRIVER_PATH_PROPERTY, "/var/lib/ambari-server/resources/sqljdbc41.jar")
 
 with Environment() as env:
   def get_stack_version():
@@ -82,6 +78,8 @@ with Environment() as env:
     return stack_version
 
   parser = OptionParser()
+  parser.add_option("-d", "--database-driver", dest="sql_driver_path", default=DEFAULT_SQL_DRIVER_PATH,
+                    help="Path to JDBC driver")
   parser.add_option("-f", "--fs-type", dest="fs_type", default="wasb",
                     help="Expected protocol of fs.defaultFS")
   parser.add_option("-v", "--hdp-version", dest="hdp_version", default="",
@@ -90,6 +88,8 @@ with Environment() as env:
                     help="flag to indicate script is being run for upgrade", default=False)
   (options, args) = parser.parse_args()
 
+  print("Using SQL driver from {}".format(options.sql_driver_path))
+  sql_driver_filename = os.path.basename(options.sql_driver_path)
 
   # See if hdfs path prefix is provided on the command line. If yes, use that value, if no
   # use empty string as default.
@@ -306,8 +306,8 @@ with Environment() as env:
       fp.write(file_content)
 
   def putSQLDriverToOozieShared():
-    params.HdfsResource(hdfs_path_prefix + '/user/oozie/share/lib/sqoop/{0}'.format(os.path.basename(SQL_DRIVER_PATH)),
-                        owner='hdfs', type='file', action=['create_on_execute'], mode=0644, source=SQL_DRIVER_PATH)
+    params.HdfsResource(hdfs_path_prefix + '/user/oozie/share/lib/sqoop/{0}'.format(sql_driver_filename),
+                        owner='hdfs', type='file', action=['create_on_execute'], mode=0644, source=options.sql_driver_path)
 
   def create_yarn_service_tarball():
     """
@@ -366,11 +366,10 @@ with Environment() as env:
   )
 
   oozie_libext_dir = params.oozie_libext_dir
-  sql_driver_filename = os.path.basename(SQL_DRIVER_PATH)
   oozie_home=params.oozie_home
   configure_cmds = []
   configure_cmds.append(('tar','-xvf', oozie_home + '/oozie-sharelib.tar.gz','-C', oozie_home))
-  configure_cmds.append(('cp', "/usr/share/HDP-oozie/ext-2.2.zip", SQL_DRIVER_PATH, oozie_libext_dir))
+  configure_cmds.append(('cp', "/usr/share/HDP-oozie/ext-2.2.zip", options.sql_driver_path, oozie_libext_dir))
   configure_cmds.append(('chown', 'oozie:hadoop', oozie_libext_dir + "/ext-2.2.zip", oozie_libext_dir + "/" + sql_driver_filename))
 
   no_op_test = "ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1"
