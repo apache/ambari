@@ -88,6 +88,10 @@ with Environment() as env:
                     help="flag to indicate script is being run for upgrade", default=False)
   (options, args) = parser.parse_args()
 
+  if not os.path.exists(options.sql_driver_path):
+    Logger.error("SQL driver file {} does not exist".format(options.sql_driver_path))
+    sys.exit(1)
+
   Logger.info("Using SQL driver from {}".format(options.sql_driver_path))
   sql_driver_filename = os.path.basename(options.sql_driver_path)
 
