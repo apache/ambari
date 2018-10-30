@@ -89,6 +89,7 @@ def metadata(type='server'):
       war_source = format('{metadata_home}/server/webapp/atlas.war')
       war_target = format("{expanded_war_dir}/atlas.war")
       Execute(('cp', war_source, war_target),
+              sudo = True,
               not_if = war_source == war_target)
 
       File(format("{conf_dir}/atlas-log4j.xml"),
