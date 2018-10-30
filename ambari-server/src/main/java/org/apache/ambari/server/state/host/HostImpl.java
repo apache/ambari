@@ -360,6 +360,8 @@ public class HostImpl implements Host {
 
       host.topologyManager.onHostRegistered(host, associatedWithCluster);
 
+      host.setHealthStatus(new HostHealthStatus(HealthStatus.HEALTHY,
+          host.getHealthStatus().getHealthReport()));
       // initialize agent times in the last time to prevent setting registering/heartbeat times for failed registration.
       host.updateHostTimestamps(e);
     }
