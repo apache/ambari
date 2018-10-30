@@ -83,6 +83,7 @@ class TestMetadataServer(RMFTestCase):
                                 mode=0644
       )
       self.assertResourceCalled('Execute', ('cp', '/usr/hdp/current/atlas-server/server/webapp/atlas.war', '/usr/hdp/current/atlas-server/server/webapp/atlas.war'),
+                                sudo = True,
                                 not_if = True,
       )
       host_name = u"c6401.ambari.apache.org"
@@ -218,6 +219,7 @@ class TestMetadataServer(RMFTestCase):
                               mode=0644
     )
     self.assertResourceCalled('Execute', ('cp', self.stack_root+'/current/atlas-server/server/webapp/atlas.war', self.stack_root+'/current/atlas-server/server/webapp/atlas.war'),
+                              sudo = True,
                               not_if = True,
     )
     host_name = u"c6401.ambari.apache.org"
