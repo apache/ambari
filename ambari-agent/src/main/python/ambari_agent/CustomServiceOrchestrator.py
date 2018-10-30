@@ -415,8 +415,10 @@ class CustomServiceOrchestrator(object):
         self.commands_for_component_in_progress[cluster_id][command['role']] += 1
         incremented_commands_for_component = True
 
-        # reset status which was reported, so agent re-reports it after command finished
-        self.initializer_module.component_status_executor.reported_component_status[cluster_id][command['role']]['STATUS'] = None
+        if 'serviceName' in command:
+          service_component_name = command['serviceName'] + "/" + command['role']
+          # reset status which was reported, so agent re-reports it after command finished
+          self.initializer_module.component_status_executor.reported_component_status[cluster_id][service_component_name]['STATUS'] = None
 
       for py_file, current_base_dir in filtered_py_file_list:
         log_info_on_failure = command_name not in self.DONT_DEBUG_FAILURES_FOR_COMMANDS
