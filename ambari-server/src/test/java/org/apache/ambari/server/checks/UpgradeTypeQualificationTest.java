@@ -28,7 +28,6 @@ import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
 import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
 import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
 import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckType;
 import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.junit.Test;
 
@@ -80,11 +79,6 @@ public class UpgradeTypeQualificationTest {
     }
 
     @Override
-    public UpgradeCheckType getType() {
-      return null;
-    }
-
-    @Override
     public UpgradeCheckDescription getCheckDescription() {
       return null;
     }
@@ -104,11 +98,6 @@ public class UpgradeTypeQualificationTest {
 
     @Override
     public UpgradeCheckResult perform(UpgradeCheckRequest request) throws AmbariException {
-      return null;
-    }
-
-    @Override
-    public UpgradeCheckType getType() {
       return null;
     }
 

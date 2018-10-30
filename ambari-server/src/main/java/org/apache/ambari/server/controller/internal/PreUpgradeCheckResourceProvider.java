@@ -49,6 +49,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.spi.ClusterInformation;
@@ -212,35 +213,12 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
                 repositoryVersion));
       }
 
-      SecurityType securityType = cluster.getSecurityType();
-      Map<String, Set<String>> topology = new HashMap<>();
-      List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts();
-      for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
-        String hash = serviceComponentHost.getServiceName() + "/" + serviceComponentHost.getServiceComponentName();
-        Set<String> hosts = topology.get(hash);
-        if (null == hosts) {
-          hosts = Sets.newTreeSet();
-          topology.put(hash, hosts);
-        }
+      ClusterInformation clusterInformation = buildClusterInformation(cluster);
 
-        hosts.add(serviceComponentHost.getHostName());
-      }
-
-      Map<String, Map<String, String>> configurations = new HashMap<>();
-      Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-      for (Map.Entry<String, DesiredConfig> desiredConfigEntry : desiredConfigs.entrySet()) {
-        String configType = desiredConfigEntry.getKey();
-        DesiredConfig desiredConfig = desiredConfigEntry.getValue();
-        Config clusterConfig = cluster.getConfig(configType, desiredConfig.getTag());
-        configurations.put(configType, clusterConfig.getProperties());
-      }
-
-      ClusterInformation clusterInformation = new ClusterInformation(clusterName,
-          securityType == SecurityType.KERBEROS, configurations, topology);
-
+      StackId stackId = repositoryVersion.getStackId();
       RepositoryVersion targetRepositoryVersion = new RepositoryVersion(repositoryVersion.getId(),
-          repositoryVersion.getStackId().getStackId(), repositoryVersion.getVersion(),
-          repositoryVersion.getType());
+          stackId.getStackName(), stackId.getStackVersion(), stackId.getStackId(),
+          repositoryVersion.getVersion(), repositoryVersion.getType());
 
       final UpgradeCheckRequest upgradeCheckRequest = new UpgradeCheckRequest(clusterInformation,
           upgradeType, targetRepositoryVersion,
@@ -283,6 +261,61 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
       }
     }
     return resources;
+  }
+
+  /**
+   * Builds a {@link ClusterInformation} instance from a {@link Cluster}.
+   *
+   * @param cluster
+   *          the cluster to build the {@link ClusterInformation} for.
+   * @return the {@link ClusterInformation} instance comprised of simple POJOs
+   *         and SPI classes.
+   */
+  private ClusterInformation buildClusterInformation(Cluster cluster) {
+    SecurityType securityType = cluster.getSecurityType();
+    Map<String, Set<String>> topology = new HashMap<>();
+    List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts();
+    for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
+      String hash = serviceComponentHost.getServiceName() + "/"
+          + serviceComponentHost.getServiceComponentName();
+
+      Set<String> hosts = topology.get(hash);
+      if (null == hosts) {
+        hosts = Sets.newTreeSet();
+        topology.put(hash, hosts);
+      }
+
+      hosts.add(serviceComponentHost.getHostName());
+    }
+
+    Map<String, Map<String, String>> configurations = new HashMap<>();
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+    for (Map.Entry<String, DesiredConfig> desiredConfigEntry : desiredConfigs.entrySet()) {
+      String configType = desiredConfigEntry.getKey();
+      DesiredConfig desiredConfig = desiredConfigEntry.getValue();
+      Config clusterConfig = cluster.getConfig(configType, desiredConfig.getTag());
+      configurations.put(configType, clusterConfig.getProperties());
+    }
+
+    Map<String, Service> clusterServices = cluster.getServices();
+    Map<String, RepositoryVersion> clusterServiceVersions = new HashMap<>();
+    if (null != clusterServices) {
+      for (Map.Entry<String, Service> serviceEntry : clusterServices.entrySet()) {
+        Service service = serviceEntry.getValue();
+        RepositoryVersionEntity desiredRepositoryEntity = service.getDesiredRepositoryVersion();
+        StackId stackId = desiredRepositoryEntity.getStackId();
+
+        RepositoryVersion desiredRepositoryVersion = new RepositoryVersion(
+            desiredRepositoryEntity.getId(), stackId.getStackName(), stackId.getStackVersion(),
+            stackId.getStackId(), desiredRepositoryEntity.getVersion(),
+            desiredRepositoryEntity.getType());
+
+        clusterServiceVersions.put(serviceEntry.getKey(), desiredRepositoryVersion);
+      }
+    }
+
+    return new ClusterInformation(cluster.getClusterName(), securityType == SecurityType.KERBEROS,
+        configurations, topology, clusterServiceVersions);
   }
 
   @Override

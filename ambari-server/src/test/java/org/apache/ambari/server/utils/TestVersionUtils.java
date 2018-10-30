@@ -17,7 +17,8 @@
  */
 package org.apache.ambari.server.utils;
 
-import org.apache.ambari.server.bootstrap.BootStrapImpl;
+import static org.apache.ambari.server.utils.VersionUtils.DEV_VERSION;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -63,9 +64,9 @@ public class TestVersionUtils {
     Assert.assertTrue(VersionUtils.areVersionsEqual("1.2.3", "1.2.3", true));
     Assert.assertTrue(VersionUtils.areVersionsEqual("", "", true));
     Assert.assertTrue(VersionUtils.areVersionsEqual(null, null, true));
-    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, "1.2.3", false));
-    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, "", true));
-    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, null, true));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(DEV_VERSION, "1.2.3", false));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(DEV_VERSION, "", true));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(DEV_VERSION, null, true));
 
     Assert.assertFalse(VersionUtils.areVersionsEqual("1.2.3.1", "1.2.3", false));
     Assert.assertFalse(VersionUtils.areVersionsEqual("2.1.3", "1.2.3", false));
@@ -109,9 +110,9 @@ public class TestVersionUtils {
     Assert.assertTrue(VersionUtils.areVersionsEqual("1.2.3_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", true));
     Assert.assertTrue(VersionUtils.areVersionsEqual("", "", true));
     Assert.assertTrue(VersionUtils.areVersionsEqual(null, null, true));
-    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, "1.2.3_MYAMBARI_000000", false));
-    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, "", true));
-    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, null, true));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(DEV_VERSION, "1.2.3_MYAMBARI_000000", false));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(DEV_VERSION, "", true));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(DEV_VERSION, null, true));
 
     Assert.assertFalse(VersionUtils.areVersionsEqual("1.2.3.1_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", false));
     Assert.assertFalse(VersionUtils.areVersionsEqual("2.1.3_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", false));

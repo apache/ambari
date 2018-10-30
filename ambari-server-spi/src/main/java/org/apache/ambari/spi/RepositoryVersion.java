@@ -24,6 +24,8 @@ public class RepositoryVersion {
 
   private final long m_id;
   private final String m_stackId;
+  private final String m_stackName;
+  private final String m_stackVersion;
   private final String m_version;
   private final RepositoryType m_repositoryType;
 
@@ -32,6 +34,12 @@ public class RepositoryVersion {
    *
    * @param id
    *          the internal ID of the repository stored in Ambari.
+   * @param stackName
+   *          the name of the stack, such as STACK (if the stack ID was
+   *          STACK-1.0.0).
+   * @param stackVersion
+   *          the version of the stack, such as 1.0.0 (if the stack ID was
+   *          STACK-1.0.0).
    * @param stackId
    *          the stack ID, such as STACK-1.0.0
    * @param version
@@ -39,8 +47,11 @@ public class RepositoryVersion {
    * @param repositoryType
    *          the type of repository.
    */
-  public RepositoryVersion(long id, String stackId, String version, RepositoryType repositoryType) {
+  public RepositoryVersion(long id, String stackName, String stackVersion, String stackId,
+      String version, RepositoryType repositoryType) {
     m_id = id;
+    m_stackName = stackName;
+    m_stackVersion = stackVersion;
     m_stackId = stackId;
     m_version = version;
     m_repositoryType = repositoryType;
@@ -56,12 +67,32 @@ public class RepositoryVersion {
   }
 
   /**
-   * Gets the ID of the stack, such as STACK-1.0.0
+   * Gets the ID of the stack, such as {@code STACK-1.0.0}.
    *
    * @return the stack id.
    */
   public String getStackId() {
     return m_stackId;
+  }
+
+  /**
+   * The name of the stack, such as {@code STACK} if the stack is
+   * {@code STACK-1.0.0}.
+   *
+   * @return the stack name.
+   */
+  public String getStackName() {
+    return m_stackName;
+  }
+
+  /**
+   * The version of the stack, such as {@code 1.0.0} if the stack is
+   * {@code STACK-1.0.0}.
+   *
+   * @return the stack version.
+   */
+  public String getStackVersion() {
+    return m_stackVersion;
   }
 
   /**

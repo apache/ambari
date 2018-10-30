@@ -75,7 +75,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
 
     expect(cluster.getCurrentStackVersion()).andReturn(sourceStackId).anyTimes();
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, repoVersion(), null);
   }
 
@@ -106,7 +106,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
   }
 
   private RepositoryVersion repoVersion() {
-    RepositoryVersion repositoryVersion = new RepositoryVersion(1,
+    RepositoryVersion repositoryVersion = new RepositoryVersion(1, STACK_NAME, STACK_VERSION,
         new StackId(STACK_NAME, STACK_VERSION).getStackId(), STACK_VERSION,
         RepositoryType.STANDARD);
     return repositoryVersion;

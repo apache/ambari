@@ -135,6 +135,8 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
     Service service = createNiceMock(Service.class);
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
 
+    expect(service.getDesiredRepositoryVersion()).andReturn(repo).atLeastOnce();
+
     StackId currentStackId = createNiceMock(StackId.class);
     StackId targetStackId = createNiceMock(StackId.class);
     AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);

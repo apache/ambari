@@ -143,7 +143,7 @@ public class ServiceCheckValidityCheckTest {
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(asList(lastServiceCheckDTO1, lastServiceCheckDTO2));
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null);
 
     try {
@@ -171,7 +171,7 @@ public class ServiceCheckValidityCheckTest {
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(singletonList(lastServiceCheckDTO));
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null);
 
     UpgradeCheckResult result =  serviceCheckValidityCheck.perform(request);
@@ -194,7 +194,7 @@ public class ServiceCheckValidityCheckTest {
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(Collections.<LastServiceCheckDTO>emptyList());
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null);
 
     UpgradeCheckResult result =  serviceCheckValidityCheck.perform(request);
@@ -219,7 +219,7 @@ public class ServiceCheckValidityCheckTest {
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(asList(lastServiceCheckDTO1, lastServiceCheckDTO2));
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null);
 
     UpgradeCheckResult result =  serviceCheckValidityCheck.perform(request);
@@ -257,7 +257,7 @@ public class ServiceCheckValidityCheckTest {
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(asList(lastServiceCheckDTO1, lastServiceCheckDTO2));
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null);
 
     UpgradeCheckResult result =  serviceCheckValidityCheck.perform(request);

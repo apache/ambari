@@ -61,13 +61,6 @@ public interface UpgradeCheck {
       throws AmbariException;
 
   /**
-   * Gets the type of check.
-   *
-   * @return the type of check (not {@code null}).
-   */
-  UpgradeCheckType getType();
-
-  /**
    * The {@link UpgradeCheckDescription} which includes the name, description, and
    * success/failure messages for a {@link UpgradeCheck}.
    *

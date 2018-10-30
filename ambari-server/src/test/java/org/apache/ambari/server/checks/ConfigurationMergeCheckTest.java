@@ -163,7 +163,7 @@ public class ConfigurationMergeCheckTest {
 
     replay(ami);
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         m_repositoryVersion, null);
 

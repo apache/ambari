@@ -309,7 +309,7 @@ public class ComponentsInstallationCheckTest {
       Mockito.when(hcs.getCurrentState()).thenReturn(State.STARTED);
     }
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         m_repositoryVersion, null);
 

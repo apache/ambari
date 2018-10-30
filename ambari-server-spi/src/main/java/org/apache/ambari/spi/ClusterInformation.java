@@ -57,6 +57,11 @@ public class ClusterInformation {
   private final Map<String, Set<String>> m_topology;
 
   /**
+   * The current version of every service in the cluster.
+   */
+  private final Map<String, RepositoryVersion> m_serviceVersions;
+
+  /**
    * Constructor.
    *
    * @param clusterName
@@ -70,13 +75,17 @@ public class ClusterInformation {
    *          a mapping of the cluster topology where the key is a combination
    *          of service / component and the value is the hosts where it is
    *          installed.
+   * @param serviceVersions
+   *          the current repository version for every service in the cluster.
    */
   public ClusterInformation(String clusterName, boolean isKerberosEnabled,
-      Map<String, Map<String, String>> configurations, Map<String, Set<String>> topology) {
+      Map<String, Map<String, String>> configurations, Map<String, Set<String>> topology,
+      Map<String, RepositoryVersion> serviceVersions) {
     m_configurations = configurations;
     m_clusterName = clusterName;
     m_isKerberosEnabled = isKerberosEnabled;
     m_topology = topology;
+    m_serviceVersions = serviceVersions;
   }
 
   /**
@@ -115,7 +124,7 @@ public class ClusterInformation {
     return hosts;
   }
 
-  public Map<String, String> getConfigruationProperties(String configurationType) {
+  public Map<String, String> getConfigurationProperties(String configurationType) {
     Map<String, String> properties = m_configurations.get(configurationType);
     if (null == properties) {
       return Maps.newHashMap();
@@ -134,7 +143,27 @@ public class ClusterInformation {
    * @return the property value, or {@code null} if it does not exist.
    */
   public String getConfigurationProperty(String configurationType, String propertyName) {
-    return getConfigruationProperties(configurationType).get(propertyName);
+    return getConfigurationProperties(configurationType).get(propertyName);
   }
 
+  /**
+   * Gets the {@link RepositoryVersion} for the given service which represents
+   * the service's current version in the cluster.
+   *
+   * @param serviceName
+   *          the service name.
+   * @return the repository version information for the given service.
+   */
+  public RepositoryVersion getServiceRepositoryVersion(String serviceName) {
+    return m_serviceVersions.get(serviceName);
+  }
+
+  /**
+   * Gets the services installed in the cluster.
+   *
+   * @return the services in the cluster.
+   */
+  public Set<String> getServices() {
+    return m_serviceVersions.keySet();
+  }
 }
