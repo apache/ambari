@@ -93,8 +93,8 @@ class HivePreUpgrade(Script):
     source_version = upgrade_summary.get_source_version(service_name = "HIVE")
     target_version = upgrade_summary.get_target_version(service_name = "HIVE")
     
-    source_dir = format("/usr/hdp/{source_version}");
-    target_dir = format("/usr/hdp/{target_version}")
+    source_dir = format("{stack_root}/{source_version}")
+    target_dir = format("{stack_root}/{target_version}")
     
     if params.security_enabled:
       hive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
