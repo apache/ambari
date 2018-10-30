@@ -144,7 +144,7 @@ public class MissingOsInRepoVersionCheckTest extends EasyMockSupport {
     expect(repositoryVersion.getRepositoryType()).andReturn(RepositoryType.STANDARD).anyTimes();
     expect(repositoryVersion.getStackId()).andReturn(SOURCE_STACK.getStackId()).anyTimes();
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         repositoryVersion, null);
 

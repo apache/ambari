@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * The {@link UpgradeCheckDescription} is used to provide information about an upgrade
@@ -48,6 +49,26 @@ public class UpgradeCheckDescription {
   private final UpgradeCheckType m_type;
   private final String m_description;
   private Map<String, String> m_fails;
+
+  /**
+   * Constructor.
+   *
+   * @param name
+   *          a unique identifier for the description container.
+   * @param type
+   *          the area which is being checked.
+   * @param description
+   *          a description of what this check is.
+   * @param failureReason
+   *          a description of the single failure reason associated with this
+   *          check. This will be associated with the {@link #DEFAULT} failure
+   *          key.
+   */
+  public UpgradeCheckDescription(String name, UpgradeCheckType type, String description,
+      String failureReason) {
+    this(name, type, description, new ImmutableMap.Builder<String, String>().put(
+        UpgradeCheckDescription.DEFAULT, failureReason).build());
+  }
 
   /**
    * Constructor.
@@ -114,7 +135,7 @@ public class UpgradeCheckDescription {
    * @param key the failure text key
    * @return the fail text template.  Never {@code null}
    */
-  public String getFail(String key) {
+  public String getFailureReason(String key) {
     return m_fails.containsKey(key) ? m_fails.get(key) : "";
   }
 
@@ -154,5 +175,22 @@ public class UpgradeCheckDescription {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("name", m_name).toString();
+  }
+
+  /**
+   * Gets the default failure reason associated with the {@link #DEFAULT} key.
+   *
+   * @return the default failure reason.
+   */
+  public String getDefaultFailureReason() {
+    if(null == m_fails) {
+      return null;
+    }
+
+    if(m_fails.size() == 1) {
+      return m_fails.values().stream().findFirst().get();
+    }
+
+    return m_fails.get(DEFAULT);
   }
 }

@@ -95,7 +95,7 @@ public class LZOCheckTest {
     Mockito.when(config.getProperties()).thenReturn(properties);
     Mockito.when(configuration.getGplLicenseAccepted()).thenReturn(false);
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         m_repositoryVersion, null);
 

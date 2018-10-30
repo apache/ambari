@@ -120,7 +120,7 @@ public class RequiredServicesInRepositoryCheckTest {
    */
   @Test
   public void testNoMissingServices() throws Exception {
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         m_repositoryVersion, null);
 
@@ -138,7 +138,7 @@ public class RequiredServicesInRepositoryCheckTest {
   public void testMissingRequiredService() throws Exception {
     m_missingDependencies.add("BAR");
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         m_repositoryVersion, null);
 

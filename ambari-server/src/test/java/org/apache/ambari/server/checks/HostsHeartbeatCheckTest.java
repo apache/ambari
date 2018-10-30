@@ -106,7 +106,7 @@ public class HostsHeartbeatCheckTest {
 
     Mockito.when(cluster.getHosts()).thenReturn(hosts);
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null);
 
     UpgradeCheckResult check = hostHeartbeatCheck.perform(request);

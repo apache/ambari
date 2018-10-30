@@ -136,7 +136,7 @@ public class ServicesMaintenanceModeCheckTest {
     // We don't bother checking service desired state as it's performed by a separate check
     Mockito.when(service.getDesiredState()).thenReturn(State.UNKNOWN);
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         m_repositoryVersion, null);
 

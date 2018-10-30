@@ -120,7 +120,7 @@ public class CheckHelperTest {
     EasyMock.replay(configuration);
     updateChecksRegistry.add(m_mockCheck);
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null);
 
     helper.performChecks(request, updateChecksRegistry, configuration);
@@ -152,7 +152,7 @@ public class CheckHelperTest {
     EasyMock.replay(configuration);
     updateChecksRegistry.add(m_mockCheck);
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation,
         UpgradeType.NON_ROLLING, m_repositoryVersion, null);
 
@@ -182,7 +182,7 @@ public class CheckHelperTest {
     // this will cause an exception
     Mockito.when(m_mockPerform.toString()).thenThrow(new RuntimeException());
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null);
 
     helper.performChecks(request, updateChecksRegistry, configuration);
@@ -209,7 +209,7 @@ public class CheckHelperTest {
     // this will cause an exception, triggering the bypass
     Mockito.when(m_mockPerform.toString()).thenThrow(new RuntimeException());
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null);
 
     helper.performChecks(request, updateChecksRegistry, configuration);
@@ -252,7 +252,7 @@ public class CheckHelperTest {
     // this will cause an exception, triggering the fail
     Mockito.when(m_mockPerform.toString()).thenThrow(new RuntimeException());
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null);
 
     helper.performChecks(request, updateChecksRegistry, configuration);

@@ -123,6 +123,6 @@ public class UpgradeCheckResult {
    * @return the type of check.
    */
   public UpgradeCheckType getType() {
-    return m_upgradeCheck.getType();
+    return m_upgradeCheck.getCheckDescription().getType();
   }
 }

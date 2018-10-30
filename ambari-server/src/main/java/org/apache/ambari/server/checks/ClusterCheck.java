@@ -138,16 +138,6 @@ public abstract class ClusterCheck implements UpgradeCheck {
   }
 
   /**
-   * Gets the type of check.
-   *
-   * @return the type of check (not {@code null}).
-   */
-  @Override
-  public UpgradeCheckType getType() {
-    return m_description.getType();
-  }
-
-  /**
    * Gets the default fail reason
    * @param upgradeCheckResult the check being performed
    * @param request           the request
@@ -198,7 +188,7 @@ public abstract class ClusterCheck implements UpgradeCheck {
    */
   protected String getFailReason(String key, UpgradeCheckResult upgradeCheckResult,
       UpgradeCheckRequest request) throws AmbariException {
-    String fail = m_description.getFail(key);
+    String fail = m_description.getFailureReason(key);
 
     RepositoryVersion repositoryVersion = request.getTargetRepositoryVersion();
     if (fail.contains("{{version}}") && null != repositoryVersion) {

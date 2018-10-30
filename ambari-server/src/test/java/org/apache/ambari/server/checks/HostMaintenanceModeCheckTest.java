@@ -76,7 +76,7 @@ public class HostMaintenanceModeCheckTest {
 
     Mockito.when(cluster.getHosts()).thenReturn(hosts);
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null);
 
     UpgradeCheckResult check = hostMaintenanceModeCheck.perform(request);
@@ -122,7 +122,7 @@ public class HostMaintenanceModeCheckTest {
 
     Mockito.when(cluster.getHosts()).thenReturn(hosts);
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null);
 
     UpgradeCheckResult check = hostMaintenanceModeCheck.perform(request);

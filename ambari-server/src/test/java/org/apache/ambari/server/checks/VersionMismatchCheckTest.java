@@ -84,7 +84,7 @@ public class VersionMismatchCheckTest {
   public void testWarningWhenHostWithVersionMismatchExists() throws Exception {
     when(firstServiceComponentHosts.get(FIRST_SERVICE_COMPONENT_HOST_NAME).getUpgradeState()).thenReturn(VERSION_MISMATCH);
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         null, null);
 
@@ -96,7 +96,7 @@ public class VersionMismatchCheckTest {
   public void testWarningWhenHostWithVersionMismatchDoesNotExist() throws Exception {
     when(firstServiceComponentHosts.get(FIRST_SERVICE_COMPONENT_HOST_NAME).getUpgradeState()).thenReturn(IN_PROGRESS);
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         null, null);
 
