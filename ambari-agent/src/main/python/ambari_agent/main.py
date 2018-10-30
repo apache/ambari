@@ -476,7 +476,7 @@ def main(initializer_module, heartbeat_stop_callback=None):
   stopped = False
 
   # Keep trying to connect to a server or bail out if ambari-agent was stopped
-  while not connected and not stopped:
+  while not connected and not stopped and not initializer_module.stop_event.is_set():
     for server_hostname in server_hostnames:
       server_url = config.get_api_url(server_hostname)
       try:
