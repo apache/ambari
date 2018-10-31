@@ -24,6 +24,7 @@ public class BatchSettings {
   private Integer batchSeparationInSeconds;
   private Integer taskFailureTolerance;
   private Integer taskFailureTolerancePerBatch;
+  private Boolean pauseAfterFirstBatch = false;
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
   @JsonProperty("batch_separation_in_seconds")
@@ -49,6 +50,16 @@ public class BatchSettings {
   @JsonProperty("task_failure_tolerance_limit_per_batch")
   public Integer getTaskFailureToleranceLimitPerBatch() {
     return taskFailureTolerancePerBatch;
+  }
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonProperty("pause_after_first_batch")
+  public Boolean isPauseAfterFirstBatch() {
+    return pauseAfterFirstBatch;
+  }
+
+  public void setPauseAfterFirstBatch(Boolean pauseAfterFirstBatch) {
+    this.pauseAfterFirstBatch = pauseAfterFirstBatch;
   }
 
   public void setTaskFailureToleranceLimitPerBatch(Integer taskFailureTolerancePerBatch) {
