@@ -1738,7 +1738,7 @@ public class BlueprintConfigurationProcessor {
                                          ClusterTopology topology) {
 
       if (origValue == null) {
-        LOG.debug("Property {} is null, skipping search for host group placeholder", propertyName);
+        LOG.info("Property {} is null, skipping search for host group placeholder", propertyName);
         return null;
       }
 
@@ -1783,7 +1783,7 @@ public class BlueprintConfigurationProcessor {
                                                     Map<String, Map<String, String>> properties,
                                                     ClusterTopology topology) {
       if (origValue == null) {
-        LOG.debug("Property {} is null, skipping search for host group placeholder", propertyName);
+        LOG.info("Property {} is null, skipping search for host group placeholder", propertyName);
         return Collections.emptyList();
       }
 
