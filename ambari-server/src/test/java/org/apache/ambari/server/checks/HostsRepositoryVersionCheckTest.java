@@ -106,18 +106,19 @@ public class HostsRepositoryVersionCheckTest {
   public void testPerform() throws Exception {
     final HostsRepositoryVersionCheck hostsRepositoryVersionCheck = new HostsRepositoryVersionCheck();
     hostsRepositoryVersionCheck.clustersProvider = new Provider<Clusters>() {
-
       @Override
       public Clusters get() {
         return clusters;
       }
     };
+
     hostsRepositoryVersionCheck.repositoryVersionDaoProvider = new Provider<RepositoryVersionDAO>() {
       @Override
       public RepositoryVersionDAO get() {
         return repositoryVersionDAO;
       }
     };
+
     hostsRepositoryVersionCheck.hostVersionDaoProvider = new Provider<HostVersionDAO>() {
       @Override
       public HostVersionDAO get() {
@@ -143,6 +144,9 @@ public class HostsRepositoryVersionCheckTest {
     Mockito.when(host1.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
     Mockito.when(host2.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
     Mockito.when(host3.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
+    Mockito.when(host1.getHostName()).thenReturn("host1");
+    Mockito.when(host2.getHostName()).thenReturn("host2");
+    Mockito.when(host3.getHostName()).thenReturn("host3");
     hosts.put("host1", host1);
     hosts.put("host2", host2);
     hosts.put("host3", host3);

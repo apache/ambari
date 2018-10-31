@@ -211,18 +211,21 @@ public class ServicesUpCheckTest {
 
     ServiceComponent nameNode = Mockito.mock(ServiceComponent.class);
     Mockito.when(nameNode.getName()).thenReturn("NAMENODE");
+    Mockito.when(nameNode.getServiceName()).thenReturn("NAMENODE");
     Mockito.when(nameNode.isClientComponent()).thenReturn(false);
     Mockito.when(nameNode.isVersionAdvertised()).thenReturn(true);
     Mockito.when(nameNode.isMasterComponent()).thenReturn(true);
 
     ServiceComponent dataNode = Mockito.mock(ServiceComponent.class);
     Mockito.when(dataNode.getName()).thenReturn("DATANODE");
+    Mockito.when(dataNode.getServiceName()).thenReturn("DATANODE");
     Mockito.when(dataNode.isClientComponent()).thenReturn(false);
     Mockito.when(dataNode.isVersionAdvertised()).thenReturn(true);
     Mockito.when(dataNode.isMasterComponent()).thenReturn(false);
 
     ServiceComponent zkfc = Mockito.mock(ServiceComponent.class);
     Mockito.when(zkfc.getName()).thenReturn("ZKFC");
+    Mockito.when(zkfc.getServiceName()).thenReturn("ZKFC");
     Mockito.when(zkfc.isClientComponent()).thenReturn(false);
     Mockito.when(zkfc.isVersionAdvertised()).thenReturn(false);
     Mockito.when(zkfc.isMasterComponent()).thenReturn(false);
@@ -238,6 +241,7 @@ public class ServicesUpCheckTest {
 
     ServiceComponent tezClient = Mockito.mock(ServiceComponent.class);
     Mockito.when(tezClient.getName()).thenReturn("TEZ_CLIENT");
+    Mockito.when(tezClient.getServiceName()).thenReturn("TEZ_CLIENT");
     Mockito.when(tezClient.isClientComponent()).thenReturn(true);
     Mockito.when(tezClient.isVersionAdvertised()).thenReturn(true);
 
@@ -250,11 +254,13 @@ public class ServicesUpCheckTest {
 
     ServiceComponent metricsCollector = Mockito.mock(ServiceComponent.class);
     Mockito.when(metricsCollector.getName()).thenReturn("METRICS_COLLECTOR");
+    Mockito.when(metricsCollector.getServiceName()).thenReturn("METRICS_COLLECTOR");
     Mockito.when(metricsCollector.isClientComponent()).thenReturn(false);
     Mockito.when(metricsCollector.isVersionAdvertised()).thenReturn(false);
 
     ServiceComponent metricsMonitor = Mockito.mock(ServiceComponent.class);
     Mockito.when(metricsMonitor.getName()).thenReturn("METRICS_MONITOR");
+    Mockito.when(metricsMonitor.getServiceName()).thenReturn("METRICS_MONITOR");
     Mockito.when(metricsMonitor.isClientComponent()).thenReturn(false);
     Mockito.when(metricsMonitor.isVersionAdvertised()).thenReturn(false);
 
