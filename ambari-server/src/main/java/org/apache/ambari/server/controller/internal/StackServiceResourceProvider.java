@@ -111,6 +111,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
   private static final String SSO_INTEGRATION_REQUIRES_KERBEROS_PROPERTY_ID = PropertyHelper.getPropertyId(
     "StackServices", "sso_integration_requires_kerberos");
 
+  private static final String ROLLING_RESTART_SUPPORTED_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServices", "rolling_restart_supported");
+
   /**
    * The key property ids for a StackVersion resource.
    */
@@ -144,7 +147,8 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
       CREDENTIAL_STORE_ENABLED,
       SUPPORT_DELETE_VIA_UI,
       SSO_INTEGRATION_SUPPORTED_PROPERTY_ID,
-      SSO_INTEGRATION_REQUIRES_KERBEROS_PROPERTY_ID);
+      SSO_INTEGRATION_REQUIRES_KERBEROS_PROPERTY_ID,
+      ROLLING_RESTART_SUPPORTED_PROPERTY_ID);
 
   /**
    * KerberosServiceDescriptorFactory used to create KerberosServiceDescriptor instances
@@ -253,6 +257,10 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
     setResourceProperty(resource, SUPPORT_DELETE_VIA_UI,
         response.isSupportDeleteViaUI(), requestedIds);
+
+    setResourceProperty(resource, ROLLING_RESTART_SUPPORTED_PROPERTY_ID,
+        response.isRollingRestartSupported(),  requestedIds);
+
 
     setResourceProperty(resource, SSO_INTEGRATION_SUPPORTED_PROPERTY_ID, response.isSsoIntegrationSupported(), requestedIds);
     setResourceProperty(resource, SSO_INTEGRATION_REQUIRES_KERBEROS_PROPERTY_ID, response.isSsoIntegrationRequiresKerberos(), requestedIds);

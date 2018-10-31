@@ -329,6 +329,12 @@ public class ServiceInfo implements Validable {
   @XmlTransient
   private File serverActionsFolder;
 
+  /**
+   * Used to determine if rolling restart is supported
+   * */
+  @XmlElement(name = "rollingRestartSupported")
+  private boolean rollingRestartSupported;
+
   public boolean isDeleted() {
     return isDeleted;
   }
@@ -1048,6 +1054,14 @@ public class ServiceInfo implements Validable {
    */
   public File getKerberosDescriptorFile() {
     return kerberosDescriptorFile;
+  }
+
+  public boolean isRollingRestartSupported() {
+    return rollingRestartSupported;
+  }
+
+  public void setRollingRestartSupported(boolean rollingRestartSupported) {
+    this.rollingRestartSupported = rollingRestartSupported;
   }
 
   /**
