@@ -203,8 +203,10 @@ public class VersionUtils {
 
   /**
    * Return N.N.N from N.N.N.xyz
+   *
    * @param version
-   * @return
+   *          the version to extract the first three sections from.
+   * @return the first three sections of the specified version.
    */
   public static String getVersionSubstring(String version) {
     String[] versionParts = version.split("\\.");
@@ -216,16 +218,18 @@ public class VersionUtils {
   }
 
   /**
-   * Compares versions, using a build number using a dash separator, if one exists.
-   * This is is useful when comparing repository versions with one another that include
-   * build number
+   * Compares versions, using a build number using a dash separator, if one
+   * exists. This is is useful when comparing repository versions with one
+   * another that include build number
+   *
    * @param version1
    *          the first version
    * @param version2
    *          the second version
    * @param places
    *          the number of decimal-separated places to compare
-   * @return
+   * @return {@code -1} if {@code version1} is less than {@code version2},
+   *         {@code 1} if it is greater, and {@code 0} if they are equal.
    */
   public static int compareVersionsWithBuild(String version1, String version2, int places) {
     version1 = (null == version1) ? "0" : version1;
@@ -258,9 +262,13 @@ public class VersionUtils {
 
   /**
    * Helper function to compare two comparable versions with null checks
-   * @param v1 The first version
-   * @param v2 The second version
-   * @return 0 if both are equal, <0 if first one is lower, >0 otherwise
+   * 
+   * @param v1
+   *          The first version
+   * @param v2
+   *          The second version
+   * @return {@code -1} if {@code v1} is less than {@code v2}, {@code 1} if it
+   *         is greater, and {@code 0} if they are equal.
    */
   public static int compareTo(Comparable v1, Comparable v2) {
     return v1 == null ? (v2 == null ? 0 : -1) : v2 == null ? 1 : v1.compareTo(v2);
