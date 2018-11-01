@@ -77,8 +77,9 @@ class TestAtlasServer(RMFTestCase):
                               cd_access='a',
                               mode=0644
     )
-    self.assertResourceCalled('File', '/usr/hdp/current/atlas-server/server/webapp/atlas.war',
-                              content = StaticFile('/usr/hdp/current/atlas-server/server/webapp/atlas.war'),
+    self.assertResourceCalled('Execute', ('cp', '/usr/hdp/current/atlas-server/server/webapp/atlas.war', '/usr/hdp/current/atlas-server/server/webapp/atlas.war'),
+                              sudo = True,
+                              not_if = True,
     )
     host_name = u"c6401.ambari.apache.org"
     app_props =  dict(self.getConfig()['configurations'][
