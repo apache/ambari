@@ -677,7 +677,7 @@ App.WidgetMixin = Ember.Mixin.create({
    */
   editWidget: function (event) {
     var self = this;
-    var isShared = this.get('content.scope') == 'CLUSTER';
+    var isShared = this.get('content.scope') === 'CLUSTER';
     if (!isShared) {
       self.get('controller').editWidget(self.get('content'));
     } else {
@@ -686,7 +686,8 @@ App.WidgetMixin = Ember.Mixin.create({
         bodyClass: Em.View.extend({
           template: Ember.Handlebars.compile('{{t widget.edit.body}}')
         }),
-        primary: Em.I18n.t('widget.edit.button.primary'),
+        primary: App.isAuthorized('CLUSTER.MANAGE_WIDGETS') ? Em.I18n.t('widget.edit.button.primary') : null,
+        secondaryClass: App.isAuthorized('CLUSTER.MANAGE_WIDGETS') ? 'btn-default' : 'btn-success',
         secondary: Em.I18n.t('widget.edit.button.secondary'),
         third: Em.I18n.t('common.cancel'),
         onPrimary: function () {
