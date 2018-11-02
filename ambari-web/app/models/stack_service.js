@@ -75,9 +75,27 @@ App.FileSystem = Ember.ObjectProxy.extend({
   content: null,
   services: [],
 
+  //special case for HDFS and OZONE. They can be selected together
+  shouldAllSelectionBeCleared: function () {
+    const dfsNames = this.get('services').mapProperty('serviceName');
+    const coExistingDfs = ['HDFS', 'OZONE'];
+    this.get('services').filterProperty('isSelected').forEach((s) => {
+      if (!coExistingDfs.includes(s.get('serviceName'))) {
+        return true;
+      }
+    });
+
+    if (dfsNames.includes('HDFS') && dfsNames.includes('OZONE') && coExistingDfs.includes(this.get('content.serviceName'))) {
+      return false;
+    }
+    return true;
+  },
+
   isSelected: function(key, aBoolean) {
     if (arguments.length > 1) {
-      this.clearAllSelection();
+      if (this.shouldAllSelectionBeCleared()) {
+        this.clearAllSelection();
+      }
       this.get('content').set('isSelected', aBoolean);
     }
     return this.get('content.isSelected');
