@@ -2249,6 +2249,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
         "dfs.https.address", "testhost3")),
       "myservice-site", new HashMap<>(ImmutableMap.of(
         "myservice_slave_address", "%HOSTGROUP::group1%:8080"))));
+    hostGroupProperties.get("hdfs-site").put("null_property", null);
 
     Configuration clusterConfig = new Configuration(new HashMap<>(), new HashMap<>());
     clusterConfig.setParentConfiguration(new Configuration(stackProperties, emptyMap()));
@@ -2387,6 +2388,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
           "%HOSTGROUP::master3%:8080",
           clusterConfig.getProperties(),
           topology)));
+
+    assertEquals(emptyList(),
+      updater.getRequiredHostGroups("mycomponent.urls", null, clusterConfig.getProperties(), topology));
   }
 
   @Test
