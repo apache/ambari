@@ -85,7 +85,7 @@ App.FileSystem = Ember.ObjectProxy.extend({
         return true;
       }
     }
-    return dfsNames.includes('HDFS') && dfsNames.includes('OZONE') && coExistingDfs.includes(this.get('content.serviceName'));
+    return !(dfsNames.includes('HDFS') && dfsNames.includes('OZONE') && coExistingDfs.includes(this.get('content.serviceName')));
   },
 
   isSelected: function(key, aBoolean) {
