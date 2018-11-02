@@ -80,7 +80,7 @@ App.FileSystem = Ember.ObjectProxy.extend({
     const dfsNames = this.get('services').mapProperty('serviceName');
     const coExistingDfs = ['HDFS', 'OZONE'],
       selectedServices = this.get('services').filterProperty('isSelected');
-    for (let i = 0; selectedServices && i < selectedServices.length; i++) {
+    for (let i = 0; i < selectedServices.length; i++) {
       if (!coExistingDfs.includes(selectedServices[i].get('serviceName'))) {
         return true;
       }
