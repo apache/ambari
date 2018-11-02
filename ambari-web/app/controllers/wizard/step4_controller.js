@@ -358,10 +358,10 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         var primaryDfsServiceName = primaryDFS.get('serviceName');
         //if multiple DFS are not selected, remove the related error from the error array
         let removeFsError = function () {
-          var fsError = self.get('errorStack').filterProperty('id',"multipleDFS");
+          let fsError = self.get('errorStack').findProperty('id',"multipleDFS");
           if(fsError)
           {
-            self.get('errorStack').removeObject(fsError[0]);
+            self.get('errorStack').removeObject(fsError);
           }
         };
         if (this.multipleDFSs()) {
