@@ -48,7 +48,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.oozie_prepare_war import prepare_war
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
-DEFAULT_SQL_DRIVER_PATH = get_value_from_properties(get_ambari_properties(), JDBC_DRIVER_PATH_PROPERTY, "/var/lib/ambari-server/resources/sqljdbc41.jar")
+DEFAULT_SQL_DRIVER_PATH = "/var/lib/ambari-server/resources/sqljdbc41.jar"
 
 with Environment() as env:
   def get_stack_version():
@@ -78,7 +78,8 @@ with Environment() as env:
     return stack_version
 
   parser = OptionParser()
-  parser.add_option("-d", "--database-driver", dest="sql_driver_path", default=DEFAULT_SQL_DRIVER_PATH,
+  parser.add_option("-d", "--database-driver", dest="sql_driver_path",
+                    default=get_value_from_properties(get_ambari_properties(), JDBC_DRIVER_PATH_PROPERTY, DEFAULT_SQL_DRIVER_PATH),
                     help="Path to JDBC driver")
   parser.add_option("-f", "--fs-type", dest="fs_type", default="wasb",
                     help="Expected protocol of fs.defaultFS")
@@ -90,7 +91,11 @@ with Environment() as env:
 
   if not os.path.exists(options.sql_driver_path):
     Logger.error("SQL driver file {} does not exist".format(options.sql_driver_path))
-    sys.exit(1)
+    if os.path.exists(DEFAULT_SQL_DRIVER_PATH):
+      Logger.warning("Fallback to SQL driver {}".format(DEFAULT_SQL_DRIVER_PATH))
+      options.sql_driver_path = DEFAULT_SQL_DRIVER_PATH
+    else:
+      sys.exit(1)
 
   Logger.info("Using SQL driver from {}".format(options.sql_driver_path))
   sql_driver_filename = os.path.basename(options.sql_driver_path)
