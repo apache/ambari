@@ -30,7 +30,7 @@ require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_cke
 require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_ckecks_alerts_view');
 require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_service_warning_view');
 
-var customCheckViewsMap = {
+const customCheckViewsMap = {
   'SERVICES_UP': App.ServiceUpCheckView,
   'AUTO_START_DISABLED': App.AutostartDisabledCheckView,
   'HOSTS_MASTER_MAINTENANCE': App.MasterMaintenanceDisabledCheckView,
@@ -50,7 +50,7 @@ function mapUpgradeChecks(items) {
 
 function setCustomCheckViews(checks) {
   checks.forEach(function (item) {
-    var check = item.UpgradeChecks;
+    const check = item.UpgradeChecks;
     if (customCheckViewsMap[check.id]) {
       check.customView = customCheckViewsMap[check.id].extend({check: check});
     }

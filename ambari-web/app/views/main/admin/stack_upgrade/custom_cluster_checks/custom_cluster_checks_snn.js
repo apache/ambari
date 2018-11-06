@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-var App = require('app');
+const App = require('app');
 
 App.deleteSNNView = Em.View.extend({
   template: Em.Handlebars.compile([
@@ -25,7 +25,7 @@ App.deleteSNNView = Em.View.extend({
   ].join('')),
 
   enableNameNodeHA : function () {
-    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    const highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
     highAvailabilityController.enableHighAvailability();
   }
 });

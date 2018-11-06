@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-var App = require('app');
+const App = require('app');
 require('views/main/alerts/alert_instances_popup_view');
 
 App.AlertsChecksView = App.AlertInstancesPopupView.extend({

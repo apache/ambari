@@ -17,7 +17,7 @@
  */
 
 
-var App = require('app');
+const App = require('app');
 
 App.servicesWarningView = Em.View.extend({
   templateName: require('templates/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_service_warning'),
@@ -25,17 +25,16 @@ App.servicesWarningView = Em.View.extend({
   classNames: ['custom-cluster-check', 'custom-cluster-check-warning'],
 
   services: function () {
-    var self = this;
-    return App.Service.find().toArray().filter( function ( service ) {
-      var serviceId = service.get('id');
-      if (self.get('check').failed_on.indexOf( serviceId ) != -1){
+    return App.Service.find().toArray().filter( ( service ) => {
+      const serviceId = service.get('id');
+      if (this.get('check').failed_on.indexOf( serviceId ) != -1){
         return true;
       }
     })
   }.property('App.router.clusterController.isLoaded').volatile(),
 
   goToConfigs: function (event) {
-    var service = event.context;
+    const service = event.context;
     App.router.transitionTo('services.service.configs', service);
     this.get('parentView.parentView').closeParent();
     this.get('parentView.parentView').onClose();

@@ -17,7 +17,7 @@
  */
 
 
-var App = require('app');
+const App = require('app');
 
 App.addMetastoreView = Em.View.extend({
     template: Em.Handlebars.compile([
@@ -34,7 +34,7 @@ App.addMetastoreView = Em.View.extend({
     classNames: ['custom-cluster-check', 'custom-cluster-check-warning'],
 
     addMetastore: function () {
-        var controller = App.router.get('mainServiceItemController');
+        const controller = App.router.get('mainServiceItemController');
         controller.addComponent('HIVE_METASTORE');
     }
 });

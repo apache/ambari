@@ -17,7 +17,7 @@
  */
 
 
-var App = require('app');
+const App = require('app');
 
 App.ServiceUpCheckView = Em.View.extend({
 
@@ -38,7 +38,7 @@ App.ServiceUpCheckView = Em.View.extend({
 
   startServices: function () {
     this.set('startServicesDisabled', true);
-    var data = {
+    const data = {
       ServiceInfo: {
         state: 'STARTED'
       },

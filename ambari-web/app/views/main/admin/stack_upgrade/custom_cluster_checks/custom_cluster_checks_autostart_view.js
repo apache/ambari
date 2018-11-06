@@ -17,11 +17,11 @@
  */
 
 
-var App = require('app');
+const App = require('app');
 
 App.AutostartDisabledCheckView = Em.View.extend({
   template: Em.Handlebars.compile([
-    '<button {{bindAttr disabled="view.autostartDisabled"}} class="pull-right btn" {{action disableAutostart target="view"}}>',
+    '<button {{bindAttr disabled="view.autostartButtonDisabled"}} class="pull-right btn" {{action disableAutostart target="view"}}>',
       '{{ t popup.clusterCheck.Upgrade.fail.auto_start_disabled.action_btn }}',
     '</button>',
     '{{ t popup.clusterCheck.Upgrade.fail.auto_start_disabled }}'
@@ -29,20 +29,19 @@ App.AutostartDisabledCheckView = Em.View.extend({
 
   classNames: ['custom-cluster-check'],
 
-  autostartDisabled: false,
+  autostartButtonDisabled: false,
 
   disableAutostart: function () {
-    var self = this,
-        mainAdminServiceAutoStartController = App.router.get('mainAdminServiceAutoStartController');
-    this.set('autostartDisabled', true);
+    const mainAdminServiceAutoStartController = App.router.get('mainAdminServiceAutoStartController');
+    this.set('autostartButtonDisabled', true);
 
-    mainAdminServiceAutoStartController.load().done(function () {
+    mainAdminServiceAutoStartController.load().done(() => {
       mainAdminServiceAutoStartController.set('isGeneralRecoveryEnabled', false);
-      mainAdminServiceAutoStartController.saveClusterConfigs(mainAdminServiceAutoStartController.get('clusterConfigs'), false).always(function (data) {
-        self.set('autostartDisabled', false);
+      mainAdminServiceAutoStartController.saveClusterConfigs(mainAdminServiceAutoStartController.get('clusterConfigs'), false).always((data) => {
+        this.set('autostartButtonDisabled', false);
       })
-    }).fail(function (data) {
-      self.set('autostartDisabled', false);
+    }).fail( (data) => {
+      this.set('autostartButtonDisabled', false);
     });
   }
 });

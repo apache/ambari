@@ -17,7 +17,7 @@
  */
 
 
-var App = require('app');
+const App = require('app');
 
 App.AtlasInstalledCheckView = Em.View.extend({
   template: Em.Handlebars.compile([
@@ -35,7 +35,7 @@ App.AtlasInstalledCheckView = Em.View.extend({
   }.property('services.@each'),
 
   removeAtlas: function () {
-    var controller = App.router.get('mainServiceItemController');
+    const controller = App.router.get('mainServiceItemController');
     controller.set('content', App.Service.find('ATLAS'));
     controller.deleteService('ATLAS');
   }

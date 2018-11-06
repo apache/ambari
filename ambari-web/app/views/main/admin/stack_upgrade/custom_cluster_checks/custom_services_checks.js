@@ -16,16 +16,15 @@
  * limitations under the License.
  */
 
-var App = require('app');
+const App = require('app');
 
 App.ServicesChecksView = Em.View.extend({
   templateName: require('templates/main/admin/stack_upgrade/custom_cluster_checks/custom_services_checks'),
   
   services: function () {
-    var self = this;
-    return App.Service.find().toArray().filter( function ( service ) {
-      if (self.get('check').failed_on.indexOf( service.get('id') ) != -1){
-        Ember.set(service, 'isSmokeTestDisabled', self.isSmokeTestDisabled( service ) );
+    return App.Service.find().toArray().filter( ( service ) => {
+      if (this.get('check').failed_on.indexOf( service.get('id') ) != -1){
+        Ember.set(service, 'isSmokeTestDisabled', this.isSmokeTestDisabled( service ) );
         return service;
       }
       else return;
@@ -33,14 +32,14 @@ App.ServicesChecksView = Em.View.extend({
   }.property('App.router.clusterController.isLoaded').volatile(),
 
   isSmokeTestDisabled: function ( service ) {
-    var controller =  App.router.get('mainServiceItemController');
+    const controller =  App.router.get('mainServiceItemController');
     controller.set('content', service);
     return controller.get('isSmokeTestDisabled');
   },
   
   runSmokeTest: function (event) {
-    var service = event.context;
-    var controller =  App.router.get('mainServiceItemController');
+    const service = event.context;
+    const controller =  App.router.get('mainServiceItemController');
     controller.set('content', service);
     controller.runSmokeTest( service );
   }

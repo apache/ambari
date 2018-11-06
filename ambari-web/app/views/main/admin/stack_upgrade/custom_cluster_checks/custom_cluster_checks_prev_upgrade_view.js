@@ -17,7 +17,7 @@
  */
 
 
-var App = require('app');
+const App = require('app');
 
 App.PrevUpgradeNotCompletedView = Em.View.extend({
   templateName: require('templates/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_prev_upgrade'),
@@ -31,13 +31,13 @@ App.PrevUpgradeNotCompletedView = Em.View.extend({
   showFinalizeUpgradeButton: Em.computed.equal('App.upgradeState', 'HOLDING'),
 
   resumeUpgrade: function () {
-    var controller = App.router.get('mainAdminStackAndUpgradeController');
+    const controller = App.router.get('mainAdminStackAndUpgradeController');
     controller.resumeUpgrade();
     controller.openUpgradeDialog();
   },
 
   abortUpgrade: function () {
-    var controller = App.router.get('mainAdminStackAndUpgradeController');
+    const controller = App.router.get('mainAdminStackAndUpgradeController');
     controller.abortUpgrade()
       .then( function () {
         controller.openUpgradeDialog();
@@ -45,7 +45,7 @@ App.PrevUpgradeNotCompletedView = Em.View.extend({
   },
 
   finalizeUpgrade: function () {
-    var controller = App.router.get('mainAdminStackAndUpgradeController');
+    const controller = App.router.get('mainAdminStackAndUpgradeController');
     controller.updateFinalize().then( function () {
       controller.openUpgradeDialog();
     })

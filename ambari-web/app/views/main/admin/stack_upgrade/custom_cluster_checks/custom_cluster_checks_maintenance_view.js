@@ -17,13 +17,13 @@
  */
 
 
-var App = require('app');
+const App = require('app');
 
 App.MasterMaintenanceDisabledCheckView = Em.View.extend({
   templateName: require('templates/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_maintenance'),
 
   maintananceOff: function (e) {
-    var host = e.context;
+    const host = e.context;
     Ember.set(host, 'processing', true);
 
     App.ajax.send({

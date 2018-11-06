@@ -17,20 +17,19 @@
  */
 
 
-var App = require('app');
+const App = require('app');
 
 App.HostsHeartbeatView = Em.View.extend({
   templateName: require('templates/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_hosts_heartbeat'),
 
   hosts: function () {
-    var self = this;
-    return App.Host.find().toArray().filter( function (host) {
-      return self.get('check.failed_on').contains(host.get('id'));
+    return App.Host.find().toArray().filter( (host) => {
+      return this.get('check.failed_on').contains(host.get('id'));
     });
   }.property(''),
 
   removeHost: function (event) {
-    var controller =  App.router.get('mainHostDetailsController');
+    const controller =  App.router.get('mainHostDetailsController');
     controller.set('content', event.context);
     controller.validateAndDeleteHost();
   }

@@ -17,7 +17,7 @@
  */
 
 
-var App = require('app');
+const App = require('app');
 
 App.HostHaveVersionInstalledCheckView = Em.View.extend({
   template: Em.Handlebars.compile([
@@ -30,8 +30,8 @@ App.HostHaveVersionInstalledCheckView = Em.View.extend({
   repos: App.RepositoryVersion.find(),
   
   reinstall: function () {
-    var repo = App.RepositoryVersion.find(this.get('check').repository_version_id);
-    var controller = App.router.get('mainAdminStackAndUpgradeController');
+    const repo = App.RepositoryVersion.find(this.get('check').repository_version_id);
+    const controller = App.router.get('mainAdminStackAndUpgradeController');
     controller.installRepoVersionConfirmation(repo);
   },
   
