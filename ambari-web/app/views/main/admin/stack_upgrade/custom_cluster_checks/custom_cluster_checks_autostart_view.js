@@ -37,8 +37,8 @@ App.AutostartDisabledCheckView = Em.View.extend({
     this.set('autostartDisabled', true);
 
     mainAdminServiceAutoStartController.load().done(function () {
-      mainAdminServiceAutoStartController.set('clusterConfigs.recovery_enabled', 'false');
-      mainAdminServiceAutoStartController.saveClusterConfigs(mainAdminServiceAutoStartController.get('clusterConfigs')).always(function (data) {
+      mainAdminServiceAutoStartController.set('isGeneralRecoveryEnabled', false);
+      mainAdminServiceAutoStartController.saveClusterConfigs(mainAdminServiceAutoStartController.get('clusterConfigs'), false).always(function (data) {
         self.set('autostartDisabled', false);
       })
     }).fail(function (data) {
