@@ -22,15 +22,31 @@ const App = require('app');
 App.HostsHeartbeatView = Em.View.extend({
   templateName: require('templates/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_hosts_heartbeat'),
 
-  hosts: function () {
-    return App.Host.find().toArray().filter( (host) => {
-      return this.get('check.failed_on').contains(host.get('id'));
+  hostNames: function () {
+    return App.get('allHostNames').filter( (hostId) => {
+      return this.get('check.failed_on').contains(hostId);
     });
-  }.property(''),
+  }.property(),
 
-  removeHost: function (event) {
+  removeHost: function (host) {
     const controller =  App.router.get('mainHostDetailsController');
-    controller.set('content', event.context);
+    controller.set('content', host);
     controller.validateAndDeleteHost();
+  },
+
+  startRemoveHost: function (event) {
+    const hostName = event.context;
+    const url = App.apiPrefix + '/clusters/' + App.clusterName + '/hosts/' + hostName;
+    const host = App.Host.find().findProperty('hostName', hostName);
+    if (!host) {
+      App.HttpClient.get(url, App.hostsMapper, {
+        complete: () => {
+          const host = App.Host.find().findProperty('hostName', hostName);
+          this.removeHost(host);
+        }
+      });
+    } else {
+      this.removeHost(host);
+    }
   }
 });

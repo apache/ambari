@@ -18,10 +18,10 @@
 
 {{item.reason}}
 <ul class="checks">
-    {{#each host in view.hosts}}
+    {{#each hostName in view.hostNames}}
         <li>
-            {{host.hostName}}
-            <button class="pull-right btn" {{action removeHost host}}>{{t hosts.host.details.deleteHost}}</button>
+            {{hostName}}
+            <button class="pull-right btn" {{action startRemoveHost hostName}}>{{t hosts.host.details.deleteHost}}</button>
         </li>
     {{/each}}
 </ul>
