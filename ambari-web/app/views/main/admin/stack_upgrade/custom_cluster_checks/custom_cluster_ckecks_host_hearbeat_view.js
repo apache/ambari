@@ -37,8 +37,8 @@ App.HostsHeartbeatView = Em.View.extend({
   startRemoveHost: function (event) {
     const hostName = event.context;
     const url = App.apiPrefix + '/clusters/' + App.clusterName + '/hosts/' + hostName;
-    const host = App.Host.find().findProperty('hostName', hostName);
-    if (!host) {
+    const host = App.Host.find(hostName);
+    if (!host.get('isLoaded')) {
       App.HttpClient.get(url, App.hostsMapper, {
         complete: () => {
           const host = App.Host.find().findProperty('hostName', hostName);
