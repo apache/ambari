@@ -663,8 +663,8 @@ class HdfsResourceProvider(Provider):
     path_protocol = urlparse(self.resource.target).scheme.lower()
     default_fs_protocol = urlparse(self.resource.default_fs).scheme.lower()
 
-    if path_protocol == "s3a" or default_fs_protocol == "s3a" and path_protocol == None:
-      Logger.info("Skipping creation of {0} in {1} since auto-creation of s3a resource is currently not supported.".format(self.resource.target, self.resource.default_fs))
+    if path_protocol and default_fs_protocol != "viewfs" and path_protocol != default_fs_protocol:
+      Logger.info("Skipping creation of {0} since it is not in default filesystem.".format(self.resource.target))
       return
 
     parsed_path = HdfsResourceProvider.parse_path(self.resource.target)
