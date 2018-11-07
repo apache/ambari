@@ -113,14 +113,19 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
   },
 
   load: function() {
-    App.router.get('configurationController').getCurrentConfigsBySites(['cluster-env']).done((data) => {
-      this.set('clusterConfigs', data[0].properties);
-      this.set('isGeneralRecoveryEnabled', data[0].properties.recovery_enabled === 'true');
-      this.set('isGeneralRecoveryEnabledCached', this.get('isGeneralRecoveryEnabled'));
-      this.loadComponentsConfigs().then(() => {
-        this.set('isLoaded', true);
+    const self = this;
+    const clusterConfigController = App.router.get('configurationController');
+    clusterConfigController.updateConfigTags().always(function () {
+      clusterConfigController.getCurrentConfigsBySites(['cluster-env']).done((data) => {
+        self.set('clusterConfigs', data[0].properties);
+        self.set('isGeneralRecoveryEnabled', data[0].properties.recovery_enabled === 'true');
+        self.set('isGeneralRecoveryEnabledCached', self.get('isGeneralRecoveryEnabled'));
+        self.loadComponentsConfigs().then(() => {
+          self.set('isLoaded', true);
+        });
       });
     });
+
   },
 
   loadComponentsConfigs: function () {
