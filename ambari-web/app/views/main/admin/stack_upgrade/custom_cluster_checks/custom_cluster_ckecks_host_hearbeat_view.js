@@ -41,7 +41,7 @@ App.HostsHeartbeatView = Em.View.extend({
     if (!host.get('isLoaded')) {
       App.HttpClient.get(url, App.hostsMapper, {
         complete: () => {
-          const host = App.Host.find().findProperty('hostName', hostName);
+          const host = App.Host.find(hostName);
           this.removeHost(host);
         }
       });
