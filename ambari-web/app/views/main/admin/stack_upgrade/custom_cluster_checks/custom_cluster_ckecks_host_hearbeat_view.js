@@ -36,7 +36,17 @@ App.HostsHeartbeatView = Em.View.extend({
 
   startRemoveHost: function (event) {
     const hostName = event.context;
-    const url = App.apiPrefix + '/clusters/' + App.clusterName + '/hosts/' + hostName;
+    const fields = 'fields=Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/' +
+      'cpu_count,Hosts/ph_cpu_count,alerts_summary,Hosts/host_status,Hosts/host_state,Hosts/last_heartbeat_time,Hosts/' +
+      'ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/' +
+      'stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/display_name,host_components/' +
+      'HostRoles/desired_admin_state,host_components/metrics/dfs/namenode/ClusterId,host_components/metrics/dfs/' +
+      'FSNamesystem/HAState,metrics/disk,metrics/load/load_one,Hosts/total_mem,Hosts/os_arch,Hosts/os_type,metrics/cpu/' +
+      'cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free,stack_versions/' +
+      'HostStackVersions,stack_versions/repository_versions/RepositoryVersions/repository_version,stack_versions/' +
+      'repository_versions/RepositoryVersions/id,stack_versions/repository_versions/RepositoryVersions/' +
+      'display_name&minimal_response=true,host_components/logging&page_size=10&from=0&sortBy=Hosts/host_name.asc';
+    const url = App.apiPrefix + '/clusters/' + App.clusterName + '/hosts/?Hosts/host_name.in(' + hostName + ')&' + fields;
     const host = App.Host.find(hostName);
     if (!host.get('isLoaded')) {
       App.HttpClient.get(url, App.hostsMapper, {
