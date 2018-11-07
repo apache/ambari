@@ -204,7 +204,7 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
     Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put(MIN_HADOOP_SINK_VERSION_PROPERTY_NAME, "2.7.0.0");
 
-    ClusterInformation clusterInformation = new ClusterInformation("c1", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("c1", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         m_repositoryVersion, checkProperties);
 
@@ -263,7 +263,7 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
     Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put(MIN_HADOOP_SINK_VERSION_PROPERTY_NAME, "2.7.0.0");
 
-    ClusterInformation clusterInformation = new ClusterInformation("c1", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("c1", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         m_repositoryVersion, checkProperties);
 

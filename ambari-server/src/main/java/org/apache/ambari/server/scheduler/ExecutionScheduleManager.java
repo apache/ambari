@@ -450,7 +450,7 @@ public class ExecutionScheduleManager {
         Collections.sort(batchRequests);
         ListIterator<BatchRequest> iterator = batchRequests.listIterator(batchRequests.size());
         String nextJobName = null;
-        long nextBatchOrderId = batchRequests.size();
+        long nextBatchOrderId = Integer.MAX_VALUE/2;
         while (nextBatchOrderId != startingBatchOrderId && iterator.hasPrevious()) {
           BatchRequest batchRequest = iterator.previous();
 
@@ -538,13 +538,13 @@ public class ExecutionScheduleManager {
         ListIterator<BatchRequest> iterator = batchRequests.listIterator();
         do {
           result = iterator.next();
-        } while (iterator.hasNext() &&
+        } while (iterator.hasNext() && result.getStatus() != null &&
                  HostRoleStatus.getCompletedStates().contains(HostRoleStatus.valueOf(result.getStatus())) &&
                  !HostRoleStatus.ABORTED.name().equals(result.getStatus()));
       }
     }
 
-    if (result != null &&
+    if (result != null && result.getStatus() != null &&
       HostRoleStatus.getCompletedStates().contains(HostRoleStatus.valueOf(result.getStatus())) &&
       !HostRoleStatus.ABORTED.name().equals(result.getStatus())) {
       return null;
@@ -994,6 +994,33 @@ public class ExecutionScheduleManager {
       result = webResource.path(DEFAULT_API_PATH);
     }
     return result.path(relativeUri);
+  }
+
+  /**
+   * Checks if scheduled request should be auto paused and updates the status to PAUSED if it does.
+   * For now the condition is following: the current status is SCHEDULED,
+   * it's the first batch and the pauseAfterFirstBatch flag is TRUE
+   */
+  public void pauseAfterBatchIfNeeded(long executionId, long batchId, String clusterName) throws AmbariException {
+    Cluster cluster = clusters.getCluster(clusterName);
+    RequestExecution requestExecution = cluster.getAllRequestExecutions().get(executionId);
+
+    if (requestExecution == null) {
+      throw new AmbariException("Unable to find request schedule with id = "
+        + executionId);
+    }
+
+    Batch batch = requestExecution.getBatch();
+    if (batch != null) {
+      BatchSettings batchSettings = batch.getBatchSettings();
+      if (batchSettings != null) {
+        if (SCHEDULED.name().equals(requestExecution.getStatus()) && getFirstJobOrderId(requestExecution) == batchId &&
+            batchSettings.isPauseAfterFirstBatch()) {
+          LOG.info("Auto pausing the scheduled request after first batch. Scheduled request ID : " + executionId);
+          requestExecution.updateStatus(PAUSED);
+        }
+      }
+    }
   }
 }
 

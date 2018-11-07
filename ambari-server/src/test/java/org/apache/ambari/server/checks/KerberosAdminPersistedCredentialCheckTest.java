@@ -157,7 +157,7 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
     Map<String, String> checkProperties = new HashMap<>();
     RepositoryVersion repositoryVersion = createNiceMock(RepositoryVersion.class);
 
-    ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         repositoryVersion, checkProperties);
 

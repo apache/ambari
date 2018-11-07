@@ -72,7 +72,7 @@ public class PreviousUpgradeCompletedTest {
     Mockito.when(toRepsitoryVersionEntity.getVersion()).thenReturn(destRepositoryVersion);
     Mockito.when(toRepsitoryVersionEntity.getStackId()).thenReturn(targetStackId);
 
-    ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null, null);
     checkRequest = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         null, null);
 

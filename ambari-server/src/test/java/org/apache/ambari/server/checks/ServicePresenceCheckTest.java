@@ -76,7 +76,7 @@ public class ServicePresenceCheckTest {
     checkProperties.put(ServicePresenceCheck.REPLACED_SERVICES_PROPERTY_NAME,"OldServiceOne, OldServiceTwo");
     checkProperties.put(ServicePresenceCheck.NEW_SERVICES_PROPERTY_NAME,"NewServiceOne, NewServiceTwo");
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         m_repositoryVersion, checkProperties);
 
@@ -97,7 +97,7 @@ public class ServicePresenceCheckTest {
     Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put(ServicePresenceCheck.NO_UPGRADE_SUPPORT_SERVICES_PROPERTY_NAME,"Atlas, MyService");
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         m_repositoryVersion, checkProperties);
 
@@ -120,7 +120,7 @@ public class ServicePresenceCheckTest {
     checkProperties.put(ServicePresenceCheck.REPLACED_SERVICES_PROPERTY_NAME, "Atlas, OldService");
     checkProperties.put(ServicePresenceCheck.NEW_SERVICES_PROPERTY_NAME, "Atlas2, NewService");
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         m_repositoryVersion, checkProperties);
 
@@ -142,7 +142,7 @@ public class ServicePresenceCheckTest {
     Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put(ServicePresenceCheck.REMOVED_SERVICES_PROPERTY_NAME, "OldService");
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         m_repositoryVersion, checkProperties);
 
@@ -167,7 +167,7 @@ public class ServicePresenceCheckTest {
     checkProperties.put(ServicePresenceCheck.NEW_SERVICES_PROPERTY_NAME,"Atlas2, NewService");
     checkProperties.put(ServicePresenceCheck.REMOVED_SERVICES_PROPERTY_NAME, "RemovedService");
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         m_repositoryVersion, checkProperties);
 
@@ -190,7 +190,7 @@ public class ServicePresenceCheckTest {
     checkProperties.put(ServicePresenceCheck.REPLACED_SERVICES_PROPERTY_NAME, "OldService");
     checkProperties.put(ServicePresenceCheck.NEW_SERVICES_PROPERTY_NAME,"NewService");
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         m_repositoryVersion, checkProperties);
 
@@ -216,7 +216,7 @@ public class ServicePresenceCheckTest {
     checkProperties.put(ServicePresenceCheck.REPLACED_SERVICES_PROPERTY_NAME, "Storm, Ranger");
     checkProperties.put(ServicePresenceCheck.NEW_SERVICES_PROPERTY_NAME,"Storm2, Ranger2");
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         m_repositoryVersion, checkProperties);
 

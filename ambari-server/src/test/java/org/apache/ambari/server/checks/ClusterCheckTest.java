@@ -77,7 +77,7 @@ public class ClusterCheckTest extends EasyMockSupport {
   private VersionDefinitionXml m_vdfXml;
 
   private static final UpgradeCheckDescription m_description = new UpgradeCheckDescription(
-      "Test Check", UpgradeCheckType.CLUSTER, "Test Check", null);
+      "Test Check", UpgradeCheckType.CLUSTER, "Test Check", "Test Failure Reason");
 
   private MockCheckHelper m_mockCheckHelper = new MockCheckHelper();
 
@@ -170,7 +170,7 @@ public class ClusterCheckTest extends EasyMockSupport {
       }
     };
 
-    ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         repositoryVersion, null);
 
@@ -247,7 +247,7 @@ public class ClusterCheckTest extends EasyMockSupport {
       }
     };
 
-    ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
         repositoryVersion, null);
 
@@ -287,11 +287,6 @@ public class ClusterCheckTest extends EasyMockSupport {
     @Override
     public UpgradeCheckDescription getCheckDescription() {
       return m_description;
-    }
-
-    @Override
-    public UpgradeCheckType getType() {
-      return m_type;
     }
 
     @Override

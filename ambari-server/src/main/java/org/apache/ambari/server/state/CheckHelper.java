@@ -38,6 +38,7 @@ import org.apache.ambari.spi.upgrade.UpgradeCheck;
 import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
 import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
 import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +91,10 @@ public class CheckHelper {
           new UpgradeTypeQualification(check.getClass()));
 
       // add any extras from the check
-      qualifications.addAll(check.getQualifications());
+      List<CheckQualification> checkQualifications = check.getQualifications();
+      if (CollectionUtils.isNotEmpty(checkQualifications)) {
+        qualifications.addAll(checkQualifications);
+      }
 
       // run the applicability check
       try {

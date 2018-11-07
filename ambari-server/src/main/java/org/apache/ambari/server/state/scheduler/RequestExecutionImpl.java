@@ -108,6 +108,7 @@ public class RequestExecutionImpl implements RequestExecution {
     batchSettings.setBatchSeparationInSeconds(requestScheduleEntity.getBatchSeparationInSeconds());
     batchSettings.setTaskFailureToleranceLimit(requestScheduleEntity.getBatchTolerationLimit());
     batchSettings.setTaskFailureToleranceLimitPerBatch(requestScheduleEntity.getBatchTolerationLimitPerBatch());
+    batchSettings.setPauseAfterFirstBatch(requestScheduleEntity.isPauseAfterFirstBatch());
 
     batch.setBatchSettings(batchSettings);
 
@@ -331,6 +332,7 @@ public class RequestExecutionImpl implements RequestExecution {
         requestScheduleEntity.setBatchSeparationInSeconds(settings.getBatchSeparationInSeconds());
         requestScheduleEntity.setBatchTolerationLimit(settings.getTaskFailureToleranceLimit());
         requestScheduleEntity.setBatchTolerationLimitPerBatch(settings.getTaskFailureToleranceLimitPerBatch());
+        requestScheduleEntity.setPauseAfterFirstBatch(settings.isPauseAfterFirstBatch());
       }
     }
   }

@@ -125,7 +125,7 @@ public class HostsMasterMaintenanceCheckTest {
     Mockito.when(cluster.getDesiredStackVersion()).thenReturn(new StackId("HDP", "1.0"));
     Mockito.when(repositoryVersionHelper.getUpgradePackageName(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), (UpgradeType) Mockito.anyObject())).thenReturn(null);
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest checkRequest = new UpgradeCheckRequest(clusterInformation,
         UpgradeType.ROLLING, m_repositoryVersion, null);
 

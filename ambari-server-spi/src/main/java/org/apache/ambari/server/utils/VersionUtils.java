@@ -20,9 +20,6 @@ package org.apache.ambari.server.utils;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
-import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 
@@ -32,6 +29,8 @@ import org.apache.commons.lang.math.NumberUtils;
  * in this class. Currently, exact match is required between all the three.
  */
 public class VersionUtils {
+  public static final String DEV_VERSION = "${ambariVersion}";
+
   /**
    * Compares two versions strings of the form N.N.N.N or even N.N.N.N-###
    * (which should ignore everything after the dash). If the user has a custom
@@ -39,7 +38,7 @@ public class VersionUtils {
    * letters should be ignored.
    *
    * @param version1
-   *          the first operand. If set to {@value BootStrapImpl#DEV_VERSION}
+   *          the first operand. If set to {@value #DEV_VERSION}
    *          then this will always return {@code 0)}
    * @param version2
    *          the second operand.
@@ -79,7 +78,7 @@ public class VersionUtils {
       throw new IllegalArgumentException("maxLengthToCompare cannot be less than 0");
     }
 
-    if(BootStrapImpl.DEV_VERSION.equals(version1.trim())) {
+    if (DEV_VERSION.equals(version1.trim())) {
       return 0;
     }
 
@@ -132,7 +131,7 @@ public class VersionUtils {
    * Compares two versions strings of the form N.N.N.N
    *
    * @param version1
-   *          the first operand. If set to {@value BootStrapImpl#DEV_VERSION}
+   *          the first operand. If set to {@value #DEV_VERSION}
    *          then this will always return {@code 0)}
    * @param version2
    *          the second operand.
@@ -143,7 +142,7 @@ public class VersionUtils {
    */
   public static int compareVersions(String version1, String version2, boolean allowEmptyVersions) {
     if (allowEmptyVersions) {
-      if (version1 != null && version1.equals(BootStrapImpl.DEV_VERSION)) {
+      if (version1 != null && version1.equals(DEV_VERSION)) {
         return 0;
       }
       if (version1 == null && version2 == null) {
@@ -176,7 +175,7 @@ public class VersionUtils {
    * Compares two versions strings of the form N.N.N.N
    *
    * @param version1
-   *          the first operand. If set to {@value BootStrapImpl#DEV_VERSION}
+   *          the first operand. If set to {@value #DEV_VERSION}
    *          then this will always return {@code 0)}
    * @param version2
    *          the second operand.
@@ -190,7 +189,7 @@ public class VersionUtils {
    * Compares two version for equality, allows empty versions
    *
    * @param version1
-   *          the first operand. If set to {@value BootStrapImpl#DEV_VERSION}
+   *          the first operand. If set to {@value #DEV_VERSION}
    *          then this will always return {@code 0)}
    * @param version2
    *          the second operand.
@@ -204,8 +203,10 @@ public class VersionUtils {
 
   /**
    * Return N.N.N from N.N.N.xyz
+   *
    * @param version
-   * @return
+   *          the version to extract the first three sections from.
+   * @return the first three sections of the specified version.
    */
   public static String getVersionSubstring(String version) {
     String[] versionParts = version.split("\\.");
@@ -217,16 +218,18 @@ public class VersionUtils {
   }
 
   /**
-   * Compares versions, using a build number using a dash separator, if one exists.
-   * This is is useful when comparing repository versions with one another that include
-   * build number
+   * Compares versions, using a build number using a dash separator, if one
+   * exists. This is is useful when comparing repository versions with one
+   * another that include build number
+   *
    * @param version1
    *          the first version
    * @param version2
    *          the second version
    * @param places
    *          the number of decimal-separated places to compare
-   * @return
+   * @return {@code -1} if {@code version1} is less than {@code version2},
+   *         {@code 1} if it is greater, and {@code 0} if they are equal.
    */
   public static int compareVersionsWithBuild(String version1, String version2, int places) {
     version1 = (null == version1) ? "0" : version1;
@@ -259,11 +262,15 @@ public class VersionUtils {
 
   /**
    * Helper function to compare two comparable versions with null checks
-   * @param v1 The first version
-   * @param v2 The second version
-   * @return 0 if both are equal, <0 if first one is lower, >0 otherwise
+   * 
+   * @param v1
+   *          The first version
+   * @param v2
+   *          The second version
+   * @return {@code -1} if {@code v1} is less than {@code v2}, {@code 1} if it
+   *         is greater, and {@code 0} if they are equal.
    */
-  public static int compareTo(@Nullable Comparable v1, @Nullable Comparable v2) {
+  public static int compareTo(Comparable v1, Comparable v2) {
     return v1 == null ? (v2 == null ? 0 : -1) : v2 == null ? 1 : v1.compareTo(v2);
   }
 }

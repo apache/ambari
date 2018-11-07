@@ -34,6 +34,10 @@ import org.slf4j.LoggerFactory;
 /**
  * This class is an immutable representation of all the LDAP related
  * configurationMap entries.
+ * <p>
+ * <strong>IMPORTANT: </strong>in case you declare any new LDAP related property
+ * please do it in the Python class
+ * <code>stacks.ambari_configuration.AmbariLDAPConfiguration</code> too.
  */
 public class AmbariLdapConfiguration {
 
