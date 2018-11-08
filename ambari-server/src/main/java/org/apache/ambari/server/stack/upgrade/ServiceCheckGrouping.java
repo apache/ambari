@@ -280,10 +280,17 @@ public class ServiceCheckGrouping extends Grouping {
     public String service;
     public boolean priority;
 
+
     ServiceCheckStageWrapper(String service, String serviceDisplay, boolean priority) {
+      this(service, serviceDisplay, priority, null);
+    }
+
+    public ServiceCheckStageWrapper(String service, String serviceDisplay, boolean priority, String host) {
       super(StageWrapper.Type.SERVICE_CHECK,
           String.format("Service Check %s", serviceDisplay),
-          new TaskWrapper(service, "", Collections.emptySet(), new ServiceCheckTask()));
+          new TaskWrapper(service, "",
+              null == host ? Collections.emptySet() : Collections.singleton(host),
+              new ServiceCheckTask()));
 
       this.service = service;
       this.priority = priority;

@@ -44,6 +44,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1502,6 +1503,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     HostsType type = HostsType.normal("h1", "h2", "h3");
     expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER")).andReturn(type).anyTimes();
+    expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_CLIENT")).andReturn(type).anyTimes();
     expect(m_masterHostResolver.getMasterAndHosts("HDFS", "NAMENODE")).andReturn(namenodeHosts).anyTimes();
 
     if (clean) {
@@ -2820,6 +2822,52 @@ public class UpgradeHelperTest extends EasyMockSupport {
     // Do stacks cleanup
     stackManagerMock.invalidateCurrentPaths();
     ambariMetaInfo.init();
+  }
+
+  @Test
+  public void testParallelClients() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+
+    assertTrue(upgrades.containsKey("upgrade_test_parallel_client"));
+    UpgradePack upgrade = upgrades.get("upgrade_test_parallel_client");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+
+    Service s = cluster.getService("ZOOKEEPER");
+    ServiceComponent sc = s.addServiceComponent("ZOOKEEPER_CLIENT");
+    sc.addServiceComponentHost("h1");
+    sc.addServiceComponentHost("h2");
+    sc.addServiceComponentHost("h3");
+
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.NON_ROLLING);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+
+    Optional<UpgradeGroupHolder> optional = groups.stream()
+        .filter(g -> g.name.equals("ZK_CLIENTS"))
+        .findAny();
+    assertTrue(optional.isPresent());
+
+    UpgradeGroupHolder holder = optional.get();
+
+    assertEquals(3, holder.items.size());
+    assertEquals(StageWrapper.Type.RESTART, holder.items.get(0).getType());
+    assertEquals(StageWrapper.Type.SERVICE_CHECK, holder.items.get(1).getType());
+    assertEquals(StageWrapper.Type.RESTART, holder.items.get(2).getType());
+
+    // !!! this is a known issue - tasks wrappers should only wrap one task
+    TaskWrapper taskWrapper = holder.items.get(0).getTasks().get(0);
+    assertEquals(1, taskWrapper.getHosts().size());
+    String host1 = taskWrapper.getHosts().iterator().next();
+
+    taskWrapper = holder.items.get(1).getTasks().get(0);
+    assertEquals(1, taskWrapper.getHosts().size());
+    String host2 = taskWrapper.getHosts().iterator().next();
+    assertEquals(host1, host2);
+
+    taskWrapper = holder.items.get(2).getTasks().get(0);
+    assertEquals(2, taskWrapper.getHosts().size());
   }
 
   /**
