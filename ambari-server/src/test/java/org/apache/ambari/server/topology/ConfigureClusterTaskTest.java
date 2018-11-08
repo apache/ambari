@@ -30,7 +30,11 @@ import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
 import org.easymock.MockType;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Unit test for the ConfigureClusterTask class.

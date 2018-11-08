@@ -27,7 +27,6 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.spi.ClusterInformation;
-import org.apache.ambari.spi.RepositoryType;
 import org.apache.ambari.spi.RepositoryVersion;
 import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
 import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
