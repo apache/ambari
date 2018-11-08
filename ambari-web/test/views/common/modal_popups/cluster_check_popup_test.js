@@ -110,11 +110,13 @@ describe('App.showClusterCheckPopup', function () {
           warnings: [
             {
               check: 'w0 check',
+              customView: undefined,
               failed_on: 'w0 failed',
               reason: 'w0 reason'
             },
             {
               check: 'w1 check',
+              customView: undefined,
               failed_on: 'w1 failed',
               reason: 'w1 reason'
             }
@@ -167,11 +169,13 @@ describe('App.showClusterCheckPopup', function () {
           fails: [
             {
               check: 'f0 check',
+              customView: undefined,
               failed_on: 'f0 failed',
               reason: 'f0 reason'
             },
             {
               check: 'f1 check',
+              customView: undefined,
               failed_on: 'f1 failed',
               reason: 'f1 reason'
             }

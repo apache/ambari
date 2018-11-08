@@ -1012,6 +1012,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         this.runPreUpgradeCheckOnly({
           id: version.get('id'),
           label: version.get('displayName'),
+          id: version.get('id'),
           type: method.get('type')
         });
       } else {
@@ -1087,7 +1088,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       this.set('isUpgradeTypesLoaded', true);
     }
 
-    return App.ModalPopup.show({
+    const modal = App.ModalPopup.show({
       encodeBody: false,
       primary: function() {
         if ( preUpgradeShow ) return false;
@@ -1156,6 +1157,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
           self.runPreUpgradeCheckOnly({
             id: version.get('id'),
             label: version.get('displayName'),
+            id: version.get('id'),
             type: event.context.get('type')
           });
         },
@@ -1192,8 +1194,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
               self.runPreUpgradeCheckOnly.call(self, {
                 id: version.get('id'),
                 label: version.get('displayName'),
+                id: version.get('id'),
                 type: event.context.get('type')
               });
+            },
+            closeParent: function() {
+              modal.onClose();
             }
           }, configs);
         },
@@ -1253,6 +1259,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         }
       }
     });
+
+    return modal;
   },
 
   /**
