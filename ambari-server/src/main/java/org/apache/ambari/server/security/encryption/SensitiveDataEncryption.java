@@ -94,11 +94,11 @@ public class SensitiveDataEncryption {
   }
 
   public static void main(String[] args) {
-    if (args.length < 1 || !"encription".equals(args[0]) || !"decription".equals(args[0] )){
-      LOG.error("Expect encription/decription action parameter");
+    if (args.length < 1 || !"encryption".equals(args[0]) || !"decryption".equals(args[0] )){
+      LOG.error("Expect encryption/decryption action parameter");
       return;
     }
-    boolean encrypt = "encription".equals(args[0]);
+    boolean encrypt = "encryption".equals(args[0]);
     SensitiveDataEncryption sensitiveDataEncryption = null;
     try {
       Injector injector = Guice.createInjector(new EncryptionHelperControllerModule(), new EncryptionHelperAuditModule(), new LdapModule());
