@@ -542,7 +542,9 @@ describe('App.UpdateController', function () {
   describe('#configsChangedHandler', function() {
     beforeEach(function() {
       sinon.stub(c, 'updateClusterEnv');
-      sinon.stub(App.router.get('configurationController'), 'updateConfigTags');
+      sinon.stub(App.router.get('configurationController'), 'updateConfigTags').returns({
+        always: Em.clb
+      });
     });
     afterEach(function() {
       c.updateClusterEnv.restore();
