@@ -47,21 +47,7 @@ public class CredentialProvider {
   public CredentialProvider(String masterKey, File masterKeyLocation,
                             boolean isMasterKeyPersisted, File masterKeyStoreLocation) throws AmbariException {
     MasterKeyService masterKeyService;
-    if (masterKey != null) {
-      masterKeyService = new MasterKeyServiceImpl(masterKey);
-    } else {
-      if (isMasterKeyPersisted) {
-        if (masterKeyLocation == null) {
-          throw new IllegalArgumentException("The master key file location must be specified if the master key is persisted");
-        }
-        masterKeyService = new MasterKeyServiceImpl(masterKeyLocation);
-      } else {
-        masterKeyService = new MasterKeyServiceImpl();
-      }
-    }
-    if (!masterKeyService.isMasterKeyInitialized()) {
-      throw new AmbariException("Master key initialization failed.");
-    }
+    masterKeyService = MasterKeyServiceImpl.getMasterKeyService(masterKey, masterKeyLocation, isMasterKeyPersisted);
     this.keystoreService = new FileBasedCredentialStore(masterKeyStoreLocation);
     this.keystoreService.setMasterKeyService(masterKeyService);
   }

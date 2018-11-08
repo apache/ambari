@@ -422,4 +422,24 @@ public class ConfigImpl implements Config {
       eventPublisher.publish(event);
     }
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @Transactional
+  public void encryptSensitiveDataAndSave(Encryptor<Config> configPropertiesEncryptor) {
+    configPropertiesEncryptor.encryptSensitiveData(this);
+    save();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @Transactional
+  public void decryptSensitiveDataAndSave(Encryptor<Config> configPropertiesEncryptor) {
+    configPropertiesEncryptor.decryptSensitiveData(this);
+    save();
+  }
 }

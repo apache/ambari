@@ -93,6 +93,33 @@ public class MasterKeyServiceImpl implements MasterKeyService {
     }
   }
 
+  /**
+   * Provide a new MasterKeyServiceImpl using prefered source.
+   * masterKey > masterKeyLocation > env_variables
+   * @param masterKey
+   * @param masterKeyLocation
+   *
+   */
+  public static MasterKeyService getMasterKeyService(String masterKey, File masterKeyLocation, boolean isMasterKeyPersisted) throws AmbariException {
+    MasterKeyService masterKeyService;
+    if (masterKey != null) {
+      masterKeyService = new MasterKeyServiceImpl(masterKey);
+    } else {
+      if (isMasterKeyPersisted) {
+        if (masterKeyLocation == null) {
+          throw new IllegalArgumentException("The master key file location must be specified if the master key is persisted");
+        }
+        masterKeyService = new MasterKeyServiceImpl(masterKeyLocation);
+      } else {
+        masterKeyService = new MasterKeyServiceImpl();
+      }
+    }
+    if (!masterKeyService.isMasterKeyInitialized()) {
+      throw new AmbariException("Master key initialization failed.");
+    }
+    return masterKeyService;
+  }
+
   @Override
   public boolean isMasterKeyInitialized() {
     return master != null;
