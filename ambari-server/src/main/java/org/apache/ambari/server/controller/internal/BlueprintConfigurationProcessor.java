@@ -2961,10 +2961,10 @@ public class BlueprintConfigurationProcessor {
     mapredSiteMap.put("mapreduce.job.hdfs-servers", new SingleHostTopologyUpdater("NAMENODE"));
 
 
-    // HISTORY_SERVER
-    yarnSiteMap.put("yarn.log.server.url", new SingleHostTopologyUpdater("HISTORYSERVER"));
-    mapredSiteMap.put("mapreduce.jobhistory.webapp.address", new SingleHostTopologyUpdater("HISTORYSERVER"));
-    mapredSiteMap.put("mapreduce.jobhistory.address", new SingleHostTopologyUpdater("HISTORYSERVER"));
+    // HISTORYSERVER
+    yarnSiteMap.put("yarn.log.server.url", new OptionalSingleHostTopologyUpdater("HISTORYSERVER"));
+    mapredSiteMap.put("mapreduce.jobhistory.webapp.address", new OptionalSingleHostTopologyUpdater("HISTORYSERVER"));
+    mapredSiteMap.put("mapreduce.jobhistory.address", new OptionalSingleHostTopologyUpdater("HISTORYSERVER"));
 
     // RESOURCEMANAGER
     yarnSiteMap.put("yarn.resourcemanager.hostname", new OptionalSingleHostTopologyUpdater("RESOURCEMANAGER"));
@@ -2976,10 +2976,10 @@ public class BlueprintConfigurationProcessor {
     yarnSiteMap.put("yarn.resourcemanager.webapp.https.address", new OptionalSingleHostTopologyUpdater("RESOURCEMANAGER"));
 
     // APP_TIMELINE_SERVER
-    yarnSiteMap.put("yarn.timeline-service.address", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
-    yarnSiteMap.put("yarn.timeline-service.webapp.address", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
-    yarnSiteMap.put("yarn.timeline-service.webapp.https.address", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
-    yarnSiteMap.put("yarn.log.server.web-service.url", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
+    yarnSiteMap.put("yarn.timeline-service.address", new OptionalSingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
+    yarnSiteMap.put("yarn.timeline-service.webapp.address", new OptionalSingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
+    yarnSiteMap.put("yarn.timeline-service.webapp.https.address", new OptionalSingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
+    yarnSiteMap.put("yarn.log.server.web-service.url", new OptionalSingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
 
     // TIMELINE_READER
     yarnSiteMap.put("yarn.timeline-service.reader.webapp.address", new MultipleHostTopologyUpdater("TIMELINE_READER"));

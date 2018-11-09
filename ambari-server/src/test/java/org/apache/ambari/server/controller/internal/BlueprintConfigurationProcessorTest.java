@@ -2565,15 +2565,11 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   @Test
   public void testDoUpdateForClusterCreate_SingleHostProperty__MissingComponent() throws Exception {
     Map<String, Map<String, String>> properties = new HashMap<>();
-    Map<String, String> typeProps = new HashMap<>();
-    typeProps.put("yarn.resourcemanager.hostname", "localhost");
-    typeProps.put("yarn.timeline-service.address", "localhost");
-    properties.put("yarn-site", typeProps);
-
+    properties.put("mapred-site",
+      new HashMap<>(ImmutableMap.of("mapreduce.job.hdfs-servers", "localhost")));
     Configuration clusterConfig = new Configuration(properties, emptyMap());
 
     Collection<String> group1Components = new HashSet<>();
-    group1Components.add("NAMENODE");
     group1Components.add("SECONDARY_NAMENODE");
     group1Components.add("RESOURCEMANAGER");
     TestHostGroup group1 = new TestHostGroup("group1", group1Components, Collections.singleton("testhost"));
@@ -2587,8 +2583,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("1")).anyTimes();
-    expect(stack.getCardinality("TIMELINE_READER")).andReturn(new Cardinality("1")).anyTimes();
+    expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
@@ -2607,9 +2602,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> properties = new HashMap<>();
     Map<String, String> typeProps = new HashMap<>();
-    typeProps.put("yarn.resourcemanager.hostname", "localhost");
-    typeProps.put("yarn.timeline-service.address", "localhost");
-    properties.put("yarn-site", typeProps);
+    properties.put("mapred-site",
+      new HashMap<>(ImmutableMap.of("mapreduce.job.hdfs-servers", "localhost")));
 
     Configuration clusterConfig = new Configuration(properties, emptyMap());
 
@@ -2622,19 +2616,16 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     TestHostGroup group1 = new TestHostGroup("group1", group1Components, Collections.singleton("testhost"));
 
     Collection<String> group2Components = new HashSet<>();
+    group2Components.add("NAMENODE");
     group2Components.add("DATANODE");
     group2Components.add("HDFS_CLIENT");
-    group2Components.add("APP_TIMELINE_SERVER");
-    group2Components.add("TIMELINE_READER");
     TestHostGroup group2 = new TestHostGroup("group2", group2Components, Collections.singleton("testhost2"));
 
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
-    expect(stack.getCardinality("TIMELINE_READER")).andReturn(new Cardinality("0-1")).anyTimes();
-
+    expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("0-1")).anyTimes();
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
