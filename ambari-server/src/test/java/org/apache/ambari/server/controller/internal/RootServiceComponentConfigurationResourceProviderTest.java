@@ -204,6 +204,7 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
       expect(dao.reconcileCategory(eq(SSO_CONFIG_CATEGORY), capture(capturedProperties2), eq(true)))
           .andReturn(true)
           .once();
+      expect(dao.findByCategory(LDAP_CONFIG_CATEGORY)).andReturn(Collections.emptyList());
       expect(dao.findByCategory(eq(SSO_CONFIG_CATEGORY)))
           .andReturn(Collections.emptyList())
           .once();
@@ -437,7 +438,7 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
       expect(dao.reconcileCategory(eq(LDAP_CONFIG_CATEGORY), capture(capturedProperties1), eq(false)))
           .andReturn(true)
           .once();
-
+      expect(dao.findByCategory(LDAP_CONFIG_CATEGORY)).andReturn(Collections.emptyList());
       publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
       expectLastCall().times(1);
     }
@@ -484,7 +485,6 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     propertySets.add(toRequestProperties(LDAP_CONFIG_CATEGORY, properties));
     setupBasicExpectations(properties, propertySets);
     expect(configuration.isSecurityPasswordEncryptionEnabled()).andThrow(new AssertionFailedError()).anyTimes(); //this call should never have never been hit
-
     replayAll();
     resourceProvider.updateResources(request, predicate);
     verifyAll();
@@ -548,7 +548,7 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
   private void setupBasicExpectations(Map<String, String> expectedProperties, Set<Map<String, Object>> propertySets) {
     expect(request.getProperties()).andReturn(propertySets).once();
     expect(request.getRequestInfoProperties()).andReturn(new HashMap<>());
-    expect(dao.findByCategory(LDAP_CONFIG_CATEGORY)).andReturn(createEntities(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), expectedProperties)).times(2);
+    expect(dao.findByCategory(LDAP_CONFIG_CATEGORY)).andReturn(createEntities(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), expectedProperties)).times(3);
     expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), LDAP_CONFIG_CATEGORY)).andReturn(ambariServerLDAPConfigurationHandler).once();
   }
 
@@ -626,7 +626,8 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
 
         bind(AmbariServerConfigurationHandler.class).toInstance(new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration));
         bind(AmbariServerSSOConfigurationHandler.class).toInstance(new AmbariServerSSOConfigurationHandler(clusters, configHelper, managementController, stackAdvisorHelper, ambariConfigurationDAO, publisher, configuration));
-        bind(AmbariServerLDAPConfigurationHandler.class).toInstance(new AmbariServerLDAPConfigurationHandler(ldapFacade, ambariConfigurationDAO, publisher, configuration));
+        bind(AmbariServerLDAPConfigurationHandler.class).toInstance(new AmbariServerLDAPConfigurationHandler(clusters, configHelper, managementController,
+            stackAdvisorHelper, ambariConfigurationDAO, publisher, configuration, ldapFacade));
         bind(RootServiceComponentConfigurationHandlerFactory.class).toInstance(createMock(RootServiceComponentConfigurationHandlerFactory.class));
       }
     });

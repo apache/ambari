@@ -31,6 +31,8 @@ public enum StackAdvisorCommandType {
 
   RECOMMEND_CONFIGURATIONS_FOR_SSO("recommend-configurations-for-sso"),
 
+  RECOMMEND_CONFIGURATIONS_FOR_LDAP("recommend-configurations-for-ldap"),
+
   RECOMMEND_CONFIGURATIONS_FOR_KERBEROS("recommend-configurations-for-kerberos"),
 
   RECOMMEND_CONFIGURATION_DEPENDENCIES("recommend-configuration-dependencies"),

@@ -47,7 +47,6 @@ public class StackAdvisorHelper {
   private File recommendationsDir;
   private String recommendationsArtifactsLifetime;
   private int recommendationsArtifactsRolloverMax;
-  public static String pythonStackAdvisorScript;
   private final AmbariMetaInfo metaInfo;
   private final AmbariServerConfigurationHandler ambariServerConfigurationHandler;
 
@@ -61,8 +60,6 @@ public class StackAdvisorHelper {
     this.recommendationsDir = conf.getRecommendationsDir();
     this.recommendationsArtifactsLifetime = conf.getRecommendationsArtifactsLifetime();
     this.recommendationsArtifactsRolloverMax = conf.getRecommendationsArtifactsRolloverMax();
-
-    this.pythonStackAdvisorScript = conf.getStackAdvisorScript();
     this.saRunner = saRunner;
     this.metaInfo = metaInfo;
     this.ambariServerConfigurationHandler = ambariServerConfigurationHandler;
@@ -144,6 +141,9 @@ public class StackAdvisorHelper {
           requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
     } else if (requestType == StackAdvisorRequestType.SSO_CONFIGURATIONS) {
       command = new ConfigurationRecommendationCommand(StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS_FOR_SSO, recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
+    } else if (requestType == StackAdvisorRequestType.LDAP_CONFIGURATIONS) {
+      command = new ConfigurationRecommendationCommand(StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS_FOR_LDAP, recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
           requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
     } else if (requestType == StackAdvisorRequestType.KERBEROS_CONFIGURATIONS) {
       command = new ConfigurationRecommendationCommand(StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS_FOR_KERBEROS, recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
