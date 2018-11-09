@@ -66,6 +66,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.snmp4j.CommandResponder;
@@ -88,11 +89,13 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 
+
 /**
  * Tests the {@link AlertNoticeDispatchService}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ AmbariSNMPDispatcher.class, ManagementFactory.class })
+@PowerMockIgnore({"javax.xml.parsers.*", "com.sun.org.apache.xerces.*", "org.powermock.core.classloader.*", "org.xml.sax.*"})
 public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
 
   final static String ALERT_NOTICE_UUID_1 = UUID.randomUUID().toString();

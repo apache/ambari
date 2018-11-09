@@ -23,7 +23,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -101,7 +100,6 @@ public class StackAdvisorCommandTest {
     int requestId = 0;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
-    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
         ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
 
@@ -121,7 +119,6 @@ public class StackAdvisorCommandTest {
     int requestId = 0;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
-    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
         ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
 
@@ -149,7 +146,6 @@ public class StackAdvisorCommandTest {
     int requestId = 0;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
-    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
         ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
 
@@ -161,8 +157,6 @@ public class StackAdvisorCommandTest {
     doThrow(new WebApplicationException()).when(command).adjust(any(StackAdvisorData.class),
         any(StackAdvisorRequest.class));
 
-    doThrow(new StackAdvisorException("error")).when(saRunner)
-        .runScript(any(ServiceInfo.ServiceAdvisorType.class), any(StackAdvisorCommandType.class), any(File.class));
     command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON);
 
 
@@ -178,7 +172,6 @@ public class StackAdvisorCommandTest {
     final int requestId = 2;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
-    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     final StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(
         recommendationsDir, recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
 

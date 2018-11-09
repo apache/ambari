@@ -425,6 +425,7 @@ public class TestActionScheduler {
     ServiceComponentHost sch = mock(ServiceComponentHost.class);
     UnitOfWork unitOfWork = mock(UnitOfWork.class);
     AgentCommandsPublisher agentCommandsPublisher = mock(AgentCommandsPublisher.class);
+    when(oneClusterMock.getClusterName()).thenReturn("cluster1");
     when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
     when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
     when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
@@ -525,6 +526,7 @@ public class TestActionScheduler {
     ServiceComponentHost sch = mock(ServiceComponentHost.class);
     UnitOfWork unitOfWork = mock(UnitOfWork.class);
     AgentCommandsPublisher agentCommandsPublisher = mock(AgentCommandsPublisher.class);
+    when(oneClusterMock.getClusterName()).thenReturn("cluster1");
     when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
     when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
     when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
@@ -623,6 +625,7 @@ public class TestActionScheduler {
 
     UnitOfWork unitOfWork = mock(UnitOfWork.class);
     AgentCommandsPublisher agentCommandsPublisher = mock(AgentCommandsPublisher.class);
+    when(oneClusterMock.getClusterName()).thenReturn("cluster1");
     when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
     when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
     when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
@@ -781,7 +784,7 @@ public class TestActionScheduler {
         command.setStatus(HostRoleStatus.valueOf(commandReport.getStatus()));
         return null;
       }
-    }).when(db).updateHostRoleState(anyString(), anyLong(), anyLong(), anyString(), any(CommandReport.class));
+    }).when(db).updateHostRoleState(any(), anyLong(), anyLong(), anyString(), any(CommandReport.class));
 
     doAnswer(new Answer<HostRoleCommand>() {
       @Override
@@ -818,8 +821,7 @@ public class TestActionScheduler {
       scheduler.getServerActionExecutor().doWork();
     }
 
-    assertEquals(stages.get(0).getHostRoleStatus(null, "AMBARI_SERVER_ACTION"),
-        HostRoleStatus.COMPLETED);
+    assertEquals(HostRoleStatus.COMPLETED, stages.get(0).getHostRoleStatus(null, "AMBARI_SERVER_ACTION"));
   }
 
   /**
@@ -943,7 +945,7 @@ public class TestActionScheduler {
         command.setStatus(HostRoleStatus.valueOf(commandReport.getStatus()));
         return null;
       }
-    }).when(db).updateHostRoleState(anyString(), anyLong(), anyLong(), anyString(), any(CommandReport.class));
+    }).when(db).updateHostRoleState(any(), anyLong(), anyLong(), anyString(), any(CommandReport.class));
 
     doAnswer(new Answer<HostRoleCommand>() {
       @Override
@@ -1159,7 +1161,7 @@ public class TestActionScheduler {
         command.setStatus(HostRoleStatus.valueOf(commandReport.getStatus()));
         return null;
       }
-    }).when(db).updateHostRoleState(anyString(), anyLong(), anyLong(), anyString(), any(CommandReport.class));
+    }).when(db).updateHostRoleState(any(), anyLong(), anyLong(), anyString(), any(CommandReport.class));
 
     doAnswer(new Answer<HostRoleCommand>() {
       @Override
@@ -1194,8 +1196,7 @@ public class TestActionScheduler {
       scheduler.doWork();
       scheduler.getServerActionExecutor().doWork();
     }
-    assertEquals(stages.get(0).getHostRoleStatus(null, "AMBARI_SERVER_ACTION"),
-        HostRoleStatus.FAILED);
+    assertEquals(HostRoleStatus.FAILED, stages.get(0).getHostRoleStatus(null, "AMBARI_SERVER_ACTION"));
     assertEquals("test", stages.get(0).getRequestContext());
   }
 
@@ -2425,7 +2426,7 @@ public class TestActionScheduler {
         command.setStatus(HostRoleStatus.valueOf(commandReport.getStatus()));
         return null;
       }
-    }).when(db).updateHostRoleState(anyString(), anyLong(), anyLong(), anyString(), any(CommandReport.class));
+    }).when(db).updateHostRoleState(any(), anyLong(), anyLong(), anyString(), any(CommandReport.class));
 
     doAnswer(new Answer<List<HostRoleCommand>>() {
       @Override

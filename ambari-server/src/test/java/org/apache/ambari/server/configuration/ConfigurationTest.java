@@ -58,7 +58,7 @@ import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.api.support.membermodification.MemberMatcher;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.core.classloader.annotations.PrepareOnlyThisForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.base.Charsets;
@@ -66,7 +66,7 @@ import com.google.common.base.Charsets;
 import junit.framework.Assert;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ Configuration.class, PasswordUtils.class })
+@PrepareOnlyThisForTest({ Configuration.class, PasswordUtils.class })
 @PowerMockIgnore( {"javax.management.*", "javax.crypto.*"})
 public class ConfigurationTest {
   public TemporaryFolder temp = new TemporaryFolder();

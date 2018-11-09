@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
-    import java.util.HashMap;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.configuration.Configuration;
@@ -27,7 +27,6 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.spi.ClusterInformation;
-import org.apache.ambari.spi.RepositoryType;
 import org.apache.ambari.spi.RepositoryVersion;
 import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
 import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
@@ -70,8 +69,6 @@ public class LZOCheckTest {
     lZOCheck.config = configuration;
 
     m_services.clear();
-
-    Mockito.when(m_repositoryVersion.getRepositoryType()).thenReturn(RepositoryType.STANDARD);
   }
 
   @Test
@@ -79,8 +76,6 @@ public class LZOCheckTest {
     final Cluster cluster = Mockito.mock(Cluster.class);
     final Map<String, Service> services = new HashMap<>();
 
-    Mockito.when(cluster.getServices()).thenReturn(services);
-    Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
 
     final DesiredConfig desiredConfig = Mockito.mock(DesiredConfig.class);
