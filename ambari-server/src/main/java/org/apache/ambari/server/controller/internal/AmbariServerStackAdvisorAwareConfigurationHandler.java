@@ -46,6 +46,9 @@ import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * AmbariServerStackAdvisorAwareConfigurationHandler handles Ambari server specific configuration properties using the stack advisor.
+ */
 class AmbariServerStackAdvisorAwareConfigurationHandler extends AmbariServerConfigurationHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AmbariServerStackAdvisorAwareConfigurationHandler.class);
