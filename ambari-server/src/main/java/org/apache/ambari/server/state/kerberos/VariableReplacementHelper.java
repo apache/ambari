@@ -60,6 +60,7 @@ public class VariableReplacementHelper {
       put("replace", new ReplaceValue());
       put("append", new AppendFunction());
       put("principalPrimary", new PrincipalPrimary());
+      put("stripPort", new StripPort());
     }
   };
 
@@ -430,6 +431,21 @@ public class VariableReplacementHelper {
       } else {
         return data;
       }
+    }
+  }
+
+  /**
+   * Strips out the port (if any) from a URL assuming the following input data layout
+   * <code>host[:port]</code>
+   */
+  private static class StripPort implements Function {
+    @Override
+    public String perform(String[] args, String data, Map<String, Map<String, String>> replacementsMap) {
+      if (data == null) {
+        return null;
+      }
+      final int semicolonIndex = data.indexOf(":");
+      return semicolonIndex == -1 ? data : data.substring(0, semicolonIndex);
     }
   }
 }
