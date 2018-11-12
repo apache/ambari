@@ -37,13 +37,16 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
+/**
+ * Ambari-server class that is called as an entry point to encrypt service configuration sensitive data
+ */
 public class SensitiveDataEncryption {
   private static final Logger LOG = LoggerFactory.getLogger
       (SensitiveDataEncryption.class);
 
-  private PersistService persistService;
-  private DBAccessor dbAccessor;
-  private Injector injector;
+  private final PersistService persistService;
+  private final DBAccessor dbAccessor;
+  private final Injector injector;
 
 
   @Inject
@@ -58,7 +61,7 @@ public class SensitiveDataEncryption {
   /**
    * Extension of main controller module
    */
-  public static class EncryptionHelperControllerModule extends ControllerModule {
+  private static class EncryptionHelperControllerModule extends ControllerModule {
 
     public EncryptionHelperControllerModule() throws Exception {
     }
@@ -73,10 +76,7 @@ public class SensitiveDataEncryption {
   /**
    * Extension of audit logger module
    */
-  public static class EncryptionHelperAuditModule extends AuditLoggerModule {
-
-    public EncryptionHelperAuditModule() throws Exception {
-    }
+  private static class EncryptionHelperAuditModule extends AuditLoggerModule {
 
     @Override
     protected void configure() {
@@ -93,10 +93,15 @@ public class SensitiveDataEncryption {
     persistService.stop();
   }
 
+  /**
+   * Iterates thought all configs and encryption/decryption sensitive properties according to action
+   * using the default configured masterkey
+   * @param args "encryption" or "decryption" action expected
+   */
   public static void main(String[] args) {
-    if (args.length < 1 || !"encryption".equals(args[0]) || !"decryption".equals(args[0] )){
-      LOG.error("Expect encryption/decryption action parameter");
-      return;
+    if (args.length < 1 || (!"encryption".equals(args[0]) && !"decryption".equals(args[0] ))){
+      LOG.error("The action parameter (\"encryption\" or \"decryption\") is required");
+      System.exit(-1);
     }
     boolean encrypt = "encryption".equals(args[0]);
     SensitiveDataEncryption sensitiveDataEncryption = null;
@@ -114,10 +119,11 @@ public class SensitiveDataEncryption {
             Collection<Config> configs = cluster.getAllConfigs();
             for (Config config : configs) {
               if (encrypt) {
-                config.encryptSensitiveDataAndSave(configEncryptor);
+                configEncryptor.encryptSensitiveData(config);
               } else {
-                config.decryptSensitiveDataAndSave(configEncryptor);
+                configEncryptor.decryptSensitiveData(config);
               }
+              config.save();
             }
           }
         }

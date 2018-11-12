@@ -29,6 +29,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.utils.AmbariPath;
@@ -45,12 +47,19 @@ public class MasterKeyServiceImpl implements MasterKeyService {
 
   private char[] master = null;
 
+  @Inject
+  private static Configuration configuration;
+
   /**
    * Constructs a new MasterKeyServiceImpl using a master key read from a file.
    *
    * @param masterKeyFile the location of the master key file
    */
   public MasterKeyServiceImpl(File masterKeyFile) {
+    initFromFile(masterKeyFile);
+  }
+
+  public void initFromFile(File masterKeyFile) {
     if (masterKeyFile == null) {
       throw new IllegalArgumentException("Master Key location not provided.");
     }
@@ -84,12 +93,17 @@ public class MasterKeyServiceImpl implements MasterKeyService {
   }
 
   /**
-   * Constructs a new MasterKeyServiceImpl using the master key found in the environment.
+   * Constructs a new MasterKeyServiceImpl using prefered source according config.
+   * masterKey > masterKeyLocation > environment
    */
   public MasterKeyServiceImpl() {
-    String key = readMasterKey();
-    if (key != null) {
-      master = key.toCharArray();
+    if (configuration.isMasterKeyPersisted()) {
+      if (configuration.getMasterKeyLocation() == null) {
+        throw new IllegalArgumentException("The master key file location must be specified if the master key is persisted");
+      }
+      initFromFile(configuration.getMasterKeyLocation());
+    } else {
+      InitializeFromEnv();
     }
   }
 
@@ -270,7 +284,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
     }
   }
 
-  private String readMasterKey() {
+  private void InitializeFromEnv() {
     String key = null;
     Map<String, String> envVariables = System.getenv();
     if (envVariables != null && !envVariables.isEmpty()) {
@@ -282,19 +296,18 @@ public class MasterKeyServiceImpl implements MasterKeyService {
           if (keyFile.exists()) {
             try {
               initializeFromFile(keyFile);
-              if (master != null) {
-                key = new String(master);
-              }
-              FileUtils.deleteQuietly(keyFile);
             } catch (Exception e) {
               LOG.error("Cannot read master key from file: " + keyPath);
               e.printStackTrace();
             }
           }
+        } else {
+          LOG.error("Cannot read master key property {1} or master key file property {3} from environment");
         }
+      } else {
+        master = key.toCharArray();
       }
     }
-    return key;
   }
 
   private void initializeFromFile(File masterFile) throws Exception {

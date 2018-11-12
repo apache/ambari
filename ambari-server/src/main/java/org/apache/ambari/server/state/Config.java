@@ -106,14 +106,4 @@ public interface Config {
    * @return the cluster where this config belongs to
    */
   Cluster getCluster();
-
-  /**
-   * Encrypt and persist the configuration.
-   */
-  void encryptSensitiveDataAndSave(Encryptor<Config> configPropertiesEncryptor);
-
-  /**
-   * Decrypt and persist the configuration.
-   */
-  void decryptSensitiveDataAndSave(Encryptor<Config> configPropertiesEncryptor);
 }

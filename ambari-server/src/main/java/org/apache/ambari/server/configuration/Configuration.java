@@ -5794,7 +5794,7 @@ public class Configuration {
     JETTY_THREAD_POOL("Jetty API & Agent Thread Pools");
 
     /**
-     * A decription of the grouping.
+     * A description of the grouping.
      */
     private String m_description;
 
