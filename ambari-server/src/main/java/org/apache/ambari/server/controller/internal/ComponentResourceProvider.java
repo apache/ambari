@@ -126,7 +126,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID = "params/run_smoke_test";
 
-  private static Set<String> pkPropertyIds = Sets.newHashSet(
+  private static final Set<String> pkPropertyIds = Sets.newHashSet(
           CLUSTER_NAME,
           SERVICE_NAME,
           COMPONENT_NAME);

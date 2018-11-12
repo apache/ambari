@@ -69,7 +69,6 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCreden
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -77,6 +76,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
+import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -143,7 +143,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   private static final String QUERY_PARAMETERS_RECONFIGURE_CLIENT = "params/reconfigure_client";
   private static final String QUERY_PARAMETERS_START_DEPENDENCIES = "params/start_dependencies";
 
-  private static Set<String> pkPropertyIds =
+  private static final Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
       SERVICE_CLUSTER_NAME_PROPERTY_ID,
       SERVICE_SERVICE_NAME_PROPERTY_ID}));

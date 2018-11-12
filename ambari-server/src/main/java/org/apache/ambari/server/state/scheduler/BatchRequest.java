@@ -22,6 +22,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 public class BatchRequest implements Comparable<BatchRequest> {
   private Long orderId;
+  private Long requestId;
   private Type type;
   private String uri;
   private String body;
@@ -36,6 +37,15 @@ public class BatchRequest implements Comparable<BatchRequest> {
 
   public void setOrderId(Long orderId) {
     this.orderId = orderId;
+  }
+
+  @JsonProperty("request_id")
+  public Long getRequestId() {
+    return requestId;
+  }
+
+  public void setRequestId(Long requestId) {
+    this.requestId = requestId;
   }
 
   @JsonProperty("request_type")

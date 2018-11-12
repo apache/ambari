@@ -123,6 +123,9 @@ App.StackServiceComponent = DS.Model.extend({
 
   /** @property {Boolean} isMultipleAllowed - component can be assigned for more than one host **/
   isMultipleAllowed: Em.computed.gt('maxToInstall', 1),
+  
+  /** @property {Boolean} isAddableAfterInstall - component can be added after it's service was installed **/
+  isAddableAfterInstall: Em.computed.gtProperties('maxToInstall', 'minToInstall'),
 
   /** @property {Boolean} isSlave **/
   isSlave: Em.computed.equal('componentCategory', 'SLAVE'),
@@ -155,8 +158,8 @@ App.StackServiceComponent = DS.Model.extend({
 
   /** @property {Boolean} isAddableToHost - component can be added on host details page **/
   isAddableToHost: function() {
-    return this.get('isMasterAddableInstallerWizard')
-      || ((this.get('isNotAddableOnlyInInstall') || this.get('isSlave') || this.get('isClient'))
+    return (this.get('isMaster') && !this.get('isMasterAddableOnlyOnHA') && this.get('isAddableAfterInstall'))
+      || ((this.get('isSlave') || this.get('isClient'))
         && (!this.get('isHAComponentOnly') || (App.get('isHaEnabled') && this.get('componentName') === 'JOURNALNODE')));
   }.property('componentName'),
 
@@ -212,7 +215,7 @@ App.StackServiceComponent = DS.Model.extend({
    *
    * @property {Boolean} isMasterAddableInstallerWizard
    **/
-  isMasterAddableInstallerWizard: Em.computed.and('isMaster', 'isMultipleAllowed', '!isMasterAddableOnlyOnHA', '!isNotAddableOnlyInInstall'),
+  isMasterAddableInstallerWizard: Em.computed.and('isMaster', 'isMultipleAllowed', '!isMasterAddableOnlyOnHA'),
 
   /**
    * Master components with cardinality more than 1 (n+ or n-n) that could not be added in wizards
@@ -254,10 +257,6 @@ App.StackServiceComponent = DS.Model.extend({
     var componentName = this.get('componentName');
     return !!App.StackServiceComponent.coHost[componentName];
   }.property('componentName'),
-
-  /** @property {Boolean} isNotAddableOnlyInInstall - is this component addable, except Install and Add Service Wizards  **/
-  isNotAddableOnlyInInstall: Em.computed.existsIn('componentName', ['HIVE_METASTORE', 'HIVE_SERVER', 'RANGER_KMS_SERVER',
-    'OOZIE_SERVER', 'TIMELINE_READER', 'YARN_REGISTRY_DNS']),
 
   /** @property {Boolean} isNotAllowedOnSingleNodeCluster - is this component allowed on single node  **/
   isNotAllowedOnSingleNodeCluster: Em.computed.existsIn('componentName', ['HAWQSTANDBY'])

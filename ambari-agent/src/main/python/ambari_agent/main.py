@@ -88,6 +88,7 @@ import time
 import locale
 import platform
 import ConfigParser
+import signal
 import resource
 from logging.handlers import SysLogHandler
 import AmbariConfig
@@ -112,6 +113,7 @@ from ambari_agent.InitializerModule import InitializerModule
 
 logger = logging.getLogger()
 alerts_logger = logging.getLogger('alerts')
+alerts_logger_2 = logging.getLogger('ambari_alerts')
 alerts_logger_global = logging.getLogger('ambari_agent.alerts')
 apscheduler_logger = logging.getLogger('apscheduler')
 apscheduler_logger_global = logging.getLogger('ambari_agent.apscheduler')
@@ -363,7 +365,7 @@ def run_threads(initializer_module):
   initializer_module.action_queue.start()
 
   while not initializer_module.stop_event.is_set():
-    time.sleep(0.1)
+    signal.pause()
 
   initializer_module.action_queue.interrupt()
 
@@ -396,6 +398,7 @@ def main(initializer_module, heartbeat_stop_callback=None):
   global is_logger_setup
   is_logger_setup = True
   setup_logging(alerts_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
+  setup_logging(alerts_logger_2, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   setup_logging(alerts_logger_global, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   setup_logging(apscheduler_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   setup_logging(apscheduler_logger_global, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
@@ -473,7 +476,7 @@ def main(initializer_module, heartbeat_stop_callback=None):
   stopped = False
 
   # Keep trying to connect to a server or bail out if ambari-agent was stopped
-  while not connected and not stopped:
+  while not connected and not stopped and not initializer_module.stop_event.is_set():
     for server_hostname in server_hostnames:
       server_url = config.get_api_url(server_hostname)
       try:

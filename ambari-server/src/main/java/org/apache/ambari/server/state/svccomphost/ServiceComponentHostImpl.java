@@ -62,6 +62,7 @@ import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -87,7 +88,6 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
-import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -913,39 +913,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     HostComponentStateEntity stateEntity = getStateEntity();
     if (stateEntity != null) {
       stateEntity.setCurrentState(state);
-      if (state != State.UNKNOWN) {
-        stateEntity.setLastLiveState(state);
-      }
       stateEntity = hostComponentStateDAO.merge(stateEntity);
       if (!oldState.equals(state)) {
         STOMPUpdatePublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
             HostComponentUpdate.createHostComponentStatusUpdate(stateEntity, oldState))));
       }
-    } else {
-      LOG.warn("Setting a member on an entity object that may have been "
-          + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
-          + getServiceComponentName() + ", " + "hostName = " + getHostName());
-    }
-  }
-
-  @Override
-  public State getLastValidState() {
-    HostComponentStateEntity stateEntity = getStateEntity();
-    if (stateEntity != null) {
-      return stateEntity.getLastLiveState();
-    }
-    return State.UNKNOWN;
-  }
-
-  @Override
-  public void setLastValidState(State state) {
-    if (state == State.UNKNOWN) {
-      return;
-    }
-    HostComponentStateEntity stateEntity = getStateEntity();
-    if (stateEntity != null) {
-      stateEntity.setLastLiveState(state);
-      hostComponentStateDAO.merge(stateEntity);
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
           + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
@@ -1280,6 +1252,16 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       LOG.error("Could not determine stale config", e);
     }
 
+    try {
+      Cluster cluster = clusters.getCluster(clusterName);
+      ServiceComponent serviceComponent = cluster.getService(serviceName).getServiceComponent(serviceComponentName);
+      ServiceComponentHost sch = serviceComponent.getServiceComponentHost(hostName);
+      String refreshConfigsCommand = helper.getRefreshConfigsCommand(cluster,sch);
+      r.setReloadConfig(refreshConfigsCommand != null);
+    } catch (Exception e) {
+      LOG.error("Could not determine reload config flag", e);
+    }
+
     return r;
   }
 
@@ -1305,16 +1287,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       }
     } else {
       r.setStaleConfig(false);
-    }
-
-    try {
-      Cluster cluster = clusters.getCluster(clusterName);
-      ServiceComponent serviceComponent = cluster.getService(serviceName).getServiceComponent(serviceComponentName);
-      ServiceComponentHost sch = serviceComponent.getServiceComponentHost(hostName);
-      String refreshConfigsCommand = helper.getRefreshConfigsCommand(cluster,sch);
-      r.setReloadConfig(refreshConfigsCommand != null);
-    } catch (Exception e) {
-      LOG.error("Could not determine reload config flag", e);
     }
 
     return r;

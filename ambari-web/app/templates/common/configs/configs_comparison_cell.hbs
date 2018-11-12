@@ -16,9 +16,7 @@
 * limitations under the License.
 }}
 
-<span {{bindAttr class="compareConfig.isMock:undefined"}}>
-  {{compareConfig.value}}&nbsp;{{compareConfig.unit}}
-</span>
+<span {{bindAttr class="compareConfig.isMock:undefined :compare-config-cell"}}>{{compareConfig.value}}&nbsp;{{compareConfig.unit}}</span>
 {{#unless compareConfig.isMock}}
   {{#if compareConfig.supportsFinal}}
     <i {{bindAttr class=":glyphicon :glyphicon-lock compareConfig.isFinal::hidden" }}></i>

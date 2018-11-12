@@ -42,7 +42,7 @@ public class StackVersionResourceDefinitionTest {
     ResourceDefinition def = new StackVersionResourceDefinition();
 
     Set<SubResourceDefinition> subResources = def.getSubResourceDefinitions();
-    assertEquals(6, subResources.size());
+    assertEquals(7, subResources.size());
 
     boolean operatingSystemFound = false;
     boolean serviceFound = false;

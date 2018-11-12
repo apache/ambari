@@ -23,55 +23,72 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.ambari.spi.RepositoryVersion;
+import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
+import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeCheckType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 
 /**
  * Checks if Install Packages needs to be re-run
  */
 @Singleton
-@UpgradeCheck(
+@UpgradeCheckInfo(
     group = UpgradeCheckGroup.DEFAULT,
     order = 3.0f,
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
-public class InstallPackagesCheck extends AbstractCheckDescriptor {
+public class InstallPackagesCheck extends ClusterCheck {
+
+  static final UpgradeCheckDescription INSTALL_PACKAGES_CHECK = new UpgradeCheckDescription("INSTALL_PACKAGES_CHECK",
+      UpgradeCheckType.CLUSTER,
+      "Install packages must be re-run",
+      new ImmutableMap.Builder<String, String>()
+        .put(UpgradeCheckDescription.DEFAULT,
+            "Re-run Install Packages before starting upgrade").build());
 
   /**
    * Constructor.
    */
   public InstallPackagesCheck() {
-    super(CheckDescription.INSTALL_PACKAGES_CHECK);
+    super(INSTALL_PACKAGES_CHECK);
   }
 
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+  public UpgradeCheckResult perform(UpgradeCheckRequest request) throws AmbariException {
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
+
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
+    RepositoryVersion repositoryVersion = request.getTargetRepositoryVersion();
 
-    final StackId targetStackId = repositoryVersion.getStackId();
+    final StackId targetStackId = new StackId(repositoryVersion.getStackId());
 
     if (!repositoryVersion.getVersion().matches("^\\d+(\\.\\d+)*\\-\\d+$")) {
-      String message = MessageFormat.format("The Repository Version {0} for Stack {1} must contain a \"-\" followed by a build number. " +
-              "Make sure that another registered repository does not have the same repo URL or " +
-              "shares the same build number. Next, try reinstalling the Repository Version.", repositoryVersion.getVersion(), repositoryVersion.getStackVersion());
-      prerequisiteCheck.getFailedOn().add("Repository Version " + repositoryVersion.getVersion());
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(message);
-      return;
+      String message = MessageFormat.format(
+          "The Repository Version {0} for Stack {1} must contain a \"-\" followed by a build number. "
+              + "Make sure that another registered repository does not have the same repo URL or "
+              + "shares the same build number. Next, try reinstalling the Repository Version.",
+          repositoryVersion.getVersion(), targetStackId.getStackVersion());
+
+      result.getFailedOn().add("Repository Version " + repositoryVersion.getVersion());
+      result.setStatus(UpgradeCheckStatus.FAIL);
+      result.setFailReason(message);
+      return result;
     }
 
     final Set<HostDetail> failedHosts = new TreeSet<>();
@@ -99,14 +116,15 @@ public class InstallPackagesCheck extends AbstractCheckDescriptor {
           failedHost -> failedHost.hostName).collect(
               Collectors.toCollection(LinkedHashSet::new));
 
-      prerequisiteCheck.setFailedOn(failedHostNames);
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(message);
-      prerequisiteCheck.getFailedDetail().addAll(failedHosts);
+      result.setFailedOn(failedHostNames);
+      result.setStatus(UpgradeCheckStatus.FAIL);
+      result.setFailReason(message);
+      result.getFailedDetail().addAll(failedHosts);
 
-      return;
+      return result;
     }
 
-    prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
+    result.setStatus(UpgradeCheckStatus.PASS);
+    return result;
   }
 }

@@ -40,7 +40,7 @@ public class CredentialProviderTest {
 
   private void createMasterKey() throws IOException {
     File f = tmpFolder.newFile(Configuration.MASTER_KEY_FILENAME_DEFAULT);
-    Assert.assertTrue(MasterKeyServiceImpl.initializeMasterKeyFile(f, "blahblah!"));
+    Assert.assertTrue(new MasterKeyServiceImpl("dummyKey").initializeMasterKeyFile(f, "blahblah!"));
     MasterKeyService ms = new MasterKeyServiceImpl(f);
     if (!ms.isMasterKeyInitialized()) {
       throw new ExceptionInInitializerError("Cannot create master key.");

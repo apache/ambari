@@ -33,7 +33,7 @@ App.WizardStep0Controller = Em.Controller.extend({
    * set <code>clusterNameError</code> if validation fails
    */
   invalidClusterName: function () {
-    var MAX_CLUSTER_NAME_LENGTH = 80;
+    var MAX_CLUSTER_NAME_LENGTH = 100;
     var clusterName = this.get('content.cluster.name');
     if (clusterName == '' && this.get('hasSubmitted')) {
       this.set('clusterNameError', Em.I18n.t('installer.step0.clusterName.error.required'));
@@ -46,7 +46,7 @@ App.WizardStep0Controller = Em.Controller.extend({
     } else if (/\s/.test(clusterName)) {
       this.set('clusterNameError', Em.I18n.t('installer.step0.clusterName.error.whitespace'));
       return true;
-    } else if (/[^\w\s]/gi.test(clusterName)) {
+    } else if (/[^\w\-]/gi.test(clusterName)) {
       this.set('clusterNameError', Em.I18n.t('installer.step0.clusterName.error.specialChar'));
       return true;
     } else {

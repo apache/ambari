@@ -188,7 +188,7 @@ class TestRepositoryResource(TestCase):
     @patch.object(OSCheck, "is_suse_family")
     @patch.object(OSCheck, "is_ubuntu_family")
     @patch.object(OSCheck, "is_redhat_family")
-    @patch("resource_management.libraries.providers.repository.checked_call")
+    @patch("resource_management.libraries.providers.repository.call")
     @patch.object(tempfile, "NamedTemporaryFile")
     @patch("resource_management.libraries.providers.repository.Execute")
     @patch("resource_management.libraries.providers.repository.File")
@@ -197,13 +197,13 @@ class TestRepositoryResource(TestCase):
     @patch.object(System, "os_release_name", new='precise')        
     @patch.object(System, "os_family", new='ubuntu')
     def test_create_repo_ubuntu_repo_exists(self, file_mock, execute_mock,
-                                            tempfile_mock, checked_call_mock, is_redhat_family, is_ubuntu_family, is_suse_family):
+                                            tempfile_mock, call_mock, is_redhat_family, is_ubuntu_family, is_suse_family):
       is_redhat_family.return_value = False
       is_ubuntu_family.return_value = True
       is_suse_family.return_value = False
       tempfile_mock.return_value = MagicMock(spec=file)
       tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
-      checked_call_mock.return_value = 0, "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 123ABCD"
+      call_mock.return_value = 0, "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 123ABCD"
       
       with Environment('/') as env:
         with patch.object(repository, "__file__", new='/ambari/test/repo/dummy/path/file'):
@@ -229,10 +229,10 @@ class TestRepositoryResource(TestCase):
       #'apt-get update -qq -o Dir::Etc::sourcelist="sources.list.d/HDP.list" -o APT::Get::List-Cleanup="0"')
       execute_command_item = execute_mock.call_args_list[0][0][0]
 
-      self.assertEqual(checked_call_mock.call_args_list[0][0][0], ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/HDP.list', '-o', 'Dir::Etc::sourceparts=-', '-o', 'APT::Get::List-Cleanup=0'])
+      self.assertEqual(call_mock.call_args_list[0][0][0], ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/HDP.list', '-o', 'Dir::Etc::sourceparts=-', '-o', 'APT::Get::List-Cleanup=0'])
       self.assertEqual(execute_command_item, ('apt-key', 'adv', '--recv-keys', '--keyserver', 'keyserver.ubuntu.com', '123ABCD'))
 
-    @patch("resource_management.libraries.providers.repository.checked_call")
+    @patch("resource_management.libraries.providers.repository.call")
     @patch.object(tempfile, "NamedTemporaryFile")
     @patch("resource_management.libraries.providers.repository.Execute")
     @patch("resource_management.libraries.providers.repository.File")
@@ -241,13 +241,13 @@ class TestRepositoryResource(TestCase):
     @patch.object(System, "os_release_name", new='precise')
     @patch.object(System, "os_family", new='ubuntu')
     def test_create_repo_ubuntu_gpg_key_wrong_output(self, file_mock, execute_mock,
-                                            tempfile_mock, checked_call_mock):
+                                            tempfile_mock, call_mock):
       """
       Checks that GPG key is extracted from output without \r sign
       """
       tempfile_mock.return_value = MagicMock(spec=file)
       tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
-      checked_call_mock.return_value = 0, "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 123ABCD\r\n"
+      call_mock.return_value = 0, "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 123ABCD\r\n"
 
       with Environment('/') as env:
         with patch.object(repository, "__file__", new='/ambari/test/repo/dummy/path/file'):
@@ -272,7 +272,7 @@ class TestRepositoryResource(TestCase):
       self.assertEqual(copy_item1, "call('/etc/apt/sources.list.d/HDP.list', content=StaticFile('/tmp/1.txt'))")
       execute_command_item = execute_mock.call_args_list[0][0][0]
 
-      self.assertEqual(checked_call_mock.call_args_list[0][0][0], ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/HDP.list', '-o', 'Dir::Etc::sourceparts=-', '-o', 'APT::Get::List-Cleanup=0'])
+      self.assertEqual(call_mock.call_args_list[0][0][0], ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/HDP.list', '-o', 'Dir::Etc::sourceparts=-', '-o', 'APT::Get::List-Cleanup=0'])
       self.assertEqual(execute_command_item, ('apt-key', 'adv', '--recv-keys', '--keyserver', 'keyserver.ubuntu.com', '123ABCD'))
 
     @patch.object(tempfile, "NamedTemporaryFile")

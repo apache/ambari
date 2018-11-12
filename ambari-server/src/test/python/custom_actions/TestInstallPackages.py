@@ -81,7 +81,6 @@ class TestInstallPackages(RMFTestCase):
       self.assertEquals("3.1.0.0-54", expected_version)
 
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -94,7 +93,7 @@ class TestInstallPackages(RMFTestCase):
                             read_actual_version_from_history_file_mock,
                             stack_versions_mock,
                             put_structured_out_mock,
-                            get_provider, list_ambari_managed_repos_mock):
+                            get_provider):
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
       [VERSION_STUB]
@@ -106,14 +105,16 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
       available_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
       installed_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
 
-      list_ambari_managed_repos_mock.return_value = []
       repo_file_name = 'ambari-hdp-1'
       use_repos = { 'HDP-UTILS-1.1.0.20': repo_file_name, 'HDP-2.2': repo_file_name }
       self.executeScript("scripts/install_packages.py",
@@ -202,7 +203,6 @@ class TestInstallPackages(RMFTestCase):
       self.assertNoMoreResources()
 
   @patch("ambari_commons.os_check.OSCheck.is_suse_family")
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -212,7 +212,7 @@ class TestInstallPackages(RMFTestCase):
   def test_normal_flow_sles(self, subprocess_with_timeout, write_actual_version_to_history_file_mock,
                             read_actual_version_from_history_file_mock,
                             stack_versions_mock, put_structured_out_mock,
-                            get_provider, list_ambari_managed_repos_mock, is_suse_family_mock):
+                            get_provider, is_suse_family_mock):
     is_suse_family_mock = True
     Script.stack_version_from_distro_select = VERSION_STUB
     stack_versions_mock.side_effect = [
@@ -226,14 +226,16 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
 
-      list_ambari_managed_repos_mock.return_value=[]
       repo_file_name = 'ambari-hdp-1'
       use_repos = { 'HDP-UTILS-1.1.0.20': repo_file_name, 'HDP-2.2': repo_file_name }
       self.executeScript("scripts/install_packages.py",
@@ -269,7 +271,6 @@ class TestInstallPackages(RMFTestCase):
       )
       self.assertNoMoreResources()
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.os_check.OSCheck.is_redhat_family")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
@@ -281,7 +282,7 @@ class TestInstallPackages(RMFTestCase):
                                  read_actual_version_from_history_file_mock,
                                  stack_versions_mock,
                                  get_provider, put_structured_out_mock,
-                                 is_redhat_family_mock, list_ambari_managed_repos_mock):
+                                 is_redhat_family_mock):
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
       [VERSION_STUB]
@@ -294,13 +295,15 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
       available_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
       installed_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
-      list_ambari_managed_repos_mock.return_value=["HDP-UTILS-2.2.0.1-885"]
       is_redhat_family_mock.return_value = True
       repo_file_name = 'ambari-hdp-1'
       use_repos = { 'HDP-UTILS-1.1.0.20': repo_file_name, 'HDP-2.2': repo_file_name }
@@ -362,14 +365,13 @@ class TestInstallPackages(RMFTestCase):
       TestInstallPackages._install_failed = True
       raise Exception()
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.os_check.OSCheck.is_redhat_family")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.core.resources.packaging.Package.__new__")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("ambari_commons.shell.launch_subprocess")
   def test_fail(self, subprocess_with_timeout, put_structured_out_mock, Package__mock, get_provider,
-                is_redhat_family_mock, list_ambari_managed_repos_mock):
+                is_redhat_family_mock):
     from ambari_commons.os_check import OSConst
     from ambari_commons.repo_manager import ManagerFactory
 
@@ -385,7 +387,6 @@ class TestInstallPackages(RMFTestCase):
       get_provider.return_value = pkg_manager
 
       is_redhat_family_mock.return_value = True
-      list_ambari_managed_repos_mock.return_value = []
 
       def side_effect(retcode):
         TestInstallPackages._install_failed = True
@@ -453,10 +454,12 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
       is_suse_family_mock.return_value = True
@@ -523,10 +526,12 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
       is_suse_family_mock.return_value = True
@@ -573,7 +578,6 @@ class TestInstallPackages(RMFTestCase):
       )
       self.assertNoMoreResources()
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -584,7 +588,7 @@ class TestInstallPackages(RMFTestCase):
                                                          write_actual_version_to_history_file_mock,
                                                          read_actual_version_from_history_file_mock,
                                                          stack_versions_mock,
-                                                         put_structured_out_mock, get_provider, list_ambari_managed_repos_mock):
+                                                         put_structured_out_mock, get_provider):
     stack_versions_mock.side_effect = [
       [OLD_VERSION_STUB],  # before installation attempt
       [OLD_VERSION_STUB, VERSION_STUB]
@@ -603,13 +607,15 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
-      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -645,7 +651,6 @@ class TestInstallPackages(RMFTestCase):
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -662,7 +667,6 @@ class TestInstallPackages(RMFTestCase):
       self.assertFalse(write_actual_version_to_history_file_mock.called)
 
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -676,7 +680,7 @@ class TestInstallPackages(RMFTestCase):
                                                                             write_actual_version_to_history_file_mock,
                                                                             read_actual_version_from_history_file_mock,
                                                                             stack_versions_mock,
-                                                                            put_structured_out_mock, get_provider, list_ambari_managed_repos_mock):
+                                                                            put_structured_out_mock, get_provider):
     exists_mock.return_value = True
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
@@ -688,6 +692,7 @@ class TestInstallPackages(RMFTestCase):
     with open(config_file, "r") as f:
       command_json = json.load(f)
 
+
     command_json['roleParams']['repository_version'] = VERSION_STUB_WITHOUT_BUILD_NUMBER
 
     from ambari_commons.os_check import OSConst
@@ -697,13 +702,15 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
-      list_ambari_managed_repos_mock.return_value = []
 
       try:
         self.executeScript("scripts/install_packages.py",
@@ -731,7 +738,6 @@ class TestInstallPackages(RMFTestCase):
       put_structured_out_mock.reset_mock()
 
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -745,7 +751,7 @@ class TestInstallPackages(RMFTestCase):
                                                                         write_actual_version_to_history_file_mock,
                                                                         read_actual_version_from_history_file_mock,
                                                                         stack_versions_mock,
-                                                                        put_structured_out_mock, get_provider, list_ambari_managed_repos_mock):
+                                                                        put_structured_out_mock, get_provider):
     exists_mock.return_value = False
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
@@ -766,14 +772,16 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages
       available_packages.side_effect = TestInstallPackages._add_packages
       installed_packages.side_effect = TestInstallPackages._add_packages
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
 
-      list_ambari_managed_repos_mock.return_value = []
       try:
         self.executeScript("scripts/install_packages.py",
                            classname="InstallPackages",
@@ -814,7 +822,6 @@ class TestInstallPackages(RMFTestCase):
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      list_ambari_managed_repos_mock.return_value = []
       try:
         self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
@@ -836,7 +843,6 @@ class TestInstallPackages(RMFTestCase):
       self.assertFalse(write_actual_version_to_history_file_mock.called)
 
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -848,7 +854,7 @@ class TestInstallPackages(RMFTestCase):
                                                                     write_actual_version_to_history_file_mock,
                                                                     read_actual_version_from_history_file_mock,
                                                                     stack_versions_mock,
-                                                                    put_structured_out_mock, get_provider, list_ambari_managed_repos_mock):
+                                                                    put_structured_out_mock, get_provider):
     stack_versions_mock.side_effect = [
       [OLD_VERSION_STUB],  # before installation attempt
       [OLD_VERSION_STUB, VERSION_STUB]
@@ -867,13 +873,15 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
-      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -909,7 +917,6 @@ class TestInstallPackages(RMFTestCase):
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -926,7 +933,6 @@ class TestInstallPackages(RMFTestCase):
       self.assertFalse(write_actual_version_to_history_file_mock.called)
 
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -938,7 +944,7 @@ class TestInstallPackages(RMFTestCase):
                                                                         write_actual_version_to_history_file_mock,
                                                                         read_actual_version_from_history_file_mock,
                                                                         stack_versions_mock,
-                                                                        put_structured_out_mock, get_provider, list_ambari_managed_repos_mock):
+                                                                        put_structured_out_mock, get_provider):
     stack_versions_mock.side_effect = [
       [OLD_VERSION_STUB],  # before installation attempt
       [OLD_VERSION_STUB, VERSION_STUB]
@@ -957,13 +963,15 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
-      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -999,7 +1007,6 @@ class TestInstallPackages(RMFTestCase):
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -1016,7 +1023,6 @@ class TestInstallPackages(RMFTestCase):
       self.assertFalse(write_actual_version_to_history_file_mock.called)
 
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -1030,7 +1036,7 @@ class TestInstallPackages(RMFTestCase):
                                                                             write_actual_version_to_history_file_mock,
                                                                             read_actual_version_from_history_file_mock,
                                                                             stack_versions_mock,
-                                                                            put_structured_out_mock, get_provider, list_ambari_managed_repos_mock):
+                                                                            put_structured_out_mock, get_provider):
     exists_mock.return_value = False
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
@@ -1051,13 +1057,15 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
-      list_ambari_managed_repos_mock.return_value = []
       try:
         self.executeScript("scripts/install_packages.py",
                            classname="InstallPackages",
@@ -1098,7 +1106,6 @@ class TestInstallPackages(RMFTestCase):
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      list_ambari_managed_repos_mock.return_value = []
       try:
         self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
@@ -1119,7 +1126,6 @@ class TestInstallPackages(RMFTestCase):
 
       self.assertFalse(write_actual_version_to_history_file_mock.called)
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -1131,7 +1137,7 @@ class TestInstallPackages(RMFTestCase):
                                                      write_actual_version_to_history_file_mock,
                                                      read_actual_version_from_history_file_mock,
                                                      stack_versions_mock,
-                                                     put_structured_out_mock, get_provider, list_ambari_managed_repos_mock):
+                                                     put_structured_out_mock, get_provider):
     stack_versions_mock.side_effect = [
       [OLD_VERSION_STUB],  # before installation attempt
       [OLD_VERSION_STUB, VERSION_STUB]
@@ -1151,13 +1157,15 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
-      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -1194,7 +1202,6 @@ class TestInstallPackages(RMFTestCase):
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -1210,7 +1217,6 @@ class TestInstallPackages(RMFTestCase):
 
       self.assertFalse(write_actual_version_to_history_file_mock.called)
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -1223,8 +1229,7 @@ class TestInstallPackages(RMFTestCase):
                                               read_actual_version_from_history_file_mock,
                                               stack_versions_mock,
                                               put_structured_out_mock,
-                                              get_provider,
-                                              list_ambari_managed_repos_mock):
+                                              get_provider):
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
       [VERSION_STUB]
@@ -1237,13 +1242,15 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
-      list_ambari_managed_repos_mock.return_value=[]
       repo_file_name = 'ambari-hdp-4'
       use_repos = { 'HDP-UTILS-1.1.0.20-repo-4': repo_file_name, 'HDP-2.2-repo-4': repo_file_name }
       self.executeScript("scripts/install_packages.py",

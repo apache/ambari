@@ -45,17 +45,17 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.ManifestServiceInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
-import org.apache.ambari.server.state.stack.UpgradePack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -81,9 +81,9 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
   public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = new OperatingSystemResourceDefinition().getPluralName();
   private static final String REPOSITORY_STACK_VALUE                           = "stack_value";
 
-  private static Set<String> pkPropertyIds = Collections.singleton(REPOSITORY_VERSION_ID_PROPERTY_ID);
+  private static final Set<String> pkPropertyIds = Collections.singleton(REPOSITORY_VERSION_ID_PROPERTY_ID);
 
-  static Set<String> propertyIds = Sets.newHashSet(
+  static final Set<String> propertyIds = ImmutableSet.of(
     REPOSITORY_STACK_VALUE,
     REPOSITORY_VERSION_ID_PROPERTY_ID,
     REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
@@ -95,7 +95,7 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
     REPOSITORY_VERSION_SERVICES,
     REPOSITORY_VERSION_STACK_SERVICES);
 
-  static Map<Type, String> keyPropertyIds = new ImmutableMap.Builder<Type, String>()
+  static final Map<Type, String> keyPropertyIds = new ImmutableMap.Builder<Type, String>()
     .put(Type.Stack, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID)
     .put(Type.StackVersion, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID)
     .put(Type.Upgrade, REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID)

@@ -63,12 +63,5 @@ App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
       }
     }
     return dataArray;
-  },
-
-  colorForSeries: function (series) {
-    if (series.name && series.name.contains(Em.I18n.t('dashboard.clusterMetrics.cpu.displayNames.idle'))) {
-      return '#CFECEC';
-    }
-    return null;
   }
 });

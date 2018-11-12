@@ -24,24 +24,27 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.models.HostComponentSummary;
+import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.spi.ClusterInformation;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.RepositoryVersion;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,7 +78,12 @@ public class ComponentsInstallationCheckTest {
   private VersionDefinitionXml m_vdfXml;
 
   @Mock
-  private RepositoryVersionEntity m_repositoryVersion;
+  private RepositoryVersion m_repositoryVersion;
+
+  @Mock
+  private RepositoryVersionEntity m_repositoryVersionEntity;
+
+  private MockCheckHelper m_checkHelper = new MockCheckHelper();
 
   final Map<String, Service> m_services = new HashMap<>();
 
@@ -88,24 +96,32 @@ public class ComponentsInstallationCheckTest {
 
     m_services.clear();
 
-    Mockito.when(m_repositoryVersion.getType()).thenReturn(RepositoryType.STANDARD);
-    Mockito.when(m_repositoryVersion.getVersion()).thenReturn("2.2.0.0-1234");
-    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.2"));
-    Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
-    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
+    StackId stackId = new StackId("HDP", "2.2");
+    String version = "2.2.0.0-1234";
+
+    Mockito.when(m_repositoryVersion.getId()).thenReturn(1L);
+    Mockito.when(m_repositoryVersion.getRepositoryType()).thenReturn(RepositoryType.STANDARD);
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(stackId.toString());
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn(version);
+
+    Mockito.when(m_repositoryVersionEntity.getType()).thenReturn(RepositoryType.STANDARD);
+    Mockito.when(m_repositoryVersionEntity.getVersion()).thenReturn(version);
+    Mockito.when(m_repositoryVersionEntity.getStackId()).thenReturn(stackId);
+    Mockito.when(m_repositoryVersionEntity.getRepositoryXml()).thenReturn(m_vdfXml);
+    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class), Mockito.any(AmbariMetaInfo.class))).thenReturn(m_clusterVersionSummary);
     Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
-  }
 
-  @Test
-  public void testIsApplicable() throws Exception {
-    PrereqCheckRequest checkRequest = new PrereqCheckRequest("c1");
-    checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
-    checkRequest.setTargetRepositoryVersion(m_repositoryVersion);
-    ComponentsInstallationCheck cic = new ComponentsInstallationCheck();
-    Configuration config = Mockito.mock(Configuration.class);
-    cic.config = config;
+    final AmbariMetaInfo metaInfo = Mockito.mock(AmbariMetaInfo.class);
 
-    Assert.assertTrue(cic.isApplicable(checkRequest));
+    m_checkHelper.setMetaInfoProvider(new Provider<AmbariMetaInfo>() {
+      @Override
+      public AmbariMetaInfo get() {
+        return metaInfo;
+      }
+    });
+
+    m_checkHelper.m_clusters = clusters;
+    Mockito.when(m_checkHelper.m_repositoryVersionDAO.findByPK(Mockito.anyLong())).thenReturn(m_repositoryVersionEntity);
   }
 
   @Test
@@ -125,6 +141,13 @@ public class ComponentsInstallationCheckTest {
       @Override
       public AmbariMetaInfo get() {
         return ambariMetaInfo;
+      }
+    };
+
+      componentsInstallationCheck.checkHelperProvider = new Provider<CheckHelper>() {
+      @Override
+      public CheckHelper get() {
+        return m_checkHelper;
       }
     };
 
@@ -286,46 +309,47 @@ public class ComponentsInstallationCheckTest {
       Mockito.when(hcs.getCurrentState()).thenReturn(State.STARTED);
     }
 
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setTargetRepositoryVersion(m_repositoryVersion);
+    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
+        m_repositoryVersion, null);
 
     Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALLED);
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    componentsInstallationCheck.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+
+    UpgradeCheckResult check = componentsInstallationCheck.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
     Assert.assertTrue(check.getFailedDetail().isEmpty());
 
     // Case 2. Ensure that AMS is ignored even if their current state is not INSTALLED
     Mockito.when(hcsMetricsCollector.getCurrentState()).thenReturn(State.INSTALL_FAILED);
     Mockito.when(hcsMetricsMonitor.getCurrentState()).thenReturn(State.INSTALL_FAILED);
-    check = new PrerequisiteCheck(null, null);
-    componentsInstallationCheck.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    check = new UpgradeCheckResult(null, null);
+    check = componentsInstallationCheck.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
     Assert.assertTrue(check.getFailedDetail().isEmpty());
 
     // Case 3: Change TEZ client state to INSTALL_FAILED, should fail
     Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALL_FAILED);
-    check = new PrerequisiteCheck(null, null);
-    componentsInstallationCheck.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    check = new UpgradeCheckResult(null, null);
+    check = componentsInstallationCheck.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.FAIL, check.getStatus());
     Assert.assertTrue(check.getFailReason().indexOf("Service components in INSTALL_FAILED state") > -1);
     Assert.assertEquals(1, check.getFailedDetail().size());
 
     // Case 4: Change TEZ client state to INSTALL_FAILED and place TEZ in Maintenance mode, should succeed
     Mockito.when(tezService.getMaintenanceState()).thenReturn(MaintenanceState.ON);
     Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALL_FAILED);
-    check = new PrerequisiteCheck(null, null);
-    componentsInstallationCheck.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    check = new UpgradeCheckResult(null, null);
+    check = componentsInstallationCheck.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
     Assert.assertTrue(check.getFailedDetail().isEmpty());
 
     // Case 5: Change TEZ client state to INSTALL_FAILED and place host2 in Maintenance mode, should succeed
     Mockito.when(tezService.getMaintenanceState()).thenReturn(MaintenanceState.OFF);
     Mockito.when(host2.getMaintenanceState(1L)).thenReturn(MaintenanceState.ON);
     Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALL_FAILED);
-    check = new PrerequisiteCheck(null, null);
-    componentsInstallationCheck.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    check = new UpgradeCheckResult(null, null);
+    check = componentsInstallationCheck.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
     Assert.assertTrue(check.getFailedDetail().isEmpty());
   }
 }

@@ -40,9 +40,10 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.state.RepositoryType;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.ambari.server.stack.upgrade.Direction;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.lang.builder.EqualsBuilder;
 
 import com.google.common.base.Objects;
@@ -125,6 +126,9 @@ public class UpgradeEntity {
 
   @Column(name="upgrade_package", nullable = false)
   private String upgradePackage;
+
+  @Column(name="upgrade_package_stack", nullable = false)
+  private String upgradePackStack;
 
   @Column(name="upgrade_type", nullable = false)
   @Enumerated(value = EnumType.STRING)
@@ -323,6 +327,21 @@ public class UpgradeEntity {
    */
   public void setUpgradePackage(String upgradePackage) {
     this.upgradePackage = upgradePackage;
+  }
+
+  /**
+   * @return the stack that owns the upgrade pack
+   */
+  public StackId getUpgradePackStackId() {
+    return null == upgradePackStack ? null : new StackId(upgradePackStack);
+  }
+
+  /**
+   * @param stackId
+   *          the stack that owns the upgrade pack
+   */
+  public void setUpgradePackStackId(StackId stackId) {
+    upgradePackStack = stackId.toString();
   }
 
   /**

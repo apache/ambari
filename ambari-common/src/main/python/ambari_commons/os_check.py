@@ -192,19 +192,17 @@ class OSCheck:
         distribution = (release, "{0}.{1}".format(major,minor),"WindowsServer")
       else:
         # we are on unsupported desktop os
-        distribution = ("", "","")
+        distribution = ("", "", "")
     else:
       # linux distribution
       PYTHON_VER = sys.version_info[0] * 10 + sys.version_info[1]
 
-      if PYTHON_VER < 26:
-        distribution = platform.dist()
+      if PYTHON_VER <= 26:
+        raise RuntimeError("Python 2.6 or less not supported")
       elif _is_redhat_linux():
         distribution = platform.dist()
       else:
         distribution = platform.linux_distribution()
-        
-    
 
     if distribution[0] == '':
       distribution = advanced_check(distribution)

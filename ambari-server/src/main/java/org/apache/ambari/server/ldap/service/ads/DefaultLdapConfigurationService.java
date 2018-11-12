@@ -38,8 +38,6 @@ import org.apache.directory.ldap.client.template.LdapConnectionTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Lists;
-
 /**
  * Implementation of the validation logic using the Apache Directory API.
  */
@@ -131,7 +129,7 @@ public class DefaultLdapConfigurationService implements LdapConfigurationService
    */
   @Override
   public Set<String> checkGroupAttributes(String userDn, AmbariLdapConfiguration ambariLdapConfiguration) throws AmbariLdapException {
-    List<String> groups = Lists.newArrayList();
+    List<String> groups;
     try {
       LOGGER.info("Checking group attributes for user dn: [{}] ...", userDn);
 

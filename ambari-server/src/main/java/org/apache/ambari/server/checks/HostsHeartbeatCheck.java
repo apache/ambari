@@ -19,16 +19,21 @@ package org.apache.ambari.server.checks;
 
 import java.util.Collection;
 
+import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
+import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeCheckType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 
 /**
@@ -36,31 +41,40 @@ import com.google.inject.Singleton;
  * host which is not heartbeating, then it must be in maintenance mode to
  * prevent a failure of this check.
  * <p/>
- * This check will return {@link PrereqCheckStatus#FAIL} if there are hosts not
+ * This check will return {@link UpgradeCheckStatus#FAIL} if there are hosts not
  * heartbeating and not in maintenance mode.
  *
  * @see HostMaintenanceModeCheck
  */
 @Singleton
-@UpgradeCheck(
+@UpgradeCheckInfo(
     group = UpgradeCheckGroup.LIVELINESS,
     order = 1.0f,
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
-public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
+public class HostsHeartbeatCheck extends ClusterCheck {
+
+  static final UpgradeCheckDescription HOSTS_HEARTBEAT = new UpgradeCheckDescription("HOSTS_HEARTBEAT",
+      UpgradeCheckType.HOST,
+      "All hosts must be communicating with Ambari. Hosts which are not reachable should be placed in Maintenance Mode.",
+      new ImmutableMap.Builder<String, String>()
+        .put(UpgradeCheckDescription.DEFAULT,
+            "There are hosts which are not communicating with Ambari.").build());
 
   /**
    * Constructor.
    */
   public HostsHeartbeatCheck() {
-    super(CheckDescription.HOSTS_HEARTBEAT);
+    super(HOSTS_HEARTBEAT);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+  public UpgradeCheckResult perform(UpgradeCheckRequest request)
       throws AmbariException {
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
+
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     Collection<Host> hosts = cluster.getHosts();
@@ -72,9 +86,9 @@ public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
         case UNHEALTHY:
         case UNKNOWN:
           if (maintenanceState == MaintenanceState.OFF) {
-            prerequisiteCheck.getFailedOn().add(host.getHostName());
+            result.getFailedOn().add(host.getHostName());
 
-            prerequisiteCheck.getFailedDetail().add(
+            result.getFailedDetail().add(
                 new HostDetail(host.getHostId(), host.getHostName()));
           }
           break;
@@ -85,10 +99,11 @@ public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
     }
 
     // for any hosts unhealthy and NOT in MM mode, fail this check
-    if (!prerequisiteCheck.getFailedOn().isEmpty()) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
-      return;
+    if (!result.getFailedOn().isEmpty()) {
+      result.setStatus(UpgradeCheckStatus.FAIL);
+      result.setFailReason(getFailReason(result, request));
     }
+
+    return result;
   }
 }

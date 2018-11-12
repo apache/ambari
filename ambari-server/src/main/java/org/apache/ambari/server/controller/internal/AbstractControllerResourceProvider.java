@@ -64,6 +64,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
     this.managementController = managementController;
   }
 
+
+
   public static void init(ResourceProviderFactory factory) {
     resourceProviderFactory = factory;
   }
@@ -163,6 +165,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return resourceProviderFactory.getUpgradeResourceProvider(managementController);
       case Stack:
         return new StackResourceProvider(managementController);
+      case Mpack:
+        return new MpackResourceProvider(managementController);
       case StackVersion:
         return new StackVersionResourceProvider(managementController);
       case ClusterStackVersion:

@@ -2222,7 +2222,6 @@ public class ClusterTest {
     // check desired config
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     DesiredConfig desiredConfig = desiredConfigs.get(configType);
-    desiredConfig = desiredConfigs.get(configType);
     assertNotNull(desiredConfig);
     assertEquals(Long.valueOf(2), desiredConfig.getVersion());
     assertEquals("version-2", desiredConfig.getTag());

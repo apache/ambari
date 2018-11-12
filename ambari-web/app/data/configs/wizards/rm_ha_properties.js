@@ -63,7 +63,28 @@ module.exports =
         "filename": "yarn-site",
         serviceName: 'MISC'
       },
-
+      {
+        "name": "yarn.resourcemanager.resource-tracker.address.rm1",
+        "displayName": "yarn.resourcemanager.resource-tracker.address.rm1",
+        "isReconfigurable": false,
+        "recommendedValue": "",
+        "isOverridable": false,
+        "value": "",
+        "category": "YARN",
+        "filename": "yarn-site",
+        serviceName: 'MISC'
+      },
+      {
+        "name": "yarn.resourcemanager.resource-tracker.address.rm2",
+        "displayName": "yarn.resourcemanager.resource-tracker.address.rm2",
+        "isReconfigurable": false,
+        "recommendedValue": "",
+        "isOverridable": false,
+        "value": "",
+        "category": "YARN",
+        "filename": "yarn-site",
+        serviceName: 'MISC'
+      },
       {
         "name": "yarn.resourcemanager.webapp.address.rm1",
         "displayName": "yarn.resourcemanager.webapp.address.rm1",

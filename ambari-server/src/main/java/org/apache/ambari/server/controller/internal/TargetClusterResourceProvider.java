@@ -57,14 +57,14 @@ public class TargetClusterResourceProvider extends AbstractDRResourceProvider {
   /**
    * The key property ids for a TargetCluster resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Cluster, CLUSTER_NAME_PROPERTY_ID)
       .build();
 
   /**
    * The property ids for a TargetCluster resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       CLUSTER_NAME_PROPERTY_ID,
       CLUSTER_COLO_PROPERTY_ID,
       CLUSTER_INTERFACES_PROPERTY_ID,

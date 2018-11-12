@@ -24,7 +24,6 @@ import static org.mockito.Matchers.anyBoolean;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -164,7 +163,6 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
     expect(executionCommand.getCommandParams()).andReturn(commandParams).anyTimes();
     expect(executionCommand.getRoleCommand()).andReturn(RoleCommand.EXECUTE).anyTimes();
     expect(executionCommand.getRole()).andReturn(Role.AMBARI_SERVER_ACTION.name()).anyTimes();
-    expect(executionCommand.getConfigurationTags()).andReturn(Collections.emptyMap()).anyTimes();
     expect(executionCommand.getServiceName()).andReturn(RootComponent.AMBARI_SERVER.name()).anyTimes();
     expect(executionCommand.getTaskId()).andReturn(3L).anyTimes();
 

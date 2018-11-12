@@ -61,7 +61,6 @@ import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.serveraction.ServerActionExecutor;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
@@ -401,14 +400,6 @@ class ActionScheduler implements Runnable {
 
       int i_stage = 0;
 
-      // get the range of requests in progress
-      long iLowestRequestIdInProgress = firstStageInProgressPerRequest.get(0).getRequestId();
-      long iHighestRequestIdInProgress = firstStageInProgressPerRequest.get(
-          firstStageInProgressPerRequest.size() - 1).getRequestId();
-
-      List<String> hostsWithPendingTasks = hostRoleCommandDAO.getHostsWithPendingTasks(
-          iLowestRequestIdInProgress, iHighestRequestIdInProgress);
-
       // filter the stages in progress down to those which can be scheduled in
       // parallel
       List<Stage> stages = filterParallelPerHostStages(firstStageInProgressPerRequest);
@@ -492,7 +483,6 @@ class ActionScheduler implements Runnable {
 
 
         for (ExecutionCommand cmd : commandsToSchedule) {
-          ConfigHelper.processHiddenAttribute(cmd.getConfigurations(), cmd.getConfigurationAttributes(), cmd.getRole(), false);
           processHostRole(request, stage, cmd, commandsToStart, commandsToUpdate);
         }
 
@@ -895,6 +885,9 @@ class ActionScheduler implements Runnable {
         }
 
         updateRoleStats(status, roleStats.get(roleStr));
+        if (status == HostRoleStatus.FAILED) {
+          LOG.info("Role {} on host {} was failed", roleStr, host);
+        }
 
       }
     }

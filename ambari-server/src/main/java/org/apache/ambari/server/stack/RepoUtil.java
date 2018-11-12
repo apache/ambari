@@ -70,7 +70,7 @@ public class RepoUtil {
 
   private static final Function<RepoDefinitionEntity, String> REPO_ENTITY_TO_NAME = new Function<RepoDefinitionEntity, String>() {
     @Override
-    public String apply(@Nullable RepoDefinitionEntity input) {
+    public String apply(RepoDefinitionEntity input) {
       return input.getRepoName();
     }
   };

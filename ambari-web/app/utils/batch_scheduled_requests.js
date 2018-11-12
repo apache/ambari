@@ -351,14 +351,14 @@ module.exports = {
    * @param {Number} batchSize size of each batch
    * @returns {Array} list of batches
    */
-  getBatchesForRollingRestartRequest: function(restartHostComponents, batchSize) {
+  getBatchesForRollingRestartRequest: function(restartHostComponents, batchSize, previousOrderId) {
     var hostIndex = 0,
         batches = [],
         batchCount = Math.ceil(restartHostComponents.length / batchSize),
         sampleHostComponent = restartHostComponents.objectAt(0),
         componentName = sampleHostComponent.get('componentName'),
-        serviceName = sampleHostComponent.get('serviceName');
-
+        serviceName = sampleHostComponent.get('serviceName') || sampleHostComponent.get('service.serviceName');
+        previousOrderId = previousOrderId || 0;
     for ( var count = 0; count < batchCount; count++) {
       var hostNames = [];
       for ( var hc = 0; hc < batchSize && hostIndex < restartHostComponents.length; hc++) {
@@ -366,7 +366,7 @@ module.exports = {
       }
       if (hostNames.length) {
         batches.push({
-          "order_id" : count + 1,
+          "order_id" : previousOrderId + count + 1,
           "type" : "POST",
           "uri" : "/clusters/" + App.get('clusterName') + "/requests",
           "RequestBodyInfo" : {
@@ -497,6 +497,168 @@ module.exports = {
         this.set('disablePrimary', (errors != null && errors.length > 0))
       }.observes('innerView.errors')
     });
+  },
+
+  /**
+   * Service rolling restart popup
+   * @param {String} serviceName: name of the service that should be restarted
+   * @param {function} mastersForRestart: Callback function to retrieve master components for restart
+   * @param {function} workersForRestart: Callback function to retrieve worker components for restart
+   */
+  showServiceRestartPopup: function (serviceName, mastersForRestart, workersForRestart) {
+
+    let self = this;
+
+    let viewExtend = {
+
+      masterComponents: undefined,
+
+      slaveComponents: undefined,
+
+      didInsertElement: function() {
+        this.set('parentView.innerView', this);
+        if (mastersForRestart) this.set('masterComponents', mastersForRestart(serviceName));
+        if (workersForRestart) {
+          this.set('slaveComponents', workersForRestart(serviceName));
+          this.set('componentHostRackInfoMap', this.componentHostRackInfo());
+        }
+        this.initDefaultConfigs();
+      },
+
+      componentHostRackInfo: function () {
+        const slaveComponents = this.get('slaveComponents');
+        const componentNames = slaveComponents.mapProperty('componentName').uniq();
+        const hostModel = App.Host.find();
+        let componentRackInfo = {};
+        componentNames.forEach((component) => {
+          let hostNames = slaveComponents.filterProperty('componentName', component).mapProperty('hostName');
+          let hostRackInfo = {};
+          hostNames.forEach((hostName) => {
+            hostRackInfo[hostName] = hostModel.findProperty('hostName', hostName).get('rack');
+          });
+          componentRackInfo[component] = hostRackInfo;
+        });
+        return componentRackInfo;
+      }
+    };
+
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.configure.restart'),
+      bodyClass: App.ServiceRestartView.extend(viewExtend),
+      primary: Em.I18n.t('common.restart'),
+      primaryClass: 'btn-warning',
+      classNames: ['common-modal-wrapper'],
+      modalDialogClasses: ['modal-lg'],
+
+      onPrimary: function () {
+        const isRollingRestart = this.get('innerView.useRolling');
+        if (isRollingRestart) {
+          //let rollingRestartConfigs = this.get('innerView').getRestartConfigs();
+          //restart configs will be applied when we have the BE capability to override them in individual batches.
+          const masterComps = this.get('innerView.masterComponents');
+          let masterBatch = [];
+          let orderId = 0;
+          if (!!masterComps) {
+            let batchesForRestart = self.rollingRestartMastersBatches(masterComps, serviceName);
+            masterBatch.push(...batchesForRestart);
+            orderId += batchesForRestart.length;
+          }
+
+          const slaveComps = this.get('innerView.slaveComponents');
+          let workersBatch = [];
+          if (!!slaveComps) {
+            const componentNames = slaveComps.mapProperty('componentName').uniq();
+            componentNames.forEach((component) => {
+              let restartComponent = slaveComps.filterProperty('componentName', component);
+              let batchSize = this.get('innerView').getNoOfHosts(component);
+              let batchesForRestart = self.getBatchesForRollingRestartRequest(restartComponent, batchSize, orderId);
+              workersBatch.push(...batchesForRestart);
+              orderId += batchesForRestart.length;
+            });
+          }
+          self.sendRollingRestartRequest(masterBatch, workersBatch);
+        } else {
+          const query = Em.Object.create({status: 'INIT'});
+          const serviceDisplayName = App.Service.find().findProperty('serviceName', serviceName).get('displayName');
+          self.restartAllServiceHostComponents(serviceDisplayName, serviceName, false, query, false);
+        }
+        this._super();
+      }
+    })
+  },
+
+
+  /**
+   * Creates batches for masters to be used for rolling restart.
+   * @param {App.hostComponent[]} [hostComponents] list of hostComponents that should be restarted
+   * @param {String} serviceName: Name of the service to be restarted.
+   */
+
+  rollingRestartMastersBatches: function (hostComponents, serviceName) {
+    let batches = [];
+    for (let i = 0; i < hostComponents.length; i++) {
+      const hostName = hostComponents[i].get('hostName');
+      const component = hostComponents[i].get('componentName');
+      const context = "RESTART " + hostComponents[i].get('displayName');
+      batches.push({
+        "order_id": i + 1,
+        "type": 'POST',
+        "uri": "/clusters/" + App.get('clusterName') + "/requests/",
+        "RequestBodyInfo": {
+          "RequestInfo": {
+            "command": "RESTART",
+            "context": context,
+          },
+          "Requests/resource_filters": [{
+            "service_name": serviceName,
+            "component_name": component,
+            "hosts": hostName
+          }]
+        }
+      })
+    }
+    return batches;
+  },
+
+  sendRollingRestartRequest: function (mastersBatch, workersBatch) {
+
+    let batches = [];
+    if (mastersBatch && mastersBatch.length > 0) batches.push(...mastersBatch);
+    if (workersBatch && workersBatch.length > 0) batches.push(...workersBatch);
+
+    if (batches.length > 0) {
+      App.ajax.send({
+        name: 'common.batch.request_schedules',
+        sender: this,
+        data: {
+          intervalTimeSeconds: 1,
+          tolerateSize: 0,
+          batches: batches
+        },
+        success: 'serviceRestartSuccess',
+        showLoadingPopup: true
+      });
+    }
+  },
+
+  /**
+   * Callback function for restartMastersBatchRequest that shows BG Modal if restart request sent successfully
+   * TODO replace it with a progress view that shows rolling restart tasks
+   */
+  serviceRestartSuccess: function (data) {
+    if (data && (data.Requests || data.resources[0].RequestSchedule)) {
+      App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+        if (typeof callback === 'function') {
+          callback();
+        }
+      });
+      return true;
+    } else {
+      return false;
+    }
   },
 
   /**

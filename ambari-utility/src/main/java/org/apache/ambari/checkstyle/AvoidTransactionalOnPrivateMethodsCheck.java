@@ -30,10 +30,21 @@ public class AvoidTransactionalOnPrivateMethodsCheck extends AbstractCheck {
 
   private static final String ANNOTATION_NAME = "Transactional";
   public static final String MSG_TRANSACTIONAL_ON_PRIVATE_METHOD = "@" + ANNOTATION_NAME + " should not be used on private methods";
+  private static final int[] TOKENS = new int[] { TokenTypes.METHOD_DEF };
+
+  @Override
+  public int[] getAcceptableTokens() {
+    return TOKENS;
+  }
 
   @Override
   public int[] getDefaultTokens() {
-    return new int[] { TokenTypes.METHOD_DEF };
+    return TOKENS;
+  }
+
+  @Override
+  public int[] getRequiredTokens() {
+    return TOKENS;
   }
 
   @Override

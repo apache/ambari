@@ -81,11 +81,11 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.RetryHelper;
+import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -571,7 +571,7 @@ public class AmbariContext {
       for (String actualConfigType : updatedConfigTypes) {
         // get the actual cluster config for comparison
         DesiredConfig actualConfig = cluster.getDesiredConfigs().get(actualConfigType);
-        if (actualConfig == null && actualConfigType.equals("core-site")) {
+        if (actualConfig == null || actualConfigType.equals("core-site")) {
           continue;
         }
         if (!actualConfig.getTag().equals(TopologyManager.TOPOLOGY_RESOLVED_TAG)) {

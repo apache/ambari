@@ -23,6 +23,7 @@ import java.util.Map;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -35,13 +36,13 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.RequestScheduleResponseSwagger;
 import org.apache.ambari.server.controller.spi.Resource;
-
 import org.apache.http.HttpStatus;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -161,6 +162,38 @@ public class RequestScheduleService extends BaseService {
                                         @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST,
       createRequestSchedule(m_clusterName, null));
+  }
+
+
+  /**
+   * Handles URL: /clusters/{clusterId}/request_schedules/{requestScheduleId}
+   * Get details on a specific request schedule
+   *
+   * @return
+   */
+
+  @PUT
+  @Path("{requestScheduleId}")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Updates a scheduled request, usually used to pause running scheduled requests or to resume them.",
+    notes = "Changes the state of an existing request. Usually used to pause running scheduled requests or to resume them.",
+    nickname = "RequestSchedules#updateRequestSchedule"
+  )
+  @ApiImplicitParams({
+    @ApiImplicitParam(dataType = REQUEST_SCHEDULE_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
+  })
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
+  public Response updateRequestSchedule(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                 @ApiParam @PathParam("requestScheduleId") String requestScheduleId) {
+    return handleRequest(headers, body, ui, Request.Type.PUT, createRequestSchedule(m_clusterName, requestScheduleId));
   }
 
   /**

@@ -37,7 +37,7 @@ from socket import error as socket_error
 
 logger = logging.getLogger(__name__)
 
-GEN_AGENT_KEY = 'openssl req -new -newkey rsa:1024 -nodes -keyout "%(keysdir)s' \
+GEN_AGENT_KEY = 'openssl req -new -newkey rsa -nodes -keyout "%(keysdir)s' \
                 + os.sep + '%(hostname)s.key" -subj /OU=%(hostname)s/ ' \
                 '-out "%(keysdir)s' + os.sep + '%(hostname)s.csr"'
 KEY_FILENAME = '%(hostname)s.key'
@@ -129,7 +129,7 @@ class AmbariStompConnection(WsConnection):
       correlation_id = self.correlation_id
       
     if presend_hook:
-      presend_hook(self.correlation_id)
+      presend_hook(correlation_id)
 
     logged_message = log_message_function(copy.deepcopy(message))
     logger.info("Event to server at {0} (correlation_id={1}): {2}".format(destination, correlation_id, logged_message))

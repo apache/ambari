@@ -65,7 +65,7 @@ public class ExtensionLinkDAO {
   @RequiresSession
   public List<ExtensionLinkEntity> find(ExtensionLinkRequest request) {
     if (request.getLinkId() != null) {
-      ExtensionLinkEntity entity = findById(new Long(request.getLinkId()));
+      ExtensionLinkEntity entity = findById(Long.parseLong(request.getLinkId()));
       List<ExtensionLinkEntity> list = new ArrayList<>();
       list.add(entity);
       return list;

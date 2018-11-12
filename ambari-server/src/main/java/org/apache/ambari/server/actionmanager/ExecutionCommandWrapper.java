@@ -30,13 +30,14 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.stack.upgrade.RepositoryVersionHelper;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeSummary;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -44,10 +45,6 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.UpgradeContext;
-import org.apache.ambari.server.state.UpgradeContext.UpgradeSummary;
-import org.apache.ambari.server.state.UpgradeContextFactory;
-import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,12 +77,6 @@ public class ExecutionCommandWrapper {
 
   @Inject
   private RepositoryVersionHelper repoVersionHelper;
-
-  /**
-   * Used for injecting hooks and common-services into the command.
-   */
-  @Inject
-  private AmbariMetaInfo ambariMetaInfo;
 
   @Inject
   private Configuration configuration;
@@ -142,17 +133,11 @@ public class ExecutionCommandWrapper {
 
       Cluster cluster = clusters.getClusterById(clusterId);
 
-      // Execution commands may have config-tags already set during their creation.
-      // However, these tags become stale at runtime when other
-      // ExecutionCommands run and change the desired configs (like
-      // ConfigureAction). Hence an ExecutionCommand can specify which
-      // config-types should be refreshed at runtime. Specifying <code>*</code>
-      // will result in all config-type tags to be refreshed to the latest
-      // cluster desired-configs. Additionally, there may be no configuration
-      // tags set but refresh might be set to *. In this case, they should still
-      // be refreshed with the latest.
-      boolean refreshConfigTagsBeforeExecution = executionCommand.getForceRefreshConfigTagsBeforeExecution();
-      if (refreshConfigTagsBeforeExecution) {
+      // Execution commands may have configs already set during their creation.
+      // However, these configs become stale at runtime when other
+      // ExecutionCommands run and change the desired configs (like ConfigureAction).
+      boolean overrideConfigs = executionCommand.isOverrideConfigs();
+      if (overrideConfigs) {
         Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
 
         Map<String, Map<String, String>> configurationTags = configHelper.getEffectiveDesiredTags(
@@ -162,20 +147,9 @@ public class ExecutionCommandWrapper {
             "While scheduling task {} on cluster {}, configurations are being refreshed using desired configurations of {}",
             executionCommand.getTaskId(), cluster.getClusterName(), desiredConfigs);
 
-        // then clear out any existing configurations so that all of the new
-        // configurations are forcefully applied
-        configurations.clear();
-        executionCommand.setConfigurationTags(configurationTags);
+        configurations = configHelper.getEffectiveConfigProperties(cluster, configurationTags);
+        executionCommand.setConfigurations(configurations);
       }
-
-      // now that the tags have been updated (if necessary), fetch the
-      // configurations
-      Map<String, Map<String, String>> configurationTags = executionCommand.getConfigurationTags();
-      configHelper.getAndMergeHostConfigs(configurations, configurationTags, cluster);
-      configHelper.getAndMergeHostConfigAttributes(executionCommand.getConfigurationAttributes(),
-          configurationTags, cluster);
-
-      setVersions(cluster);
 
       // provide some basic information about a cluster upgrade if there is one
       // in progress
@@ -190,29 +164,15 @@ public class ExecutionCommandWrapper {
       // setting repositoryFile
       final Host host = cluster.getHost(executionCommand.getHostname());  // can be null on internal commands
       final String serviceName = executionCommand.getServiceName(); // can be null on executing special RU tasks
+      CommandRepository commandRepository = executionCommand.getRepositoryFile();
 
-      if (null == executionCommand.getRepositoryFile() && null != host && null != serviceName) {
-        final CommandRepository commandRepository;
-        final Service service = cluster.getService(serviceName);
-        final String componentName = executionCommand.getComponentName();
-
-        try {
-          if (null != componentName) {
-            ServiceComponent serviceComponent = service.getServiceComponent(componentName);
-            commandRepository = repoVersionHelper.getCommandRepository(cluster, serviceComponent, host);
-          } else {
-            RepositoryVersionEntity repoVersion = service.getDesiredRepositoryVersion();
-            RepoOsEntity osEntity = repoVersionHelper.getOSEntityForHost(host, repoVersion);
-            commandRepository = repoVersionHelper.getCommandRepository(repoVersion, osEntity);
-          }
-          executionCommand.setRepositoryFile(commandRepository);
-
-        } catch (SystemException e) {
-          LOG.debug("Unable to find command repository with a correct operating system for host {}",
-              host, e);
-        }
+      if (null == commandRepository && null != host && null != serviceName) {
+          commandRepository = repoVersionHelper.getCommandRepository(cluster, cluster.getService(serviceName), host, executionCommand.getComponentName());
       }
 
+      setVersions(cluster, commandRepository);
+
+      executionCommand.setRepositoryFile(commandRepository);
     } catch (ClusterNotFoundException cnfe) {
       // it's possible that there are commands without clusters; in such cases,
       // just return the de-serialized command and don't try to read configs
@@ -228,7 +188,7 @@ public class ExecutionCommandWrapper {
     return executionCommand;
   }
 
-  public void setVersions(Cluster cluster) {
+  public void setVersions(Cluster cluster, CommandRepository commandRepository) {
     // set the repository version for the component this command is for -
     // always use the current desired version
     String serviceName = executionCommand.getServiceName();
@@ -262,6 +222,13 @@ public class ExecutionCommandWrapper {
           && repositoryVersion.isResolved()
           && executionCommand.getRoleCommand() != RoleCommand.INSTALL) {
           commandParams.put(VERSION, repositoryVersion.getVersion());
+        }
+
+        if (null != commandRepository && repositoryVersion.isResolved() &&
+          !repositoryVersion.getVersion().equals(commandRepository.getRepoVersion())) {
+
+          commandRepository.setRepoVersion(repositoryVersion.getVersion());
+          commandRepository.setResolved(true);
         }
 
         if (!commandParams.containsKey(HOOKS_FOLDER)) {

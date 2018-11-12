@@ -187,6 +187,13 @@ public class PropertyInfo {
     for (Element propertyAttribute : propertyAttributes) {
       attributes.put(propertyAttribute.getTagName(), propertyAttribute.getFirstChild().getNodeValue());
     }
+
+    // inject "hidden" property_value_attribute into property_attributes, see AMBARI-17223
+    String hidden = getPropertyValueAttributes().getHidden();
+    if (hidden != null) {
+      attributes.putIfAbsent("hidden", hidden);
+    }
+
     return attributes;
   }
 

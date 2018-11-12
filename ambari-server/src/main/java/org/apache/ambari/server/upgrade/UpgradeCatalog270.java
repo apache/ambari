@@ -242,15 +242,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String WIDGET_TABLE = "widget";
   protected static final String WIDGET_TAG_COLUMN = "tag";
 
-  protected static final String CLUSTER_ID_COLUMN = "cluster_id";
-  public static final String[] COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS = {COMPONENT_NAME_COLUMN, SERVICE_NAME_COLUMN, CLUSTER_ID_COLUMN};
-  public static final String[] SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS = {SERVICE_NAME_COLUMN, CLUSTER_ID_COLUMN};
   protected static final String SERVICE_COMPONENT_DESIRED_STATE_TABLE = "servicecomponentdesiredstate";
-  protected static final String CLUSTER_SERVICES_TABLE = "clusterservices";
-  protected static final String SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK = "srvccmponentdesiredstatesrvcnm";
-  protected static final String SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK = "servicedesiredstateservicename";
-  protected static final String COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK = "hstcmpnntdesiredstatecmpnntnme";
-  protected static final String COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK = "hstcomponentstatecomponentname";
   protected static final String HIVE_SERVICE_COMPONENT_WEBHCAT_SERVER = "WEBHCAT_SERVER";
   protected static final String CONFIGURATION_CORE_SITE = "core-site";
   protected static final String CONFIGURATION_WEBHCAT_SITE = "webhcat-site";
@@ -1058,7 +1050,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     setStatusOfStagesAndRequests();
     updateLogSearchConfigs();
     updateKerberosConfigurations();
-    updateHostComponentLastStateTable();
     moveAmbariPropertiesToAmbariConfiguration();
     createRoleAuthorizations();
     addUserAuthenticationSequence();
@@ -1765,6 +1756,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     map.put(AmbariServerConfigurationKey.PAGINATION_ENABLED, "authentication.ldap.pagination.enabled");
     map.put(AmbariServerConfigurationKey.COLLISION_BEHAVIOR, "ldap.sync.username.collision.behavior");
 
+    // Added in the event a previous version of Ambari had AMBARI-24827 back-ported to it
+    map.put(AmbariServerConfigurationKey.DISABLE_ENDPOINT_IDENTIFICATION, "ldap.sync.disable.endpoint.identification");
+
     // SSO-related properties
     map.put(AmbariServerConfigurationKey.SSO_PROVIDER_URL, "authentication.jwt.providerUrl");
     map.put(AmbariServerConfigurationKey.SSO_PROVIDER_CERTIFICATE, "authentication.jwt.publicKey");
@@ -1776,24 +1770,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     return map;
   }
 
-  protected void updateHostComponentLastStateTable() throws SQLException {
-    executeInTransaction(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
-          List<HostComponentStateEntity> hostComponentStateEntities = hostComponentStateDAO.findAll();
-          for (HostComponentStateEntity hostComponentStateEntity : hostComponentStateEntities) {
-            hostComponentStateEntity.setLastLiveState(hostComponentStateEntity.getCurrentState());
-            hostComponentStateDAO.merge(hostComponentStateEntity);
-          }
-        } catch (Exception e) {
-          LOG.warn("Setting status for stages and Requests threw exception. ", e);
-        }
-      }
-    });
-  }
-
   protected void updateSolrConfigurations() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
@@ -1801,10 +1777,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       return;
 
     Map<String, Cluster> clusterMap = clusters.getClusters();
-
-    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    if (clusterMap == null || clusterMap.isEmpty())
+    if (clusterMap == null || clusterMap.isEmpty()) {
       return;
+    }
 
     for (final Cluster cluster : clusterMap.values()) {
       updateConfig(cluster, "logsearch-service_logs-solrconfig", (content) -> {

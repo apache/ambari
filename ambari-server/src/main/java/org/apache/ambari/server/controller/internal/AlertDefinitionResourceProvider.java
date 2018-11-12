@@ -97,7 +97,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   protected static final String ALERT_DEF_SOURCE = "AlertDefinition/source";
   protected static final String ALERT_DEF_SOURCE_TYPE = "AlertDefinition/source/type";
 
-  private static Set<String> pkPropertyIds = new HashSet<>(
+  private static final Set<String> pkPropertyIds = new HashSet<>(
     Arrays.asList(ALERT_DEF_ID, ALERT_DEF_NAME));
 
   private static Gson gson = new Gson();
@@ -328,7 +328,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
         // a disabled event
         if (oldEnabled && !entity.getEnabled()) {
           AlertDefinitionDisabledEvent event = new AlertDefinitionDisabledEvent(
-              entity.getClusterId(), entity.getDefinitionId());
+              entity.getClusterId(), entity.getDefinitionId(), entity.getDefinitionName());
 
           eventPublisher.publish(event);
         }

@@ -49,14 +49,14 @@ public class RootServiceResourceProvider extends ReadOnlyResourceProvider {
   /**
    * The key property ids for a RootService resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Type.RootService, SERVICE_NAME_PROPERTY_ID)
       .build();
 
   /**
    * The property ids for a RootService resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       SERVICE_NAME_PROPERTY_ID);
 
   protected RootServiceResourceProvider(AmbariManagementController managementController) {

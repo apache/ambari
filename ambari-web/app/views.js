@@ -120,6 +120,7 @@ require('views/common/helpers/pluralize_view');
 require('views/common/helpers/status_icon_view');
 require('views/common/chosen_plugin');
 require('views/common/export_metrics_menu_view');
+require('views/common/service_restart_view');
 require('views/login');
 require('views/main');
 require('views/main/menu');
@@ -235,6 +236,7 @@ require('views/main/admin/stack_upgrade/services_view');
 require('views/main/admin/stack_upgrade/versions_view');
 require('views/main/admin/stack_upgrade/menu_view');
 require('views/main/admin/stack_upgrade/failed_hosts_modal_view');
+require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_view');
 require('views/main/admin/stack_and_upgrade_view');
 
 require('views/main/admin/kerberos');

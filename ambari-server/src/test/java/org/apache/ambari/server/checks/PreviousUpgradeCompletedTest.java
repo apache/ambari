@@ -17,16 +17,18 @@
  */
 package org.apache.ambari.server.checks;
 
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.stack.upgrade.Direction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.spi.ClusterInformation;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,10 +48,10 @@ public class PreviousUpgradeCompletedTest {
   private StackId targetStackId = new StackId("HDP", "2.2");
   private String destRepositoryVersion = "2.2.8.0-5678";
   private String clusterName = "cluster";
-  private PrereqCheckRequest checkRequest = new PrereqCheckRequest(clusterName);
+  private UpgradeCheckRequest checkRequest;
   private PreviousUpgradeCompleted puc = new PreviousUpgradeCompleted();
 
-  private RepositoryVersionEntity toRepsitoryVersion;
+  private RepositoryVersionEntity toRepsitoryVersionEntity;
 
   /**
    *
@@ -66,12 +68,13 @@ public class PreviousUpgradeCompletedTest {
     stack.setStackName(stackId.getStackName());
     stack.setStackVersion(stackId.getStackVersion());
 
-    toRepsitoryVersion = Mockito.mock(RepositoryVersionEntity.class);
-    Mockito.when(toRepsitoryVersion.getVersion()).thenReturn(destRepositoryVersion);
-    Mockito.when(toRepsitoryVersion.getStackId()).thenReturn(targetStackId);
+    toRepsitoryVersionEntity = Mockito.mock(RepositoryVersionEntity.class);
+    Mockito.when(toRepsitoryVersionEntity.getVersion()).thenReturn(destRepositoryVersion);
+    Mockito.when(toRepsitoryVersionEntity.getStackId()).thenReturn(targetStackId);
 
-    checkRequest.setSourceStackId(sourceStackId);
-    checkRequest.setTargetRepositoryVersion(toRepsitoryVersion);
+    ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null, null);
+    checkRequest = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
+        null, null);
 
     puc.clustersProvider = new Provider<Clusters>() {
       @Override
@@ -85,19 +88,20 @@ public class PreviousUpgradeCompletedTest {
   public void testPerform() throws Exception {
     // no existing upgrades
     Mockito.when(cluster.getUpgradeInProgress()).thenReturn(null);
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    puc.perform(check, checkRequest);
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+
+
+    UpgradeCheckResult check = puc.perform(checkRequest);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
 
     // existing upgrade
     UpgradeEntity upgradeInProgress = Mockito.mock(UpgradeEntity.class);
     Mockito.when(upgradeInProgress.getDirection()).thenReturn(Direction.UPGRADE);
     Mockito.when(upgradeInProgress.getClusterId()).thenReturn(1L);
-    Mockito.when(upgradeInProgress.getRepositoryVersion()).thenReturn(toRepsitoryVersion);
+    Mockito.when(upgradeInProgress.getRepositoryVersion()).thenReturn(toRepsitoryVersionEntity);
 
     Mockito.when(cluster.getUpgradeInProgress()).thenReturn(upgradeInProgress);
-    check = new PrerequisiteCheck(null, null);
-    puc.perform(check, checkRequest);
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+
+    check = puc.perform(checkRequest);
+    Assert.assertEquals(UpgradeCheckStatus.FAIL, check.getStatus());
   }
 }

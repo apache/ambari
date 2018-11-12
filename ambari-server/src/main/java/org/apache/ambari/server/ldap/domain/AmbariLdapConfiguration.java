@@ -34,6 +34,10 @@ import org.slf4j.LoggerFactory;
 /**
  * This class is an immutable representation of all the LDAP related
  * configurationMap entries.
+ * <p>
+ * <strong>IMPORTANT: </strong>in case you declare any new LDAP related property
+ * please do it in the Python class
+ * <code>stacks.ambari_configuration.AmbariLDAPConfiguration</code> too.
  */
 public class AmbariLdapConfiguration {
 
@@ -76,7 +80,7 @@ public class AmbariLdapConfiguration {
   }
 
   public int serverPort() {
-    return Integer.valueOf(configValue(AmbariServerConfigurationKey.SERVER_PORT));
+    return Integer.parseInt(configValue(AmbariServerConfigurationKey.SERVER_PORT));
   }
 
   public String serverUrl() {
@@ -89,7 +93,7 @@ public class AmbariLdapConfiguration {
 
   public int secondaryServerPort() {
     final String secondaryServerPort = configValue(AmbariServerConfigurationKey.SECONDARY_SERVER_PORT);
-    return secondaryServerPort == null ? 0 : Integer.valueOf(secondaryServerPort);
+    return secondaryServerPort == null ? 0 : Integer.parseInt(secondaryServerPort);
   }
 
   public String secondaryServerUrl() {

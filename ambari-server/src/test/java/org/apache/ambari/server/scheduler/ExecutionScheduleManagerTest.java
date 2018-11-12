@@ -33,6 +33,7 @@ import static org.junit.Assert.assertThat;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -172,6 +173,7 @@ public class ExecutionScheduleManagerTest {
 
     BatchSettings batchSettings = new BatchSettings();
     batchSettings.setTaskFailureToleranceLimit(10);
+    batchSettings.setTaskFailureToleranceLimitPerBatch(1);
     batches.setBatchSettings(batchSettings);
 
     List<BatchRequest> batchRequests = new ArrayList<>();
@@ -215,7 +217,7 @@ public class ExecutionScheduleManagerTest {
     RequestExecution requestExecution = createRequestExecution(true);
     Assert.assertNotNull(requestExecution);
 
-    executionScheduleManager.scheduleBatch(requestExecution);
+    executionScheduleManager.scheduleAllBatches(requestExecution);
 
     String jobName1 = executionScheduleManager.getJobName(requestExecution
       .getId(), 10L);
@@ -279,7 +281,7 @@ public class ExecutionScheduleManagerTest {
     RequestExecution requestExecution = createRequestExecution(true);
     Assert.assertNotNull(requestExecution);
 
-    executionScheduleManager.scheduleBatch(requestExecution);
+    executionScheduleManager.scheduleAllBatches(requestExecution);
 
     String jobName1 = executionScheduleManager.getJobName(requestExecution
       .getId(), 10L);
@@ -307,7 +309,7 @@ public class ExecutionScheduleManagerTest {
     RequestExecution requestExecution = createRequestExecution(false);
     Assert.assertNotNull(requestExecution);
 
-    executionScheduleManager.scheduleBatch(requestExecution);
+    executionScheduleManager.scheduleAllBatches(requestExecution);
 
     String jobName1 = executionScheduleManager.getJobName(requestExecution
       .getId(), 10L);
@@ -385,6 +387,9 @@ public class ExecutionScheduleManagerTest {
 
     expect(batchRequestMock.getUri()).andReturn(uri).once();
     expect(batchRequestMock.getType()).andReturn(type).once();
+
+    batchRequestMock.setRequestId(5L);
+    expectLastCall().once();
 
     expect(scheduleManager.performApiRequest(eq(uri), eq(body), eq(type), eq(userId))).andReturn(batchRequestResponse).once();
 
@@ -512,6 +517,7 @@ public class ExecutionScheduleManagerTest {
 
     BatchSettings batchSettings = new BatchSettings();
     batchSettings.setTaskFailureToleranceLimit(1);
+    batchSettings.setTaskFailureToleranceLimitPerBatch(1);
 
     Map<Long, RequestExecution> executionMap = new HashMap<>();
     executionMap.put(executionId, requestExecutionMock);
@@ -530,6 +536,53 @@ public class ExecutionScheduleManagerTest {
 
     HashMap<String, Integer> taskCounts = new HashMap<String, Integer>() {{
       put(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY, 2);
+      put(BatchRequestJob.BATCH_REQUEST_TOTAL_TASKS_KEY, 10);
+    }};
+
+    boolean exceeded = scheduleManager.hasToleranceThresholdExceeded
+      (executionId, clusterName, taskCounts);
+
+    Assert.assertTrue(exceeded);
+
+    verify(clustersMock, clusterMock, configurationMock, requestExecutionMock,
+      executionSchedulerMock, batchMock);
+  }
+
+  @Test
+  public void testHasToleranceThresholdPerBatchExceeded() throws Exception {
+    Clusters clustersMock = createMock(Clusters.class);
+    Cluster clusterMock = createMock(Cluster.class);
+    Configuration configurationMock = createNiceMock(Configuration.class);
+    ExecutionScheduler executionSchedulerMock = createMock(ExecutionScheduler.class);
+    InternalTokenStorage tokenStorageMock = createMock(InternalTokenStorage.class);
+    ActionDBAccessor actionDBAccessorMock = createMock(ActionDBAccessor.class);
+    Gson gson = new Gson();
+    RequestExecution requestExecutionMock = createMock(RequestExecution.class);
+    Batch batchMock = createMock(Batch.class);
+
+    long executionId = 11L;
+    String clusterName = "c1";
+
+    BatchSettings batchSettings = new BatchSettings();
+    batchSettings.setTaskFailureToleranceLimitPerBatch(1);
+
+    Map<Long, RequestExecution> executionMap = new HashMap<>();
+    executionMap.put(executionId, requestExecutionMock);
+
+    expect(clustersMock.getCluster(clusterName)).andReturn(clusterMock).anyTimes();
+    expect(clusterMock.getAllRequestExecutions()).andReturn(executionMap).anyTimes();
+    expect(requestExecutionMock.getBatch()).andReturn(batchMock).anyTimes();
+    expect(batchMock.getBatchSettings()).andReturn(batchSettings).anyTimes();
+
+    replay(clustersMock, clusterMock, configurationMock, requestExecutionMock,
+        executionSchedulerMock, batchMock);
+
+    ExecutionScheduleManager scheduleManager =
+        new ExecutionScheduleManager(configurationMock, executionSchedulerMock,
+            tokenStorageMock, clustersMock, actionDBAccessorMock, gson);
+
+    HashMap<String, Integer> taskCounts = new HashMap<String, Integer>() {{
+      put(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_IN_CURRENT_BATCH_KEY, 2);
       put(BatchRequestJob.BATCH_REQUEST_TOTAL_TASKS_KEY, 10);
     }};
 
@@ -672,4 +725,153 @@ public class ExecutionScheduleManagerTest {
     assertEquals("http://localhost:8080/",
       scheduleManager.extendApiResource(webResource, "").getURI().toString());
   }
+
+  @Test
+  public void testUpdateBatchSchedulePause() throws Exception {
+    Clusters clustersMock = createMock(Clusters.class);
+    Cluster clusterMock = createMock(Cluster.class);
+    Configuration configurationMock = createNiceMock(Configuration.class);
+    ExecutionScheduler executionSchedulerMock = createMock(ExecutionScheduler.class);
+    InternalTokenStorage tokenStorageMock = createMock(InternalTokenStorage.class);
+    ActionDBAccessor actionDBAccessorMock = createMock(ActionDBAccessor.class);
+    Gson gson = new Gson();
+    RequestExecution requestExecutionMock = createMock(RequestExecution.class);
+    Batch batchMock = createMock(Batch.class);
+    JobDetail jobDetailMock = createMock(JobDetail.class);
+    final BatchRequest batchRequestMock1 = createMock(BatchRequest.class);
+    final BatchRequest batchRequestMock2 = createMock(BatchRequest.class);
+    final Trigger triggerMock = createNiceMock(Trigger.class);
+    final List<Trigger> triggers = new ArrayList<Trigger>()  {{ add(triggerMock); }};
+
+    long executionId = 11L;
+    String clusterName = "c1";
+    Date pastDate = new Date(new Date().getTime() - 2);
+
+    Map<Long, RequestExecution> executionMap = new HashMap<>();
+    executionMap.put(executionId, requestExecutionMock);
+
+    EasyMock.expect(configurationMock.getApiSSLAuthentication()).andReturn(Boolean.FALSE);
+    EasyMock.replay(configurationMock);
+
+    ExecutionScheduleManager scheduleManager =
+      createMockBuilder(ExecutionScheduleManager.class)
+        .withConstructor(configurationMock, executionSchedulerMock, tokenStorageMock,
+          clustersMock, actionDBAccessorMock, gson)
+        .addMockedMethods("deleteJobs", "abortRequestById").createMock();
+
+    expect(clustersMock.getCluster(clusterName)).andReturn(clusterMock).anyTimes();
+    expect(clusterMock.getAllRequestExecutions()).andReturn(executionMap).anyTimes();
+    expect(requestExecutionMock.getBatch()).andReturn(batchMock).anyTimes();
+    expect(batchMock.getBatchRequests()).andReturn
+      (new ArrayList<BatchRequest>() {{
+        add(batchRequestMock1);
+        add(batchRequestMock2);
+      }});
+    expect(batchRequestMock1.getOrderId()).andReturn(1L).anyTimes();
+    expect(batchRequestMock1.getStatus()).andReturn(HostRoleStatus.COMPLETED.name()).anyTimes();
+    expect(batchRequestMock1.compareTo(batchRequestMock2)).andReturn(-1).anyTimes();
+    expect(batchRequestMock2.compareTo(batchRequestMock1)).andReturn(1).anyTimes();
+    expect(batchRequestMock2.getOrderId()).andReturn(3L).anyTimes();
+    expect(batchRequestMock2.getStatus()).andReturn(HostRoleStatus.IN_PROGRESS.name()).anyTimes();
+    expect(executionSchedulerMock.getJobDetail((JobKey) anyObject()))
+      .andReturn(jobDetailMock).anyTimes();
+    expect((List<Trigger>) executionSchedulerMock
+      .getTriggersForJob((JobKey) anyObject())).andReturn(triggers).anyTimes();
+    expect(triggerMock.mayFireAgain()).andReturn(true).anyTimes();
+    expect(triggerMock.getFinalFireTime()).andReturn(pastDate).anyTimes();
+
+    expect(requestExecutionMock.getStatus()).andReturn(RequestExecution.Status.PAUSED.name()).anyTimes();
+    expect(requestExecutionMock.getId()).andReturn(executionId).anyTimes();
+    expect(requestExecutionMock.getBatchRequestRequestsIDs(3L)).andReturn(Collections.singleton(5L)).anyTimes();
+
+    //deletes only second batch, the first was completed
+    scheduleManager.deleteJobs(eq(requestExecutionMock), eq(3L));
+    expectLastCall().once();
+    //second batch request needs to be aborted
+    expect(scheduleManager.abortRequestById(requestExecutionMock, 5L)).andReturn(null).once();
+
+    replay(clustersMock, clusterMock, requestExecutionMock,
+      executionSchedulerMock, scheduleManager, batchMock, batchRequestMock1, batchRequestMock2,
+      triggerMock, jobDetailMock, actionDBAccessorMock);
+
+    scheduleManager.updateBatchSchedule(requestExecutionMock);
+
+    verify(clustersMock, clusterMock, configurationMock, requestExecutionMock,
+      executionSchedulerMock, scheduleManager, batchMock, batchRequestMock1, batchRequestMock2,
+      triggerMock, jobDetailMock, actionDBAccessorMock);
+  }
+
+  @Test
+  public void testUpdateBatchScheduleUnpause() throws Exception {
+    Clusters clustersMock = createMock(Clusters.class);
+    Cluster clusterMock = createMock(Cluster.class);
+    Configuration configurationMock = createNiceMock(Configuration.class);
+    ExecutionScheduler executionSchedulerMock = createMock(ExecutionScheduler.class);
+    InternalTokenStorage tokenStorageMock = createMock(InternalTokenStorage.class);
+    ActionDBAccessor actionDBAccessorMock = createMock(ActionDBAccessor.class);
+    Gson gson = new Gson();
+    RequestExecution requestExecutionMock = createMock(RequestExecution.class);
+    Batch batchMock = createMock(Batch.class);
+    JobDetail jobDetailMock = createMock(JobDetail.class);
+    final BatchRequest batchRequestMock1 = createMock(BatchRequest.class);
+    final BatchRequest batchRequestMock2 = createMock(BatchRequest.class);
+    final Trigger triggerMock = createNiceMock(Trigger.class);
+    final List<Trigger> triggers = new ArrayList<Trigger>()  {{ add(triggerMock); }};
+
+    long executionId = 11L;
+    String clusterName = "c1";
+    Date pastDate = new Date(new Date().getTime() - 2);
+
+    Map<Long, RequestExecution> executionMap = new HashMap<>();
+    executionMap.put(executionId, requestExecutionMock);
+
+    EasyMock.expect(configurationMock.getApiSSLAuthentication()).andReturn(Boolean.FALSE);
+    EasyMock.replay(configurationMock);
+
+    ExecutionScheduleManager scheduleManager =
+      createMockBuilder(ExecutionScheduleManager.class)
+        .withConstructor(configurationMock, executionSchedulerMock, tokenStorageMock,
+          clustersMock, actionDBAccessorMock, gson)
+        .addMockedMethods("scheduleBatch").createMock();
+
+    expect(clustersMock.getCluster(clusterName)).andReturn(clusterMock).anyTimes();
+    expect(clusterMock.getAllRequestExecutions()).andReturn(executionMap).anyTimes();
+    expect(requestExecutionMock.getBatch()).andReturn(batchMock).anyTimes();
+    expect(batchMock.getBatchRequests()).andReturn
+      (new ArrayList<BatchRequest>() {{
+        add(batchRequestMock1);
+        add(batchRequestMock2);
+      }});
+    expect(batchRequestMock1.getOrderId()).andReturn(1L).anyTimes();
+    expect(batchRequestMock1.getStatus()).andReturn(HostRoleStatus.FAILED.name()).anyTimes();
+    expect(batchRequestMock1.compareTo(batchRequestMock2)).andReturn(-1).anyTimes();
+    expect(batchRequestMock2.compareTo(batchRequestMock1)).andReturn(1).anyTimes();
+    expect(batchRequestMock2.getOrderId()).andReturn(3L).anyTimes();
+    expect(batchRequestMock2.getStatus()).andReturn(HostRoleStatus.PENDING.name()).anyTimes();
+    expect(executionSchedulerMock.getJobDetail((JobKey) anyObject()))
+      .andReturn(jobDetailMock).anyTimes();
+    expect((List<Trigger>) executionSchedulerMock
+      .getTriggersForJob((JobKey) anyObject())).andReturn(triggers).anyTimes();
+    expect(triggerMock.mayFireAgain()).andReturn(true).anyTimes();
+    expect(triggerMock.getFinalFireTime()).andReturn(pastDate).anyTimes();
+
+    expect(requestExecutionMock.getStatus()).andReturn(RequestExecution.Status.SCHEDULED.name()).anyTimes();
+    expect(requestExecutionMock.getId()).andReturn(executionId).anyTimes();
+    expect(requestExecutionMock.getBatchRequestRequestsIDs(3L)).andReturn(Collections.singleton(5L)).anyTimes();
+
+    //schedule staring from second batch, the first was completed
+    scheduleManager.scheduleBatch(eq(requestExecutionMock), eq(3L));
+    expectLastCall().once();
+
+    replay(clustersMock, clusterMock, requestExecutionMock,
+      executionSchedulerMock, scheduleManager, batchMock, batchRequestMock1, batchRequestMock2,
+      triggerMock, jobDetailMock, actionDBAccessorMock);
+
+    scheduleManager.updateBatchSchedule(requestExecutionMock);
+
+    verify(clustersMock, clusterMock, configurationMock, requestExecutionMock,
+      executionSchedulerMock, scheduleManager, batchMock, batchRequestMock1, batchRequestMock2,
+      triggerMock, jobDetailMock, actionDBAccessorMock);
+  }
+
 }

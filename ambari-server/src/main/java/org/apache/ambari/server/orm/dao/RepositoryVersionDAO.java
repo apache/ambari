@@ -27,8 +27,8 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.spi.RepositoryType;
 
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
@@ -153,7 +153,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
     query.setParameter("type", type);
     return daoUtils.selectList(query);
   }
-  
+
   /**
    * Validates and creates an object.
    * The version must be unique within this stack name (e.g., HDP, HDPWIN, BIGTOP).
@@ -255,8 +255,21 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
   @RequiresSession
   public List<RepositoryVersionEntity> findByServiceDesiredVersion(List<RepositoryVersionEntity> matching) {
     TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().
-          createNamedQuery("findByServiceDesiredVersion", RepositoryVersionEntity.class);
+            createNamedQuery("findByServiceDesiredVersion", RepositoryVersionEntity.class);
 
     return daoUtils.selectList(query, matching);
+  }
+   /**
+   * Removes the specified repoversion entry based on stackid.
+   *
+   * @param stackId
+   *
+   */
+  @Transactional
+  public void removeByStack(StackId stackId) {
+    List<RepositoryVersionEntity> repoVersionDeleteCandidates = findByStack(stackId);
+    for(RepositoryVersionEntity repositoryVersionEntity : repoVersionDeleteCandidates) {
+      entityManagerProvider.get().remove(repositoryVersionEntity);
+    }
   }
 }

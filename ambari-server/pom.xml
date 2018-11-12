@@ -12,15 +12,14 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.0.0.0-SNAPSHOT</version>
+    <version>${revision}</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-server</artifactId>
-  <packaging>${packagingFormat}</packaging>
+  <packaging>jar</packaging>
   <name>Ambari Server</name>
-  <version>2.0.0.0-SNAPSHOT</version>
   <description>Ambari Server</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -47,8 +46,8 @@
     <stackHooksLocation>src/main/resources/stack-hooks</stackHooksLocation>
     <stacksSrcLocation>src/main/resources/stacks/${stack.distribution}</stacksSrcLocation>
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
-    <skipPythonTests>false</skipPythonTests>
     <hadoop.version>2.7.2</hadoop.version>
+    <ambari.metrics.version>2.7.0.0.0</ambari.metrics.version>
     <empty.dir>src/main/package</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
     <el.log>ALL</el.log> <!-- log level for EclipseLink eclipselink-staticweave-maven-plugin -->
     <xlint>none</xlint> <!-- passed to Java compiler -Xlint: flag -->
@@ -405,26 +404,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>enforce-maven</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireMavenVersion>
-                  <version>[3.3.9,)</version>
-                </requireMavenVersion>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>com.github.kongchen</groupId>
         <artifactId>swagger-maven-plugin</artifactId>
         <configuration>
@@ -661,7 +640,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>findbugs-maven-plugin</artifactId>
-        <version>3.0.3</version>
+        <version>3.0.5</version>
         <configuration>
           <failOnError>false</failOnError>
           <threshold>Low</threshold>
@@ -881,17 +860,6 @@
       </build>
     </profile>
     <profile>
-      <id>skipTestRun</id>
-      <activation>
-        <property>
-          <name>skipTests</name>
-        </property>
-      </activation>
-      <properties>
-        <skipPythonTests>true</skipPythonTests>
-      </properties>
-    </profile>
-    <profile>
       <id>copy-swagger-generated-resources</id>
       <activation>
         <property><name>generate.swagger.resources</name></property>
@@ -945,7 +913,6 @@
         <assemblydescriptor>src/main/assemblies/server-windows.xml</assemblydescriptor>
         <assemblybootstrap>src/main/assemblies/bootstrap-windows.xml</assemblybootstrap>
         <assemblychocodescriptor>src/main/assemblies/server-windows-choco.xml</assemblychocodescriptor>
-        <packagingFormat>jar</packagingFormat>
       </properties>
       <build>
         <plugins>
@@ -1047,7 +1014,6 @@
         <fileextension.dot.shell-default></fileextension.dot.shell-default>
         <path.python.1>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_jinja2:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/main/resources/custom_actions:${project.basedir}/src/main/resources/scripts:${project.basedir}/src/test/python</path.python.1>
         <assemblydescriptor>src/main/assemblies/server.xml</assemblydescriptor>
-        <packagingFormat>jar</packagingFormat>
       </properties>
     </profile>
     <profile>
@@ -1151,6 +1117,11 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>ambari-views</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>ambari-server-spi</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -1630,7 +1601,7 @@
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-metrics-common</artifactId>
-      <version>${project.version}</version>
+      <version>${ambari.metrics.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.apache.httpcomponents</groupId>
@@ -1779,7 +1750,7 @@
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-utility</artifactId>
-      <version>1.0.0.0-SNAPSHOT</version>
+      <version>${revision}</version>
       <scope>provided</scope> <!-- for @ApiIgnore -->
       <exclusions>
         <exclusion>

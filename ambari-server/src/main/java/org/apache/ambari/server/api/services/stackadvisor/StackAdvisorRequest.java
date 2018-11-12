@@ -228,6 +228,7 @@ public class StackAdvisorRequest {
   public enum StackAdvisorRequestType {
     HOST_GROUPS("host_groups"),
     CONFIGURATIONS("configurations"),
+    LDAP_CONFIGURATIONS("ldap-configurations"),
     SSO_CONFIGURATIONS("sso-configurations"),
     KERBEROS_CONFIGURATIONS("kerberos-configurations"),
     CONFIGURATION_DEPENDENCIES("configuration-dependencies");

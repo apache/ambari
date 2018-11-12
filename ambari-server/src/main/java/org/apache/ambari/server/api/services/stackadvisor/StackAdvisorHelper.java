@@ -36,8 +36,6 @@ import org.apache.ambari.server.api.services.stackadvisor.validations.Validation
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -46,12 +44,9 @@ import com.google.inject.Singleton;
 @Singleton
 public class StackAdvisorHelper {
 
-  protected static Log LOG = LogFactory.getLog(StackAdvisorHelper.class);
-
   private File recommendationsDir;
   private String recommendationsArtifactsLifetime;
   private int recommendationsArtifactsRolloverMax;
-  public static String pythonStackAdvisorScript;
   private final AmbariMetaInfo metaInfo;
   private final AmbariServerConfigurationHandler ambariServerConfigurationHandler;
 
@@ -65,8 +60,6 @@ public class StackAdvisorHelper {
     this.recommendationsDir = conf.getRecommendationsDir();
     this.recommendationsArtifactsLifetime = conf.getRecommendationsArtifactsLifetime();
     this.recommendationsArtifactsRolloverMax = conf.getRecommendationsArtifactsRolloverMax();
-
-    this.pythonStackAdvisorScript = conf.getStackAdvisorScript();
     this.saRunner = saRunner;
     this.metaInfo = metaInfo;
     this.ambariServerConfigurationHandler = ambariServerConfigurationHandler;
@@ -148,6 +141,9 @@ public class StackAdvisorHelper {
           requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
     } else if (requestType == StackAdvisorRequestType.SSO_CONFIGURATIONS) {
       command = new ConfigurationRecommendationCommand(StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS_FOR_SSO, recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
+    } else if (requestType == StackAdvisorRequestType.LDAP_CONFIGURATIONS) {
+      command = new ConfigurationRecommendationCommand(StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS_FOR_LDAP, recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
           requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
     } else if (requestType == StackAdvisorRequestType.KERBEROS_CONFIGURATIONS) {
       command = new ConfigurationRecommendationCommand(StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS_FOR_KERBEROS, recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,

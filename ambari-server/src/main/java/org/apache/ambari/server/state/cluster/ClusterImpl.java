@@ -112,6 +112,8 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterHealthReport;
@@ -124,7 +126,6 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
@@ -137,8 +138,6 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.UpgradeContext;
-import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -148,6 +147,7 @@ import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.apache.ambari.server.topology.TopologyRequest;
+import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -588,6 +588,7 @@ public class ClusterImpl implements Cluster {
     return serviceComponentHosts.get(serviceName).get(serviceComponentName).get(hostname);
   }
 
+  @Override
   public List<ServiceComponentHost> getServiceComponentHosts() {
     List<ServiceComponentHost> serviceComponentHosts = new ArrayList<>();
     if (!serviceComponentHostsByHost.isEmpty()) {
@@ -1053,7 +1054,8 @@ public class ClusterImpl implements Cluster {
             // does the host gets a different repo state based on VDF and repo
             // type
             boolean hostRequiresRepository = false;
-            ClusterVersionSummary clusterSummary = versionDefinitionXml.getClusterSummary(this);
+            ClusterVersionSummary clusterSummary = versionDefinitionXml.getClusterSummary(this,
+                ambariMetaInfo);
             Set<String> servicesInUpgrade = clusterSummary.getAvailableServiceNames();
 
             List<ServiceComponentHost> schs = getServiceComponentHosts(hostEntity.getHostName());
@@ -1084,7 +1086,7 @@ public class ClusterImpl implements Cluster {
         HostVersionEntity hostVersionEntity = null;
         Collection<HostVersionEntity> hostVersions = hostEntity.getHostVersionEntities();
         for (HostVersionEntity existingHostVersion : hostVersions) {
-          if (existingHostVersion.getRepositoryVersion().getId() == repoVersionEntity.getId()) {
+          if (Objects.equals(existingHostVersion.getRepositoryVersion().getId(), repoVersionEntity.getId())) {
             hostVersionEntity = existingHostVersion;
             break;
           }
@@ -2546,8 +2548,15 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   public Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType){
+    return getConfigPropertiesTypes(configType, getCurrentStackVersion());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType, StackId stackId) {
     try {
-      StackId stackId = getCurrentStackVersion();
       StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
       return stackInfo.getConfigPropertiesTypes(configType);
     } catch (AmbariException ignored) {
@@ -2692,6 +2701,7 @@ public class ClusterImpl implements Cluster {
    *
    * @return
    */
+  @Override
   public ClusterEntity getClusterEntity() {
     return clusterDAO.findById(clusterId);
   }

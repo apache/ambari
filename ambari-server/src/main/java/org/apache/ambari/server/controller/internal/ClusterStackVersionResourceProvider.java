@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.ambari.annotations.Experimental;
@@ -67,22 +68,21 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
-import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -145,13 +145,13 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
    */
   private static final float INSTALL_PACKAGES_SUCCESS_FACTOR = 0.85f;
 
-  private static Set<String> pkPropertyIds = Sets.newHashSet(
+  private static final Set<String> pkPropertyIds = Sets.newHashSet(
       CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, CLUSTER_STACK_VERSION_ID_PROPERTY_ID,
       CLUSTER_STACK_VERSION_STACK_PROPERTY_ID, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID,
       CLUSTER_STACK_VERSION_STATE_PROPERTY_ID,
       CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
 
-  private static Set<String> propertyIds = Sets.newHashSet(CLUSTER_STACK_VERSION_ID_PROPERTY_ID,
+  private static final Set<String> propertyIds = Sets.newHashSet(CLUSTER_STACK_VERSION_ID_PROPERTY_ID,
       CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID,
       CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID,
       CLUSTER_STACK_VERSION_STATE_PROPERTY_ID, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
@@ -159,7 +159,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       CLUSTER_STACK_VERSION_FORCE, CLUSTER_STACK_VERSION_REPO_SUMMARY_PROPERTY_ID,
       CLUSTER_STACK_VERSION_REPO_SUPPORTS_REVERT, CLUSTER_STACK_VERSION_REPO_REVERT_UPGRADE_ID);
 
-  private static Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String> builder()
+  private static final Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String> builder()
       .put(Type.Cluster, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID)
       .put(Type.ClusterStackVersion, CLUSTER_STACK_VERSION_ID_PROPERTY_ID)
       .put(Type.Stack, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID)
@@ -304,7 +304,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       try {
         VersionDefinitionXml vdf = repositoryVersion.getRepositoryXml();
         if (null != vdf) {
-          versionSummary = vdf.getClusterSummary(cluster);
+          versionSummary = vdf.getClusterSummary(cluster, metaInfo.get());
         }
       } catch (Exception e) {
         throw new IllegalArgumentException(
@@ -329,7 +329,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       boolean revertable = false;
       if (null != revertableUpgrade) {
         RepositoryVersionEntity revertableRepositoryVersion = revertableUpgrade.getRepositoryVersion();
-        revertable = revertableRepositoryVersion.getId() == repositoryVersionId;
+        revertable = Objects.equals(revertableRepositoryVersion.getId(), repositoryVersionId);
       }
 
       setResourceProperty(resource, CLUSTER_STACK_VERSION_REPO_SUPPORTS_REVERT, revertable, requestedIds);
@@ -446,7 +446,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     // dependencies
     try {
       if (repoVersionEntity.getType().isPartial()) {
-        Set<String> missingDependencies = desiredVersionDefinition.getMissingDependencies(cluster);
+        Set<String> missingDependencies = desiredVersionDefinition.getMissingDependencies(cluster,
+            metaInfo.get());
 
         if (!missingDependencies.isEmpty()) {
           String message = String.format(
@@ -609,7 +610,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       // !!! limit the serviceNames to those that are detailed for the repository.
       // TODO packages don't have component granularity
       if (RepositoryType.STANDARD != repoVersionEnt.getType()) {
-        ClusterVersionSummary clusterSummary = desiredVersionDefinition.getClusterSummary(cluster);
+        ClusterVersionSummary clusterSummary = desiredVersionDefinition.getClusterSummary(
+            cluster, metaInfo.get());
         serviceNames.addAll(clusterSummary.getAvailableServiceNames());
       } else {
         serviceNames.addAll(ami.getStack(stackId).getServiceNames());
@@ -662,7 +664,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
 
     // determine packages for all services that are installed on host
-    List<ServiceOsSpecific.Package> packages = new ArrayList<>();
     Set<String> servicesOnHost = new HashSet<>();
     List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
     for (ServiceComponentHost component : components) {

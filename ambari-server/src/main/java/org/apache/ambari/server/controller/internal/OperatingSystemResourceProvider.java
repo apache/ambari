@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +37,8 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
 
@@ -49,12 +49,12 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
   public static final String OPERATING_SYSTEM_VERSION_DEFINITION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("OperatingSystems", "version_definition_id");
   public static final String OPERATING_SYSTEM_AMBARI_MANAGED_REPOS              = "OperatingSystems/ambari_managed_repositories";
 
-  private static Set<String> pkPropertyIds = Sets.newHashSet(
+  private static final Set<String> pkPropertyIds = ImmutableSet.of(
       OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID,
       OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID,
       OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID);
 
-  public static Set<String> propertyIds = Sets.newHashSet(
+  public static final Set<String> propertyIds = ImmutableSet.of(
       OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID,
       OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID,
       OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID,
@@ -62,16 +62,14 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
       OPERATING_SYSTEM_VERSION_DEFINITION_ID_PROPERTY_ID,
       OPERATING_SYSTEM_AMBARI_MANAGED_REPOS);
 
-  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
-    {
-      put(Resource.Type.OperatingSystem, OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID);
-      put(Resource.Type.Stack, OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID);
-      put(Resource.Type.StackVersion, OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID);
-      put(Resource.Type.RepositoryVersion, OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID);
-      put(Resource.Type.CompatibleRepositoryVersion, OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID);
-      put(Resource.Type.VersionDefinition, OPERATING_SYSTEM_VERSION_DEFINITION_ID_PROPERTY_ID);
-    }
-  };
+  public static final Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String>builder()
+    .put(Resource.Type.OperatingSystem, OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID)
+    .put(Resource.Type.Stack, OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID)
+    .put(Resource.Type.StackVersion, OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID)
+    .put(Resource.Type.RepositoryVersion, OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID)
+    .put(Resource.Type.CompatibleRepositoryVersion, OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID)
+    .put(Resource.Type.VersionDefinition, OPERATING_SYSTEM_VERSION_DEFINITION_ID_PROPERTY_ID)
+    .build();
 
   protected OperatingSystemResourceProvider(AmbariManagementController managementController) {
     super(Resource.Type.OperatingSystem, propertyIds, keyPropertyIds, managementController);

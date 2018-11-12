@@ -17,14 +17,17 @@
  */
 package org.apache.ambari.server.state.scheduler;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.RequestScheduleResponse;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -104,6 +107,8 @@ public class RequestExecutionImpl implements RequestExecution {
     BatchSettings batchSettings = new BatchSettings();
     batchSettings.setBatchSeparationInSeconds(requestScheduleEntity.getBatchSeparationInSeconds());
     batchSettings.setTaskFailureToleranceLimit(requestScheduleEntity.getBatchTolerationLimit());
+    batchSettings.setTaskFailureToleranceLimitPerBatch(requestScheduleEntity.getBatchTolerationLimitPerBatch());
+    batchSettings.setPauseAfterFirstBatch(requestScheduleEntity.isPauseAfterFirstBatch());
 
     batch.setBatchSettings(batchSettings);
 
@@ -114,6 +119,10 @@ public class RequestExecutionImpl implements RequestExecution {
           batchRequestEntities) {
         BatchRequest batchRequest = new BatchRequest();
         batchRequest.setOrderId(batchRequestEntity.getBatchId());
+        batchRequest.setRequestId(batchRequestEntity.getRequestId());
+        if (batchRequestEntity.getRequestBody() != null) {
+          batchRequest.setBody(new String(batchRequestEntity.getRequestBody()));
+        }
         batchRequest.setType(BatchRequest.Type.valueOf(batchRequestEntity.getRequestType()));
         batchRequest.setUri(batchRequestEntity.getRequestUri());
         batchRequest.setStatus(batchRequestEntity.getRequestStatus());
@@ -132,6 +141,13 @@ public class RequestExecutionImpl implements RequestExecution {
     schedule.setStartTime(requestScheduleEntity.getStartTime());
     schedule.setEndTime(requestScheduleEntity.getEndTime());
 
+    //if all values are nulls set the general scheduler to null
+    if (schedule.getDayOfWeek() == null && schedule.getDaysOfMonth() == null &&
+          schedule.getMinutes() == null && schedule.getHours() == null &&
+          schedule.getMonth() == null && schedule.getYear() == null &&
+          schedule.getStartTime() == null && schedule.getEndTime() == null) {
+      schedule = null;
+    }
     isPersisted = true;
   }
 
@@ -275,6 +291,7 @@ public class RequestExecutionImpl implements RequestExecution {
           RequestScheduleBatchRequestEntity batchRequestEntity = new
             RequestScheduleBatchRequestEntity();
           batchRequestEntity.setBatchId(batchRequest.getOrderId());
+          batchRequestEntity.setRequestId(batchRequest.getRequestId());
           batchRequestEntity.setScheduleId(requestScheduleEntity.getScheduleId());
           batchRequestEntity.setRequestScheduleEntity(requestScheduleEntity);
           batchRequestEntity.setRequestType(batchRequest.getType());
@@ -314,6 +331,8 @@ public class RequestExecutionImpl implements RequestExecution {
       if (settings != null) {
         requestScheduleEntity.setBatchSeparationInSeconds(settings.getBatchSeparationInSeconds());
         requestScheduleEntity.setBatchTolerationLimit(settings.getTaskFailureToleranceLimit());
+        requestScheduleEntity.setBatchTolerationLimitPerBatch(settings.getTaskFailureToleranceLimitPerBatch());
+        requestScheduleEntity.setPauseAfterFirstBatch(settings.isPauseAfterFirstBatch());
       }
     }
   }
@@ -426,6 +445,22 @@ public class RequestExecutionImpl implements RequestExecution {
   }
 
   @Override
+  public Collection<Long> getBatchRequestRequestsIDs(long batchId) {
+    Collection<Long> requestIDs = new ArrayList<>();
+    if (requestScheduleEntity != null) {
+      Collection<RequestScheduleBatchRequestEntity> requestEntities =
+        requestScheduleEntity.getRequestScheduleBatchRequestEntities();
+      if (requestEntities != null) {
+        requestIDs.addAll(requestEntities.stream()
+          .filter(requestEntity -> requestEntity.getBatchId().equals(batchId))
+          .map(RequestScheduleBatchRequestEntity::getRequestId)
+          .collect(Collectors.toList()));
+      }
+    }
+    return requestIDs;
+  }
+
+  @Override
   public BatchRequest getBatchRequest(long batchId) {
     for (BatchRequest batchRequest : batch.getBatchRequests()) {
       if (batchId == batchRequest.getOrderId()) {
@@ -448,6 +483,14 @@ public class RequestExecutionImpl implements RequestExecution {
           && entity.getScheduleId() == requestScheduleEntity.getScheduleId()) {
         batchRequestEntity = entity;
       }
+    }
+
+    // Rare race condition when batch request finished during pausing the request execution,
+    //in this case the job details will be deleted,
+    //so we mark it as not completed because otherwise the job detail will be lost
+    //and the whole Request Execution status will not be set to COMPLETED at the end.
+    if (Status.PAUSED.name().equals(getStatus()) && HostRoleStatus.COMPLETED.name().equals(batchRequestResponse.getStatus())) {
+      batchRequestResponse.setStatus(HostRoleStatus.ABORTED.name());
     }
 
     if (batchRequestEntity != null) {

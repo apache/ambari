@@ -386,7 +386,7 @@ describe('App.SliderConfigWidgetView', function () {
         },
         e: {
           ticks: [5, 16, 22, 28, 35, 39, 50],
-          ticksLabels: ['5 ','', '', '28 ', '', '', '50 ']
+          ticksLabels: ['5','', '', '28', '', '', '50']
         }
       },
       {
@@ -403,7 +403,7 @@ describe('App.SliderConfigWidgetView', function () {
         },
         e: {
           ticks: [1,2],
-          ticksLabels: ['1 ', '2 ']
+          ticksLabels: ['1', '2']
         }
       },
       {
@@ -420,7 +420,7 @@ describe('App.SliderConfigWidgetView', function () {
         },
         e: {
           ticks: [1,2,3],
-          ticksLabels: ['1 ', '2 ', '3 ']
+          ticksLabels: ['1', '2', '3']
         }
       },
       {
@@ -437,7 +437,7 @@ describe('App.SliderConfigWidgetView', function () {
         },
         e: {
           ticks: [0,1,2,3],
-          ticksLabels: ['0 ', '1 ', '2 ', '3 ']
+          ticksLabels: ['0', '1', '2', '3']
         }
       },
       {
@@ -454,7 +454,7 @@ describe('App.SliderConfigWidgetView', function () {
         },
         e: {
           ticks: [1,2,3,4,5],
-          ticksLabels: ['1 ', '', '3 ', '', '5 ']
+          ticksLabels: ['1', '', '3', '', '5']
         }
       },
       {
@@ -471,7 +471,7 @@ describe('App.SliderConfigWidgetView', function () {
         },
         e: {
           ticks: [0,2,3,5],
-          ticksLabels: ['0 ', '2 ', '3 ', '5 ']
+          ticksLabels: ['0', '2', '3', '5']
         }
       },
       {
@@ -488,7 +488,7 @@ describe('App.SliderConfigWidgetView', function () {
         },
         e: {
           ticks: [0,2,6,12,17,20,23],
-          ticksLabels: ['0 ', '', '', '12 ', '', '', '23 ']
+          ticksLabels: ['0', '', '', '12', '', '', '23']
         }
       },
       {

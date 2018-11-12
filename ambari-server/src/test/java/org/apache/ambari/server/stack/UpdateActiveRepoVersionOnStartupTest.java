@@ -40,9 +40,9 @@ import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.junit.Test;
 import org.mockito.Mockito;
 

@@ -77,6 +77,7 @@ public class ServiceInfo implements Validable {
   private String comment;
   private String serviceType;
   private Selection selection;
+  private String maintainer;
 
   /**
    * Default to Python if not specified.
@@ -328,6 +329,12 @@ public class ServiceInfo implements Validable {
   @XmlTransient
   private File serverActionsFolder;
 
+  /**
+   * Used to determine if rolling restart is supported
+   * */
+  @XmlElement(name = "rollingRestartSupported")
+  private boolean rollingRestartSupported;
+
   public boolean isDeleted() {
     return isDeleted;
   }
@@ -424,6 +431,18 @@ public class ServiceInfo implements Validable {
    */
   public boolean isSelectionEmpty() {
     return selection == null;
+  }
+
+  public String getMaintainer() {
+    return maintainer;
+  }
+
+  public void setMaintainer(String maintainer) {
+    this.maintainer = maintainer;
+  }
+
+  public boolean isMaintainerEmpty() {
+    return maintainer == null;
   }
 
   public String getComment() {
@@ -1035,6 +1054,14 @@ public class ServiceInfo implements Validable {
    */
   public File getKerberosDescriptorFile() {
     return kerberosDescriptorFile;
+  }
+
+  public boolean isRollingRestartSupported() {
+    return rollingRestartSupported;
+  }
+
+  public void setRollingRestartSupported(boolean rollingRestartSupported) {
+    this.rollingRestartSupported = rollingRestartSupported;
   }
 
   /**

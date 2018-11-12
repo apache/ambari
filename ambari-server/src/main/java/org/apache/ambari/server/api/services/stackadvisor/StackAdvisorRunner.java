@@ -27,6 +27,7 @@ import java.util.List;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommandType;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.serviceadvisor.ServiceAdvisor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -67,15 +68,13 @@ public class StackAdvisorRunner {
 
     switch (serviceAdvisorType) {
       case JAVA:
-        org.apache.ambari.serviceadvisor.ServiceAdvisor serviceAdvisor = new org.apache.ambari.serviceadvisor.ServiceAdvisor();
-
         LOG.info("StackAdvisorRunner.runScript(): Calling Java ServiceAdvisor's run method.");
-        stackAdvisorReturnCode = serviceAdvisor.run(saCommandType.toString(), hostsFile, servicesFile, outputFile, errorFile);
+        stackAdvisorReturnCode = ServiceAdvisor.run(saCommandType.toString(), hostsFile, servicesFile, outputFile, errorFile);
         LOG.info(String.format("StackAdvisorRunner.runScript(): Java ServiceAdvisor's return code: %d", stackAdvisorReturnCode));
         break;
       case PYTHON:
         LOG.info("StackAdvisorRunner.runScript(): Calling Python Stack Advisor.");
-        ProcessBuilder builder = prepareShellCommand(ServiceInfo.ServiceAdvisorType.PYTHON, StackAdvisorHelper.pythonStackAdvisorScript, saCommandType,
+        ProcessBuilder builder = prepareShellCommand(ServiceInfo.ServiceAdvisorType.PYTHON, configs.getStackAdvisorScript(), saCommandType,
             actionDirectory, outputFile,
             errorFile);
         builder.environment().put("METADATA_DIR_PATH", configs.getProperty(Configuration.METADATA_DIR_PATH));
@@ -121,7 +120,7 @@ public class StackAdvisorRunner {
    * @throws StackAdvisorException
    */
   private void processLogs(int exitCode, String outputFile, String errorFile) throws StackAdvisorException {
-    String outMessage = printMessage("stdout", outputFile);
+    printMessage("stdout", outputFile);
     String errMessage = printMessage("stderr", errorFile);
 
     try {

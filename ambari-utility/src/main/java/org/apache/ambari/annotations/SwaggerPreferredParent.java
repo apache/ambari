@@ -33,8 +33,7 @@ import java.lang.annotation.Target;
 public @interface SwaggerPreferredParent {
 
     /**
-     * Class name of preferred parent object
-     * @return
+     * @return class name of preferred parent object
      */
-    Class preferredParent();
+    Class<?> preferredParent();
 }

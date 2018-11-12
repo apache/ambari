@@ -159,7 +159,10 @@ if os.geteuid() == 0:
   
   def path_isdir(path):
     return os.path.isdir(path)
-  
+
+  def path_islink(path):
+    return os.path.islink(path)
+
   def path_lexists(path):
     return os.path.lexists(path)
   
@@ -267,10 +270,14 @@ else:
   # os.path.isdir
   def path_isdir(path):
     return (shell.call(["test", "-d", path], sudo=True)[0] == 0)
+
+  # os.path.islink
+  def path_islink(path):
+    return (shell.call(["test", "-L", path], sudo=True)[0] == 0)
   
   # os.path.lexists
   def path_lexists(path):
-    return (shell.call(["test", "-L", path], sudo=True)[0] == 0)
+    return (shell.call(["test", "-e", path], sudo=True)[0] == 0)
   
   # os.readlink
   def readlink(path):
@@ -303,7 +310,7 @@ else:
     
   # shutil.copy replacement
   def copy(src, dst):
-    shell.checked_call(["sudo", "cp", "-r", src, dst], sudo=True)
+    shell.checked_call(["cp", "-r", src, dst], sudo=True)
 
   # os.listdir replacement
   def listdir(path):

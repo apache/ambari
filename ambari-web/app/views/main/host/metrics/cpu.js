@@ -77,12 +77,5 @@ App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
       dataArray.push(cpu_idle);
     }
     return dataArray;
-  },
-
-  colorForSeries: function (series) {
-    if (Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_idle') == series.name) {
-      return '#CFECEC';
-    }
-    return null;
   }
 });

@@ -550,7 +550,7 @@ module.exports = {
         {
           "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_METASTORE",
           "StackServiceComponents" : {
-            "cardinality" : "1",
+            "cardinality" : "1+",
             "component_category" : "MASTER",
             "component_name" : "HIVE_METASTORE",
             "display_name" : "Hive Metastore",
@@ -571,7 +571,7 @@ module.exports = {
         {
           "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_SERVER",
           "StackServiceComponents" : {
-            "cardinality" : "1",
+            "cardinality" : "1+",
             "component_category" : "MASTER",
             "component_name" : "HIVE_SERVER",
             "display_name" : "HiveServer2",

@@ -45,6 +45,11 @@ public class StackAdvisorRequestTypeTest {
   }
 
   @Test
+  public void testFromString_returnsLDAPConfigurationsType() throws StackAdvisorException {
+    testFromString("ldap-configurations", StackAdvisorRequestType.LDAP_CONFIGURATIONS);
+  }
+
+  @Test
   public void testFromString_returnsKerberosConfigurationsType() throws StackAdvisorException {
     testFromString("kerberos-configurations", StackAdvisorRequestType.KERBEROS_CONFIGURATIONS);
   }

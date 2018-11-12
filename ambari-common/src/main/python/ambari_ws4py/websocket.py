@@ -480,7 +480,8 @@ class WebSocket(object):
         if not bytes and self.reading_buffer_size > 0:
             return False
 
-        self.reading_buffer_size = s.parser.send(bytes) or DEFAULT_READING_SIZE
+        with self.lock:
+          self.reading_buffer_size = s.parser.send(bytes) or DEFAULT_READING_SIZE
 
         if s.closing is not None:
             logger.info("Closing message received (%d) '%s'" % (s.closing.code, s.closing.reason))

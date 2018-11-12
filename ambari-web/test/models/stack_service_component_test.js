@@ -121,11 +121,11 @@ var componentPropertiesValidationTests = [
       isMaster: true,
       isRestartable: true,
       isReassignable: true,
-      isDeletable: false,
+      isDeletable: true,
       isRollinRestartAllowed: false,
       isDecommissionAllowed: false,
       isRefreshConfigsAllowed: false,
-      isAddableToHost: false,
+      isAddableToHost: true,
       isShownOnInstallerAssignMasterPage: true,
       isShownOnInstallerSlaveClientPage: false,
       isShownOnAddServiceAssignMasterPage: true,
@@ -201,9 +201,9 @@ var componentPropertiesValidationTests = [
     expected: {
       displayName: 'Hive Metastore',
       minToInstall: 1,
-      maxToInstall: 1,
+      maxToInstall: Infinity,
       isRequired: true,
-      isMultipleAllowed: false,
+      isMultipleAllowed: true,
       isSlave: false,
       isMaster: true,
       isRestartable: true,
@@ -216,8 +216,8 @@ var componentPropertiesValidationTests = [
       isShownOnInstallerAssignMasterPage: true,
       isShownOnInstallerSlaveClientPage: false,
       isShownOnAddServiceAssignMasterPage: true,
-      isMasterWithMultipleInstances: false,
-      isMasterAddableInstallerWizard: false,
+      isMasterWithMultipleInstances: true,
+      isMasterAddableInstallerWizard: true,
       isHAComponentOnly: false,
       isRequiredOnAllHosts: false,
       coHostedComponents: [],
@@ -230,9 +230,9 @@ var componentPropertiesValidationTests = [
     expected: {
       displayName: 'HiveServer2',
       minToInstall: 1,
-      maxToInstall: 1,
+      maxToInstall: Infinity,
       isRequired: true,
-      isMultipleAllowed: false,
+      isMultipleAllowed: true,
       isSlave: false,
       isMaster: true,
       isRestartable: true,
@@ -245,8 +245,8 @@ var componentPropertiesValidationTests = [
       isShownOnInstallerAssignMasterPage: true,
       isShownOnInstallerSlaveClientPage: false,
       isShownOnAddServiceAssignMasterPage: true,
-      isMasterWithMultipleInstances: false,
-      isMasterAddableInstallerWizard: false,
+      isMasterWithMultipleInstances: true,
+      isMasterAddableInstallerWizard: true,
       isHAComponentOnly: false,
       isRequiredOnAllHosts: false,
       coHostedComponents: [],
@@ -303,7 +303,7 @@ describe('App.StackServiceComponent', function() {
     modelSetup.setupStackServiceComponent();
   });
 
-  App.TestAliases.testAsComputedAnd(App.StackServiceComponent.createRecord(), 'isMasterAddableInstallerWizard', ['isMaster', 'isMultipleAllowed', '!isMasterAddableOnlyOnHA', '!isNotAddableOnlyInInstall']);
+  App.TestAliases.testAsComputedAnd(App.StackServiceComponent.createRecord(), 'isMasterAddableInstallerWizard', ['isMaster', 'isMultipleAllowed', '!isMasterAddableOnlyOnHA']);
 
   describe('component properties validation', function() {
     componentPropertiesValidationTests.forEach(function(test) {
@@ -343,39 +343,6 @@ describe('App.StackServiceComponent', function() {
     cases.forEach(function (item) {
       it(item.componentName, function () {
         expect(App.StackServiceComponent.find().findProperty('componentName', item.componentName).get('isMasterAddableOnlyOnHA')).to.equal(item.isMasterAddableOnlyOnHA);
-      });
-    });
-
-  });
-
-  describe('#isNotAddableOnlyInInstall', function () {
-
-    var cases = [
-      {
-        componentName: 'HIVE_METASTORE',
-        isNotAddableOnlyInInstall: true
-      },
-      {
-        componentName: 'HIVE_SERVER',
-        isNotAddableOnlyInInstall: true
-      },
-      {
-        componentName: 'RANGER_KMS_SERVER',
-        isNotAddableOnlyInInstall: true
-      },
-      {
-        componentName: 'OOZIE_SERVER',
-        isNotAddableOnlyInInstall: true
-      },
-      {
-        componentName: 'NAMENODE',
-        isNotAddableOnlyInInstall: false
-      }
-    ];
-
-    cases.forEach(function (item) {
-      it(item.componentName, function () {
-        expect(App.StackServiceComponent.find().findProperty('componentName', item.componentName).get('isNotAddableOnlyInInstall')).to.equal(item.isNotAddableOnlyInInstall);
       });
     });
 

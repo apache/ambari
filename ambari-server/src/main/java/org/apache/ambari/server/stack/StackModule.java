@@ -34,6 +34,9 @@ import java.util.Set;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.stack.upgrade.ConfigUpgradePack;
+import org.apache.ambari.server.stack.upgrade.Grouping;
+import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.state.BulkCommandDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -44,13 +47,10 @@ import org.apache.ambari.server.state.RefreshCommand;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
-import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.ambari.server.state.stack.upgrade.Grouping;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,7 +158,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   public StackModule(StackDirectory stackDirectory, StackContext stackContext) {
     this.stackDirectory = stackDirectory;
     this.stackContext = stackContext;
-    this.stackInfo = new StackInfo();
+    stackInfo = new StackInfo();
     populateStackInfo();
   }
 
@@ -496,9 +496,9 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         setValid(false);
         addError("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
             + stackInfo.getVersion() + "' extends a non-existent service: '" + parent + "'");
-      }
-      else
+      } else {
         service.resolve(parentService, allStacks, commonServices, extensions);
+      }
     }
   }
 
@@ -565,7 +565,6 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       }
       stackInfo.setMinJdk(smx.getMinJdk());
       stackInfo.setMaxJdk(smx.getMaxJdk());
-      stackInfo.setMinUpgradeVersion(smx.getVersion().getUpgrade());
       stackInfo.setActive(smx.getVersion().isActive());
       stackInfo.setParentStackVersion(smx.getExtends());
       stackInfo.setRcoFileLocation(stackDirectory.getRcoFilePath());
@@ -574,6 +573,8 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setUpgradePacks(stackDirectory.getUpgradePacks());
       stackInfo.setConfigUpgradePack(stackDirectory.getConfigUpgradePack());
       stackInfo.setRoleCommandOrder(stackDirectory.getRoleCommandOrder());
+      stackInfo.setReleaseVersionClass(smx.getVersion().getReleaseVersion());
+      stackInfo.setLibraryClassLoader(stackDirectory.getLibraryClassLoader());
       populateConfigurationModules();
     }
 
@@ -1330,8 +1331,9 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * @param service    service
    */
   private void mergeRoleCommandOrder(ServiceModule service) {
-    if (service.getModuleInfo().getRoleCommandOrder() == null)
+    if (service.getModuleInfo().getRoleCommandOrder() == null) {
       return;
+    }
 
     stackInfo.getRoleCommandOrder().merge(service.getModuleInfo().getRoleCommandOrder(), true);
     if (LOG.isDebugEnabled()) {
@@ -1394,7 +1396,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
   @Override
   public void addErrors(Collection<String> errors) {
-    this.errorSet.addAll(errors);
+    errorSet.addAll(errors);
   }
 
 }

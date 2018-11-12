@@ -20,21 +20,28 @@ package org.apache.ambari.server.checks;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
+import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.serveraction.upgrades.DeleteUnsupportedServicesAndComponents;
+import org.apache.ambari.server.stack.upgrade.ClusterGrouping;
+import org.apache.ambari.server.stack.upgrade.Direction;
+import org.apache.ambari.server.stack.upgrade.ServerActionTask;
+import org.apache.ambari.server.stack.upgrade.Task;
+import org.apache.ambari.server.stack.upgrade.UpgradePack;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponentSupport;
-import org.apache.ambari.server.state.UpgradeHelper;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.state.stack.upgrade.ServerActionTask;
-import org.apache.ambari.server.state.stack.upgrade.Task;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.spi.RepositoryVersion;
+import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
+import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeCheckType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -44,10 +51,10 @@ import com.google.inject.Singleton;
  * stack.
  */
 @Singleton
-@UpgradeCheck(
+@UpgradeCheckInfo(
   group = UpgradeCheckGroup.INFORMATIONAL_WARNING,
   required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING })
-public class ComponentsExistInRepoCheck extends AbstractCheckDescriptor {
+public class ComponentsExistInRepoCheck extends ClusterCheck {
   public static final String AUTO_REMOVE = "auto_remove";
   public static final String MANUAL_REMOVE = "manual_remove";
   @Inject
@@ -55,39 +62,57 @@ public class ComponentsExistInRepoCheck extends AbstractCheckDescriptor {
   @Inject
   UpgradeHelper upgradeHelper;
 
+  static final UpgradeCheckDescription COMPONENTS_EXIST_IN_TARGET_REPO = new UpgradeCheckDescription("COMPONENTS_EXIST_IN_TARGET_REPO",
+      UpgradeCheckType.CLUSTER,
+      "Check installed services which are not supported in the installed stack",
+      new ImmutableMap.Builder<String, String>()
+        .put(ComponentsExistInRepoCheck.AUTO_REMOVE, "The following services and/or components do not exist in the target stack and will be automatically removed during the upgrade.")
+        .put(ComponentsExistInRepoCheck.MANUAL_REMOVE, "The following components do not exist in the target repository's stack. They must be removed from the cluster before upgrading.")
+        .build()
+      );
+
   public ComponentsExistInRepoCheck() {
-    super(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO);
+    super(COMPONENTS_EXIST_IN_TARGET_REPO);
   }
 
   @Override
-  public void perform(PrerequisiteCheck check, PrereqCheckRequest request) throws AmbariException {
+  public UpgradeCheckResult perform(UpgradeCheckRequest request) throws AmbariException {
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
+    RepositoryVersion repositoryVersion = request.getTargetRepositoryVersion();
+    StackId stackId = new StackId(repositoryVersion.getStackId());
+
     Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    String stackName = request.getTargetRepositoryVersion().getStackName();
-    String stackVersion = request.getTargetRepositoryVersion().getStackVersion();
+    String stackName = stackId.getStackName();
+    String stackVersion = stackId.getStackVersion();
     Collection<String> allUnsupported = serviceComponentSupport.allUnsupported(cluster, stackName, stackVersion);
-    report(check, request, allUnsupported);
+
+    report(result, request, allUnsupported);
+
+    return result;
   }
 
-  private void report(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request, Collection<String> allUnsupported) throws AmbariException {
+  private void report(UpgradeCheckResult result, UpgradeCheckRequest request, Collection<String> allUnsupported) throws AmbariException {
     if (allUnsupported.isEmpty()) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
+      result.setStatus(UpgradeCheckStatus.PASS);
       return;
     }
-    prerequisiteCheck.setFailedOn(new LinkedHashSet<>(allUnsupported));
+    result.setFailedOn(new LinkedHashSet<>(allUnsupported));
     if (hasDeleteUnsupportedServicesAction(upgradePack(request))) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
-      prerequisiteCheck.setFailReason(getFailReason(AUTO_REMOVE, prerequisiteCheck, request));
+      result.setStatus(UpgradeCheckStatus.WARNING);
+      result.setFailReason(getFailReason(AUTO_REMOVE, result, request));
     } else {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(getFailReason(MANUAL_REMOVE, prerequisiteCheck, request));
+      result.setStatus(UpgradeCheckStatus.FAIL);
+      result.setFailReason(getFailReason(MANUAL_REMOVE, result, request));
     }
   }
 
-  private UpgradePack upgradePack(PrereqCheckRequest request) throws AmbariException {
+  private UpgradePack upgradePack(UpgradeCheckRequest request) throws AmbariException {
+    Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
+
     return upgradeHelper.suggestUpgradePack(
       request.getClusterName(),
-      request.getSourceStackId(),
-      request.getTargetRepositoryVersion().getStackId(),
+      cluster.getCurrentStackVersion(),
+      new StackId(request.getTargetRepositoryVersion().getStackId()),
       Direction.UPGRADE,
       request.getUpgradeType(),
       null);

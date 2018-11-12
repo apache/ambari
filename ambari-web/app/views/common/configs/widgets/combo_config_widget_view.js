@@ -72,10 +72,11 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
         message: function () {
           var selectedDb = dbUtils.getDBType(this.get('config.value'));
           var dbData = dbInfo.dpPropertiesMap[selectedDb];
+          var driver_jar = dbData.sql_jar_connector ? dbData.sql_jar_connector.split("/").pop() : 'driver.jar';
           return Em.I18n.t('services.service.config.database.msg.jdbcSetup.detailed').format(
             dbData.db_name,
             dbData.db_type,
-            dbData.driver,
+            driver_jar,
             dbData.driver_download_url,
             dbData.driver_download_url,
             dbData.driver_name,

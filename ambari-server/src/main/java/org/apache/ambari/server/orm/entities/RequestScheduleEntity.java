@@ -70,6 +70,12 @@ public class RequestScheduleEntity {
   @Column(name = "batch_toleration_limit")
   private Integer batchTolerationLimit;
 
+  @Column(name = "batch_toleration_limit_per_batch")
+  private Integer batchTolerationLimitPerBatch;
+
+  @Column(name = "pause_after_first_batch")
+  private Boolean pauseAfterFirstBatch;
+
   @Column(name = "authenticated_user_id")
   private Integer authenticatedUserId;
 
@@ -326,5 +332,21 @@ public class RequestScheduleEntity {
     int result = (int) (scheduleId ^ (scheduleId >>> 32));
     result = 31 * result + clusterId.hashCode();
     return result;
+  }
+
+  public Integer getBatchTolerationLimitPerBatch() {
+    return batchTolerationLimitPerBatch;
+  }
+
+  public void setBatchTolerationLimitPerBatch(Integer batchTolerationLimitPerBatch) {
+    this.batchTolerationLimitPerBatch = batchTolerationLimitPerBatch;
+  }
+
+  public Boolean isPauseAfterFirstBatch() {
+    return pauseAfterFirstBatch;
+  }
+
+  public void setPauseAfterFirstBatch(Boolean pauseAfterFirstBatch) {
+    this.pauseAfterFirstBatch = pauseAfterFirstBatch;
   }
 }

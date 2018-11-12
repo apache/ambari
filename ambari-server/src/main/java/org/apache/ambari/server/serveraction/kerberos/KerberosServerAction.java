@@ -21,7 +21,6 @@ package org.apache.ambari.server.serveraction.kerberos;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +41,7 @@ import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerbero
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.io.FileUtils;
@@ -93,8 +93,6 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    * A (command parameter) property name used to hold the (serialized) identity filter list.
    */
   public static final String IDENTITY_FILTER = "identity_filter";
-
-  public static final String COMPONENT_FILTER = "component_filter";
 
   /**
    * A (command parameter) property name used to hold the relevant KDC type value.  See
@@ -186,10 +184,10 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   private KerberosHelper kerberosHelper;
 
   @Inject
-  HostDAO hostDAO;
+  private HostDAO hostDAO;
 
   @Inject
-  KerberosKeytabController kerberosKeytabController;
+  private KerberosKeytabController kerberosKeytabController;
 
   /**
    * Given a (command parameter) Map and a property name, attempts to safely retrieve the requested
@@ -438,7 +436,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       String defaultRealm = getDefaultRealm(commandParameters);
 
       KerberosOperationHandler handler = kerberosOperationHandlerFactory.getKerberosOperationHandler(kdcType);
-      Map<String, String> kerberosConfiguration = getConfiguration("kerberos-env");
+      Map<String, String> kerberosConfiguration = getConfigurationProperties("kerberos-env");
 
       try {
         handler.open(administratorCredential, defaultRealm, kerberosConfiguration);
@@ -451,9 +449,12 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       }
 
       try {
-        final Map<String, Collection<String>> serviceComponentFilter =kerberosKeytabController.adjustServiceComponentFilter(clusters.getCluster(getClusterName()), getServiceComponentFilter());
-        final Collection<KerberosIdentityDescriptor> serviceIdentities = serviceComponentFilter == null ? null : calculateServiceIdentities(getClusterName(), serviceComponentFilter);
-        for (ResolvedKerberosKeytab rkk : kerberosKeytabController.getFilteredKeytabs(serviceComponentFilter, getHostFilter(), getIdentityFilter())) {
+        Map<String, Collection<String>> serviceComponentFilter = getServiceComponentFilter();
+        if (serviceComponentFilter != null && pruneServiceFilter()) {
+          kerberosKeytabController.adjustServiceComponentFilter(clusters.getCluster(getClusterName()), true, serviceComponentFilter);
+        }
+        final Collection<KerberosIdentityDescriptor> serviceIdentities = serviceComponentFilter == null ? null : kerberosKeytabController.getServiceIdentities(getClusterName(), serviceComponentFilter.keySet());
+        for (ResolvedKerberosKeytab rkk : kerberosKeytabController.getFilteredKeytabs(serviceIdentities, getHostFilter(),getIdentityFilter())) {
           for (ResolvedKerberosPrincipal principal : rkk.getPrincipals()) {
             commandReport = processIdentity(principal, handler, kerberosConfiguration, isRelevantIdentity(serviceIdentities, principal), requestSharedDataContext);
             // If the principal processor returns a CommandReport, than it is time to stop
@@ -485,6 +486,10 @@ public abstract class KerberosServerAction extends AbstractServerAction {
         : commandReport;
   }
 
+  protected boolean pruneServiceFilter() {
+    return true;
+  }
+
   private boolean isRelevantIdentity(Collection<KerberosIdentityDescriptor> serviceIdentities, ResolvedKerberosPrincipal principal) {
     if (serviceIdentities != null) {
       boolean hasValidIdentity = false;
@@ -498,17 +503,6 @@ public abstract class KerberosServerAction extends AbstractServerAction {
     }
 
     return true;
-  }
-
-  private Collection<KerberosIdentityDescriptor> calculateServiceIdentities(String clusterName, Map<String, Collection<String>> serviceComponentFilter)
-      throws AmbariException {
-    final Collection<KerberosIdentityDescriptor> serviceIdentities = new ArrayList<>();
-    for (String service : serviceComponentFilter.keySet()) {
-      for (Collection<KerberosIdentityDescriptor> activeIdentities : kerberosHelper.getActiveIdentities(clusterName, null, service, null, true).values()) {
-        serviceIdentities.addAll(activeIdentities);
-      }
-    }
-    return serviceIdentities;
   }
 
   /**
@@ -580,7 +574,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   }
 
 
-  protected Map<String, ? extends Collection<String>> getServiceComponentFilter() {
+  protected Map<String, Collection<String>> getServiceComponentFilter() {
     String serializedValue = getCommandParameterValue(SERVICE_COMPONENT_FILTER);
 
     if (serializedValue != null) {
@@ -612,6 +606,33 @@ public abstract class KerberosServerAction extends AbstractServerAction {
         : ambariServerHostEntity.getHostId();
   }
 
+  /**
+   * Retrieve the current set of properties for the requested config type for the relevant cluster.
+   *
+   * @return a Map of property names to property values for the requested config type; or null if no data is found
+   * @throws AmbariException if an error occurs retrieving the relevant cluster details
+   */
+  protected Map<String, String> getConfigurationProperties(String configType) throws AmbariException {
+    if (StringUtils.isNotEmpty(configType)) {
+      Cluster cluster = getCluster();
+      Config config = (cluster == null) ? null : cluster.getDesiredConfigByType(configType);
+      Map<String, String> properties = (config == null) ? null : config.getProperties();
+
+      if (properties == null) {
+        LOG.warn("The '{}' configuration data is not available:" +
+                "\n\tcluster: {}" +
+                "\n\tconfig: {}" +
+                "\n\tproperties: null",
+            configType,
+            (cluster == null) ? "null" : "not null",
+            (config == null) ? "null" : "not null");
+      }
+
+      return properties;
+    } else {
+      return null;
+    }
+  }
 
   public static class KerberosCommandParameters {
     private Map<String, String> params;

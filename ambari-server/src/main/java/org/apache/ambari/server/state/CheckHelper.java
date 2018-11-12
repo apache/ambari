@@ -20,30 +20,33 @@ package org.apache.ambari.server.state;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.checks.AbstractCheckDescriptor;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.checks.OrchestrationQualification;
+import org.apache.ambari.server.checks.UpgradeTypeQualification;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.state.repository.ClusterVersionSummary;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.spi.RepositoryVersion;
+import org.apache.ambari.spi.upgrade.CheckQualification;
+import org.apache.ambari.spi.upgrade.UpgradeCheck;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
-
-
-class DescriptorPreCheck {
-
-  public AbstractCheckDescriptor descriptor;
-  public PrerequisiteCheck check;
-
-  public DescriptorPreCheck(AbstractCheckDescriptor descriptor, PrerequisiteCheck check) {
-    this.descriptor = descriptor;
-    this.check = check;
-  }
-}
 
 @Singleton
 public class CheckHelper {
@@ -52,33 +55,68 @@ public class CheckHelper {
    */
   private static final Logger LOG = LoggerFactory.getLogger(CheckHelper.class);
 
+  /**
+   * Used for retrieving {@link RepositoryVersionEntity} instances.
+   */
+  @Inject
+  protected Provider<RepositoryVersionDAO> repositoryVersionDaoProvider;
 
   /**
-   * Get the list of applicable prechecks. This function exists because it had to be mocked during a test in
-   * {@see CheckHelperTest }
-   * @param request Pre Check Request
-   * @param checksRegistry Registry with all PreChecks that may be applied.
-   * @return List of applicable PreChecks.
+   * Used for retrieving {@link Cluster} instances.
    */
-  public List<DescriptorPreCheck> getApplicablePrerequisiteChecks(PrereqCheckRequest request,
-                                                       List<AbstractCheckDescriptor> checksRegistry) {
-    List<DescriptorPreCheck> applicablePreChecks = new LinkedList<>();
+  @Inject
+  protected Provider<Clusters> clustersProvider;
 
-    final String clusterName = request.getClusterName();
-    for (AbstractCheckDescriptor checkDescriptor : checksRegistry) {
-      final PrerequisiteCheck prerequisiteCheck = new PrerequisiteCheck(checkDescriptor.getDescription(), clusterName);
+  @Inject
+  protected Provider<AmbariMetaInfo> metaInfoProvider;
 
+
+  /**
+   * Gets any {@link UpgradeCheck}s which have passed all of their {@link CheckQualification}s
+   * for the given upgrade request.
+   *
+   * @param request
+   * @param upgradeChecks
+   * @return
+   */
+  public List<UpgradeCheck> getApplicableChecks(UpgradeCheckRequest request,
+      List<UpgradeCheck> upgradeChecks) {
+
+    List<UpgradeCheck> applicableChecks = new LinkedList<>();
+    for (UpgradeCheck check : upgradeChecks) {
+      // build some required qualifications
+      List<CheckQualification> qualifications = Lists.newArrayList(
+          new ServiceQualification(check),
+          new OrchestrationQualification(check.getClass()),
+          new UpgradeTypeQualification(check.getClass()));
+
+      // add any extras from the check
+      List<CheckQualification> checkQualifications = check.getQualifications();
+      if (CollectionUtils.isNotEmpty(checkQualifications)) {
+        qualifications.addAll(checkQualifications);
+      }
+
+      // run the applicability check
       try {
-        if (checkDescriptor.isApplicable(request)) {
-          applicablePreChecks.add(new DescriptorPreCheck(checkDescriptor, prerequisiteCheck));
+        boolean checkIsApplicable = true;
+        for (CheckQualification qualification : qualifications) {
+          if (!qualification.isApplicable(request)) {
+            checkIsApplicable = false;
+            break;
+          }
+        }
+
+        if (checkIsApplicable) {
+          applicableChecks.add(check);
         }
       } catch (Exception ex) {
         LOG.error(
             "Unable to determine whether the pre-upgrade check {} is applicable to this upgrade",
-            checkDescriptor.getDescription().name(), ex);
+            check.getCheckDescription().name(), ex);
       }
     }
-    return applicablePreChecks;
+
+    return applicableChecks;
   }
 
   /**
@@ -88,41 +126,137 @@ public class CheckHelper {
    *          pre-requisite check request
    * @return list of pre-requisite check results
    */
-  public List<PrerequisiteCheck> performChecks(PrereqCheckRequest request,
-                                               List<AbstractCheckDescriptor> checksRegistry, Configuration config) {
+  public List<UpgradeCheckResult> performChecks(UpgradeCheckRequest request,
+                                               List<UpgradeCheck> upgradeChecks, Configuration config) {
 
     final String clusterName = request.getClusterName();
-    final List<PrerequisiteCheck> prerequisiteCheckResults = new ArrayList<>();
+    final List<UpgradeCheckResult> results = new ArrayList<>();
     final boolean canBypassPreChecks = config.isUpgradePrecheckBypass();
 
-    List<DescriptorPreCheck> applicablePreChecks = getApplicablePrerequisiteChecks(request, checksRegistry);
+    List<UpgradeCheck> applicablePreChecks = getApplicableChecks(request, upgradeChecks);
 
-    for (DescriptorPreCheck descriptorPreCheck : applicablePreChecks) {
-      AbstractCheckDescriptor checkDescriptor = descriptorPreCheck.descriptor;
-      PrerequisiteCheck prerequisiteCheck = descriptorPreCheck.check;
+    for (UpgradeCheck check : applicablePreChecks) {
+      UpgradeCheckResult result = new UpgradeCheckResult(check);
       try {
-        checkDescriptor.perform(prerequisiteCheck, request);
+        result = check.perform(request);
       } catch (ClusterNotFoundException ex) {
-        prerequisiteCheck.setFailReason("Cluster with name " + clusterName + " doesn't exists");
-        prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+        result.setFailReason("Cluster with name " + clusterName + " doesn't exists");
+        result.setStatus(UpgradeCheckStatus.FAIL);
       } catch (Exception ex) {
-        LOG.error("Check " + checkDescriptor.getDescription().name() + " failed", ex);
-        prerequisiteCheck.setFailReason("Unexpected server error happened");
-        prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+        LOG.error("Check " + check.getCheckDescription().name() + " failed", ex);
+        result.setFailReason("Unexpected server error happened");
+        result.setStatus(UpgradeCheckStatus.FAIL);
       }
 
-      if (prerequisiteCheck.getStatus() == PrereqCheckStatus.FAIL && canBypassPreChecks) {
+      if (result.getStatus() == UpgradeCheckStatus.FAIL && canBypassPreChecks) {
         LOG.error("Check {} failed but stack upgrade is allowed to bypass failures. Error to bypass: {}. Failed on: {}",
-          checkDescriptor.getDescription().name(),
-          prerequisiteCheck.getFailReason(),
-          StringUtils.join(prerequisiteCheck.getFailedOn(), ", "));
-        prerequisiteCheck.setStatus(PrereqCheckStatus.BYPASS);
+          check.getCheckDescription().name(),
+          result.getFailReason(),
+          StringUtils.join(result.getFailedOn(), ", "));
+        result.setStatus(UpgradeCheckStatus.BYPASS);
       }
 
-      prerequisiteCheckResults.add(prerequisiteCheck);
-      request.addResult(checkDescriptor.getDescription(), prerequisiteCheck.getStatus());
+      results.add(result);
+      request.addResult(check.getCheckDescription(), result.getStatus());
     }
 
-    return prerequisiteCheckResults;
+    return results;
+  }
+
+  /**
+   * Gets a de-serialized {@link VersionDefinitionXml} from the repository for
+   * this upgrade.
+   *
+   * @param request
+   *          the upgrade check request.
+   * @return the VDF XML
+   * @throws AmbariException
+   */
+  public final VersionDefinitionXml getVersionDefinitionXml(UpgradeCheckRequest request) throws AmbariException {
+    RepositoryVersion repositoryVersion = request.getTargetRepositoryVersion();
+    RepositoryVersionEntity entity = repositoryVersionDaoProvider.get().findByPK(
+        repositoryVersion.getId());
+
+    try {
+      VersionDefinitionXml vdf = entity.getRepositoryXml();
+      return vdf;
+    } catch (Exception exception) {
+      throw new AmbariException("Unable to run upgrade checks because of an invalid VDF",
+          exception);
+    }
+  }
+
+  /**
+   * Gets the services participating in the upgrade from the VDF.
+   *
+   * @param request
+   *          the upgrade check request.
+   * @return the services participating in the upgrade, which can either be all
+   *         of the cluster's services or a subset based on repository type.
+   */
+  public final Set<String> getServicesInUpgrade(UpgradeCheckRequest request) throws AmbariException {
+    final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
+
+    // the check is scoped to some services, so determine if any of those
+    // services are included in this upgrade
+    try {
+      VersionDefinitionXml vdf = getVersionDefinitionXml(request);
+      ClusterVersionSummary clusterVersionSummary = vdf.getClusterSummary(cluster,
+          metaInfoProvider.get());
+      return clusterVersionSummary.getAvailableServiceNames();
+    } catch (Exception exception) {
+      throw new AmbariException("Unable to run upgrade checks because of an invalid VDF",
+          exception);
+    }
+  }
+
+  /**
+   * The {@link ServiceQualification} class is used to determine if the
+   * service(s) associated with an upgraade check are both installed in the
+   * cluster and included in thr upgrade.
+   * <p/>
+   * If a service is installed but not included in the upgrade (for example of
+   * the upgrade is a patch upgrade), then the check should not qualify to run.
+   */
+  final class ServiceQualification implements CheckQualification {
+
+    /**
+     *
+     */
+    private final UpgradeCheck m_upgradeCheck;
+
+    /**
+     * Constructor.
+     *
+     * @param upgradeCheck
+     */
+    public ServiceQualification(UpgradeCheck upgradeCheck) {
+      m_upgradeCheck = upgradeCheck;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isApplicable(UpgradeCheckRequest request) throws AmbariException {
+
+      Set<String> applicableServices = m_upgradeCheck.getApplicableServices();
+
+      // if the check is not scoped to any particular service, then it passes
+      // this qualification
+      if (applicableServices.isEmpty()) {
+        return true;
+      }
+
+      Set<String> servicesForUpgrade = getServicesInUpgrade(request);
+
+      for (String serviceInUpgrade : servicesForUpgrade) {
+        if (applicableServices.contains(serviceInUpgrade)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
   }
 }

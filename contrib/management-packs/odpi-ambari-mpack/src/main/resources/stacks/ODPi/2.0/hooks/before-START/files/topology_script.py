@@ -18,9 +18,14 @@ limitations under the License.
 '''
 
 import sys, os
-from string import join
-import ConfigParser
-
+try:
+  # Python 2
+  from string import join
+  import ConfigParser
+except ImportError:
+  # Python 3
+  join = ' '.join
+  import configparser as ConfigParser
 
 DEFAULT_RACK = "/default-rack"
 DATA_FILE_NAME =  os.path.dirname(os.path.abspath(__file__)) + "/topology_mappings.data"
@@ -60,7 +65,7 @@ class TopologyScript():
   def execute(self, args):
     rack_map = self.load_rack_map()
     rack = self.get_racks(rack_map, args)
-    print rack
+    print(rack)
 
 if __name__ == "__main__":
   TopologyScript().execute(sys.argv)

@@ -88,7 +88,7 @@ class HdfsResourceJar:
       nameservices = main_resource.resource.nameservices
 
     # non-federated cluster
-    if not nameservices:
+    if not nameservices or len(nameservices) < 2:
       self.action_delayed_for_nameservice(None, action_name, main_resource)
     else:
       default_fs_protocol = urlparse(main_resource.resource.default_fs).scheme
@@ -660,6 +660,13 @@ class HdfsResourceProvider(Provider):
   def action_delayed(self, action_name):
     self.assert_parameter_is_set('type')
     
+    path_protocol = urlparse(self.resource.target).scheme.lower()
+    default_fs_protocol = urlparse(self.resource.default_fs).scheme.lower()
+
+    if path_protocol and default_fs_protocol != "viewfs" and path_protocol != default_fs_protocol:
+      Logger.info("Skipping creation of {0} since it is not in default filesystem.".format(self.resource.target))
+      return
+
     parsed_path = HdfsResourceProvider.parse_path(self.resource.target)
 
     parsed_not_managed_paths = [HdfsResourceProvider.parse_path(path) for path in self.resource.immutable_paths]

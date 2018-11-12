@@ -55,9 +55,19 @@ public class UnitUpdater implements BlueprintConfigurationProcessor.PropertyUpda
         return value.toString();
       } else if (!value.hasAnyUnit()) {
         return value.withUnit(stackUnit);
-      } else { // should not happen because of prevalidation in UnitValidator
+      } else { // should not happen because of pre-validation in UnitValidator
         throw new IllegalArgumentException("Property " + propertyName + "=" + origValue + " has an unsupported unit. Stack supported unit is: " + stackUnit + " or no unit");
       }
+  }
+
+  /**
+   * @return property value with removed unit
+   */
+  @Override
+  public String updateForBlueprintExport(String propertyName, String origValue, Map<String, Map<String, String>> properties, ClusterTopology topology) {
+    PropertyUnit stackUnit = PropertyUnit.of(topology.getBlueprint().getStack(), serviceName, configType, propertyName);
+    PropertyValue value = PropertyValue.of(propertyName, origValue);
+    return value.withoutUnit(stackUnit);
   }
 
   @Override
@@ -140,6 +150,12 @@ public class UnitUpdater implements BlueprintConfigurationProcessor.PropertyUpda
 
     public String withUnit(PropertyUnit unit) {
       return value + unit;
+    }
+
+    public String withoutUnit(PropertyUnit unit) {
+      return hasUnit(unit)
+        ? value.substring(0, value.length() - unit.toString().length())
+        : value;
     }
 
     @Override

@@ -23,6 +23,7 @@ from setuptools import find_packages, setup
 
 AMBARI_COMMON_PYTHON_FOLDER = "ambari-common/src/main/python"
 AMBARI_SERVER_TEST_PYTHON_FOLDER = "ambari-server/src/test/python"
+AMBARI_COMMON_TEST_PYTHON_FOLDER = "ambari-common/src/test/python"
 
 def get_ambari_common_packages():
   return find_packages(AMBARI_COMMON_PYTHON_FOLDER, exclude=["*.tests", "*.tests.*", "tests.*", "tests"])
@@ -31,7 +32,7 @@ def get_ambari_server_stack_package():
   return ["stacks.utils"]
 
 def get_extra_common_packages():
-  return ["urlinfo_processor", "ambari_jinja2", "ambari_jinja2._markupsafe"]
+  return ["urlinfo_processor", "ambari_jinja2", "ambari_jinja2._markupsafe", "mock", "mock.test"]
 
 def create_package_dir_map():
   package_dirs = {}
@@ -45,14 +46,40 @@ def create_package_dir_map():
   package_dirs["ambari_jinja2"] = AMBARI_COMMON_PYTHON_FOLDER + "/ambari_jinja2/ambari_jinja2"
   package_dirs["ambari_jinja2._markupsafe"] = AMBARI_COMMON_PYTHON_FOLDER + "/ambari_jinja2/ambari_jinja2/_markupsafe"
   package_dirs["urlinfo_processor"] = AMBARI_COMMON_PYTHON_FOLDER + "/urlinfo_processor"
+  package_dirs["mock"] = AMBARI_COMMON_TEST_PYTHON_FOLDER + "/mock"
+  package_dirs["mock.test"] = AMBARI_COMMON_TEST_PYTHON_FOLDER + "/mock/tests"
 
   return package_dirs
 
-__version__ = "3.0.0.dev0"
+__version__ = "3.0.0.0-SNAPSHOT"
+
 def get_version():
-  ambari_version = os.environ["AMBARI_VERSION"] if "AMBARI_VERSION" in os.environ else __version__
-  print ambari_version
-  return ambari_version
+  """
+  Obtain ambari version during the build from pom.xml, which will be stored in PKG-INFO file.
+  During installation from pip, pom.xml is not included in the distribution but PKG-INFO is, so it can be used
+  instead of pom.xml file. If for some reason both are not exists use the default __version__ variable.
+  All of these can be overridden by AMBARI_VERSION environment variable.
+  """
+  base_dir = dirname(__file__)
+  if "AMBARI_VERSION" in os.environ:
+    return os.environ["AMBARI_VERSION"]
+  elif os.path.exists(os.path.join(base_dir, 'pom.xml')):
+    from xml.etree import ElementTree as et
+    ns = "http://maven.apache.org/POM/4.0.0"
+    et.register_namespace('', ns)
+    tree = et.ElementTree()
+    tree.parse(os.path.join(base_dir, 'pom.xml'))
+    parent_version_tag = tree.getroot().find("{%s}version" % ns)
+    return parent_version_tag.text if parent_version_tag is not None else __version__
+  elif os.path.exists(os.path.join(base_dir, 'PKG-INFO')):
+    import re
+    version = None
+    version_re = re.compile('^Version: (.+)$', re.M)
+    with open(os.path.join(base_dir, 'PKG-INFO')) as f:
+      version = version_re.search(f.read()).group(1)
+    return version if version is not None else __version__
+  else:
+    return __version__
 
 """
 Example usage:
@@ -64,9 +91,7 @@ Example usage:
   python setup.py sdist -d "my/dist/location" upload -r "http://localhost:8080"
 
 Installing from pip:
-- pip install --extra-index-url=http://localhost:8080 ambari-python==2.7.1  // 3.0.0.dev0 is the snapshot version
-
-Note: using 'export AMBARI_VERSION=2.7.1' before commands you can redefine the package version, but you will need this export during the pip install as well
+- pip install --extra-index-url=http://localhost:8080 ambari-python==2.7.1.0  // 3.0.0.0-SNAPSHOT is the snapshot version
 """
 setup(
   name = "ambari-python",
@@ -80,7 +105,6 @@ setup(
   packages = get_ambari_common_packages() + get_ambari_server_stack_package() + get_extra_common_packages(),
   package_dir = create_package_dir_map(),
   install_requires=[
-   'mock==1.0.1',
    'coilmq==1.0.1'
   ],
   include_package_data = True,

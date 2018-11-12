@@ -67,14 +67,14 @@ public class FeedResourceProvider extends AbstractDRResourceProvider {
   /**
    * The key property ids for a Feed resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.DRFeed, FEED_NAME_PROPERTY_ID)
       .build();
 
   /**
    * The property ids for a Feed resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       FEED_NAME_PROPERTY_ID,
       FEED_DESCRIPTION_PROPERTY_ID,
       FEED_STATUS_PROPERTY_ID,

@@ -72,7 +72,7 @@ class StaticFile(Source):
       basedir = self.env.config.basedir
       path = os.path.join(basedir, "files", self.name)
       
-    if not sudo.path_isfile(path) and not sudo.path_lexists(path):
+    if not sudo.path_isfile(path):
       raise Fail("{0} Source file {1} is not found".format(repr(self), path))
 
     return self.read_file(path)

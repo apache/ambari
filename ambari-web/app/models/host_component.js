@@ -116,7 +116,17 @@ App.HostComponent = DS.Model.extend({
    * User friendly host component status
    * @returns {String}
    */
-  isActive: Em.computed.equal('passiveState', 'OFF'),
+  isActive: function() {
+    let passiveState = this.get('passiveState');
+    if (passiveState === 'IMPLIED_FROM_HOST') {
+      passiveState = this.get('host.passiveState');
+    } else if (passiveState === 'IMPLIED_FROM_SERVICE') {
+      passiveState = this.get('service.passiveState');
+    } else if (passiveState === 'IMPLIED_FROM_SERVICE_AND_HOST') {
+      return this.get('service.passiveState') === 'OFF' && this.get('host.passiveState') === 'OFF';
+    }
+    return passiveState === 'OFF';
+  }.property('passiveState', 'host.passiveState', 'service.passiveState'),
 
   /**
    * Determine if passiveState is implied from host or/and service
@@ -345,6 +355,16 @@ App.HostComponentActionMap = {
         disabled: false,
         hasSubmenu: hasMultipleMasterComponentGroups,
         submenuOptions: hasMultipleMasterComponentGroups ? this.getMastersSubmenu(ctx, 'restartCertainHostComponents') : []
+      },
+      //Ongoing feature. Will later replace RESTART_ALL
+      RESTART_SERVICE: {
+        action: 'restartServiceAllComponents',
+        context: ctx.get('serviceName'),
+        label: Em.I18n.t('restart.service.rest.context').format(ctx.get('displayName')),
+        cssClass: 'glyphicon glyphicon-time',
+        disabled: false,
+        hasSubmenu: true,
+        submenuOptions: ctx.get('controller.restartOptions')
       },
       RESTART_NAMENODES: {
         action: '',

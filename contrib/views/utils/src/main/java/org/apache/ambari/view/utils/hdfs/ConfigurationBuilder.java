@@ -18,6 +18,8 @@
 
 package org.apache.ambari.view.utils.hdfs;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import org.apache.ambari.view.ViewContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -28,6 +30,9 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,16 +53,13 @@ public class ConfigurationBuilder {
   public static final String HA_NAMENODES_INSTANCE_PROPERTY = "webhdfs.ha.namenodes.list";
 
   public static final String HA_NAMENODES_CLUSTER_PROPERTY = "dfs.ha.namenodes.%s";
-  public static final String NAMENODE_RPC_NN1_INSTANCE_PROPERTY = "webhdfs.ha.namenode.rpc-address.nn1";
-  public static final String NAMENODE_RPC_NN2_INSTANCE_PROPERTY = "webhdfs.ha.namenode.rpc-address.nn2";
+  public static final String NAMENODE_RPC_NN_INSTANCE_PROPERTY = "webhdfs.ha.namenode.rpc-address.list";
   public static final String NAMENODE_RPC_NN_CLUSTER_PROPERTY = "dfs.namenode.rpc-address.%s.%s";
 
-  public static final String NAMENODE_HTTP_NN1_INSTANCE_PROPERTY = "webhdfs.ha.namenode.http-address.nn1";
-  public static final String NAMENODE_HTTP_NN2_INSTANCE_PROPERTY = "webhdfs.ha.namenode.http-address.nn2";
+  public static final String NAMENODE_HTTP_NN_INSTANCE_PROPERTY = "webhdfs.ha.namenode.http-address.list";
   public static final String NAMENODE_HTTP_NN_CLUSTER_PROPERTY = "dfs.namenode.http-address.%s.%s";
 
-  public static final String NAMENODE_HTTPS_NN1_INSTANCE_PROPERTY = "webhdfs.ha.namenode.https-address.nn1";
-  public static final String NAMENODE_HTTPS_NN2_INSTANCE_PROPERTY = "webhdfs.ha.namenode.https-address.nn2";
+  public static final String NAMENODE_HTTPS_NN_INSTANCE_PROPERTY = "webhdfs.ha.namenode.https-address.list";
   public static final String NAMENODE_HTTPS_NN_CLUSTER_PROPERTY = "dfs.namenode.https-address.%s.%s";
 
   public static final String FAILOVER_PROXY_PROVIDER_INSTANCE_PROPERTY = "webhdfs.client.failover.proxy.provider";
@@ -74,7 +76,7 @@ public class ConfigurationBuilder {
   public static final String DFS_NAMENODE_HTTPS_ADDERSS = "dfs.namenode.https-address";
 
 
-  private Configuration conf = new Configuration();
+  protected Configuration conf = new Configuration();
   private ViewContext context;
   private AuthConfigurationBuilder authParamsBuilder;
   private Map<String, String> authParams;
@@ -137,7 +139,7 @@ public class ConfigurationBuilder {
 
   protected String getEncryptionKeyProviderUri() {
     //If KMS is configured, this value will not be empty
-    String encryptionKeyProviderUri = context.getCluster().getConfigurationValue("hdfs-site", "dfs.encryption.key.provider.uri");
+    String encryptionKeyProviderUri = getProperty("hdfs-site", "dfs.encryption.key.provider.uri");
     return encryptionKeyProviderUri;
   }
 
@@ -182,11 +184,15 @@ public class ConfigurationBuilder {
     String value;
 
     if (context.getCluster() != null) {
-      value = context.getCluster().getConfigurationValue(type, key);
+      value = getProperty(type, key);
     } else {
-      value = context.getProperties().get(instanceProperty);
+      value = getViewProperty(instanceProperty);
     }
     return value;
+  }
+
+  private String getViewProperty(String instanceProperty) {
+    return context.getProperties().get(instanceProperty);
   }
 
   private String getProperty(String type, String key) {
@@ -234,7 +240,8 @@ public class ConfigurationBuilder {
     }
   }
 
-  private void copyHAProperties(String defaultFS) throws URISyntaxException, HdfsApiException {
+  @VisibleForTesting
+  void copyHAProperties(String defaultFS) throws URISyntaxException, HdfsApiException {
     URI uri = new URI(defaultFS);
     String nameservice = uri.getHost();
 
@@ -243,27 +250,53 @@ public class ConfigurationBuilder {
       HA_NAMENODES_INSTANCE_PROPERTY);
 
     String[] namenodes = namenodeIDs.split(",");
-    if (namenodes.length != 2) {
-      throw new HdfsApiException("HDFS080 " + HA_NAMENODES_INSTANCE_PROPERTY + " namenodes count is not exactly 2");
-    }
-    //NN1
-    copyClusterProperty(String.format(NAMENODE_RPC_NN_CLUSTER_PROPERTY, nameservice, namenodes[0]),
-      NAMENODE_RPC_NN1_INSTANCE_PROPERTY);
-    copyClusterProperty(String.format(NAMENODE_HTTP_NN_CLUSTER_PROPERTY, nameservice, namenodes[0]),
-      NAMENODE_HTTP_NN1_INSTANCE_PROPERTY);
-    copyClusterProperty(String.format(NAMENODE_HTTPS_NN_CLUSTER_PROPERTY, nameservice, namenodes[0]),
-      NAMENODE_HTTPS_NN1_INSTANCE_PROPERTY);
+    //    get the property values from cluster.
+    //    If not found then get the values from view instance property.
 
-    //NN2
-    copyClusterProperty(String.format(NAMENODE_RPC_NN_CLUSTER_PROPERTY, nameservice, namenodes[1]),
-      NAMENODE_RPC_NN2_INSTANCE_PROPERTY);
-    copyClusterProperty(String.format(NAMENODE_HTTP_NN_CLUSTER_PROPERTY, nameservice, namenodes[1]),
-      NAMENODE_HTTP_NN2_INSTANCE_PROPERTY);
-    copyClusterProperty(String.format(NAMENODE_HTTPS_NN_CLUSTER_PROPERTY, nameservice, namenodes[1]),
-      NAMENODE_HTTPS_NN2_INSTANCE_PROPERTY);
+    List<String> rpcAddresses = new ArrayList<>(namenodes.length);
+    List<String> httpAddresses = new ArrayList<>(namenodes.length);
+    List<String> httpsAddresses = new ArrayList<>(namenodes.length);
+    for (String namenode : namenodes) {
+
+      String rpcAddress = getProperty(HDFS_SITE, String.format(NAMENODE_RPC_NN_CLUSTER_PROPERTY, nameservice, namenode));
+      if(!Strings.isNullOrEmpty(rpcAddress)) {
+        rpcAddresses.add(rpcAddress);
+      }
+
+      String httpAddress = getProperty(HDFS_SITE, String.format(NAMENODE_HTTP_NN_CLUSTER_PROPERTY, nameservice, namenode));
+      if(!Strings.isNullOrEmpty(httpAddress)) {
+        httpAddresses.add(httpAddress);
+      }
+
+      String httpsAddress = getProperty(HDFS_SITE, String.format(NAMENODE_HTTPS_NN_CLUSTER_PROPERTY, nameservice, namenode));
+      if(!Strings.isNullOrEmpty(httpsAddress)) {
+        httpsAddresses.add(httpsAddress);
+      }
+    }
+
+    addAddresses(rpcAddresses, NAMENODE_RPC_NN_INSTANCE_PROPERTY);
+    addAddresses(httpAddresses, NAMENODE_HTTP_NN_INSTANCE_PROPERTY);
+    addAddresses(httpsAddresses, NAMENODE_HTTPS_NN_INSTANCE_PROPERTY);
+
+    for (int i = 0 ; i < namenodes.length ; i++) {
+      conf.set( String.format(NAMENODE_RPC_NN_CLUSTER_PROPERTY, nameservice, namenodes[i]), rpcAddresses.get(i));
+      conf.set( String.format(NAMENODE_HTTP_NN_CLUSTER_PROPERTY, nameservice, namenodes[i]), httpAddresses.get(i));
+      conf.set( String.format(NAMENODE_HTTPS_NN_CLUSTER_PROPERTY, nameservice, namenodes[i]), httpsAddresses.get(i));
+    }
 
     copyClusterProperty(String.format(FAILOVER_PROXY_PROVIDER_CLUSTER_PROPERTY, nameservice),
       FAILOVER_PROXY_PROVIDER_INSTANCE_PROPERTY);
+  }
+
+  private void addAddresses(List<String> addressList, String propertyName) {
+    if(addressList.isEmpty()){
+      //      get property from view instance configs
+      String addressString = getViewProperty(propertyName);
+      LOG.debug("value of {} in view is : {}", propertyName, addressString);
+      if(!Strings.isNullOrEmpty(addressString)){
+        addressList.addAll(Arrays.asList(addressString.split(",")));
+      }
+    }
   }
 
   private String copyClusterProperty(String propertyName, String instancePropertyName) {
@@ -327,7 +360,7 @@ public class ConfigurationBuilder {
     parseProperties();
     setAuthParams(buildAuthenticationConfig());
 
-    String umask = context.getProperties().get(UMASK_INSTANCE_PROPERTY);
+    String umask = getViewProperty(UMASK_INSTANCE_PROPERTY);
     if (umask != null && !umask.isEmpty()) conf.set(UMASK_CLUSTER_PROPERTY, umask);
 
     if(null != this.customProperties){

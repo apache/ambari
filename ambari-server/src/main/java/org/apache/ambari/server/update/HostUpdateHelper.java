@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
@@ -292,7 +293,7 @@ public class HostUpdateHelper {
       for (String hostName : hostListForReplace) {
         String code = String.format("{replace_code_%d}", counter++);
         hostNameCode.put(hostName, code);
-        updatedPropertyValue = updatedPropertyValue.replace(hostName, code);
+        updatedPropertyValue = updatedPropertyValue.replaceAll("(?i)"+ Pattern.quote(hostName), code);
       }
 
       // replace codes with new host names according to ald host names
@@ -314,7 +315,7 @@ public class HostUpdateHelper {
 
     if (value != null && hostNames != null && !value.isEmpty()) {
       for (String host : hostNames) {
-        if (value.contains(host)) {
+        if (StringUtils.containsIgnoreCase(value, host)) {
           includedHostNames.add(host);
         }
       }

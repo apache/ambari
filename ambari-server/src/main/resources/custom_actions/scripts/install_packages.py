@@ -389,9 +389,12 @@ class InstallPackages(Script):
       # patches installed
       repositories = config['repositoryFile']['repositories']
       command_repos = CommandRepository(config['repositoryFile'])
-      command_repos.items = [x for x in command_repos.items if not x.applicable_services]
       repository_ids = [repository['repoId'] for repository in repositories]
       repos_to_use = {}
+
+      if not command_repos.items:
+        raise ValueError("No repositories passed with the command")
+
       for repo_id in repository_ids:
         if repo_id in self.repo_files:
           repos_to_use[repo_id] = self.repo_files[repo_id]

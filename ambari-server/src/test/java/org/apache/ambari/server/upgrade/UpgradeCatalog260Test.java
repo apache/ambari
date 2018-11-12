@@ -85,6 +85,7 @@ import org.apache.ambari.server.hooks.users.UserCreatedEvent;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
@@ -95,6 +96,7 @@ import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -113,7 +115,6 @@ import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
@@ -1024,7 +1025,8 @@ public class UpgradeCatalog260Test {
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding()
+        .addPasswordEncryptorBindings().build().configure(binder());
 
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(AmbariManagementController.class).toInstance(controller);
@@ -1050,6 +1052,7 @@ public class UpgradeCatalog260Test {
         bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
         bind(STOMPUpdatePublisher.class).toInstance(createNiceMock(STOMPUpdatePublisher.class));
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
       }
     });
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
@@ -1081,6 +1084,7 @@ public class UpgradeCatalog260Test {
     return Guice.createInjector(new Module() {
       @Override
       public void configure(Binder binder) {
+        PartialNiceMockBinder.newBuilder().addPasswordEncryptorBindings().build().configure(binder);
         binder.bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
         binder.bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(1L);
         binder.bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_ENABLED)).to(true);
@@ -1110,6 +1114,8 @@ public class UpgradeCatalog260Test {
         binder.bind(MetadataHolder.class).toInstance(createNiceMock(MetadataHolder.class));
         binder.bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
         binder.bind(ConfigHelper.class).toInstance(createStrictMock(ConfigHelper.class));
+        binder.bind(MpackManagerFactory.class).toInstance(createStrictMock(MpackManagerFactory.class));
+
 
         binder.install(new FactoryModuleBuilder().build(RequestFactory.class));
         binder.install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));

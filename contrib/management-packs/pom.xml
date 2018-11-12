@@ -19,17 +19,16 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.0.0.0-SNAPSHOT</version>
+    <version>${revision}</version>
     <relativePath>../../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari.contrib.mpacks</groupId>
   <artifactId>ambari-contrib-mpacks</artifactId>
   <packaging>pom</packaging>
-  <version>2.0.0.0-SNAPSHOT</version>
   <name>Ambari Contrib Management Packs</name>
   <properties>
-    <ambari.version>2.0.0.0-SNAPSHOT</ambari.version>
+    <ambari.version>${revision}</ambari.version>
     <ambari.dir>${project.parent.parent.basedir}</ambari.dir>
     <hadoop.version>2.7.1</hadoop.version>
   </properties>

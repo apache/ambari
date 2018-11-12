@@ -20,7 +20,6 @@ package org.apache.ambari.server.serveraction.users;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -166,7 +165,6 @@ public class PostUserCreationHookServerActionTest extends EasyMockSupport {
     EasyMock.expect(executionCommand.getClusterId()).andReturn("1").anyTimes();
     EasyMock.expect(executionCommand.getRoleCommand()).andReturn(RoleCommand.EXECUTE).times(callCnt);
     EasyMock.expect(executionCommand.getClusterName()).andReturn("unit-test-cluster").times(callCnt);
-    EasyMock.expect(executionCommand.getConfigurationTags()).andReturn(Collections.emptyMap()).times(callCnt);
     EasyMock.expect(executionCommand.getRole()).andReturn(Role.AMBARI_SERVER_ACTION.toString()).times(callCnt);
     EasyMock.expect(executionCommand.getServiceName()).andReturn("custom-hook-script").times(callCnt);
     EasyMock.expect(executionCommand.getTaskId()).andReturn(-1l).times(callCnt);

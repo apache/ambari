@@ -10,8 +10,7 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distribut
- * ed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -43,6 +42,18 @@ public class Configuration {
    * parent configuration
    */
   private Configuration parentConfiguration;
+
+  public static Configuration newEmpty() {
+    return new Configuration(new HashMap<>(), new HashMap<>());
+  }
+
+  public Configuration copy() {
+    Configuration parent = parentConfiguration;
+    parentConfiguration = null;
+    Configuration copy = new Configuration(getFullProperties(), getFullAttributes());
+    parentConfiguration = parent;
+    return copy;
+  }
 
   /**
    * Constructor.
@@ -386,10 +397,10 @@ public class Configuration {
    * Remove all occurrences of a config type
    */
   public void removeConfigType(String configType) {
-    if (properties != null && properties.containsKey(configType)) {
+    if (properties != null) {
       properties.remove(configType);
     }
-    if (attributes != null && attributes.containsKey(configType)) {
+    if (attributes != null) {
       attributes.remove(configType);
     }
     if (parentConfiguration != null) {

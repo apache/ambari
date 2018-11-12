@@ -17,6 +17,11 @@
  */
 package org.apache.ambari.server.scheduler;
 
+import static org.apache.ambari.server.state.scheduler.BatchRequestJob.BATCH_REQUEST_BATCH_ID_KEY;
+import static org.apache.ambari.server.state.scheduler.BatchRequestJob.BATCH_REQUEST_CLUSTER_NAME_KEY;
+import static org.apache.ambari.server.state.scheduler.BatchRequestJob.BATCH_REQUEST_EXECUTION_ID_KEY;
+import static org.apache.ambari.server.state.scheduler.RequestExecution.Status.ABORTED;
+import static org.apache.ambari.server.state.scheduler.RequestExecution.Status.PAUSED;
 import static org.quartz.DateBuilder.futureDate;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
@@ -124,6 +129,26 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
       }
       return;
     }
+
+    try {
+      executionScheduleManager.pauseAfterBatchIfNeeded(jobDataMap.getLong(BATCH_REQUEST_EXECUTION_ID_KEY),
+          jobDataMap.getLong(BATCH_REQUEST_BATCH_ID_KEY), jobDataMap.getString(BATCH_REQUEST_CLUSTER_NAME_KEY));
+    } catch (AmbariException e) {
+      LOG.warn("Received exception while trying to auto pause the scheduled request execution :", e);
+    }
+
+    String status = null;
+    try {
+      status = executionScheduleManager.getBatchRequestStatus(jobDataMap.getLong(BATCH_REQUEST_EXECUTION_ID_KEY), jobDataMap.getString(BATCH_REQUEST_CLUSTER_NAME_KEY));
+    } catch (AmbariException e) {
+      LOG.warn("Unable to define the status of batch request : ", e);
+    }
+
+    if(ABORTED.name().equals(status) || PAUSED.name().equals(status)) {
+      LOG.info("The linear job chain was paused or aborted, not triggering the next one");
+      return;
+    }
+
 
     int separationSeconds = jobDataMap.getIntValue(NEXT_EXECUTION_SEPARATION_SECONDS);
     Object failedCount = properties.get(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY);
