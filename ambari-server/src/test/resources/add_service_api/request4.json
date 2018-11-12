@@ -1,0 +1,15 @@
+{
+  "operation_type" : "ADD_SERVICE",
+
+  "components" : [
+    {
+      "component_name" : "NIMBUS",
+      "fqdn" : "c7401.ambari.apache.org"
+    },
+    {
+      "component_name" : "BEACON_SERVER",
+      "fqdn" : "c7402.ambari.apache.org"
+    }
+  ]
+
+}
