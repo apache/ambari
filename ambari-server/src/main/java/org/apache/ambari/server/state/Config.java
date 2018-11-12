@@ -22,10 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.security.encryption.Encryptor;
-
-import com.google.inject.persist.Transactional;
-
 /**
  * Represents a single instance of a 'Config Type'
  */

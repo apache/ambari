@@ -29,8 +29,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.utils.AmbariPath;
@@ -46,9 +44,6 @@ public class MasterKeyServiceImpl implements MasterKeyService {
   private final EncryptionService encryptionService = new AESEncryptionService();
 
   private char[] master = null;
-
-  @Inject
-  private static Configuration configuration;
 
   /**
    * Constructs a new MasterKeyServiceImpl using a master key read from a file.
@@ -97,13 +92,14 @@ public class MasterKeyServiceImpl implements MasterKeyService {
    * masterKey > masterKeyLocation > environment
    */
   public MasterKeyServiceImpl() {
+    Configuration configuration = new Configuration();
     if (configuration.isMasterKeyPersisted()) {
       if (configuration.getMasterKeyLocation() == null) {
         throw new IllegalArgumentException("The master key file location must be specified if the master key is persisted");
       }
       initFromFile(configuration.getMasterKeyLocation());
     } else {
-      InitializeFromEnv();
+      initializeFromEnv();
     }
   }
 
@@ -284,7 +280,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
     }
   }
 
-  private void InitializeFromEnv() {
+  private void initializeFromEnv() {
     String key = null;
     Map<String, String> envVariables = System.getenv();
     if (envVariables != null && !envVariables.isEmpty()) {
