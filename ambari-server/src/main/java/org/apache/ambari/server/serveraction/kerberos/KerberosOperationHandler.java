@@ -95,6 +95,11 @@ public abstract class KerberosOperationHandler {
   public final static String KERBEROS_ENV_ADMIN_SERVER_HOST = "admin_server_host";
 
   /**
+   * Kerberos-env configuration property name: kadmin_principal_name
+   */
+  public final static String KERBEROS_ENV_KADMIN_PRINCIPAL_NAME = "kadmin_principal_name";
+
+  /**
    * Kerberos-env configuration property name: executable_search_paths
    */
   public final static String KERBEROS_ENV_EXECUTABLE_SEARCH_PATHS = "executable_search_paths";
