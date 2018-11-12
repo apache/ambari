@@ -23,6 +23,7 @@ from resource_management.core.logger import Logger
 from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.script import Script
 from unittest import TestCase
+from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 
 Logger.initialize_logger()
 
@@ -41,6 +42,7 @@ class TestUpgradeSummary(TestCase):
     self.assertEqual("UPGRADE", summary.direction)
     self.assertEqual("STANDARD", summary.orchestration)
     self.assertEqual("rolling_upgrade", summary.type)
+    Script.execution_command = ExecutionCommand(Script.config)
 
     services = summary.services
     self.assertEqual("2.4.0.0-1234", services["HDFS"].source_version)

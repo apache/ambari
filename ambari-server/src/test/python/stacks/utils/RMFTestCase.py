@@ -39,6 +39,7 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
     from resource_management.libraries.script.script import Script
     from resource_management.libraries.script.config_dictionary import UnknownConfiguration
     from resource_management.libraries.functions.repository_util import RepositoryUtil
+    from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 
 PATH_TO_STACKS = "main/resources/stacks/HDP"
 PATH_TO_STACK_TESTS = "test/python/stacks/"
@@ -114,12 +115,20 @@ class RMFTestCase(TestCase):
         self.config_dict[key] = value
 
     self.config_dict = ConfigDictionary(self.config_dict)
+    self.execution_command = ExecutionCommand(self.config_dict)
+    self.module_configs = self.execution_command.get_module_configs()
+    self.stack_settings = self.execution_command.get_stack_settings()
+    self.cluster_settings = self.execution_command.get_cluster_settings()
+    Script.execution_command = self.execution_command
+    Script.module_configs = self.module_configs
+    Script.stack_settings = self.stack_settings
+    Script.cluster_settings = self.cluster_settings
 
     # append basedir to PYTHONPATH
     scriptsdir = os.path.dirname(script_path)
     basedir = os.path.dirname(scriptsdir)
     sys.path.append(scriptsdir)
-    
+
     # get method to execute
     try:
       with patch.object(platform, 'linux_distribution', return_value=os_type):
@@ -132,9 +141,9 @@ class RMFTestCase(TestCase):
         method = RMFTestCase._get_attr(script_class_inst, command)
     except IOError, err:
       raise RuntimeError("Cannot load class %s from %s: %s" % (classname, norm_path, err.message))
-    
+
     # Reload params import, otherwise it won't change properties during next import
-    if 'params' in sys.modules:  
+    if 'params' in sys.modules:
       del(sys.modules["params"])
 
     if 'params_windows' in sys.modules:
@@ -151,19 +160,23 @@ class RMFTestCase(TestCase):
       with patch('resource_management.core.shell.checked_call', side_effect=checked_call_mocks) as mocks_dict['checked_call']:
         with patch('resource_management.core.shell.call', side_effect=call_mocks) as mocks_dict['call']:
           with patch.object(Script, 'get_config', return_value=self.config_dict) as mocks_dict['get_config']:
-            with patch.object(Script, 'get_tmp_dir', return_value="/tmp") as mocks_dict['get_tmp_dir']:
-              with patch.object(Script, 'post_start') as mocks_dict['post_start']:
-                with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local) as mocks_dict['get_kinit_path']:
-                  with patch.object(platform, 'linux_distribution', return_value=os_type) as mocks_dict['linux_distribution']:
-                    with patch('resource_management.libraries.functions.stack_select.is_package_supported', return_value=True):
-                      with patch('resource_management.libraries.functions.stack_select.get_supported_packages', return_value=MagicMock()):
-                        with patch.object(os, "environ", new=os_env) as mocks_dict['environ']:
-                          with patch('resource_management.libraries.functions.stack_select.unsafe_get_stack_versions', return_value = (("",0,[]))):
-                            if not try_install:
-                              with patch.object(Script, 'install_packages') as install_mock_value:
-                                method(RMFTestCase.env, *command_args)
-                            else:
-                              method(RMFTestCase.env, *command_args)
+            with patch.object(Script, 'get_execution_command', return_value=self.execution_command) as mocks_dict['get_execution_command']:
+              with patch.object(Script, 'get_module_configs', return_value=self.module_configs) as mocks_dict['get_module_configs']:
+                with patch.object(Script, 'get_stack_settings', return_value=self.stack_settings) as mocks_dict['get_stack_settings']:
+                  with patch.object(Script, 'get_cluster_settings', return_value=self.cluster_settings) as mocks_dict['get_cluster_settings']:
+                    with patch.object(Script, 'get_tmp_dir', return_value="/tmp") as mocks_dict['get_tmp_dir']:
+                      with patch.object(Script, 'post_start') as mocks_dict['post_start']:
+                        with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local) as mocks_dict['get_kinit_path']:
+                          with patch.object(platform, 'linux_distribution', return_value=os_type) as mocks_dict['linux_distribution']:
+                            with patch('resource_management.libraries.functions.stack_select.is_package_supported', return_value=True):
+                              with patch('resource_management.libraries.functions.stack_select.get_supported_packages', return_value=MagicMock()):
+                                with patch.object(os, "environ", new=os_env) as mocks_dict['environ']:
+                                  with patch('resource_management.libraries.functions.stack_select.unsafe_get_stack_versions', return_value = (("",0,[]))):
+                                    if not try_install:
+                                      with patch.object(Script, 'install_packages') as install_mock_value:
+                                        method(RMFTestCase.env, *command_args)
+                                    else:
+                                      method(RMFTestCase.env, *command_args)
 
     sys.path.remove(scriptsdir)
 
@@ -220,11 +233,14 @@ class RMFTestCase(TestCase):
 
   def getConfig(self):
     return self.config_dict
-          
+
+  def get_resources(self):
+    return RMFTestCase.env.resource_list
+
   @staticmethod
   def get_src_folder():
     return os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
-  
+
   @staticmethod
   def _getCommonServicesFolder():
     return os.path.join(RMFTestCase.get_src_folder(), PATH_TO_COMMON_SERVICES)
@@ -267,16 +283,16 @@ class RMFTestCase(TestCase):
       raise RuntimeError("'{0}' has no attribute '{1}'".format(module, attr))
     method = getattr(module, attr)
     return method
-  
+
   def _ppformat(self, val):
     if isinstance(val, dict) and len(val) > MAX_SHOWN_DICT_LEN:
       return "self.getConfig()['configurations']['?']"
-    
+
     val = pprint.pformat(val)
-    
+
     if val.startswith("u'") or val.startswith('u"'):
       return val[1:]
-    
+
     return val
 
   def reindent(self, s, numSpaces):
@@ -354,7 +370,7 @@ class RMFTestCase(TestCase):
     with patch.object(UnknownConfiguration, '__getattr__', return_value=lambda: "UnknownConfiguration()"):
       self.assertNotEqual(len(RMFTestCase.env.resource_list), 0, "There were no more resources executed!")
       resource = RMFTestCase.env.resource_list.pop(0)
-      
+
       self.assertRegexpMatches(resource.__class__.__name__, resource_type)
       self.assertRegexpMatches(resource.name, name)
       for key in set(resource.arguments.keys()) | set(kwargs.keys()):
@@ -377,7 +393,7 @@ class RMFTestCase(TestCase):
 
   def assertNoMoreResources(self):
     self.assertEquals(len(RMFTestCase.env.resource_list), 0, "There were other resources executed!")
-    
+
   def assertResourceCalledByIndex(self, index, resource_type, name, **kwargs):
     resource = RMFTestCase.env.resource_list[index]
     self.assertEquals(resource_type, resource.__class__.__name__)
@@ -385,12 +401,12 @@ class RMFTestCase(TestCase):
     self.assertEquals(kwargs, resource.arguments)
 
 
-# HACK: This is used to check Templates, StaticFile, InlineTemplate in testcases    
+# HACK: This is used to check Templates, StaticFile, InlineTemplate in test cases
 def Template(name, **kwargs):
   with RMFTestCase.env:
     from resource_management.core.source import Template
     return Template(name, **kwargs)
-  
+
 def StaticFile(name, **kwargs):
   with RMFTestCase.env:
     from resource_management.core.source import StaticFile
@@ -398,16 +414,16 @@ def StaticFile(name, **kwargs):
     sudo.path_isfile = lambda path: True
     sudo.read_file = lambda path: 'dummy_output'
     return StaticFile(name, **kwargs)
-  
+
 def InlineTemplate(name, **kwargs):
   with RMFTestCase.env:
     from resource_management.core.source import InlineTemplate
     return InlineTemplate(name, **kwargs)
-  
+
 class DownloadSource():
   def __init__(self, name, **kwargs):
     self.name = name
-  
+
   def __eq__(self, other):
     from resource_management.core.source import DownloadSource
     return isinstance(other, DownloadSource) and self.name == other.name
@@ -418,17 +434,17 @@ class UnknownConfigurationMock():
 
   def __ne__(self, other):
     return not self.__eq__(other)
-  
+
   def __repr__(self):
     return "UnknownConfigurationMock()"
-  
+
 class FunctionMock():
   def __init__(self, name):
     self.name = name
-    
+
   def __ne__(self, other):
     return not self.__eq__(other)
-    
+
   def __eq__(self, other):
     return hasattr(other, '__call__') and hasattr(other, '__name__') and self.name == other.__name__
 
@@ -454,7 +470,7 @@ class CallFunctionMock():
 def experimental_mock(*args, **kwargs):
   """
   Used to disable experimental mocks...
-  :return: 
+  :return:
   """
   def decorator(function):
     def wrapper(*args, **kwargs):

@@ -31,6 +31,11 @@ from resource_management.libraries.functions.version import format_stack_version
 from string import lower
 
 config = Script.get_config()
+execution_command = Script.get_execution_command()
+module_configs = Script.get_module_configs()
+stack_settings = Script.get_stack_settings()
+cluster_settings = Script.get_cluster_settings()
+module_name = execution_command.get_module_name()
 tmp_dir = Script.get_tmp_dir()
 
 dfs_type = default("/clusterLevelParams/dfs_type", "")

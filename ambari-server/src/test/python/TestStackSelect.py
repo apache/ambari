@@ -25,6 +25,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.script import Script
+from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 
 from unittest import TestCase
 
@@ -62,6 +63,7 @@ class TestStackSelect(TestCase):
     Script.config.update( { "configurations" : { "cluster-env" : {} }, "clusterLevelParams": {} } )
     Script.config["configurations"]["cluster-env"]["stack_packages"] = self._get_stack_packages()
     Script.config["clusterLevelParams"] = { "stack_name" : "HDP" }
+    Script.execution_command = ExecutionCommand(Script.config)
 
     stack_select.select_packages(version)
 
@@ -88,6 +90,7 @@ class TestStackSelect(TestCase):
     Script.config.update( { "configurations" : { "cluster-env" : {} }, "clusterLevelParams": {} } )
     Script.config["configurations"]["cluster-env"]["stack_packages"] = self._get_stack_packages()
     Script.config["clusterLevelParams"] = { "stack_name" : "HDP" }
+    Script.execution_command = ExecutionCommand(Script.config)
 
     stack_select.select_packages(version)
 
@@ -122,6 +125,7 @@ class TestStackSelect(TestCase):
     Script.config.update( { "configurations" : { "cluster-env" : {} }, "clusterLevelParams": {} } )
     Script.config["configurations"]["cluster-env"]["stack_packages"] = self._get_stack_packages_with_legacy()
     Script.config["clusterLevelParams"] = { "stack_name" : "HDP" }
+    Script.execution_command = ExecutionCommand(Script.config)
 
     stack_select.select_packages(version)
 

@@ -80,11 +80,54 @@
   },
   "configurations": {
     "cluster-env": {
+      "stack_name": "HDP",
       "repo_suse_rhel_template": "[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0",
       "repo_ubuntu_template": "{{package_type}} {{base_url}} {{components}}"
     },
     "core-site": {
       "io.compression.codecs": "com.hadoop.compression.lzo"
     }
+  },
+  "repositoryFile": {
+    "resolved": true,
+    "repoVersion": "2.6.4.0-60",
+    "repositories": [
+      {
+        "mirrorsList": null,
+        "ambariManaged": true,
+        "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60",
+        "repoName": "HDP",
+        "components": null,
+        "osType": "redhat6",
+        "distribution": null,
+        "repoId": "HDP-2.6-repo-1"
+      },
+      {
+        "mirrorsList": null,
+        "ambariManaged": true,
+        "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60",
+        "repoName": "HDP-GPL",
+        "components": null,
+        "osType": "redhat6",
+        "distribution": null,
+        "repoId": "HDP-2.6-GPL-repo-1"
+      },
+      {
+        "mirrorsList": null,
+        "ambariManaged": true,
+        "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6",
+        "repoName": "HDP-UTILS",
+        "components": null,
+        "osType": "redhat6",
+        "distribution": null,
+        "repoId": "HDP-UTILS-1.1.0.22-repo-1"
+      }
+    ],
+    "feature": {
+      "m_isScoped": true,
+      "m_isPreInstalled": false
+    },
+    "stackName": "HDP",
+    "repoVersionId": 1
   }
 }

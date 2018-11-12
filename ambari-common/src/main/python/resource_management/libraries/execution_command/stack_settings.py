@@ -52,21 +52,20 @@ class StackSettings(object):
         """
         return self.__get_value("stack_name")
 
-    '''  TODO : Open it when we can serve them from stackSettings.
     def get_mpack_version(self):
         """
         Retrieve mpack version from command.json, i.e "stack_version": "1.0.0-b224"
         :return: mpack version string
         """
         return self.__get_value("stack_version")
-    
-    def get_user_groups(self):
+
+    def get_user_group(self):
         """
         Retrieve a list of ambari server user groups, i.e "user_groups": "{\"zookeeper\":[\"hadoop\"],\"ambari-qa\":[\"hadoop\"]}"
         :return: String, as a user group dict object
         """
-        return self.__get_value("user_groups")
-    '''
+        return self.__get_value("user_group")
+
 
     def get_group_list(self):
         """

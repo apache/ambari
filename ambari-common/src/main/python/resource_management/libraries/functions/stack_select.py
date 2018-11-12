@@ -161,7 +161,11 @@ def get_packages(scope, service_name = None, component_name = None):
   :param component_name: the component name, such as ZOOKEEPER_SERVER
   :return:  the packages to use with stack-select or None
   """
+  from resource_management.libraries.execution_command.execution_command import ExecutionCommand
   from resource_management.libraries.functions.default import default
+
+  execution_command = Script.get_execution_command()
+  stack_settings = execution_command.get_stack_settings()
 
   if scope not in _PACKAGE_SCOPES:
     raise Fail("The specified scope of {0} is not valid".format(scope))
@@ -176,15 +180,15 @@ def get_packages(scope, service_name = None, component_name = None):
     component_name = config['role']
 
 
-  stack_name = default("/clusterLevelParams/stack_name", None)
+  stack_name = execution_command.get_mpack_name()
   if stack_name is None:
     raise Fail("The stack name is not present in the command. Packages for stack-select tool cannot be loaded.")
 
-  stack_packages_config = default("/configurations/cluster-env/stack_packages", None)
-  if stack_packages_config is None:
+  stack_packages_setting = stack_settings.get_stack_packages()
+  if stack_packages_setting is None:
     raise Fail("The stack packages are not defined on the command. Unable to load packages for the stack-select tool")
 
-  data = json.loads(stack_packages_config)
+  data = json.loads(stack_packages_setting)
 
   if stack_name not in data:
     raise Fail(

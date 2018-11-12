@@ -262,8 +262,10 @@ class Script(object):
     :param command_name: command name
     :return: True or False
     """
-    from resource_management.libraries.functions.default import default
-    stack_version_unformatted = str(default("/clusterLevelParams/stack_version", ""))
+    from resource_management.libraries.script.script import Script
+
+    stack_version_unformatted = Script.get_execution_command().get_mpack_version()
+
     stack_version_formatted = format_stack_version(stack_version_unformatted)
     if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
       if command_name.lower() == "get_version":
@@ -516,7 +518,7 @@ class Script(object):
 
     package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
     package_regex = name.replace(STACK_VERSION_PLACEHOLDER, '(\d|{0})+'.format(package_delimiter)) + "$"
-    repo = default('/repositoryFile', None)
+    repo = Script.execution_command.get_repository_file()
     name_with_version = None
 
     if repo:
@@ -551,7 +553,8 @@ class Script(object):
 
     # repositoryFile is the truth
     # package_version should be made to the form W_X_Y_Z_nnnn
-    package_version = default("repositoryFile/repoVersion", None)
+    repositoryFileDict = Script.execution_command.get_repository_file()
+    package_version = repositoryFileDict.get("repoVersion")
 
     # TODO remove legacy checks
     if package_version is None:
@@ -570,8 +573,8 @@ class Script(object):
     # The cluster effective version comes down when the version is known after the initial
     # install.  In that case we should not be guessing which version when invoking INSTALL, but
     # use the supplied version to build the package_version
-    effective_version = default("commandParams/version", None)
-    role_command = default("roleCommand", None)
+    effective_version = Script.execution_command.get_new_mpack_version_for_upgrade()
+    role_command = Script.execution_command.get_role_command()
 
     if (package_version is None or '*' in package_version) \
         and effective_version is not None and 'INSTALL' == role_command:
@@ -687,7 +690,7 @@ class Script(object):
     """
     from resource_management.libraries.functions.default import default
 
-    command_role = default("/role", default_role)
+    command_role = Script.execution_command.get_component_type()
     if command_role in role_directory_map:
       return role_directory_map[command_role]
     else:
@@ -700,9 +703,12 @@ class Script(object):
     :return: a stack name or None
     """
     from resource_management.libraries.functions.default import default
-    stack_name = default("/clusterLevelParams/stack_name", None)
+    stack_name = Script.get_execution_command().get_mpack_name()
     if stack_name is None:
-      stack_name = default("/configurations/cluster-env/stack_name", "HDP")
+      stack_name = Script.get_execution_command().get_stack_settings().get_mpack_name()
+    if stack_name is None:
+      repositoryFileDict = Script.execution_command.get_repository_file()
+      stack_name = repositoryFileDict.get("stackName", "HDP")
 
     return stack_name
 
@@ -1176,7 +1182,8 @@ class Script(object):
     if Script.instance is None:
 
       from resource_management.libraries.functions.default import default
-      use_proxy = default("/agentLevelParams/agentConfigParams/agent/use_system_proxy_settings", True)
+      # default value is True
+      use_proxy = Script.execution_command.check_agent_proxy_settings()
       if not use_proxy:
         reconfigure_urllib2_opener(ignore_system_proxy=True)
 
