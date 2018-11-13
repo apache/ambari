@@ -61,7 +61,6 @@ public class StackAdvisorRunnerTest {
 
   @Test(expected = StackAdvisorException.class)
   public void testRunScript_processStartThrowsException_returnFalse() throws Exception {
-    String script = "echo";
     StackAdvisorCommandType saCommandType = StackAdvisorCommandType.RECOMMEND_COMPONENT_LAYOUT;
     File actionDirectory = temp.newFolder("actionDir");
     ProcessBuilder processBuilder = createNiceMock(ProcessBuilder.class);
@@ -78,7 +77,6 @@ public class StackAdvisorRunnerTest {
 
   @Test(expected = StackAdvisorRequestException.class)
   public void testRunScript_processExitCode1_returnFalse() throws Exception {
-    String script = "echo";
     StackAdvisorCommandType saCommandType = StackAdvisorCommandType.RECOMMEND_COMPONENT_LAYOUT;
     File actionDirectory = temp.newFolder("actionDir");
     ProcessBuilder processBuilder = createNiceMock(ProcessBuilder.class);
@@ -97,7 +95,6 @@ public class StackAdvisorRunnerTest {
 
   @Test(expected = StackAdvisorException.class)
   public void testRunScript_processExitCode2_returnFalse() throws Exception {
-    String script = "echo";
     StackAdvisorCommandType saCommandType = StackAdvisorCommandType.RECOMMEND_COMPONENT_LAYOUT;
     File actionDirectory = temp.newFolder("actionDir");
     ProcessBuilder processBuilder = createNiceMock(ProcessBuilder.class);
@@ -117,7 +114,6 @@ public class StackAdvisorRunnerTest {
 
   @Test
   public void testRunScript_processExitCodeZero_returnTrue() throws Exception {
-    String script = "echo";
     StackAdvisorCommandType saCommandType = StackAdvisorCommandType.RECOMMEND_COMPONENT_LAYOUT;
     File actionDirectory = temp.newFolder("actionDir");
     ProcessBuilder processBuilder = createNiceMock(ProcessBuilder.class);

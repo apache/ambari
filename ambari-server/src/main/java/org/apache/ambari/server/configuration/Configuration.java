@@ -716,6 +716,15 @@ public class Configuration {
       "mpacks.staging.path", null);
 
   /**
+   * The Ambari Management Pack v2 staging directory on the Ambari Server.
+   */
+  @Markdown(
+          description = "The Ambari Management Pack version-2 staging directory on the Ambari Server.",
+          examples = { "/var/lib/ambari-server/resources/mpacks-v2" })
+  public static final ConfigurationProperty<String> MPACKS_V2_STAGING_DIR_PATH = new ConfigurationProperty<>(
+          "mpacks-v2.staging.path", null);
+
+  /**
    * The full path to the file which contains the Ambari Server version.
    */
   @Markdown(
@@ -2563,6 +2572,9 @@ public class Configuration {
   @Markdown(description = "Whether security password encryption is enabled or not. In case it is we store passwords in their own file(s); otherwise we store passwords in the Ambari credential store.")
   public static final ConfigurationProperty<Boolean> SECURITY_PASSWORD_ENCRYPTON_ENABLED = new ConfigurationProperty<>("security.passwords.encryption.enabled", false);
 
+  @Markdown(description="Whether to encrypt sensitive data (at rest) on service level configuration.")
+  public static final ConfigurationProperty<Boolean> SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED = new ConfigurationProperty<>("security.server.encrypt_sensitive_data", false);
+
   /**
    * The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures
    */
@@ -3507,6 +3519,14 @@ public class Configuration {
    */
   public String getMpacksStagingPath() {
     return getProperty(MPACKS_STAGING_DIR_PATH);
+  }
+
+  /**
+   * Gets ambari v2 management packs staging directory
+   * @return String
+   */
+  public String getMpacksV2StagingPath() {
+    return getProperty(MPACKS_V2_STAGING_DIR_PATH);
   }
 
 
@@ -5499,6 +5519,14 @@ public class Configuration {
    */
   public boolean isSecurityPasswordEncryptionEnabled() {
     return Boolean.parseBoolean(getProperty(SECURITY_PASSWORD_ENCRYPTON_ENABLED));
+  }
+
+  public boolean isSensitiveDataEncryptionEnabled() {
+    return Boolean.parseBoolean(getProperty(SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED));
+  }
+
+  public boolean shouldEncryptSensitiveData() {
+    return isSecurityPasswordEncryptionEnabled() && isSensitiveDataEncryptionEnabled();
   }
 
   /**

@@ -17,7 +17,8 @@
  */
 package org.apache.ambari.server.utils;
 
-import org.apache.ambari.server.bootstrap.BootStrapImpl;
+import static org.apache.ambari.server.utils.VersionUtils.DEV_VERSION;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -63,9 +64,9 @@ public class TestVersionUtils {
     Assert.assertTrue(VersionUtils.areVersionsEqual("1.2.3", "1.2.3", true));
     Assert.assertTrue(VersionUtils.areVersionsEqual("", "", true));
     Assert.assertTrue(VersionUtils.areVersionsEqual(null, null, true));
-    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, "1.2.3", false));
-    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, "", true));
-    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, null, true));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(DEV_VERSION, "1.2.3", false));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(DEV_VERSION, "", true));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(DEV_VERSION, null, true));
 
     Assert.assertFalse(VersionUtils.areVersionsEqual("1.2.3.1", "1.2.3", false));
     Assert.assertFalse(VersionUtils.areVersionsEqual("2.1.3", "1.2.3", false));
@@ -109,9 +110,9 @@ public class TestVersionUtils {
     Assert.assertTrue(VersionUtils.areVersionsEqual("1.2.3_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", true));
     Assert.assertTrue(VersionUtils.areVersionsEqual("", "", true));
     Assert.assertTrue(VersionUtils.areVersionsEqual(null, null, true));
-    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, "1.2.3_MYAMBARI_000000", false));
-    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, "", true));
-    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, null, true));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(DEV_VERSION, "1.2.3_MYAMBARI_000000", false));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(DEV_VERSION, "", true));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(DEV_VERSION, null, true));
 
     Assert.assertFalse(VersionUtils.areVersionsEqual("1.2.3.1_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", false));
     Assert.assertFalse(VersionUtils.areVersionsEqual("2.1.3_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", false));
@@ -277,17 +278,41 @@ public class TestVersionUtils {
     Assert.assertEquals(-1, MpackVersion.parse("1.2.3-h0-b10").compareTo(MpackVersion.parse("2.2.3-b10")));
     Assert.assertEquals(-1, MpackVersion.parse("1.2.3-h0-b10").compareTo(MpackVersion.parse("1.2.3-h1-b10")));
     Assert.assertEquals(-1, MpackVersion.parse("1.2.3-h0-b10").compareTo(MpackVersion.parse("1.2.3-h0-b11")));
+
+    Assert.assertEquals(0, MpackVersion.parse("1", false).compareTo(MpackVersion.parse("1.0.0-h0-b0")));
+    Assert.assertEquals(0, MpackVersion.parse("1.0", false).compareTo(MpackVersion.parse("1.0.0-h0-b0")));
+    Assert.assertEquals(0, MpackVersion.parse("1.0.0", false).compareTo(MpackVersion.parse("1.0.0-h0-b0")));
+    Assert.assertEquals(0, MpackVersion.parse("1.0.0-b0", false).compareTo(MpackVersion.parse("1.0.0-h0-b0")));
+    Assert.assertEquals(0, MpackVersion.parse("1.0.0-h0-b0", false).compareTo(MpackVersion.parse("1.0.0-h0-b0")));
+
+    Assert.assertEquals(-1, MpackVersion.parse("1", false).compareTo(MpackVersion.parse("1.0.0-h0-b111")));
+    Assert.assertEquals(-1, MpackVersion.parse("1.0", false).compareTo(MpackVersion.parse("1.0.0-h0-b111")));
+    Assert.assertEquals(-1, MpackVersion.parse("1.0.0", false).compareTo(MpackVersion.parse("1.0.0-h0-b111")));
+    Assert.assertEquals(-1, MpackVersion.parse("1.0.0-b0", false).compareTo(MpackVersion.parse("1.0.0-h0-b111")));
+    Assert.assertEquals(-1, MpackVersion.parse("1.0.0-h0-b0", false).compareTo(MpackVersion.parse("1.0.0-h0-b111")));
+
+    Assert.assertEquals(1, MpackVersion.parse("2", false).compareTo(MpackVersion.parse("1.0.0-h0-b111")));
+    Assert.assertEquals(1, MpackVersion.parse("1.1", false).compareTo(MpackVersion.parse("1.0.0-h0-b111")));
+    Assert.assertEquals(1, MpackVersion.parse("1.0.1", false).compareTo(MpackVersion.parse("1.0.0-h0-b111")));
   }
 
   @Test
   public void testStackVersionWithValidVersions() {
     Assert.assertEquals(1, MpackVersion.parse("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("1.2.3.4-888")));
-    Assert.assertEquals(1, MpackVersion.parseStackVersion("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("1.2.3.4-888")));
+    Assert.assertEquals(1, MpackVersion.parse("1.2.4-h1-b1").compareTo(MpackVersion.parseStackVersion("1.2.3.4-888")));
+    Assert.assertEquals(1, MpackVersion.parse("1.3.3-h1-b1").compareTo(MpackVersion.parseStackVersion("1.2.3.4-888")));
+    Assert.assertEquals(1, MpackVersion.parse("2.2.3-h1-b1").compareTo(MpackVersion.parseStackVersion("1.2.3.4-888")));
+
+    Assert.assertEquals(0, MpackVersion.parse("1.2.3-h4-b888").compareTo(MpackVersion.parseStackVersion("1.2.3.4-888")));
+
     Assert.assertEquals(-1, MpackVersion.parse("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("1.2.3.11-888")));
+    Assert.assertEquals(-1, MpackVersion.parse("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("1.2.4.1-1")));
+    Assert.assertEquals(-1, MpackVersion.parse("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("1.3.3.1-1")));
+    Assert.assertEquals(-1, MpackVersion.parse("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("2.2.3.1-1")));
+
     Assert.assertEquals(1, MpackVersion.parseStackVersion("1.2.3.4-999").compareTo(MpackVersion.parseStackVersion("1.2.3.4-888")));
-    Assert.assertEquals(0, MpackVersion.parseStackVersion("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("1.2.3-h10-b10")));
-    Assert.assertEquals(0, MpackVersion.parseStackVersion("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("1.2.3.10-10")));
-    Assert.assertEquals(-1, MpackVersion.parse("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("2.2.3.4-888")));
+    Assert.assertEquals(0, MpackVersion.parseStackVersion("1.2.3.4-999").compareTo(MpackVersion.parseStackVersion("1.2.3.4-999")));
+    Assert.assertEquals(-1, MpackVersion.parseStackVersion("1.2.3.1-999").compareTo(MpackVersion.parseStackVersion("1.2.3.4-888")));
   }
 
   @Test

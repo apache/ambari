@@ -13,13 +13,12 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.0.0.0-SNAPSHOT</version>
+    <version>${revision}</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-funtest</artifactId>
-  <version>2.0.0.0-SNAPSHOT</version>
-  <packaging>${packagingFormat}</packaging>
+  <packaging>jar</packaging>
   <name>Ambari Functional Tests</name>
   <description>Ambari Functional Tests</description>
   <build>
@@ -120,7 +119,6 @@
         <fileextension.shell>sh</fileextension.shell>
         <fileextension.dot.shell-default></fileextension.dot.shell-default>
         <assemblydescriptor>src/main/assemblies/empty.xml</assemblydescriptor>
-        <packagingFormat>jar</packagingFormat>
       </properties>
     </profile>
     <profile>
@@ -138,7 +136,6 @@
         <fileextension.shell>cmd</fileextension.shell>
         <fileextension.dot.shell-default></fileextension.dot.shell-default>
         <assemblydescriptor>src/main/assemblies/empty.xml</assemblydescriptor>
-        <packagingFormat>jar</packagingFormat>
         </properties>
     </profile>
   </profiles>

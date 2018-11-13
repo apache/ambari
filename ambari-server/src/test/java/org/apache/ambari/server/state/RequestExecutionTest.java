@@ -304,7 +304,8 @@ public class RequestExecutionTest {
     }
     Assert.assertNotNull(postBatchRequest);
     // Not read by default
-    Assert.assertNull(postBatchRequest.getBody());
+    Assert.assertNotNull(postBatchRequest.getBody());
+    Assert.assertEquals("testBody", postBatchRequest.getBody());
 
     RequestScheduleResponse requestScheduleResponse = requestExecution
       .convertToResponseWithBody();

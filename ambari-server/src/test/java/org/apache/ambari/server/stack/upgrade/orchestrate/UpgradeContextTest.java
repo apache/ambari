@@ -24,11 +24,13 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
@@ -37,20 +39,21 @@ import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
 import org.apache.ambari.server.stack.upgrade.Direction;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
-import org.apache.ambari.server.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -116,6 +119,9 @@ public class UpgradeContextTest extends EasyMockSupport {
   @Mock
   private VersionDefinitionXml m_vdfXml;
 
+  @Mock
+  private AmbariMetaInfo m_ambariMetaInfo;
+
   /**
    * The upgrade history to return for the completed upgrade.
    */
@@ -129,6 +135,9 @@ public class UpgradeContextTest extends EasyMockSupport {
   @Before
   public void setup() throws Exception {
     injectMocks(this);
+
+    expect(m_ambariMetaInfo.getUpgradePacks(
+        EasyMock.anyString(), EasyMock.anyString())).andReturn(Collections.emptyMap()).anyTimes();
 
     expect(m_sourceRepositoryVersion.getId()).andReturn(1L).anyTimes();
     expect(m_sourceRepositoryVersion.getStackId()).andReturn(new StackId("HDP", "2.6")).anyTimes();
@@ -158,7 +167,8 @@ public class UpgradeContextTest extends EasyMockSupport {
     expect(m_completedRevertableUpgrade.getRepositoryVersion()).andReturn(m_targetRepositoryVersion).anyTimes();
     expect(m_completedRevertableUpgrade.getOrchestration()).andReturn(RepositoryType.PATCH).anyTimes();
     expect(m_completedRevertableUpgrade.getHistory()).andReturn(m_upgradeHistory).anyTimes();
-    expect(m_completedRevertableUpgrade.getUpgradePackage()).andReturn(null).anyTimes();
+    expect(m_completedRevertableUpgrade.getUpgradePackage()).andReturn("myUpgradePack").anyTimes();
+    expect(m_completedRevertableUpgrade.getUpgradePackStackId()).andReturn(new StackId((String) null)).anyTimes();
 
     RepositoryVersionEntity hdfsRepositoryVersion = createNiceMock(RepositoryVersionEntity.class);
     expect(hdfsRepositoryVersion.getId()).andReturn(1L).anyTimes();
@@ -174,7 +184,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     expect(m_cluster.getUpgradeInProgress()).andReturn(null).atLeastOnce();
 
     // VDF stuff
-    expect(m_vdfXml.getClusterSummary(EasyMock.anyObject(Cluster.class))).andReturn(
+    expect(m_vdfXml.getClusterSummary(EasyMock.anyObject(Cluster.class), EasyMock.anyObject(AmbariMetaInfo.class))).andReturn(
         m_clusterVersionSummary).anyTimes();
   }
 
@@ -188,6 +198,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     UpgradePack upgradePack = createNiceMock(UpgradePack.class);
+    AmbariMetaInfo ami = createNiceMock(AmbariMetaInfo.class);
 
     expect(m_targetRepositoryVersion.getType()).andReturn(RepositoryType.STANDARD).atLeastOnce();
 
@@ -205,7 +216,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     requestMap.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
 
     UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
-        m_upgradeDAO, m_repositoryVersionDAO, configHelper);
+        m_upgradeDAO, m_repositoryVersionDAO, configHelper, ami);
 
     assertEquals(Direction.UPGRADE, context.getDirection());
     assertEquals(RepositoryType.STANDARD, context.getOrchestrationType());
@@ -226,6 +237,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     UpgradePack upgradePack = createNiceMock(UpgradePack.class);
+    AmbariMetaInfo ami = createNiceMock(AmbariMetaInfo.class);
 
     expect(m_clusterVersionSummary.getAvailableServiceNames()).andReturn(
         Sets.newHashSet(HDFS_SERVICE_NAME)).once();
@@ -252,7 +264,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     requestMap.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
 
     UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
-        m_upgradeDAO, m_repositoryVersionDAO, configHelper);
+        m_upgradeDAO, m_repositoryVersionDAO, configHelper, ami);
 
     assertEquals(Direction.UPGRADE, context.getDirection());
     assertEquals(RepositoryType.PATCH, context.getOrchestrationType());
@@ -275,6 +287,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     UpgradePack upgradePack = createNiceMock(UpgradePack.class);
+    AmbariMetaInfo ami = createNiceMock(AmbariMetaInfo.class);
 
     expect(m_clusterVersionSummary.getAvailableServiceNames()).andReturn(
         Sets.newHashSet(HDFS_SERVICE_NAME)).once();
@@ -301,7 +314,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     requestMap.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
 
     UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
-        m_upgradeDAO, m_repositoryVersionDAO, configHelper);
+        m_upgradeDAO, m_repositoryVersionDAO, configHelper, ami);
 
     assertEquals(Direction.UPGRADE, context.getDirection());
     assertEquals(RepositoryType.MAINT, context.getOrchestrationType());
@@ -321,12 +334,14 @@ public class UpgradeContextTest extends EasyMockSupport {
   public void testRevert() throws Exception {
     UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
-
     UpgradePack upgradePack = createNiceMock(UpgradePack.class);
+    AmbariMetaInfo ami = createNiceMock(AmbariMetaInfo.class);
 
-    expect(upgradeHelper.suggestUpgradePack(EasyMock.anyString(), EasyMock.anyObject(StackId.class),
-        EasyMock.anyObject(StackId.class), EasyMock.anyObject(Direction.class),
-        EasyMock.anyObject(UpgradeType.class), EasyMock.anyString())).andReturn(upgradePack).once();
+    Map<String, UpgradePack> map = ImmutableMap.<String, UpgradePack>builder()
+        .put("myUpgradePack", upgradePack)
+        .build();
+
+    expect(ami.getUpgradePacks(EasyMock.anyString(), EasyMock.anyString())).andReturn(map).anyTimes();
 
     expect(m_upgradeDAO.findRevertable(1L)).andReturn(m_completedRevertableUpgrade).once();
 
@@ -337,7 +352,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     replayAll();
 
     UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
-        m_upgradeDAO, m_repositoryVersionDAO, configHelper);
+        m_upgradeDAO, m_repositoryVersionDAO, configHelper, ami);
 
     assertEquals(Direction.DOWNGRADE, context.getDirection());
     assertEquals(RepositoryType.PATCH, context.getOrchestrationType());
@@ -360,10 +375,13 @@ public class UpgradeContextTest extends EasyMockSupport {
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
     UpgradePack upgradePack = createNiceMock(UpgradePack.class);
+    AmbariMetaInfo ami = createNiceMock(AmbariMetaInfo.class);
 
-    expect(upgradeHelper.suggestUpgradePack(EasyMock.anyString(), EasyMock.anyObject(StackId.class),
-      EasyMock.anyObject(StackId.class), EasyMock.anyObject(Direction.class),
-      EasyMock.anyObject(UpgradeType.class), EasyMock.anyString())).andReturn(upgradePack).once();
+    Map<String, UpgradePack> map = ImmutableMap.<String, UpgradePack>builder()
+        .put("myUpgradePack", upgradePack)
+        .build();
+
+    expect(ami.getUpgradePacks(EasyMock.anyString(), EasyMock.anyString())).andReturn(map).anyTimes();
 
     expect(m_upgradeDAO.findRevertable(1L)).andReturn(m_completedRevertableUpgrade).once();
     expect(m_completedRevertableUpgrade.getUpgradeType()).andReturn(UpgradeType.NON_ROLLING);
@@ -374,7 +392,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     replayAll();
 
     UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
-      m_upgradeDAO, m_repositoryVersionDAO, configHelper);
+      m_upgradeDAO, m_repositoryVersionDAO, configHelper, ami);
 
     assertEquals(Direction.DOWNGRADE, context.getDirection());
     assertEquals(RepositoryType.PATCH, context.getOrchestrationType());
@@ -397,6 +415,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     UpgradePack upgradePack = createNiceMock(UpgradePack.class);
+    AmbariMetaInfo ami = createNiceMock(AmbariMetaInfo.class);
 
     // give the completed upgrade 2 services which can be reverted
     UpgradeHistoryEntity upgradeHistoryEntity = createNiceMock(UpgradeHistoryEntity.class);
@@ -405,9 +424,11 @@ public class UpgradeContextTest extends EasyMockSupport {
     expect(upgradeHistoryEntity.getTargetRepositoryVersion()).andReturn(m_targetRepositoryVersion).anyTimes();
     m_upgradeHistory.add(upgradeHistoryEntity);
 
-    expect(upgradeHelper.suggestUpgradePack(EasyMock.anyString(), EasyMock.anyObject(StackId.class),
-        EasyMock.anyObject(StackId.class), EasyMock.anyObject(Direction.class),
-        EasyMock.anyObject(UpgradeType.class), EasyMock.anyString())).andReturn(upgradePack).once();
+    Map<String, UpgradePack> map = ImmutableMap.<String, UpgradePack>builder()
+        .put("myUpgradePack", upgradePack)
+        .build();
+
+    expect(ami.getUpgradePacks(EasyMock.anyString(), EasyMock.anyString())).andReturn(map).anyTimes();
 
     expect(m_upgradeDAO.findRevertable(1L)).andReturn(m_completedRevertableUpgrade).once();
 
@@ -424,7 +445,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     replayAll();
 
     UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
-        m_upgradeDAO, m_repositoryVersionDAO, configHelper);
+        m_upgradeDAO, m_repositoryVersionDAO, configHelper, ami);
 
     assertEquals(Direction.DOWNGRADE, context.getDirection());
     assertEquals(RepositoryType.PATCH, context.getOrchestrationType());
@@ -447,8 +468,8 @@ public class UpgradeContextTest extends EasyMockSupport {
 
     UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
-
     UpgradePack upgradePack = createNiceMock(UpgradePack.class);
+    AmbariMetaInfo ami = createNiceMock(AmbariMetaInfo.class);
 
     expect(upgradeHelper.suggestUpgradePack(EasyMock.anyString(), EasyMock.anyObject(StackId.class),
         EasyMock.anyObject(StackId.class), EasyMock.anyObject(Direction.class),
@@ -470,7 +491,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     replayAll();
 
     UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
-        m_upgradeDAO, m_repositoryVersionDAO, configHelper);
+        m_upgradeDAO, m_repositoryVersionDAO, configHelper, ami);
 
     assertEquals(Direction.DOWNGRADE, context.getDirection());
     assertEquals(RepositoryType.PATCH, context.getOrchestrationType());
@@ -491,11 +512,13 @@ public class UpgradeContextTest extends EasyMockSupport {
     UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     UpgradePack upgradePack = createNiceMock(UpgradePack.class);
+    AmbariMetaInfo ami = createNiceMock(AmbariMetaInfo.class);
 
-    expect(upgradeHelper.suggestUpgradePack(EasyMock.anyString(), EasyMock.anyObject(StackId.class),
-        EasyMock.anyObject(StackId.class), EasyMock.anyObject(Direction.class),
-        EasyMock.anyObject(UpgradeType.class), EasyMock.anyString())).andReturn(upgradePack).once();
+    Map<String, UpgradePack> map = ImmutableMap.<String, UpgradePack>builder()
+        .put("myUpgradePack", upgradePack)
+        .build();
 
+    expect(ami.getUpgradePacks(EasyMock.anyString(), EasyMock.anyString())).andReturn(map).anyTimes();
 
     Map<String, Object> requestMap = new HashMap<>();
     requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.NON_ROLLING.name());
@@ -504,7 +527,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     replayAll();
 
     UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
-        m_upgradeDAO, m_repositoryVersionDAO, configHelper);
+        m_upgradeDAO, m_repositoryVersionDAO, configHelper, ami);
 
     assertEquals(Direction.DOWNGRADE, context.getDirection());
     assertEquals(RepositoryType.PATCH, context.getOrchestrationType());

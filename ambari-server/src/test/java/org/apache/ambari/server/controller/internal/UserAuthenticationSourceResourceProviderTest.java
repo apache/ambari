@@ -41,6 +41,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
@@ -189,6 +190,7 @@ public class UserAuthenticationSourceResourceProviderTest extends EasyMockSuppor
         bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
         bind(Users.class).toInstance(createMock(Users.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
       }
     });
   }

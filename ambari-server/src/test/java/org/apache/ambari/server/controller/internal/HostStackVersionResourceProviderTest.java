@@ -46,6 +46,7 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -395,6 +396,20 @@ public class HostStackVersionResourceProviderTest {
     verify(managementController, response, clusters);
 
     assertEquals(requestCapture.getValue().getStages().size(), 2);
+    List<Stage> stages = new ArrayList<>(requestCapture.getValue().getStages());
+    Stage installStage = stages.get(0);
+    Stage selectStackStage = stages.get(1);
+    String hostName = "host1";
+
+    assertEquals(1, installStage.getExecutionCommands().size());
+    assertEquals(hostName, installStage.getExecutionCommands().keySet().iterator().next());
+    assertEquals(1, installStage.getExecutionCommands().get(hostName).size());
+    assertEquals(true, installStage.getExecutionCommands().get(hostName).get(0).getExecutionCommand().isOverrideConfigs());
+
+    assertEquals(1, selectStackStage.getExecutionCommands().size());
+    assertEquals(hostName, selectStackStage.getExecutionCommands().keySet().iterator().next());
+    assertEquals(1, selectStackStage.getExecutionCommands().get(hostName).size());
+    assertEquals(false, selectStackStage.getExecutionCommands().get(hostName).get(0).getExecutionCommand().isOverrideConfigs());
   }
 
   @Test

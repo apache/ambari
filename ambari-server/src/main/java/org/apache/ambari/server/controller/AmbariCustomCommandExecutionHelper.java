@@ -341,26 +341,13 @@ public class AmbariCustomCommandExecutionHelper {
           new ServiceComponentHostOpInProgressEvent(componentName, hostName, nowTimestamp),
           cluster.getClusterName(), serviceName, retryAllowed, autoSkipFailure);
 
-      Map<String, Map<String, String>> configurations =
-          new TreeMap<>();
-      Map<String, Map<String, Map<String, String>>> configurationAttributes =
-          new TreeMap<>();
-      Map<String, Map<String, String>> configTags = new TreeMap<>();
-
       ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
           componentName).getExecutionCommand();
 
       // if the command should fetch brand new configuration tags before
       // execution, then we don't need to fetch them now
-      if(actionExecutionContext.getParameters() != null && actionExecutionContext.getParameters().containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)){
-        execCmd.setForceRefreshConfigTagsBeforeExecution(true);
-      }
-
-      // when building complex orchestration ahead of time (such as when
-      // performing ugprades), fetching configuration tags can take a very long
-      // time - if it's not needed, then don't do it
-      if (!execCmd.getForceRefreshConfigTagsBeforeExecution()) {
-        configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
+      if(actionExecutionContext.getParameters() != null && actionExecutionContext.getParameters().containsKey(KeyNames.OVERRIDE_CONFIGS)){
+        execCmd.setOverrideConfigs(true);
       }
 
       HostRoleCommand cmd = stage.getHostRoleCommand(hostName, componentName);
@@ -380,9 +367,7 @@ public class AmbariCustomCommandExecutionHelper {
 
       execCmd.setComponentVersions(cluster);
 
-      execCmd.setConfigurations(configurations);
-      execCmd.setConfigurationAttributes(configurationAttributes);
-      execCmd.setConfigurationTags(configTags);
+      execCmd.setConfigurations(new TreeMap<>());
 
       // Get the value of credential store enabled from the DB
       Service clusterService = cluster.getService(serviceName);
@@ -727,29 +712,17 @@ public class AmbariCustomCommandExecutionHelper {
     // [ type -> [ key, value ] ]
     Map<String, Map<String, String>> configurations =
         new TreeMap<>();
-    Map<String, Map<String, Map<String, String>>> configurationAttributes =
-        new TreeMap<>();
-    Map<String, Map<String, String>> configTags = new TreeMap<>();
 
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostname,
         smokeTestRole).getExecutionCommand();
 
     // if the command should fetch brand new configuration tags before
     // execution, then we don't need to fetch them now
-    if(actionParameters != null && actionParameters.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)){
-      execCmd.setForceRefreshConfigTagsBeforeExecution(true);
-    }
-
-    // when building complex orchestration ahead of time (such as when
-    // performing ugprades), fetching configuration tags can take a very long
-    // time - if it's not needed, then don't do it
-    if (!execCmd.getForceRefreshConfigTagsBeforeExecution()) {
-      configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostname);
+    if(actionParameters != null && actionParameters.containsKey(KeyNames.OVERRIDE_CONFIGS)){
+      execCmd.setOverrideConfigs(true);
     }
 
     execCmd.setConfigurations(configurations);
-    execCmd.setConfigurationAttributes(configurationAttributes);
-    execCmd.setConfigurationTags(configTags);
 
     // Generate localComponents
     for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostname)) {
@@ -1169,8 +1142,8 @@ public class AmbariCustomCommandExecutionHelper {
           extraParams.put(KeyNames.LOG_OUTPUT, requestParams.get(KeyNames.LOG_OUTPUT));
         }
 
-        if(requestParams.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)){
-          actionExecutionContext.getParameters().put(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION, requestParams.get(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION));
+        if(requestParams.containsKey(KeyNames.OVERRIDE_CONFIGS)){
+          actionExecutionContext.getParameters().put(KeyNames.OVERRIDE_CONFIGS, requestParams.get(KeyNames.OVERRIDE_CONFIGS));
         }
 
         RequestOperationLevel operationLevel = actionExecutionContext.getOperationLevel();

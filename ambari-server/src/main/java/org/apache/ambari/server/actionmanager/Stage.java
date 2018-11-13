@@ -224,11 +224,12 @@ public class Stage {
   void loadExecutionCommandWrappers() {
     for (Map.Entry<String, Map<String, HostRoleCommand>> hostRoleCommandEntry : hostRoleCommands.entrySet()) {
       String hostname = hostRoleCommandEntry.getKey();
-      commandsToSend.put(hostname, new ArrayList<>());
+      List<ExecutionCommandWrapper> wrappers = new ArrayList<>();
       Map<String, HostRoleCommand> roleCommandMap = hostRoleCommandEntry.getValue();
       for (Map.Entry<String, HostRoleCommand> roleCommandEntry : roleCommandMap.entrySet()) {
-        commandsToSend.get(hostname).add(roleCommandEntry.getValue().getExecutionCommandWrapper());
+        wrappers.add(roleCommandEntry.getValue().getExecutionCommandWrapper());
       }
+      commandsToSend.put(hostname, wrappers);
     }
   }
 
@@ -489,16 +490,7 @@ public class Stage {
     }
     cmd.setCommandParams(cmdParams);
 
-    Map<String, Map<String, String>> configurations = new TreeMap<>();
-    cmd.setConfigurations(configurations);
-
-    Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<>();
-    cmd.setConfigurationAttributes(configurationAttributes);
-
-    if (configTags == null) {
-      configTags = new TreeMap<>();
-    }
-    cmd.setConfigurationTags(configTags);
+    cmd.setConfigurations(new TreeMap<>());
 
     Map<String, String> roleParams = new HashMap<>();
     roleParams.put(ServerAction.ACTION_NAME, actionName);

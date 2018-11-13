@@ -31,6 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.lang.reflect.Field;
 import java.sql.SQLException;
@@ -43,6 +44,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -91,7 +93,6 @@ import org.apache.ambari.server.stack.upgrade.StopGrouping;
 import org.apache.ambari.server.stack.upgrade.Task;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.stack.upgrade.UpgradeScope;
-import org.apache.ambari.server.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -103,7 +104,6 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -113,6 +113,8 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
@@ -239,6 +241,24 @@ public class UpgradeHelperTest extends EasyMockSupport {
       assertEquals(upgradeType, up.getType());
     } catch (AmbariException e){
       assertTrue(false);
+    }
+  }
+
+  @Test
+  public void testSuggestUpgradePackFromSourceStack() throws Exception {
+    final String clusterName = "c1";
+    final StackId sourceStackId = new StackId("HDP", "2.1.1");
+    final StackId targetStackId = new StackId("HDP", "2.2.0");
+    final Direction upgradeDirection = Direction.UPGRADE;
+    final UpgradeType upgradeType = UpgradeType.ROLLING;
+
+    makeCluster();
+    try {
+      UpgradePack up = m_upgradeHelper.suggestUpgradePack(clusterName, sourceStackId, targetStackId, upgradeDirection, upgradeType, null);
+      assertEquals(upgradeType, up.getType());
+    } catch (AmbariException e) {
+      e.printStackTrace();
+      fail("unexpected exception suggesting upgrade pack");
     }
   }
 
@@ -1483,6 +1503,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     HostsType type = HostsType.normal("h1", "h2", "h3");
     expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER")).andReturn(type).anyTimes();
+    expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_CLIENT")).andReturn(type).anyTimes();
     expect(m_masterHostResolver.getMasterAndHosts("HDFS", "NAMENODE")).andReturn(namenodeHosts).anyTimes();
 
     if (clean) {
@@ -2801,6 +2822,52 @@ public class UpgradeHelperTest extends EasyMockSupport {
     // Do stacks cleanup
     stackManagerMock.invalidateCurrentPaths();
     ambariMetaInfo.init();
+  }
+
+  @Test
+  public void testParallelClients() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+
+    assertTrue(upgrades.containsKey("upgrade_test_parallel_client"));
+    UpgradePack upgrade = upgrades.get("upgrade_test_parallel_client");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+
+    Service s = cluster.getService("ZOOKEEPER");
+    ServiceComponent sc = s.addServiceComponent("ZOOKEEPER_CLIENT");
+    sc.addServiceComponentHost("h1");
+    sc.addServiceComponentHost("h2");
+    sc.addServiceComponentHost("h3");
+
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.NON_ROLLING);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+
+    Optional<UpgradeGroupHolder> optional = groups.stream()
+        .filter(g -> g.name.equals("ZK_CLIENTS"))
+        .findAny();
+    assertTrue(optional.isPresent());
+
+    UpgradeGroupHolder holder = optional.get();
+
+    assertEquals(3, holder.items.size());
+    assertEquals(StageWrapper.Type.RESTART, holder.items.get(0).getType());
+    assertEquals(StageWrapper.Type.SERVICE_CHECK, holder.items.get(1).getType());
+    assertEquals(StageWrapper.Type.RESTART, holder.items.get(2).getType());
+
+    // !!! this is a known issue - tasks wrappers should only wrap one task
+    TaskWrapper taskWrapper = holder.items.get(0).getTasks().get(0);
+    assertEquals(1, taskWrapper.getHosts().size());
+    String host1 = taskWrapper.getHosts().iterator().next();
+
+    taskWrapper = holder.items.get(1).getTasks().get(0);
+    assertEquals(1, taskWrapper.getHosts().size());
+    String host2 = taskWrapper.getHosts().iterator().next();
+    assertEquals(host1, host2);
+
+    taskWrapper = holder.items.get(2).getTasks().get(0);
+    assertEquals(2, taskWrapper.getHosts().size());
   }
 
   /**

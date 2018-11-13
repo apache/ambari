@@ -44,7 +44,10 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.MpackRequest;
+import org.apache.ambari.server.controller.MpackResponse;
 import org.apache.ambari.server.controller.RootService;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.customactions.ActionDefinitionManager;
@@ -52,9 +55,12 @@ import org.apache.ambari.server.events.AlertDefinitionDisabledEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
+import org.apache.ambari.server.mpack.MpackManager;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
-import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stack.upgrade.ConfigUpgradePack;
@@ -64,6 +70,8 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.ExtensionInfo;
+import org.apache.ambari.server.state.Module;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
@@ -127,9 +135,6 @@ public class AmbariMetaInfo {
   @Inject
   private OsFamily osFamily;
 
-  @Inject
-  private Gson gson;
-
   /**
    * ALL_SUPPORTED_OS is dynamically generated list from loaded families from os_family.json
    * Instead of append values here, please, add new families in json for tests and production
@@ -145,12 +150,12 @@ public class AmbariMetaInfo {
   private File serverVersionFile;
   private File commonWidgetsDescriptorFile;
   private File customActionRoot;
+
   private String commonKerberosDescriptorFileLocation;
   Map<String, VersionDefinitionXml> versionDefinitions = null;
 
+  private File mpacksV2Staging;
 
-  @Inject
-  private MetainfoDAO metaInfoDAO;
 
   /**
    * Alert Definition DAO used to merge stack definitions into the database.
@@ -206,6 +211,18 @@ public class AmbariMetaInfo {
    */
   private StackManager stackManager;
 
+  /**
+   * Factory for injecting {@link MpackManager} instances.
+   */
+  @Inject
+  private MpackManagerFactory mpackManagerFactory;
+
+  /**
+  * Singleton instance of mpack manager
+  */
+  private MpackManager mpackManager;
+
+
   private Configuration conf;
 
   /**
@@ -235,8 +252,13 @@ public class AmbariMetaInfo {
 
     customActionRoot = new File(conf.getCustomActionDefinitionPath());
 
+
     commonKerberosDescriptorFileLocation = new File(conf.getResourceDirPath(), KERBEROS_DESCRIPTOR_FILE_NAME).getAbsolutePath();
     commonWidgetsDescriptorFile = new File(conf.getResourceDirPath(), WIDGETS_DESCRIPTOR_FILE_NAME);
+
+    String mpackV2StagingPath = conf.getMpacksV2StagingPath();
+    mpacksV2Staging = new File(mpackV2StagingPath);
+
   }
 
   /**
@@ -254,6 +276,8 @@ public class AmbariMetaInfo {
     stackManager = stackManagerFactory.create(stackRoot, commonServicesRoot, extensionsRoot,
         osFamily, false);
 
+    mpackManager = mpackManagerFactory.create(mpacksV2Staging, stackRoot);
+
     getCustomActionDefinitions(customActionRoot);
   }
 
@@ -263,6 +287,14 @@ public class AmbariMetaInfo {
    */
   public StackManager getStackManager() {
     return stackManager;
+  }
+
+  /**
+   * Obtain the underlying mpack manager.
+   * @return mpack manager
+   */
+  public MpackManager getMpackManager() {
+    return mpackManager;
   }
 
   /**
@@ -616,6 +648,30 @@ public class AmbariMetaInfo {
   public Collection<StackInfo> getStacks() {
     return stackManager.getStacks();
   }
+
+  /**
+   * Calls the registerMpack method from mpackManager to support a POST /mpacks request
+   * @param mpackRequest
+   * @return MpackResponse
+   * @throws IOException
+   * @throws ResourceAlreadyExistsException
+   */
+  public MpackResponse registerMpack(MpackRequest mpackRequest) throws IOException, ResourceAlreadyExistsException {
+    if (versionDefinitions != null) {
+      versionDefinitions.clear();
+    }
+    return mpackManager.registerMpack(mpackRequest);
+  }
+
+  /**
+   * Gets the module information for given mpack.
+   * @param mpackId
+   * @return List of Modules.
+   */
+  public List<Module> getModules(Long mpackId) {
+    return mpackManager.getModules(mpackId);
+  }
+
 
   public Collection<StackInfo> getStacks(String stackName) throws AmbariException {
     Collection<StackInfo> stacks = stackManager.getStacks(stackName);
@@ -1392,7 +1448,8 @@ public class AmbariMetaInfo {
    */
   private synchronized void ensureVersionDefinitions() {
     if (null != versionDefinitions) {
-      return;
+      if(versionDefinitions.size() > 0)
+        return;
     }
 
     versionDefinitions = new HashMap<>();
@@ -1449,6 +1506,7 @@ public class AmbariMetaInfo {
     return versionDefinitions;
   }
 
+
   /**
    * Reads a Kerberos descriptor from the specified file path.
    *
@@ -1480,5 +1538,45 @@ public class AmbariMetaInfo {
 
   public File getCommonWidgetsDescriptorFile() {
     return commonWidgetsDescriptorFile;
+  }
+
+  /***
+   * Remove Mpack from the mpackMap and stackMap which is used to power the Mpack and Stack APIs.
+   * Stack should be removed from stackMap only if it points to the mpack that is being removed.
+   * @param mpackEntity
+   * @param stackEntity
+   * @throws IOException
+   */
+  public void removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException {
+    if (versionDefinitions != null) {
+      versionDefinitions.clear();
+    }
+    boolean stackDelete = mpackManager.removeMpack(mpackEntity, stackEntity);
+
+    if (stackDelete) {
+      stackManager.removeStack(stackEntity);
+    }
+  }
+
+    /*
+   * Fetch all mpacks from mpackMap
+   * @return all mpacks from mpackMap - in memory data structure
+   */
+  public Collection<Mpack> getMpacks() {
+    if (mpackManager.getMpackMap() != null) {
+      return mpackManager.getMpackMap().values();
+    }
+    return Collections.emptySet();
+  }
+
+  /***
+   * Fetch a particular mpack based on mpackid
+   * @return a single mpack
+   */
+  public Mpack getMpack(Long mpackId) {
+    if (mpackManager.getMpackMap() != null && mpackManager.getMpackMap().containsKey(mpackId)) {
+      return mpackManager.getMpackMap().get(mpackId);
+    }
+    return null;
   }
 }

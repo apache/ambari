@@ -841,6 +841,38 @@
   }
 }
 
+.custom-cluster-check{
+  min-height: 34px;
+  &.custom-cluster-check-warning{
+    white-space: normal;
+  }
+  .btn{
+    margin-right: 10px;
+    &:first-child{
+      margin-right: 0;
+    }
+  }
+}
+
+.checks{
+  list-style: none;
+  li{
+    min-height: 40px;
+    line-height: 34px;
+  }
+}
+
+#notifications-dropdown.notifications-dropdown.notifications-checks{
+  display: block;
+  position: static;
+  width: 100%;
+  max-width: 100%;
+  box-shadow: none;
+  .notifications-body{
+    max-height: 10000px;
+  }
+}
+
 .upgrade-wizard-modal {
   .modal-body {
     position: static;

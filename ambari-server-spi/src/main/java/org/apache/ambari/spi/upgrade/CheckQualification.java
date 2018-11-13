@@ -24,15 +24,19 @@ import org.apache.ambari.server.AmbariException;
  * different qualifications against which an upgrade check is determined to be
  * applicable to the upgrade.
  */
-interface CheckQualification {
+public interface CheckQualification {
 
   /**
    * Gets whether the upgrade check meets this qualification and should
    * therefore be run before the upgrade.
    *
    * @param request
-   * @return
+   *          the upgrade check request.
+   * @return {@code true} if the upgrade check is applicable to the specific
+   *         upgrade request, or {@code false} otherwise.
    * @throws AmbariException
+   *           if there was an error attempting to determine if the upgrade
+   *           check is applicable to the desired upgrade.
    */
   boolean isApplicable(UpgradeCheckRequest request) throws AmbariException;
 }

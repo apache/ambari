@@ -34,18 +34,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.RepositoryXml.Os;
 import org.apache.ambari.server.state.stack.RepositoryXml.Repo;
+import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.io.FileUtils;
+import org.easymock.EasyMock;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
@@ -437,6 +440,12 @@ public class VersionDefinitionTest {
     expect(serviceHBase.getDisplayName()).andReturn("HBase").atLeastOnce();
     expect(serviceHBase.getDesiredRepositoryVersion()).andReturn(repositoryVersion).atLeastOnce();
 
+    StackInfo stackInfo = createNiceMock(StackInfo.class);
+    expect(stackInfo.getReleaseVersion()).andReturn(new DefaultStackVersion()).atLeastOnce();
+
+    AmbariMetaInfo ami = createNiceMock(AmbariMetaInfo.class);
+    expect(ami.getStack(EasyMock.anyObject(StackId.class))).andReturn(stackInfo).atLeastOnce();
+
     // !!! should never be accessed as it's not in any VDF
     Service serviceAMS = createNiceMock(Service.class);
 
@@ -446,28 +455,28 @@ public class VersionDefinitionTest {
         .put("AMBARI_METRICS", serviceAMS).build()).atLeastOnce();
 
 
-    replay(cluster, repositoryVersion, serviceHdfs, serviceHBase);
+    replay(cluster, repositoryVersion, serviceHdfs, serviceHBase, stackInfo, ami);
 
     File f = new File("src/test/resources/version_definition_test_all_services.xml");
     VersionDefinitionXml xml = VersionDefinitionXml.load(f.toURI().toURL());
-    ClusterVersionSummary summary = xml.getClusterSummary(cluster);
+    ClusterVersionSummary summary = xml.getClusterSummary(cluster, ami);
     assertEquals(2, summary.getAvailableServiceNames().size());
 
     f = new File("src/test/resources/version_definition_test_maint.xml");
     xml = VersionDefinitionXml.load(f.toURI().toURL());
-    summary = xml.getClusterSummary(cluster);
+    summary = xml.getClusterSummary(cluster, ami);
     assertEquals(0, summary.getAvailableServiceNames().size());
 
     f = new File("src/test/resources/version_definition_test_maint.xml");
     xml = VersionDefinitionXml.load(f.toURI().toURL());
     xml.release.repositoryType = RepositoryType.STANDARD;
     xml.availableServices = Collections.emptyList();
-    summary = xml.getClusterSummary(cluster);
+    summary = xml.getClusterSummary(cluster, ami);
     assertEquals(2, summary.getAvailableServiceNames().size());
 
     f = new File("src/test/resources/version_definition_test_maint_partial.xml");
     xml = VersionDefinitionXml.load(f.toURI().toURL());
-    summary = xml.getClusterSummary(cluster);
+    summary = xml.getClusterSummary(cluster, ami);
     assertEquals(1, summary.getAvailableServiceNames().size());
   }
 
@@ -488,6 +497,12 @@ public class VersionDefinitionTest {
     expect(serviceHBase.getDisplayName()).andReturn("HBase").atLeastOnce();
     expect(serviceHBase.getDesiredRepositoryVersion()).andReturn(repositoryVersion).atLeastOnce();
 
+    StackInfo stackInfo = createNiceMock(StackInfo.class);
+    expect(stackInfo.getReleaseVersion()).andReturn(new DefaultStackVersion()).atLeastOnce();
+
+    AmbariMetaInfo ami = createNiceMock(AmbariMetaInfo.class);
+    expect(ami.getStack(EasyMock.anyObject(StackId.class))).andReturn(stackInfo).atLeastOnce();
+
     // !!! should never be accessed as it's not in any VDF
     Service serviceAMS = createNiceMock(Service.class);
 
@@ -496,13 +511,13 @@ public class VersionDefinitionTest {
         .put("HBASE", serviceHBase)
         .put("AMBARI_METRICS", serviceAMS).build()).atLeastOnce();
 
-    replay(cluster, repositoryVersion, serviceHdfs, serviceHBase);
+    replay(cluster, repositoryVersion, serviceHdfs, serviceHBase, stackInfo, ami);
 
     File f = new File("src/test/resources/version_definition_test_maint_partial.xml");
     VersionDefinitionXml xml = VersionDefinitionXml.load(f.toURI().toURL());
     xml.release.version = "2.3.4.1";
     xml.release.build = "2";
-    ClusterVersionSummary summary = xml.getClusterSummary(cluster);
+    ClusterVersionSummary summary = xml.getClusterSummary(cluster, ami);
     assertEquals(1, summary.getAvailableServiceNames().size());
   }
 

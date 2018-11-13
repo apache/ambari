@@ -19,13 +19,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.ambari.contrib.views</groupId>
     <artifactId>capacity-scheduler</artifactId>
-    <version>1.0.0.0-SNAPSHOT</version>
     <name>Capacity Scheduler</name>
 
     <parent>
         <groupId>org.apache.ambari.contrib.views</groupId>
         <artifactId>ambari-contrib-views</artifactId>
-        <version>2.0.0.0-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
     <dependencies>
@@ -46,6 +45,10 @@
                 <exclusion>
                     <groupId>tomcat</groupId>
                     <artifactId>jasper-runtime</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.eclipse.jetty</groupId>
+                    <artifactId>jetty-util</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -81,7 +84,7 @@
         <dependency>
             <groupId>org.apache.ambari.contrib.views</groupId>
             <artifactId>ambari-views-utils</artifactId>
-            <version>2.0.0.0-SNAPSHOT</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>org.easymock</groupId>

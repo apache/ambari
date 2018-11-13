@@ -75,7 +75,6 @@ import org.apache.ambari.server.stack.upgrade.Task.Type;
 import org.apache.ambari.server.stack.upgrade.UpgradeFunction;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.stack.upgrade.UpgradePack.ProcessingComponent;
-import org.apache.ambari.server.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -90,6 +89,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.ValueAttributesInfo;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -176,54 +176,104 @@ public class UpgradeHelper {
 
     // Find upgrade packs based on current stack. This is where to upgrade from
     Cluster cluster = m_clusters.get().getCluster(clusterName);
+
     StackId currentStack = cluster.getCurrentStackVersion();
 
-    StackId stackForUpgradePack = targetStackId;
+    /*
+     * To find upgrades packs when moving STACK-1.0 to STACK-2.0:
+     * - Search STACK-2.0 upgrade packs that define source as STACK-1.0
+     * - Search STACK-1.0 upgrade packs that define target as STACK-2.0 (legacy)
+     */
 
-    if (direction.isDowngrade()) {
-      stackForUpgradePack = sourceStackId;
+    UpgradePack pack = findPreferred(preferredUpgradePackName, currentStack, targetStackId);
+    if (null != pack) {
+      return pack;
     }
 
-    Map<String, UpgradePack> packs = m_ambariMetaInfoProvider.get().getUpgradePacks(
-        currentStack.getStackName(), currentStack.getStackVersion());
-
-    UpgradePack pack = null;
-
-    if (StringUtils.isNotEmpty(preferredUpgradePackName) && packs.containsKey(preferredUpgradePackName)) {
-      pack = packs.get(preferredUpgradePackName);
-
-      LOG.warn("Upgrade pack '{}' not found for stack {}", preferredUpgradePackName, currentStack);
+    // !!! try to find a stack that defines the source
+    pack = findUpgradePack(targetStackId, currentStack, upgradeType, true);
+    if (null != pack) {
+      return pack;
     }
 
-    // Best-attempt at picking an upgrade pack assuming within the same stack whose target stack version matches.
-    // If multiple candidates are found, raise an exception.
-    if (null == pack) {
-      for (UpgradePack upgradePack : packs.values()) {
-        if (null != upgradePack.getTargetStack()
-            && StringUtils.equals(upgradePack.getTargetStack(), stackForUpgradePack.getStackId())
-            && upgradeType == upgradePack.getType()) {
-          if (null == pack) {
-            // Pick the pack.
-            pack = upgradePack;
-          } else {
-            throw new AmbariException(
-                String.format(
-                    "Unable to perform %s. Found multiple upgrade packs for type %s and stack %s",
-                    direction.getText(false), upgradeType.toString(), stackForUpgradePack));
-          }
-        }
-      }
-    }
+    // !!! try to find a stack that defines the target (legacy)
+    pack = findUpgradePack(currentStack, targetStackId, upgradeType, false);
 
     if (null == pack) {
       throw new AmbariException(
           String.format("Unable to perform %s. Could not locate %s upgrade pack for stack %s",
-              direction.getText(false), upgradeType.toString(), stackForUpgradePack));
+              direction.getText(false), upgradeType.toString(), targetStackId));
     }
 
    return pack;
   }
 
+  /**
+   * Finds an upgrade pack with a preferred name.
+   *
+   * @param preferred
+   *          the name of the preferred upgrade pack
+   * @param stackIds
+   *          the stack ids to find
+   */
+  private UpgradePack findPreferred(String preferred, StackId... stackIds) {
+    if (StringUtils.isEmpty(preferred)) {
+      return null;
+    }
+
+    for (StackId stackId : stackIds) {
+      Map<String, UpgradePack> packs = m_ambariMetaInfoProvider.get().getUpgradePacks(
+          stackId.getStackName(), stackId.getStackVersion());
+
+      if (!packs.containsKey(preferred)) {
+        LOG.warn("Upgrade pack '{}' not found for stack {}", preferred, stackId);
+      } else {
+        return packs.get(preferred);
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Finds a suitable upgrade pack given the source and target stacks.
+   *
+   * @param sourceStack
+   *          the source stack
+   * @param stackToFind
+   *          the stack to search in upgrade packs
+   * @param compareToSource
+   *          when comparing, use the {@code source} or {@code target} in the upgrade pack
+   * @return
+   *          the upgrade pack, if found
+   * @throws AmbariException
+   */
+  private UpgradePack findUpgradePack(StackId sourceStack, StackId stackToFind,
+      UpgradeType upgradeType, boolean compareToSource) throws AmbariException {
+
+    Map<String, UpgradePack> packs = m_ambariMetaInfoProvider.get().getUpgradePacks(
+        sourceStack.getStackName(), sourceStack.getStackVersion());
+
+    UpgradePack result = null;
+
+    for (UpgradePack upgradePack : packs.values()) {
+      StackId upgradeStack = compareToSource ?
+          new StackId(upgradePack.getSourceStack()) : new StackId(upgradePack.getTargetStack());
+
+      if (upgradeStack.equals(stackToFind) && upgradePack.getType() == upgradeType) {
+        if (null == result) {
+          result = upgradePack;
+        } else {
+          throw new AmbariException(
+              String.format(
+                  "Unable to resolve upgrade pack. Found multiple upgrade packs for type %s and stack %s",
+                  upgradeType.toString(), stackToFind));
+        }
+      }
+    }
+
+    return result;
+  }
 
   /**
    * Generates a list of UpgradeGroupHolder items that are used to execute either

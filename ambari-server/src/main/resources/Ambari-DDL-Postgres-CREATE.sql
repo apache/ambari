@@ -17,11 +17,30 @@
 --
 
 ------create tables and grant privileges to db user---------
+CREATE TABLE registries(
+ id BIGINT NOT NULL,
+ registy_name VARCHAR(255) NOT NULL,
+ registry_type VARCHAR(255) NOT NULL,
+ registry_uri VARCHAR(255) NOT NULL,
+ CONSTRAINT PK_registries PRIMARY KEY (id));
+
+CREATE TABLE mpacks(
+ id BIGINT NOT NULL,
+ mpack_name VARCHAR(255) NOT NULL,
+ mpack_version VARCHAR(255) NOT NULL,
+ mpack_uri VARCHAR(255),
+ registry_id BIGINT,
+ CONSTRAINT PK_mpacks PRIMARY KEY (id),
+ CONSTRAINT FK_registries FOREIGN KEY (registry_id) REFERENCES registries(id),
+ CONSTRAINT uni_mpack_name_version UNIQUE(mpack_name, mpack_version));
+
 CREATE TABLE stack(
   stack_id BIGINT NOT NULL,
   stack_name VARCHAR(255) NOT NULL,
   stack_version VARCHAR(255) NOT NULL,
+  mpack_id BIGINT,
   CONSTRAINT PK_stack PRIMARY KEY (stack_id),
+  CONSTRAINT FK_mpacks FOREIGN KEY (mpack_id) REFERENCES mpacks(id),
   CONSTRAINT UQ_stack UNIQUE (stack_name, stack_version));
 
 CREATE TABLE extension(
@@ -347,6 +366,7 @@ CREATE TABLE requestschedule (
   batch_separation_seconds smallint,
   batch_toleration_limit smallint,
   batch_toleration_limit_per_batch smallint,
+  pause_after_first_batch BOOL,
   authenticated_user_id INTEGER,
   create_user varchar(255),
   create_timestamp bigint,
@@ -870,6 +890,7 @@ CREATE TABLE upgrade (
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
   orchestration VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
+  upgrade_package_stack VARCHAR(255) NOT NULL,
   upgrade_type VARCHAR(32) NOT NULL,
   repo_version_id BIGINT NOT NULL,
   skip_failures SMALLINT DEFAULT 0 NOT NULL,
@@ -1156,6 +1177,7 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value) VALUES
   ('widget_layout_id_seq', 0),
   ('upgrade_item_id_seq', 0),
   ('stack_id_seq', 0),
+  ('mpack_id_seq',0),
   ('extension_id_seq', 0),
   ('link_id_seq', 0),
   ('topology_host_info_id_seq', 0),

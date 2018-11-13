@@ -966,10 +966,110 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     }
   },
 
-  chooseAndRestartHostComponents: function () {
-    let serviceName = this.get('serviceName');
-    batchUtils.showServicRestartPopup(serviceName);
+  restartServiceAllComponents: function () {
+    batchUtils.showServiceRestartPopup(this.get('content.serviceName'), this.getMastersForRestart.bind(this), this.getSlavesForRestart.bind(this));
   },
+  restartServiceMastersOnly: function () {
+    batchUtils.showServiceRestartPopup(this.get('content.serviceName'), this.getMastersForRestart.bind(this), null);
+  },
+
+  restartServiceSlavesOnly: function () {
+    batchUtils.showServiceRestartPopup(this.get('content.serviceName'), null, this.getSlavesForRestart.bind(this));
+  },
+
+  restartOptions: [
+    Em.Object.create({
+      action: 'restartServiceAllComponents',
+      context: {
+        label: 'Restart All',
+        name: 'RESTART_ALL'
+      }
+    }),
+    Em.Object.create({
+      action: 'restartServiceMastersOnly',
+      context: {
+        label: 'Restart Masters',
+        name: 'RESTART_MASTERS'
+      }
+    }),
+    Em.Object.create({
+      action: 'restartServiceSlavesOnly',
+      context: {
+        label: 'Restart Slaves',
+        name: 'RESTART_SLAVES'
+      }
+    }),
+  ],
+
+  getMastersForRestart: function (serviceName) {
+    if (serviceName === 'HDFS') {
+      return this.getMastersForHdfsRestart();
+    } else {
+      return this.get('content.hostComponents').filter((component) => {
+        return component.get('service.serviceName') === serviceName && component.get('isMaster');
+      });
+    }
+  },
+
+  getMastersForHdfsRestart: function () {
+    const self = this;
+    let hostCompOrdered = [];
+    const hdfsService = App.HDFSService.find().toArray()[0];
+
+    if (App.get('isHAEnabled')) {
+      let journalNodes = this.get('content.hostComponents').filterProperty('componentName', 'JOURNALNODE');
+      //Restart journal nodes one by one
+      if (journalNodes && journalNodes.length) {
+        journalNodes.forEach((journalNode) => hostCompOrdered.push(journalNode));
+      }
+
+      //Restart Standby NN and then Standby ZKFC
+      const standbyNameNodes = hdfsService.get('standbyNameNodes').toArray();
+      if (standbyNameNodes.length > 0) {
+        hdfsService.get('standbyNameNodes').forEach(function (snn) {
+          hostCompOrdered.push(snn);
+          const snnHostName = snn.get('hostName');
+          const zkfcForSnn = self.get('content.hostComponents').filter((component) => {
+            return component.get('componentName') === 'ZKFC' && component.get('hostName') === snnHostName;
+          });
+          if (zkfcForSnn) {
+            hostCompOrdered.push(zkfcForSnn[0]);
+          }
+        });
+      }
+
+      //Restart Active NN and then Active ZKFC
+      const activeNameNodes = hdfsService.get('activeNameNodes').toArray();
+      if (activeNameNodes.length > 0) {
+        hdfsService.get('activeNameNodes').forEach(function (ann) {
+          hostCompOrdered.push(ann);
+          const annHostName = ann.get('hostName');
+          const zkfcForAnn = self.get('content.hostComponents').filter((component) => {
+            return component.get('componentName') === 'ZKFC' && component.get('hostName') === annHostName;
+          });
+          if (zkfcForAnn) {
+            hostCompOrdered.push(zkfcForAnn[0]);
+          }
+        });
+      }
+    } else {
+      //Add SNamenode
+      const sNameNode = hdfsService.get('snameNode') || App.HostComponent.find().findProperty('componentName', 'SECONDARY_NAMENODE')
+      if (sNameNode) hostCompOrdered.push(sNameNode);
+
+      //Add NameNode
+      const namenode = hdfsService.get('namenode') || App.HostComponent.find().findProperty('componentName', 'NAMENODE');
+      if (namenode) hostCompOrdered.push(namenode);
+    }
+    return hostCompOrdered;
+  },
+
+  getSlavesForRestart: function (serviceName) {
+    return this.get('content.hostComponents').filter((component) => {
+      return component.get('service.serviceName') === serviceName && component.get('isSlave');
+    });
+  },
+
 
   restartCertainHostComponents: function (context) {
     const serviceDisplayName = this.get('content.displayName'),

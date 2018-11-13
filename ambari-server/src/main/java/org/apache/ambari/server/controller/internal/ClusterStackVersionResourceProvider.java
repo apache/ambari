@@ -75,7 +75,6 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
@@ -83,6 +82,7 @@ import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -304,7 +304,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       try {
         VersionDefinitionXml vdf = repositoryVersion.getRepositoryXml();
         if (null != vdf) {
-          versionSummary = vdf.getClusterSummary(cluster);
+          versionSummary = vdf.getClusterSummary(cluster, metaInfo.get());
         }
       } catch (Exception e) {
         throw new IllegalArgumentException(
@@ -446,7 +446,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     // dependencies
     try {
       if (repoVersionEntity.getType().isPartial()) {
-        Set<String> missingDependencies = desiredVersionDefinition.getMissingDependencies(cluster);
+        Set<String> missingDependencies = desiredVersionDefinition.getMissingDependencies(cluster,
+            metaInfo.get());
 
         if (!missingDependencies.isEmpty()) {
           String message = String.format(
@@ -609,7 +610,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       // !!! limit the serviceNames to those that are detailed for the repository.
       // TODO packages don't have component granularity
       if (RepositoryType.STANDARD != repoVersionEnt.getType()) {
-        ClusterVersionSummary clusterSummary = desiredVersionDefinition.getClusterSummary(cluster);
+        ClusterVersionSummary clusterSummary = desiredVersionDefinition.getClusterSummary(
+            cluster, metaInfo.get());
         serviceNames.addAll(clusterSummary.getAvailableServiceNames());
       } else {
         serviceNames.addAll(ami.getStack(stackId).getServiceNames());

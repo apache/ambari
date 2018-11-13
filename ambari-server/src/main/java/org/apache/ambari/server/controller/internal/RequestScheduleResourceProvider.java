@@ -81,6 +81,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
   public static final String TASK_FAILURE_TOLERANCE_PER_BATCH_PROPERTY_ID = "task_failure_tolerance_per_batch";
   public static final String TASK_FAILURE_TOLERANCE_LIMIT_PROPERTY_ID = "task_failure_tolerance_limit";
   public static final String REQUESTS_PROPERTY_ID = "requests";
+  public static final String PAUSE_AFTER_FIRST_BATCH_PROPERTY_ID = "pause_after_first_batch";
 
   public static final String TYPE_PROPERTY_ID = "type";
   public static final String URI_PROPERTY_ID = "uri";
@@ -126,6 +127,8 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
   public static final String TASK_FAILURE_TOLERANCE_PER_BATCH = PropertyHelper.getPropertyId(BATCH_SETTINGS, TASK_FAILURE_TOLERANCE_PER_BATCH_PROPERTY_ID);
   public static final String REQUESTS = PropertyHelper.getPropertyId(null, REQUESTS_PROPERTY_ID);
 
+  public static final String PAUSE_AFTER_FIRST_BATCH = PropertyHelper.getPropertyId(BATCH_SETTINGS, PAUSE_AFTER_FIRST_BATCH_PROPERTY_ID);
+
   public static final String TYPE = PropertyHelper.getPropertyId(null, TYPE_PROPERTY_ID);
   public static final String URI = PropertyHelper.getPropertyId(null, URI_PROPERTY_ID);
   public static final String ORDER_ID = PropertyHelper.getPropertyId(null, ORDER_ID_PROPERTY_ID);
@@ -167,6 +170,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
     BATCH_SEPARATION_IN_SECONDS,
     TASK_FAILURE_TOLERANCE,
     TASK_FAILURE_TOLERANCE_PER_BATCH,
+    PAUSE_AFTER_FIRST_BATCH,
     REQUESTS,
     TYPE,
     URI,
@@ -430,11 +434,22 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
       String username = getManagementController().getAuthName();
       Integer userId = getManagementController().getAuthId();
 
-      requestExecution.setBatch(request.getBatch());
-      requestExecution.setDescription(request.getDescription());
-      requestExecution.setSchedule(request.getSchedule());
-      if (request.getStatus() != null && isValidRequestScheduleStatus
-          (request.getStatus())) {
+      if (request.getDescription() != null) {
+        requestExecution.setDescription(request.getDescription());
+      }
+
+      if (request.getSchedule() != null) {
+        requestExecution.setSchedule(request.getSchedule());
+      }
+
+      if (request.getStatus() != null) {
+        //TODO status changes graph
+        if (!isValidRequestScheduleStatus(request.getStatus())) {
+          throw new AmbariException("Request Schedule status not valid"
+            + ", clusterName = " + request.getClusterName()
+            + ", description = " + request.getDescription()
+            + ", id = " + request.getId());
+        }
         requestExecution.setStatus(RequestExecution.Status.valueOf(request.getStatus()));
       }
       requestExecution.setUpdateUser(username);
@@ -443,6 +458,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
       LOG.info("Persisting updated Request Schedule "
         + ", clusterName = " + request.getClusterName()
         + ", description = " + request.getDescription()
+        + ", status = " + request.getStatus()
         + ", user = " + username);
 
       requestExecution.persist();
@@ -502,7 +518,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
 
       // Setup batch schedule
       getManagementController().getExecutionScheduleManager()
-        .scheduleBatch(requestExecution);
+        .scheduleAllBatches(requestExecution);
 
       RequestScheduleResponse response = new RequestScheduleResponse
         (requestExecution.getId(), requestExecution.getClusterName(),
@@ -644,6 +660,10 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
                   (BATCH_SEPARATION_IN_SECONDS)) {
                 batchSettings.setBatchSeparationInSeconds(Integer.valueOf
                   ((String) batchMapEntry.getValue()));
+              } else if (batchMapEntry.getKey().equals
+                  (PAUSE_AFTER_FIRST_BATCH)) {
+                batchSettings.setPauseAfterFirstBatch(Boolean.valueOf
+                    ((String) batchMapEntry.getValue()));
               } else if (batchMapEntry.getKey().equals
                   (REQUESTS)) {
                 HashSet<Map<String, Object>> requestSet =

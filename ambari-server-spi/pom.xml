@@ -18,7 +18,7 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.0.0.0-SNAPSHOT</version>
+    <version>${revision}</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <artifactId>ambari-server-spi</artifactId>
@@ -151,7 +151,14 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>      
+      </plugin>   
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <configuration>
+          <configLocation>../ambari-server/checkstyle.xml</configLocation>
+        </configuration>
+      </plugin>
     </plugins>
   </build>  
   
@@ -168,6 +175,10 @@
       <groupId>com.google.inject</groupId>
       <artifactId>guice</artifactId>
     </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+    </dependency>    
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

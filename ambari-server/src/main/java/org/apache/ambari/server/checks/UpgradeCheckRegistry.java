@@ -17,39 +17,75 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
+import org.apache.ambari.annotations.UpgradeCheckInfo;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
-import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.CheckHelper;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.spi.upgrade.CheckQualification;
+import org.apache.ambari.spi.upgrade.UpgradeCheck;
+import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
+import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.ClassUtils;
 
-import com.google.inject.Singleton;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Provider;
 
 /**
  * The {@link UpgradeCheckRegistry} contains the ordered list of all pre-upgrade
  * checks. This will order the checks according to
  * {@link PreUpgradeCheckComparator}.
+ * <p>
+ * There are two types of checks which can be loaded into this registry:
+ * <ul>
+ * <li>Built-in: checks which ship with Ambari
+ * <li>Plug-in: checks which are specified in the upgrade pack for a stack, and
+ * either come from Ambari's checks or from the library classpath of the stack.
+ * </ul>
  */
-@Singleton
 public class UpgradeCheckRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCheckRegistry.class);
 
+  @Inject
+  private Provider<AmbariMetaInfo> metainfoProvider;
+
   /**
-   * The list of upgrade checks to run through.
+   * Used for injecting dependencies into plugin upgrade check classes. There
+   * are cases where an upgrade pack specifies a built-in check which uses a
+   * dependency, such as the Ambari Configuration singleton.
    */
-  private Set<AbstractCheckDescriptor> m_upgradeChecks = new TreeSet<>(
+  @Inject
+  private Injector m_injector;
+
+  /**
+   * The list of upgrade checks provided by the system which are required, as
+   * specified by {@link UpgradeCheckInfo#required()}.
+   */
+  private final Set<UpgradeCheck> m_builtInChecks = new TreeSet<>(
     new PreUpgradeCheckComparator());
+
+  /**
+   * Represents the upgrade checks (both those which were able to be loaded and
+   * which failed to be loaded) which were discovered in the upgrade pack.
+   */
+  private final Map<UpgradePack, PluginUpgradeChecks> m_pluginChecks = new HashMap<>();
 
   /**
    * Register an upgrade check.
@@ -57,120 +93,158 @@ public class UpgradeCheckRegistry {
    * @param upgradeCheck
    *          the check to register (not {@code null}).
    */
-  public void register(AbstractCheckDescriptor upgradeCheck) {
-    m_upgradeChecks.add(upgradeCheck);
+  public void register(UpgradeCheck upgradeCheck) {
+    m_builtInChecks.add(upgradeCheck);
   }
 
   /**
-   * Gets an ordered list of all of the upgrade checks.
+   * Gets a list of all of the built-in upgrade checks.
    *
    * @return
    */
-  public List<AbstractCheckDescriptor> getUpgradeChecks() {
-    return new ArrayList<>(m_upgradeChecks);
-  }
-
-  public List<AbstractCheckDescriptor> getServiceLevelUpgradeChecks(UpgradePack upgradePack, Map<String, ServiceInfo> services) {
-    List<String> prerequisiteChecks = upgradePack.getPrerequisiteChecks();
-    List<String> missingChecks = new ArrayList<>();
-    for (String prerequisiteCheck : prerequisiteChecks) {
-      if (!isRegistered(prerequisiteCheck)) {
-        missingChecks.add(prerequisiteCheck);
-      }
-    }
-
-    List<AbstractCheckDescriptor> checks = new ArrayList<>(missingChecks.size());
-    if (missingChecks.isEmpty()) {
-      return checks;
-    }
-
-    List<URL> urls = new ArrayList<>();
-    for (ServiceInfo service : services.values()) {
-      File dir = service.getChecksFolder();
-      File[] jars = dir.listFiles(new FilenameFilter() {
-        @Override
-        public boolean accept(File dir, String name) {
-          return name.endsWith(".jar");
-        }
-      });
-      for (File jar : jars) {
-        try {
-          URL url = jar.toURI().toURL();
-          urls.add(url);
-          LOG.debug("Adding service check jar to classpath: {}", url);
-        }
-        catch (Exception e) {
-          LOG.error("Failed to add service check jar to classpath: {}", jar.getAbsolutePath(), e);
-        }
-      }
-    }
-
-    ClassLoader classLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassUtils.getDefaultClassLoader());
-    for (String prerequisiteCheck : missingChecks) {
-      Class<?> clazz = null;
-      try {
-        clazz = ClassUtils.resolveClassName(prerequisiteCheck, classLoader);
-      }
-      catch (IllegalArgumentException illegalArgumentException) {
-        LOG.error("Unable to find upgrade check {}", prerequisiteCheck, illegalArgumentException);
-      }
-      try {
-        if (clazz != null) {
-          AbstractCheckDescriptor upgradeCheck = (AbstractCheckDescriptor) clazz.newInstance();
-          checks.add(upgradeCheck);
-        }
-      } catch (Exception exception) {
-        LOG.error("Unable to create upgrade check {}", prerequisiteCheck, exception);
-      }
-    }
-    return checks;
-  }
-
-  private boolean isRegistered(String prerequisiteCheck) {
-    for (AbstractCheckDescriptor descriptor: m_upgradeChecks){
-      if (prerequisiteCheck.equals(descriptor.getClass().getName())){
-        return true;
-      }
-    }
-    return false;
+  public List<UpgradeCheck> getBuiltInUpgradeChecks() {
+    return new ArrayList<>(m_builtInChecks);
   }
 
   /**
-   * Gets an ordered and filtered list of the upgrade checks.
-   * @param upgradePack Upgrade pack object with the list of required checks to be included
+   * Gets the ordered upgrade checks which should execute for the specified
+   * upgrade pack. This list of checks will include required built-in checks
+   * from Ambari and plugin checks loaded from the upgrade pack.
+   * <p>
+   * This collection of upgrade checks will be further scrutinized via
+   * {@link CheckQualification}s to determine if they indeed need to run by the
+   * {@link CheckHelper}.
+   *
+   * @param upgradePack
+   *          Upgrade pack object with the list of required checks to be
+   *          included
    * @return
    */
-  public List<AbstractCheckDescriptor> getFilteredUpgradeChecks(UpgradePack upgradePack){
-    List<String> prerequisiteChecks = upgradePack.getPrerequisiteChecks();
-    List<AbstractCheckDescriptor> resultCheckDescriptor = new ArrayList<>();
-    for (AbstractCheckDescriptor descriptor: m_upgradeChecks){
-      if (descriptor.isRequired(upgradePack.getType())) {
-        resultCheckDescriptor.add(descriptor);
-      } else if (prerequisiteChecks.contains(descriptor.getClass().getName())){
-        resultCheckDescriptor.add(descriptor);
+  public List<UpgradeCheck> getFilteredUpgradeChecks(UpgradePack upgradePack) throws AmbariException {
+    List<UpgradeCheck> builtInRequiredChecks = new ArrayList<>();
+
+    // iterate over all of the built-in checks, dropping any which are not
+    // required for the upgrade pack's upgrade type
+    for (UpgradeCheck builtInCheck : m_builtInChecks) {
+      if (isBuiltInCheckRequired(builtInCheck, upgradePack.getType())) {
+        builtInRequiredChecks.add(builtInCheck);
       }
     }
-    return resultCheckDescriptor;
+
+    // for any checks defined in the upgrade pack, add them since they have been
+    // explicitely defined
+    PluginUpgradeChecks pluginChecks = m_pluginChecks.get(upgradePack);
+
+    // see if the upgrade checks have been processes for this pack yet
+    if (null == pluginChecks) {
+      pluginChecks = new PluginUpgradeChecks(new TreeSet<>(new PreUpgradeCheckComparator()),
+          new TreeSet<>());
+
+      m_pluginChecks.put(upgradePack, pluginChecks);
+
+      List<String> pluginCheckClassNames = upgradePack.getPrerequisiteChecks();
+      if (null != pluginCheckClassNames && !pluginCheckClassNames.isEmpty()) {
+        loadPluginUpgradeChecksFromStack(upgradePack, pluginChecks);
+      }
+    }
+
+    final Set<UpgradeCheck> combinedUpgradeChecks = new TreeSet<>(new PreUpgradeCheckComparator());
+    combinedUpgradeChecks.addAll(builtInRequiredChecks);
+    combinedUpgradeChecks.addAll(pluginChecks.m_loadedChecks);
+
+    return new LinkedList<>(combinedUpgradeChecks);
+  }
+
+  /**
+   * Gets all of the upgrade check classes defined in upgrade packs which were
+   * not able to be loaded and instantiated.
+   *
+   * @return all of the failed upgrade check classes.
+   */
+  public Set<String> getFailedPluginClassNames() {
+    Collection<PluginUpgradeChecks> pluginUpgradeChecks = m_pluginChecks.values();
+
+    return pluginUpgradeChecks.stream()
+        .flatMap(plugins -> plugins.m_failedChecks.stream())
+        .collect(Collectors.toSet());
+  }
+
+  /**
+   * Uses the library classloader from the the target stack in order to find any
+   * plugin-in {@link UpgradeCheck}s which are declared in the upgrade pack.
+   *
+   * @param upgradePack
+   *          the upgrade pack which defines the upgrade check classes.
+   * @param pluginChecks
+   *          the collection to popoulate.
+   */
+  @SuppressWarnings("unchecked")
+  private void loadPluginUpgradeChecksFromStack(UpgradePack upgradePack,
+      PluginUpgradeChecks pluginChecks) throws AmbariException {
+    List<String> pluginCheckClassNames = upgradePack.getPrerequisiteChecks();
+    StackId ownerStackId = upgradePack.getOwnerStackId();
+    StackInfo stackInfo = metainfoProvider.get().getStack(ownerStackId);
+
+    ClassLoader classLoader = stackInfo.getLibraryClassLoader();
+    if (null != classLoader) {
+      for (String pluginCheckClassName : pluginCheckClassNames) {
+        try {
+          Class<? extends UpgradeCheck> upgradeCheckClass = (Class<? extends UpgradeCheck>) classLoader.loadClass(
+              pluginCheckClassName);
+
+          UpgradeCheck upgradeCheck = m_injector.getInstance(upgradeCheckClass);
+          pluginChecks.m_loadedChecks.add(upgradeCheck);
+
+          LOG.info("Registered pre-upgrade check {} for stack {}", upgradeCheckClass, ownerStackId);
+        } catch (Exception exception) {
+          LOG.error("Unable to load the upgrade check {}", pluginCheckClassName, exception);
+
+          // keep track of the failed check
+          pluginChecks.m_failedChecks.add(pluginCheckClassName);
+        }
+      }
+    } else {
+      LOG.error(
+          "Unable to perform the following upgrade checks because no libraries could be loaded for the {} stack: {}",
+          ownerStackId, StringUtils.join(pluginCheckClassNames, ","));
+    }
+  }
+
+  /**
+   * Gets whether a built-in upgrade check is required to run.
+   */
+  private boolean isBuiltInCheckRequired(UpgradeCheck upgradeCheck, UpgradeType upgradeType) {
+    if (upgradeType == null) {
+      return true;
+    }
+
+    UpgradeCheckInfo annotation = upgradeCheck.getClass().getAnnotation(UpgradeCheckInfo.class);
+    if (null == annotation) {
+      return false;
+    }
+
+    UpgradeType[] upgradeTypes = annotation.required();
+    return ArrayUtils.contains(upgradeTypes, upgradeType);
   }
 
   /**
    * THe {@link PreUpgradeCheckComparator} class is used to compare
-   * {@link AbstractCheckDescriptor} based on their {@link UpgradeCheck}
+   * {@link UpgradeCheck} based on their {@link UpgradeCheck}
    * annotations.
    */
   private static final class PreUpgradeCheckComparator implements
-      Comparator<AbstractCheckDescriptor> {
+      Comparator<UpgradeCheck> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public int compare(AbstractCheckDescriptor check1, AbstractCheckDescriptor check2) {
-      Class<? extends AbstractCheckDescriptor> clazz1 = check1.getClass();
-      Class<? extends AbstractCheckDescriptor> clazz2 = check2.getClass();
+    public int compare(UpgradeCheck check1, UpgradeCheck check2) {
+      Class<? extends UpgradeCheck> clazz1 = check1.getClass();
+      Class<? extends UpgradeCheck> clazz2 = check2.getClass();
 
-      UpgradeCheck annotation1 = clazz1.getAnnotation(UpgradeCheck.class);
-      UpgradeCheck annotation2 = clazz2.getAnnotation(UpgradeCheck.class);
+      UpgradeCheckInfo annotation1 = clazz1.getAnnotation(UpgradeCheckInfo.class);
+      UpgradeCheckInfo annotation2 = clazz2.getAnnotation(UpgradeCheckInfo.class);
 
       UpgradeCheckGroup group1 = UpgradeCheckGroup.DEFAULT;
       UpgradeCheckGroup group2 = UpgradeCheckGroup.DEFAULT;
@@ -204,5 +278,37 @@ public class UpgradeCheckRegistry {
 
       return clazz1.getName().compareTo(clazz2.getName());
     }
+  }
+
+  /**
+   * Encapsulates information about which plugins could and could not be loaded
+   * from a stack.
+   */
+  public static final class PluginUpgradeChecks {
+    /**
+     * The upgrade checks discovered on a per-stack, per-upgrade pack basis.
+     */
+    private final Set<UpgradeCheck> m_loadedChecks;
+
+    /**
+     * The upgrade checks discovered on a per-stack, per-upgrade pack basis
+     * which could not be loaded from the stack's 3rd party library
+     * {@link ClassLoader}.
+     */
+    private final Set<String> m_failedChecks;
+
+    /**
+     * Constructor.
+     *
+     * @param loadedChecks
+     *          the checks which have been successfully loaded from the stack.
+     * @param failedChecks
+     *          the checks which failed to load from the stack and cannot run.
+     */
+    private PluginUpgradeChecks(Set<UpgradeCheck> loadedChecks, Set<String> failedChecks) {
+      m_loadedChecks = loadedChecks;
+      m_failedChecks = failedChecks;
+    }
+
   }
 }

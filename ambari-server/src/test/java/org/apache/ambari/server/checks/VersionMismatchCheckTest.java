@@ -24,14 +24,16 @@ import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.spi.ClusterInformation;
+import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
+import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
+import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,17 +84,23 @@ public class VersionMismatchCheckTest {
   public void testWarningWhenHostWithVersionMismatchExists() throws Exception {
     when(firstServiceComponentHosts.get(FIRST_SERVICE_COMPONENT_HOST_NAME).getUpgradeState()).thenReturn(VERSION_MISMATCH);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
-    versionMismatchCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
-    Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
+    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
+        null, null);
+
+    UpgradeCheckResult check = versionMismatchCheck.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.WARNING, check.getStatus());
   }
 
   @Test
   public void testWarningWhenHostWithVersionMismatchDoesNotExist() throws Exception {
     when(firstServiceComponentHosts.get(FIRST_SERVICE_COMPONENT_HOST_NAME).getUpgradeState()).thenReturn(IN_PROGRESS);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
-    versionMismatchCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
+        null, null);
+
+    UpgradeCheckResult check = versionMismatchCheck.perform(request);
+    Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
   }
 }

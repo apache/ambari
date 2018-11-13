@@ -1012,6 +1012,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         this.runPreUpgradeCheckOnly({
           id: version.get('id'),
           label: version.get('displayName'),
+          id: version.get('id'),
           type: method.get('type')
         });
       } else {
@@ -1031,12 +1032,14 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       var configsMergeCheckData = Em.get(configsMergeWarning, 'UpgradeChecks.failed_detail');
       if (configsMergeCheckData && Em.isArray(configsMergeCheckData)) {
         configs = configsMergeCheckData.reduce(function (allConfigs, item) {
-          var isDeprecated = Em.isNone(item.new_stack_value),
-            willBeRemoved = Em.isNone(item.result_value);
+          const isDeprecated = Em.isNone(item.new_stack_value),
+                willBeRemoved = Em.isNone(item.result_value),
+                configInfo = App.configsCollection.getConfigByName(item.property, item.type) || {};
 
           return allConfigs.concat({
             type: item.type,
             name: item.property,
+            serviceName: configInfo.serviceName,
             wasModified: (!isDeprecated && !willBeRemoved && Em.compare(item.current, item.result_value) === 0),
             currentValue: item.current,
             recommendedValue: isDeprecated ? Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated') : item.new_stack_value,
@@ -1085,7 +1088,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       this.set('isUpgradeTypesLoaded', true);
     }
 
-    return App.ModalPopup.show({
+    const modal = App.ModalPopup.show({
       encodeBody: false,
       primary: function() {
         if ( preUpgradeShow ) return false;
@@ -1154,6 +1157,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
           self.runPreUpgradeCheckOnly({
             id: version.get('id'),
             label: version.get('displayName'),
+            id: version.get('id'),
             type: event.context.get('type')
           });
         },
@@ -1190,8 +1194,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
               self.runPreUpgradeCheckOnly.call(self, {
                 id: version.get('id'),
                 label: version.get('displayName'),
+                id: version.get('id'),
                 type: event.context.get('type')
               });
+            },
+            closeParent: function() {
+              modal.onClose();
             }
           }, configs);
         },
@@ -1251,6 +1259,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         }
       }
     });
+
+    return modal;
   },
 
   /**
@@ -2301,6 +2311,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
     output += '<table style="text-align: left;"><thead><tr>' +
         '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.configType') + '</th>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.serviceName') + '</th>' +
         '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.propertyName') + '</th>' +
         '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.currentValue') + '</th>' +
         '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.recommendedValue') + '</th>' +
@@ -2310,6 +2321,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     configs.context.forEach(function (config) {
       output += '<tr>' +
           '<td>' + config.type + '</td>' +
+          '<td>' + App.format.role(config.serviceName) + '</td>' +
           '<td>' + config.name + '</td>' +
           '<td>' + config.currentValue + '</td>' +
           '<td>' + config.recommendedValue + '</td>' +

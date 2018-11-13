@@ -241,7 +241,7 @@ public class CredentialStoreTest {
 
     @Override
     public MasterKeyService createPersisted(File masterKeyFile, String masterKey) {
-      MasterKeyServiceImpl.initializeMasterKeyFile(masterKeyFile, masterKey);
+      new MasterKeyServiceImpl("dummyKey").initializeMasterKeyFile(masterKeyFile, masterKey);
       return new MasterKeyServiceImpl(masterKeyFile);
     }
   }

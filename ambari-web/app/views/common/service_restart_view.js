@@ -21,13 +21,10 @@ App.ServiceRestartView = Em.View.extend({
 
   templateName: require('templates/common/service_restart'),
 
-  didInsertElement: function() {
-    this.initDefaultConfigs();
-  },
-
   initDefaultConfigs: function () {
     this.set('useRolling', true);
     this.set('showAdvancedOptions', false);
+    this.set('showBatchRackOptions', !!this.get('slaveComponents'));
     this.set('batchesOfHosts', true);
     this.set('noOfHostsInBatch', 10);
     this.set('batchIntervalHosts', 120);
@@ -40,7 +37,20 @@ App.ServiceRestartView = Em.View.extend({
     this.set('maxFailuresRack', 2);
     this.set('suppressAlerts', true);
     this.set('pauseAfterFirst', false);
+  },
 
+
+  getRestartConfigs: function() {
+    return Em.Object.create({
+      batchInterval: this.get('batchesOfHosts') ? this.get('batchIntervalHosts') : this.get('batchIntervalRacks'),
+      maxFailures: this.get('maxFailuresTolerated'),
+      maxFailuresPerBatch: this.get('maxFailuresTolerated'),
+    });
+  },
+
+  getNoOfHosts: function (component) {
+    if (this.get('batchesOfHosts')) return this.get('noOfHostsInBatch');
+    return Math.ceil(this.get('percentRackStarted')*100/(this.get('componentHostRackInfoMap')[component].size()));
   },
 
   rollingRestartRadioButton: App.RadioButtonView.extend({

@@ -70,9 +70,9 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
     AmbariEventPublisher publisher = createMock(AmbariEventPublisher.class);
     Configuration configuration = createMock(Configuration.class);
 
-    replayAll();
-
     AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
+
+    replayAll();
 
     Map<String, RootServiceComponentConfiguration> allConfigurations = handler.getComponentConfigurations(null);
     Assert.assertEquals(2, allConfigurations.size());
@@ -101,9 +101,9 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
 
     Configuration configuration = createMock(Configuration.class);
 
-    replayAll();
-
     AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
+
+    replayAll();
 
     handler.removeComponentConfiguration(SSO_CONFIGURATION.getCategoryName());
     handler.removeComponentConfiguration("invalid category");
@@ -129,9 +129,9 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
 
     Configuration configuration = createMock(Configuration.class);
 
-    replayAll();
-
     AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
+
+    replayAll();
 
     handler.updateComponentCategory(SSO_CONFIGURATION.getCategoryName(), properties, false);
 
@@ -163,9 +163,9 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
     AmbariEventPublisher publisher = createMock(AmbariEventPublisher.class);
     Configuration configuration = createMock(Configuration.class);
 
-    replayAll();
-
     AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
+
+    replayAll();
 
     Map<String, Map<String, String>> allConfigurations = handler.getConfigurations();
     Assert.assertEquals(2, allConfigurations.size());
@@ -192,9 +192,9 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
     AmbariEventPublisher publisher = createMock(AmbariEventPublisher.class);
     Configuration configuration = createMock(Configuration.class);
 
-    replayAll();
-
     AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
+
+    replayAll();
 
     Map<String, String> ssoConfigurations = handler.getConfigurationProperties(SSO_CONFIGURATION.getCategoryName());
     Assert.assertEquals(2, ssoConfigurations.size());

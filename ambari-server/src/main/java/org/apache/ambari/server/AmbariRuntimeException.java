@@ -25,4 +25,8 @@ public class AmbariRuntimeException extends RuntimeException {
   public AmbariRuntimeException(String message, Throwable cause) {
     super(message, cause);
   }
+
+  public AmbariRuntimeException(String message) {
+    super(message);
+  }
 }

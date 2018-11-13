@@ -47,7 +47,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryInfo;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -57,6 +56,8 @@ import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.RepoTag;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -385,7 +386,7 @@ public class RepositoryVersionHelper {
     }
 
     commandRepo.setRepositories(osEntity.getFamily(), osEntity.getRepoDefinitionEntities());
-    commandRepo.setRepositoryVersion(repoVersion.getVersion());
+    commandRepo.setRepoVersion(repoVersion.getVersion());
     commandRepo.setRepositoryVersionId(repoVersion.getId());
     commandRepo.setResolved(repoVersion.isResolved());
     commandRepo.setStackName(repoVersion.getStackId().getStackName());
@@ -432,6 +433,28 @@ public class RepositoryVersionHelper {
 
     return getCommandRepository(repoVersion, osEntity);
   }
+
+  @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
+  public CommandRepository getCommandRepository(final Cluster cluster, final Service service, final Host host,
+                                                final String componentName) throws AmbariException {
+    CommandRepository commandRepository = null;
+    try {
+      if (null != componentName) {
+        ServiceComponent serviceComponent = service.getServiceComponent(componentName);
+        commandRepository = getCommandRepository(cluster, serviceComponent, host);
+      } else {
+        RepositoryVersionEntity repoVersion = service.getDesiredRepositoryVersion();
+        RepoOsEntity osEntity = getOSEntityForHost(host, repoVersion);
+        commandRepository = getCommandRepository(repoVersion, osEntity);
+      }
+    } catch (SystemException e){
+      LOG.debug("Unable to find command repository with a correct operating system for host {}",
+        host, e);
+    }
+
+    return commandRepository;
+  }
+
 
   /**
    * This method builds and adds repo infoto hostLevelParams of action
@@ -584,7 +607,7 @@ public class RepositoryVersionHelper {
         final Cluster cluster = clusters.get().getCluster(context.getClusterName());
 
         VersionDefinitionXml xml = repoVersion.getRepositoryXml();
-        summary = xml.getClusterSummary(cluster);
+        summary = xml.getClusterSummary(cluster, ami.get());
       } catch (Exception e) {
         LOG.warn("Could not determine repository from %s/%s.  Will not pass cluster version.");
       }

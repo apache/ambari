@@ -289,6 +289,7 @@ The following are the properties which can be used to configure Ambari.
 | view.extraction.threadpool.timeout | The time, in milliseconds, that non-core threads will live when extraction views on Ambari Server startup. |`100000` | 
 | view.request.threadpool.size.max | The maximum number of threads which will be allocated to handling REST API requests from embedded views. This value should be smaller than `agent.threadpool.size.max`<br/><br/> This property is related to `agent.threadpool.size.max`. |`0` | 
 | view.request.threadpool.timeout | The time, milliseconds, that REST API requests from embedded views can wait if there are no threads available to service the view's request. Setting this too low can cause views to timeout. |`2000` | 
+| views.additional.classpath | Additional class path added to each Ambari View. Comma separated jars or directories | | 
 | views.ambari.request.connect.timeout.millis | The amount of time, in milliseconds, that a view will wait when trying to connect on HTTP(S) operations to the Ambari REST API. |`30000` | 
 | views.ambari.request.read.timeout.millis | The amount of time, in milliseconds, that a view will wait before terminating an HTTP(S) read request to the Ambari REST API. |`45000` | 
 | views.dir | The directory on the Ambari Server file system used for expanding Views and storing webapp work. |`/var/lib/ambari-server/resources/views` | 

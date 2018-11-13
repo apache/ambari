@@ -35,7 +35,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-
 import com.google.inject.Injector;
 
 public class UpgradeCatalog280Test {
@@ -57,9 +56,17 @@ public class UpgradeCatalog280Test {
     dbAccessor.addColumn(eq("requestschedule"), capture(perBatchLimitColumn));
     expectLastCall().once();
 
+    Capture<DBAccessor.DBColumnInfo> autoPauseColumn = newCapture(CaptureType.ALL);
+    dbAccessor.addColumn(eq("requestschedule"), capture(autoPauseColumn));
+    expectLastCall().once();
+
     dbAccessor.dropColumn(eq(HOST_COMPONENT_STATE_TABLE), eq(LAST_LIVE_STATE_COLUMN));
     expectLastCall().once();
 
+
+    Capture<DBAccessor.DBColumnInfo> upgradePackStackColumn = newCapture(CaptureType.ALL);
+    dbAccessor.addColumn(eq("upgrade"), capture(upgradePackStackColumn));
+    expectLastCall().once();
 
     replay(dbAccessor, injector);
 
@@ -67,12 +74,25 @@ public class UpgradeCatalog280Test {
     upgradeCatalog280.dbAccessor = dbAccessor;
     upgradeCatalog280.executeDDLUpdates();
 
-    DBAccessor.DBColumnInfo capturedBlueprintProvisioningStateColumn =
+    DBAccessor.DBColumnInfo perBatchLimitColumnInfo =
         perBatchLimitColumn.getValue();
     Assert.assertEquals("batch_toleration_limit_per_batch",
-        capturedBlueprintProvisioningStateColumn.getName());
-    Assert.assertEquals(null, capturedBlueprintProvisioningStateColumn.getDefaultValue());
-    Assert.assertEquals(Short.class, capturedBlueprintProvisioningStateColumn.getType());
+      perBatchLimitColumnInfo.getName());
+    Assert.assertEquals(null, perBatchLimitColumnInfo.getDefaultValue());
+    Assert.assertEquals(Short.class, perBatchLimitColumnInfo.getType());
+
+    DBAccessor.DBColumnInfo autoPauseColumnInfo =
+      autoPauseColumn.getValue();
+    Assert.assertEquals("pause_after_first_batch",
+      autoPauseColumnInfo.getName());
+    Assert.assertEquals(null, autoPauseColumnInfo.getDefaultValue());
+    Assert.assertEquals(Boolean.class, autoPauseColumnInfo.getType());
+
+    DBAccessor.DBColumnInfo capturedUpgradeColumn = upgradePackStackColumn.getValue();
+    Assert.assertEquals("upgrade_pack_stack_id", capturedUpgradeColumn.getName());
+    Assert.assertEquals(String.class, capturedUpgradeColumn.getType());
+    Assert.assertEquals((Integer) 255, capturedUpgradeColumn.getLength());
+
 
     verify(dbAccessor);
   }

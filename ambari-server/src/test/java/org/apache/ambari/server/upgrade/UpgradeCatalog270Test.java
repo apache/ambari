@@ -194,6 +194,7 @@ import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
@@ -599,7 +600,7 @@ public class UpgradeCatalog270Test {
     Module module = new AbstractModule() {
       @Override
       public void configure() {
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addPasswordEncryptorBindings().addFactoriesInstallBinding().build().configure(binder());
 
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(OsFamily.class).toInstance(osFamily);
@@ -623,6 +624,7 @@ public class UpgradeCatalog270Test {
         bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
         bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
 
         install(new FactoryModuleBuilder().implement(

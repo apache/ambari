@@ -88,6 +88,9 @@ public class ExecutionCommand extends AgentCommand {
   @JsonIgnore
   private Map<String, String> hostLevelParams = new HashMap<>();
 
+  @SerializedName("clusterLevelParams")
+  private Map<String, String> clusterLevelParams = new HashMap<>();
+
   @SerializedName("roleParams")
   @com.fasterxml.jackson.annotation.JsonProperty("roleParams")
   private Map<String, String> roleParams = null;
@@ -101,20 +104,11 @@ public class ExecutionCommand extends AgentCommand {
     new HashMap<>();
 
   @SerializedName("configurations")
-  @JsonIgnore
   private Map<String, Map<String, String>> configurations;
-
-  @SerializedName("configurationAttributes")
-  @JsonIgnore
-  private Map<String, Map<String, Map<String, String>>> configurationAttributes;
-
-  @SerializedName("configurationTags")
-  @JsonIgnore
-  private Map<String, Map<String, String>> configurationTags;
 
   @SerializedName("forceRefreshConfigTagsBeforeExecution")
   @JsonIgnore
-  private boolean forceRefreshConfigTagsBeforeExecution = false;
+  private boolean overrideConfigs = false;
 
   @SerializedName("commandParams")
   @com.fasterxml.jackson.annotation.JsonProperty("commandParams")
@@ -312,6 +306,14 @@ public class ExecutionCommand extends AgentCommand {
     hostLevelParams = params;
   }
 
+  public Map<String, String> getClusterLevelParams() {
+    return clusterLevelParams;
+  }
+
+  public void setClusterLevelParams(Map<String, String> clusterLevelParams) {
+    this.clusterLevelParams = clusterLevelParams;
+  }
+
   public Map<String, Set<String>> getClusterHostInfo() {
     return clusterHostInfo;
   }
@@ -332,12 +334,12 @@ public class ExecutionCommand extends AgentCommand {
    * Gets whether configuration tags shoudl be refreshed right before the
    * command is scheduled.
    */
-  public boolean getForceRefreshConfigTagsBeforeExecution() {
-    return forceRefreshConfigTagsBeforeExecution;
+  public boolean isOverrideConfigs() {
+    return overrideConfigs;
   }
 
-  public void setForceRefreshConfigTagsBeforeExecution(boolean forceRefreshConfigTagsBeforeExecution) {
-    this.forceRefreshConfigTagsBeforeExecution = forceRefreshConfigTagsBeforeExecution;
+  public void setOverrideConfigs(boolean overrideConfigs) {
+    this.overrideConfigs = overrideConfigs;
   }
 
   public Set<String> getLocalComponents() {
@@ -346,14 +348,6 @@ public class ExecutionCommand extends AgentCommand {
 
   public void setLocalComponents(Set<String> localComponents) {
     this.localComponents = localComponents;
-  }
-
-  public Map<String, Map<String, Map<String, String>>> getConfigurationAttributes() {
-    return configurationAttributes;
-  }
-
-  public void setConfigurationAttributes(Map<String, Map<String, Map<String, String>>> configurationAttributes) {
-    this.configurationAttributes = configurationAttributes;
   }
 
   public Map<String, String> getCommandParams() {
@@ -407,20 +401,6 @@ public class ExecutionCommand extends AgentCommand {
 
   public void setComponentName(String componentName) {
     this.componentName = componentName;
-  }
-
-  /**
-   * @param configTags the config tag map
-   */
-  public void setConfigurationTags(Map<String, Map<String, String>> configTags) {
-    configurationTags = configTags;
-  }
-
-  /**
-   * @return the configuration tags
-   */
-  public Map<String, Map<String, String>> getConfigurationTags() {
-    return configurationTags;
   }
 
   /**
@@ -562,10 +542,11 @@ public class ExecutionCommand extends AgentCommand {
     String DFS_TYPE = "dfs_type";
 
     /**
-     * A boolean indicating whether configuration tags should be refreshed
-     * before sending the command.
+     * A boolean indicating whether configurations should be added to execution command
+     * before sending.
      */
-    String REFRESH_CONFIG_TAGS_BEFORE_EXECUTION = "forceRefreshConfigTagsBeforeExecution";
+    String OVERRIDE_CONFIGS = "overrideConfigs";
+    String OVERRIDE_STACK_NAME = "overrideStackName";
 
     String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standard command? maybe add it to RoleCommand enum?
     String CUSTOM_COMMAND = "custom_command";

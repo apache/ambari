@@ -20,11 +20,15 @@ package org.apache.ambari.spi.upgrade;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
 
 /**
  * The {@link UpgradeCheck} is used before an upgrade in order to present the
- * administrator with a warning or a failure about an upgrade.
+ * administrator with a warning or a failure about an upgrade. All
+ * implementations of this class should used the {@link UpgradeCheckInfo}
+ * annotation to specify information about the check, such as its associated
+ * upgrade type(s) and ordering.
  */
 public interface UpgradeCheck {
 
@@ -47,16 +51,6 @@ public interface UpgradeCheck {
   List<CheckQualification> getQualifications();
 
   /**
-   * Tests if the prerequisite check is applicable to given upgrade request.
-   *
-   * @param request
-   *          prerequisite check request
-   * @return true if check should be performed
-   * @throws AmbariException
-   */
-  boolean isApplicable(UpgradeCheckRequest request) throws AmbariException;
-
-  /**
    * Executes check against given cluster.
    * @param request pre upgrade check request
    * @return TODO
@@ -67,26 +61,10 @@ public interface UpgradeCheck {
       throws AmbariException;
 
   /**
-   * Gets the type of check.
-   *
-   * @return the type of check (not {@code null}).
-   */
-  UpgradeCheckType getType();
-
-  /**
-   * Gets whether this upgrade check is required for the specified
-   * {@link UpgradeType}. Checks which are marked as required do not need to be
-   * explicitely declared in the upgrade pack to be run.
-   *
-   * @return {@code true} if it is required, {@code false} otherwise.
-   */
-  boolean isRequired(UpgradeType upgradeType);
-
-  /**
-   * The {@link CheckDescription} which includes the name, description, and
+   * The {@link UpgradeCheckDescription} which includes the name, description, and
    * success/failure messages for a {@link UpgradeCheck}.
    *
    * @return the check description.
    */
-  CheckDescription getCheckDescrption();
+  UpgradeCheckDescription getCheckDescription();
 }

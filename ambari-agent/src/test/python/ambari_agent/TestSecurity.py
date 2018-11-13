@@ -37,7 +37,6 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent import NetUtil
   from ambari_agent.security import CertificateManager
   from ambari_agent.AmbariConfig import AmbariConfig
-  from ambari_agent.Controller import Controller
   from ambari_agent import security
 
 aa = mock.mock.mock_open()

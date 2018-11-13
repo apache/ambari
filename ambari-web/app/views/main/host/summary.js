@@ -229,6 +229,9 @@ App.MainHostSummaryView = Em.View.extend(App.HiveInteractiveCheck, App.TimeRange
             addableComponent.get('componentName') === 'HIVE_SERVER_INTERACTIVE' && !self.get('enableHiveInteractive')) {
             return;
           }
+          if (installedServices.includes('HDFS') && addableComponent.get('componentName') === 'OZONE_DATANODE') {
+            return;
+          }
           components.pushObject(self.addableComponentObject.create({
             'componentName': addableComponent.get('componentName'),
             'serviceName': addableComponent.get('serviceName')

@@ -848,6 +848,53 @@ public class ServiceInfoTest {
     assertNull(service.getKerberosEnabledTest());
   }
 
+  @Test
+  public void testIsRollingRestartSupported() throws JAXBException {
+    // set to True
+    String serviceInfoXml =
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>SERVICE</name>" +
+            "      <rollingRestartSupported>true</rollingRestartSupported>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
+    Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
+    assertTrue(serviceInfoMap.get("SERVICE").isRollingRestartSupported());
+    assertTrue(serviceInfoMap.get("SERVICE").isValid());
+
+    // set to False
+    serviceInfoXml =
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>SERVICE</name>" +
+            "      <rollingRestartSupported>false</rollingRestartSupported>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    assertFalse(serviceInfoMap.get("SERVICE").isRollingRestartSupported());
+    assertTrue(serviceInfoMap.get("SERVICE").isValid());
+
+    // default to False
+    serviceInfoXml =
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>SERVICE</name>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    assertFalse(serviceInfoMap.get("SERVICE").isRollingRestartSupported());
+    assertTrue(serviceInfoMap.get("SERVICE").isValid());
+  }
+
   private static Map<String, ServiceInfo> getServiceInfo(String xml) throws JAXBException {
     InputStream configStream = new ByteArrayInputStream(xml.getBytes());
     JAXBContext jaxbContext = JAXBContext.newInstance(ServiceMetainfoXml.class);

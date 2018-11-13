@@ -196,6 +196,8 @@ class HostInfoLinux(HostInfo):
   THP_FILE_REDHAT = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
   THP_FILE_UBUNTU = "/sys/kernel/mm/transparent_hugepage/enabled"
 
+  THP_REGEXP = re.compile("\[(.+)\]")
+
   def __init__(self, config=None):
     super(HostInfoLinux, self).__init__(config)
 
@@ -267,7 +269,6 @@ class HostInfoLinux(HostInfo):
       logger.exception("Checking java processes failed")
 
   def getTransparentHugePage(self):
-    thp_regex = "\[(.+)\]"
     file_name = None
     if OSCheck.is_ubuntu_family():
       file_name = self.THP_FILE_UBUNTU
@@ -277,7 +278,7 @@ class HostInfoLinux(HostInfo):
     if file_name and os.path.isfile(file_name):
       with open(file_name) as f:
         file_content = f.read()
-        return re.search(thp_regex, file_content).groups()[0]
+        return HostInfoLinux.THP_REGEXP.search(file_content).groups()[0]
     else:
       return ""
 

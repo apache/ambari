@@ -25,6 +25,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -49,10 +50,10 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -62,7 +63,9 @@ import org.apache.ambari.server.state.repository.StackPackage.UpgradeDependencie
 import org.apache.ambari.server.state.repository.StackPackage.UpgradeDependencyDeserializer;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.RepositoryXml.Os;
-import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.stack.StackReleaseInfo;
+import org.apache.ambari.spi.stack.StackReleaseVersion;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -286,7 +289,8 @@ public class VersionDefinitionXml {
    * @return a summary instance
    * @throws AmbariException
    */
-  public ClusterVersionSummary getClusterSummary(Cluster cluster) throws AmbariException {
+  public ClusterVersionSummary getClusterSummary(Cluster cluster, AmbariMetaInfo metaInfo)
+      throws AmbariException {
 
     Map<String, ManifestService> manifests = buildManifestByService();
     Set<String> available = getAvailableServiceNames();
@@ -304,18 +308,24 @@ public class VersionDefinitionXml {
       ServiceVersionSummary summary = new ServiceVersionSummary();
       summaries.put(service.getName(), summary);
 
-      String serviceVersion = service.getDesiredRepositoryVersion().getVersion();
+      StackId stackId = service.getDesiredRepositoryVersion().getStackId();
+      StackInfo stack = metaInfo.getStack(stackId);
+      StackReleaseVersion stackReleaseVersion = stack.getReleaseVersion();
+
+      StackReleaseInfo serviceVersion = stackReleaseVersion.parse(
+          service.getDesiredRepositoryVersion().getVersion());
 
       // !!! currently only one version is supported (unique service names)
       ManifestService manifest = manifests.get(serviceName);
 
-      final String versionToCompare;
+      final StackReleaseInfo versionToCompare;
       final String summaryReleaseVersion;
+
       if (StringUtils.isEmpty(manifest.releaseVersion)) {
-        versionToCompare = release.getFullVersion();
+        versionToCompare = release.getReleaseInfo();
         summaryReleaseVersion = release.version;
       } else {
-        versionToCompare = manifest.releaseVersion;
+        versionToCompare = stackReleaseVersion.parse(manifest.releaseVersion);
         summaryReleaseVersion = manifest.releaseVersion;
       }
 
@@ -326,7 +336,8 @@ public class VersionDefinitionXml {
       } else {
         // !!! installed service already meets the release version, then nothing to upgrade
         // !!! TODO should this be using the release compatible-with field?
-        if (VersionUtils.compareVersionsWithBuild(versionToCompare, serviceVersion, 4) > 0) {
+        Comparator<StackReleaseInfo> comparator = stackReleaseVersion.getComparator();
+        if (comparator.compare(versionToCompare, serviceVersion) > 0) {
           summary.setUpgrade(true);
         }
       }
@@ -343,11 +354,13 @@ public class VersionDefinitionXml {
    *
    * @param cluster
    *          the cluster (not {@code null}).
+   * @param metaInfo
+   *          the metainfo instance
    * @return a mapping of service name to its missing service dependencies, or
    *         an empty map if there are none (never {@code null}).
    * @throws AmbariException
    */
-  public Set<String> getMissingDependencies(Cluster cluster)
+  public Set<String> getMissingDependencies(Cluster cluster, AmbariMetaInfo metaInfo)
       throws AmbariException {
     Set<String> missingDependencies = Sets.newTreeSet();
 
@@ -392,7 +405,7 @@ public class VersionDefinitionXml {
     // the installed services in the cluster
     Map<String,Service> installedServices = cluster.getServices();
 
-    ClusterVersionSummary clusterVersionSummary = getClusterSummary(cluster);
+    ClusterVersionSummary clusterVersionSummary = getClusterSummary(cluster, metaInfo);
     Set<String> servicesInUpgrade = clusterVersionSummary.getAvailableServiceNames();
     Set<String> servicesInRepository = getAvailableServiceNames();
 

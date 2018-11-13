@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
@@ -93,7 +94,6 @@ import org.apache.ambari.server.stack.upgrade.Task;
 import org.apache.ambari.server.stack.upgrade.UpdateStackGrouping;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.stack.upgrade.UpgradeScope;
-import org.apache.ambari.server.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.stack.upgrade.orchestrate.StageWrapper;
 import org.apache.ambari.server.stack.upgrade.orchestrate.TaskWrapper;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
@@ -107,6 +107,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -760,6 +761,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     upgrade.setClusterId(cluster.getClusterId());
     upgrade.setDirection(direction);
     upgrade.setUpgradePackage(pack.getName());
+    upgrade.setUpgradePackStackId(pack.getOwnerStackId());
     upgrade.setUpgradeType(pack.getType());
     upgrade.setAutoSkipComponentFailures(upgradeContext.isComponentFailureAutoSkipped());
     upgrade.setAutoSkipServiceCheckFailures(upgradeContext.isServiceCheckFailureAutoSkipped());
@@ -1235,7 +1237,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     List<RequestResourceFilter> filters = new ArrayList<>();
 
     for (TaskWrapper tw : wrapper.getTasks()) {
-      filters.add(new RequestResourceFilter(tw.getService(), "", Collections.emptyList()));
+      List<String> hosts = tw.getHosts().stream().collect(Collectors.toList());
+      filters.add(new RequestResourceFilter(tw.getService(), "", hosts));
     }
 
     Cluster cluster = context.getCluster();

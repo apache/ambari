@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -20,23 +19,17 @@ Ambari Agent
 
 """
 
-from resource_management.core.logger import Logger
 from resource_management.core import shell
 from ambari_commons import subprocess32
 
+
 class JcePolicyInfo:
   def __init__(self, java_home):
-    self.java_home = java_home
+    # ToDo: change hardcoded path to resolved one
+    self.command_format = java_home + "/bin/java -jar /var/lib/ambari-agent/tools/jcepolicyinfo.jar {}"
     self.jar = "/var/lib/ambari-agent/tools/jcepolicyinfo.jar"
 
   def is_unlimited_key_jce_policy(self):
-    Logger.info("Testing the JVM's JCE policy to see it if supports an unlimited key length.")
-    return shell.call(
-      self._command('-tu'),
-      stdout = subprocess32.PIPE,
-      stderr = subprocess32.PIPE,
-      timeout = 5,
-      quiet = True)[0] == 0
-
-  def _command(self, options):
-    return '{0}/bin/java -jar /var/lib/ambari-agent/tools/jcepolicyinfo.jar {1}'.format(self.java_home, options)
+    ret = shell.call(
+      self.command_format.format('-tu'), stdout=subprocess32.PIPE, stderr=subprocess32.PIPE, timeout=5, quiet=True)[0]
+    return ret == 0

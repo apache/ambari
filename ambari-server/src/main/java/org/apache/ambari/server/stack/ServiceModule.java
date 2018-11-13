@@ -300,6 +300,10 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       serviceInfo.setSelection(parent.getSelection());
     }
 
+    if (serviceInfo.isMaintainerEmpty()) {
+      serviceInfo.setMaintainer(parent.getMaintainer());
+    }
+
     if(null == serviceInfo.getSupportDeleteViaUIField()){
       serviceInfo.setSupportDeleteViaUI(parent.isSupportDeleteViaUI());
     }

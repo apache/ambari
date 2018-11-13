@@ -281,13 +281,13 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       if (parsed > max) {
         this.set('isMirrorValueValid', false);
         this.get('config').setProperties({
-          warnMessage: Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(max + this.get('unitLabel')),
+          warnMessage: Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(this.formatTickLabel(max, ' ')),
           warn: true
         });
       } else if (parsed < min) {
         this.set('isMirrorValueValid', false);
         this.get('config').setProperties({
-          warnMessage: Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(min + this.get('unitLabel')),
+          warnMessage: Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(this.formatTickLabel(min, ' ')),
           warn: true
         });
       } else {
@@ -653,7 +653,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         var min = this.get('parseFunction')(this.getValueAttributeByGroup('minimum'));
         if (configValue < min) {
           min = this.widgetValueByConfigAttributes(min);
-          this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(min + this.get('unitLabel')));
+          this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(this.formatTickLabel(min, ' ')));
           return false;
         }
       }
@@ -661,7 +661,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         var max = this.get('parseFunction')(this.getValueAttributeByGroup('maximum'));
         if (configValue > max) {
           max = this.widgetValueByConfigAttributes(max);
-          this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(max + this.get('unitLabel')));
+          this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(this.formatTickLabel(max, ' ')));
           return false;
         }
       }
@@ -680,7 +680,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    */
   formatTickLabel: function (tick, separator) {
     var label,
-      separator = separator || '',
       valueLabel = tick,
       units = ['B', 'KB', 'MB', 'GB', 'TB'],
       unitLabel = this.get('unitLabel'),
@@ -693,7 +692,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       unitLabel = units[unitLabelIndex];
       valueLabel = this._extraRound(tick);
     }
-    label = valueLabel + separator + unitLabel;
+    label = valueLabel + ((separator && unitLabel) ? separator : '') + unitLabel;
     return label;
   }
 

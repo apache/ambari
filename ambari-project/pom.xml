@@ -18,26 +18,26 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari</artifactId>
-    <version>2.0.0.0-SNAPSHOT</version>
+    <version>${revision}</version>
   </parent>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-project</artifactId>
-  <version>2.0.0.0-SNAPSHOT</version>
   <description>Apache Ambari Project POM</description>
   <name>Apache Ambari Project POM</name>
   <packaging>pom</packaging>
   <properties>
+    <skipPythonTests>false</skipPythonTests>
     <solr.version>5.5.2</solr.version>
     <ambari.dir>${project.parent.basedir}</ambari.dir>
     <powermock.version>1.6.3</powermock.version>
-    <jetty.version>9.4.11.v20180605</jetty.version>
+    <jetty.version>9.4.12.v20180830</jetty.version>
     <ldap-api.version>1.0.0</ldap-api.version>
     <checkstyle.version>8.9</checkstyle.version>
     <swagger.version>1.5.19</swagger.version>
-    <swagger.maven.plugin.version>3.1.4</swagger.maven.plugin.version>
+    <swagger.maven.plugin.version>3.1.5</swagger.maven.plugin.version>
     <slf4j.version>1.7.20</slf4j.version>
     <guice.version>4.1.0</guice.version>
-    <spring.version>4.3.17.RELEASE</spring.version>
+    <spring.version>4.3.18.RELEASE</spring.version>
     <spring.security.version>4.2.7.RELEASE</spring.security.version>
     <fasterxml.jackson.version>2.9.5</fasterxml.jackson.version>
     <postgres.version>42.2.2</postgres.version>
@@ -81,6 +81,17 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>skipTestRun</id>
+      <activation>
+        <property>
+          <name>skipTests</name>
+        </property>
+      </activation>
+      <properties>
+        <skipPythonTests>true</skipPythonTests>
+      </properties>
     </profile>
   </profiles>
   <dependencyManagement>
@@ -666,11 +677,6 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-enforcer-plugin</artifactId>
-          <version>1.4.1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
           <version>2.17</version>
           <configuration>
@@ -699,7 +705,7 @@
             <dependency>
               <groupId>org.apache.ambari</groupId>
               <artifactId>ambari-utility</artifactId>
-              <version>1.0.0.0-SNAPSHOT</version>
+              <version>${revision}</version>
             </dependency>
           </dependencies>
         </plugin>

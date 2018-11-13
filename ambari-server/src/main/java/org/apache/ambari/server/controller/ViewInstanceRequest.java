@@ -27,7 +27,6 @@ import org.apache.ambari.server.api.services.views.ViewInstanceService;
 import org.apache.ambari.server.controller.internal.ViewInstanceResourceProvider;
 import org.apache.ambari.view.ClusterType;
 
-
 import io.swagger.annotations.ApiModelProperty;
 
 /**

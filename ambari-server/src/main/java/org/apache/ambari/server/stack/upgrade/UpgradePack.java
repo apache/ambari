@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -38,7 +39,10 @@ import javax.xml.bind.annotation.XmlValue;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.upgrade.Task.Type;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,6 +133,41 @@ public class UpgradePack {
   @XmlElementWrapper(name="upgrade-path")
   @XmlElement(name="intermediate-stack")
   private List<IntermediateStack> intermediateStacks;
+
+  @XmlTransient
+  private StackId ownerStackId;
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(type, source, sourceStack, target, targetStack, ownerStackId);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
+    }
+
+    if (!(object instanceof UpgradePack)) {
+      return false;
+    }
+
+    UpgradePack that = (UpgradePack) object;
+
+    return new EqualsBuilder()
+      .append(type, that.type)
+      .append(source, that.source)
+      .append(sourceStack, that.sourceStack)
+      .append(target, that.targetStack)
+      .append(ownerStackId, that.ownerStackId)
+      .isEquals();
+  }
 
   public String getName() {
     return name;
@@ -720,6 +759,28 @@ public class UpgradePack {
     }
 
     /**
+     * Gets a mashup of all check properties, including global ones.
+     *
+     * @return a map of all check properties defined in the upgrade pack.
+     */
+    public Map<String, String> getAllProperties() {
+      Map<String, String> properties = new HashMap<>();
+      if( null != globalProperties ) {
+        for (PrerequisiteProperty property : globalProperties) {
+          properties.put(property.name, property.value);
+        }
+      }
+
+      if (null != prerequisiteCheckProperties) {
+        for(PrerequisiteCheckProperties checkProperties : prerequisiteCheckProperties) {
+            properties.putAll(checkProperties.getProperties());
+        }
+      }
+
+      return properties;
+    }
+
+    /**
      * Get config properties for a given prerequisite check as a map
      * @param checkName The prerequisite check name
      * @return Map of config properties for the prerequisite check
@@ -802,5 +863,23 @@ public class UpgradePack {
       .flatMap(group -> ((ClusterGrouping) group).executionStages.stream())
       .map(executeStage -> executeStage.task)
       .anyMatch(taskPredicate);
+  }
+
+  /**
+   * Sets the stack id that owns this upgrade pack.  This may be set only once.
+   *
+   * @param stackId
+   *          the owner stack id
+   */
+  public void setOwnerStackId(StackId stackId) {
+    ownerStackId = (null == ownerStackId) ? stackId : ownerStackId;
+  }
+
+  /**
+   * @return
+   *      the stack id that owns this upgrade pack.
+   */
+  public StackId getOwnerStackId() {
+    return ownerStackId;
   }
 }

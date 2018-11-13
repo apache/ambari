@@ -51,6 +51,7 @@ import org.apache.ambari.server.hooks.users.UserCreatedEvent;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -58,8 +59,12 @@ import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
+import org.apache.ambari.server.security.encryption.AESEncryptionService;
+import org.apache.ambari.server.security.encryption.ConfigPropertiesEncryptor;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
+import org.apache.ambari.server.security.encryption.EncryptionService;
+import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
@@ -106,6 +111,7 @@ import com.google.gson.GsonBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.sun.jersey.api.client.Client;
@@ -350,6 +356,9 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
       bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
       bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
+      bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+      bind(EncryptionService.class).to(AESEncryptionService.class);
+      bind(new TypeLiteral<Encryptor<Config>>() {}).annotatedWith(Names.named("ConfigPropertiesEncryptor")).to(ConfigPropertiesEncryptor.class);
     }
 
     private void installDependencies() {

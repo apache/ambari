@@ -251,7 +251,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertNotNull(command.getHostLevelParams());
     Assert.assertTrue(command.getHostLevelParams().containsKey(ExecutionCommand.KeyNames.USER_GROUPS));
     Assert.assertEquals("{\"zookeeperUser\":[\"zookeeperGroup\"]}", command.getHostLevelParams().get(ExecutionCommand.KeyNames.USER_GROUPS));
-    Assert.assertEquals(true, command.getForceRefreshConfigTagsBeforeExecution());
+    Assert.assertEquals(false, command.isOverrideConfigs());
     Assert.assertNull(command.getRepositoryFile());
   }
 
@@ -530,7 +530,6 @@ public class AmbariCustomCommandExecutionHelperTest {
     EasyMock.expect(stage.getExecutionCommandWrapper(EasyMock.eq("c1-c6401"), EasyMock.anyString())).andReturn(execCmdWrapper);
     EasyMock.expect(stage.getExecutionCommandWrapper(EasyMock.eq("c1-c6402"), EasyMock.anyString())).andReturn(execCmdWrapper);
     EasyMock.expect(execCmdWrapper.getExecutionCommand()).andReturn(execCmd);
-    EasyMock.expect(execCmd.getForceRefreshConfigTagsBeforeExecution()).andReturn(true);
 
     HashSet<String> localComponents = new HashSet<>();
     EasyMock.expect(execCmd.getLocalComponents()).andReturn(localComponents).anyTimes();

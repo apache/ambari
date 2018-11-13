@@ -48,10 +48,9 @@ import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.stack.upgrade.RepositoryVersionHelper;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.repository.Release;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.base.MoreObjects;
@@ -252,18 +251,6 @@ public class RepositoryVersionEntity {
 
   public void setDisplayName(String displayName) {
     this.displayName = displayName;
-  }
-
-  /**
-   * @param stackId the stack id for the version
-   * @param release the XML release instance
-   */
-  public void setDisplayName(StackId stackId, Release release) {
-    if (StringUtils.isNotBlank(release.display)) {
-      displayName = release.display;
-    } else {
-      displayName = stackId.getStackName() + "-" + release.getFullVersion();
-    }
   }
 
 
