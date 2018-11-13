@@ -36,7 +36,7 @@
                 <li class="restart-all-components">
                   <a href="#" {{action restartAllStaleConfigComponents target="controller"}}>{{t restart.service.all.affected}}</a>
                 </li>
-                {{#if view.rollingRestartSlaveComponentName}}
+                {{#if view.isRollingRestartSlaveComponentPresent}}
                   <li class="restart-slave-components">
                     <a href="#" {{action rollingRestartStaleConfigSlaveComponents view.rollingRestartSlaveComponentName target="controller"}}>{{view.rollingRestartActionName}}</a>
                   </li>
