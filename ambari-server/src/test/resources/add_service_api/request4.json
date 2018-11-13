@@ -1,6 +1,4 @@
 {
-  "operation_type" : "ADD_SERVICE",
-
   "components" : [
     {
       "component_name" : "NIMBUS",

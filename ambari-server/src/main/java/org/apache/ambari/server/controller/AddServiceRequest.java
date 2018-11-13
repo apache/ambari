@@ -19,8 +19,9 @@
 package org.apache.ambari.server.controller;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.emptySet;
+import static org.apache.ambari.server.controller.internal.BaseClusterRequest.PROVISION_ACTION_PROPERTY;
+import static org.apache.ambari.server.controller.internal.ProvisionClusterRequest.CONFIG_RECOMMENDATION_STRATEGY;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,9 +50,7 @@ import io.swagger.annotations.ApiModelProperty;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public final class AddServiceRequest {
 
-  static final String OPEATION_TYPE = "operation_type";
-  static final String CONFIG_RECOMMENDATION_STRATEGY = "config_recommendation_strategy";
-  static final String PROVISION_ACTION = "provision_action";
+  static final String OPERATION_TYPE = "operation_type";
   static final String STACK_NAME = "stack_name";
   static final String STACK_VERSION = "stack_version";
   static final String SERVICES = "services";
@@ -67,9 +66,9 @@ public final class AddServiceRequest {
   private final Configuration configuration;
 
   @JsonCreator
-  public AddServiceRequest(@JsonProperty(value = OPEATION_TYPE, required = true) OperationType operationType,
+  public AddServiceRequest(@JsonProperty(OPERATION_TYPE) OperationType operationType,
                            @JsonProperty(CONFIG_RECOMMENDATION_STRATEGY) ConfigRecommendationStrategy recommendationStrategy,
-                           @JsonProperty(PROVISION_ACTION)ProvisionAction provisionAction,
+                           @JsonProperty(PROVISION_ACTION_PROPERTY)ProvisionAction provisionAction,
                            @JsonProperty(STACK_NAME) String stackName,
                            @JsonProperty(STACK_VERSION) String stackVersion,
                            @JsonProperty(SERVICES) Set<Service> services,
@@ -88,7 +87,7 @@ public final class AddServiceRequest {
                             Set<Service> services,
                             Set<Component> components,
                             Configuration configuration) {
-    this.operationType = operationType;
+    this.operationType = null != operationType ? operationType : OperationType.ADD_SERVICE;
     this.recommendationStrategy = null != recommendationStrategy ? recommendationStrategy : ConfigRecommendationStrategy.NEVER_APPLY;
     this.provisionAction = null != provisionAction ? provisionAction : ProvisionAction.INSTALL_AND_START;
     this.stackName = stackName;
@@ -97,13 +96,12 @@ public final class AddServiceRequest {
     this.components = null != components ? components : emptySet();
     this.configuration = null != configuration ? configuration : new Configuration(new HashMap<>(), new HashMap<>());
 
-    checkNotNull(operationType, "operationType is mandatory");
     checkArgument(!this.services.isEmpty() || !this.components.isEmpty(), "Either services or components must be specified");
   }
 
 
-  @JsonProperty(value = OPEATION_TYPE, required = true)
-  @ApiModelProperty(name = OPEATION_TYPE)
+  @JsonProperty(OPERATION_TYPE)
+  @ApiModelProperty(name = OPERATION_TYPE)
   public OperationType getOperationType() {
     return operationType;
   }
@@ -114,8 +112,8 @@ public final class AddServiceRequest {
     return recommendationStrategy;
   }
 
-  @JsonProperty(PROVISION_ACTION)
-  @ApiModelProperty(name = PROVISION_ACTION)
+  @JsonProperty(PROVISION_ACTION_PROPERTY)
+  @ApiModelProperty(name = PROVISION_ACTION_PROPERTY)
   public ProvisionAction getProvisionAction() {
     return provisionAction;
   }

@@ -19,16 +19,16 @@
 package org.apache.ambari.server.controller;
 
 import static org.apache.ambari.server.controller.AddServiceRequest.COMPONENTS;
-import static org.apache.ambari.server.controller.AddServiceRequest.CONFIG_RECOMMENDATION_STRATEGY;
 import static org.apache.ambari.server.controller.AddServiceRequest.Component;
 import static org.apache.ambari.server.controller.AddServiceRequest.OperationType.ADD_SERVICE;
-import static org.apache.ambari.server.controller.AddServiceRequest.PROVISION_ACTION;
 import static org.apache.ambari.server.controller.AddServiceRequest.SERVICES;
 import static org.apache.ambari.server.controller.AddServiceRequest.STACK_NAME;
 import static org.apache.ambari.server.controller.AddServiceRequest.STACK_VERSION;
 import static org.apache.ambari.server.controller.AddServiceRequest.Service;
+import static org.apache.ambari.server.controller.internal.BaseClusterRequest.PROVISION_ACTION_PROPERTY;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
+import static org.apache.ambari.server.controller.internal.ProvisionClusterRequest.CONFIG_RECOMMENDATION_STRATEGY;
 import static org.apache.ambari.server.serveraction.kerberos.KerberosServerAction.OPERATION_TYPE;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.ALWAYS_APPLY;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.NEVER_APPLY;
@@ -67,12 +67,11 @@ public class AddServiceRequestTest {
   private static String REQUEST_MINIMAL_SERVICES_AND_COMPONENTS;
   private static String REQUEST_MINIMAL_SERVICES_ONLY;
   private static String REQUEST_MINIMAL_COMPONENTS_ONLY;
-  private static String REQUEST_INVALID_NO_OPERATION_TYPE;
   private static String REQUEST_INVALID_NO_SERVICES_AND_COMPONENTS;
   private static String REQUEST_INVALID_INVALID_FIELD;
 
 
-  ObjectMapper mapper = new ObjectMapper();
+  private ObjectMapper mapper = new ObjectMapper();
 
   @BeforeClass
   public static void setUpClass() {
@@ -80,9 +79,8 @@ public class AddServiceRequestTest {
     REQUEST_MINIMAL_SERVICES_AND_COMPONENTS = read("add_service_api/request2.json");
     REQUEST_MINIMAL_SERVICES_ONLY = read("add_service_api/request3.json");
     REQUEST_MINIMAL_COMPONENTS_ONLY = read("add_service_api/request4.json");
-    REQUEST_INVALID_NO_OPERATION_TYPE = read("add_service_api/request_invalid_1.json");
-    REQUEST_INVALID_NO_SERVICES_AND_COMPONENTS = read("add_service_api/request_invalid_2.json");
-    REQUEST_INVALID_INVALID_FIELD = read("add_service_api/request_invalid_3.json");
+    REQUEST_INVALID_NO_SERVICES_AND_COMPONENTS = read("add_service_api/request_invalid_1.json");
+    REQUEST_INVALID_INVALID_FIELD = read("add_service_api/request_invalid_2.json");
   }
 
   @Test
@@ -118,9 +116,6 @@ public class AddServiceRequestTest {
     AddServiceRequest request = mapper.readValue(REQUEST_MINIMAL_SERVICES_AND_COMPONENTS, AddServiceRequest.class);
 
     // filled-out values
-    assertEquals(ADD_SERVICE, request.getOperationType());
-
-
     assertEquals(
       ImmutableSet.of(Component.of("NIMBUS", "c7401.ambari.apache.org"), Component.of("BEACON_SERVER", "c7402.ambari.apache.org")),
       request.getComponents());
@@ -130,6 +125,7 @@ public class AddServiceRequestTest {
       request.getServices());
 
     // default / empty values
+    assertEquals(ADD_SERVICE, request.getOperationType());
     assertEquals(NEVER_APPLY, request.getRecommendationStrategy());
     assertEquals(INSTALL_AND_START, request.getProvisionAction());
     assertNull(request.getStackName());
@@ -145,13 +141,12 @@ public class AddServiceRequestTest {
     AddServiceRequest request = mapper.readValue(REQUEST_MINIMAL_SERVICES_ONLY, AddServiceRequest.class);
 
     // filled-out values
-    assertEquals(ADD_SERVICE, request.getOperationType());
-
     assertEquals(
       ImmutableSet.of(Service.of("STORM"), Service.of("BEACON")),
       request.getServices());
 
     // default / empty values
+    assertEquals(ADD_SERVICE, request.getOperationType());
     assertEquals(NEVER_APPLY, request.getRecommendationStrategy());
     assertEquals(INSTALL_AND_START, request.getProvisionAction());
     assertNull(request.getStackName());
@@ -169,13 +164,12 @@ public class AddServiceRequestTest {
     AddServiceRequest request = mapper.readValue(REQUEST_MINIMAL_COMPONENTS_ONLY, AddServiceRequest.class);
 
     // filled-out values
-    assertEquals(ADD_SERVICE, request.getOperationType());
-
     assertEquals(
       ImmutableSet.of(Component.of("NIMBUS", "c7401.ambari.apache.org"), Component.of("BEACON_SERVER", "c7402.ambari.apache.org")),
       request.getComponents());
 
     // default / empty values
+    assertEquals(ADD_SERVICE, request.getOperationType());
     assertEquals(NEVER_APPLY, request.getRecommendationStrategy());
     assertEquals(INSTALL_AND_START, request.getProvisionAction());
     assertNull(request.getStackName());
@@ -186,11 +180,6 @@ public class AddServiceRequestTest {
     assertTrue(configuration.getFullProperties().isEmpty());
 
     assertTrue(request.getServices().isEmpty());
-  }
-
-  @Test(expected = JsonProcessingException.class)
-  public void testDeserialize_invalid_noOperationType() throws Exception {
-    mapper.readValue(REQUEST_INVALID_NO_OPERATION_TYPE, AddServiceRequest.class);
   }
 
   @Test(expected = JsonProcessingException.class)
@@ -211,7 +200,7 @@ public class AddServiceRequestTest {
 
     assertEquals(AddServiceRequest.OperationType.ADD_SERVICE.name(), serialized.get(OPERATION_TYPE));
     assertEquals(ConfigRecommendationStrategy.ALWAYS_APPLY.name(), serialized.get(CONFIG_RECOMMENDATION_STRATEGY));
-    assertEquals(ProvisionAction.INSTALL_ONLY.name(), serialized.get(PROVISION_ACTION));
+    assertEquals(ProvisionAction.INSTALL_ONLY.name(), serialized.get(PROVISION_ACTION_PROPERTY));
     assertEquals("HDP", serialized.get(STACK_NAME));
     assertEquals("3.0", serialized.get(STACK_VERSION));
 
@@ -245,7 +234,7 @@ public class AddServiceRequestTest {
     Map<String, ?> serialized = serialize(request);
 
     assertEquals(AddServiceRequest.OperationType.ADD_SERVICE.name(), serialized.get(OPERATION_TYPE));
-    assertEquals(ProvisionAction.INSTALL_AND_START.name(), serialized.get(PROVISION_ACTION));
+    assertEquals(ProvisionAction.INSTALL_AND_START.name(), serialized.get(PROVISION_ACTION_PROPERTY));
     assertEquals(
       ImmutableSet.of(ImmutableMap.of(Service.NAME, "BEACON"), ImmutableMap.of(Service.NAME, "STORM")),
       ImmutableSet.copyOf((List<String>) serialized.get(SERVICES)) );

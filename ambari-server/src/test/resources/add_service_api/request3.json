@@ -1,9 +1,6 @@
 {
-  "operation_type" : "ADD_SERVICE",
-
   "services": [
     { "name" : "STORM" },
     { "name" : "BEACON" }
   ]
-
 }
