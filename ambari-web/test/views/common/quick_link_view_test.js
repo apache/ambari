@@ -78,7 +78,7 @@ describe('App.QuickViewLinks', function () {
         done: Em.clb
       };
       sinon.stub(quickViewLinks, 'setConfigProperties').returns(mock);
-      sinon.stub(quickViewLinks, 'getQuickLinksHosts');
+      sinon.stub(quickViewLinks, 'getQuickLinksHosts').returns({fail: Em.clb});
       sinon.stub(App, 'get').returns(true);
     });
     afterEach(function () {
@@ -89,6 +89,12 @@ describe('App.QuickViewLinks', function () {
     it("getQuickLinksHosts should be called", function () {
       quickViewLinks.setQuickLinks();
       expect(quickViewLinks.getQuickLinksHosts.calledOnce).to.be.true;
+      expect(quickViewLinks.get('showNoLinks')).to.be.true;
+    });
+  
+    it("showNoLinks should be true when failed", function () {
+      quickViewLinks.setQuickLinks();
+      expect(quickViewLinks.get('showNoLinks')).to.be.true;
     });
   });
 
