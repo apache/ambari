@@ -383,15 +383,25 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
     return App.havePermissions('CLUSTER.VIEW_CONFIGS') && !App.get('services.noConfigTypes').contains(this.get('controller.content.serviceName'));
   }.property('controller.content.serviceName','App.services.noConfigTypes'),
 
+  hasMasterOrSlaveComponent: function() {
+    return App.SlaveComponent.find().toArray()
+    .concat(App.MasterComponent.find().toArray())
+    .filterProperty('service.serviceName', this.get('controller.content.serviceName'))
+    .mapProperty('totalCount')
+    .reduce((a, b) => a + b, 0) > 0;
+  }.property('controller.content.serviceName'),
+
   hasHeatmapTab: function() {
-    return App.get('services.servicesWithHeatmapTab').contains(this.get('controller.content.serviceName'));
-  }.property('controller.content.serviceName', 'App.services.servicesWithHeatmapTab'),
+    return App.StackService.find(this.get('controller.content.serviceName')).get('hasHeatmapSection')
+      && this.get('hasMasterOrSlaveComponent');
+  }.property('controller.content.serviceName', 'App.services.servicesWithHeatmapTab', 'hasMasterOrSlaveComponent'),
 
   hasMetricTab: function() {
     let serviceName = this.get('controller.content.serviceName');
     let graphs = require('data/service_graph_config')[serviceName.toLowerCase()];
-    return graphs || App.StackService.find(serviceName).get('isServiceWithWidgets');
-  }.property('controller.content.serviceName'),
+    return (graphs || App.StackService.find(serviceName).get('isServiceWithWidgets'))
+      && this.get('hasMasterOrSlaveComponent');
+  }.property('controller.content.serviceName', 'hasMasterOrSlaveComponent'),
 
   didInsertElement: function () {
     this.get('controller').setStartStopState();

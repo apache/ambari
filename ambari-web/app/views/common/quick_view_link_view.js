@@ -109,7 +109,9 @@ App.QuickLinksView = Em.View.extend({
     if (App.get('router.clusterController.isServiceMetricsLoaded')) {
       this.setConfigProperties().done((configProperties) => {
         this.get('configProperties').pushObjects(configProperties);
-        this.getQuickLinksHosts();
+        this.getQuickLinksHosts().fail(() => {
+          this.set('showNoLinks', true);
+        });
       });
     }
   }.observes(
