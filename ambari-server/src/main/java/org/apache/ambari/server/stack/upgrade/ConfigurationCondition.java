@@ -168,3 +168,4 @@ public final class ConfigurationCondition extends Condition {
     }
   }
 }
+
