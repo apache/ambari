@@ -75,19 +75,18 @@ public class UpgradeCatalog280 extends AbstractUpgradeCatalog {
   }
 
   protected void addColumnsToRequestScheduleTable() throws SQLException {
-    dbAccessor.addColumn(UPGRADE_TABLE,
-        new DBAccessor.DBColumnInfo(UPGRADE_PACK_STACK_ID, String.class, 255,
-            "", false));
-  }
-
-  protected void addColumnsToUpgradeTable() throws SQLException {
     dbAccessor.addColumn(REQUEST_SCHEDULE_TABLE_NAME,
         new DBAccessor.DBColumnInfo(REQUEST_SCHEDULE_BATCH_TOLERATION_LIMIT_PER_BATCH_COLUMN_NAME, Short.class, null,
             null, true));
     dbAccessor.addColumn(REQUEST_SCHEDULE_TABLE_NAME,
         new DBAccessor.DBColumnInfo(REQUEST_SCHEDULE_PAUSE_AFTER_FIRST_BATCH_COLUMN_NAME, Boolean.class, null,
             null, true));
+  }
 
+  protected void addColumnsToUpgradeTable() throws SQLException {
+    dbAccessor.addColumn(UPGRADE_TABLE,
+        new DBAccessor.DBColumnInfo(UPGRADE_PACK_STACK_ID, String.class, 255,
+            "", false));
   }
 
   protected void removeLastValidState() throws SQLException {

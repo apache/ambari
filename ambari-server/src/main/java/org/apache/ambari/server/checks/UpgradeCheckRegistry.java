@@ -207,6 +207,8 @@ public class UpgradeCheckRegistry {
       LOG.error(
           "Unable to perform the following upgrade checks because no libraries could be loaded for the {} stack: {}",
           ownerStackId, StringUtils.join(pluginCheckClassNames, ","));
+
+      pluginChecks.m_failedChecks.addAll(pluginCheckClassNames);
     }
   }
 
