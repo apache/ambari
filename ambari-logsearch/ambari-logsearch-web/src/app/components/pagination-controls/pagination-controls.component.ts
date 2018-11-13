@@ -54,9 +54,6 @@ export class PaginationControlsComponent implements ControlValueAccessor {
     if (this.isValidValue(newValue)) { // this is the last validation check
       this.currentPage = newValue;
       this.currentPageChange.emit(newValue);
-      if (this.onChange) {
-        this.onChange(newValue);
-      }
     } else {
       throw new Error(`Invalid value ${newValue}. The currentPage should be between 0 and ${this.pagesCount}.`);
     }
@@ -75,14 +72,14 @@ export class PaginationControlsComponent implements ControlValueAccessor {
    * The goal is to set the value to the first page... obviously to zero. It is just to have a centralized api for that.
    */
   setFirstPage(): void {
-    this.value = 0;
+    this._setValueByUserInput(0);
   }
 
   /**
    * The goal is to set the value to the last page which is the pagesCount property anyway.
    */
   setLastPage(): void {
-    this.value = this.pagesCount - 1;
+    this._setValueByUserInput(this.pagesCount - 1);
   }
 
   /**
@@ -91,7 +88,7 @@ export class PaginationControlsComponent implements ControlValueAccessor {
    */
   setPreviousPage(): number {
     if (this.hasPreviousPage()) {
-      this.value -= 1;
+      this._setValueByUserInput(this.value - 1);
     }
     return this.value;
   }
@@ -101,8 +98,8 @@ export class PaginationControlsComponent implements ControlValueAccessor {
    * @returns {number} The new value of the currentPage
    */
   setNextPage(): number {
-    if (this.hasNextPage()){
-      this.value += 1;
+    if (this.hasNextPage()) {
+      this._setValueByUserInput(this.value + 1);
     }
     return this.value;
   }
@@ -121,6 +118,17 @@ export class PaginationControlsComponent implements ControlValueAccessor {
    */
   hasPreviousPage(): boolean {
     return this.pagesCount > 0 && this.value > 0;
+  }
+
+  private _setValueByUserInput(value) {
+    this.value = value;
+    this._onChange(this.value);
+  }
+
+  private _onChange(value) {
+    if (this.onChange) {
+      this.onChange(value);
+    }
   }
 
   writeValue(value: number) {
