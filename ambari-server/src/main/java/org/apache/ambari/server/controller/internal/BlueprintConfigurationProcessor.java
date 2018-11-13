@@ -122,6 +122,7 @@ public class BlueprintConfigurationProcessor {
 
   private final static String HADOOP_ENV_CONFIG_TYPE_NAME = "hadoop-env";
   private final static String RANGER_TAGSYNC_SITE_CONFIG_TYPE_NAME = "ranger-tagsync-site";
+  private static final String LOCALHOST = "localhost";
 
 
   /**
@@ -1887,14 +1888,20 @@ public class BlueprintConfigurationProcessor {
                                          ClusterTopology topology) {
 
       String replacedValue = super.updateForClusterCreate(propertyName, origValue, properties, topology);
+      // %HOSTGROUP% token replacement happened
       if (!Objects.equals(origValue, replacedValue)) {
         return replacedValue;
-      } else {
+      }
+      // localhost typlically means stack default values. If property is set to a concrete value such as an FQDN skip
+      // validation and update
+      else if (null != origValue && !origValue.contains(LOCALHOST)) {
+        return origValue;
+      }
+      else {
         int matchingGroupCount = topology.getHostGroupsForComponent(component).size();
         if (matchingGroupCount == 1) {
           //todo: warn if > 1 hosts
-          return replacePropertyValue(origValue,
-            topology.getHostAssignmentsForComponent(component).iterator().next(), properties);
+          return origValue.replace(LOCALHOST, topology.getHostAssignmentsForComponent(component).iterator().next() );
         } else {
           //todo: extract all hard coded HA logic
           Cardinality cardinality = topology.getBlueprint().getStack().getCardinality(component);
@@ -1924,59 +1931,11 @@ public class BlueprintConfigurationProcessor {
                 // reference must point to the logical nameservice, rather than an individual namenode
                 return origValue;
               }
-
-              if (!origValue.contains("localhost")) {
-                // if this NameNode HA property is a FDQN, then simply return it
-                return origValue;
-              }
-
             }
 
             if (topology.isNameNodeHAEnabled() && isComponentSecondaryNameNode() && (matchingGroupCount == 0)) {
               // if HDFS HA is enabled, then no replacement is necessary for properties that refer to the SECONDARY_NAMENODE
               // eventually this type of information should be encoded in the stacks
-              return origValue;
-            }
-
-            if (topology.isYarnResourceManagerHAEnabled() && isComponentResourceManager() && (matchingGroupCount == 2)) {
-              if (!origValue.contains("localhost")) {
-                // if this Yarn property is a FQDN, then simply return it
-                return origValue;
-              }
-            }
-
-            if ((isOozieServerHAEnabled(properties)) && isComponentOozieServer() && (matchingGroupCount > 1)) {
-              if (!origValue.contains("localhost")) {
-                // if this Oozie property is a FQDN, then simply return it
-                return origValue;
-              }
-            }
-
-            if ((isHiveServerHAEnabled(properties)) && isComponentHiveServer() && (matchingGroupCount > 1)) {
-              if (!origValue.contains("localhost")) {
-                // if this Hive property is a FQDN, then simply return it
-                return origValue;
-              }
-            }
-
-            if ((isComponentHiveMetaStoreServer()) && matchingGroupCount > 1) {
-              if (!origValue.contains("localhost")) {
-                // if this Hive MetaStore property is a FQDN, then simply return it
-                return origValue;
-              }
-            }
-
-            if (isRangerAdmin() && matchingGroupCount > 1) {
-              if (origValue != null && !origValue.contains("localhost")) {
-                // if this Ranger admin property is a FQDN then simply return it
-                return origValue;
-              }
-            }
-
-            if ((isComponentAppTimelineServer() || isComponentHistoryServer()) &&
-              (matchingGroupCount > 1 && origValue != null && !origValue.contains("localhost"))) {
-              // in case of multiple component instances of AppTimelineServer or History Server leave custom value
-              // if set
               return origValue;
             }
 
@@ -1990,10 +1949,6 @@ public class BlueprintConfigurationProcessor {
           }
         }
       }
-    }
-
-    public String replacePropertyValue(String origValue, String host, Map<String, Map<String, String>> properties) {
-      return origValue.replace("localhost", host);
     }
 
     @Override
@@ -2147,7 +2102,12 @@ public class BlueprintConfigurationProcessor {
    * This updater detects the case when the specified component
    * is not found, and returns the original property value.
    *
+   * @deprecated {@link SingleHostTopologyUpdater} has been changed not to validate explicitly set (other than
+   *   the typically stack default {@code localhost}) values. The new semantics make this class obsolete. If you want to
+   *   submit a cluster with some intentionally missing components, set respective properties to a value other than the
+   *   stack default {@code localhost} (e.g it can be empty string or and FQDN).
    */
+  @Deprecated
   private static class OptionalSingleHostTopologyUpdater extends SingleHostTopologyUpdater {
 
     public OptionalSingleHostTopologyUpdater(String component) {
@@ -2333,7 +2293,7 @@ public class BlueprintConfigurationProcessor {
                                          Map<String, Map<String, String>> properties,
                                          ClusterTopology topology) {
 
-      if (!origValue.contains("%HOSTGROUP") && (!origValue.contains("localhost"))) {
+      if (!origValue.contains("%HOSTGROUP") && (!origValue.contains(LOCALHOST))) {
         // this property must contain FQDNs specified directly by the user
         // of the Blueprint, so the processor should not attempt to update them
         return origValue;
@@ -2422,7 +2382,7 @@ public class BlueprintConfigurationProcessor {
      */
     private Collection<String> getHostStringsFromLocalhost(String origValue, ClusterTopology topology) {
       Set<String> hostStrings = new HashSet<>();
-      if(origValue.contains("localhost")) {
+      if(origValue.contains(LOCALHOST)) {
         Matcher localhostMatcher = LOCALHOST_PORT_REGEX.matcher(origValue);
         String port = null;
         if(localhostMatcher.find()) {
@@ -2589,7 +2549,7 @@ public class BlueprintConfigurationProcessor {
      */
     public boolean isFQDNValue(String value) {
       return !value.contains("%HOSTGROUP") &&
-        !value.contains("localhost");
+        !value.contains(LOCALHOST);
     }
   }
 
@@ -2731,7 +2691,7 @@ public class BlueprintConfigurationProcessor {
 
       // short-circuit out any custom property values defined by the deployer
       if (!origValue.contains("%HOSTGROUP") &&
-        (!origValue.contains("localhost"))) {
+        (!origValue.contains(LOCALHOST))) {
         // this property must contain FQDNs specified directly by the user
         // of the Blueprint, so the processor should not attempt to update them
         return origValue;
@@ -2774,7 +2734,7 @@ public class BlueprintConfigurationProcessor {
 
       // short-circuit out any custom property values defined by the deployer
       if (!origValue.contains("%HOSTGROUP") &&
-        (!origValue.contains("localhost"))) {
+        (!origValue.contains(LOCALHOST))) {
         // this property must contain FQDNs specified directly by the user
         // of the Blueprint, so the processor should not attempt to update them
         return Collections.emptySet();
