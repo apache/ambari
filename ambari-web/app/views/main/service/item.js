@@ -35,7 +35,7 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
   mastersExcludedCommands: {
     'NAMENODE': ['DECOMMISSION', 'REBALANCEHDFS'],
     'RESOURCEMANAGER': ['DECOMMISSION', 'REFRESHQUEUES'],
-    'HBASE_MASTER': ['DECOMMISSION'],
+    'HBASE_MASTER': ['DECOMMISSION', 'DISABLE_HBASE_BALANCER', 'ENABLE_HBASE_BALANCER'],
     'KNOX_GATEWAY': ['STARTDEMOLDAP','STOPDEMOLDAP'],
     'HAWQMASTER': ['IMMEDIATE_STOP_HAWQ_SERVICE', 'RUN_HAWQ_CHECK', 'HAWQ_CLEAR_CACHE', 'REMOVE_HAWQ_STANDBY', 'RESYNC_HAWQ_STANDBY'],
     'HAWQSEGMENT': ['IMMEDIATE_STOP_HAWQ_SEGMENT'],
@@ -182,6 +182,10 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
         }
         if (this.get('serviceName') === 'YARN') {
           options.push(actionMap.REFRESHQUEUES);
+        }
+        if (this.get('serviceName') === 'HBASE') {
+          options.push(actionMap.DISABLE_HBASE_BALANCER);
+          options.push(actionMap.ENABLE_HBASE_BALANCER);
         }
         options.push(actionMap.RESTART_ALL);
         if (hasMultipleMasterComponentGroups && this.get('serviceName') === 'HDFS') {

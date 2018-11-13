@@ -28,6 +28,7 @@ from resource_management.libraries.functions.security_commons import build_expec
 from hbase import hbase
 from hbase_service import hbase_service
 from hbase_decommission import hbase_decommission
+from hbase_decommission import balance_switch
 import upgrade
 from setup_ranger_hbase import setup_ranger_hbase
 from ambari_commons import OSCheck, OSConst
@@ -50,6 +51,15 @@ class HbaseMaster(Script):
     env.set_params(params)
     hbase_decommission(env)
 
+  def disable_hbase_balancer(self, env):
+    import params
+    env.set_params(params)
+    balance_switch(env, False)
+
+  def enable_hbase_balancer(self, env):
+    import params
+    env.set_params(params)
+    balance_switch(env, True)
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HbaseMasterWindows(HbaseMaster):

@@ -35,6 +35,9 @@ from hbase import hbase
 from hbase_service import hbase_service
 import upgrade
 from setup_ranger_hbase import setup_ranger_hbase
+from hbase_decommission import hbase_decommission
+from hbase_decommission import hbase_load_regions
+from hbase_decommission import balance_switch
 
 
 class HbaseRegionServer(Script):
@@ -51,19 +54,41 @@ class HbaseRegionServer(Script):
   def decommission(self, env):
     print "Decommission not yet implemented!"
 
+  def disable_hbase_balancer(self, env):
+    import params
+    env.set_params(params)
+    balance_switch(env, False)
+
+  def enable_hbase_balancer(self, env):
+    import params
+    env.set_params(params)
+    balance_switch(env, True)
+
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HbaseRegionServerWindows(HbaseRegionServer):
   def start(self, env):
-    import status_params
+    import params
     self.configure(env)
-    Service(status_params.hbase_regionserver_win_service_name, action="start")
+    Service(params.hbase_regionserver_win_service_name, action="start")
+
+    if params.graceful_rs_restart:
+      hbase_load_regions(env)
 
   def stop(self, env):
-    import status_params
-    env.set_params(status_params)
-    Service(status_params.hbase_regionserver_win_service_name, action="stop")
+    import params
+    env.set_params(params)
+
+    if params.graceful_rs_restart:
+      params.hbase_excluded_hosts = params.hostname
+      hbase_decommission(env)
+
+    Service(params.hbase_regionserver_win_service_name, action="stop")
+
+    if params.graceful_rs_restart:
+      params.hbase_drain_only = True
+      hbase_decommission(env)
 
   def status(self, env):
     import status_params
@@ -92,13 +117,24 @@ class HbaseRegionServerDefault(HbaseRegionServer):
 
     hbase_service('regionserver', action='start')
 
+    if params.graceful_rs_restart:
+      hbase_load_regions(env)
+
   def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
+    if params.graceful_rs_restart:
+      params.hbase_excluded_hosts = params.hostname
+      hbase_decommission(env)
+
     hbase_service( 'regionserver',
       action = 'stop'
     )
+
+    if params.graceful_rs_restart:
+      params.hbase_drain_only = True
+      hbase_decommission(env)
 
   def status(self, env):
     import status_params

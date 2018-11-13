@@ -462,6 +462,22 @@ App.HostComponentActionMap = {
         cssClass: 'glyphicon glyphicon-refresh',
         disabled: false
       },
+      DISABLE_HBASE_BALANCER: {
+        action: 'switchHBaseBalancer',
+        customCommand: 'DISABLE_HBASE_BALANCER',
+        context: Em.I18n.t('services.service.actions.run.disableHBaseBalancer'),
+        label: Em.I18n.t('services.service.actions.run.disableHBaseBalancer'),
+        cssClass: 'glyphicon glyphicon-stop',
+        disabled: false
+      },
+      ENABLE_HBASE_BALANCER: {
+        action: 'switchHBaseBalancer',
+        customCommand: 'ENABLE_HBASE_BALANCER',
+        context: Em.I18n.t('services.service.actions.run.enableHBaseBalancer'),
+        label: Em.I18n.t('services.service.actions.run.enableHBaseBalancer'),
+        cssClass: 'glyphicon glyphicon-play',
+        disabled: false
+      },
       DOWNLOAD_CLIENT_CONFIGS: {
         action: ctx.get('controller.isSeveralClients') ? '' : 'downloadClientConfigs',
         label: Em.I18n.t('services.service.actions.downloadClientConfigs'),

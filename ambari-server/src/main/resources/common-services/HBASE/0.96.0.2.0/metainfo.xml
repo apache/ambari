@@ -70,6 +70,22 @@
                 <timeout>600</timeout>
               </commandScript>
             </customCommand>
+            <customCommand>
+              <name>DISABLE_HBASE_BALANCER</name>
+              <commandScript>
+                <script>scripts/hbase_master.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>60</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>ENABLE_HBASE_BALANCER</name>
+              <commandScript>
+                <script>scripts/hbase_master.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>60</timeout>
+              </commandScript>
+            </customCommand>
           </customCommands>
         </component>
 
@@ -96,6 +112,24 @@
               <primary>true</primary>
             </log>
           </logs>
+          <customCommands>
+            <customCommand>
+              <name>DISABLE_HBASE_BALANCER</name>
+              <commandScript>
+                <script>scripts/hbase_regionserver.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>60</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>ENABLE_HBASE_BALANCER</name>
+              <commandScript>
+                <script>scripts/hbase_regionserver.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>60</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
         </component>
 
         <component>
