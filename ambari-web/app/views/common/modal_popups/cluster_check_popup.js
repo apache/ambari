@@ -29,6 +29,7 @@ require('views/main/admin/stack_upgrade/custom_cluster_checks/add_metastore_view
 require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_ckecks_host_hearbeat_view');
 require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_ckecks_alerts_view');
 require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_service_warning_view');
+require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_components_installation');
 
 const customCheckViewsMap = {
   'SERVICES_UP': App.ServiceUpCheckView,
@@ -41,7 +42,8 @@ const customCheckViewsMap = {
   'SERVICE_CHECK' : App.ServicesChecksView,
   'SERVICE_PRESENCE_CHECK': App.AtlasInstalledCheckView,
   'HOSTS_HEARTBEAT' : App.HostsHeartbeatView,
-  'HEALTH': App.AlertsChecksView
+  'HEALTH': App.AlertsChecksView,
+  'COMPONENTS_INSTALLATION': App.ComponentsInstallationFailedView
 };
 
 function mapUpgradeChecks(items) {
