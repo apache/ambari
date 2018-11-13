@@ -51,7 +51,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                     });
                   } else {
                     // Don't transit to Views when user already on View page
-                    if (App.router.currentState.name !== 'viewDetails') {
+                    if (App.router.currentState.name !== 'viewDetails' && App.router.currentState.name !== 'shortViewDetails') {
                       App.router.transitionTo('main.views.index');
                     }
                     clusterController.set('isLoaded', true); // hide loading bar
