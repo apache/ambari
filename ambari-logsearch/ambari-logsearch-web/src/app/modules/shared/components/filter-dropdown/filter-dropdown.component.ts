@@ -34,7 +34,7 @@ import {ListItem} from '@app/classes/list-item';
 })
 export class FilterDropdownComponent extends DropdownButtonComponent implements ControlValueAccessor {
 
-  private onChange: (fn: any) => void;
+  private onChange;
 
   get selection(): ListItem[] {
     return this.selectedItems;
@@ -48,9 +48,20 @@ export class FilterDropdownComponent extends DropdownButtonComponent implements 
         option.isChecked = Boolean(selectionItem);
       });
     }
+  }
+
+  private _onChange(value) {
     if (this.onChange) {
-      this.onChange(items);
+      this.onChange(value);
     }
+  }
+
+  updateSelection(updates: ListItem | ListItem[], callOnChange: boolean = true): boolean {
+    const hasChange = super.updateSelection(updates);
+    if (hasChange && callOnChange) {
+      this._onChange(this.selection);
+    }
+    return hasChange;
   }
 
   writeValue(items: ListItem[]) {

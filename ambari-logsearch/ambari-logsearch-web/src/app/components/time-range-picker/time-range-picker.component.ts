@@ -61,9 +61,6 @@ export class TimeRangePickerComponent implements ControlValueAccessor {
 
   set selection(newValue: TimeUnitListItem) {
     this.timeRange = newValue;
-    if (this.onChange) {
-      this.onChange(newValue);
-    }
     this.setEndTime(this.logsFilteringUtilsService.getEndTimeMomentFromTimeUnitListItem(newValue, this.logsContainer.timeZone));
     this.setStartTime(this.logsFilteringUtilsService.getStartTimeMomentFromTimeUnitListItem(
       newValue, this.endTime, this.logsContainer.timeZone
@@ -80,6 +77,7 @@ export class TimeRangePickerComponent implements ControlValueAccessor {
 
   setTimeRange(value: any, label: string): void {
     this.selection = {label, value};
+    this._onChange(this.selection);
   }
 
   setCustomTimeRange(): void {
@@ -91,6 +89,13 @@ export class TimeRangePickerComponent implements ControlValueAccessor {
         end: this.endTime
       }
     };
+    this._onChange(this.selection);
+  }
+
+  private _onChange(value: TimeUnitListItem): void {
+    if (this.onChange) {
+      this.onChange(value);
+    }
   }
 
   writeValue(selection: TimeUnitListItem): void {

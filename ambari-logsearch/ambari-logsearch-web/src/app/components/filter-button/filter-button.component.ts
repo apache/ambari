@@ -19,7 +19,6 @@
 import {Component, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {ListItem} from '@app/classes/list-item';
-import {UtilsService} from '@app/services/utils.service';
 import {MenuButtonComponent} from '@app/components/menu-button/menu-button.component';
 
 @Component({
@@ -36,65 +35,23 @@ import {MenuButtonComponent} from '@app/components/menu-button/menu-button.compo
 })
 export class FilterButtonComponent extends MenuButtonComponent implements ControlValueAccessor {
 
-  private selectedItems: ListItem[] = [];
-
   private onChange: (fn: any) => void;
 
-  constructor(private utils: UtilsService) {
-    super();
+  updateSelection(items: ListItem | ListItem[], callOnChange = true): void {
+    super.updateSelection(items);
+    if (callOnChange) {
+      this._onChange(this.selection);
+    }
   }
 
-  get selection(): ListItem[] {
-    return this.selectedItems;
-  }
-
-  set selection(items: ListItem[]) {
-    this.selectedItems = items;
+  private _onChange(value) {
     if (this.onChange) {
-      this.onChange(items);
-    }
-  }
-
-  updateSelection(updates: ListItem | ListItem[]): void {
-    if (updates && (!Array.isArray(updates) || updates.length)) {
-      const items: ListItem[] = Array.isArray(updates) ? updates : [updates];
-      if (this.isMultipleChoice) {
-        items.forEach((item: ListItem) => {
-          if (this.subItems && this.subItems.length) {
-            const itemToUpdate: ListItem = this.subItems.find((option: ListItem) => this.utils.isEqual(option.value, item.value));
-            if (itemToUpdate) {
-              itemToUpdate.isChecked = item.isChecked;
-            }
-          }
-        });
-      } else {
-        const selectedItem: ListItem = items.find((item: ListItem) => item.isChecked);
-        this.subItems.forEach((item: ListItem) => {
-          item.isChecked = !!selectedItem && this.utils.isEqual(item.value, selectedItem.value);
-        });
-      }
-    } else {
-      this.subItems.forEach((item: ListItem) => item.isChecked = false);
-    }
-    const checkedItems = this.subItems.filter((option: ListItem): boolean => option.isChecked);
-    this.selection = checkedItems;
-    this.selectItem.emit(checkedItems.map((option: ListItem): any => option.value));
-    if (this.dropdownList) {
-      this.dropdownList.doItemsCheck();
+      this.onChange(value);
     }
   }
 
   writeValue(items: ListItem[]) {
-    let listItems: ListItem[] = [];
-    if (items && items.length) {
-      listItems = items.map((item: ListItem) => {
-        return {
-          ...item,
-          isChecked: true
-        };
-      });
-    }
-    this.updateSelection(listItems);
+    this.selection = items;
   }
 
   registerOnChange(callback: any): void {

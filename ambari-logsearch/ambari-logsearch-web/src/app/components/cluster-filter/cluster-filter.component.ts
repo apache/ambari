@@ -128,10 +128,10 @@ export class ClusterFilterComponent implements OnInit, OnDestroy {
         .filter((state: DataAvailabilityValues) => state === DataAvailabilityValues.AVAILABLE)
         .first()
         .subscribe(() => {
-          this.filterDropdown.updateSelection(clusterSelection);
+          this.filterDropdown.writeValue(clusterSelection);
         });
     } else {
-      this.filterDropdown.updateSelection(null);
+      this.filterDropdown.clearSelection();
     }
   }
 
