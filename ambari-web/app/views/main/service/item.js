@@ -391,6 +391,14 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
     .reduce((a, b) => a + b, 0) > 0;
   }.property('controller.content.serviceName'),
 
+  hasMasterOrSlaveComponent: function() {
+    return App.SlaveComponent.find().toArray()
+    .concat(App.MasterComponent.find().toArray())
+    .filterProperty('service.serviceName', this.get('controller.content.serviceName'))
+    .mapProperty('totalCount')
+    .reduce((a, b) => a + b, 0) > 0;
+  }.property('controller.content.serviceName'),
+
   hasHeatmapTab: function() {
     return App.StackService.find(this.get('controller.content.serviceName')).get('hasHeatmapSection')
       && this.get('hasMasterOrSlaveComponent');
