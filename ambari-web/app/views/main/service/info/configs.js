@@ -91,6 +91,13 @@ App.MainServiceInfoConfigsView = Em.View.extend({
   rollingRestartSlaveComponentName: function() {
     return batchUtils.getRollingRestartComponentName(this.get('controller.content.serviceName'));
   }.property('controller.content.serviceName'),
+  
+  /**
+   * @type {boolean}
+   */
+  isRollingRestartSlaveComponentPresent: function() {
+    return App.SlaveComponent.find(this.get('rollingRestartSlaveComponentName')).get('totalCount') > 0;
+  }.property('rollingRestartSlaveComponentName'),
 
   /**
    * @type {string}
