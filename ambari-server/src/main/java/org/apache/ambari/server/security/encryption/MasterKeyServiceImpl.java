@@ -54,7 +54,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
     initFromFile(masterKeyFile);
   }
 
-  public void initFromFile(File masterKeyFile) {
+  private void initFromFile(File masterKeyFile) {
     if (masterKeyFile == null) {
       throw new IllegalArgumentException("Master Key location not provided.");
     }
@@ -88,11 +88,15 @@ public class MasterKeyServiceImpl implements MasterKeyService {
   }
 
   /**
+   * default constructor
+   */
+  public MasterKeyServiceImpl(){}
+
+  /**
    * Constructs a new MasterKeyServiceImpl using prefered source according config.
    * masterKey > masterKeyLocation > environment
    */
-  public MasterKeyServiceImpl() {
-    Configuration configuration = new Configuration();
+  public MasterKeyServiceImpl(Configuration configuration) {
     if (configuration.isMasterKeyPersisted()) {
       if (configuration.getMasterKeyLocation() == null) {
         throw new IllegalArgumentException("The master key file location must be specified if the master key is persisted");
@@ -101,33 +105,6 @@ public class MasterKeyServiceImpl implements MasterKeyService {
     } else {
       initializeFromEnv();
     }
-  }
-
-  /**
-   * Provide a new MasterKeyServiceImpl using prefered source.
-   * masterKey > masterKeyLocation > env_variables
-   * @param masterKey
-   * @param masterKeyLocation
-   *
-   */
-  public static MasterKeyService getMasterKeyService(String masterKey, File masterKeyLocation, boolean isMasterKeyPersisted) throws AmbariException {
-    MasterKeyService masterKeyService;
-    if (masterKey != null) {
-      masterKeyService = new MasterKeyServiceImpl(masterKey);
-    } else {
-      if (isMasterKeyPersisted) {
-        if (masterKeyLocation == null) {
-          throw new IllegalArgumentException("The master key file location must be specified if the master key is persisted");
-        }
-        masterKeyService = new MasterKeyServiceImpl(masterKeyLocation);
-      } else {
-        masterKeyService = new MasterKeyServiceImpl();
-      }
-    }
-    if (!masterKeyService.isMasterKeyInitialized()) {
-      throw new AmbariException("Master key initialization failed.");
-    }
-    return masterKeyService;
   }
 
   @Override
@@ -150,7 +127,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
         masterKeyLocation = args[1];
       }
       if (args.length > 2 && !args[2].isEmpty()) {
-        persistMasterKey = args[2].toLowerCase().equals("true");
+        persistMasterKey = args[2].equalsIgnoreCase("true");
       }
     }
 
@@ -233,7 +210,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
    * @return true if the file is identitified as "master key" file; otherwise false
    */
   private static boolean isMasterKeyFile(File file) {
-    try (FileReader reader = new FileReader(file);) {
+    try (FileReader reader = new FileReader(file)) {
       char[] buffer = new char[MASTER_PERSISTENCE_TAG_PREFIX.length()];
       return (reader.read(buffer) == buffer.length) && Arrays.equals(buffer, MASTER_PERSISTENCE_TAG_PREFIX.toCharArray());
     } catch (Exception e) {
@@ -281,7 +258,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
   }
 
   private void initializeFromEnv() {
-    String key = null;
+    String key;
     Map<String, String> envVariables = System.getenv();
     if (envVariables != null && !envVariables.isEmpty()) {
       key = envVariables.get(Configuration.MASTER_KEY_ENV_PROP);

@@ -24,7 +24,6 @@ import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.ldap.LdapModule;
-import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -45,15 +44,12 @@ public class SensitiveDataEncryption {
       (SensitiveDataEncryption.class);
 
   private final PersistService persistService;
-  private final DBAccessor dbAccessor;
   private final Injector injector;
 
 
   @Inject
-  public SensitiveDataEncryption(DBAccessor dbAccessor,
-                                 Injector injector,
+  public SensitiveDataEncryption(Injector injector,
                                  PersistService persistService) {
-    this.dbAccessor = dbAccessor;
     this.injector = injector;
     this.persistService = persistService;
   }
@@ -109,30 +105,34 @@ public class SensitiveDataEncryption {
       Injector injector = Guice.createInjector(new EncryptionHelperControllerModule(), new EncryptionHelperAuditModule(), new LdapModule());
       sensitiveDataEncryption = injector.getInstance(SensitiveDataEncryption.class);
       sensitiveDataEncryption.startPersistenceService();
-      AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-      Encryptor<Config> configEncryptor = injector.getInstance(ConfigPropertiesEncryptor.class);
-      Clusters clusters = ambariManagementController.getClusters();
-      if (clusters != null) {
-        Map<String, Cluster> clusterMap = clusters.getClusters();
-        if (clusterMap != null && !clusterMap.isEmpty()) {
-          for (final Cluster cluster : clusterMap.values()) {
-            Collection<Config> configs = cluster.getAllConfigs();
-            for (Config config : configs) {
-              if (encrypt) {
-                configEncryptor.encryptSensitiveData(config);
-              } else {
-                configEncryptor.decryptSensitiveData(config);
-              }
-              config.save();
-            }
-          }
-        }
-      }
+      sensitiveDataEncryption.doEncryption(encrypt);
     } catch (Throwable e) {
       LOG.error("Exception occurred during config encryption/decryption:", e);
     } finally {
       if (sensitiveDataEncryption != null) {
         sensitiveDataEncryption.stopPersistenceService();
+      }
+    }
+  }
+
+  public void doEncryption(boolean encrypt) {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Encryptor<Config> configEncryptor = injector.getInstance(ConfigPropertiesEncryptor.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Collection<Config> configs = cluster.getAllConfigs();
+          for (Config config : configs) {
+            if (encrypt) {
+              configEncryptor.encryptSensitiveData(config);
+            } else {
+              configEncryptor.decryptSensitiveData(config);
+            }
+            config.save();
+          }
+        }
       }
     }
   }

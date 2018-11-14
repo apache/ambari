@@ -125,7 +125,7 @@ public class PasswordUtils {
   }
 
   private String readPasswordFromStore(String aliasStr) {
-    return readPasswordFromStore(aliasStr, configuration.getMasterKeyLocation(), configuration.isMasterKeyPersisted(), configuration.getMasterKeyStoreLocation());
+    return readPasswordFromStore(aliasStr, configuration);
   }
 
   /**
@@ -133,19 +133,20 @@ public class PasswordUtils {
    *
    * @param aliasStr
    *          the Credential Store alias you want to read the password for
-   * @param masterKeyLocation
+   * @param configuration with configured master key:
+   * masterKeyLocation
    *          the master key location file
-   * @param isMasterKeyPersisted
+   * isMasterKeyPersisted
    *          a flag indicating whether the master key is persisted
-   * @param masterKeyStoreLocation
+   * masterKeyStoreLocation
    *          the master key-store location file
    * @return the password of the given alias if it is not <code>blank</code> and
    *         there is password stored for this alias in Credential Store;
    *         <code>null</code> otherwise
    */
-  public String readPasswordFromStore(String aliasStr, File masterKeyLocation, boolean isMasterKeyPersisted, File masterKeyStoreLocation) {
+  public String readPasswordFromStore(String aliasStr, Configuration configuration) {
     String password = null;
-    loadCredentialProvider(masterKeyLocation, isMasterKeyPersisted, masterKeyStoreLocation);
+    loadCredentialProvider(configuration);
     if (credentialProvider != null) {
       char[] result = null;
       try {
@@ -166,11 +167,11 @@ public class PasswordUtils {
     return password;
   }
 
-  private void loadCredentialProvider(File masterKeyLocation, boolean isMasterKeyPersisted, File masterKeyStoreLocation) {
+  private void loadCredentialProvider(Configuration configuration) {
     if (credentialProvider == null) {
       try {
         LOCK.lock();
-        credentialProvider = new CredentialProvider(null, masterKeyLocation, isMasterKeyPersisted, masterKeyStoreLocation);
+        credentialProvider = new CredentialProvider(null, configuration);
       } catch (Exception e) {
         LOG.info("Credential provider creation failed", e);
         credentialProvider = null;

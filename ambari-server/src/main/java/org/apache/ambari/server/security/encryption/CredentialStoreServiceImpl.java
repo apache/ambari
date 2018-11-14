@@ -51,8 +51,6 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
     this.securePasswordHelper = securePasswordHelper;
 
     if (configuration != null) {
-      File masterKeyLocation = configuration.getMasterKeyLocation();
-
       try {
         initializeTemporaryCredentialStore(configuration.getTemporaryKeyStoreRetentionMinutes(),
             TimeUnit.MINUTES,
@@ -63,15 +61,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
         LOG.error("Failed to initialize the temporary credential store.  Storage of temporary credentials will fail.", e);
       }
 
-
       // If the MasterKeyService is initialized, assume that we should be initializing the persistent
       // CredentialStore; else do not initialize it.
-      MasterKeyService masterKeyService = null;
-      if(masterKeyLocation.exists()) {
-        masterKeyService = new MasterKeyServiceImpl(masterKeyLocation);
-      } else {
-        masterKeyService = new MasterKeyServiceImpl();
-      }
+      MasterKeyService masterKeyService = new MasterKeyServiceImpl(configuration);
       if (masterKeyService.isMasterKeyInitialized()) {
         try {
           initializePersistedCredentialStore(configuration.getMasterKeyStoreLocation(), masterKeyService);
