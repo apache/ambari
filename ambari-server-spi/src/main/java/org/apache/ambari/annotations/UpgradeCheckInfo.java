@@ -28,13 +28,11 @@ import org.apache.ambari.spi.upgrade.UpgradeCheck;
 import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
 import org.apache.ambari.spi.upgrade.UpgradeType;
 
-import com.google.inject.Singleton;
-
 /**
  * The {@link UpgradeCheckInfo} annotation is used to provide ordering and
  * grouping to any {@link UpgradeCheck} instance.
  * <p>
- * Classes marked with this annotation should also be {@link Singleton}. They
+ * Classes marked with this annotation will be instantiated as singletons. They
  * will be discovered on the classpath and then registered with the
  * {@code UpgradeCheckRegistry}.
  */

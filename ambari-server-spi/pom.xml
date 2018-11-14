@@ -21,10 +21,12 @@
     <version>${revision}</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
+
   <artifactId>ambari-server-spi</artifactId>
   <url>http://ambari.apache.org</url>
   <name>Ambari Server SPI</name>
   <description>A client library which is used for providing plugins for the Ambari Server framework.</description>  
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <xlint>none</xlint>
@@ -35,7 +37,6 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.2</version>
         <configuration>
           <source>${jdk.version}</source>
           <target>${jdk.version}</target>
@@ -163,22 +164,30 @@
   </build>  
   
   <dependencies>
+    <!-- not exposed for SPI consumers -->
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
+      <scope>provided</scope>
     </dependency>
+
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.google.inject</groupId>
-      <artifactId>guice</artifactId>
-    </dependency>
+
+    <!-- provides consumers of the SPI some basic string manipulations -->
     <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
-    </dependency>    
+    </dependency>
+
+    <!-- provides consumers of the SPI the ability to use Jackson annotations for object serialization -->
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-core-asl</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
