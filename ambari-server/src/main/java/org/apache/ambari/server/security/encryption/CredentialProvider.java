@@ -17,8 +17,10 @@
  */
 package org.apache.ambari.server.security.encryption;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,6 +68,11 @@ public class CredentialProvider {
         : null;
   }
 
+  public void generateAliasWithPassword(String alias) throws AmbariException {
+    String passwordString = generatePassword(16);
+    addAliasToCredentialStore(alias, passwordString);
+  }
+
   public void addAliasToCredentialStore(String alias, String passwordString)
       throws AmbariException {
     if (alias == null || alias.isEmpty()) {
@@ -75,6 +82,15 @@ public class CredentialProvider {
       throw new IllegalArgumentException("Empty or null password not allowed.");
     }
     keystoreService.addCredential(alias, new GenericKeyCredential(passwordString.toCharArray()));
+  }
+
+  private String generatePassword(int length) {
+    StringBuilder sb = new StringBuilder();
+    Random r = new Random();
+    for (int i = 0; i < length; i++) {
+      sb.append(chars[r.nextInt(chars.length)]);
+    }
+    return sb.toString();
   }
 
   public static boolean isAliasString(String aliasStr) {
