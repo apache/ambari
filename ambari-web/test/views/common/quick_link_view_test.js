@@ -91,7 +91,7 @@ describe('App.QuickViewLinks', function () {
       expect(quickViewLinks.getQuickLinksHosts.calledOnce).to.be.true;
       expect(quickViewLinks.get('showNoLinks')).to.be.true;
     });
-
+  
     it("showNoLinks should be true when failed", function () {
       quickViewLinks.setQuickLinks();
       expect(quickViewLinks.get('showNoLinks')).to.be.true;

@@ -80,7 +80,7 @@ public class UpgradeCatalog280 extends AbstractUpgradeCatalog {
             null, true));
     dbAccessor.addColumn(REQUEST_SCHEDULE_TABLE_NAME,
         new DBAccessor.DBColumnInfo(REQUEST_SCHEDULE_PAUSE_AFTER_FIRST_BATCH_COLUMN_NAME, Boolean.class, null,
-            null, true));
+            null, true));    
   }
 
   protected void addColumnsToUpgradeTable() throws SQLException {
