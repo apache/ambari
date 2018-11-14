@@ -2598,6 +2598,42 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   }
 
   @Test
+  public void testDoUpdateForClusterCreate_SingleHostProperty__MissingComponent_NoValidationForFqdn() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, String> typeProps = new HashMap<>();
+    properties.put("mapred-site",
+      new HashMap<>(ImmutableMap.of("mapreduce.job.hdfs-servers", "www.externalnamenode.org")));
+    Configuration clusterConfig = new Configuration(properties, emptyMap());
+
+    Collection<String> group1Components = new HashSet<>();
+    group1Components.add("SECONDARY_NAMENODE");
+    group1Components.add("RESOURCEMANAGER");
+    TestHostGroup group1 = new TestHostGroup("group1", group1Components, Collections.singleton("testhost"));
+
+    Collection<String> group2Components = new HashSet<>();
+    group2Components.add("DATANODE");
+    group2Components.add("HDFS_CLIENT");
+    TestHostGroup group2 = new TestHostGroup("group2", group2Components, Collections.singleton("testhost2"));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    // No exception this time as SingleHostTopologyUpdater does no validation for fqdn's
+    updater.doUpdateForClusterCreate();
+    // No change as fqdn's are not updated
+    assertEquals(
+      "www.externalnamenode.org",
+      clusterConfig.getPropertyValue("mapred-site", "mapreduce.job.hdfs-servers"));
+  }
+
+
+  @Test
   public void testDoUpdateForClusterCreate_SingleHostProperty__MultipleMatchingHostGroupsError() throws Exception {
 
     Map<String, Map<String, String>> properties = new HashMap<>();
