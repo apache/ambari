@@ -115,6 +115,9 @@ public class SensitiveDataEncryption {
     }
   }
 
+  /**
+   * @param encrypt selects mode: true=encrypt, false=decrypt
+   */
   public void doEncryption(boolean encrypt) {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Encryptor<Config> configEncryptor = injector.getInstance(ConfigPropertiesEncryptor.class);
