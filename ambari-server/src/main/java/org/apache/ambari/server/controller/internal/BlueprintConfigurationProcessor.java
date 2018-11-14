@@ -1892,7 +1892,7 @@ public class BlueprintConfigurationProcessor {
       if (!Objects.equals(origValue, replacedValue)) {
         return replacedValue;
       }
-      // localhost typlically means stack default values. If property is set to a concrete value such as an FQDN skip
+      // localhost typically means stack default values. If property is set to a concrete value such as an FQDN skip
       // validation and update
       else if (null != origValue && !origValue.contains(LOCALHOST)) {
         return origValue;
