@@ -15,23 +15,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- define([
-  'angular',
-],
-function (angular) {
-  'use strict';
-  var module = angular.module('grafana.directives');
 
-  module.directive('metricQueryEditorAmbarimetrics', function() {
-    return {
-      controller: 'AmbariMetricsQueryCtrl',
-      templateUrl: 'app/plugins/datasource/ambari-metrics/partials/query.editor.html',
-    };
-  });
-
-  module.directive('metricQueryOptionsAmbarimetrics', function() {
-    return {templateUrl: 'app/plugins/datasource/ambari-metrics/partials/query.options.html'};
-  });
-
-});
-
+{"version":3,"file":"config_ctrl.js","sourceRoot":"","sources":["../../../../../public/app/plugins/datasource/ambari-metrics/config_ctrl.ts"],"names":["AmbariMetricsConfigCtrl","AmbariMetricsConfigCtrl.constructor"],"mappings":"AAAA,oDAAoD;AACpD;;;;;;;;;;;;;;;;GAgBG;;;;;;YAKH;gBAAAA;gBAGAC,CAACA;gBAFUD,mCAAWA,GAAGA,sBAAsBA,CAACA;gBAEhDA,8BAACA;YAADA,CAACA,AAHD,IAGC;YAHD,6DAGC,CAAA"}
