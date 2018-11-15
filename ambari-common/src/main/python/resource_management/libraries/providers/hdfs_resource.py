@@ -206,7 +206,7 @@ class WebHDFSUtil:
   @staticmethod
   def is_webhdfs_available(is_webhdfs_enabled, dfs_type):
     # only hdfs seems to support webHDFS
-    return (is_webhdfs_enabled and dfs_type == 'HDFS')
+    return (is_webhdfs_enabled and dfs_type == 'hdfs')
     
   def run_command(self, *args, **kwargs):
     """
@@ -625,10 +625,10 @@ class HdfsResourceProvider(Provider):
       return
 
     self.assert_parameter_is_set('dfs_type')
-    self.fsType = getattr(resource, 'dfs_type')
+    self.fsType = getattr(resource, 'dfs_type').lower()
     self.can_use_webhdfs = True
 
-    if self.fsType == 'HDFS':
+    if self.fsType == 'hdfs':
       self.assert_parameter_is_set('hdfs_site')
       self.webhdfs_enabled = self.resource.hdfs_site['dfs.webhdfs.enabled']
     else:
