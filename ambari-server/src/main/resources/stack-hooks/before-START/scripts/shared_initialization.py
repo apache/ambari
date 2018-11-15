@@ -67,16 +67,6 @@ def setup_hadoop():
     else:
       tc_owner = params.hdfs_user
       
-    # if WebHDFS is not enabled we need this jar to create hadoop folders and copy tarballs to HDFS.
-    if params.sysprep_skip_copy_fast_jar_hdfs:
-      print "Skipping copying of fast-hdfs-resource.jar as host is sys prepped"
-    elif params.dfs_type == 'HCFS' or not WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.dfs_type):
-      # for source-code of jar goto contrib/fast-hdfs-resource
-      File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
-           mode=0644,
-           content=StaticFile("fast-hdfs-resource.jar")
-      )
-      
     if os.path.exists(params.hadoop_conf_dir):
       File(os.path.join(params.hadoop_conf_dir, 'commons-logging.properties'),
            owner=tc_owner,
@@ -104,6 +94,19 @@ def setup_hadoop():
              owner=params.hdfs_user,
         )
 
+    create_microsoft_r_dir()
+
+  if params.has_hdfs or params.dfs_type == 'HCFS':
+    # if WebHDFS is not enabled we need this jar to create hadoop folders and copy tarballs to HDFS.
+    if params.sysprep_skip_copy_fast_jar_hdfs:
+      print "Skipping copying of fast-hdfs-resource.jar as host is sys prepped"
+    else:
+      # for source-code of jar goto contrib/fast-hdfs-resource
+      File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
+           mode=0644,
+           content=StaticFile("fast-hdfs-resource.jar")
+           )
+    if os.path.exists(params.hadoop_conf_dir):
       if params.hadoop_metrics2_properties_content:
         File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
              owner=params.hdfs_user,
@@ -118,9 +121,7 @@ def setup_hadoop():
              )
 
     if params.dfs_type == 'HCFS' and params.has_core_site and 'ECS_CLIENT' in params.component_list:
-       create_dirs()
-
-    create_microsoft_r_dir()
+      create_dirs()
 
 
 def setup_configs():
