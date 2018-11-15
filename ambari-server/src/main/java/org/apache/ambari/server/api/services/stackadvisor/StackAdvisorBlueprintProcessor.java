@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.BlueprintConfigurations;
@@ -81,7 +82,7 @@ public class StackAdvisorBlueprintProcessor {
     try {
       RecommendationResponse response = stackAdvisorHelper.recommend(request);
       addAdvisedConfigurationsToTopology(response, clusterTopology, userProvidedConfigurations);
-    } catch (StackAdvisorException e) {
+    } catch (StackAdvisorException | AmbariException e) {
       throw new ConfigurationTopologyException(RECOMMENDATION_FAILED, e);
     } catch (IllegalArgumentException e) {
       throw new ConfigurationTopologyException(INVALID_RESPONSE, e);

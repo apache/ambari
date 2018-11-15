@@ -223,7 +223,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     var requiredTags = [];
 
     if (updateDependencies || Em.isNone(this.get('recommendationsConfigs'))) {
-      var recommendations = this.get('hostGroups');
+      var recommendations = {};
       var dataToSend = this.getConfigRecommendationsParams(updateDependencies, changedConfigs);
       this.modifyRecommendationConfigGroups(recommendations);
 
@@ -265,8 +265,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * @param stepConfigs
    */
   addRecommendationRequestParams: function(recommendations, dataToSend, stepConfigs) {
-    recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(stepConfigs);
     dataToSend.recommendations = recommendations;
+    dataToSend.serviceName = this.get('content.serviceName');
+    dataToSend.clusterId = App.get('clusterId');
+    dataToSend.autoComplete = "true";
   },
 
   /**
@@ -309,8 +311,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   getConfigRecommendationsParams: function(updateDependencies, changedConfigs) {
     return {
       recommend: updateDependencies ? 'configuration-dependencies' : 'configurations',
-      hosts: this.get('hostNames'),
-      services: this.get('serviceNames'),
       changed_configurations: updateDependencies ? changedConfigs : undefined
     };
   },
@@ -395,8 +395,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
       }
     });
     return {
-      configurations: [configurations],
-      hosts: hosts
+      group_id: Number(configGroup.get('id'))
     }
   },
 

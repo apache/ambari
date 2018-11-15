@@ -531,6 +531,11 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  public ConfigGroup getConfigGroupsById(Long configId) {
+    return clusterConfigGroups.get(configId);
+  }
+
+  @Override
   public void addRequestExecution(RequestExecution requestExecution) throws AmbariException {
     LOG.info("Adding a new request schedule" + ", clusterName = " + getClusterName() + ", id = "
         + requestExecution.getId() + ", description = " + requestExecution.getDescription());

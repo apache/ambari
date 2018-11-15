@@ -38,6 +38,8 @@ import com.google.common.base.Preconditions;
  */
 public class StackAdvisorRequest {
 
+  private Long clusterId;
+  private String serviceName;
   private String stackName;
   private String stackVersion;
   private StackAdvisorRequestType requestType;
@@ -121,6 +123,14 @@ public class StackAdvisorRequest {
 
   public void setConfigGroups(Set<RecommendationResponse.ConfigGroup> configGroups) {
     this.configGroups = configGroups;
+  }
+
+  public Long getClusterId() {
+    return clusterId;
+  }
+
+  public String getServiceName() {
+    return serviceName;
   }
 
   /**
@@ -216,6 +226,16 @@ public class StackAdvisorRequest {
     public StackAdvisorRequestBuilder withLdapConfig(Map<String, Object> ldapConfig) {
       Preconditions.checkNotNull(ldapConfig);
       this.instance.ldapConfig = ldapConfig;
+      return this;
+    }
+
+    public StackAdvisorRequestBuilder withClusterId(Long clusterId) {
+      this.instance.clusterId = clusterId;
+      return this;
+    }
+
+    public StackAdvisorRequestBuilder withServiceName(String serviceName) {
+      this.instance.serviceName = serviceName;
       return this;
     }
 
