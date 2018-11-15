@@ -153,7 +153,7 @@ public class ServiceService extends BaseService {
   @Path("{serviceName}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Creates a service",
-      nickname = "ServiceService#createServices"
+      nickname = "ServiceService#createService"
   )
   @ApiImplicitParams({
       @ApiImplicitParam(dataType = SERVICE_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
@@ -176,7 +176,7 @@ public class ServiceService extends BaseService {
 
   /**
    * Handles: POST /clusters/{clusterId}/services
-   * Create multiple services.
+   * Create services, possibly more than one.
    *
    * @param body        http body
    * @param headers     http headers
@@ -185,8 +185,8 @@ public class ServiceService extends BaseService {
    */
   @POST
   @Produces(MediaType.TEXT_PLAIN)
-  @ApiOperation(value = "Creates a service",
-      nickname = "ServiceService#createService"
+  @ApiOperation(value = "Creates services",
+      nickname = "ServiceService#createServices"
   )
   @ApiImplicitParams({
       @ApiImplicitParam(dataType = SERVICE_REQUEST_TYPE, paramType = PARAM_TYPE_BODY, allowMultiple = true)

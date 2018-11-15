@@ -22,7 +22,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Collections.emptySet;
 import static org.apache.ambari.server.controller.internal.BaseClusterRequest.PROVISION_ACTION_PROPERTY;
 import static org.apache.ambari.server.controller.internal.ProvisionClusterRequest.CONFIG_RECOMMENDATION_STRATEGY;
+import static org.apache.ambari.server.controller.internal.ServiceResourceProvider.OPERATION_TYPE;
+import static org.apache.ambari.server.topology.Configurable.CONFIGURATIONS;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +43,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -50,11 +56,15 @@ import io.swagger.annotations.ApiModelProperty;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public final class AddServiceRequest {
 
-  static final String OPERATION_TYPE = "operation_type";
   static final String STACK_NAME = "stack_name";
   static final String STACK_VERSION = "stack_version";
   static final String SERVICES = "services";
   static final String COMPONENTS = "components";
+
+  public static final Set<String> TOP_LEVEL_PROPERTIES = ImmutableSet.of(
+    OPERATION_TYPE, CONFIG_RECOMMENDATION_STRATEGY, PROVISION_ACTION_PROPERTY,
+    STACK_NAME, STACK_VERSION, SERVICES, COMPONENTS, CONFIGURATIONS
+  );
 
   private final OperationType operationType;
   private final ConfigRecommendationStrategy recommendationStrategy;
@@ -73,7 +83,7 @@ public final class AddServiceRequest {
                            @JsonProperty(STACK_VERSION) String stackVersion,
                            @JsonProperty(SERVICES) Set<Service> services,
                            @JsonProperty(COMPONENTS)Set<Component> components,
-                           @JsonProperty(Configurable.CONFIGURATIONS) Collection<? extends Map<String, ?>> configs) {
+                           @JsonProperty(CONFIGURATIONS) Collection<? extends Map<String, ?>> configs) {
     this(operationType, recommendationStrategy, provisionAction, stackName, stackVersion, services, components,
       Configurable.parseConfigs(configs));
   }
@@ -99,6 +109,14 @@ public final class AddServiceRequest {
     checkArgument(!this.services.isEmpty() || !this.components.isEmpty(), "Either services or components must be specified");
   }
 
+  // TODO move to JsonUtils -- pick part of 0252c08d86f
+  public static AddServiceRequest of(String json) {
+    try {
+      return new ObjectMapper().readValue(json, AddServiceRequest.class);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
 
   @JsonProperty(OPERATION_TYPE)
   @ApiModelProperty(name = OPERATION_TYPE)
@@ -148,8 +166,8 @@ public final class AddServiceRequest {
     return configuration;
   }
 
-  @JsonProperty(Configurable.CONFIGURATIONS)
-  @ApiModelProperty(name = Configurable.CONFIGURATIONS)
+  @JsonProperty(CONFIGURATIONS)
+  @ApiModelProperty(name = CONFIGURATIONS)
   public Collection<Map<String, Map<String, ?>>> getConfigurationContents() {
     return Configurable.convertConfigToMap(configuration);
   }

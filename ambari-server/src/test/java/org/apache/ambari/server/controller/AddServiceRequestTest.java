@@ -29,7 +29,7 @@ import static org.apache.ambari.server.controller.internal.BaseClusterRequest.PR
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
 import static org.apache.ambari.server.controller.internal.ProvisionClusterRequest.CONFIG_RECOMMENDATION_STRATEGY;
-import static org.apache.ambari.server.serveraction.kerberos.KerberosServerAction.OPERATION_TYPE;
+import static org.apache.ambari.server.controller.internal.ServiceResourceProvider.OPERATION_TYPE;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.ALWAYS_APPLY;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.NEVER_APPLY;
 import static org.junit.Assert.assertEquals;
