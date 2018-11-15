@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 
-from shared_initialization import setup_users, setup_hadoop_env, setup_java
+from shared_initialization import setup_users, setup_hadoop_env, setup_java, setup_env
 from resource_management import Hook
 
 
@@ -31,6 +31,7 @@ class BeforeAnyHook(Hook):
     setup_users()
     if params.has_namenode or params.dfs_type == 'HCFS':
       setup_hadoop_env()
+    setup_env()
     setup_java()
 
 
