@@ -44,6 +44,7 @@ import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
@@ -149,6 +150,10 @@ public class Stack {
    */
   public Stack(StackEntity stack, AmbariManagementController ambariManagementController) throws AmbariException {
     this(stack.getStackName(), stack.getStackVersion(), ambariManagementController);
+  }
+
+  public Stack(StackId stackId, AmbariManagementController ambariManagementController) throws AmbariException {
+    this(stackId.getStackName(), stackId.getStackVersion(), ambariManagementController);
   }
 
   /**
