@@ -194,14 +194,16 @@ def setup_hadoop_env():
       File(os.path.join(params.hadoop_conf_dir, 'hadoop-env.sh'), owner=tc_owner,
         group=params.user_group,
         content=InlineTemplate(params.hadoop_env_sh_template))
-
-    # Create tmp dir for java.io.tmpdir
-    # Handle a situation when /tmp is set to noexec
-    Directory(params.hadoop_java_io_tmpdir,
-              owner=params.hdfs_user,
-              group=params.user_group,
-              mode=01777
-    )
+        
+def setup_env():
+  import params
+  # Create tmp dir for java.io.tmpdir
+  # Handle a situation when /tmp is set to noexec
+  Directory(params.hadoop_java_io_tmpdir,
+            owner=params.hdfs_user if params.has_namenode else None,
+            group=params.user_group,
+            mode=01777
+  )
 
 def setup_java():
   """
