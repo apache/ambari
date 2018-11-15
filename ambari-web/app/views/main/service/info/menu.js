@@ -53,7 +53,7 @@ App.MainServiceInfoMenuView = Em.CollectionView.extend({
       });
     }
     return menuItems;
-  }.property(),
+  }.property('heatmapTab', 'configTab', 'metricTab'),
 
   init: function () {
     this._super();
@@ -64,7 +64,7 @@ App.MainServiceInfoMenuView = Em.CollectionView.extend({
     this.get('_childViews').forEach(function(view) {
       view.set('active', (document.URL.endsWith(view.get('content.routing')) ? "active" : ""));
     }, this);
-  }.observes('App.router.location.lastSetURL'),
+  }.observes('App.router.location.lastSetURL', 'heatmapTab', 'configTab', 'metricTab'),
 
   deactivateChildViews: function () {
     this.get('_childViews').setEach('active', '');
