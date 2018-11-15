@@ -383,13 +383,7 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
     return App.havePermissions('CLUSTER.VIEW_CONFIGS') && !App.get('services.noConfigTypes').contains(this.get('controller.content.serviceName'));
   }.property('controller.content.serviceName','App.services.noConfigTypes'),
   
-  hasMasterOrSlaveComponent: function() {
-    return App.SlaveComponent.find().toArray()
-    .concat(App.MasterComponent.find().toArray())
-    .filterProperty('service.serviceName', this.get('controller.content.serviceName'))
-    .mapProperty('totalCount')
-    .reduce((a, b) => a + b, 0) > 0;
-  }.property('controller.content.serviceName'),
+  hasMasterOrSlaveComponent: Em.computed.alias('controller.content.hasMasterOrSlaveComponent'),
 
   hasHeatmapTab: function() {
     return App.StackService.find(this.get('controller.content.serviceName')).get('hasHeatmapSection')
