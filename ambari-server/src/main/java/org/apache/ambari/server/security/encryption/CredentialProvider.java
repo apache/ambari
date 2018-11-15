@@ -44,25 +44,17 @@ public class CredentialProvider {
   private CredentialStore keystoreService;
   private static final Logger LOG = LoggerFactory.getLogger(CredentialProvider.class);
 
-  public CredentialProvider(String masterKey, File masterKeyLocation,
-                            boolean isMasterKeyPersisted, File masterKeyStoreLocation) throws AmbariException {
+  public CredentialProvider(String masterKey, Configuration configuration) throws AmbariException {
     MasterKeyService masterKeyService;
     if (masterKey != null) {
       masterKeyService = new MasterKeyServiceImpl(masterKey);
     } else {
-      if (isMasterKeyPersisted) {
-        if (masterKeyLocation == null) {
-          throw new IllegalArgumentException("The master key file location must be specified if the master key is persisted");
-        }
-        masterKeyService = new MasterKeyServiceImpl(masterKeyLocation);
-      } else {
-        masterKeyService = new MasterKeyServiceImpl();
-      }
+      masterKeyService = new MasterKeyServiceImpl(configuration);
     }
     if (!masterKeyService.isMasterKeyInitialized()) {
       throw new AmbariException("Master key initialization failed.");
     }
-    this.keystoreService = new FileBasedCredentialStore(masterKeyStoreLocation);
+    this.keystoreService = new FileBasedCredentialStore(configuration.getMasterKeyStoreLocation());
     this.keystoreService.setMasterKeyService(masterKeyService);
   }
 
@@ -145,10 +137,7 @@ public class CredentialProvider {
         LOG.debug("Master key provided as an argument.");
       }
       try {
-        credentialProvider = new CredentialProvider(masterKey,
-            configuration.getMasterKeyLocation(),
-            configuration.isMasterKeyPersisted(),
-            configuration.getMasterKeyStoreLocation());
+        credentialProvider = new CredentialProvider(masterKey, configuration);
       } catch (Exception ex) {
         ex.printStackTrace();
         System.exit(1);

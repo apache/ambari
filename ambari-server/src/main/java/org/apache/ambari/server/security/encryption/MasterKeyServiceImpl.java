@@ -51,6 +51,10 @@ public class MasterKeyServiceImpl implements MasterKeyService {
    * @param masterKeyFile the location of the master key file
    */
   public MasterKeyServiceImpl(File masterKeyFile) {
+    initFromFile(masterKeyFile);
+  }
+
+  private void initFromFile(File masterKeyFile) {
     if (masterKeyFile == null) {
       throw new IllegalArgumentException("Master Key location not provided.");
     }
@@ -84,12 +88,22 @@ public class MasterKeyServiceImpl implements MasterKeyService {
   }
 
   /**
-   * Constructs a new MasterKeyServiceImpl using the master key found in the environment.
+   * default constructor
    */
-  public MasterKeyServiceImpl() {
-    String key = readMasterKey();
-    if (key != null) {
-      master = key.toCharArray();
+  public MasterKeyServiceImpl(){}
+
+  /**
+   * Constructs a new MasterKeyServiceImpl using prefered source according config.
+   * masterKey > masterKeyLocation > environment
+   */
+  public MasterKeyServiceImpl(Configuration configuration) {
+    if (configuration!= null && configuration.isMasterKeyPersisted()) {
+      if (configuration.getMasterKeyLocation() == null) {
+        throw new IllegalArgumentException("The master key file location must be specified if the master key is persisted");
+      }
+      initFromFile(configuration.getMasterKeyLocation());
+    } else {
+      initializeFromEnv();
     }
   }
 
@@ -113,7 +127,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
         masterKeyLocation = args[1];
       }
       if (args.length > 2 && !args[2].isEmpty()) {
-        persistMasterKey = args[2].toLowerCase().equals("true");
+        persistMasterKey = args[2].equalsIgnoreCase("true");
       }
     }
 
@@ -196,7 +210,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
    * @return true if the file is identitified as "master key" file; otherwise false
    */
   private static boolean isMasterKeyFile(File file) {
-    try (FileReader reader = new FileReader(file);) {
+    try (FileReader reader = new FileReader(file)) {
       char[] buffer = new char[MASTER_PERSISTENCE_TAG_PREFIX.length()];
       return (reader.read(buffer) == buffer.length) && Arrays.equals(buffer, MASTER_PERSISTENCE_TAG_PREFIX.toCharArray());
     } catch (Exception e) {
@@ -243,8 +257,8 @@ public class MasterKeyServiceImpl implements MasterKeyService {
     }
   }
 
-  private String readMasterKey() {
-    String key = null;
+  private void initializeFromEnv() {
+    String key;
     Map<String, String> envVariables = System.getenv();
     if (envVariables != null && !envVariables.isEmpty()) {
       key = envVariables.get(Configuration.MASTER_KEY_ENV_PROP);
@@ -255,19 +269,18 @@ public class MasterKeyServiceImpl implements MasterKeyService {
           if (keyFile.exists()) {
             try {
               initializeFromFile(keyFile);
-              if (master != null) {
-                key = new String(master);
-              }
-              FileUtils.deleteQuietly(keyFile);
             } catch (Exception e) {
               LOG.error("Cannot read master key from file: " + keyPath);
               e.printStackTrace();
             }
           }
+        } else {
+          LOG.error("Cannot read master key property {1} or master key file property {3} from environment");
         }
+      } else {
+        master = key.toCharArray();
       }
     }
-    return key;
   }
 
   private void initializeFromFile(File masterFile) throws Exception {

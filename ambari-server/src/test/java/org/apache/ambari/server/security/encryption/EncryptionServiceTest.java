@@ -26,9 +26,12 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.TextEncoding;
+import org.easymock.EasyMock;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -36,6 +39,10 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 import junit.framework.Assert;
 
@@ -47,7 +54,6 @@ public class EncryptionServiceTest {
   @Rule
   private final TemporaryFolder tmpFolder = new TemporaryFolder();
 
-  private final EncryptionService encryptionService = new AESEncryptionService();
 
   @Test
   public void testEncryptAndDecryptUsingCustomKeyWithBase64Encoding() throws Exception {
@@ -62,13 +68,43 @@ public class EncryptionServiceTest {
   public void testEncryptAndDecryptUsingCustomKey(TextEncoding textEncoding) throws Exception {
     final String key = "mySuperS3cr3tMast3rKey!";
     final String toBeEncrypted = "mySuperS3cr3tP4ssW0rD!";
+    EncryptionService encryptionService = new AESEncryptionService();
     final String encrypted = encryptionService.encrypt(toBeEncrypted, key, textEncoding);
     final String decrypted = encryptionService.decrypt(encrypted, key, textEncoding);
     assertEquals(toBeEncrypted, decrypted);
   }
 
   @Test
-  public void testEncryptAndDecryptUsingPersistedMasterKey() throws Exception {
+  public void testEncryptAndDecryptUsingPersistedMasterKey()throws Exception {
+    final String fileDir = tmpFolder.newFolder("keys").getAbsolutePath();
+    final File masterKeyFile = new File(fileDir, "master");
+    final String masterKey = "mySuperS3cr3tMast3rKey!";
+    final MasterKeyServiceImpl ms = new MasterKeyServiceImpl("dummyKey");
+    Assert.assertTrue(ms.initializeMasterKeyFile(masterKeyFile, masterKey));
+
+    final String toBeEncrypted = "mySuperS3cr3tP4ssW0rD!";
+
+    Configuration configuration = new Configuration(new Properties());
+    configuration.setProperty(Configuration.MASTER_KEY_LOCATION, masterKeyFile.getParent());
+    Injector injector = Guice.createInjector(new AbstractModule() {
+
+      @Override
+      protected void configure() {
+        bind(Configuration.class).toInstance(configuration);
+        bind(OsFamily.class).toInstance(EasyMock.createMock(OsFamily.class));
+      }
+    });
+    EncryptionService encryptionService = new AESEncryptionService();
+    injector.injectMembers(encryptionService);
+
+    final String encrypted = encryptionService.encrypt(toBeEncrypted);
+    final String decrypted = encryptionService.decrypt(encrypted);
+    verifyAll();
+    assertEquals(toBeEncrypted, decrypted);
+  }
+
+  @Test
+  public void testEncryptAndDecryptUsingEnvDefinedMasterKey() throws Exception {
     final String fileDir = tmpFolder.newFolder("keys").getAbsolutePath();
     final File masterKeyFile = new File(fileDir, "master");
     final String masterKey = "mySuperS3cr3tMast3rKey!";
@@ -78,6 +114,7 @@ public class EncryptionServiceTest {
     final String toBeEncrypted = "mySuperS3cr3tP4ssW0rD!";
 
     setupEnvironmentVariableExpectations(masterKeyFile);
+    EncryptionService encryptionService = new AESEncryptionService();
     final String encrypted = encryptionService.encrypt(toBeEncrypted);
     final String decrypted = encryptionService.decrypt(encrypted);
     verifyAll();
@@ -87,6 +124,7 @@ public class EncryptionServiceTest {
   @Test(expected = SecurityException.class)
   public void shouldThrowSecurityExceptionInCaseOfEncryptingWithNonExistingPersistedMasterKey() throws Exception {
     final String toBeEncrypted = "mySuperS3cr3tP4ssW0rD!";
+    EncryptionService encryptionService = new AESEncryptionService();
     encryptionService.encrypt(toBeEncrypted);
   }
 

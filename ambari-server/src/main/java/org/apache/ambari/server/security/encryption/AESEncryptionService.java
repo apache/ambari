@@ -20,6 +20,9 @@ package org.apache.ambari.server.security.encryption;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
+import javax.inject.Inject;
+
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.utils.TextEncoding;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
@@ -37,6 +40,9 @@ public class AESEncryptionService implements EncryptionService {
   private final Cache<String, AESEncryptor> aesEncryptorCache = CacheBuilder.newBuilder().build();
 
   private MasterKeyService environmentMasterKeyService;
+
+  @Inject
+  private Configuration configuration;
 
   @Override
   public String encrypt(String toBeEncrypted) throws Exception {
@@ -76,7 +82,7 @@ public class AESEncryptionService implements EncryptionService {
 
   private void initEnvironmentMasterKeyService() {
     if (environmentMasterKeyService == null) {
-      environmentMasterKeyService = new MasterKeyServiceImpl();
+      environmentMasterKeyService = new MasterKeyServiceImpl(configuration);
       if (!environmentMasterKeyService.isMasterKeyInitialized()) {
         throw new SecurityException("You are trying to use a persisted master key but its initialization has been failed!");
       }
