@@ -30,7 +30,7 @@ Lookup xml files for {{ for examples.
 
 PBKDF2_PRF = lambda p, s: HMAC.new(p, s, SHA1).digest()
 
-def decrypt1(encrypted_value, encryption_key):
+def decrypt(encrypted_value, encryption_key):
   salt, iv, data = [each.decode('hex') for each in encrypted_value.decode('hex').split('::')]
   key = PBKDF2(encryption_key, salt, iterations=65536).read(16)
   aes = ambari_pyaes.AESModeOfOperationCBC(key, iv=iv)
