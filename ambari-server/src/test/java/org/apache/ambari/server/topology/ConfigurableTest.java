@@ -19,28 +19,41 @@
 package org.apache.ambari.server.topology;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 
 public class ConfigurableTest {
   public static final String JSON_LOCATION = "add_service_api/configurable.json";
   public static final String JSON_LOCATION2 = "add_service_api/configurable2.json";
+  public static final String INVALID_CONFIGS_LOCATION = "add_service_api/invalid_configurables.txt";
 
   private TestConfigurable configurable;
   private ObjectMapper mapper;
+
+  Logger LOG = LoggerFactory.getLogger(ConfigurableTest.class);
 
   @Before
   public void setUp() throws Exception {
     mapper = new ObjectMapper();
     URL url = Resources.getResource(JSON_LOCATION);
-    configurable = new ObjectMapper().readValue(url, TestConfigurable.class);
+    configurable = mapper.readValue(url, TestConfigurable.class);
   }
 
   /**
@@ -55,6 +68,29 @@ public class ConfigurableTest {
         ImmutableMap.of("final",
           ImmutableMap.of("someProp", "true"))),
       configurable.getConfiguration().getAttributes());
+  }
+
+  @Test
+  public void parseInvalidConfigurables() throws Exception {
+    String invalidConfigsTxt = Resources.toString(Resources.getResource(INVALID_CONFIGS_LOCATION), StandardCharsets.UTF_8);
+    List<String> invalidConfigs = Splitter.on(Pattern.compile("\\#.*\n")).omitEmptyStrings().trimResults().splitToList(invalidConfigsTxt);
+
+    for (String config: invalidConfigs) {
+      LOG.info("Invalid config to parse:\n{}", config);
+      try {
+        mapper.readValue(config, TestConfigurable.class);
+        fail("Expected " + JsonProcessingException.class.getSimpleName());
+      }
+      catch (JsonProcessingException ex) {
+        Throwable rootCause  = ExceptionUtils.getRootCause(ex);
+        LOG.info("Error message: {}", rootCause.getMessage());
+        assertTrue(
+          "Expected " + IllegalArgumentException.class.getSimpleName() + " during parsing JSON:\n" + config +
+            "\n found: " + rootCause,
+          rootCause instanceof IllegalArgumentException);
+      }
+    }
+
   }
 
   /**
@@ -86,19 +122,18 @@ public class ConfigurableTest {
       configurable.getConfiguration().getAttributes());
   }
 
-}
+  static class TestConfigurable implements Configurable {
+    Configuration configuration;
 
-class TestConfigurable implements Configurable {
-  Configuration configuration;
+    @Override
+    public Configuration getConfiguration() {
+      return configuration;
+    }
 
-  @Override
-  public Configuration getConfiguration() {
-    return configuration;
+    @Override
+    public void setConfiguration(Configuration configuration) {
+      this.configuration = configuration;
+    }
+
   }
-
-  @Override
-  public void setConfiguration(Configuration configuration) {
-    this.configuration = configuration;
-  }
-
 }

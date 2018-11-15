@@ -2,7 +2,7 @@
   "configurations" : [
     {
       "zoo.cfg/properties/dataDir" : "/zookeeper1",
-      "zoo.cfg/properties_attributes/final/someProp": "true"
+      "zoo.cfg/properties_attributes/final/someProp": "true",
     }
   ]
 }
