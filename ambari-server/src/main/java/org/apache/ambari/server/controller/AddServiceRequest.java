@@ -37,6 +37,7 @@ import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configurable;
+import org.apache.ambari.server.topology.ConfigurableHelper;
 import org.apache.ambari.server.topology.Configuration;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -85,7 +86,7 @@ public final class AddServiceRequest {
                            @JsonProperty(COMPONENTS)Set<Component> components,
                            @JsonProperty(CONFIGURATIONS) Collection<? extends Map<String, ?>> configs) {
     this(operationType, recommendationStrategy, provisionAction, stackName, stackVersion, services, components,
-      Configurable.parseConfigs(configs));
+      ConfigurableHelper.parseConfigs(configs));
   }
 
 
@@ -169,7 +170,7 @@ public final class AddServiceRequest {
   @JsonProperty(CONFIGURATIONS)
   @ApiModelProperty(name = CONFIGURATIONS)
   public Collection<Map<String, Map<String, ?>>> getConfigurationContents() {
-    return Configurable.convertConfigToMap(configuration);
+    return ConfigurableHelper.convertConfigToMap(configuration);
   }
 
 // ------- inner classes -------
