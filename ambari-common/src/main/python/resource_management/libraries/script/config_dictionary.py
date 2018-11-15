@@ -47,7 +47,7 @@ def encrypted_value(value):
 
 def encryption_key():
   if 'AGENT_ENCRYPTION_KEY' not in os.environ:
-    raise RuntimeError('Missing encryption key: AGENT_ENCRYPTION_KEY is not defined.')
+    raise RuntimeError('Missing encryption key: AGENT_ENCRYPTION_KEY is not defined at environment.')
   return os.environ['AGENT_ENCRYPTION_KEY']
 
 class ConfigDictionary(dict):
