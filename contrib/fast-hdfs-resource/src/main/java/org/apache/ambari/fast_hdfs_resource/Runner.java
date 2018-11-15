@@ -59,7 +59,7 @@ public class Runner {
     Map<String, FileSystem> fileSystemNameToInstance = new HashMap<String, FileSystem>();
     Map<String, List<Resource>> fileSystemToResource = new HashMap<String, List<Resource>>();
 
-
+    boolean failed = false;
     try {
       // 3 - Load data from JSON
       resources = (Resource[]) gson.fromJson(new FileReader(jsonFilePath),
@@ -68,16 +68,30 @@ public class Runner {
       Configuration conf = new Configuration();
       FileSystem dfs = null;
 
+      String defaultFsSchema = FileSystem.getDefaultUri(conf).getScheme();
+
       // Creating connections
       for (Resource resource : resources) {
-        String nameservice = resource.getNameservice();
+        String fsName = null;
+        URI targetURI = new URI(resource.getTarget());
+        String targetSchema = targetURI.getScheme();
 
-        if(!fileSystemNameToInstance.containsKey(nameservice)) {
+        if(targetSchema != null && !targetSchema.equals(defaultFsSchema)) {
+          String authority = targetURI.getAuthority();
+          if(authority == null) {
+            authority = "";
+          }
+          fsName = String.format("%s://%s/", targetSchema, authority);
+        } else if(resource.getNameservice() != null) {
+          fsName = resource.getNameservice();
+        }
+
+        if(!fileSystemNameToInstance.containsKey(fsName)) {
           URI fileSystemUrl;
-          if(nameservice == null) {
+          if(fsName == null) {
             fileSystemUrl = FileSystem.getDefaultUri(conf);
           } else {
-            fileSystemUrl = new URI(nameservice);
+            fileSystemUrl = new URI(fsName);
           }
 
           dfs = FileSystem.get(fileSystemUrl, conf);
@@ -86,13 +100,13 @@ public class Runner {
           System.out.println("Initializing filesystem uri: " + fileSystemUrl);
           dfs.initialize(fileSystemUrl, conf);
 
-          fileSystemNameToInstance.put(nameservice, dfs);
+          fileSystemNameToInstance.put(fsName, dfs);
         }
 
-        if(!fileSystemToResource.containsKey(nameservice)) {
-          fileSystemToResource.put(nameservice, new ArrayList<Resource>());
+        if(!fileSystemToResource.containsKey(fsName)) {
+          fileSystemToResource.put(fsName, new ArrayList<Resource>());
         }
-        fileSystemToResource.get(nameservice).add(resource);
+        fileSystemToResource.get(fsName).add(resource);
       }
 
       //for (Resource resource : resources) {
@@ -144,14 +158,18 @@ public class Runner {
     catch(Exception e) {
        System.out.println("Exception occurred, Reason: " + e.getMessage());
        e.printStackTrace();
+       failed = true;
     }
     finally {
       for(FileSystem dfs:fileSystemNameToInstance.values()) {
         dfs.close();
       }
     }
-
-    System.out.println("All resources created.");
+    if(!failed) {
+      System.out.println("All resources created.");
+    } else {
+      System.exit(1);
+    }
   }
 
 }

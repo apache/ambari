@@ -35,6 +35,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.providers import Provider
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import File
+from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import namenode_ha_utils
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
@@ -270,6 +271,8 @@ class WebHDFSUtil:
 
       if file_to_put:
         cmd += ["--data-binary", "@"+file_to_put, "-H", "Content-Type: application/octet-stream"]
+      else:
+        cmd += ["-d", "", "-H", "Content-Length: 0"]
 
     if self.security_enabled:
       cmd += ["--negotiate", "-u", ":"]
@@ -612,8 +615,16 @@ class HdfsResourceProvider(Provider):
   def __init__(self, resource):
     super(HdfsResourceProvider,self).__init__(resource)
 
+    self.has_core_configs = not is_empty(getattr(resource, 'default_fs'))
+
+    if not self.has_core_configs:
+      self.webhdfs_enabled = False
+      self.fsType = None
+      return
+
     self.assert_parameter_is_set('dfs_type')
     self.fsType = getattr(resource, 'dfs_type')
+    self.can_use_webhdfs = True
 
     self.ignored_resources_list = HdfsResourceProvider.get_ignored_resources_list(self.resource.hdfs_resource_ignore_file)
 
@@ -658,14 +669,20 @@ class HdfsResourceProvider(Provider):
     return hdfs_resources_to_ignore
     
   def action_delayed(self, action_name):
+    if not self.has_core_configs:
+      Logger.info("Cannot find core-site or core-site/fs.defaultFs. Assuming usage of external filesystem for services. Ambari will not manage the directories.")
+      return
+
     self.assert_parameter_is_set('type')
-    
+
     path_protocol = urlparse(self.resource.target).scheme.lower()
     default_fs_protocol = urlparse(self.resource.default_fs).scheme.lower()
 
+    # for protocols which are different that defaultFs webhdfs will not be able to create directories
+    # so for them fast-hdfs-resource.jar should be used
     if path_protocol and default_fs_protocol != "viewfs" and path_protocol != default_fs_protocol:
-      Logger.info("Skipping creation of {0} since it is not in default filesystem.".format(self.resource.target))
-      return
+      self.can_use_webhdfs = False
+      Logger.info("Cannot use webhdfs for {0} defaultFs = {1} has different protocol".format(self.resource.target, self.resource.default_fs))
 
     parsed_path = HdfsResourceProvider.parse_path(self.resource.target)
 
@@ -688,10 +705,15 @@ class HdfsResourceProvider(Provider):
     self.action_delayed("download")
 
   def action_execute(self):
-    self.get_hdfs_resource_executor().action_execute(self)
+    if not self.has_core_configs:
+      Logger.info("Cannot find core-site or core-site/fs.defaultFs. Assuming usage of external filesystem for services. Ambari will not manage the directories.")
+      return
+
+    HdfsResourceWebHDFS().action_execute(self)
+    HdfsResourceJar().action_execute(self)
 
   def get_hdfs_resource_executor(self):
-    if WebHDFSUtil.is_webhdfs_available(self.webhdfs_enabled, self.fsType):
+    if self.can_use_webhdfs and WebHDFSUtil.is_webhdfs_available(self.webhdfs_enabled, self.fsType):
       return HdfsResourceWebHDFS()
     else:
       return HdfsResourceJar()
@@ -709,5 +731,5 @@ class HdfsResourceProvider(Provider):
     
     Execute(format("{kinit_path} -kt {keytab_file} {principal_name}"),
             user=user
-    )    
+    )
 
