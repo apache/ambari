@@ -73,7 +73,12 @@ public class ConfigurableTest {
   @Test
   public void parseInvalidConfigurables() throws Exception {
     String invalidConfigsTxt = Resources.toString(Resources.getResource(INVALID_CONFIGS_LOCATION), StandardCharsets.UTF_8);
-    List<String> invalidConfigs = Splitter.on(Pattern.compile("\\#.*\n")).omitEmptyStrings().trimResults().splitToList(invalidConfigsTxt);
+    List<String> invalidConfigs = Splitter
+      // filter block comment (Apache license) and use line comments as separators between json snippets
+      .on(Pattern.compile("'''(.|[\\r\\n])*?'''|#.*$", Pattern.MULTILINE))
+      .omitEmptyStrings()
+      .trimResults()
+      .splitToList(invalidConfigsTxt);
 
     for (String config: invalidConfigs) {
       LOG.info("Invalid config to parse:\n{}", config);
