@@ -34,6 +34,8 @@
     <resource_management.install.dir>/usr/lib/ambari-server/lib/resource_management</resource_management.install.dir>
     <jinja.install.dir>/usr/lib/ambari-server/lib/ambari_jinja2</jinja.install.dir>
     <simplejson.install.dir>/usr/lib/ambari-server/lib/ambari_simplejson</simplejson.install.dir>
+    <pbkdf2.install.dir>/usr/lib/ambari-server/lib/ambari_pbkdf2</pbkdf2.install.dir>
+    <pyaes.install.dir>/usr/lib/ambari-server/lib/ambari_pyaes</pyaes.install.dir>
     <swagger.spec.dir>${basedir}/docs/api/generated/</swagger.spec.dir>
     <swagger.generated.resources.dir>${project.build.directory}/generated-sources/swagger/</swagger.generated.resources.dir>
     <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>

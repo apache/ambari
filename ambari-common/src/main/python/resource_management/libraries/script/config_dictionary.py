@@ -18,9 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 from resource_management.core.exceptions import Fail
-from ambari_pycryptodome.Crypto.Cipher import AES
-from ambari_pycryptodome.Crypto.Protocol.KDF import PBKDF2
-from ambari_pycryptodome.Crypto.Hash import SHA1, HMAC
+import ambari_pyaes
+from ambari_pbkdf2.pbkdf2 import PBKDF2
 import os
 
 IMMUTABLE_MESSAGE = """Configuration dictionary is immutable!
@@ -31,13 +30,11 @@ Lookup xml files for {{ for examples.
 
 PBKDF2_PRF = lambda p, s: HMAC.new(p, s, SHA1).digest()
 
-def decrypt(encrypted_value, encryption_key):
+def decrypt1(encrypted_value, encryption_key):
   salt, iv, data = [each.decode('hex') for each in encrypted_value.decode('hex').split('::')]
-  cipher = AES.new(
-    PBKDF2(password=encryption_key, salt=salt, count=65536, dkLen=16, prf=PBKDF2_PRF),
-    AES.MODE_CBC,
-    iv=iv)
-  return cipher.decrypt(data)
+  key = PBKDF2(encryption_key, salt, iterations=65536).read(16)
+  aes = ambari_pyaes.AESModeOfOperationCBC(key, iv=iv)
+  return aes.decrypt(data)
 
 def is_encrypted(value):
   return isinstance(value, basestring) and value.startswith('${enc=aes256_hex, value=')
