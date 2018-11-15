@@ -83,7 +83,7 @@ class HdfsResourceJar:
   def action_delayed(self, action_name, main_resource):
     dfs_type = main_resource.resource.dfs_type
 
-    if main_resource.resource.nameservices is None: # all nameservices
+    if main_resource.resource.nameservices is None and main_resource.has_core_configs: # all nameservices
       nameservices = namenode_ha_utils.get_nameservices(main_resource.resource.hdfs_site)
     else:
       nameservices = main_resource.resource.nameservices
@@ -136,7 +136,8 @@ class HdfsResourceJar:
     env = Environment.get_instance()
 
     # Check required parameters
-    main_resource.assert_parameter_is_set('user')
+    if main_resource.has_core_configs:
+      main_resource.assert_parameter_is_set('user')
 
     if not 'hdfs_files' in env.config or not env.config['hdfs_files']:
       Logger.info("No resources to create. 'create_on_execute' or 'delete_on_execute' or 'download_on_execute' wasn't triggered before this 'execute' action.")
@@ -144,7 +145,7 @@ class HdfsResourceJar:
     
     hadoop_bin_dir = main_resource.resource.hadoop_bin_dir
     hadoop_conf_dir = main_resource.resource.hadoop_conf_dir
-    user = main_resource.resource.user
+    user = main_resource.resource.user if main_resource.has_core_configs else None
     security_enabled = main_resource.resource.security_enabled
     keytab_file = main_resource.resource.keytab
     kinit_path = main_resource.resource.kinit_path_local
@@ -616,6 +617,7 @@ class HdfsResourceProvider(Provider):
     super(HdfsResourceProvider,self).__init__(resource)
 
     self.has_core_configs = not is_empty(getattr(resource, 'default_fs'))
+    self.ignored_resources_list = HdfsResourceProvider.get_ignored_resources_list(self.resource.hdfs_resource_ignore_file)
 
     if not self.has_core_configs:
       self.webhdfs_enabled = False
@@ -625,8 +627,6 @@ class HdfsResourceProvider(Provider):
     self.assert_parameter_is_set('dfs_type')
     self.fsType = getattr(resource, 'dfs_type')
     self.can_use_webhdfs = True
-
-    self.ignored_resources_list = HdfsResourceProvider.get_ignored_resources_list(self.resource.hdfs_resource_ignore_file)
 
     if self.fsType == 'HDFS':
       self.assert_parameter_is_set('hdfs_site')
@@ -669,20 +669,19 @@ class HdfsResourceProvider(Provider):
     return hdfs_resources_to_ignore
     
   def action_delayed(self, action_name):
-    if not self.has_core_configs:
-      Logger.info("Cannot find core-site or core-site/fs.defaultFs. Assuming usage of external filesystem for services. Ambari will not manage the directories.")
-      return
-
     self.assert_parameter_is_set('type')
 
-    path_protocol = urlparse(self.resource.target).scheme.lower()
-    default_fs_protocol = urlparse(self.resource.default_fs).scheme.lower()
+    if self.has_core_configs:
+      path_protocol = urlparse(self.resource.target).scheme.lower()
+      default_fs_protocol = urlparse(self.resource.default_fs).scheme.lower()
 
-    # for protocols which are different that defaultFs webhdfs will not be able to create directories
-    # so for them fast-hdfs-resource.jar should be used
-    if path_protocol and default_fs_protocol != "viewfs" and path_protocol != default_fs_protocol:
+      # for protocols which are different that defaultFs webhdfs will not be able to create directories
+      # so for them fast-hdfs-resource.jar should be used
+      if path_protocol and default_fs_protocol != "viewfs" and path_protocol != default_fs_protocol:
+        self.can_use_webhdfs = False
+        Logger.info("Cannot use webhdfs for {0} defaultFs = {1} has different protocol".format(self.resource.target, self.resource.default_fs))
+    else:
       self.can_use_webhdfs = False
-      Logger.info("Cannot use webhdfs for {0} defaultFs = {1} has different protocol".format(self.resource.target, self.resource.default_fs))
 
     parsed_path = HdfsResourceProvider.parse_path(self.resource.target)
 
@@ -705,10 +704,6 @@ class HdfsResourceProvider(Provider):
     self.action_delayed("download")
 
   def action_execute(self):
-    if not self.has_core_configs:
-      Logger.info("Cannot find core-site or core-site/fs.defaultFs. Assuming usage of external filesystem for services. Ambari will not manage the directories.")
-      return
-
     HdfsResourceWebHDFS().action_execute(self)
     HdfsResourceJar().action_execute(self)
 
