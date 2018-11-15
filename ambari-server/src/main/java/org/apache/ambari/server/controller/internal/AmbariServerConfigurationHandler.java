@@ -204,8 +204,7 @@ public class AmbariServerConfigurationHandler extends RootServiceComponentConfig
 
   private CredentialProvider getCredentialProvider() throws AmbariException {
     if (credentialProvider == null) {
-      credentialProvider = new CredentialProvider(null, ambariConfiguration.getMasterKeyLocation(),
-          ambariConfiguration.isMasterKeyPersisted(), ambariConfiguration.getMasterKeyStoreLocation());
+      credentialProvider = new CredentialProvider(null, ambariConfiguration);
     }
     return credentialProvider;
   }

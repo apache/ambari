@@ -118,7 +118,7 @@ public class ComponentSSLConfiguration {
 
   private String getPassword(Configuration configuration) {
     String rawPassword = configuration.getProperty(Configuration.SSL_TRUSTSTORE_PASSWORD.getKey());
-    String password    = PasswordUtils.getInstance().readPasswordFromStore(rawPassword, configuration.getMasterKeyLocation(), configuration.isMasterKeyPersisted(), configuration.getMasterKeyStoreLocation());
+    String password    = PasswordUtils.getInstance().readPasswordFromStore(rawPassword, configuration);
 
     return password == null ? rawPassword : password;
   }

@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.ambari.server.configuration.Configuration;
@@ -101,7 +102,8 @@ public class MasterKeyServiceTest extends TestCase {
     mockStatic(System.class);
     expect(System.getenv()).andReturn(mapRet);
     replayAll();
-    MasterKeyService ms = new MasterKeyServiceImpl();
+    Configuration configuration = new Configuration(new Properties());
+    MasterKeyService ms = new MasterKeyServiceImpl(configuration);
     verifyAll();
     Assert.assertTrue(ms.isMasterKeyInitialized());
     Assert.assertNotNull(ms.getMasterSecret());
@@ -125,12 +127,13 @@ public class MasterKeyServiceTest extends TestCase {
     mockStatic(System.class);
     expect(System.getenv()).andReturn(mapRet);
     replayAll();
-    ms = new MasterKeyServiceImpl();
+    Configuration configuration = new Configuration(new Properties());
+    ms = new MasterKeyServiceImpl(configuration);
     verifyAll();
     Assert.assertTrue(ms.isMasterKeyInitialized());
     Assert.assertNotNull(ms.getMasterSecret());
     Assert.assertEquals("ThisisSomePassPhrase", new String(ms.getMasterSecret()));
-    Assert.assertFalse(masterKeyFile.exists());
+    Assert.assertTrue(masterKeyFile.exists());
   }
 
   @Override
