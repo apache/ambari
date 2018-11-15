@@ -27,16 +27,12 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.topology.addservice.model.Component;
-import org.apache.ambari.server.topology.addservice.model.Host;
-import org.apache.ambari.server.topology.addservice.model.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,9 +46,6 @@ public class AddServiceOrchestrator {
 
   @Inject
   private AmbariManagementController controller;
-
-  @Inject
-  private ActionManager actionManager;
 
   public void processAddServiceRequest(Cluster cluster, AddServiceRequest request) {
     LOG.info("Received {} request for {}: {}", request.getOperationType(), cluster.getClusterName(), request);
@@ -72,16 +65,35 @@ public class AddServiceOrchestrator {
   private AddServiceInfo validate(Cluster cluster, AddServiceRequest request) {
     LOG.info("Validating {}", request);
 
-    AddServiceInfo.Builder info = new AddServiceInfo.Builder();
+    Map<String, Map<String, Set<String>>> newServices = new LinkedHashMap<>();
 
-    // TODO implement
-    info.putAllNewServices(translateRequest(cluster, request));
+    StackId stackId = new StackId(request.getStackName(), request.getStackVersion());
+    try {
+      Stack stack = new Stack(stackId, controller);
+      Set<String> existingServices = cluster.getServices().keySet();
+      for (AddServiceRequest.Component requestedComponent : request.getComponents()) {
+        String serviceName = stack.getServiceForComponent(requestedComponent.getName());
+        if (serviceName == null) {
+          String msg = String.format("No service found for component %s in stack %s", requestedComponent.getName(), stackId);
+          LOG.error(msg);
+          throw new IllegalArgumentException(msg);
+        }
+        if (existingServices.contains(serviceName)) {
+          String msg = String.format("Service %s already exists in cluster %s", serviceName, cluster.getClusterName());
+          LOG.error(msg);
+          throw new IllegalArgumentException(msg);
+        }
 
-    return info
-      .clusterName(cluster.getClusterName())
-      .repositoryVersionId(1L) // FIXME hardcode
-      .requestId(actionManager.getNextRequestId())
-      .build();
+        newServices.computeIfAbsent(serviceName, __ -> new HashMap<>())
+          .computeIfAbsent(requestedComponent.getName(), __ -> new HashSet<>())
+          .add(requestedComponent.getFqdn());
+      }
+    } catch (AmbariException e) {
+      LOG.error("Stack {} not found", stackId);
+      throw new IllegalArgumentException(e);
+    }
+
+    return new AddServiceInfo(cluster.getClusterName(), newServices);
   }
 
   /**
@@ -110,49 +122,6 @@ public class AddServiceOrchestrator {
   private void createHostTasks(AddServiceInfo request) {
     LOG.info("Creating host tasks for {}", request);
     // TODO implement
-  }
-
-  // TODO only components are handled for now
-  private Map<Service, Map<Component, Set<Host>>> translateRequest(Cluster cluster, AddServiceRequest request) {
-    Map<Service, Map<Component, Set<Host>>> result = new LinkedHashMap<>();
-
-    StackId stackId = new StackId(request.getStackName(), request.getStackVersion());
-    try {
-      Stack stack = new Stack(stackId, controller);
-      Set<String> existingServices = cluster.getServices().keySet();
-      for (AddServiceRequest.Component requestedComponent : request.getComponents()) {
-        String serviceName = stack.getServiceForComponent(requestedComponent.getName());
-        if (serviceName == null) {
-          String msg = String.format("No service found for component %s in stack %s", requestedComponent.getName(), stackId);
-          LOG.error(msg);
-          throw new IllegalArgumentException(msg);
-        }
-        if (existingServices.contains(serviceName)) {
-          String msg = String.format("Service %s already exists in cluster %s", serviceName, cluster.getClusterName());
-          LOG.error(msg);
-          throw new IllegalArgumentException(msg);
-        }
-
-        Service service = new Service.Builder()
-          .name(serviceName)
-          .build();
-        Component component = new Component.Builder()
-          .name(requestedComponent.getName())
-          .build();
-        Host host = new Host.Builder()
-          .hostname(requestedComponent.getFqdn())
-          .build();
-
-        result.computeIfAbsent(service, __ -> new HashMap<>())
-          .computeIfAbsent(component, __ -> new HashSet<>())
-          .add(host);
-      }
-    } catch (AmbariException e) {
-      LOG.error("Stack {} not found", stackId);
-      throw new IllegalArgumentException(e);
-    }
-
-    return result;
   }
 
 }

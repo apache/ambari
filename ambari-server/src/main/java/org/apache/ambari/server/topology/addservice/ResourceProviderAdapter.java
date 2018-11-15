@@ -34,7 +34,6 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.topology.addservice.model.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,17 +64,12 @@ public class ResourceProviderAdapter {
     }
   }
 
-  private static Map<String, Object> createServiceRequestProperties(AddServiceInfo request, Service service) {
+  private static Map<String, Object> createServiceRequestProperties(AddServiceInfo request, String service) {
     ImmutableMap.Builder<String, Object> properties = ImmutableMap.builder();
 
     properties.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, request.clusterName());
-    properties.put(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, service.name());
-    properties.put(ServiceResourceProvider.SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID, String.valueOf(request.repositoryVersionId()));
+    properties.put(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, service);
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, State.INIT.name());
-
-    service.credentialStoreEnabled().ifPresent(enabled ->
-      properties.put(ServiceResourceProvider.SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID, String.valueOf(enabled))
-    );
 
     return properties.build();
   }

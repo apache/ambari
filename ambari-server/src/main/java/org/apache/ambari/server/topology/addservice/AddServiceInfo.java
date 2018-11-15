@@ -20,31 +20,28 @@ package org.apache.ambari.server.topology.addservice;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.topology.addservice.model.Component;
-import org.apache.ambari.server.topology.addservice.model.Host;
-import org.apache.ambari.server.topology.addservice.model.Service;
-
 /**
  * Processed info for adding new services/components to an existing cluster.
  */
-public abstract class AddServiceInfo {
+public final class AddServiceInfo {
 
-  public abstract long requestId();
-  public abstract String clusterName();
-  public abstract long repositoryVersionId();
+  private final String clusterName;
+  private final Map<String, Map<String, Set<String>>> newServices;
+
+  public AddServiceInfo(String clusterName, Map<String, Map<String, Set<String>>> newServices) {
+    this.clusterName = clusterName;
+    this.newServices = newServices;
+  }
+
+  public String clusterName() {
+    return clusterName;
+  }
 
   /**
-   * New services to be added to the cluster.
+   * New services to be added to the cluster: service -> component -> host
    * This should include both explicitly requested services, and services of the requested components.
    */
-  public abstract Map<Service, Map<Component, Set<Host>>> newServices();
-
-  public abstract Builder toBuilder();
-
-  static class Builder extends AddServiceInfo_Builder {}
-
-  @Override
-  public String toString() {
-    return "AddServiceRequest(" + requestId() + ")";
+  public Map<String, Map<String, Set<String>>> newServices() {
+    return newServices;
   }
 }
