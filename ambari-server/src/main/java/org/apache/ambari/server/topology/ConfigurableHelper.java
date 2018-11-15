@@ -21,6 +21,9 @@ package org.apache.ambari.server.topology;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.PROPERTIES_ATTRIBUTES_PROPERTY_ID;
 import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.PROPERTIES_PROPERTY_ID;
+import static org.apache.ambari.server.topology.ConfigurationFactory.isKeyInLegacyFormat;
+import static org.apache.ambari.server.topology.ConfigurationFactory.isKeyInNewFormat;
+import static org.apache.ambari.server.topology.ConfigurationFactory.splitConfigurationKey;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,7 +35,6 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -69,8 +71,8 @@ public class ConfigurableHelper {
   public static Configuration parseConfigs(@Nullable Collection<? extends Map<String, ?>> configs) {
     Configuration configuration;
 
-    if (null == configs) {
-      configuration = new Configuration(new HashMap<>(), new HashMap<>());
+    if (null == configs || configs.isEmpty()) {
+      configuration = Configuration.newEmpty();
     }
     else if (!configs.isEmpty() && configs.iterator().next().keySet().iterator().next().contains("/")) {
       // Configuration has keys with slashes like "zk.cfg/properties/dataDir" means it is coming through
@@ -142,40 +144,32 @@ public class ConfigurableHelper {
   }
 
   private static void checkFlattenedConfig(Collection<? extends Map<String, ?>> configs) {
-    Splitter splitter = Splitter.on('/');
     configs.forEach( config -> {
       if ( !config.isEmpty() ) {
-        List<String> firstKey = splitter.splitToList(config.keySet().iterator().next());
+        List<String> firstKey = splitConfigurationKey(config.keySet().iterator().next());
         String configType = firstKey.get(0);
-        boolean oldStlyeConfig = firstKey.size() == 2;
+        boolean legacyConfig = isKeyInLegacyFormat(firstKey);
 
         config.keySet().forEach( key -> {
-          List<String> keyParts = splitter.splitToList(key);
+          List<String> keyParts = splitConfigurationKey(key);
           checkArgument(Objects.equals(configType, keyParts.get(0)),
             "Invalid config type: %s. Should be: %s", keyParts.get(0), configType);
-          if (oldStlyeConfig) {
-            checkArgument(keyParts.size() == 2, "Expected key in [config_type/property_name] format, found [%s]", key);
-          }
-          else {
-            String propertiesType = keyParts.get(1);
-            checkArgument(
-              keyParts.size() == 3 && PROPERTIES_PROPERTY_ID.equals(propertiesType)
-                || keyParts.size() == 4 && PROPERTIES_ATTRIBUTES_PROPERTY_ID.equals(propertiesType),
-              "Expected key in [config_type/properties/config_name] or [config_type/properties_attributes/attribute_name/property_name]" +
-                " format, found [%s]", key);
-          }
+          checkArgument(legacyConfig && isKeyInLegacyFormat(keyParts) || !legacyConfig && isKeyInNewFormat(keyParts),
+            "Expected key in %s format, found [%s]",
+            legacyConfig ? "[config_type/property_name]" :
+              "[config_type/properties/config_name] or [config_type/properties_attributes/attribute_name/property_name]",
+            key);
         });
       }
-
     });
   }
 
   private static void checkMap(String fieldName, Object mapObj, Class<?> valueType) {
     checkArgument(mapObj instanceof Map, "'%s' needs to be a JSON object. Found: %s", fieldName, getClassName(mapObj));
     Map<?, ?> map = (Map<?, ?>)mapObj;
-    map.entrySet().forEach( entry -> {
-      checkArgument(valueType.isInstance(entry.getValue()), "Expected %s as value type, found %s, type: %s",
-        valueType.getName(), entry.getValue(), getClassName(entry.getValue()));
+    map.forEach( (__, value) -> {
+      checkArgument(valueType.isInstance(value), "Expected %s as value type, found %s, type: %s",
+        valueType.getName(), value, getClassName(value));
     });
   }
 

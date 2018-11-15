@@ -84,7 +84,7 @@ public class ConfigurableTest {
       LOG.info("Invalid config to parse:\n{}", config);
       try {
         mapper.readValue(config, TestConfigurable.class);
-        fail("Expected " + JsonProcessingException.class.getSimpleName());
+        fail("Expected " + JsonProcessingException.class.getSimpleName() + " while processing config:\n" + config);
       }
       catch (JsonProcessingException ex) {
         Throwable rootCause  = ExceptionUtils.getRootCause(ex);
