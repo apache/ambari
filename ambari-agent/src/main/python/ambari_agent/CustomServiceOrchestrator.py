@@ -111,6 +111,7 @@ class CustomServiceOrchestrator(object):
 
     # save count (not boolean) for parallel execution cases
     self.commands_for_component_in_progress = defaultdict(lambda:defaultdict(lambda:0))
+    self.encryption_key = None
 
   def map_task_to_process(self, task_id, processId):
     with self.commands_in_progress_lock:
@@ -405,6 +406,9 @@ class CustomServiceOrchestrator(object):
         and len(filtered_py_file_list) > 1:
 
         raise AgentException("Background commands are supported without hooks only")
+
+      if self.encryption_key:
+        os.environ['AGENT_ENCRYPTION_KEY'] = self.encryption_key
 
       python_executor = self.get_py_executor(forced_command_name)
       backup_log_files = command_name not in self.DONT_BACKUP_LOGS_FOR_COMMANDS

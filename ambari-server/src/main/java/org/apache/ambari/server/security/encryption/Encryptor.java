@@ -27,7 +27,6 @@ public interface Encryptor<T> {
    * 
    * @param encryptible
    *          to be encrypted
-   * @return the encrypted value
    */
   void encryptSensitiveData(T encryptible);
 
@@ -36,8 +35,20 @@ public interface Encryptor<T> {
    * 
    * @param decryptible
    *          to be decrypted
-   * @return the decrypted value
    */
   void decryptSensitiveData(T decryptible);
 
+  /**
+   * @return the default encryption key used by this encryptor
+   */
+  String getEncryptionKey();
+
+  Encryptor NONE = new Encryptor() {
+    @Override
+    public void encryptSensitiveData(Object data) { }
+    @Override
+    public void decryptSensitiveData(Object decryptible) { }
+    @Override
+    public String getEncryptionKey() { return ""; }
+  };
 }

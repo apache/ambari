@@ -29,7 +29,6 @@ import java.util.concurrent.locks.ReadWriteLock;
 import javax.annotation.Nullable;
 import javax.inject.Named;
 
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.logging.LockFactory;
@@ -104,34 +103,32 @@ public class ConfigImpl implements Config {
 
   @AssistedInject
   ConfigImpl(@Assisted Cluster cluster, @Assisted("type") String type,
-      @Assisted("tag") @Nullable String tag,
-      @Assisted Map<String, String> properties,
-      @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
-      ClusterDAO clusterDAO, StackDAO stackDAO,
-      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory,
-      Configuration serverConfiguration, @Named("ConfigPropertiesEncryptor") Encryptor<Config> configPropertiesEncryptor) {
+             @Assisted("tag") @Nullable String tag,
+             @Assisted Map<String, String> properties,
+             @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
+             ClusterDAO clusterDAO, StackDAO stackDAO,
+             Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory,
+             @Named("ConfigPropertiesEncryptor") Encryptor<Config> configPropertiesEncryptor) {
     this(cluster.getDesiredStackVersion(), cluster, type, tag, properties, propertiesAttributes,
-        clusterDAO, stackDAO, gson, eventPublisher, lockFactory, serverConfiguration, configPropertiesEncryptor);
+        clusterDAO, stackDAO, gson, eventPublisher, lockFactory, configPropertiesEncryptor);
   }
 
 
   @AssistedInject
   ConfigImpl(@Assisted @Nullable StackId stackId, @Assisted Cluster cluster, @Assisted("type") String type,
-      @Assisted("tag") @Nullable String tag,
-      @Assisted Map<String, String> properties,
-      @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
-      ClusterDAO clusterDAO, StackDAO stackDAO,
-      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory,
-      Configuration serverConfiguration, @Named("ConfigPropertiesEncryptor") Encryptor<Config> configPropertiesEncryptor) {
+             @Assisted("tag") @Nullable String tag,
+             @Assisted Map<String, String> properties,
+             @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
+             ClusterDAO clusterDAO, StackDAO stackDAO,
+             Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory,
+             @Named("ConfigPropertiesEncryptor") Encryptor<Config> configPropertiesEncryptor) {
 
     propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
 
     this.cluster = cluster;
     this.type = type;
     this.properties = properties;
-    if (serverConfiguration.shouldEncryptSensitiveData()) {
-      configPropertiesEncryptor.encryptSensitiveData(this);
-    }
+    configPropertiesEncryptor.encryptSensitiveData(this);
 
     // only set this if it's non-null
     this.propertiesAttributes = null == propertiesAttributes ? null

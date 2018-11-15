@@ -48,7 +48,7 @@ public interface EncryptionService {
    * @throws Exception
    *           in case any error happened during the encryption process
    */
-  String encrypt(String toBeEncrypted) throws Exception;
+  String encrypt(String toBeEncrypted);
 
   /**
    * Encrypts the given text using Ambari's master key found in the environment.
@@ -59,10 +59,8 @@ public interface EncryptionService {
    * @param textEncoding
    *          the text encoding which the encrypted text is encoded with
    * @return the String representation of the encrypted text
-   * @throws Exception
-   *           in case any error happened during the encryption process
    */
-  String encrypt(String toBeEncrypted, TextEncoding textEncoding) throws Exception;
+  String encrypt(String toBeEncrypted, TextEncoding textEncoding);
 
   /**
    * Encrypts the given text using the given key. The returned value will be
@@ -73,10 +71,9 @@ public interface EncryptionService {
    * @param key
    *          the key to be used for encryption
    * @return the String representation of the encrypted text
-   * @throws Exception
    *           in case any error happened during the encryption process
    */
-  String encrypt(String toBeEncrypted, String key) throws Exception;
+  String encrypt(String toBeEncrypted, String key);
 
   /**
    * Encrypts the given text using the given key.The returned value will be
@@ -89,10 +86,13 @@ public interface EncryptionService {
    * @param textEncoding
    *          the text encoding which the encrypted text is encoded with
    * @return the String representation of the encrypted text
-   * @throws Exception
-   *           in case any error happened during the encryption process
    */
-  String encrypt(String toBeEncrypted, String key, TextEncoding textEncoding) throws Exception;
+  String encrypt(String toBeEncrypted, String key, TextEncoding textEncoding);
+
+  /**
+   * @return the default encryption key used by this encryption service
+   */
+  String getAmbariMasterKey();
 
   /**
    * Decrypts the given text (must be encoded with BASE_64 encoding) using
@@ -101,10 +101,8 @@ public interface EncryptionService {
    * @param toBeDecrypted
    *          the text to be decrypted
    * @return the String representation of the decrypted text
-   * @throws Exception
-   *           in case any error happened during the decryption process
    */
-  public String decrypt(String toBeDecrypted) throws Exception;
+  String decrypt(String toBeDecrypted);
 
   /**
    * Decrypts the given text (must be encoded with the given text encoding) using
@@ -115,10 +113,8 @@ public interface EncryptionService {
    * @param textEncoding
    *          the text encoding which <code>toBeDecrypted</code> is encoded with
    * @return the String representation of the decrypted text
-   * @throws Exception
-   *           in case any error happened during the decryption process
    */
-  public String decrypt(String toBeDecrypted, TextEncoding textEncoding) throws Exception;
+  String decrypt(String toBeDecrypted, TextEncoding textEncoding);
 
   /**
    * Decrypts the given text (must be encoded with BASE_64 encoding) using the
@@ -129,10 +125,8 @@ public interface EncryptionService {
    * @param key
    *          the key to be used for decryption
    * @return the String representation of the decrypted text
-   * @throws Exception
-   *           in case any error happened during the decryption process
    */
-  public String decrypt(String toBeDecrypted, String key) throws Exception;
+  String decrypt(String toBeDecrypted, String key);
 
   /**
    * Decrypts the given text (must be encoded with the given text encoding) using
@@ -145,9 +139,7 @@ public interface EncryptionService {
    * @param textEncoding
    *          the text encoding which <code>toBeDecrypted</code> is encoded with
    * @return the String representation of the decrypted text
-   * @throws Exception
-   *           in case any error happened during the decryption process
    */
-  public String decrypt(String toBeDecrypted, String key, TextEncoding textEncoding) throws Exception;
+  String decrypt(String toBeDecrypted, String key, TextEncoding textEncoding);
 
 }

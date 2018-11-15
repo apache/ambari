@@ -90,6 +90,12 @@
     <fileSet>
       <directoryMode>755</directoryMode>
       <fileMode>755</fileMode>
+      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_pycryptodome/lib/Crypto</directory>
+      <outputDirectory>${pycryptodome.install.dir}</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directoryMode>755</directoryMode>
+      <fileMode>755</fileMode>
       <directory>src/examples</directory>
       <outputDirectory>${lib.dir}/examples</outputDirectory>
     </fileSet>

@@ -18,12 +18,37 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 from resource_management.core.exceptions import Fail
+from ambari_pycryptodome.Crypto.Cipher import AES
+from ambari_pycryptodome.Crypto.Protocol.KDF import PBKDF2
+from ambari_pycryptodome.Crypto.Hash import SHA1, HMAC
+import os
 
 IMMUTABLE_MESSAGE = """Configuration dictionary is immutable!
 
 For adding dynamic properties to xml files please use {{varible_from_params}} substitutions.
 Lookup xml files for {{ for examples. 
 """
+
+PBKDF2_PRF = lambda p, s: HMAC.new(p, s, SHA1).digest()
+
+def decrypt(encrypted_value, encryption_key):
+  salt, iv, data = [each.decode('hex') for each in encrypted_value.decode('hex').split('::')]
+  cipher = AES.new(
+    PBKDF2(password=encryption_key, salt=salt, count=65536, dkLen=16, prf=PBKDF2_PRF),
+    AES.MODE_CBC,
+    iv=iv)
+  return cipher.decrypt(data)
+
+def is_encrypted(value):
+  return isinstance(value, basestring) and value.startswith('${enc=aes256_hex, value=')
+
+def encrypted_value(value):
+  return value.split('value=')[1][:-1]
+
+def encryption_key():
+  if 'AGENT_ENCRYPTION_KEY' not in os.environ:
+    raise RuntimeError('Missing encryption key: AGENT_ENCRYPTION_KEY is not defined.')
+  return os.environ['AGENT_ENCRYPTION_KEY']
 
 class ConfigDictionary(dict):
   """
@@ -52,8 +77,10 @@ class ConfigDictionary(dict):
       value = super(ConfigDictionary, self).__getitem__(name)
     except KeyError:
       return UnknownConfiguration(name)
-      
-    
+
+    if is_encrypted(value):
+      return decrypt(encrypted_value(value), encryption_key())
+
     if value == "true":
       value = True
     elif value == "false":
