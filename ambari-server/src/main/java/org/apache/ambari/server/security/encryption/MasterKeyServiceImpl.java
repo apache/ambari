@@ -97,7 +97,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
    * masterKey > masterKeyLocation > environment
    */
   public MasterKeyServiceImpl(Configuration configuration) {
-    if (configuration.isMasterKeyPersisted()) {
+    if (configuration!= null && configuration.isMasterKeyPersisted()) {
       if (configuration.getMasterKeyLocation() == null) {
         throw new IllegalArgumentException("The master key file location must be specified if the master key is persisted");
       }

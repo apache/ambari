@@ -231,7 +231,7 @@ public class ConfigurationTest {
     String encrypted = "fake-encrypted-password";
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PASSWORD.getKey(), unencrypted);
     Configuration conf = spy(new Configuration(ambariProperties));
-    PowerMock.stub(PowerMock.method(PasswordUtils.class, "readPasswordFromStore", String.class, File.class, boolean.class, File.class)).toReturn(null);
+    PowerMock.stub(PowerMock.method(PasswordUtils.class, "readPasswordFromStore", String.class, Configuration.class)).toReturn(null);
     conf.loadSSLParams();
     Assert.assertEquals(System.getProperty(Configuration.JAVAX_SSL_TRUSTSTORE_PASSWORD, "unknown"), unencrypted);
   }
@@ -243,7 +243,7 @@ public class ConfigurationTest {
     String encrypted = "fake-encrypted-password";
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PASSWORD.getKey(), unencrypted);
     Configuration conf = spy(new Configuration(ambariProperties));
-    PowerMock.stub(PowerMock.method(PasswordUtils.class, "readPasswordFromStore", String.class, File.class, boolean.class, File.class)).toReturn(encrypted);
+    PowerMock.stub(PowerMock.method(PasswordUtils.class, "readPasswordFromStore", String.class, Configuration.class)).toReturn(encrypted);
     conf.loadSSLParams();
     Assert.assertEquals(System.getProperty(Configuration.JAVAX_SSL_TRUSTSTORE_PASSWORD, "unknown"), encrypted);
   }
@@ -289,7 +289,7 @@ public class ConfigurationTest {
       passwordFile);
 
     Configuration conf = new Configuration(ambariProperties);
-    PowerMock.stub(PowerMock.method(PasswordUtils.class,"readPasswordFromStore", String.class, File.class, boolean.class, File.class)).toReturn(null);
+    PowerMock.stub(PowerMock.method(PasswordUtils.class,"readPasswordFromStore", String.class, Configuration.class)).toReturn(null);
 
     Assert.assertEquals("ambaritest", conf.getDatabasePassword());
   }

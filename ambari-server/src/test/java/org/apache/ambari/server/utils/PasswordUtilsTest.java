@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.utils;
 
-import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
@@ -105,12 +104,7 @@ public class PasswordUtilsTest extends EasyMockSupport {
   }
 
   private void setupBasicCredentialProviderExpectations(CredentialProvider credentialProvider) throws Exception {
-    final File masterKeyLocation = createNiceMock(File.class);
-    final File masterKeyStoreLocation = createNiceMock(File.class);
-    expect(configuration.getMasterKeyLocation()).andReturn(masterKeyLocation).once();
-    expect(configuration.isMasterKeyPersisted()).andReturn(false).once();
-    expect(configuration.getMasterKeyStoreLocation()).andReturn(masterKeyStoreLocation).once();
-    PowerMock.expectNew(CredentialProvider.class, null, (String) null, masterKeyLocation, false, masterKeyStoreLocation).andReturn(credentialProvider);
+    PowerMock.expectNew(CredentialProvider.class, null, null, configuration).andReturn(credentialProvider);
   }
 
   private Injector createInjector() {
