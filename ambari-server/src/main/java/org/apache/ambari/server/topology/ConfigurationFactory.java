@@ -18,8 +18,13 @@
 
 package org.apache.ambari.server.topology;
 
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.PROPERTIES_ATTRIBUTES_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.PROPERTIES_PROPERTY_ID;
+
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,20 +58,35 @@ public class ConfigurationFactory {
   private ConfigurationStrategy decidePopulationStrategy(Map<String, String> configuration) {
     if (configuration != null && !configuration.isEmpty()) {
       String keyEntry = configuration.keySet().iterator().next();
-      String[] keyNameTokens = keyEntry.split("/");
-      int levels = keyNameTokens.length;
-      String propertiesType = keyNameTokens[1];
-      if (levels == 2) {
+      List<String> keyNameTokens = splitConfigurationKey(keyEntry);
+
+      if (isKeyInLegacyFormat(keyNameTokens)) {
         return new ConfigurationStrategyV1();
-      } else if ((levels == 3 && BlueprintFactory.PROPERTIES_PROPERTY_ID.equals(propertiesType))
-          || (levels == 4 && BlueprintFactory.PROPERTIES_ATTRIBUTES_PROPERTY_ID.equals(propertiesType))) {
+      }
+      else if (isKeyInNewFormat(keyNameTokens)) {
         return new ConfigurationStrategyV2();
-      } else {
+      }
+      else {
         throw new IllegalArgumentException(SCHEMA_IS_NOT_SUPPORTED_MESSAGE);
       }
-    } else {
+    }
+    else {
       return new ConfigurationStrategyV2();
     }
+  }
+
+  static List<String> splitConfigurationKey(String configurationKey) {
+    return Arrays.asList(configurationKey.split("/"));
+  }
+
+  static boolean isKeyInLegacyFormat(List<String> configurationKey) {
+    return configurationKey.size() == 2;
+  }
+
+  static boolean isKeyInNewFormat(List<String> configurationKey) {
+    String propertiesType = configurationKey.get(1);
+    return configurationKey.size() == 3 && PROPERTIES_PROPERTY_ID.equals(propertiesType)
+      || configurationKey.size() == 4 && PROPERTIES_ATTRIBUTES_PROPERTY_ID.equals(propertiesType);
   }
 
   /**

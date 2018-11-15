@@ -69,7 +69,7 @@ public class AddServiceRequestTest {
   private static String REQUEST_MINIMAL_COMPONENTS_ONLY;
   private static String REQUEST_INVALID_NO_SERVICES_AND_COMPONENTS;
   private static String REQUEST_INVALID_INVALID_FIELD;
-
+  private static String REQUEST_INVALID_INVALID_CONFIG;
 
   private ObjectMapper mapper = new ObjectMapper();
 
@@ -81,6 +81,7 @@ public class AddServiceRequestTest {
     REQUEST_MINIMAL_COMPONENTS_ONLY = read("add_service_api/request4.json");
     REQUEST_INVALID_NO_SERVICES_AND_COMPONENTS = read("add_service_api/request_invalid_1.json");
     REQUEST_INVALID_INVALID_FIELD = read("add_service_api/request_invalid_2.json");
+    REQUEST_INVALID_INVALID_CONFIG = read("add_service_api/request_invalid_3.json");
   }
 
   @Test
@@ -190,6 +191,11 @@ public class AddServiceRequestTest {
   @Test(expected = JsonProcessingException.class)
   public void testDeserialize_invalid_invalidField() throws Exception {
     mapper.readValue(REQUEST_INVALID_INVALID_FIELD, AddServiceRequest.class);
+  }
+
+  @Test(expected = JsonProcessingException.class)
+  public void testDeserialize_invalid_invalidConfiguration() throws Exception {
+    mapper.readValue(REQUEST_INVALID_INVALID_CONFIG, AddServiceRequest.class);
   }
 
   @Test
