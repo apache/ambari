@@ -15,23 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- define([
-  'angular',
-],
-function (angular) {
-  'use strict';
-  var module = angular.module('grafana.directives');
 
-  module.directive('metricQueryEditorAmbarimetrics', function() {
-    return {
-      controller: 'AmbariMetricsQueryCtrl',
-      templateUrl: 'app/plugins/datasource/ambari-metrics/partials/query.editor.html',
-    };
-  });
-
-  module.directive('metricQueryOptionsAmbarimetrics', function() {
-    return {templateUrl: 'app/plugins/datasource/ambari-metrics/partials/query.options.html'};
-  });
-
-});
-
+/// <reference path="../../../../../public/app/headers/common.d.ts" />
+import { QueryCtrl } from 'app/plugins/sdk';
+export declare class AmbariMetricsQueryCtrl extends QueryCtrl {
+    static templateUrl: string;
+    aggregators: any;
+    aggregator: any;
+    errors: any;
+    precisions: any;
+    transforms: any;
+    transform: any;
+    precisionInit: any;
+    suggestMetrics: any;
+    suggestApps: any;
+    suggestHosts: any;
+    /** @ngInject **/
+    constructor($scope: any, $injector: any);
+    targetBlur(): void;
+    getTextValues(metricFindResult: any): any;
+    getCollapsedText(): string;
+    validateTarget(): any;
+}

@@ -123,12 +123,6 @@
                   dest="${project.build.directory}/grafana"
                   compression="gzip"
                   />
-                <copy
-                  todir="${project.build.directory}/grafana/${grafana.folder}/public/app/plugins/datasource">
-                  <fileset dir="${project.build.directory}/../">
-                    <include name="ambari-metrics/"/>
-                  </fileset>
-                </copy>
               </target>
             </configuration>
           </execution>

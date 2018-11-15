@@ -1,14 +1,21 @@
 {
-  "pluginType": "datasource",
-  "name": "AmbariMetrics",
-
-  "type": "ambarimetrics",
-  "serviceName": "AmbariMetricsDatasource",
-
-  "module": "app/plugins/datasource/ambari-metrics/datasource",
-    "partials": {
-    "config": "app/plugins/datasource/ambari-metrics/partials/config.html"
-  },
-
-  "metrics": true
+  "type": "datasource",
+  "name": "Ambari Metrics",
+  "id": "ambari-metrics",
+  "metrics": true,
+  "staticRoot": ".",
+  "defaultMatchFormat": "glob",
+  "info": {
+    "author": {
+      "name": "",
+      "url": ""
+    },
+    "links": [
+    ],
+    "logos": {
+      "small": "img/apache-ambari-logo-sm.png",
+      "large": "img/apache-ambari-logo.png"
+    },
+    "version": "1.0.1"
+  }
 }

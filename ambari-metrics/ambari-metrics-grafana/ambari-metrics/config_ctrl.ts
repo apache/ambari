@@ -1,3 +1,4 @@
+///<reference path="../../../headers/common.d.ts" />
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -15,23 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- define([
-  'angular',
-],
-function (angular) {
-  'use strict';
-  var module = angular.module('grafana.directives');
 
-  module.directive('metricQueryEditorAmbarimetrics', function() {
-    return {
-      controller: 'AmbariMetricsQueryCtrl',
-      templateUrl: 'app/plugins/datasource/ambari-metrics/partials/query.editor.html',
-    };
-  });
+import angular from 'angular';
+import _ from 'lodash';
 
-  module.directive('metricQueryOptionsAmbarimetrics', function() {
-    return {templateUrl: 'app/plugins/datasource/ambari-metrics/partials/query.options.html'};
-  });
-
-});
-
+export class AmbariMetricsConfigCtrl {
+    static templateUrl = 'partials/config.html';
+    current: any;
+}

@@ -525,7 +525,19 @@
                       <directory>/var/lib/ambari-metrics-grafana</directory>
                     </mapping>
                     <mapping>
+                      <directory>/var/lib/ambari-metrics-grafana/plugins</directory>
+                    </mapping>
+                    <mapping>
                       <directory>/var/log/ambari-metrics-grafana</directory>
+                    </mapping>
+                    <mapping>
+                      <directory>/var/lib/ambari-metrics-grafana/plugins/ambari-metrics</directory>
+                      <filemode>755</filemode>
+                      <sources>
+                        <source>
+                          <location>${grafana.dir}/ambari-metrics</location>
+                        </source>
+                      </sources>
                     </mapping>
                   </mappings>
                 </configuration>
@@ -764,6 +776,7 @@
                     <path>/var/lib/ambari-metrics-collector</path>
                     <path>/var/lib/ambari-metrics-monitor/lib</path>
                     <path>/var/lib/ambari-metrics-grafana</path>
+                    <path>/var/lib/ambari-metrics-grafana/plugins</path>
                     <path>/usr/lib/ambari-metrics-hadoop-sink</path>
                     <path>/usr/lib/ambari-metrics-kafka-sink</path>
                     <path>/usr/lib/ambari-metrics-kafka-sink/lib</path>
