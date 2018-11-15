@@ -1056,7 +1056,7 @@ class Script(object):
     if self.should_expose_component_version("restart"):
       self.save_component_version_to_structured_out("restart")
 
-  def post_upgrade_restart(env, upgrade_type=None):
+  def post_upgrade_restart(self, env, upgrade_type=None):
     """
     To be overridden by subclasses
     """
