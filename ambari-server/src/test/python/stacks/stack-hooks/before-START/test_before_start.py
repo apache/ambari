@@ -62,10 +62,6 @@ class TestHookBeforeStart(RMFTestCase):
                               create_parents = True,
                               cd_access = 'a',
                               )
-    self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
-        content = StaticFile('fast-hdfs-resource.jar'),
-        mode = 0644,
-    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/commons-logging.properties',
                               content = Template('commons-logging.properties.j2'),
                               owner = 'hdfs',
@@ -81,6 +77,10 @@ class TestHookBeforeStart(RMFTestCase):
                               owner='hdfs',
                               content=InlineTemplate('log4jproperties\nline2log4jproperties\nline2')
                               )
+    self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
+        content = StaticFile('fast-hdfs-resource.jar'),
+        mode = 0644,
+    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-metrics2.properties']['content']),
                               group='hadoop',
@@ -146,10 +146,6 @@ class TestHookBeforeStart(RMFTestCase):
                               create_parents = True,
                               cd_access = 'a',
                               )
-    self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
-        content = StaticFile('fast-hdfs-resource.jar'),
-        mode = 0644,
-    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/commons-logging.properties',
                               content = Template('commons-logging.properties.j2'),
                               owner = 'root',
@@ -165,6 +161,10 @@ class TestHookBeforeStart(RMFTestCase):
                               owner='hdfs',
                               content=InlineTemplate('log4jproperties\nline2log4jproperties\nline2')
                               )
+    self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
+        content = StaticFile('fast-hdfs-resource.jar'),
+        mode = 0644,
+    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-metrics2.properties']['content']),
                               group='hadoop',
@@ -235,10 +235,6 @@ class TestHookBeforeStart(RMFTestCase):
                               create_parents = True,
                               cd_access = 'a',
                               )             
-    self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
-        content = StaticFile('fast-hdfs-resource.jar'),
-        mode = 0644,
-    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/commons-logging.properties',
                               content = Template('commons-logging.properties.j2'),
                               owner = 'hdfs',
@@ -253,6 +249,10 @@ class TestHookBeforeStart(RMFTestCase):
                               group='hadoop',
                               owner='hdfs',
                               content=InlineTemplate('log4jproperties\nline2log4jproperties\nline2')
+    )
+    self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
+        content = StaticFile('fast-hdfs-resource.jar'),
+        mode = 0644,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-metrics2.properties']['content']),
@@ -326,10 +326,6 @@ class TestHookBeforeStart(RMFTestCase):
                               create_parents = True,
                               cd_access = 'a',
                               )                       
-    self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
-        content = StaticFile('fast-hdfs-resource.jar'),
-        mode = 0644,
-    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/commons-logging.properties',
                               content = Template('commons-logging.properties.j2'),
                               owner = 'hdfs',
@@ -344,6 +340,10 @@ class TestHookBeforeStart(RMFTestCase):
                               group='hadoop',
                               owner='hdfs',
                               content=InlineTemplate('log4jproperties\nline2log4jproperties\nline2')
+    )
+    self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
+        content = StaticFile('fast-hdfs-resource.jar'),
+        mode = 0644,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-metrics2.properties']['content']),
