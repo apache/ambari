@@ -65,6 +65,16 @@ App.Service = DS.Model.extend({
    */
   isInPassive: Em.computed.equal('passiveState', 'ON'),
 
+  /**
+   * @type {bool}
+   */
+  hasMasterOrSlaveComponent: function() {
+    return this.get('slaveComponents').toArray()
+    .concat(this.get('masterComponents').toArray())
+    .mapProperty('totalCount')
+    .reduce((a, b) => a + b, 0) > 0;
+  }.property('slaveComponents.@each.totalCount', 'masterComponents.@each.totalCount'),
+
   serviceComponents: function() {
     var clientComponents = this.get('clientComponents').mapProperty('componentName');
     var slaveComponents = this.get('slaveComponents').mapProperty('componentName');
