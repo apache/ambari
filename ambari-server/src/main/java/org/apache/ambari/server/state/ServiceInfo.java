@@ -167,6 +167,12 @@ public class ServiceInfo implements Validable {
   @XmlElements(@XmlElement(name = "sso"))
   private SingleSignOnInfo singleSignOnInfo;
 
+  /**
+   * LDAP support information
+   */
+  @XmlElements(@XmlElement(name = "ldap"))
+  private ServiceLdapInfo ldapInfo;
+
   public Boolean isRestartRequiredAfterChange() {
     return restartRequiredAfterChange;
   }
@@ -718,6 +724,38 @@ public class ServiceInfo implements Validable {
    */
   public boolean isKerberosRequiredForSingleSignOnIntegration() {
     return singleSignOnInfo != null && singleSignOnInfo.isKerberosRequired();
+  }
+  
+  /**
+   * Gets a new value for LDAP integration support
+   */
+  public ServiceLdapInfo getLdapInfo() {
+    return ldapInfo;
+  }
+
+  /**
+   * Sets a new value for LDAP integration support
+   * 
+   * @param ldapInfo
+   *          a {@link ServiceLdapInfo}
+   */
+  public void setLdapInfo(ServiceLdapInfo ldapInfo) {
+    this.ldapInfo = ldapInfo;
+  }
+
+  /**
+   * @return whether this service supports single sign-on integration
+   */
+  public boolean isLdapSupported() {
+    return (ldapInfo != null) && ldapInfo.isSupported();
+  }
+
+  /**
+   * @return the configuration specification that can be used to determine if LDAP
+   *         has been enabled or not.
+   */
+  public String getLdapEnabledTest() {
+    return ldapInfo != null ? ldapInfo.getLdapEnabledTest() : null;
   }
 
   @Override
@@ -1331,6 +1369,11 @@ public class ServiceInfo implements Validable {
           addError("Single Sign-on support is indicated for service " + getName() + " but no test configuration has been set (enabledConfiguration or ssoEnabledTest).");
         }
       }
+    }
+
+    if (ldapInfo != null && ldapInfo.isSupported() && StringUtils.isBlank(ldapInfo.getLdapEnabledTest())) {
+      setValid(false);
+      addError("LDAP support is indicated for service " + getName() + " but no test configuration has been set by ldapEnabledTest."); 
     }
   }
 
