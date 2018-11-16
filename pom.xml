@@ -319,6 +319,9 @@
             <!--Jinja2 library (BSD license)-->
             <exclude>ambari-common/src/main/python/ambari_jinja2/**</exclude>
             <exclude>ambari-common/src/main/python/jinja2/**</exclude>
+            <exclude>ambari-common/src/main/python/ambari_pyaes/**</exclude>
+            <exclude>ambari-common/src/main/python/ambari_pbkdf2/**</exclude>
+            <exclude>**/.metadata_never_index</exclude>
             <!--Simplejson library (MIT license)-->
             <exclude>ambari-common/src/main/python/ambari_simplejson/**</exclude>
             <!--Subprocess32 library (PSF license)-->
