@@ -65,6 +65,8 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
       PropertyHelper.getPropertyId("Dependencies", "component_name");
   protected static final String SCOPE_ID =
       PropertyHelper.getPropertyId("Dependencies", "scope");
+  protected static final String TYPE_ID =
+      PropertyHelper.getPropertyId("Dependencies", "type");
   protected static final String CONDITIONS_ID = PropertyHelper
     .getPropertyId("Dependencies","conditions");
   protected static final String AUTO_DEPLOY_ENABLED_ID = PropertyHelper
@@ -81,6 +83,7 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
       .put(Resource.Type.StackService, DEPENDENT_SERVICE_NAME_ID)
       .put(Resource.Type.StackServiceComponent, DEPENDENT_COMPONENT_NAME_ID)
       .put(Resource.Type.StackServiceComponentDependency, COMPONENT_NAME_ID)
+      .put(Resource.Type.StackServiceComponentDependencyType, TYPE_ID)
       .build();
 
   /**
@@ -94,6 +97,7 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
       SERVICE_NAME_ID,
       COMPONENT_NAME_ID,
       SCOPE_ID,
+      TYPE_ID,
       CONDITIONS_ID,
       AUTO_DEPLOY_ENABLED_ID,
       AUTO_DEPLOY_LOCATION_ID);
@@ -256,6 +260,7 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
     setResourceProperty(resource, DEPENDENT_SERVICE_NAME_ID, dependentService, requestedIds);
     setResourceProperty(resource, DEPENDENT_COMPONENT_NAME_ID, dependentComponent, requestedIds);
     setResourceProperty(resource, SCOPE_ID, dependency.getScope(), requestedIds);
+    setResourceProperty(resource, TYPE_ID, dependency.getType(), requestedIds);
 
     AutoDeployInfo autoDeployInfo = dependency.getAutoDeploy();
     if (autoDeployInfo != null) {

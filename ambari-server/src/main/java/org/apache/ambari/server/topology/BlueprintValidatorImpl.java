@@ -65,12 +65,12 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
   public void validateTopology() throws InvalidTopologyException {
     LOGGER.info("Validating topology for blueprint: [{}]", blueprint.getName());
     Collection<HostGroup> hostGroups = blueprint.getHostGroups().values();
-    Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies = new HashMap<>();
+    Map<String, Map<String, Collection<DependencyInfo>>> dependenciesValidationIssues = new HashMap<>();
 
     for (HostGroup group : hostGroups) {
-      Map<String, Collection<DependencyInfo>> missingGroupDependencies = validateHostGroup(group);
-      if (!missingGroupDependencies.isEmpty()) {
-        missingDependencies.put(group.getName(), missingGroupDependencies);
+      Map<String, Collection<DependencyInfo>> groupDependenciesValidationIssues = validateHostGroup(group);
+      if (!groupDependenciesValidationIssues.isEmpty()) {
+        dependenciesValidationIssues.put(group.getName(), groupDependenciesValidationIssues);
       }
     }
 
@@ -90,8 +90,8 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
       }
     }
 
-    if (!missingDependencies.isEmpty() || !cardinalityFailures.isEmpty()) {
-      generateInvalidTopologyException(missingDependencies, cardinalityFailures);
+    if (!dependenciesValidationIssues.isEmpty() || !cardinalityFailures.isEmpty()) {
+      generateInvalidTopologyException(dependenciesValidationIssues, cardinalityFailures);
     }
   }
 
@@ -230,7 +230,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
 
   private Map<String, Collection<DependencyInfo>> validateHostGroup(HostGroup group) {
     LOGGER.info("Validating hostgroup: {}", group.getName());
-    Map<String, Collection<DependencyInfo>> missingDependencies = new HashMap<>();
+    Map<String, Collection<DependencyInfo>> dependenciesIssues = new HashMap<>();
 
     for (String component : new HashSet<>(group.getComponentNames())) {
       LOGGER.debug("Processing component: {}", component);
@@ -260,6 +260,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         }
 
         String         dependencyScope = dependency.getScope();
+        String         dependencyType  = dependency.getType();
         String         componentName   = dependency.getComponentName();
         AutoDeployInfo autoDeployInfo  = dependency.getAutoDeploy();
         boolean        resolved        = false;
@@ -282,24 +283,34 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
               componentName, new Cardinality("1+"), autoDeployInfo);
 
           resolved = missingDependencyInfo.isEmpty();
-        } else if (dependencyScope.equals("host")) {
-          if (group.getComponentNames().contains(componentName) || (autoDeployInfo != null && autoDeployInfo.isEnabled())) {
-            resolved = true;
-            group.addComponent(componentName);
+          if (dependencyType.equals("exclusive")) {
+            resolved = !resolved;
           }
+        } else if (dependencyScope.equals("host")) {
+          //TODO check if the group might not contain all the component at this point
+          if (dependencyType.equals("exclusive")) {
+            if (!group.getComponentNames().contains(componentName)) {
+              resolved = true;
+            }
+          } else {
+            if (group.getComponentNames().contains(componentName) || (autoDeployInfo != null && autoDeployInfo.isEnabled())) {
+              resolved = true;
+            }
+          }
+          group.addComponent(componentName);
         }
 
         if (! resolved) {
-          Collection<DependencyInfo> missingCompDependencies = missingDependencies.get(component);
-          if (missingCompDependencies == null) {
-            missingCompDependencies = new HashSet<>();
-            missingDependencies.put(component, missingCompDependencies);
+          Collection<DependencyInfo> compDependenciesIssues = dependenciesIssues.get(component);
+          if (compDependenciesIssues == null) {
+            compDependenciesIssues = new HashSet<>();
+            dependenciesIssues.put(component, compDependenciesIssues);
           }
-          missingCompDependencies.add(dependency);
+          compDependenciesIssues.add(dependency);
         }
       }
     }
-    return missingDependencies;
+    return dependenciesIssues;
   }
 
   /**
@@ -379,13 +390,15 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
   /**
    * Generate an exception for topology validation failure.
    *
-   * @param missingDependencies  missing dependency information
+   * @param dependenciesIssues  dependency issues information,
+   *                            like component needs to be co-hosted,
+   *                            or components can't be installed on the same host
    * @param cardinalityFailures  missing service component information
    *
    * @throws IllegalArgumentException  Always thrown and contains information regarding the topology validation failure
    *                                   in the msg
    */
-  private void generateInvalidTopologyException(Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies,
+  private void generateInvalidTopologyException(Map<String, Map<String, Collection<DependencyInfo>>> dependenciesIssues,
                                                 Collection<String> cardinalityFailures) throws InvalidTopologyException {
 
     //todo: encapsulate some of this in exception?
@@ -393,8 +406,8 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
     if (! cardinalityFailures.isEmpty()) {
       msg += "  Invalid service component count: " + cardinalityFailures;
     }
-    if (! missingDependencies.isEmpty()) {
-      msg += "  Unresolved component dependencies: " + missingDependencies;
+    if (! dependenciesIssues.isEmpty()) {
+      msg += "Component dependencies issues: " + dependenciesIssues;
     }
     msg += ".  To disable topology validation and create the blueprint, " +
         "add the following to the end of the url: '?validate_topology=false'";

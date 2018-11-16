@@ -195,6 +195,7 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.Host;
@@ -749,6 +750,37 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         msg = "Attempted to create host_component's which already exist: ";
       }
       throw new DuplicateResourceException(msg + names);
+    }
+
+    //TODO move to separate method
+    for (String clusterName : hostComponentNames.keySet()) {
+      for (String serviceName : hostComponentNames.get(clusterName).keySet()) {
+        for (String componentName : hostComponentNames.get(clusterName).get(serviceName).keySet()) {
+          Set<String> hostnames = hostComponentNames.get(clusterName).get(serviceName).get(componentName);
+          if (hostnames != null && !hostnames.isEmpty()) {
+            ServiceComponent sc = clusters.getCluster(clusterName).getService(serviceName).getServiceComponent(componentName);
+            StackId stackId = sc.getDesiredStackId();
+            List<DependencyInfo> dependencyInfos = ambariMetaInfo.getComponentDependencies(stackId.getStackName(),
+                                                               stackId.getStackVersion(), serviceName, componentName);
+            for (DependencyInfo dependencyInfo : dependencyInfos) {
+              if ("host".equals(dependencyInfo.getScope()) && "exclusive".equals(dependencyInfo.getType())) {
+                Service depSevice = clusters.getCluster(clusterName).getService(dependencyInfo.getServiceName());
+                if (depSevice != null) {
+                  ServiceComponent dependentSC = depSevice.getServiceComponent(dependencyInfo.getComponentName());
+                  if (dependentSC != null) {
+                    for (String host : dependentSC.getServiceComponentHosts().keySet()) {
+                      if (hostnames.contains(host)) {
+                        throw new AmbariException("Component " + componentName + " can't be co-hosted with component "
+                            + dependencyInfo.getComponentName() + " on host " + host + " due to exclusive dependency");
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     // set restartRequired flag for  monitoring services

@@ -103,6 +103,7 @@ public interface Resource {
     StackConfigurationDependency,
     StackServiceComponent,
     StackServiceComponentDependency,
+    StackServiceComponentDependencyType,
     DRFeed,
     DRTargetCluster,
     DRInstance,
@@ -227,6 +228,7 @@ public interface Resource {
     public static final Type StackConfigurationDependency = InternalType.StackConfigurationDependency.getType();
     public static final Type StackServiceComponent = InternalType.StackServiceComponent.getType();
     public static final Type StackServiceComponentDependency = InternalType.StackServiceComponentDependency.getType();
+    public static final Type StackServiceComponentDependencyType = InternalType.StackServiceComponentDependencyType.getType();
     public static final Type DRFeed = InternalType.DRFeed.getType();
     public static final Type DRTargetCluster = InternalType.DRTargetCluster.getType();
     public static final Type DRInstance = InternalType.DRInstance.getType();
