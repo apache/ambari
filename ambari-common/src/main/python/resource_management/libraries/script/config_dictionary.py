@@ -34,7 +34,7 @@ def decrypt(encrypted_value, encryption_key):
   salt, iv, data = [each.decode('hex') for each in encrypted_value.decode('hex').split('::')]
   key = PBKDF2(encryption_key, salt, iterations=65536).read(16)
   aes = ambari_pyaes.AESModeOfOperationCBC(key, iv=iv)
-  return aes.decrypt(data)
+  return ambari_pyaes.util.strip_PKCS7_padding(aes.decrypt(data))
 
 def is_encrypted(value):
   return isinstance(value, basestring) and value.startswith('${enc=aes256_hex, value=')

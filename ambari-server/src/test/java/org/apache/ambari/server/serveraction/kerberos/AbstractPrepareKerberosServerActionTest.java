@@ -52,6 +52,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.UpdateConfigurationPolicy;
+import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
@@ -59,6 +60,7 @@ import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -91,6 +93,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
+import com.google.inject.TypeLiteral;
+import com.google.inject.name.Names;
 
 public class AbstractPrepareKerberosServerActionTest extends EasyMockSupport {
   private static final String KERBEROS_DESCRIPTOR_JSON = "" +
@@ -227,6 +231,7 @@ public class AbstractPrepareKerberosServerActionTest extends EasyMockSupport {
         Provider<EntityManager> entityManagerProvider = createNiceMock(Provider.class);
         bind(EntityManager.class).toProvider(entityManagerProvider);
         bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+        bind(new TypeLiteral<Encryptor<AgentConfigsUpdateEvent>>() {}).annotatedWith(Names.named("AgentConfigEncryptor")).toInstance(Encryptor.NONE);
       }
     });
 

@@ -26,10 +26,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.mpack.MpackManager;
 import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.mpack.MpackManagerMock;
+import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stack.StackManagerMock;
@@ -37,7 +39,9 @@ import org.easymock.EasyMock;
 import org.springframework.beans.factory.config.BeanDefinition;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.name.Names;
 import com.google.inject.util.Modules;
 
 public class InMemoryDefaultTestModule extends AbstractModule {
@@ -132,6 +136,7 @@ public class InMemoryDefaultTestModule extends AbstractModule {
       AuditLogger al = EasyMock.createNiceMock(AuditLogger.class);
       EasyMock.expect(al.isEnabled()).andReturn(false).anyTimes();
       bind(AuditLogger.class).toInstance(al);
+      bind(new TypeLiteral<Encryptor<AgentConfigsUpdateEvent>>() {}).annotatedWith(Names.named("AgentConfigEncryptor")).toInstance(Encryptor.NONE);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
