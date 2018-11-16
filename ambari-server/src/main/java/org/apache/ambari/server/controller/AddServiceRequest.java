@@ -36,7 +36,6 @@ import java.util.Set;
 import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
-import org.apache.ambari.server.topology.Configurable;
 import org.apache.ambari.server.topology.ConfigurableHelper;
 import org.apache.ambari.server.topology.Configuration;
 
