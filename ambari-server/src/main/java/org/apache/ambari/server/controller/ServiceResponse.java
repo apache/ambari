@@ -41,13 +41,15 @@ public class ServiceResponse {
   private final boolean ssoIntegrationEnabled;
   private final boolean ssoIntegrationRequiresKerberos;
   private final boolean kerberosEnabled;
+  private final boolean ldapIntegrationSupported;
+  private final boolean ldapIntegrationEnabled;
 
   public ServiceResponse(Long clusterId, String clusterName, String serviceName,
                          StackId desiredStackId, String desiredRepositoryVersion,
                          RepositoryVersionState repositoryVersionState, String desiredState,
                          boolean credentialStoreSupported, boolean credentialStoreEnabled, boolean ssoIntegrationSupported,
                          boolean ssoIntegrationDesired, boolean ssoIntegrationEnabled, boolean ssoIntegrationRequiresKerberos,
-                         boolean kerberosEnabled) {
+                         boolean kerberosEnabled, boolean ldapIntegrationSupported,  boolean ldapIntegrationEnabled) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
@@ -62,6 +64,8 @@ public class ServiceResponse {
     this.credentialStoreEnabled = credentialStoreEnabled;
     this.ssoIntegrationRequiresKerberos = ssoIntegrationRequiresKerberos;
     this.kerberosEnabled = kerberosEnabled;
+    this.ldapIntegrationSupported = ldapIntegrationSupported;
+    this.ldapIntegrationEnabled = ldapIntegrationEnabled;
   }
 
   /**
@@ -277,6 +281,24 @@ public class ServiceResponse {
   public boolean isKerberosEnabled() {
     return kerberosEnabled;
   }
+
+  /**
+   * Indicates if this service supports LDAP integration.
+   */
+  @ApiModelProperty(name = "ldap_integration_supported")
+  public boolean isLdapIntegrationSupported() {
+    return ldapIntegrationSupported;
+  }
+
+  /**
+   * Indicates whether the service is configured for LDAP integration or not
+   */
+  @ApiModelProperty(name = "ldap_integration_enabled")
+  public boolean isLdapIntegrationEnabled() {
+    return ldapIntegrationEnabled;
+  }
+
+
 
   /**
    * Interface to help correct Swagger documentation generation

@@ -849,6 +849,89 @@ public class ServiceInfoTest {
   }
 
   @Test
+  public void testLdapIntegrationSupport() throws Exception {
+    // Implicit SSO setting
+    String serviceInfoXml =
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>SERVICE</name>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
+    Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
+    assertFalse(serviceInfoMap.get("SERVICE").isLdapSupported());
+    assertTrue(serviceInfoMap.get("SERVICE").isValid());
+
+    ServiceLdapInfo ldapInfo = serviceInfoMap.get("SERVICE").getLdapInfo();
+    assertNull(ldapInfo);
+
+    // Explicit LDAP setting (true)
+    serviceInfoXml =
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>SERVICE</name>" +
+            "      <ldap>" +
+            "        <supported>true</supported>" +
+            "        <ldapEnabledTest>{\"equals\": [\"config-type/property_name\", \"true\"]}</ldapEnabledTest>" +
+            "      </ldap>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    assertTrue(serviceInfoMap.get("SERVICE").isLdapSupported());
+    assertTrue(serviceInfoMap.get("SERVICE").isValid());
+
+    ldapInfo = serviceInfoMap.get("SERVICE").getLdapInfo();
+    assertNotNull(ldapInfo);
+    assertTrue(ldapInfo.isSupported());
+    assertEquals("{\"equals\": [\"config-type/property_name\", \"true\"]}", ldapInfo.getLdapEnabledTest());
+
+    // Explicit LDAP setting (false)
+    serviceInfoXml =
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>SERVICE</name>" +
+            "      <ldap>" +
+            "        <supported>false</supported>" +
+            "      </ldap>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    assertFalse(serviceInfoMap.get("SERVICE").isLdapSupported());
+    assertTrue(serviceInfoMap.get("SERVICE").isValid());
+
+    ldapInfo = serviceInfoMap.get("SERVICE").getLdapInfo();
+    assertNotNull(ldapInfo);
+    assertFalse(ldapInfo.isSupported());
+    assertNull(ldapInfo.getLdapEnabledTest());
+
+    // Explicit SSO setting (invalid)
+    serviceInfoXml =
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>SERVICE</name>" +
+            "      <ldap>" +
+            "        <supported>true</supported>" +
+            "      </ldap>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    assertTrue(serviceInfoMap.get("SERVICE").isLdapSupported());
+    assertFalse(serviceInfoMap.get("SERVICE").isValid());
+    assertEquals(1, serviceInfoMap.get("SERVICE").getErrors().size());
+  }
+
+  @Test
   public void testIsRollingRestartSupported() throws JAXBException {
     // set to True
     String serviceInfoXml =

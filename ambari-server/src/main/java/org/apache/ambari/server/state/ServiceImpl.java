@@ -87,6 +87,8 @@ public class ServiceImpl implements Service {
   private boolean isCredentialStoreRequired;
   private final boolean ssoIntegrationSupported;
   private final Predicate ssoEnabledTest;
+  private final boolean ldapIntegrationSupported;
+  private final Predicate ldapEnabledTest;
   private final boolean ssoRequiresKerberos;
   private final Predicate kerberosEnabledTest;
   private AmbariMetaInfo ambariMetaInfo;
@@ -169,6 +171,9 @@ public class ServiceImpl implements Service {
           serviceName);
     }
 
+    ldapIntegrationSupported = sInfo.isLdapSupported();
+    ldapEnabledTest = StringUtils.isNotBlank(sInfo.getLdapEnabledTest()) ? PredicateUtils.fromJSON(sInfo.getLdapEnabledTest()) : null;
+
     persist(serviceEntity);
   }
 
@@ -226,6 +231,9 @@ public class ServiceImpl implements Service {
               "Automated SSO integration will not be allowed for this service.",
           serviceName);
     }
+
+    ldapIntegrationSupported = sInfo.isLdapSupported();
+    ldapEnabledTest = StringUtils.isNotBlank(sInfo.getLdapEnabledTest()) ? PredicateUtils.fromJSON(sInfo.getLdapEnabledTest()) : null;
   }
 
 
@@ -414,7 +422,7 @@ public class ServiceImpl implements Service {
         getName(), desiredStackId, desiredRespositoryVersion.getVersion(), getRepositoryState(),
         getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled(),
         ssoIntegrationSupported, isSsoIntegrationDesired(), isSsoIntegrationEnabled(existingConfigurations),
-        isKerberosRequiredForSsoIntegration(), isKerberosEnabled(existingConfigurations));
+        isKerberosRequiredForSsoIntegration(), isKerberosEnabled(existingConfigurations), ldapIntegrationSupported,isLdapIntegrationEnabeled(existingConfigurations));
 
     r.setDesiredRepositoryVersionId(desiredRespositoryVersion.getId());
 
@@ -796,5 +804,9 @@ public class ServiceImpl implements Service {
 
   private boolean isKerberosRequiredForSsoIntegration() {
     return ssoRequiresKerberos;
+  }
+
+  private boolean isLdapIntegrationEnabeled(Map<String, Map<String, String>> existingConfigurations) {
+    return ldapIntegrationSupported && ldapEnabledTest != null && ldapEnabledTest.evaluate(existingConfigurations);
   }
 }
