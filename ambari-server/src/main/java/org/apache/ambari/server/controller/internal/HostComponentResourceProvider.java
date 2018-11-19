@@ -799,7 +799,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    * @throws NoSuchResourceException        the query didn't match any resources
    * @throws NoSuchParentResourceException  a specified parent resource doesn't exist
    */
-  private RequestStageContainer doUpdateResources(final RequestStageContainer stages, final Request request,
+  public RequestStageContainer doUpdateResources(final RequestStageContainer stages, final Request request,
                                                   Predicate predicate, boolean performQueryEvaluation,
                                                   boolean useGeneratedConfigs, boolean useClusterHostInfo)
                                                   throws UnsupportedPropertyException,

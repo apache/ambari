@@ -49,15 +49,20 @@ public class UnitUpdater implements BlueprintConfigurationProcessor.PropertyUpda
                                        String origValue,
                                        Map<String, Map<String, String>> properties,
                                        ClusterTopology topology) {
-      PropertyUnit stackUnit = PropertyUnit.of(topology.getBlueprint().getStack(), serviceName, configType, propertyName);
-      PropertyValue value = PropertyValue.of(propertyName, origValue);
-      if (value.hasUnit(stackUnit)) {
-        return value.toString();
-      } else if (!value.hasAnyUnit()) {
-        return value.withUnit(stackUnit);
-      } else { // should not happen because of pre-validation in UnitValidator
-        throw new IllegalArgumentException("Property " + propertyName + "=" + origValue + " has an unsupported unit. Stack supported unit is: " + stackUnit + " or no unit");
-      }
+    Stack stack = topology.getBlueprint().getStack();
+    return updateForClusterCreate(stack, serviceName, configType, propertyName, origValue);
+  }
+
+  public static String updateForClusterCreate(Stack stack, String serviceName, String configType, String propertyName, String origValue) {
+    PropertyUnit stackUnit = PropertyUnit.of(stack, serviceName, configType, propertyName);
+    PropertyValue value = PropertyValue.of(propertyName, origValue);
+    if (value.hasUnit(stackUnit)) {
+      return value.toString();
+    } else if (!value.hasAnyUnit()) {
+      return value.withUnit(stackUnit);
+    } else { // should not happen because of pre-validation in UnitValidator
+      throw new IllegalArgumentException("Property " + propertyName + "=" + origValue + " has an unsupported unit. Stack supported unit is: " + stackUnit + " or no unit");
+    }
   }
 
   /**

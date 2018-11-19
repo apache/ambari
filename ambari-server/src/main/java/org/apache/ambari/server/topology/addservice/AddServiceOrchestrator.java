@@ -27,12 +27,17 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.topology.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,13 +52,23 @@ public class AddServiceOrchestrator {
   @Inject
   private AmbariManagementController controller;
 
-  public void processAddServiceRequest(Cluster cluster, AddServiceRequest request) {
+  @Inject
+  private ActionManager actionManager;
+
+  @Inject
+  private RequestFactory requestFactory;
+
+  public RequestStatusResponse processAddServiceRequest(Cluster cluster, AddServiceRequest request) {
     LOG.info("Received {} request for {}: {}", request.getOperationType(), cluster.getClusterName(), request);
 
     AddServiceInfo validatedRequest = validate(cluster, request);
     AddServiceInfo requestWithLayout = recommendLayout(validatedRequest);
-    createResources(requestWithLayout);
-    createHostTasks(requestWithLayout);
+    AddServiceInfo requestWithConfig = recommendConfiguration(requestWithLayout);
+
+    createResources(requestWithConfig);
+    createHostTasks(requestWithConfig);
+
+    return requestWithConfig.getStages().getRequestStatusResponse();
   }
 
   /**
@@ -68,8 +83,9 @@ public class AddServiceOrchestrator {
     Map<String, Map<String, Set<String>>> newServices = new LinkedHashMap<>();
 
     StackId stackId = new StackId(request.getStackName(), request.getStackVersion());
+    Stack stack;
     try {
-      Stack stack = new Stack(stackId, controller);
+      stack = new Stack(stackId, controller);
       Set<String> existingServices = cluster.getServices().keySet();
       for (AddServiceRequest.Component requestedComponent : request.getComponents()) {
         String serviceName = stack.getServiceForComponent(requestedComponent.getName());
@@ -93,7 +109,17 @@ public class AddServiceOrchestrator {
       throw new IllegalArgumentException(e);
     }
 
-    return new AddServiceInfo(cluster.getClusterName(), newServices);
+    if (newServices.isEmpty()) {
+      throw new IllegalArgumentException("No new services to be added");
+    }
+
+    Configuration config = stack.getValidDefaultConfig();
+    // TODO add user-defined config
+
+    RequestStageContainer stages = new RequestStageContainer(actionManager.getNextRequestId(), null, requestFactory, actionManager);
+    AddServiceInfo validatedRequest = new AddServiceInfo(cluster.getClusterName(), stack, config, stages, newServices);
+    stages.setRequestContext(validatedRequest.describe());
+    return validatedRequest;
   }
 
   /**
@@ -108,20 +134,41 @@ public class AddServiceOrchestrator {
   }
 
   /**
+   * Requests config recommendation from the stack advisor.
+   * @return new request, updated with the recommended config
+   * @throws IllegalArgumentException if the request cannot be satisfied
+   */
+  private AddServiceInfo recommendConfiguration(AddServiceInfo request) {
+    LOG.info("Recommending configuration for {}", request);
+    // TODO implement
+    return request;
+  }
+
+  /**
    * Creates the service, component and host component resources for the request.
    */
   private void createResources(AddServiceInfo request) {
     LOG.info("Creating resources for {}", request);
     resourceProviders.createServices(request);
     resourceProviders.createComponents(request);
-    resourceProviders.createHostComponents(request);
+    resourceProviders.createConfigs(request);
     resourceProviders.updateServiceDesiredState(request, State.INSTALLED);
     resourceProviders.updateServiceDesiredState(request, State.STARTED);
+    resourceProviders.createHostComponents(request);
   }
 
   private void createHostTasks(AddServiceInfo request) {
     LOG.info("Creating host tasks for {}", request);
-    // TODO implement
+
+    resourceProviders.updateHostComponentDesiredState(request, State.INSTALLED);
+    resourceProviders.updateHostComponentDesiredState(request, State.STARTED);
+    try {
+      request.getStages().persist();
+    } catch (AmbariException e) {
+      String msg = String.format("Error creating host tasks for %s", request);
+      LOG.error(msg, e);
+      throw new IllegalStateException(msg, e);
+    }
   }
 
 }
