@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
 import static org.apache.ambari.server.state.ServiceInfo.HADOOP_COMPATIBLE_FS;
@@ -74,8 +75,6 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
     registerHostGroupInfo(topologyRequest.getHostGroupInfo());
 
-    // todo extract validation to specialized service
-    validateTopology();
     this.ambariContext = ambariContext;
   }
 
@@ -162,6 +161,11 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   @Override
+  public Set<String> getAllHosts() {
+    return hostGroupInfoMap.values().stream().flatMap(hg -> hg.getHostNames().stream()).collect(toSet());
+  }
+
+  @Override
   public Collection<String> getHostAssignmentsForComponent(String component) {
     //todo: ordering requirements?
     Collection<String> hosts = new ArrayList<>();
@@ -202,25 +206,6 @@ public class ClusterTopologyImpl implements ClusterTopology {
   static boolean isYarnResourceManagerHAEnabled(Map<String, Map<String, String>> configProperties) {
     return configProperties.containsKey("yarn-site") && configProperties.get("yarn-site").containsKey("yarn.resourcemanager.ha.enabled")
       && configProperties.get("yarn-site").get("yarn.resourcemanager.ha.enabled").equals("true");
-  }
-
-  private void validateTopology()
-      throws InvalidTopologyException {
-
-    if(isNameNodeHAEnabled()){
-        Collection<String> nnHosts = getHostAssignmentsForComponent("NAMENODE");
-        if (nnHosts.size() < 2) {
-            throw new InvalidTopologyException("NAMENODE HA requires at least 2 hosts running NAMENODE but there are: " +
-                nnHosts.size() + " Hosts: " + nnHosts);
-        }
-        Map<String, String> hadoopEnvConfig = configuration.getFullProperties().get("hadoop-env");
-        if(hadoopEnvConfig != null && !hadoopEnvConfig.isEmpty() && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_active") && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_standby")) {
-           if((!HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")).matches() && !nnHosts.contains(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")))
-             || (!HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")).matches() && !nnHosts.contains(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")))){
-              throw new IllegalArgumentException("NAMENODE HA hosts mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected hosts are: " + nnHosts);
-        }
-        }
-    }
   }
 
   @Override

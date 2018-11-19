@@ -49,11 +49,11 @@ public class ClusterTopologyImplTest {
   private static final String CLUSTER_NAME = "cluster_name";
   private static final long CLUSTER_ID = 1L;
   private static final String predicate = "Hosts/host_name=foo";
-  private static final Blueprint blueprint = createNiceMock(Blueprint.class);
-  private static final HostGroup group1 = createNiceMock(HostGroup.class);
-  private static final HostGroup group2 = createNiceMock(HostGroup.class);
-  private static final HostGroup group3 = createNiceMock(HostGroup.class);
-  private static final HostGroup group4 = createNiceMock(HostGroup.class);
+  private final Blueprint blueprint = createNiceMock(Blueprint.class);
+  private final HostGroup group1 = createNiceMock(HostGroup.class);
+  private final HostGroup group2 = createNiceMock(HostGroup.class);
+  private final HostGroup group3 = createNiceMock(HostGroup.class);
+  private final HostGroup group4 = createNiceMock(HostGroup.class);
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
   private final Map<String, HostGroup> hostGroupMap = new HashMap<>();
 
@@ -148,7 +148,6 @@ public class ClusterTopologyImplTest {
     verify(blueprint, group1, group2, group3, group4);
     reset(blueprint, group1, group2, group3, group4);
 
-
     hostGroupInfoMap.clear();
     hostGroupMap.clear();
   }
@@ -178,50 +177,6 @@ public class ClusterTopologyImplTest {
     replayAll();
 
     new ClusterTopologyImpl(null, request).getHostAssignmentsForComponent("component1");
-  }
-
-  @Test(expected = InvalidTopologyException.class)
-  public void testCreate_NNHAInvaid() throws Exception {
-    bpconfiguration.setProperty("hdfs-site", "dfs.nameservices", "val");
-    expect(group4.getName()).andReturn("group4");
-    hostGroupInfoMap.get("group4").removeHost("host5");
-    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
-    replayAll();
-    new ClusterTopologyImpl(null, request);
-    hostGroupInfoMap.get("group4").addHost("host5");
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testCreate_NNHAHostNameNotCorrectForStandby() throws Exception {
-    expect(group4.getName()).andReturn("group4");
-    bpconfiguration.setProperty("hdfs-site", "dfs.nameservices", "val");
-    bpconfiguration.setProperty("hadoop-env", "dfs_ha_initial_namenode_active", "host4");
-    bpconfiguration.setProperty("hadoop-env", "dfs_ha_initial_namenode_standby", "val");
-    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
-    replayAll();
-    new ClusterTopologyImpl(null, request);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testCreate_NNHAHostNameNotCorrectForActive() throws Exception {
-    expect(group4.getName()).andReturn("group4");
-    bpconfiguration.setProperty("hdfs-site", "dfs.nameservices", "val");
-    bpconfiguration.setProperty("hadoop-env", "dfs_ha_initial_namenode_active", "val");
-    bpconfiguration.setProperty("hadoop-env", "dfs_ha_initial_namenode_standby", "host5");
-    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
-    replayAll();
-    new ClusterTopologyImpl(null, request);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testCreate_NNHAHostNameNotCorrectForStandbyWithActiveAsVariable() throws Exception {
-    expect(group4.getName()).andReturn("group4");
-    bpconfiguration.setProperty("hdfs-site", "dfs.nameservices", "val");
-    bpconfiguration.setProperty("hadoop-env", "dfs_ha_initial_namenode_active", "%HOSTGROUP::group4%");
-    bpconfiguration.setProperty("hadoop-env", "dfs_ha_initial_namenode_standby", "host6");
-    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
-    replayAll();
-    new ClusterTopologyImpl(null, request);
   }
 
   @Test

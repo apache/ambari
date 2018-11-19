@@ -20,6 +20,7 @@ package org.apache.ambari.server.topology;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
@@ -67,6 +68,10 @@ public interface ClusterTopology {
    */
   Map<String, HostGroupInfo> getHostGroupInfo();
 
+  /**
+   * @return all hosts in the topology
+   */
+  Set<String> getAllHosts();
   /**
    * Get the names of  all of host groups which contain the specified component.
    *
