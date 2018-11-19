@@ -59,6 +59,7 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
   protected static final String CLUSTER_ID_PROPERTY_ID = "clusterId";
   protected static final String SERVICE_NAME_PROPERTY_ID = "serviceName";
   protected static final String AUTO_COMPLETE_PROPERTY_ID = "autoComplete";
+  protected static final String CONFIGS_RESPONSE_PROPERTY_ID = "configsResponse";
   protected static final String HOSTS_PROPERTY_ID = "hosts";
   protected static final String SERVICES_PROPERTY_ID = "services";
   protected static final String RECOMMEND_PROPERTY_ID = "recommend";
@@ -111,6 +112,7 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
       CLUSTER_ID_PROPERTY_ID,
       SERVICE_NAME_PROPERTY_ID,
       AUTO_COMPLETE_PROPERTY_ID,
+      CONFIGS_RESPONSE_PROPERTY_ID,
       HOSTS_PROPERTY_ID,
       SERVICES_PROPERTY_ID,
       CONFIG_GROUPS_PROPERTY_ID,
