@@ -20,8 +20,6 @@ package org.apache.ambari.server.agent.stomp;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.inject.Named;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -37,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
 @Singleton
 public class AgentConfigsHolder extends AgentHostDataHolder<AgentConfigsUpdateEvent> {

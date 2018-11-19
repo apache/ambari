@@ -37,7 +37,7 @@ def decrypt(encrypted_value, encryption_key):
   return ambari_pyaes.util.strip_PKCS7_padding(aes.decrypt(data))
 
 def is_encrypted(value):
-  return isinstance(value, basestring) and value.startswith('${enc=aes256_hex, value=')
+  return isinstance(value, basestring) and value.startswith('${enc=aes256_hex, value=') # XXX: ideally it shouldn't be hardcoded but currently only one enc type is supported
 
 def encrypted_value(value):
   return value.split('value=')[1][:-1]
