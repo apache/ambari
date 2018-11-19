@@ -216,7 +216,7 @@ class WebHDFSUtil:
   @staticmethod
   def is_webhdfs_available(is_webhdfs_enabled, dfs_type):
     # only hdfs seems to support webHDFS
-    return (is_webhdfs_enabled and dfs_type == 'hdfs')
+    return (is_webhdfs_enabled and dfs_type.lower() == 'hdfs')
     
   def run_command(self, *args, **kwargs):
     """
