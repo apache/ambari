@@ -66,7 +66,7 @@ public class AmbariServerLDAPConfigurationHandler extends AmbariServerStackAdvis
   public void updateComponentCategory(String categoryName, Map<String, String> properties, boolean removePropertiesIfNotSpecified) throws AmbariException {
     super.updateComponentCategory(categoryName, properties, removePropertiesIfNotSpecified);
     final AmbariLdapConfiguration ldapConfiguration = new AmbariLdapConfiguration(getConfigurationProperties(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName()));
-    if (ldapConfiguration.ldapEnabled()) {
+    if (ldapConfiguration.isAmbariManagesLdapConfiguration()) {
       processClusters(LDAP_CONFIGURATIONS);
     }
   }

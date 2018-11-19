@@ -487,3 +487,62 @@ class AmbariLDAPConfiguration:
     :return: How to handle username collision while updating from LDAP or None if ldap-configuration/ambari.ldap.advanced.collision_behavior is not specified
     '''
     return _get_from_dictionary(self.ldap_properties, 'ambari.ldap.advanced.collision_behavior')
+
+  def is_managing_services(self):
+    """
+    Tests the configuration data to determine if Ambari should be configuring services to enable LDAP integration.
+
+    The relevant property is "ldap-configuration/ambari.ldap.manage_services", which is expected
+    to be a "true" or "false".
+
+    :return: True, if Ambari should manage services' LDAP configurations
+    """
+    return "true" == _get_from_dictionary(self.ldap_properties, "ambari.ldap.manage_services")
+
+  def get_services_to_enable(self):
+    """
+    Safely gets the list of services that Ambari should enabled for LDAP.
+
+    The returned value is a list of the relevant service names converted to lowercase.
+
+    :return: a list of service names converted to lowercase
+    """
+    ldap_enabled_services = _get_from_dictionary(self.ldap_properties, "ambari.ldap.enabled_services")
+
+    return [x.strip().lower() for x in ldap_enabled_services.strip().split(",")] \
+      if ldap_enabled_services \
+      else []
+
+  def should_enable_ldap(self, service_name):
+    """
+    Tests the configuration data to determine if the specified service should be configured by
+    Ambari to enable LDAP integration.
+
+    The relevant property is "ldap-configuration/ambari.ldap.enabled_services", which is expected
+    to be a comma-delimited list of services to be enabled or '*' indicating ALL installed services.
+
+    :param service_name: the name of the service to test
+    :return: True, if LDAP should be enabled; False, otherwise
+    """
+    if self.is_managing_services():
+      services_to_enable = self.get_services_to_enable()
+      return "*" in services_to_enable or service_name.lower() in services_to_enable
+    else:
+      return False
+
+  def should_disable_ldap(self, service_name):
+    """
+    Tests the configuration data to determine if the specified service should be configured by
+    Ambari to disable LDAP integration.
+
+    The relevant property is "ldap-configuration/ambari.ldap.enabled_services", which is expected
+    to be a comma-delimited list of services to be enabled or '*' indicating ALL installed services.
+
+    :param service_name: the name of the service to test
+    :return: True, if LDAP should be disabled; False, otherwise
+    """
+    if self.is_managing_services():
+      services_to_enable = self.get_services_to_enable()
+      return "*" not in services_to_enable and service_name.lower() not in services_to_enable
+    else:
+      return False

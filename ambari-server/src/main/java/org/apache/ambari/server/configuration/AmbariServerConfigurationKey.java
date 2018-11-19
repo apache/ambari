@@ -25,6 +25,9 @@ public enum AmbariServerConfigurationKey {
   /* ********************************************************
    * LDAP Configuration Keys
    * ******************************************************** */
+  AMBARI_MANAGES_LDAP_CONFIGURATION(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.manage_services", PLAINTEXT, "false", "A Boolean value indicating whether Ambari is to manage the LDAP configuration for services or not."),
+  LDAP_ENABLED_SERVICES(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.enabled_services", PLAINTEXT, null, "A comma-delimited list of services that are expected to be configured for LDAP.  A \"*\" indicates all services."),
+
   LDAP_ENABLED(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.authentication.enabled", PLAINTEXT, "false", "An internal property used for unit testing and development purposes."),
   SERVER_HOST(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.connectivity.server.host", PLAINTEXT, "localhost", "The LDAP URL host used for connecting to an LDAP server when authenticating users."),
   SERVER_PORT(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.connectivity.server.port", PLAINTEXT, "33389", "The LDAP URL port used for connecting to an LDAP server when authenticating users."),

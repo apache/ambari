@@ -71,6 +71,14 @@ public class AmbariLdapConfiguration {
     this.configurationMap = configuration;
   }
 
+  public boolean isAmbariManagesLdapConfiguration() {
+    return Boolean.valueOf(configValue(AmbariServerConfigurationKey.AMBARI_MANAGES_LDAP_CONFIGURATION));
+  }
+
+  public String getLdapEnabledServices() {
+    return configValue(AmbariServerConfigurationKey.LDAP_ENABLED_SERVICES);
+  }
+
   public boolean ldapEnabled() {
     return Boolean.valueOf(configValue(AmbariServerConfigurationKey.LDAP_ENABLED));
   }
