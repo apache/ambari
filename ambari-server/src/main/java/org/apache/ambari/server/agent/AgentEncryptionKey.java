@@ -48,16 +48,20 @@ public class AgentEncryptionKey implements Credential {
         if (createIfNotFound) {
           AgentEncryptionKey encryptionKey = AgentEncryptionKey.random();
           encryptionKey.saveToCredentialStore(credentialStoreService);
-          return encryptionKey;
+          return loadKey(credentialStoreService); // load it again because after saving the key is cleared
         } else {
           throw new AmbariRuntimeException("AgentEncryptionKey with alias: " + ALIAS + " doesn't exist in credential store.");
         }
       } else {
-        return new AgentEncryptionKey(credentialStoreService.getCredential(null, ALIAS).toValue());
+        return loadKey(credentialStoreService);
       }
     } catch (AmbariException e) {
       throw new AmbariRuntimeException("Cannot load agent encryption key: " + e.getMessage(), e);
     }
+  }
+
+  private static AgentEncryptionKey loadKey(CredentialStoreService credentialStoreService) throws AmbariException {
+    return new AgentEncryptionKey(credentialStoreService.getCredential(null, ALIAS).toValue());
   }
 
   public AgentEncryptionKey(char[] key) {

@@ -34,6 +34,7 @@ from ambari_commons import shell, subprocess32
 from ambari_commons.constants import AGENT_TMP_DIR
 from resource_management.libraries.functions.log_process_information import log_process_information
 from resource_management.core.utils import PasswordString
+from resource_management.core.encryption import ensure_decrypted
 
 from ambari_agent.models.commands import AgentCommand
 from ambari_agent.Utils import Utils
@@ -298,6 +299,7 @@ class CustomServiceOrchestrator(object):
       logger.info('provider_path={0}'.format(provider_path))
       for alias, pwd in credentials.items():
         logger.debug("config={0}".format(config))
+        pwd = ensure_decrypted(pwd, self.encryption_key)
         protected_pwd = PasswordString(pwd)
         # Generate the JCEKS file
         cmd = (java_bin, '-cp', cs_lib_path, self.credential_shell_cmd, 'create',
