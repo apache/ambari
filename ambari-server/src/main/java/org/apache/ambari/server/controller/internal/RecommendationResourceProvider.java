@@ -162,7 +162,7 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
       public Resource invoke() throws AmbariException {
 
         Resource resource = new ResourceImpl(Resource.Type.Recommendation);
-        if (StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS != recommendationRequest.getRequestType()) {
+        if (!recommendationRequest.getConfigsResponse()) {
           setResourceProperty(resource, RECOMMENDATION_ID_PROPERTY_ID, response.getId(), getPropertyIds());
           setResourceProperty(resource, STACK_NAME_PROPERTY_ID, response.getVersion().getStackName(),
               getPropertyIds());
@@ -177,7 +177,7 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
         setResourceProperty(resource, BLUEPRINT_CONFIGURATIONS_PROPERTY_ID, response
             .getRecommendations().getBlueprint().getConfigurations(), getPropertyIds());
 
-        if (StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS != recommendationRequest.getRequestType()) {
+        if (!recommendationRequest.getConfigsResponse()) {
           Set<HostGroup> hostGroups = response.getRecommendations().getBlueprint().getHostGroups();
           List<Map<String, Object>> listGroupProps = new ArrayList<>();
           for (HostGroup hostGroup : hostGroups) {

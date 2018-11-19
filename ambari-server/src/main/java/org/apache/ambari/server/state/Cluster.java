@@ -24,6 +24,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
@@ -109,7 +111,7 @@ public interface Cluster {
    * @param serviceNames
    * @return a map of (filtered) components to hosts
    */
-  Map<String, Set<String>> getServiceComponentHostMap(Set<String> hostNames, Set<String> serviceNames);
+  SortedMap<String, SortedSet<String>> getServiceComponentHostMap(Set<String> hostNames, Set<String> serviceNames);
 
   /**
    * Get all ServiceComponentHosts for a given service and optional component

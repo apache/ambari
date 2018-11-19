@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
@@ -185,19 +187,19 @@ class AmbariServerStackAdvisorAwareConfigurationHandler extends AmbariServerConf
    * @return a map of services and their configurations
    * @throws AmbariException
    */
-  private Map<String, Map<String, Map<String, String>>> calculateExistingConfigurations(Cluster cluster) throws AmbariException {
+  private SortedMap<String, SortedMap<String, SortedMap<String, String>>> calculateExistingConfigurations(Cluster cluster) throws AmbariException {
     Map<String, Map<String, String>> configurationTags = configHelper.getEffectiveDesiredTags(cluster, null);
     Map<String, Map<String, String>> effectiveConfigs = configHelper.getEffectiveConfigProperties(cluster, configurationTags);
 
-    Map<String, Map<String, Map<String, String>>> requestConfigurations = new HashMap<>();
+    SortedMap<String, SortedMap<String, SortedMap<String, String>>> requestConfigurations = new TreeMap<>();
     if (effectiveConfigs != null) {
       for (Map.Entry<String, Map<String, String>> configuration : effectiveConfigs.entrySet()) {
-        Map<String, Map<String, String>> properties = new HashMap<>();
+        SortedMap<String, SortedMap<String, String>> properties = new TreeMap<>();
         String configType = configuration.getKey();
-        Map<String, String> configurationProperties = configuration.getValue();
+        SortedMap<String, String> configurationProperties = new TreeMap<>(configuration.getValue());
 
         if (configurationProperties == null) {
-          configurationProperties = Collections.emptyMap();
+          configurationProperties = Collections.emptySortedMap();
         }
 
         properties.put("properties", configurationProperties);
