@@ -1683,6 +1683,14 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
             populateConfigurationToBeMoved(propertiesToBeMoved, null, AmbariServerConfigurationKey.SSO_MANAGE_SERVICES, "true");
             populateConfigurationToBeMoved(propertiesToBeMoved, null, AmbariServerConfigurationKey.SSO_ENABLED_SERVICES, "AMBARI");
           }
+        } else if (AmbariServerConfigurationKey.LDAP_ENABLED == key) {
+          populateConfigurationToBeMoved(propertiesToBeMoved, oldPropertyName, key, propertyValue);
+
+          if ("true".equalsIgnoreCase(propertyValue)) {
+            // Add the new properties to tell Ambari that LDAP is enabled:
+            populateConfigurationToBeMoved(propertiesToBeMoved, null, AmbariServerConfigurationKey.AMBARI_MANAGES_LDAP_CONFIGURATION, "true");
+            populateConfigurationToBeMoved(propertiesToBeMoved, null, AmbariServerConfigurationKey.LDAP_ENABLED_SERVICES, "AMBARI");
+          }
         } else {
           populateConfigurationToBeMoved(propertiesToBeMoved, oldPropertyName, key, propertyValue);
         }
