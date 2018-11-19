@@ -91,6 +91,7 @@
       </activation>
       <properties>
         <skipPythonTests>true</skipPythonTests>
+        <skipSurefireTests>true</skipSurefireTests>
       </properties>
     </profile>
   </profiles>

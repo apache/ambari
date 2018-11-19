@@ -192,6 +192,7 @@
               <goal>run</goal>
             </goals>
             <configuration>
+              <skip>${skipSurefireTests}</skip>
               <target>
                 <mkdir dir="target/test-classes/extensions/EXT/0.1/services/OOZIE2/checks/tmp"/>
               </target>
@@ -204,6 +205,7 @@
               <goal>run</goal>
             </goals>
             <configuration>
+              <skip>${skipSurefireTests}</skip>
               <target>
                 <mkdir dir="target/test-classes/extensions/EXT/0.1/services/OOZIE2/server_actions/tmp"/>
               </target>
@@ -720,6 +722,7 @@
               <goal>test-jar</goal>
             </goals>
             <configuration>
+              <skip>${skipSurefireTests}</skip>
               <outputDirectory>target/test-classes/checks</outputDirectory>
             </configuration>
           </execution>
