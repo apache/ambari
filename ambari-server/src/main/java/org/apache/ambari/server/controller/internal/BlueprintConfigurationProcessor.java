@@ -57,6 +57,8 @@ import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
+import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.validators.NameNodeHaValidator;
 import org.apache.ambari.server.topology.validators.UnitValidatedProperty;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -480,6 +482,23 @@ public class BlueprintConfigurationProcessor {
   private void doNameNodeHAUpdateOnClusterCreation(Configuration clusterConfig,
                                                    Map<String, Map<String, String>> clusterProps,
                                                    Set<String> configTypesUpdated) throws ConfigurationTopologyException {
+
+    final Collection<String> nnHosts = clusterTopology.getHostAssignmentsForComponent("NAMENODE");
+
+    // external namenodes
+    if (nnHosts.isEmpty()) {
+      LOG.info("NAMENODE HA is enabled but there are no NAMENODE components in the cluster. Assuming external name nodes.");
+      // need to redo validation here as required information (explicit hostnames for some host groups) may have been
+      // missing by the time the ClusterTopology object was validated
+      try {
+        new NameNodeHaValidator().validateExternalNamenodeHa(clusterTopology);
+      }
+      catch (InvalidTopologyException ex) {
+        throw new ConfigurationTopologyException(ex.getMessage(), ex);
+      }
+      return;
+    }
+
     // add "dfs.internal.nameservices" if it's not specified
     Map<String, String> hdfsSiteConfig = clusterConfig.getFullProperties().get("hdfs-site");
     String nameservices = hdfsSiteConfig.get("dfs.nameservices");
@@ -496,10 +515,9 @@ public class BlueprintConfigurationProcessor {
       LOG.info("Processing a single HDFS NameService, which indicates a default HDFS NameNode HA deployment");
       // if the active/standby namenodes are not specified, assign them automatically
       if (! isNameNodeHAInitialActiveNodeSet(clusterProps) && ! isNameNodeHAInitialStandbyNodeSet(clusterProps)) {
-        Collection<String> nnHosts = clusterTopology.getHostAssignmentsForComponent("NAMENODE");
-        if (nnHosts.size() < 2) {
-          throw new ConfigurationTopologyException("NAMENODE HA requires at least 2 hosts running NAMENODE but there are: " +
-            nnHosts.size() + " Hosts: " + nnHosts);
+        if (nnHosts.size() == 1) { // can't be 0 as in that case was handled above
+          throw new ConfigurationTopologyException("NAMENODE HA requires at least two hosts running NAMENODE but there is " +
+            "only one: " + nnHosts.iterator().next());
         }
 
         // set the properties that configure which namenode is active,
