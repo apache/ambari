@@ -113,8 +113,14 @@ class HdfsResourceJar:
   def action_delayed_for_nameservice(self, nameservice, action_name, main_resource):
     resource = {}
     env = Environment.get_instance()
-    if not 'hdfs_files' in env.config:
-      env.config['hdfs_files'] = []
+    env_dict_key = 'hdfs_files_sudo' if main_resource.create_as_root else 'hdfs_files'
+
+    if main_resource.create_as_root:
+      Logger.info("Will create {0} as root user".format(main_resource.resource.target))
+
+
+    if not env_dict_key in env.config:
+      env.config[env_dict_key] = []
 
     # Put values in dictionary-resource
     for field_name, json_field_name in RESOURCE_TO_JSON_FIELDS.iteritems():
@@ -130,22 +136,25 @@ class HdfsResourceJar:
     resource['nameservice'] = nameservice
 
     # Add resource to create
-    env.config['hdfs_files'].append(resource)
+    env.config[env_dict_key].append(resource)
     
-  def action_execute(self, main_resource):
+  def action_execute(self, main_resource, sudo=False):
     env = Environment.get_instance()
+    env_dict_key = 'hdfs_files_sudo' if sudo else 'hdfs_files'
+
+    if not env_dict_key in env.config or not env.config[env_dict_key]:
+      return
 
     # Check required parameters
-    if main_resource.has_core_configs:
+    if not sudo:
       main_resource.assert_parameter_is_set('user')
+      user = main_resource.resource.user
+    else:
+      user = None
 
-    if not 'hdfs_files' in env.config or not env.config['hdfs_files']:
-      Logger.info("No resources to create. 'create_on_execute' or 'delete_on_execute' or 'download_on_execute' wasn't triggered before this 'execute' action.")
-      return
-    
+
     hadoop_bin_dir = main_resource.resource.hadoop_bin_dir
     hadoop_conf_dir = main_resource.resource.hadoop_conf_dir
-    user = main_resource.resource.user if main_resource.has_core_configs else None
     security_enabled = main_resource.resource.security_enabled
     keytab_file = main_resource.resource.keytab
     kinit_path = main_resource.resource.kinit_path_local
@@ -161,18 +170,19 @@ class HdfsResourceJar:
     # Write json file to disk
     File(json_path,
          owner = user,
-         content = json.dumps(env.config['hdfs_files'])
+         content = json.dumps(env.config[env_dict_key])
     )
 
     # Execute jar to create/delete resources in hadoop
-    Execute(format("hadoop --config {hadoop_conf_dir} jar {jar_path} {json_path}"),
+    Execute(('hadoop', '--config', hadoop_conf_dir, 'jar', jar_path, json_path),
             user=user,
             path=[hadoop_bin_dir],
             logoutput=logoutput,
+            sudo=sudo,
     )
 
     # Clean
-    env.config['hdfs_files'] = []
+    env.config[env_dict_key] = []
 
 
 class WebHDFSCallException(Fail):
@@ -618,6 +628,7 @@ class HdfsResourceProvider(Provider):
 
     self.has_core_configs = not is_empty(getattr(resource, 'default_fs'))
     self.ignored_resources_list = HdfsResourceProvider.get_ignored_resources_list(self.resource.hdfs_resource_ignore_file)
+    self.create_as_root = False
 
     if not self.has_core_configs:
       self.webhdfs_enabled = False
@@ -675,6 +686,8 @@ class HdfsResourceProvider(Provider):
       path_protocol = urlparse(self.resource.target).scheme.lower()
       default_fs_protocol = urlparse(self.resource.default_fs).scheme.lower()
 
+      self.create_as_root = path_protocol == 'file' or default_fs_protocol == 'file' and path_protocol == None
+
       # for protocols which are different that defaultFs webhdfs will not be able to create directories
       # so for them fast-hdfs-resource.jar should be used
       if path_protocol and default_fs_protocol != "viewfs" and path_protocol != default_fs_protocol:
@@ -682,6 +695,7 @@ class HdfsResourceProvider(Provider):
         Logger.info("Cannot use webhdfs for {0} defaultFs = {1} has different protocol".format(self.resource.target, self.resource.default_fs))
     else:
       self.can_use_webhdfs = False
+      self.create_as_root = True
 
     parsed_path = HdfsResourceProvider.parse_path(self.resource.target)
 
@@ -705,7 +719,8 @@ class HdfsResourceProvider(Provider):
 
   def action_execute(self):
     HdfsResourceWebHDFS().action_execute(self)
-    HdfsResourceJar().action_execute(self)
+    HdfsResourceJar().action_execute(self, sudo=False)
+    HdfsResourceJar().action_execute(self, sudo=True)
 
   def get_hdfs_resource_executor(self):
     if self.can_use_webhdfs and WebHDFSUtil.is_webhdfs_available(self.webhdfs_enabled, self.fsType):
