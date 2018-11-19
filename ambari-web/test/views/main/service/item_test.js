@@ -563,6 +563,7 @@ describe('App.MainServiceItemView', function () {
                 serviceName: testCase.serviceName,
                 displayName: testCase.displayName,
                 serviceTypes: testCase.serviceTypes,
+                installedClients: 1,
                 passiveState: 'OFF'
               }),
               isSeveralClients: false,
