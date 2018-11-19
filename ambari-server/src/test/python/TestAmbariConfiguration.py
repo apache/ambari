@@ -404,3 +404,107 @@ class TestAmbariConfiguration(TestCase):
     self.assertTrue(ambari_ldap_details.is_ldap_alternate_user_search_enabled())
     self.assertEquals(ambari_ldap_details.get_alternate_user_search_filter(), "alternate_user_search_filter")
     self.assertEquals(ambari_ldap_details.get_sync_collision_handling_behavior(), "collision_behavior")
+
+  def testAmbariNotMangingLdapConfiguration(self):
+    ## Case 1: missing the boolean flag indicating that Ambari manages LDAP configuration
+    services_json = {
+      "ambari-server-configuration": {
+        "ldap-configuration": {
+          "ambari.ldap.enabled_services": "AMBARI"
+        }
+      }
+    }
+
+    ambari_configuration = self.ambari_configuration_class(services_json)
+    self.assertIsNotNone(ambari_configuration.get_ambari_ldap_configuration())
+
+    ambari_ldap_details = ambari_configuration.get_ambari_ldap_details()
+    self.assertIsNotNone(ambari_ldap_details)
+    self.assertFalse(ambari_ldap_details.is_managing_services())
+    self.assertFalse(ambari_ldap_details.should_enable_ldap("AMBARI"))
+    self.assertFalse(ambari_ldap_details.should_disable_ldap("AMBARI"))
+
+    ## Case 2: setting the boolean flag to false indicating that Ambari shall NOT manage LDAP configuration
+    services_json = {
+      "ambari-server-configuration": {
+        "ldap-configuration": {
+          "ambari.ldap.manage_services": "false",
+          "ambari.ldap.enabled_services": "AMBARI, RANGER"
+        }
+      }
+    }
+
+    ambari_configuration = self.ambari_configuration_class(services_json)
+    self.assertIsNotNone(ambari_configuration.get_ambari_ldap_configuration())
+
+    ambari_ldap_details = ambari_configuration.get_ambari_ldap_details()
+    self.assertIsNotNone(ambari_ldap_details)
+    self.assertFalse(ambari_ldap_details.is_managing_services())
+    self.assertFalse(ambari_ldap_details.should_enable_ldap("AMBARI"))
+    self.assertFalse(ambari_ldap_details.should_disable_ldap("AMBARI"))
+    self.assertFalse(ambari_ldap_details.should_enable_ldap("RANGER"))
+    self.assertFalse(ambari_ldap_details.should_disable_ldap("RANGER"))
+
+    ## Case 3: setting the boolean flag to false indicating that Ambari shall NOT manage LDAP configuration and indicating it should be done for ALL services
+    services_json = {
+      "ambari-server-configuration": {
+        "ldap-configuration": {
+          "ambari.ldap.manage_services": "false",
+          "ambari.ldap.enabled_services": "*"
+        }
+      }
+    }
+
+    ambari_configuration = self.ambari_configuration_class(services_json)
+    self.assertIsNotNone(ambari_configuration.get_ambari_ldap_configuration())
+
+    ambari_ldap_details = ambari_configuration.get_ambari_ldap_details()
+    self.assertIsNotNone(ambari_ldap_details)
+    self.assertFalse(ambari_ldap_details.is_managing_services())
+    self.assertFalse(ambari_ldap_details.should_enable_ldap("AMBARI"))
+    self.assertFalse(ambari_ldap_details.should_disable_ldap("AMBARI"))
+    self.assertFalse(ambari_ldap_details.should_enable_ldap("RANGER"))
+    self.assertFalse(ambari_ldap_details.should_disable_ldap("RANGER"))
+
+  def testAmbariMangingLdapConfiguration(self):
+    ## Case 1: setting the boolean flag to false indicating that Ambari shall manage LDAP configuration for AMBARI and RANGER
+    services_json = {
+      "ambari-server-configuration": {
+        "ldap-configuration": {
+          "ambari.ldap.manage_services": "true",
+          "ambari.ldap.enabled_services": "AMBARI, RANGER"
+        }
+      }
+    }
+
+    ambari_configuration = self.ambari_configuration_class(services_json)
+    self.assertIsNotNone(ambari_configuration.get_ambari_ldap_configuration())
+
+    ambari_ldap_details = ambari_configuration.get_ambari_ldap_details()
+    self.assertIsNotNone(ambari_ldap_details)
+    self.assertTrue(ambari_ldap_details.is_managing_services())
+    self.assertTrue(ambari_ldap_details.should_enable_ldap("AMBARI"))
+    self.assertFalse(ambari_ldap_details.should_disable_ldap("AMBARI"))
+    self.assertTrue(ambari_ldap_details.should_enable_ldap("RANGER"))
+    self.assertFalse(ambari_ldap_details.should_disable_ldap("RANGER"))
+
+    ## Case 2: setting the boolean flag to false indicating that Ambari shall manage LDAP configuration for ALL services
+    services_json = {
+      "ambari-server-configuration": {
+        "ldap-configuration": {
+          "ambari.ldap.manage_services": "true",
+          "ambari.ldap.enabled_services": "*"
+        }
+      }
+    }
+
+    ambari_configuration = self.ambari_configuration_class(services_json)
+    self.assertIsNotNone(ambari_configuration.get_ambari_ldap_configuration())
+
+    ambari_ldap_details = ambari_configuration.get_ambari_ldap_details()
+    self.assertIsNotNone(ambari_ldap_details)
+    self.assertTrue(ambari_ldap_details.is_managing_services())
+    self.assertTrue(ambari_ldap_details.should_enable_ldap("AMBARI"))
+    self.assertFalse(ambari_ldap_details.should_disable_ldap("AMBARI"))
+    self.assertTrue(ambari_ldap_details.should_enable_ldap("HDFS"))
+    self.assertFalse(ambari_ldap_details.should_disable_ldap("HDFS"))

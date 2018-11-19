@@ -1267,6 +1267,9 @@ public class UpgradeCatalog270Test {
     expect(entityManager.find(anyObject(), anyObject())).andReturn(null).anyTimes();
     final Map<String, String> properties = new HashMap<>();
     properties.put(AmbariServerConfigurationKey.LDAP_ENABLED.key(), "true");
+    properties.put(AmbariServerConfigurationKey.AMBARI_MANAGES_LDAP_CONFIGURATION.key(), "true");
+    properties.put(AmbariServerConfigurationKey.LDAP_ENABLED_SERVICES.key(), "AMBARI");
+
     expect(ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), properties, false)).andReturn(true).once();
     replay(entityManager, ambariConfigurationDao);
 
