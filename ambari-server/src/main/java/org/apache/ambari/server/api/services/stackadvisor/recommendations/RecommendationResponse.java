@@ -244,7 +244,7 @@ public class RecommendationResponse extends StackAdvisorResponse {
     }
   }
 
-  public static class ConfigGroup implements Comparable<ConfigGroup> {
+  public static class ConfigGroup {
 
     @JsonProperty
     private List<String> hosts;
@@ -306,11 +306,6 @@ public class RecommendationResponse extends StackAdvisorResponse {
       result = 31 * result + (configurations != null ? configurations.hashCode() : 0);
       result = 31 * result + (dependentConfigurations != null ? dependentConfigurations.hashCode() : 0);
       return result;
-    }
-
-    @Override
-    public int compareTo(ConfigGroup o) {
-      return this.hashCode() - o.hashCode();
     }
   }
 
