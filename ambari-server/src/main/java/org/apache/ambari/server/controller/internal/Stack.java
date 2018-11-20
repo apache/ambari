@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -48,6 +49,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.validators.UnitValidatedProperty;
 
 /**
  * Encapsulates stack information.
@@ -640,6 +642,28 @@ public class Stack {
       }
     }
     return new Configuration(stackConfigs, stackAttributes);
+  }
+
+  /**
+   * @return default configuration of the stack, with some updates necessary so that the config can be applied
+   * (eg. some properties need a unit to be appended)
+   */
+  public Configuration getValidDefaultConfig() {
+    Configuration config = getConfiguration();
+
+    for (UnitValidatedProperty p : UnitValidatedProperty.ALL) {
+      if (config.isPropertySet(p.getConfigType(), p.getPropertyName())) {
+        String value = config.getPropertyValue(p.getConfigType(), p.getPropertyName());
+        String updatedValue = UnitUpdater.updateForClusterCreate(this, p.getServiceName(), p.getConfigType(), p.getPropertyName(), value);
+        config.setProperty(p.getConfigType(), p.getPropertyName(), updatedValue);
+      }
+    }
+
+    config.getProperties().values().forEach(
+      each -> each.values().removeIf(Objects::isNull)
+    );
+
+    return config;
   }
 
   /**

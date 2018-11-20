@@ -17,8 +17,14 @@
  */
 package org.apache.ambari.server.topology.addservice;
 
+import static java.util.stream.Collectors.joining;
+
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.controller.internal.RequestStageContainer;
+import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.topology.Configuration;
 
 /**
  * Processed info for adding new services/components to an existing cluster.
@@ -26,15 +32,30 @@ import java.util.Set;
 public final class AddServiceInfo {
 
   private final String clusterName;
+  private final Stack stack;
   private final Map<String, Map<String, Set<String>>> newServices;
+  private final RequestStageContainer stages;
+  private final Configuration config;
 
-  public AddServiceInfo(String clusterName, Map<String, Map<String, Set<String>>> newServices) {
+  public AddServiceInfo(String clusterName, Stack stack, Configuration config, RequestStageContainer stages, Map<String, Map<String, Set<String>>> newServices) {
     this.clusterName = clusterName;
+    this.stack = stack;
     this.newServices = newServices;
+    this.stages = stages;
+    this.config = config;
+  }
+
+  @Override
+  public String toString() {
+    return "AddServiceRequest(" + stages.getId() + ")";
   }
 
   public String clusterName() {
     return clusterName;
+  }
+
+  public RequestStageContainer getStages() {
+    return stages;
   }
 
   /**
@@ -44,4 +65,27 @@ public final class AddServiceInfo {
   public Map<String, Map<String, Set<String>>> newServices() {
     return newServices;
   }
+
+  public Stack getStack() {
+    return stack;
+  }
+
+  public Configuration getConfig() {
+    return config;
+  }
+
+  /**
+   * Creates a descriptive label to be displayed in the UI.
+   */
+  public String describe() {
+    int maxServicesToShow = 3;
+    StringBuilder sb = new StringBuilder("Add Services: ")
+      .append(newServices.keySet().stream().sorted().limit(maxServicesToShow).collect(joining(", ")));
+    if (newServices.size() > maxServicesToShow) {
+      sb.append(" and ").append(newServices.size() - maxServicesToShow).append(" more");
+    }
+    sb.append(" to cluster ").append(clusterName);
+    return sb.toString();
+  }
+
 }
