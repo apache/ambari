@@ -312,8 +312,7 @@ public class Resource {
     if (fileStatus != null) {
       // Go through all resources in directory
       for (FileStatus fs : fileStatus) {
-        String pathToResource = path + "/" + fs.getPath().getName();
-
+        String pathToResource = fs.getPath().toString();
         resultSet.add(pathToResource);
 
         if (fs.isDir()) {
