@@ -21,11 +21,11 @@ package org.apache.ambari.server.api.services.stackadvisor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
 
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.state.ChangedConfigInfo;
@@ -38,20 +38,23 @@ import com.google.common.base.Preconditions;
  */
 public class StackAdvisorRequest {
 
+  private Long clusterId;
+  private String serviceName;
   private String stackName;
   private String stackVersion;
   private StackAdvisorRequestType requestType;
   private List<String> hosts = new ArrayList<>();
   private Collection<String> services = new ArrayList<>();
-  private Map<String, Set<String>> componentHostsMap = new HashMap<>();
-  private Map<String, Set<String>> hostComponents = new HashMap<>();
-  private Map<String, Set<String>> hostGroupBindings = new HashMap<>();
-  private Map<String, Map<String, Map<String, String>>> configurations = new HashMap<>();
+  private SortedMap<String, SortedSet<String>> componentHostsMap = new TreeMap<>();
+  private SortedMap<String, SortedSet<String>> hostComponents = new TreeMap<>();
+  private SortedMap<String, SortedSet<String>> hostGroupBindings = new TreeMap<>();
+  private SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurations = new TreeMap<>();
   private List<ChangedConfigInfo> changedConfigurations = new LinkedList<>();
-  private Set<RecommendationResponse.ConfigGroup> configGroups;
-  private Map<String, String> userContext = new HashMap<>();
-  private Map<String, Object> ldapConfig = new HashMap<>();
+  private SortedSet<RecommendationResponse.ConfigGroup> configGroups;
+  private SortedMap<String, String> userContext = new TreeMap<>();
+  private SortedMap<String, Object> ldapConfig = new TreeMap<>();
   private Boolean gplLicenseAccepted;
+  private Boolean configsResponse = false;
 
   public String getStackName() {
     return stackName;
@@ -73,7 +76,7 @@ public class StackAdvisorRequest {
     return services;
   }
 
-  public Map<String, Set<String>> getComponentHostsMap() {
+  public SortedMap<String, SortedSet<String>> getComponentHostsMap() {
     return componentHostsMap;
   }
 
@@ -85,19 +88,19 @@ public class StackAdvisorRequest {
     return StringUtils.join(services, ",");
   }
 
-  public Map<String, Set<String>> getHostComponents() {
+  public SortedMap<String, SortedSet<String>> getHostComponents() {
     return hostComponents;
   }
 
-  public Map<String, Set<String>> getHostGroupBindings() {
+  public SortedMap<String, SortedSet<String>> getHostGroupBindings() {
     return hostGroupBindings;
   }
 
-  public Map<String, Map<String, Map<String, String>>> getConfigurations() {
+  public SortedMap<String, SortedMap<String, SortedMap<String, String>>> getConfigurations() {
     return configurations;
   }
 
-  public Map<String, Object> getLdapConfig() { return ldapConfig; }
+  public SortedMap<String, Object> getLdapConfig() { return ldapConfig; }
 
   public List<ChangedConfigInfo> getChangedConfigurations() {
     return changedConfigurations;
@@ -107,20 +110,28 @@ public class StackAdvisorRequest {
     this.changedConfigurations = changedConfigurations;
   }
 
-  public Map<String, String> getUserContext() {
+  public SortedMap<String, String> getUserContext() {
     return this.userContext;
   }
 
-  public void setUserContext(Map<String, String> userContext) {
+  public void setUserContext(SortedMap<String, String> userContext) {
     this.userContext = userContext;
   }
 
-  public Set<RecommendationResponse.ConfigGroup> getConfigGroups() {
+  public SortedSet<RecommendationResponse.ConfigGroup> getConfigGroups() {
     return configGroups;
   }
 
-  public void setConfigGroups(Set<RecommendationResponse.ConfigGroup> configGroups) {
+  public void setConfigGroups(SortedSet<RecommendationResponse.ConfigGroup> configGroups) {
     this.configGroups = configGroups;
+  }
+
+  public Long getClusterId() {
+    return clusterId;
+  }
+
+  public String getServiceName() {
+    return serviceName;
   }
 
   /**
@@ -128,6 +139,10 @@ public class StackAdvisorRequest {
    */
   public Boolean getGplLicenseAccepted() {
     return gplLicenseAccepted;
+  }
+
+  public Boolean getConfigsResponse() {
+    return configsResponse;
   }
 
   private StackAdvisorRequest(String stackName, String stackVersion) {
@@ -162,24 +177,24 @@ public class StackAdvisorRequest {
     }
 
     public StackAdvisorRequestBuilder withComponentHostsMap(
-        Map<String, Set<String>> componentHostsMap) {
+        SortedMap<String, SortedSet<String>> componentHostsMap) {
       this.instance.componentHostsMap = componentHostsMap;
       return this;
     }
 
-    public StackAdvisorRequestBuilder forHostComponents(Map<String, Set<String>> hostComponents) {
+    public StackAdvisorRequestBuilder forHostComponents(SortedMap<String, SortedSet<String>> hostComponents) {
       this.instance.hostComponents = hostComponents;
       return this;
     }
 
     public StackAdvisorRequestBuilder forHostsGroupBindings(
-        Map<String, Set<String>> hostGroupBindings) {
+        SortedMap<String, SortedSet<String>> hostGroupBindings) {
       this.instance.hostGroupBindings = hostGroupBindings;
       return this;
     }
 
     public StackAdvisorRequestBuilder withConfigurations(
-        Map<String, Map<String, Map<String, String>>> configurations) {
+        SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurations) {
       this.instance.configurations = configurations;
       return this;
     }
@@ -191,13 +206,13 @@ public class StackAdvisorRequest {
     }
 
     public StackAdvisorRequestBuilder withUserContext(
-        Map<String, String> userContext) {
+        SortedMap<String, String> userContext) {
       this.instance.userContext = userContext;
       return this;
     }
 
     public StackAdvisorRequestBuilder withConfigGroups(
-      Set<RecommendationResponse.ConfigGroup> configGroups) {
+        SortedSet<RecommendationResponse.ConfigGroup> configGroups) {
       this.instance.configGroups = configGroups;
       return this;
     }
@@ -213,12 +228,27 @@ public class StackAdvisorRequest {
       return this;
     }
 
-    public StackAdvisorRequestBuilder withLdapConfig(Map<String, Object> ldapConfig) {
+    public StackAdvisorRequestBuilder withLdapConfig(SortedMap<String, Object> ldapConfig) {
       Preconditions.checkNotNull(ldapConfig);
       this.instance.ldapConfig = ldapConfig;
       return this;
     }
 
+    public StackAdvisorRequestBuilder withClusterId(Long clusterId) {
+      this.instance.clusterId = clusterId;
+      return this;
+    }
+
+    public StackAdvisorRequestBuilder withServiceName(String serviceName) {
+      this.instance.serviceName = serviceName;
+      return this;
+    }
+
+    public StackAdvisorRequestBuilder withConfigsResponse(
+        Boolean configsResponse) {
+      this.instance.configsResponse = configsResponse;
+      return this;
+    }
 
     public StackAdvisorRequest build() {
       return this.instance;

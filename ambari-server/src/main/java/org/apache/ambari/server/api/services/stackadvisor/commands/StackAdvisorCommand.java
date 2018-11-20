@@ -31,6 +31,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -58,6 +60,7 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.node.ArrayNode;
+import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.node.TextNode;
 import org.slf4j.Logger;
@@ -103,6 +106,8 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private static final String AMBARI_SERVER_PROPERTIES_PROPERTY = "ambari-server-properties";
   private static final String AMBARI_SERVER_CONFIGURATIONS_PROPERTY = "ambari-server-configuration";
 
+  private final Map<String, JsonNode> hostInfoCache;
+
   private File recommendationsDir;
   private String recommendationsArtifactsLifetime;
   private ServiceInfo.ServiceAdvisorType serviceAdvisorType;
@@ -119,7 +124,8 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
   @SuppressWarnings("unchecked")
   public StackAdvisorCommand(File recommendationsDir, String recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType serviceAdvisorType, int requestId,
-                             StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo, AmbariServerConfigurationHandler ambariServerConfigurationHandler) {
+                             StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo, AmbariServerConfigurationHandler ambariServerConfigurationHandler,
+                             Map<String, JsonNode> hostInfoCache) {
     this.type = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
         .getActualTypeArguments()[0];
 
@@ -133,6 +139,12 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     this.saRunner = saRunner;
     this.metaInfo = metaInfo;
     this.ambariServerConfigurationHandler = ambariServerConfigurationHandler;
+    this.hostInfoCache = hostInfoCache;
+  }
+  public StackAdvisorCommand(File recommendationsDir, String recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType serviceAdvisorType, int requestId,
+                             StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo, AmbariServerConfigurationHandler ambariServerConfigurationHandler) {
+    this(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType, requestId, saRunner, metaInfo,
+        ambariServerConfigurationHandler, null);
   }
 
   protected abstract StackAdvisorCommandType getCommandType();
@@ -202,13 +214,13 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
   private void populateConfigurations(ObjectNode root,
                                       StackAdvisorRequest request) {
-    Map<String, Map<String, Map<String, String>>> configurations =
+    SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurations =
         request.getConfigurations();
     ObjectNode configurationsNode = root.putObject(CONFIGURATIONS_PROPERTY);
     for (String siteName : configurations.keySet()) {
       ObjectNode siteNode = configurationsNode.putObject(siteName);
 
-      Map<String, Map<String, String>> siteMap = configurations.get(siteName);
+      SortedMap<String, SortedMap<String, String>> siteMap = configurations.get(siteName);
       for (String properties : siteMap.keySet()) {
         ObjectNode propertiesNode = siteNode.putObject(properties);
 
@@ -249,7 +261,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     }
   }
 
-  private void populateComponentHostsMap(ObjectNode root, Map<String, Set<String>> componentHostsMap) {
+  private void populateComponentHostsMap(ObjectNode root, SortedMap<String, SortedSet<String>> componentHostsMap) {
     ArrayNode services = (ArrayNode) root.get(SERVICES_PROPERTY);
     Iterator<JsonNode> servicesIter = services.getElements();
 
@@ -378,22 +390,71 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   }
 
   String getHostsInformation(StackAdvisorRequest request) throws StackAdvisorException {
-    String hostsURI = String.format(GET_HOSTS_INFO_URI, request.getHostsCommaSeparated());
+    List<String> hostNames = new ArrayList<>(request.getHosts());
 
-    Response response = handleRequest(null, null, new LocalUriInfo(hostsURI), Request.Type.GET,
-        createHostResource());
+    // retrieve cached info
+    List<JsonNode> resultInfos = new ArrayList<>();
+    if (hostInfoCache != null && !hostInfoCache.isEmpty()) {
+      Iterator<String> hostNamesIterator = hostNames.iterator();
+      while(hostNamesIterator.hasNext()) {
+        String hostName = hostNamesIterator.next();
+        JsonNode node = hostInfoCache.get(hostName);
+        if (node != null) {
+          resultInfos.add(node);
+          hostNamesIterator.remove();
+        }
+      }
+    }
+    String hostsJSON = null;
 
-    if (response.getStatus() != Status.OK.getStatusCode()) {
-      String message = String.format(
-          "Error occured during hosts information retrieving, status=%s, response=%s",
-          response.getStatus(), (String) response.getEntity());
-      LOG.warn(message);
-      throw new StackAdvisorException(message);
+    // get hosts info for not cached hosts only
+    if (!hostNames.isEmpty()) {
+      LOG.info(String.format("Fire host info request for hosts: " + hostNames.toString()));
+      String hostsURI = String.format(GET_HOSTS_INFO_URI, String.join(",", hostNames));
+
+      Response response = handleRequest(null, null, new LocalUriInfo(hostsURI), Request.Type.GET,
+          createHostResource());
+
+      if (response.getStatus() != Status.OK.getStatusCode()) {
+        String message = String.format(
+            "Error occured during hosts information retrieving, status=%s, response=%s",
+            response.getStatus(), (String) response.getEntity());
+        LOG.warn(message);
+        throw new StackAdvisorException(message);
+      }
+
+      hostsJSON = (String) response.getEntity();
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Hosts information: {}", hostsJSON);
+      }
     }
 
-    String hostsJSON = (String) response.getEntity();
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Hosts information: {}", hostsJSON);
+    // when cache is used we should merge cached info with just got
+    if (hostInfoCache != null) {
+      if (hostsJSON != null && !hostsJSON.isEmpty()) {
+        try {
+          JsonNode root = mapper.readTree(hostsJSON);
+          Iterator<JsonNode> iterator = root.get("items").getElements();
+          while (iterator.hasNext()) {
+            JsonNode next = iterator.next();
+            String hostName = next.get("Hosts").get("host_name").getTextValue();
+            hostInfoCache.put(hostName, next);
+            resultInfos.add(next);
+          }
+        } catch (IOException e) {
+          throw new StackAdvisorException("Error occured during parsing result host infos", e);
+        }
+      }
+
+      String fullHostsURI = String.format(GET_HOSTS_INFO_URI, request.getHostsCommaSeparated());
+      JsonNodeFactory f = JsonNodeFactory.instance;
+      ObjectNode resultRoot = f.objectNode();
+      resultRoot.put("href", fullHostsURI);
+      ArrayNode resultArray = resultRoot.putArray("items");
+      resultArray.addAll(resultInfos);
+
+      hostsJSON = resultRoot.toString();
+
     }
 
     Collection<String> unregistered = getUnregisteredHosts(hostsJSON, request.getHosts());
@@ -410,7 +471,6 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   @SuppressWarnings("unchecked")
   private Collection<String> getUnregisteredHosts(String hostsJSON, List<String> hosts)
       throws StackAdvisorException {
-    ObjectMapper mapper = new ObjectMapper();
     List<String> registeredHosts = new ArrayList<>();
 
     try {

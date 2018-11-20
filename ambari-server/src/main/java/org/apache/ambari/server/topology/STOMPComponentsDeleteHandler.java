@@ -120,8 +120,8 @@ public class STOMPComponentsDeleteHandler {
           .setComponentName(hostComponent.getComponentName())
           .setServiceName(hostComponent.getServiceName())
           .setVersion(hostComponent.getVersion())
-          .setHostIds(new HashSet<>(Arrays.asList(hostComponent.getHostId())))
-          .setHostNames(new HashSet<>(Arrays.asList(hostComponent.getHostName())))
+          .setHostIdentifiers(new HashSet<>(Arrays.asList(hostComponent.getHostId())),
+              new HashSet<>(Arrays.asList(hostComponent.getHostName())))
           .setLastComponentState(hostComponent.getLastComponentState())
           .build();
 

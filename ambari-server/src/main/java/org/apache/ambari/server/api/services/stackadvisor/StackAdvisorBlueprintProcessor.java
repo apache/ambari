@@ -19,12 +19,15 @@
 package org.apache.ambari.server.api.services.stackadvisor;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.BlueprintConfigurations;
@@ -44,7 +47,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 
 /**
@@ -64,10 +66,10 @@ public class StackAdvisorBlueprintProcessor {
     stackAdvisorHelper = instance;
   }
 
-  private static final Map<String, String> userContext;
+  private static final SortedMap<String, String> userContext;
   static
   {
-    userContext = new HashMap<>();
+    userContext = new TreeMap<>();
     userContext.put("operation", "ClusterCreate");
   }
 
@@ -81,7 +83,7 @@ public class StackAdvisorBlueprintProcessor {
     try {
       RecommendationResponse response = stackAdvisorHelper.recommend(request);
       addAdvisedConfigurationsToTopology(response, clusterTopology, userProvidedConfigurations);
-    } catch (StackAdvisorException e) {
+    } catch (StackAdvisorException | AmbariException e) {
       throw new ConfigurationTopologyException(RECOMMENDATION_FAILED, e);
     } catch (IllegalArgumentException e) {
       throw new ConfigurationTopologyException(INVALID_RESPONSE, e);
@@ -90,9 +92,9 @@ public class StackAdvisorBlueprintProcessor {
 
   private StackAdvisorRequest createStackAdvisorRequest(ClusterTopology clusterTopology, StackAdvisorRequestType requestType) {
     Stack stack = clusterTopology.getBlueprint().getStack();
-    Map<String, Set<String>> hgComponentsMap = gatherHostGroupComponents(clusterTopology);
-    Map<String, Set<String>> hgHostsMap = gatherHostGroupBindings(clusterTopology);
-    Map<String, Set<String>> componentHostsMap = gatherComponentsHostsMap(hgComponentsMap,
+    SortedMap<String, SortedSet<String>> hgComponentsMap = gatherHostGroupComponents(clusterTopology);
+    SortedMap<String, SortedSet<String>> hgHostsMap = gatherHostGroupBindings(clusterTopology);
+    SortedMap<String, SortedSet<String>> componentHostsMap = gatherComponentsHostsMap(hgComponentsMap,
             hgHostsMap);
     return StackAdvisorRequest.StackAdvisorRequestBuilder
       .forStack(stack.getName(), stack.getVersion())
@@ -107,46 +109,47 @@ public class StackAdvisorBlueprintProcessor {
       .build();
   }
 
-  private Map<String, Set<String>> gatherHostGroupBindings(ClusterTopology clusterTopology) {
-    Map<String, Set<String>> hgBindngs = Maps.newHashMap();
+  private SortedMap<String, SortedSet<String>> gatherHostGroupBindings(ClusterTopology clusterTopology) {
+    SortedMap<String, SortedSet<String>> hgBindngs = Maps.newTreeMap();
     for (Map.Entry<String, HostGroupInfo> hgEnrty: clusterTopology.getHostGroupInfo().entrySet()) {
-      hgBindngs.put(hgEnrty.getKey(), Sets.newCopyOnWriteArraySet(hgEnrty.getValue().getHostNames()));
+      hgBindngs.put(hgEnrty.getKey(), new TreeSet<>(hgEnrty.getValue().getHostNames()));
     }
     return hgBindngs;
   }
 
-  private Map<String, Set<String>> gatherHostGroupComponents(ClusterTopology clusterTopology) {
-    Map<String, Set<String>> hgComponentsMap = Maps.newHashMap();
+  private SortedMap<String, SortedSet<String>> gatherHostGroupComponents(ClusterTopology clusterTopology) {
+    SortedMap<String, SortedSet<String>> hgComponentsMap = Maps.newTreeMap();
     for (Map.Entry<String, HostGroup> hgEnrty: clusterTopology.getBlueprint().getHostGroups().entrySet()) {
-      hgComponentsMap.put(hgEnrty.getKey(), Sets.newCopyOnWriteArraySet(hgEnrty.getValue().getComponentNames()));
+      hgComponentsMap.put(hgEnrty.getKey(), new TreeSet<>(hgEnrty.getValue().getComponentNames()));
     }
     return hgComponentsMap;
   }
 
-  private Map<String, Map<String, Map<String, String>>> calculateConfigs(ClusterTopology clusterTopology) {
-    Map<String, Map<String, Map<String, String>>> result = Maps.newHashMap();
+  private SortedMap<String, SortedMap<String, SortedMap<String, String>>> calculateConfigs(ClusterTopology clusterTopology) {
+    SortedMap<String, SortedMap<String, SortedMap<String, String>>> result = Maps.newTreeMap();
     Map<String, Map<String, String>> fullProperties = clusterTopology.getConfiguration().getFullProperties();
     for (Map.Entry<String, Map<String, String>> siteEntry : fullProperties.entrySet()) {
-      Map<String, Map<String, String>> propsMap = Maps.newHashMap();
-      propsMap.put("properties", siteEntry.getValue());
+      SortedMap<String, SortedMap<String, String>> propsMap = Maps.newTreeMap();
+      propsMap.put("properties", new TreeMap<>(siteEntry.getValue()));
       result.put(siteEntry.getKey(), propsMap);
     }
     return result;
   }
 
-  private Map<String, Set<String>> gatherComponentsHostsMap(Map<String, Set<String>> hostGroups, Map<String, Set<String>> bindingHostGroups) {
-    Map<String, Set<String>> componentHostsMap = new HashMap<>();
+  private SortedMap<String, SortedSet<String>> gatherComponentsHostsMap(SortedMap<String, SortedSet<String>> hostGroups,
+                                                                  SortedMap<String, SortedSet<String>> bindingHostGroups) {
+    SortedMap<String, SortedSet<String>> componentHostsMap = new TreeMap<>();
     if (null != bindingHostGroups && null != hostGroups) {
-      for (Map.Entry<String, Set<String>> hgComponents : hostGroups.entrySet()) {
+      for (Map.Entry<String, SortedSet<String>> hgComponents : hostGroups.entrySet()) {
         String hgName = hgComponents.getKey();
         Set<String> components = hgComponents.getValue();
 
         Set<String> hosts = bindingHostGroups.get(hgName);
         if (hosts != null) {
           for (String component : components) {
-            Set<String> componentHosts = componentHostsMap.get(component);
+            SortedSet<String> componentHosts = componentHostsMap.get(component);
             if (componentHosts == null) { // if was not initialized
-              componentHosts = new HashSet<>();
+              componentHosts = new TreeSet<>();
               componentHostsMap.put(component, componentHosts);
             }
             componentHosts.addAll(hosts);

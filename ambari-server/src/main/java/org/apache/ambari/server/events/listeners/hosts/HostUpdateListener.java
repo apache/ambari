@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
 import org.apache.ambari.server.events.HostStateUpdateEvent;
@@ -34,7 +35,6 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.AlertSummaryDTO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
-import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -56,13 +56,13 @@ public class HostUpdateListener {
   private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
-  private ServiceDesiredStateDAO serviceDesiredStateDAO;
-
-  @Inject
   private AlertsDAO alertsDAO;
 
   @Inject
   private Provider<Clusters> m_clusters;
+
+  @Inject
+  private Provider<StackAdvisorHelper> stackAdvisorHelperProvider;
 
   @Inject
   public HostUpdateListener(AmbariEventPublisher ambariEventPublisher, AlertEventPublisher m_alertEventPublisher) {
@@ -92,6 +92,7 @@ public class HostUpdateListener {
           hostUpdateEvent.getHostName(),
           hostUpdateEvent.getHostStatus(),
           hostUpdateEvent.getLastHeartbeatTime()));
+      stackAdvisorHelperProvider.get().clearCaches(hostName);
     }
   }
 
@@ -118,6 +119,7 @@ public class HostUpdateListener {
           hostUpdateEvent.getHostState(),
           hostUpdateEvent.getLastHeartbeatTime()));
     }
+    stackAdvisorHelperProvider.get().clearCaches(hostName);
   }
 
   @Subscribe
@@ -175,6 +177,7 @@ public class HostUpdateListener {
         STOMPUpdatePublisher.publish(HostUpdateEvent.createHostAlertsUpdate(hostUpdateEvent.getClusterName(),
             hostName, summary));
       }
+      stackAdvisorHelperProvider.get().clearCaches(hostName);
     } else if (event.getService()!= null) {
       String serviceName = event.getService().getName();
       for (String hostName : m_clusters.get().getCluster(clusterId).getService(serviceName).getServiceHosts()) {
@@ -189,6 +192,7 @@ public class HostUpdateListener {
 
         STOMPUpdatePublisher.publish(HostUpdateEvent.createHostAlertsUpdate(hostUpdateEvent.getClusterName(),
             hostName, summary));
+        stackAdvisorHelperProvider.get().clearCaches(hostName);
       }
     }
   }

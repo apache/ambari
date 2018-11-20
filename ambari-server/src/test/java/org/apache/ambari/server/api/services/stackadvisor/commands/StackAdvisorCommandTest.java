@@ -43,6 +43,7 @@ import java.util.Map;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
@@ -80,6 +81,9 @@ import com.google.common.collect.Lists;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class StackAdvisorCommandTest {
+  private static final String SINGLE_HOST_RESPONSE = "{\"href\":\"/api/v1/hosts?fields=Hosts/*&Hosts/host_name.in(%1$s)\",\"items\":[{\"href\":\"/api/v1/hosts/%1$s\",\"Hosts\":{\"host_name\":\"%1$s\"}}]}";
+  private static final String TWO_HOST_RESPONSE = "{\"href\":\"/api/v1/hosts?fields=Hosts/*&Hosts/host_name.in(%1$s,%2$s)\",\"items\":[{\"href\":\"/api/v1/hosts/%1$s\",\"Hosts\":{\"host_name\":\"%1$s\"}},{\"href\":\"/api/v1/hosts/%2$s\",\"Hosts\":{\"host_name\":\"%2$s\"}}]}";
+
   private TemporaryFolder temp = new TemporaryFolder();
   @Mock
   AmbariServerConfigurationHandler ambariServerConfigurationHandler;
@@ -103,7 +107,7 @@ public class StackAdvisorCommandTest {
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
-        ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
+        ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo, null));
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .build();
@@ -123,7 +127,7 @@ public class StackAdvisorCommandTest {
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
-        ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
+        ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo, null));
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .build();
@@ -151,7 +155,7 @@ public class StackAdvisorCommandTest {
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
-        ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
+        ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo, null));
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .build();
@@ -180,7 +184,8 @@ public class StackAdvisorCommandTest {
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     final StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(
-        recommendationsDir, recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
+        recommendationsDir, recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType.PYTHON, requestId,
+        saRunner, metaInfo, null));
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .build();
@@ -215,8 +220,8 @@ public class StackAdvisorCommandTest {
     String recommendationsArtifactsLifetime = "1w";
     StackAdvisorRunner stackAdvisorRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo ambariMetaInfo = mock(AmbariMetaInfo.class);
-    StackAdvisorCommand<TestResource> cmd = new TestStackAdvisorCommand(file, recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType.PYTHON, 1,
-        stackAdvisorRunner, ambariMetaInfo);
+    StackAdvisorCommand<TestResource> cmd = new TestStackAdvisorCommand(file, recommendationsArtifactsLifetime,
+        ServiceInfo.ServiceAdvisorType.PYTHON, 1, stackAdvisorRunner, ambariMetaInfo, null);
     ObjectNode objectNode = (ObjectNode) cmd.mapper.readTree("{\"Versions\": " +
         "{\"stack_name\": \"stack\", \"stack_version\":\"1.0.0\"}}");
 
@@ -244,7 +249,7 @@ public class StackAdvisorCommandTest {
     StackAdvisorRunner stackAdvisorRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo ambariMetaInfo = mock(AmbariMetaInfo.class);
     StackAdvisorCommand<TestResource> cmd = new TestStackAdvisorCommand(file, recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType.PYTHON, 1,
-      stackAdvisorRunner, ambariMetaInfo);
+      stackAdvisorRunner, ambariMetaInfo, null);
     ObjectNode objectNode = (ObjectNode) cmd.mapper.readTree("{\"Versions\": " +
       "{\"stack_name\": \"stack\", \"stack_version\":\"1.0.0\"}}");
 
@@ -266,7 +271,7 @@ public class StackAdvisorCommandTest {
     StackAdvisorRunner stackAdvisorRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo ambariMetaInfo = mock(AmbariMetaInfo.class);
     StackAdvisorCommand<TestResource> cmd = new TestStackAdvisorCommand(file, recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType.PYTHON, 1,
-        stackAdvisorRunner, ambariMetaInfo);
+        stackAdvisorRunner, ambariMetaInfo, null);
     ObjectNode objectNode = (ObjectNode) cmd.mapper.readTree("{\"Versions\": " +
         "{\"stack_name\": \"stack\", \"stack_version\":\"1.0.0\"}}");
 
@@ -294,7 +299,7 @@ public class StackAdvisorCommandTest {
       ServiceInfo.ServiceAdvisorType.PYTHON,
       0,
       mock(StackAdvisorRunner.class),
-      mock(AmbariMetaInfo.class));
+      mock(AmbariMetaInfo.class), null);
     when(ambariServerConfigurationHandler.getConfigurations()).thenReturn(storedConfig);
     JsonNode servicesRootNode = json("{}");
     command.populateAmbariConfiguration((ObjectNode)servicesRootNode);
@@ -310,12 +315,80 @@ public class StackAdvisorCommandTest {
       ServiceInfo.ServiceAdvisorType.PYTHON,
       0,
       mock(StackAdvisorRunner.class),
-      mock(AmbariMetaInfo.class));
+      mock(AmbariMetaInfo.class), null);
     when(ambariServerConfigurationHandler.getConfigurations()).thenReturn(emptyMap());
     JsonNode servicesRootNode = json("{}");
     command.populateAmbariConfiguration((ObjectNode)servicesRootNode);
     JsonNode expectedLdapConfig = json("{\"ambari-server-configuration\":{}}");
     assertEquals(expectedLdapConfig, servicesRootNode);
+  }
+
+  /**
+   * Try to retrieve host info twice. The inner cache should be populated with first usage (with handleRequest method calling).
+   * And for next info retrieving for the same host the saved value should be used.
+   */
+  @Test
+  public void testHostInfoCachingSingleHost() throws StackAdvisorException {
+    File file = mock(File.class);
+    String recommendationsArtifactsLifetime = "1w";
+    StackAdvisorRunner stackAdvisorRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo ambariMetaInfo = mock(AmbariMetaInfo.class);
+    Map<String, JsonNode> hostInfoCache = new HashMap<>();
+    TestStackAdvisorCommand command = spy(new TestStackAdvisorCommand(file, recommendationsArtifactsLifetime,
+        ServiceInfo.ServiceAdvisorType.PYTHON, 1,
+        stackAdvisorRunner, ambariMetaInfo, hostInfoCache));
+
+    // in second handling case NPE will be fired during result processing
+    doReturn(Response.status(200).entity(String.format(SINGLE_HOST_RESPONSE, "hostName1")).build())
+        .doReturn(null)
+        .when(command).handleRequest(any(HttpHeaders.class), any(String.class), any(UriInfo.class), any(Request.Type.class),
+        any(MediaType.class), any(ResourceInstance.class));
+
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.
+        forStack(null, null).ofType(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS).
+        forHosts(Arrays.asList(new String[]{"hostName1"})).
+        build();
+    String firstResponse = command.getHostsInformation(request);
+    assertEquals(String.format(SINGLE_HOST_RESPONSE, "hostName1"), firstResponse);
+
+    String secondResponse = command.getHostsInformation(request);
+    assertEquals(String.format(SINGLE_HOST_RESPONSE, "hostName1"), secondResponse);
+  }
+
+  /**
+   * Try to retrieve multiple hosts info twice. The inner cache should be populated with first usage for first host (hostName1).
+   * For the next usage with the both hosts handleRequest should be used for second host only.
+   */
+  @Test
+  public void testHostInfoCachingTwoHost() throws StackAdvisorException {
+    File file = mock(File.class);
+    String recommendationsArtifactsLifetime = "1w";
+    StackAdvisorRunner stackAdvisorRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo ambariMetaInfo = mock(AmbariMetaInfo.class);
+    Map<String, JsonNode> hostInfoCache = new HashMap<>();
+    TestStackAdvisorCommand command = spy(new TestStackAdvisorCommand(file, recommendationsArtifactsLifetime,
+        ServiceInfo.ServiceAdvisorType.PYTHON, 1,
+        stackAdvisorRunner, ambariMetaInfo, hostInfoCache));
+
+    doReturn(Response.status(200).entity(String.format(SINGLE_HOST_RESPONSE, "hostName1")).build())
+        .doReturn(Response.status(200).entity(String.format(SINGLE_HOST_RESPONSE, "hostName2")).build())
+        .doReturn(null)
+        .when(command).handleRequest(any(HttpHeaders.class), any(String.class), any(UriInfo.class), any(Request.Type.class),
+        any(MediaType.class), any(ResourceInstance.class));
+
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.
+        forStack(null, null).ofType(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS).
+        forHosts(Arrays.asList(new String[]{"hostName1"})).
+        build();
+    String firstResponse = command.getHostsInformation(request);
+    assertEquals(String.format(SINGLE_HOST_RESPONSE, "hostName1"), firstResponse);
+
+    request = StackAdvisorRequestBuilder.
+        forStack(null, null).ofType(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS).
+        forHosts(Arrays.asList(new String[]{"hostName1", "hostName2"})).
+        build();
+    String secondResponse = command.getHostsInformation(request);
+    assertEquals(String.format(TWO_HOST_RESPONSE, "hostName1", "hostName2"), secondResponse);
   }
 
   private static String jsonString(Object obj) throws IOException {
@@ -345,8 +418,9 @@ public class StackAdvisorCommandTest {
 
   class TestStackAdvisorCommand extends StackAdvisorCommand<TestResource> {
     public TestStackAdvisorCommand(File recommendationsDir, String recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType serviceAdvisorType,
-                                   int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
-      super(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType, requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
+                                   int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo, Map<String, JsonNode> hostInfoCache) {
+      super(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType, requestId, saRunner, metaInfo,
+          ambariServerConfigurationHandler, hostInfoCache);
     }
 
     @Override
