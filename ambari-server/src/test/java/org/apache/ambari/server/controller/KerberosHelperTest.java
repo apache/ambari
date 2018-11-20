@@ -277,7 +277,6 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
         bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
-
         requestStaticInjection(KerberosChecker.class);
       }
     });

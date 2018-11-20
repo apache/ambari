@@ -34,6 +34,7 @@ from ambari_commons import shell, subprocess32
 from ambari_commons.constants import AGENT_TMP_DIR
 from resource_management.libraries.functions.log_process_information import log_process_information
 from resource_management.core.utils import PasswordString
+from resource_management.core.encryption import ensure_decrypted
 
 from ambari_agent.models.commands import AgentCommand
 from ambari_agent.Utils import Utils
@@ -111,6 +112,7 @@ class CustomServiceOrchestrator(object):
 
     # save count (not boolean) for parallel execution cases
     self.commands_for_component_in_progress = defaultdict(lambda:defaultdict(lambda:0))
+    self.encryption_key = None
 
   def map_task_to_process(self, task_id, processId):
     with self.commands_in_progress_lock:
@@ -297,6 +299,7 @@ class CustomServiceOrchestrator(object):
       logger.info('provider_path={0}'.format(provider_path))
       for alias, pwd in credentials.items():
         logger.debug("config={0}".format(config))
+        pwd = ensure_decrypted(pwd, self.encryption_key)
         protected_pwd = PasswordString(pwd)
         # Generate the JCEKS file
         cmd = (java_bin, '-cp', cs_lib_path, self.credential_shell_cmd, 'create',
@@ -405,6 +408,9 @@ class CustomServiceOrchestrator(object):
         and len(filtered_py_file_list) > 1:
 
         raise AgentException("Background commands are supported without hooks only")
+
+      if self.encryption_key:
+        os.environ['AGENT_ENCRYPTION_KEY'] = self.encryption_key
 
       python_executor = self.get_py_executor(forced_command_name)
       backup_log_files = command_name not in self.DONT_BACKUP_LOGS_FOR_COMMANDS

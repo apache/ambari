@@ -85,6 +85,7 @@ import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetric
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
+import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.hooks.AmbariEventFactory;
 import org.apache.ambari.server.hooks.HookContext;
@@ -115,6 +116,7 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationInterceptor;
 import org.apache.ambari.server.security.authorization.internal.RunWithInternalSecurityContext;
 import org.apache.ambari.server.security.encryption.AESEncryptionService;
+import org.apache.ambari.server.security.encryption.AgentConfigUpdateEncryptor;
 import org.apache.ambari.server.security.encryption.ConfigPropertiesEncryptor;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
@@ -336,7 +338,13 @@ public class ControllerModule extends AbstractModule {
     bind(CredentialStoreService.class).to(CredentialStoreServiceImpl.class);
     bind(EncryptionService.class).to(AESEncryptionService.class);
     //to support different Encryptor implementation we have to annotate them by their name and use them as @Named injects
-    bind(new TypeLiteral<Encryptor<Config>>() {}).annotatedWith(Names.named("ConfigPropertiesEncryptor")).to(ConfigPropertiesEncryptor.class);
+    if (configuration.shouldEncryptSensitiveData()) {
+      bind(new TypeLiteral<Encryptor<Config>>() {}).annotatedWith(Names.named("ConfigPropertiesEncryptor")).to(ConfigPropertiesEncryptor.class);
+      bind(new TypeLiteral<Encryptor<AgentConfigsUpdateEvent>>() {}).annotatedWith(Names.named("AgentConfigEncryptor")).to(AgentConfigUpdateEncryptor.class);
+    } else {
+      bind(new TypeLiteral<Encryptor<Config>>() {}).annotatedWith(Names.named("ConfigPropertiesEncryptor")).toInstance(Encryptor.NONE);
+      bind(new TypeLiteral<Encryptor<AgentConfigsUpdateEvent>>() {}).annotatedWith(Names.named("AgentConfigEncryptor")).toInstance(Encryptor.NONE);
+    }
 
     bind(Configuration.class).toInstance(configuration);
     bind(OsFamily.class).toInstance(os_family);

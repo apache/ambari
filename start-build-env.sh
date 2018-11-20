@@ -28,7 +28,7 @@ cd "$(dirname "$0")"
 : ${AMBARI_DIR:=$(pwd -P)}
 
 # Maven version
-: ${MAVEN_VERSION:=3.3.9}
+: ${MAVEN_VERSION:=3.6.0}
 
 docker build -t ambari-build-base:${BUILD_OS} dev-support/docker/${BUILD_OS}
 docker build -t ambari-build:${BUILD_OS} --build-arg BUILD_OS="${BUILD_OS}" --build-arg MAVEN_VERSION="${MAVEN_VERSION}" dev-support/docker/common

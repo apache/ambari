@@ -37,6 +37,7 @@ import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
+import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.hooks.AmbariEventFactory;
 import org.apache.ambari.server.hooks.HookContext;
@@ -213,7 +214,8 @@ public class PartialNiceMockBinder implements Module {
     public Builder addPasswordEncryptorBindings() {
       configurers.add((Binder binder) -> {
         binder.bind(EncryptionService.class).toInstance(easyMockSupport.createNiceMock(EncryptionService.class));
-        binder.bind(new TypeLiteral<Encryptor<Config>>() {}).annotatedWith(Names.named("ConfigPropertiesEncryptor")).toInstance(easyMockSupport.createNiceMock(Encryptor.class));
+        binder.bind(new TypeLiteral<Encryptor<Config>>() {}).annotatedWith(Names.named("ConfigPropertiesEncryptor")).toInstance(Encryptor.NONE);
+        binder.bind(new TypeLiteral<Encryptor<AgentConfigsUpdateEvent>>() {}).annotatedWith(Names.named("AgentConfigEncryptor")).toInstance(Encryptor.NONE);
       });
       return this;
     }

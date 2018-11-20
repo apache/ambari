@@ -53,6 +53,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
@@ -65,6 +66,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.sample.checks.SampleServiceCheck;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFileWriterFactory;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriterFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -109,6 +111,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
+import com.google.inject.TypeLiteral;
+import com.google.inject.name.Names;
 
 /**
  * PreUpgradeCheckResourceProvider tests.
@@ -322,6 +326,7 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
         bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
         Provider<EntityManager> entityManagerProvider = createNiceMock(Provider.class);
         bind(EntityManager.class).toProvider(entityManagerProvider);
+        bind(new TypeLiteral<Encryptor<AgentConfigsUpdateEvent>>() {}).annotatedWith(Names.named("AgentConfigEncryptor")).toInstance(Encryptor.NONE);
 
         requestStaticInjection(PreUpgradeCheckResourceProvider.class);
       }

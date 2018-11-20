@@ -58,6 +58,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.hooks.HookContext;
 import org.apache.ambari.server.hooks.HookContextFactory;
@@ -90,6 +91,7 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
+import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
@@ -122,7 +124,9 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
+import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.name.Names;
 
 /**
  * UserResourceProvider tests.
@@ -432,6 +436,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
         bind(ResourceDAO.class).toInstance(createMock(ResourceDAO.class));
         bind(PrincipalTypeDAO.class).toInstance(createMock(PrincipalTypeDAO.class));
         bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+        bind(new TypeLiteral<Encryptor<AgentConfigsUpdateEvent>>() {}).annotatedWith(Names.named("AgentConfigEncryptor")).toInstance(Encryptor.NONE);
       }
     });
   }
