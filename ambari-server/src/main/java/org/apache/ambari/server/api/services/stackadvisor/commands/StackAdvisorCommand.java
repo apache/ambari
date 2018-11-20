@@ -31,8 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -214,13 +212,13 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
   private void populateConfigurations(ObjectNode root,
                                       StackAdvisorRequest request) {
-    SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurations =
+    Map<String, Map<String, Map<String, String>>> configurations =
         request.getConfigurations();
     ObjectNode configurationsNode = root.putObject(CONFIGURATIONS_PROPERTY);
     for (String siteName : configurations.keySet()) {
       ObjectNode siteNode = configurationsNode.putObject(siteName);
 
-      SortedMap<String, SortedMap<String, String>> siteMap = configurations.get(siteName);
+      Map<String, Map<String, String>> siteMap = configurations.get(siteName);
       for (String properties : siteMap.keySet()) {
         ObjectNode propertiesNode = siteNode.putObject(properties);
 
@@ -261,7 +259,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     }
   }
 
-  private void populateComponentHostsMap(ObjectNode root, SortedMap<String, SortedSet<String>> componentHostsMap) {
+  private void populateComponentHostsMap(ObjectNode root, Map<String, Set<String>> componentHostsMap) {
     ArrayNode services = (ArrayNode) root.get(SERVICES_PROPERTY);
     Iterator<JsonNode> servicesIter = services.getElements();
 
