@@ -139,7 +139,7 @@ class PasswordString(unicode):
     self.value = value
     
   def __str__(self):
-    return value
+    return self.value
   
   def __repr__(self):
     return PASSWORDS_HIDE_STRING

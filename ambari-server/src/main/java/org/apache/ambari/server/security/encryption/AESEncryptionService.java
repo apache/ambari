@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.security.encryption;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
@@ -24,6 +26,7 @@ import javax.inject.Inject;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.utils.TextEncoding;
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 
@@ -45,24 +48,28 @@ public class AESEncryptionService implements EncryptionService {
   private Configuration configuration;
 
   @Override
-  public String encrypt(String toBeEncrypted) throws Exception {
+  public String encrypt(String toBeEncrypted) {
     return encrypt(toBeEncrypted, TextEncoding.BASE_64);
   }
 
   @Override
-  public String encrypt(String toBeEncrypted, TextEncoding textEncoding) throws Exception {
+  public String encrypt(String toBeEncrypted, TextEncoding textEncoding) {
     return encrypt(toBeEncrypted, getAmbariMasterKey(), textEncoding);
   }
 
   @Override
-  public String encrypt(String toBeEncrypted, String key) throws Exception {
+  public String encrypt(String toBeEncrypted, String key) {
     return encrypt(toBeEncrypted, key, TextEncoding.BASE_64);
   }
 
   @Override
-  public String encrypt(String toBeEncrypted, String key, TextEncoding textEncoding) throws Exception {
-    final EncryptionResult encryptionResult = getAesEncryptor(key).encrypt(toBeEncrypted);
-    return TextEncoding.BASE_64 == textEncoding ? encodeEncryptionResultBase64(encryptionResult) : encodeEncryptionResultBinHex(encryptionResult);
+  public String encrypt(String toBeEncrypted, String key, TextEncoding textEncoding) {
+    try {
+      final EncryptionResult encryptionResult = getAesEncryptor(key).encrypt(toBeEncrypted);
+      return TextEncoding.BASE_64 == textEncoding ? encodeEncryptionResultBase64(encryptionResult) : encodeEncryptionResultBinHex(encryptionResult);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   private AESEncryptor getAesEncryptor(String key) {
@@ -75,7 +82,8 @@ public class AESEncryptionService implements EncryptionService {
     return aesEncryptor;
   }
 
-  private final String getAmbariMasterKey() {
+  @Override
+  public final String getAmbariMasterKey() {
     initEnvironmentMasterKeyService();
     return String.valueOf(environmentMasterKeyService.getMasterSecret());
   }
@@ -100,32 +108,38 @@ public class AESEncryptionService implements EncryptionService {
   }
 
   @Override
-  public String decrypt(String toBeDecrypted) throws Exception {
+  public String decrypt(String toBeDecrypted) {
     return decrypt(toBeDecrypted, TextEncoding.BASE_64);
   }
 
   @Override
-  public String decrypt(String toBeDecrypted, TextEncoding textEncoding) throws Exception {
+  public String decrypt(String toBeDecrypted, TextEncoding textEncoding) {
     return decrypt(toBeDecrypted, getAmbariMasterKey(), textEncoding);
   }
 
   @Override
-  public String decrypt(String toBeDecrypted, String key) throws Exception {
+  public String decrypt(String toBeDecrypted, String key) {
     return decrypt(toBeDecrypted, key, TextEncoding.BASE_64);
   }
 
   @Override
-  public String decrypt(String toBeDecrypted, String key, TextEncoding textEncoding) throws Exception {
-    final byte[] decodedValue = TextEncoding.BASE_64 == textEncoding ? Base64.decodeBase64(toBeDecrypted) : Hex.decodeHex(toBeDecrypted.toCharArray());
-    final String decodedText = new String(decodedValue, UTF_8_CHARSET);
-    final String[] decodedParts = decodedText.split(ENCODED_TEXT_FIELD_DELIMITER);
-    final AESEncryptor aes = getAesEncryptor(key);
-    if (TextEncoding.BASE_64 == textEncoding) {
-      return new String(aes.decrypt(Base64.decodeBase64(decodedParts[0]), Base64.decodeBase64(decodedParts[1]), Base64.decodeBase64(decodedParts[2])), UTF_8_CHARSET);
-    } else {
-      return new String(
+  public String decrypt(String toBeDecrypted, String key, TextEncoding textEncoding) {
+    try {
+      final byte[] decodedValue = TextEncoding.BASE_64 == textEncoding ? Base64.decodeBase64(toBeDecrypted) : Hex.decodeHex(toBeDecrypted.toCharArray());
+      final String decodedText = new String(decodedValue, UTF_8_CHARSET);
+      final String[] decodedParts = decodedText.split(ENCODED_TEXT_FIELD_DELIMITER);
+      final AESEncryptor aes = getAesEncryptor(key);
+      if (TextEncoding.BASE_64 == textEncoding) {
+        return new String(aes.decrypt(Base64.decodeBase64(decodedParts[0]), Base64.decodeBase64(decodedParts[1]), Base64.decodeBase64(decodedParts[2])), UTF_8_CHARSET);
+      } else {
+        return new String(
           aes.decrypt(Hex.decodeHex(decodedParts[0].toCharArray()), Hex.decodeHex(decodedParts[1].toCharArray()), Hex.decodeHex(decodedParts[2].toCharArray())),
           UTF_8_CHARSET);
+      }
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    } catch (DecoderException e) {
+      throw new RuntimeException(e);
     }
   }
 }

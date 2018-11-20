@@ -51,6 +51,7 @@ public class DefaultMessageEmitter extends MessageEmitter {
         put(STOMPEvent.Type.UI_ALERT_DEFINITIONS, "/events/alert_definitions");
         put(STOMPEvent.Type.UPGRADE, "/events/upgrade");
         put(STOMPEvent.Type.AGENT_ACTIONS, "/agent_actions");
+        put(STOMPEvent.Type.ENCRYPTION_KEY_UPDATE, "/events/encryption_key");
   }});
   public static final Set<STOMPEvent.Type> DEFAULT_AGENT_EVENT_TYPES =
       Collections.unmodifiableSet(new HashSet<STOMPEvent.Type>(Arrays.asList(
@@ -60,7 +61,8 @@ public class DefaultMessageEmitter extends MessageEmitter {
         STOMPEvent.Type.AGENT_CONFIGS,
         STOMPEvent.Type.COMMAND,
         STOMPEvent.Type.ALERT_DEFINITIONS,
-        STOMPEvent.Type.AGENT_ACTIONS
+        STOMPEvent.Type.AGENT_ACTIONS,
+        STOMPEvent.Type.ENCRYPTION_KEY_UPDATE
   )));
   public static final Set<STOMPEvent.Type> DEFAULT_API_EVENT_TYPES =
       Collections.unmodifiableSet(new HashSet<STOMPEvent.Type>(Arrays.asList(

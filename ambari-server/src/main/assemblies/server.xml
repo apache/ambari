@@ -63,6 +63,14 @@
       <outputDirectory>${simplejson.install.dir}</outputDirectory>
     </fileSet>
     <fileSet>
+      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_pbkdf2</directory>
+      <outputDirectory>${pbkdf2.install.dir}</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_pyaes</directory>
+      <outputDirectory>${pyaes.install.dir}</outputDirectory>
+    </fileSet>
+    <fileSet>
       <fileMode>700</fileMode>
       <directory>src/main/resources/db</directory>
       <outputDirectory>/var/lib/ambari-server/keys/db</outputDirectory>
