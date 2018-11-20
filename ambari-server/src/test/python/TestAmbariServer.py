@@ -99,7 +99,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                   COMMON_SERVICES_PATH_PROPERTY, WEBAPP_DIR_PROPERTY, SHARED_RESOURCES_DIR, BOOTSTRAP_SCRIPT, \
                   CUSTOM_ACTION_DEFINITIONS, BOOTSTRAP_SETUP_AGENT_SCRIPT, STACKADVISOR_SCRIPT, BOOTSTRAP_DIR_PROPERTY, MPACKS_STAGING_PATH_PROPERTY, STACK_JAVA_VERSION
                 from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
-                from ambari_server.serverSetup import check_selinux, check_ambari_user, proceedJDBCProperties, SE_STATUS_DISABLED, SE_MODE_ENFORCING, configure_os_settings, \
+                from ambari_server.serverSetup import check_selinux, check_ambari_user, setup_jdbc, SE_STATUS_DISABLED, SE_MODE_ENFORCING, configure_os_settings, \
                   download_and_install_jdk, prompt_db_properties, setup, \
                   AmbariUserChecks, JDKSetup, reset, setup_jce_policy, expand_jce_zip_file, check_ambari_java_version_is_valid
                 from ambari_server.serverUpgrade import upgrade, run_schema_upgrade, move_user_custom_actions, find_and_copy_custom_services
@@ -3689,7 +3689,7 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverSetup.check_jdbc_drivers")
   @patch("ambari_server.serverSetup.disable_security_enhancements")
   @patch("ambari_server.serverSetup.is_root")
-  @patch("ambari_server.serverSetup.proceedJDBCProperties")
+  @patch("ambari_server.serverSetup.setup_jdbc")
   @patch("ambari_server.serverSetup.extract_views")
   @patch("ambari_server.serverSetup.adjust_directory_permissions")
   @patch("ambari_server.serverSetup.service_setup")
@@ -3697,7 +3697,7 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverSetup.expand_jce_zip_file")
   @patch("ambari_server.serverSetup.write_gpl_license_accepted")
   def test_setup_linux(self, write_gpl_license_accepted_mock, expand_jce_zip_file_mock, read_ambari_user_mock,
-                 service_setup_mock, adjust_dirs_mock, extract_views_mock, proceedJDBCProperties_mock, is_root_mock,
+                 service_setup_mock, adjust_dirs_mock, extract_views_mock, setup_jdbc_mock, is_root_mock,
                  disable_security_enhancements_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                  download_jdk_mock, configure_os_settings_mock, get_ambari_properties_mock,
                  get_YN_input_mock, gvsi_mock, gvsi_1_mock,
@@ -3901,7 +3901,7 @@ class TestAmbariServer(TestCase):
 
 
     setup(args)
-    self.assertTrue(proceedJDBCProperties_mock.called)
+    self.assertTrue(setup_jdbc_mock.called)
     self.assertFalse(disable_security_enhancements_mock.called)
     self.assertFalse(check_ambari_user_mock.called)
 
@@ -3930,14 +3930,14 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverSetup.check_jdbc_drivers")
   @patch("ambari_server.serverSetup.disable_security_enhancements")
   @patch("ambari_server.serverSetup.is_root")
-  @patch("ambari_server.serverSetup.proceedJDBCProperties")
+  @patch("ambari_server.serverSetup.setup_jdbc")
   @patch("ambari_server.serverSetup.extract_views")
   @patch("ambari_server.serverSetup.adjust_directory_permissions")
   @patch("ambari_server.serverSetup.service_setup")
   @patch("ambari_server.serverSetup.read_ambari_user")
   @patch("ambari_server.serverSetup.expand_jce_zip_file")
   def test_setup_windows(self, expand_jce_zip_file_mock, read_ambari_user_mock,
-                 service_setup_mock, adjust_dirs_mock, extract_views_mock, proceedJDBCProperties_mock, is_root_mock,
+                 service_setup_mock, adjust_dirs_mock, extract_views_mock, setup_jdbc_mock, is_root_mock,
                  disable_security_enhancements_mock, check_jdbc_drivers_mock, check_ambari_user_mock, check_firewall_mock,
                  download_jdk_mock, configure_os_settings_mock, get_ambari_properties_mock,
                  get_YN_input_mock, gvsi_mock, gvsi_1_mock,
@@ -4063,7 +4063,7 @@ class TestAmbariServer(TestCase):
 
 
     setup(args)
-    self.assertTrue(proceedJDBCProperties_mock.called)
+    self.assertTrue(setup_jdbc_mock.called)
     self.assertFalse(disable_security_enhancements_mock.called)
     self.assertFalse(check_ambari_user_mock.called)
     pass
@@ -4984,7 +4984,7 @@ class TestAmbariServer(TestCase):
   @patch("os.remove")
   @patch("os.symlink")
   @patch("shutil.copy")
-  def test_proceedJDBCProperties(self, copy_mock, os_symlink_mock, os_remove_mock, lexists_mock, exists_mock,
+  def test_setup_jdbc(self, copy_mock, os_symlink_mock, os_remove_mock, lexists_mock, exists_mock,
                                  get_ambari_properties_mock, isfile_mock):
     args = MagicMock()
 
@@ -4994,7 +4994,7 @@ class TestAmbariServer(TestCase):
     fail = False
 
     try:
-      proceedJDBCProperties(args)
+      setup_jdbc(args)
     except FatalException as e:
       self.assertEquals("File test jdbc does not exist!", e.reason)
       fail = True
@@ -5006,7 +5006,7 @@ class TestAmbariServer(TestCase):
     fail = False
 
     try:
-      proceedJDBCProperties(args)
+      setup_jdbc(args)
     except FatalException as e:
       self.assertEquals("Unsupported database name incorrect db. Please see help for more information.", e.reason)
       fail = True
@@ -5018,7 +5018,7 @@ class TestAmbariServer(TestCase):
     fail = False
 
     try:
-      proceedJDBCProperties(args)
+      setup_jdbc(args)
     except FatalException as e:
       self.assertEquals("Error getting ambari properties", e.reason)
       fail = True
@@ -5030,7 +5030,7 @@ class TestAmbariServer(TestCase):
     fail = False
 
     try:
-      proceedJDBCProperties(args)
+      setup_jdbc(args)
     except FatalException as e:
       self.assertEquals("Error getting ambari properties", e.reason)
       fail = True
@@ -5045,7 +5045,7 @@ class TestAmbariServer(TestCase):
     fail = False
 
     try:
-      proceedJDBCProperties(args)
+      setup_jdbc(args)
     except FatalException as e:
       fail = True
     self.assertTrue(fail)
@@ -5064,7 +5064,7 @@ class TestAmbariServer(TestCase):
     copy_mock.side_effect = side_effect
 
     try:
-      proceedJDBCProperties(args)
+      setup_jdbc(args)
     except FatalException as e:
       fail = True
     self.assertTrue(fail)
@@ -5081,7 +5081,7 @@ class TestAmbariServer(TestCase):
     copy_mock.side_effect = None
     isfile_mock.side_effect = [True, False]
 
-    proceedJDBCProperties(args)
+    setup_jdbc(args)
     self.assertTrue(os_remove_mock.called)
     self.assertTrue(os_symlink_mock.called)
     self.assertTrue(copy_mock.called)
@@ -5098,7 +5098,7 @@ class TestAmbariServer(TestCase):
   @patch("os.remove")
   @patch("os.symlink")
   @patch("shutil.copy")
-  def test_proceedJDBCProperties(self, copy_mock, os_symlink_mock, os_remove_mock, lexists_mock, exists_mock,
+  def test_setup_jdbc(self, copy_mock, os_symlink_mock, os_remove_mock, lexists_mock, exists_mock,
                                  get_ambari_properties_mock, isfile_mock):
     args = MagicMock()
 
@@ -5108,7 +5108,7 @@ class TestAmbariServer(TestCase):
     fail = False
 
     try:
-      proceedJDBCProperties(args)
+      setup_jdbc(args)
     except FatalException as e:
       self.assertEquals("File test jdbc does not exist!", e.reason)
       fail = True
@@ -5120,7 +5120,7 @@ class TestAmbariServer(TestCase):
     fail = False
 
     try:
-      proceedJDBCProperties(args)
+      setup_jdbc(args)
     except FatalException as e:
       self.assertEquals("Unsupported database name incorrect db. Please see help for more information.", e.reason)
       fail = True
@@ -5132,7 +5132,7 @@ class TestAmbariServer(TestCase):
     fail = False
 
     try:
-      proceedJDBCProperties(args)
+      setup_jdbc(args)
     except FatalException as e:
       self.assertEquals("Error getting ambari properties", e.reason)
       fail = True
