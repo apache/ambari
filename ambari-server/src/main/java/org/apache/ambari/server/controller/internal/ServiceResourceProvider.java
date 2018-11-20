@@ -254,9 +254,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     if (request.getProperties().size() == 1) {
       Map<String, Object> requestProperties = request.getProperties().iterator().next();
       if (isAddServiceRequest(requestProperties)) {
-        processAddServiceRequest(requestProperties, request.getRequestInfoProperties());
+        RequestStatusResponse response = processAddServiceRequest(requestProperties, request.getRequestInfoProperties());
         notifyCreate(Resource.Type.Service, request);
-        return getRequestStatus(null);
+        return getRequestStatus(response);
       }
     }
 
@@ -1228,11 +1228,11 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     return OperationType.ADD_SERVICE.name().equals(properties.get(OPERATION_TYPE));
   }
 
-  private void processAddServiceRequest(Map<String, Object> requestProperties, Map<String, String> requestInfoProperties) throws NoSuchParentResourceException {
+  private RequestStatusResponse processAddServiceRequest(Map<String, Object> requestProperties, Map<String, String> requestInfoProperties) throws NoSuchParentResourceException {
     AddServiceRequest request = createAddServiceRequest(requestProperties, requestInfoProperties);
     String clusterName = String.valueOf(requestProperties.get(SERVICE_CLUSTER_NAME_PROPERTY_ID));
     try {
-      addServiceOrchestrator.processAddServiceRequest(getManagementController().getClusters().getCluster(clusterName), request);
+      return addServiceOrchestrator.processAddServiceRequest(getManagementController().getClusters().getCluster(clusterName), request);
     } catch (AmbariException e) {
       throw new NoSuchParentResourceException(e.getMessage(), e);
     }
