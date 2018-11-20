@@ -68,7 +68,10 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
     Map<String, Map<String, Collection<DependencyInfo>>> dependenciesValidationIssues = new HashMap<>();
 
     for (HostGroup group : hostGroups) {
-      Map<String, Collection<DependencyInfo>> groupDependenciesValidationIssues = validateHostGroup(group);
+      Map<String, Collection<DependencyInfo>> groupDependenciesValidationIssues =
+          validateHostGroup(group, "inclusive");
+
+      groupDependenciesValidationIssues.putAll(validateHostGroup(group, "exclusive"));
       if (!groupDependenciesValidationIssues.isEmpty()) {
         dependenciesValidationIssues.put(group.getName(), groupDependenciesValidationIssues);
       }
@@ -228,7 +231,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
     return cardinalityFailures;
   }
 
-  private Map<String, Collection<DependencyInfo>> validateHostGroup(HostGroup group) {
+  private Map<String, Collection<DependencyInfo>> validateHostGroup(HostGroup group, String dependencyValidationType) {
     LOGGER.info("Validating hostgroup: {}", group.getName());
     Map<String, Collection<DependencyInfo>> dependenciesIssues = new HashMap<>();
 
@@ -265,6 +268,10 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         AutoDeployInfo autoDeployInfo  = dependency.getAutoDeploy();
         boolean        resolved        = false;
 
+        if (dependencyValidationType != null && !dependencyValidationType.equals(dependencyType)) {
+          continue;
+        }
+
         //check if conditions are met, if any
         if(dependency.hasDependencyConditions()) {
           boolean conditionsSatisfied = true;
@@ -287,7 +294,6 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
             resolved = !resolved;
           }
         } else if (dependencyScope.equals("host")) {
-          //TODO check if the group might not contain all the component at this point
           if (dependencyType.equals("exclusive")) {
             if (!group.getComponentNames().contains(componentName)) {
               resolved = true;
@@ -295,9 +301,9 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
           } else {
             if (group.getComponentNames().contains(componentName) || (autoDeployInfo != null && autoDeployInfo.isEnabled())) {
               resolved = true;
+              group.addComponent(componentName);
             }
           }
-          group.addComponent(componentName);
         }
 
         if (! resolved) {
@@ -407,7 +413,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
       msg += "  Invalid service component count: " + cardinalityFailures;
     }
     if (! dependenciesIssues.isEmpty()) {
-      msg += "Component dependencies issues: " + dependenciesIssues;
+      msg += " Component dependencies issues: " + dependenciesIssues;
     }
     msg += ".  To disable topology validation and create the blueprint, " +
         "add the following to the end of the url: '?validate_topology=false'";

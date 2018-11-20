@@ -752,27 +752,54 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       throw new DuplicateResourceException(msg + names);
     }
 
-    //TODO move to separate method
-    for (String clusterName : hostComponentNames.keySet()) {
-      for (String serviceName : hostComponentNames.get(clusterName).keySet()) {
-        for (String componentName : hostComponentNames.get(clusterName).get(serviceName).keySet()) {
-          Set<String> hostnames = hostComponentNames.get(clusterName).get(serviceName).get(componentName);
+    validateExclusiveDependencies(hostComponentNames);
+
+    // set restartRequired flag for  monitoring services
+    setMonitoringServicesRestartRequired(requests);
+    // now doing actual work
+    persistServiceComponentHosts(requests, isBlueprintProvisioned);
+    m_topologyHolder.get().updateData(getAddedComponentsTopologyEvent(requests));
+  }
+
+  /**
+   * For all components that will be added validate the exclusive components dependencies using the services metainfo
+   * and respecting already installed components
+   *
+   * @throws AmbariException is thrown if the exclusive dependency is violated or if the data is invalid
+   */
+  private void validateExclusiveDependencies(Map<String, Map<String, Map<String, Set<String>>>> hostComponentNames) throws AmbariException {
+    List<String> validationIssues = new ArrayList<>();
+
+    for (Entry<String, Map<String, Map<String, Set<String>>>> clusterEntry : hostComponentNames.entrySet()) {
+      for (Entry<String, Map<String, Set<String>>> serviceEntry : clusterEntry.getValue().entrySet()) {
+        for (Entry<String, Set<String>> componentEntry : serviceEntry.getValue().entrySet()) {
+          Set<String> hostnames = componentEntry.getValue();
           if (hostnames != null && !hostnames.isEmpty()) {
-            ServiceComponent sc = clusters.getCluster(clusterName).getService(serviceName).getServiceComponent(componentName);
+            //get dependency info
+            ServiceComponent sc = clusters.getCluster(clusterEntry.getKey()).getService(serviceEntry.getKey()).getServiceComponent(componentEntry.getKey());
             StackId stackId = sc.getDesiredStackId();
             List<DependencyInfo> dependencyInfos = ambariMetaInfo.getComponentDependencies(stackId.getStackName(),
-                                                               stackId.getStackVersion(), serviceName, componentName);
+              stackId.getStackVersion(), serviceEntry.getKey(), componentEntry.getKey());
+
             for (DependencyInfo dependencyInfo : dependencyInfos) {
               if ("host".equals(dependencyInfo.getScope()) && "exclusive".equals(dependencyInfo.getType())) {
-                Service depSevice = clusters.getCluster(clusterName).getService(dependencyInfo.getServiceName());
-                if (depSevice != null) {
-                  ServiceComponent dependentSC = depSevice.getServiceComponent(dependencyInfo.getComponentName());
+                Service depService = clusters.getCluster(clusterEntry.getKey()).getService(dependencyInfo.getServiceName());
+                if (depService != null && depService.getServiceComponents().containsKey(dependencyInfo.getComponentName())) {
+                  ServiceComponent dependentSC = depService.getServiceComponent(dependencyInfo.getComponentName());
                   if (dependentSC != null) {
-                    for (String host : dependentSC.getServiceComponentHosts().keySet()) {
-                      if (hostnames.contains(host)) {
-                        throw new AmbariException("Component " + componentName + " can't be co-hosted with component "
-                            + dependencyInfo.getComponentName() + " on host " + host + " due to exclusive dependency");
-                      }
+                    //get cluster dependent component hosts
+                    Set<String> dependentComponentHosts = new HashSet<>(dependentSC.getServiceComponentHosts().keySet());
+                    //get request dependent component hosts
+                    if (clusterEntry.getValue().containsKey(dependentSC.getServiceName()) &&
+                        clusterEntry.getValue().get(dependentSC.getServiceName()).containsKey(dependentSC.getName())) {
+                      dependentComponentHosts.addAll(clusterEntry.getValue().
+                          get(dependentSC.getServiceName()).get(dependentSC.getName()));
+                    }
+                    //get the intersection
+                    dependentComponentHosts.retainAll(hostnames);
+                    if (!dependentComponentHosts.isEmpty()) {
+                      validationIssues.add("Component " + componentEntry.getKey() + " can't be co-hosted with component "
+                        + dependencyInfo.getComponentName() + " on hosts " + dependentComponentHosts + " due to exclusive dependency");
                     }
                   }
                 }
@@ -783,11 +810,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-    // set restartRequired flag for  monitoring services
-    setMonitoringServicesRestartRequired(requests);
-    // now doing actual work
-    persistServiceComponentHosts(requests, isBlueprintProvisioned);
-    m_topologyHolder.get().updateData(getAddedComponentsTopologyEvent(requests));
+    if (!validationIssues.isEmpty()) {
+      throw new AmbariException("The components exclusive dependencies are not respected: " + validationIssues);
+    }
   }
 
   void persistServiceComponentHosts(Set<ServiceComponentHostRequest> requests, boolean isBlueprintProvisioned)

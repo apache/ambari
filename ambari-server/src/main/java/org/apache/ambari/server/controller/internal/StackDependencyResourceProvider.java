@@ -83,7 +83,6 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
       .put(Resource.Type.StackService, DEPENDENT_SERVICE_NAME_ID)
       .put(Resource.Type.StackServiceComponent, DEPENDENT_COMPONENT_NAME_ID)
       .put(Resource.Type.StackServiceComponentDependency, COMPONENT_NAME_ID)
-      .put(Resource.Type.StackServiceComponentDependencyType, TYPE_ID)
       .build();
 
   /**
