@@ -42,7 +42,8 @@ public class ComponentLayoutRecommendationCommand extends
                                               StackAdvisorRunner saRunner,
                                               AmbariMetaInfo metaInfo,
                                               AmbariServerConfigurationHandler ambariServerConfigurationHandler) {
-    super(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType, requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
+    super(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType, requestId, saRunner, metaInfo,
+        ambariServerConfigurationHandler);
   }
 
   @Override

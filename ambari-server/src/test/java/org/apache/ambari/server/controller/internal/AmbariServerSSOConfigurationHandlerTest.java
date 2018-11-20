@@ -30,7 +30,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
@@ -102,7 +105,8 @@ public class AmbariServerSSOConfigurationHandlerTest extends EasyMockSupport {
 
     StackId stackId = new StackId("HDP-3.0");
 
-    Map<String, Set<String>> serviceComponentHostMap = Collections.singletonMap("ATLAS_COMPONENT", Collections.singleton("host1"));
+    SortedMap<String, SortedSet<String>> serviceComponentHostMap =
+        new TreeMap<String, SortedSet<String>>(){{put("ATLAS_COMPONENT", new TreeSet<String>(){{add("host1");}});}};
 
     Host host = createMock(Host.class);
     expect(host.getHostName()).andReturn("host1").once();
