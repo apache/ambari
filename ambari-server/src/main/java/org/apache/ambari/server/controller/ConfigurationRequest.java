@@ -56,7 +56,6 @@ public class ConfigurationRequest {
     this.configs = configs;
     this.type = type;
     this.tag = tag;
-    this.configs = configs;
     this.configsAttributes = configsAttributes;
     this.includeProperties = (type != null && tag != null);
   }

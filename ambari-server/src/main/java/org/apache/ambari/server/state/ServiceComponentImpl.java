@@ -468,8 +468,8 @@ public class ServiceComponentImpl implements ServiceComponent {
     for (ServiceComponentHost sch : hostComponents.values()) {
       if (!first) {
         sb.append(" , ");
-        first = false;
       }
+      first = false;
       sb.append("\n        ");
       sch.debugDump(sb);
       sb.append(" ");

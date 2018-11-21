@@ -40,7 +40,7 @@ public class StackResponse {
 
   @Override
   public int hashCode() {
-    int result = 1;
+    int result;
     result = 31 + getStackName().hashCode();
     return result;
   }
