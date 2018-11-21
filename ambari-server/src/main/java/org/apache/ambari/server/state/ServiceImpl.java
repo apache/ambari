@@ -40,6 +40,7 @@ import org.apache.ambari.server.collections.Predicate;
 import org.apache.ambari.server.collections.PredicateUtils;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.controller.internal.AmbariServerLDAPConfigurationHandler;
 import org.apache.ambari.server.controller.internal.AmbariServerSSOConfigurationHandler;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
@@ -104,7 +105,10 @@ public class ServiceImpl implements Service {
   private ConfigHelper configHelper;
 
   @Inject
-  private AmbariServerSSOConfigurationHandler ambariServerConfigurationHandler;
+  private AmbariServerSSOConfigurationHandler ambariServerSSOConfigurationHandler;
+
+  @Inject
+  private AmbariServerLDAPConfigurationHandler ambariServerLDAPConfigurationHandler;
 
   private final ClusterServiceDAO clusterServiceDAO;
   private final ServiceDesiredStateDAO serviceDesiredStateDAO;
@@ -422,7 +426,7 @@ public class ServiceImpl implements Service {
         getName(), desiredStackId, desiredRespositoryVersion.getVersion(), getRepositoryState(),
         getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled(),
         ssoIntegrationSupported, isSsoIntegrationDesired(), isSsoIntegrationEnabled(existingConfigurations),
-        isKerberosRequiredForSsoIntegration(), isKerberosEnabled(existingConfigurations), ldapIntegrationSupported,isLdapIntegrationEnabeled(existingConfigurations));
+        isKerberosRequiredForSsoIntegration(), isKerberosEnabled(existingConfigurations), ldapIntegrationSupported,isLdapIntegrationEnabeled(existingConfigurations), isLdapIntegrationDesired());
 
     r.setDesiredRepositoryVersionId(desiredRespositoryVersion.getId());
 
@@ -795,7 +799,7 @@ public class ServiceImpl implements Service {
   }
 
   private boolean isSsoIntegrationDesired() {
-    return ambariServerConfigurationHandler.getSSOEnabledServices().contains(serviceName);
+    return ambariServerSSOConfigurationHandler.getSSOEnabledServices().contains(serviceName);
   }
 
   private boolean isSsoIntegrationEnabled(Map<String, Map<String, String>> existingConfigurations) {
@@ -808,5 +812,9 @@ public class ServiceImpl implements Service {
 
   private boolean isLdapIntegrationEnabeled(Map<String, Map<String, String>> existingConfigurations) {
     return ldapIntegrationSupported && ldapEnabledTest != null && ldapEnabledTest.evaluate(existingConfigurations);
+  }
+
+  private boolean isLdapIntegrationDesired() {
+    return ambariServerLDAPConfigurationHandler.getLDAPEnabledServices().contains(serviceName);
   }
 }

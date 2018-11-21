@@ -80,6 +80,7 @@ import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
+import org.apache.ambari.server.ldap.service.LdapFacade;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
@@ -281,6 +282,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
         bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+        bind(LdapFacade.class).toInstance(createNiceMock(LdapFacade.class));
         requestStaticInjection(KerberosChecker.class);
       }
     });

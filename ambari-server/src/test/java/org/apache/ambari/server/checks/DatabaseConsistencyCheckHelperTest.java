@@ -860,7 +860,7 @@ public class DatabaseConsistencyCheckHelperTest {
       @Override
       protected void configure() {
         PartialNiceMockBinder.newBuilder().addAmbariMetaInfoBinding()
-            .addDBAccessorBinding(mockDBDbAccessor).build()
+            .addDBAccessorBinding(mockDBDbAccessor).addLdapBindings().build()
             .configure(binder());
 
         bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);

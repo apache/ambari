@@ -349,6 +349,7 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
           .addDBAccessorBinding()
           .addFactoriesInstallBinding()
           .addAmbariMetaInfoBinding()
+          .addLdapBindings()
           .build().configure(binder);
 
       binder.bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));

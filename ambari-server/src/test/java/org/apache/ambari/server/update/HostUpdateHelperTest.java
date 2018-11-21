@@ -253,7 +253,7 @@ public class HostUpdateHelperTest {
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        PartialNiceMockBinder.newBuilder().addClustersBinding(mockAmbariManagementController).build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addClustersBinding(mockAmbariManagementController).addLdapBindings().build().configure(binder());
         bind(StackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(StackManagerFactory.class));
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(EntityManager.class).toInstance(entityManager);
@@ -496,7 +496,7 @@ public class HostUpdateHelperTest {
       protected void configure() {
 
         PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().addPasswordEncryptorBindings()
-        .build().configure(binder());
+        .addLdapBindings().build().configure(binder());
 
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(EntityManager.class).toInstance(entityManager);

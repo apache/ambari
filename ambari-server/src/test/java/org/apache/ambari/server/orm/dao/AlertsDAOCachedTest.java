@@ -278,7 +278,7 @@ public class AlertsDAOCachedTest {
 
       binder.bind(Configuration.class).toInstance(configuration);
 
-      PartialNiceMockBinder.newBuilder().addConfigsBindings().addAlertDefinitionBinding().build().configure(binder);
+      PartialNiceMockBinder.newBuilder().addConfigsBindings().addAlertDefinitionBinding().addLdapBindings().build().configure(binder);
     }
   }
 }

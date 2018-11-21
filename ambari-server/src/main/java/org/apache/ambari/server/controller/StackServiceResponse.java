@@ -87,6 +87,7 @@ public class StackServiceResponse {
 
   private final boolean ssoIntegrationSupported;
   private final boolean ssoIntegrationRequiresKerberos;
+  private final boolean ldapIntegrationSupported;
 
   /**
    * Constructor.
@@ -126,6 +127,7 @@ public class StackServiceResponse {
     isSupportDeleteViaUI = service.isSupportDeleteViaUI();
     ssoIntegrationSupported = service.isSingleSignOnSupported();
     ssoIntegrationRequiresKerberos = service.isKerberosRequiredForSingleSignOnIntegration();
+    ldapIntegrationSupported = service.isLdapSupported();
     rollingRestartSupported = service.isRollingRestartSupported();
   }
 
@@ -364,6 +366,14 @@ public class StackServiceResponse {
   @ApiModelProperty(name = "sso_integration_requires_kerberos")
   public boolean isSsoIntegrationRequiresKerberos() {
     return ssoIntegrationRequiresKerberos;
+  }
+
+  /**
+   * Indicates if this service supports LDAP integration.
+   */
+  @ApiModelProperty(name = "ldap_integration_supported")
+  public boolean isLdapIntegrationSupported() {
+    return ldapIntegrationSupported;
   }
 
   @ApiModelProperty(name = "rolling_restart_supported")

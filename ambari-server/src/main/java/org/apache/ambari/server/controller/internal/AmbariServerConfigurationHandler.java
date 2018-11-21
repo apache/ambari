@@ -21,10 +21,14 @@ package org.apache.ambari.server.controller.internal;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
@@ -171,6 +175,19 @@ public class AmbariServerConfigurationHandler extends RootServiceComponentConfig
     }
 
     return properties;
+  }
+
+  protected Set<String> getEnabledServices(String categoryName, String manageServicesConfigurationPropertyName, String enabledServicesPropertyName) {
+    final Map<String, String> configurationProperties = getConfigurationProperties(categoryName);
+    final boolean manageConfigurations = StringUtils.isNotBlank(manageServicesConfigurationPropertyName)
+        && "true".equalsIgnoreCase(configurationProperties.get(manageServicesConfigurationPropertyName));
+    final String enabledServices = (manageConfigurations) ? configurationProperties.get(enabledServicesPropertyName) : null;
+
+    if (StringUtils.isEmpty(enabledServices)) {
+      return Collections.emptySet();
+    } else {
+      return Arrays.stream(enabledServices.split(",")).map(String::trim).map(String::toUpperCase).collect(Collectors.toSet());
+    }
   }
 
   private boolean updatePasswordIfNeeded(String categoryName, String propertyName, String newPassword) throws AmbariException {
