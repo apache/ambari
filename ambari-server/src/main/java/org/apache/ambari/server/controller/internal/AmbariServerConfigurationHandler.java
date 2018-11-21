@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
@@ -110,7 +111,14 @@ public class AmbariServerConfigurationHandler extends RootServiceComponentConfig
     final Iterator<Map.Entry<String, String>> propertiesIterator = properties.entrySet().iterator();
     while (propertiesIterator.hasNext()) {
       Map.Entry<String, String> property = propertiesIterator.next();
-      if (AmbariServerConfigurationUtils.isPassword(categoryName, property.getKey())) {
+
+      // Ensure the incoming property is valid
+      AmbariServerConfigurationKey key = AmbariServerConfigurationUtils.getConfigurationKey(categoryName, property.getKey());
+      if(key == null) {
+        throw new IllegalArgumentException(String.format("Invalid Ambari server configuration key: %s:%s", categoryName, property.getKey()));
+      }
+
+      if (AmbariServerConfigurationUtils.isPassword(key)) {
         final String passwordFileOrCredentialStoreAlias = fetchPasswordFileNameOrCredentialStoreAlias(categoryName, property.getKey());
         if (StringUtils.isNotBlank(passwordFileOrCredentialStoreAlias)) { //if blank -> this is the first time setup; we simply need to store the alias/file name
           if (updatePasswordIfNeeded(categoryName, property.getKey(), property.getValue())) {

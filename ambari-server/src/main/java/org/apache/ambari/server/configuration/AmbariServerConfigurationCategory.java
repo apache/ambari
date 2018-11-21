@@ -19,6 +19,8 @@
 package org.apache.ambari.server.configuration;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * AmbariServerConfigurationCategory is an enumeration of the different Ambari server specific
@@ -26,8 +28,10 @@ import org.apache.commons.lang.StringUtils;
  */
 public enum AmbariServerConfigurationCategory {
   LDAP_CONFIGURATION("ldap-configuration"),
-  SSO_CONFIGURATION("sso-configuration");
+  SSO_CONFIGURATION("sso-configuration"),
+  TPROXY_CONFIGURATION("tproxy-configuration");
 
+  private static final Logger LOG = LoggerFactory.getLogger(AmbariServerConfigurationCategory.class);
   private final String categoryName;
 
   AmbariServerConfigurationCategory(String categoryName) {
@@ -54,7 +58,8 @@ public enum AmbariServerConfigurationCategory {
       }
     }
 
-    throw new IllegalArgumentException(String.format("Invalid Ambari server configuration category name: %s", categoryName));
+    LOG.warn("Invalid Ambari server configuration category: {}", categoryName);
+    return null;
   }
 
   /**
