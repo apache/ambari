@@ -62,7 +62,7 @@ public class QuickLinksProfileParserTest {
     Service yarn = profile.getServices().get(2);
     assertEquals(1, yarn.getFilters().size());
     assertEquals(
-        Filter.linkNameFilter("resourcemanager_ui", true),
+        Filter.linkNameFilter("resourcemanager_ui", "http://customlink.org/resourcemanager", true),
         yarn.getFilters().get(0));
   }
 
