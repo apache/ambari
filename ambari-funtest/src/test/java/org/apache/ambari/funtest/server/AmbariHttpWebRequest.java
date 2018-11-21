@@ -316,7 +316,7 @@ public class AmbariHttpWebRequest extends WebRequest {
             } else if (httpMethod.equals("DELETE")) {
                 requestBase = new HttpDelete(getRequestUrl());
             } else {
-                new RuntimeException(String.format("Unsupported HTTP method: %s", httpMethod));
+                throw new RuntimeException(String.format("Unsupported HTTP method: %s", httpMethod));
             }
 
             Map<String, String> headers = getHeaders();

@@ -333,7 +333,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
           if (LOG.isDebugEnabled()) {
             LOG.warn(message, e);
           } else {
-            LOG.warn(message, e);
+            LOG.warn(message);
           }
         }
       }

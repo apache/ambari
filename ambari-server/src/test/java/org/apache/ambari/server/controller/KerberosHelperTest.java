@@ -3439,7 +3439,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     final Map<String, String> kerberosEnvProperties = new HashMap<>();
     kerberosEnvProperties.put(KerberosHelper.KDC_TYPE, "mit-kdc");
     kerberosEnvProperties.put(KerberosHelper.DEFAULT_REALM, "FOOBAR.COM");
-    kerberosEnvProperties.put("manage_identities", "FOOBAR.COM");
     kerberosEnvProperties.put("manage_identities",
         (manageIdentities == null)
             ? null

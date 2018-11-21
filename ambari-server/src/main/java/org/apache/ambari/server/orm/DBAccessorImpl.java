@@ -1574,7 +1574,7 @@ public class DBAccessorImpl implements DBAccessor {
     }
     builder.append(requestedColumnNames[0]);
     for (int i = 1; i < requestedColumnNames.length; i++) {
-      builder.append(", ").append(requestedColumnNames[1]);
+      builder.append(", ").append(requestedColumnNames[i]);
     }
 
     // Append the source table
