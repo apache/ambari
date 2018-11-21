@@ -915,7 +915,7 @@ def configure_os_settings():
 def _check_jdbc_options(options):
   return (options.jdbc_driver is not None and options.jdbc_db is not None)
 
-def proceedJDBCProperties(args):
+def setup_jdbc(args):
   if not os.path.isfile(args.jdbc_driver):
     err = "File {0} does not exist!".format(args.jdbc_driver)
     raise FatalException(1, err)
@@ -1164,7 +1164,7 @@ def setup(options):
 
   # proceed jdbc properties if they were set
   if _check_jdbc_options(options):
-    proceedJDBCProperties(options)
+    setup_jdbc(options)
     return
 
   (retcode, err) = disable_security_enhancements()
@@ -1179,10 +1179,6 @@ def setup(options):
 
   print configDefaults.MESSAGE_CHECK_FIREWALL
   check_firewall()
-
-  # proceed jdbc properties if they were set
-  if _check_jdbc_options(options):
-    proceedJDBCProperties(options)
 
   print 'Checking JDK...'
   try:
