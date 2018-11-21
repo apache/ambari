@@ -96,24 +96,31 @@ public class ConfigurableHelper {
         checkArgument(configEntry.getValue() instanceof Map,
           "The value for %s must be a JSON object (found: %s)", configName, getClassName(configEntry.getValue()));
 
-        Map<String, Object> configData = (Map<String, Object>) configEntry.getValue();
+        Map<String, ?> configData = (Map<String, ?>) configEntry.getValue();
 
         Set<String> extraKeys = Sets.difference(configData.keySet(), PERMITTED_CONFIG_FIELDS);
-        checkArgument(extraKeys.isEmpty(), "Invalid fields in %s configuration: %s", configName, extraKeys);
+        boolean legacy = extraKeys.size() == configData.keySet().size();
+        checkArgument(legacy || extraKeys.isEmpty(), "Invalid fields in %s configuration: %s", configName, extraKeys);
 
-        if (configData.containsKey(PROPERTIES_PROPERTY_ID)) {
-          checkMap(PROPERTIES_PROPERTY_ID, configData.get(PROPERTIES_PROPERTY_ID), String.class);
-
-          Map<String, String> properties = (Map<String, String>)configData.get(PROPERTIES_PROPERTY_ID);
+        if (legacy) {
+          checkMap("don't care", configData, String.class);
+          Map<String, String> properties = (Map<String, String>)configData;
           allProperties.put(configName, properties);
-        }
-        if (configData.containsKey(PROPERTIES_ATTRIBUTES_PROPERTY_ID)) {
-          checkMap(PROPERTIES_ATTRIBUTES_PROPERTY_ID, configData.get(PROPERTIES_ATTRIBUTES_PROPERTY_ID), Map.class);
-          Map<String, Map<String, String>> attributes =
-            (Map<String, Map<String, String>>)configData.get(PROPERTIES_ATTRIBUTES_PROPERTY_ID);
-          attributes.entrySet().forEach( entry -> checkMap(entry.getKey(), entry.getValue(), String.class));
+        } else {
+          if (configData.containsKey(PROPERTIES_PROPERTY_ID)) {
+            checkMap(PROPERTIES_PROPERTY_ID, configData.get(PROPERTIES_PROPERTY_ID), String.class);
 
-          allAttributes.put(configName, attributes);
+            Map<String, String> properties = (Map<String, String>) configData.get(PROPERTIES_PROPERTY_ID);
+            allProperties.put(configName, properties);
+          }
+          if (configData.containsKey(PROPERTIES_ATTRIBUTES_PROPERTY_ID)) {
+            checkMap(PROPERTIES_ATTRIBUTES_PROPERTY_ID, configData.get(PROPERTIES_ATTRIBUTES_PROPERTY_ID), Map.class);
+            Map<String, Map<String, String>> attributes =
+              (Map<String, Map<String, String>>) configData.get(PROPERTIES_ATTRIBUTES_PROPERTY_ID);
+            attributes.entrySet().forEach(entry -> checkMap(entry.getKey(), entry.getValue(), String.class));
+
+            allAttributes.put(configName, attributes);
+          }
         }
       });
 
