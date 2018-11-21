@@ -20,25 +20,51 @@ package org.apache.ambari.server.state.quicklinksprofile;
 
 import java.util.Objects;
 
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.state.quicklinks.Link;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
+
 
 /**
  * A filter that accepts quicklinks based on name match.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class LinkNameFilter extends Filter {
 
   static final String LINK_NAME = "link_name";
+  static final String LINK_URL = "link_url";
 
   @JsonProperty(LINK_NAME)
   private String linkName;
 
+  /**
+   * In addition to filtering this filter allows overriding the link url too.
+   */
+  @JsonProperty(LINK_URL)
+  private String linkUrl;
+
+  @JsonProperty(LINK_NAME)
   public String getLinkName() {
     return linkName;
   }
 
+  @JsonProperty(LINK_NAME)
   public void setLinkName(String linkName) {
     this.linkName = linkName;
+  }
+
+  @JsonProperty(LINK_URL)
+  public @Nullable String getLinkUrl() {
+    return linkUrl;
+  }
+
+  @JsonProperty(LINK_URL)
+  public void setLinkUrl(@Nullable String linkUrl) {
+    this.linkUrl = linkUrl;
   }
 
   @Override
@@ -51,11 +77,22 @@ public class LinkNameFilter extends Filter {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     LinkNameFilter that = (LinkNameFilter) o;
-    return isVisible() == that.isVisible() && Objects.equals(linkName, that.linkName);
+    return Objects.equals(linkName, that.linkName) &&
+      Objects.equals(linkUrl, that.linkUrl) &&
+      isVisible() == that.isVisible();
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(isVisible(), linkName);
+    return Objects.hash(linkName, linkUrl);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+      .add("linkName", linkName)
+      .add("linkUrl", linkUrl)
+      .add("visible", isVisible())
+      .toString();
   }
 }

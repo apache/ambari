@@ -20,6 +20,7 @@
           "filters": [
             {
               "link_name": "namenode_ui",
+              "link_url" : "http://customlink.org/namenode",
               "visible": false
             },
             {
