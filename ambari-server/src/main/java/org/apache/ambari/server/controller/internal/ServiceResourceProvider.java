@@ -145,6 +145,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   private static final String LDAP_INTEGRATION_ENABLED_PROPERTY_ID = PropertyHelper.getPropertyId(
       "ServiceInfo", "ldap_integration_enabled");
 
+  private static final String LDAP_INTEGRATION_DESIRED_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "ServiceInfo", "ldap_integration_desired");
+
   public static final String OPERATION_TYPE = "operation_type";
 
   protected static final String SERVICE_REPOSITORY_STATE = "ServiceInfo/repository_state";
@@ -194,6 +197,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
     PROPERTY_IDS.add(LDAP_INTEGRATION_SUPPORTED_PROPERTY_ID);
     PROPERTY_IDS.add(LDAP_INTEGRATION_ENABLED_PROPERTY_ID);
+    PROPERTY_IDS.add(LDAP_INTEGRATION_DESIRED_PROPERTY_ID);
 
     PROPERTY_IDS.add(OPERATION_TYPE);
 
@@ -338,6 +342,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
       setResourceProperty(resource, LDAP_INTEGRATION_SUPPORTED_PROPERTY_ID, response.isLdapIntegrationSupported(), requestedIds);
       setResourceProperty(resource, LDAP_INTEGRATION_ENABLED_PROPERTY_ID, response.isLdapIntegrationEnabled(), requestedIds);
+      setResourceProperty(resource, LDAP_INTEGRATION_DESIRED_PROPERTY_ID, response.isLdapIntegrationDesired(), requestedIds);
 
 
       Map<String, Object> serviceSpecificProperties = getServiceSpecificProperties(

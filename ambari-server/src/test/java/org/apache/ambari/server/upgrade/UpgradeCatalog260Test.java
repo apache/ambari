@@ -1026,7 +1026,7 @@ public class UpgradeCatalog260Test {
       @Override
       protected void configure() {
         PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding()
-        .addPasswordEncryptorBindings().build().configure(binder());
+        .addPasswordEncryptorBindings().addLdapBindings().build().configure(binder());
 
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(AmbariManagementController.class).toInstance(controller);
@@ -1084,7 +1084,7 @@ public class UpgradeCatalog260Test {
     return Guice.createInjector(new Module() {
       @Override
       public void configure(Binder binder) {
-        PartialNiceMockBinder.newBuilder().addPasswordEncryptorBindings().build().configure(binder);
+        PartialNiceMockBinder.newBuilder().addPasswordEncryptorBindings().addLdapBindings().build().configure(binder);
         binder.bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
         binder.bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(1L);
         binder.bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_ENABLED)).to(true);

@@ -616,7 +616,7 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
       @Override
       protected void configure() {
         PartialNiceMockBinder.newBuilder(PreconfigureKerberosActionTest.this)
-            .addActionDBAccessorConfigsBindings().build().configure(binder());
+            .addActionDBAccessorConfigsBindings().addLdapBindings().build().configure(binder());
 
         bind(EntityManager.class).toInstance(createMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createMock(DBAccessor.class));
