@@ -42,7 +42,7 @@ public class RootServiceComponentConfigurationHandlerFactory {
   private AmbariServerSSOConfigurationHandler ssoConfigurationHandler;
 
   @Inject
-  private AmbariServerTProxyConfigurationHandler tproxyConfigurationHandler;
+  private AmbariServerConfigurationHandler tproxyConfigurationHandler;
 
   /**
    * Returns the internal configuration handler used to support various configuration storage facilities.
