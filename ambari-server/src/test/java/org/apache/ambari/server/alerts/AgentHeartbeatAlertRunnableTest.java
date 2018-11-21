@@ -253,7 +253,7 @@ public class AgentHeartbeatAlertRunnableTest {
     @Override
     public void configure(Binder binder) {
       PartialNiceMockBinder.newBuilder().addConfigsBindings()
-          .addAlertDefinitionBinding().build().configure(binder);
+          .addAlertDefinitionBinding().addLdapBindings().build().configure(binder);
     }
   }
 }

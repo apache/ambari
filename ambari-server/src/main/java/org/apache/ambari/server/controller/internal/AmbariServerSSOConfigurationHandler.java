@@ -19,11 +19,8 @@ import static org.apache.ambari.server.configuration.AmbariServerConfigurationCa
 import static org.apache.ambari.server.configuration.AmbariServerConfigurationKey.SSO_ENABLED_SERVICES;
 import static org.apache.ambari.server.configuration.AmbariServerConfigurationKey.SSO_MANAGE_SERVICES;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
@@ -33,7 +30,6 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -76,18 +72,7 @@ public class AmbariServerSSOConfigurationHandler extends AmbariServerStackAdviso
    * @return a set of service names
    */
   public Set<String> getSSOEnabledServices() {
-    Map<String, String> ssoProperties = getConfigurationProperties(SSO_CONFIGURATION.getCategoryName());
-    boolean manageSSOConfigurations = (ssoProperties != null) && "true".equalsIgnoreCase(ssoProperties.get(SSO_MANAGE_SERVICES.key()));
-    String ssoEnabledServices = (manageSSOConfigurations) ? ssoProperties.get(SSO_ENABLED_SERVICES.key()) : null;
-
-    if (StringUtils.isEmpty(ssoEnabledServices)) {
-      return Collections.emptySet();
-    } else {
-      return Arrays.stream(ssoEnabledServices.split(","))
-          .map(String::trim)
-          .map(String::toUpperCase)
-          .collect(Collectors.toSet());
-    }
+    return getEnabledServices(SSO_CONFIGURATION.getCategoryName(), SSO_MANAGE_SERVICES.key(), SSO_ENABLED_SERVICES.key());
   }
   
   @Override

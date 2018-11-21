@@ -441,7 +441,7 @@ public class UpgradeCatalog252Test {
       @Override
       public void configure(Binder binder) {
         PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding()
-        .addPasswordEncryptorBindings().build().configure(binder);
+        .addPasswordEncryptorBindings().addLdapBindings().build().configure(binder);
 
         binder.bind(DBAccessor.class).toInstance(dbAccessor);
         binder.bind(OsFamily.class).toInstance(osFamily);

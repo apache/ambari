@@ -111,6 +111,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
   private static final String SSO_INTEGRATION_REQUIRES_KERBEROS_PROPERTY_ID = PropertyHelper.getPropertyId(
     "StackServices", "sso_integration_requires_kerberos");
 
+  private static final String LDAP_INTEGRATION_SUPPORTED_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServices", "ldap_integration_supported");
+
   private static final String ROLLING_RESTART_SUPPORTED_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServices", "rolling_restart_supported");
 
@@ -148,6 +151,7 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
       SUPPORT_DELETE_VIA_UI,
       SSO_INTEGRATION_SUPPORTED_PROPERTY_ID,
       SSO_INTEGRATION_REQUIRES_KERBEROS_PROPERTY_ID,
+      LDAP_INTEGRATION_SUPPORTED_PROPERTY_ID,
       ROLLING_RESTART_SUPPORTED_PROPERTY_ID);
 
   /**
@@ -264,6 +268,7 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
     setResourceProperty(resource, SSO_INTEGRATION_SUPPORTED_PROPERTY_ID, response.isSsoIntegrationSupported(), requestedIds);
     setResourceProperty(resource, SSO_INTEGRATION_REQUIRES_KERBEROS_PROPERTY_ID, response.isSsoIntegrationRequiresKerberos(), requestedIds);
+    setResourceProperty(resource, LDAP_INTEGRATION_SUPPORTED_PROPERTY_ID, response.isLdapIntegrationSupported(), requestedIds);
 
     return resource;
   }

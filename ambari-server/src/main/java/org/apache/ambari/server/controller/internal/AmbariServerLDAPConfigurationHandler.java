@@ -19,6 +19,9 @@
 package org.apache.ambari.server.controller.internal;
 
 import static org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType.LDAP_CONFIGURATIONS;
+import static org.apache.ambari.server.configuration.AmbariServerConfigurationCategory.LDAP_CONFIGURATION;
+import static org.apache.ambari.server.configuration.AmbariServerConfigurationKey.LDAP_ENABLED_SERVICES;
+import static org.apache.ambari.server.configuration.AmbariServerConfigurationKey.AMBARI_MANAGES_LDAP_CONFIGURATION;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -69,6 +72,17 @@ public class AmbariServerLDAPConfigurationHandler extends AmbariServerStackAdvis
     if (ldapConfiguration.isAmbariManagesLdapConfiguration()) {
       processClusters(LDAP_CONFIGURATIONS);
     }
+  }
+
+  /**
+   * Gets the set of services for which the user declared  Ambari to enable LDAP integration.
+   * <p>
+   * If Ambari is not managing LDAP integration configuration for services the set of names will be empty.
+   *
+   * @return a set of service names
+   */
+  public Set<String> getLDAPEnabledServices() {
+    return getEnabledServices(LDAP_CONFIGURATION.getCategoryName(), AMBARI_MANAGES_LDAP_CONFIGURATION.key(), LDAP_ENABLED_SERVICES.key());
   }
 
   @Override

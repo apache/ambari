@@ -96,7 +96,7 @@ public class StageUtilsTest extends EasyMockSupport {
       protected void configure() {
 
         PartialNiceMockBinder.newBuilder(StageUtilsTest.this).addAmbariMetaInfoBinding()
-            .addDBAccessorBinding().build().configure(binder());
+            .addDBAccessorBinding().addLdapBindings().build().configure(binder());
 
         bind(AmbariMetaInfo.class).toInstance(createMock(AmbariMetaInfo.class));
         bind(TopologyManager.class).toInstance(createNiceMock(TopologyManager.class));
