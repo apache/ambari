@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services.stackadvisor.recommendations;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
@@ -168,18 +169,14 @@ public class RecommendationResponse extends StackAdvisorResponse {
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-
       BlueprintConfigurations that = (BlueprintConfigurations) o;
-
-      if (properties != null ? !properties.equals(that.properties) : that.properties != null) return false;
-      return propertyAttributes != null ? propertyAttributes.equals(that.propertyAttributes) : that.propertyAttributes == null;
+      return Objects.equals(properties, that.properties) &&
+          Objects.equals(propertyAttributes, that.propertyAttributes);
     }
 
     @Override
     public int hashCode() {
-      int result = properties != null ? properties.hashCode() : 0;
-      result = 31 * result + (propertyAttributes != null ? propertyAttributes.hashCode() : 0);
-      return result;
+      return Objects.hash(properties, propertyAttributes);
     }
   }
 
@@ -291,21 +288,15 @@ public class RecommendationResponse extends StackAdvisorResponse {
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-
       ConfigGroup that = (ConfigGroup) o;
-
-      if (hosts != null ? !hosts.equals(that.hosts) : that.hosts != null) return false;
-      if (configurations != null ? !configurations.equals(that.configurations) : that.configurations != null)
-        return false;
-      return dependentConfigurations != null ? dependentConfigurations.equals(that.dependentConfigurations) : that.dependentConfigurations == null;
+      return Objects.equals(hosts, that.hosts) &&
+          Objects.equals(configurations, that.configurations) &&
+          Objects.equals(dependentConfigurations, that.dependentConfigurations);
     }
 
     @Override
     public int hashCode() {
-      int result = hosts != null ? hosts.hashCode() : 0;
-      result = 31 * result + (configurations != null ? configurations.hashCode() : 0);
-      result = 31 * result + (dependentConfigurations != null ? dependentConfigurations.hashCode() : 0);
-      return result;
+      return Objects.hash(hosts, configurations, dependentConfigurations);
     }
   }
 
