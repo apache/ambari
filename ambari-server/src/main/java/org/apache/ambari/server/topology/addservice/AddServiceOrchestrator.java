@@ -113,8 +113,8 @@ public class AddServiceOrchestrator {
       throw new IllegalArgumentException("No new services to be added");
     }
 
-    Configuration config = stack.getValidDefaultConfig();
-    // TODO add user-defined config
+    Configuration config = request.getConfiguration();
+    config.setParentConfiguration(stack.getValidDefaultConfig());
 
     RequestStageContainer stages = new RequestStageContainer(actionManager.getNextRequestId(), null, requestFactory, actionManager);
     AddServiceInfo validatedRequest = new AddServiceInfo(cluster.getClusterName(), stack, config, stages, newServices);
@@ -149,6 +149,7 @@ public class AddServiceOrchestrator {
    */
   private void createResources(AddServiceInfo request) {
     LOG.info("Creating resources for {}", request);
+    resourceProviders.updateExistingConfigs(request);
     resourceProviders.createServices(request);
     resourceProviders.createComponents(request);
     resourceProviders.createConfigs(request);
