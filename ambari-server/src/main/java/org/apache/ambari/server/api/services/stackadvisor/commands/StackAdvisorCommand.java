@@ -83,6 +83,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       + "?fields=Versions/stack_name,Versions/stack_version,Versions/parent_stack_version"
       + ",services/StackServices/service_name,services/StackServices/service_version"
       + ",services/components/StackServiceComponents,services/components/dependencies/Dependencies/scope"
+      + ",services/components/dependencies/Dependencies/type"
       + ",services/components/dependencies/Dependencies/conditions,services/components/auto_deploy"
       + ",services/configurations/StackConfigurations/property_depends_on"
       + ",services/configurations/dependencies/StackConfigurationDependency/dependency_name"

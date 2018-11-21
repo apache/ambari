@@ -1172,30 +1172,36 @@ class DefaultStackAdvisor(StackAdvisor):
             # account for only dependencies that are not conditional
             conditionsPresent =  "conditions" in dependency["Dependencies"] and dependency["Dependencies"]["conditions"]
             if not conditionsPresent:
-              requiredComponent = self.getRequiredComponent(services, dependency["Dependencies"]["component_name"])
+              dependentComponent = self.getRequiredComponent(services, dependency["Dependencies"]["component_name"])
               componentDisplayName = component["StackServiceComponents"]["display_name"]
-              requiredComponentDisplayName = requiredComponent["display_name"] \
-                                             if requiredComponent is not None else dependency["Dependencies"]["component_name"]
-              requiredComponentHosts = requiredComponent["hostnames"] if requiredComponent is not None else []
+              dependentComponentDisplayName = dependentComponent["display_name"] \
+                                             if dependentComponent is not None else dependency["Dependencies"]["component_name"]
+              dependentComponentHosts = dependentComponent["hostnames"] if dependentComponent is not None else []
 
               # Client dependencies are not included in validation
               # Client dependencies are auto-deployed in both UI deployements and blueprint deployments
-              if (requiredComponent is None) or \
-                (requiredComponent["component_category"] != "CLIENT"):
+              if (dependentComponent is None) or \
+                (dependentComponent["component_category"] != "CLIENT"):
                 scope = "cluster" if "scope" not in dependency["Dependencies"] else dependency["Dependencies"]["scope"]
+                type = "inclusive" if "type" not in dependency["Dependencies"] else dependency["Dependencies"]["type"]
                 if scope == "host":
                   componentHosts = component["StackServiceComponents"]["hostnames"]
-                  requiredComponentHostsAbsent = []
-                  for componentHost in componentHosts:
-                    if componentHost not in requiredComponentHosts:
-                      requiredComponentHostsAbsent.append(componentHost)
-                  if requiredComponentHostsAbsent:
-                    message = "{0} requires {1} to be co-hosted on following host(s): {2}.".format(componentDisplayName,
-                               requiredComponentDisplayName, ', '.join(requiredComponentHostsAbsent))
+                  hostsWithIssues = []
+                  notMessagePart = ""
+                  if type == "exclusive":
+                    hostsWithIssues = list(set(componentHosts) & set(dependentComponentHosts))
+                    notMessagePart = "not"
+                  else:
+                    for componentHost in componentHosts:
+                      if componentHost not in dependentComponentHosts:
+                        hostsWithIssues.append(componentHost)
+                  if hostsWithIssues:
+                    message = "{0} requires {1} {2} to be co-hosted on following host(s): {3}.".format(componentDisplayName,
+                               dependentComponentDisplayName, notMessagePart, ', '.join(hostsWithIssues))
                     items.append({ "type": 'host-component', "level": 'ERROR', "message": message,
                                    "component-name": component["StackServiceComponents"]["component_name"]})
-                elif scope == "cluster" and not requiredComponentHosts:
-                  message = "{0} requires {1} to be present in the cluster.".format(componentDisplayName, requiredComponentDisplayName)
+                elif scope == "cluster" and not dependentComponentHosts:
+                  message = "{0} requires {1} to be present in the cluster.".format(componentDisplayName, dependentComponentDisplayName)
                   items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": component["StackServiceComponents"]["component_name"]})
     return items
 
