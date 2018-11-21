@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,25 +41,18 @@ import com.google.common.io.Resources;
 public class ConfigurableTest {
   public static final String JSON_LOCATION = "add_service_api/configurable.json";
   public static final String JSON_LOCATION2 = "add_service_api/configurable2.json";
+  public static final String JSON_LOCATION3 = "add_service_api/configurable3.json";
   public static final String INVALID_CONFIGS_LOCATION = "add_service_api/invalid_configurables.txt";
 
-  private TestConfigurable configurable;
-  private ObjectMapper mapper;
-
-  Logger LOG = LoggerFactory.getLogger(ConfigurableTest.class);
-
-  @Before
-  public void setUp() throws Exception {
-    mapper = new ObjectMapper();
-    URL url = Resources.getResource(JSON_LOCATION);
-    configurable = mapper.readValue(url, TestConfigurable.class);
-  }
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigurableTest.class);
 
   /**
    * Parse normal JSON configuration
    */
   @Test
   public void testParseConfigurable() throws Exception {
+    TestConfigurable configurable = new ObjectMapper().readValue(Resources.getResource(JSON_LOCATION), TestConfigurable.class);
+
     assertEquals(ImmutableMap.of("zoo.cfg", ImmutableMap.of("dataDir", "/zookeeper1")),
       configurable.getConfiguration().getProperties());
     assertEquals(
@@ -83,7 +75,7 @@ public class ConfigurableTest {
     for (String config: invalidConfigs) {
       LOG.info("Invalid config to parse:\n{}", config);
       try {
-        mapper.readValue(config, TestConfigurable.class);
+        new ObjectMapper().readValue(config, TestConfigurable.class);
         fail("Expected " + JsonProcessingException.class.getSimpleName() + " while processing config:\n" + config);
       }
       catch (JsonProcessingException ex) {
@@ -102,7 +94,9 @@ public class ConfigurableTest {
    * Deserialize normal JSON configuration
    */
   @Test
-  public void testSerializaDeserialize() throws Exception {
+  public void testSerializeDeserialize() throws Exception {
+    ObjectMapper mapper = new ObjectMapper();
+    TestConfigurable configurable = mapper.readValue(Resources.getResource(JSON_LOCATION), TestConfigurable.class);
     String persisted = mapper.writeValueAsString(configurable);
     Configurable restored = mapper.readValue(persisted, TestConfigurable.class);
     assertEquals(configurable.getConfiguration().getProperties(), restored.getConfiguration().getProperties());
@@ -113,10 +107,9 @@ public class ConfigurableTest {
    * Parse flattened configuration
    */
   @Test
-  public void testParseConfigurableFromResoueceManager() throws Exception{
-    mapper = new ObjectMapper();
+  public void testParseConfigurableFromResourceManager() throws Exception{
     URL url = Resources.getResource(JSON_LOCATION2);
-    configurable = new ObjectMapper().readValue(url, TestConfigurable.class);
+    TestConfigurable configurable = new ObjectMapper().readValue(url, TestConfigurable.class);
 
     assertEquals(ImmutableMap.of("zoo.cfg", ImmutableMap.of("dataDir", "/zookeeper1")),
       configurable.getConfiguration().getProperties());
@@ -125,6 +118,21 @@ public class ConfigurableTest {
         ImmutableMap.of("final",
           ImmutableMap.of("someProp", "true"))),
       configurable.getConfiguration().getAttributes());
+  }
+
+  /**
+   * Parse legacy configuration
+   */
+  @Test
+  public void testParseLegacyConfigurable() throws Exception {
+    URL url = Resources.getResource(JSON_LOCATION3);
+    TestConfigurable configurable = new ObjectMapper().readValue(url, TestConfigurable.class);
+
+    assertEquals(ImmutableMap.of("cluster-env", ImmutableMap.of(
+        "dataDir", "/zookeeper1",
+        "custom-property", "true"
+      )),
+      configurable.getConfiguration().getProperties());
   }
 
   static class TestConfigurable implements Configurable {
