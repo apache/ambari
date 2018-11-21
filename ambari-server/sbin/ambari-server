@@ -133,6 +133,10 @@ case "${1:-}" in
         echo -e "Updating jce policy"
         $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
+  setup-jdbc)
+        echo -e "Setting up JDBC driver"
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
+        ;;
   setup-pam)
         echo -e "Setting up PAM properties..."
         $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
