@@ -82,6 +82,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.persistence.RollbackException;
@@ -293,6 +295,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   public static final String SKIP_INSTALL_FOR_COMPONENTS = "skipInstallForComponents";
   public static final String DONT_SKIP_INSTALL_FOR_COMPONENTS = "dontSkipInstallForComponents";
+  public static final String CLUSTER_NAME_VALIDATION_REGEXP = "^[a-zA-Z0-9_-]{1,100}$";
 
   private final Clusters clusters;
 
@@ -1781,7 +1784,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     // set the new name of the cluster if change is requested
-    if (!cluster.getClusterName().equals(request.getClusterName())) {
+    if (request.getClusterName()!=null && !cluster.getClusterName().equals(request.getClusterName())) {
+      validateClusterName(request.getClusterName());
       if (LOG.isDebugEnabled()) {
         LOG.debug("Received cluster name change request from {} to {}", cluster.getClusterName(), request.getClusterName());
       }
@@ -2094,6 +2098,40 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       return null;
     }
   }
+
+  /**
+   * validate cluster name character and length requirements and throw IllegalArgumentException if not valid.
+   * <p>
+   * Character Requirements
+   * <p>
+   * A through Z
+   * a through z
+   * 0 through 9
+   * _ (underscore)
+   * - (dash)
+   * Length Requirements
+   * <p>
+   * Minimum: 1 character
+   * Maximum: 100 characters
+   * @see AmbariManagementControllerImpl#CLUSTER_NAME_VALIDATION_REGEXP
+   *
+   * @param clusterName name to validate
+   * @throws IllegalArgumentException if validation result
+   */
+  public static void validateClusterName(String clusterName) {
+    if (clusterName == null) {
+      throw new IllegalArgumentException("Invalid arguments, cluster name should not be null");
+    }
+    if (clusterName.isEmpty()) {
+      throw new IllegalArgumentException("Invalid arguments, cluster name should not be empty");
+    }
+    Pattern clusterNamePtrn = Pattern.compile(CLUSTER_NAME_VALIDATION_REGEXP);
+    Matcher mtch = clusterNamePtrn.matcher(clusterName);
+    if(!mtch.matches()){
+      throw new IllegalArgumentException("Invalid arguments, cluster name should contains only alphabetical, numeric, '_' and '-' characters and length 1-100 characters");
+    }
+  }
+
 
   /**
    * Given a configuration request, compares the requested properties to the current set of desired

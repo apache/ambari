@@ -545,6 +545,53 @@ public class AmbariManagementControllerImplTest {
   }
 
   /**
+   * Ensure that validateClusterName(String clusterName) work as expected.
+   * Character Requirements
+   * <p>
+   * A through Z
+   * a through z
+   * 0 through 9
+   * _ (underscore)
+   * - (dash)
+   * Length Requirements
+   * <p>
+   * Minimum: 1 character
+   * Maximum: 100 characters
+   */
+  @Test
+  public void testValidateClusterName() throws Exception {
+    AmbariManagementControllerImpl.validateClusterName("clustername");
+    AmbariManagementControllerImpl.validateClusterName("CLUSTERNAME");
+    AmbariManagementControllerImpl.validateClusterName("clustername123");
+    AmbariManagementControllerImpl.validateClusterName("cluster-name");
+    AmbariManagementControllerImpl.validateClusterName("cluster_name");
+    try {
+      AmbariManagementControllerImpl.validateClusterName(null);
+      Assert.fail("IllegalArgumentException not thrown");
+    } catch (IllegalArgumentException e) {
+      // This is expected
+    }
+    try {
+      AmbariManagementControllerImpl.validateClusterName("clusternameclusternameclusternameclusternameclusternameclusternameclusternameclusternameclusternameclustername");
+      Assert.fail("IllegalArgumentException not thrown");
+    } catch (IllegalArgumentException e) {
+      // This is expected
+    }
+    try {
+      AmbariManagementControllerImpl.validateClusterName("clustername@#$%");
+      Assert.fail("IllegalArgumentException not thrown");
+    } catch (IllegalArgumentException e) {
+      // This is expected
+    }
+    try {
+      AmbariManagementControllerImpl.validateClusterName("");
+      Assert.fail("IllegalArgumentException not thrown");
+    } catch (IllegalArgumentException e) {
+      // This is expected
+    }
+  }
+
+  /**
    * Ensure that when the cluster id is provided and the given cluster name is different from the cluster's name
    * then the cluster rename logic is executed.
    */
@@ -582,7 +629,7 @@ public class AmbariManagementControllerImplTest {
     agentConfigsHolder.updateData(anyLong(), anyObject(List.class));
     expectLastCall().anyTimes();
 
-    expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(3);
+    expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(5);
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusterRequest.getDesiredConfig()).andReturn(configRequests);
     expect(configurationRequest.getVersionTag()).andReturn(null).times(1);
@@ -708,7 +755,6 @@ public class AmbariManagementControllerImplTest {
 
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
-    expect(cluster.getClusterName()).andReturn("cluster").times(1);
 
     // replay mocks
     replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
@@ -764,7 +810,6 @@ public class AmbariManagementControllerImplTest {
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusterRequest.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
-    expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.KERBEROS, null))
@@ -827,7 +872,6 @@ public class AmbariManagementControllerImplTest {
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusterRequest.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
-    expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.KERBEROS, null))
@@ -924,7 +968,6 @@ public class AmbariManagementControllerImplTest {
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusterRequest.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
-    expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.NONE, null))
@@ -988,15 +1031,11 @@ public class AmbariManagementControllerImplTest {
     expect(clusterRequest.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
     expect(cluster.getResourceId()).andReturn(1L).times(3);
-    expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(null).anyTimes();
     expect(cluster.getDesiredStackVersion()).andReturn(null).anyTimes();
 
     cluster.setCurrentStackVersion(anyObject(StackId.class));
-    expectLastCall().once();
-
-    cluster.setClusterName(anyObject(String.class));
     expectLastCall().once();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.NONE, null))
@@ -1054,7 +1093,7 @@ public class AmbariManagementControllerImplTest {
     // expectations
     constructorInit(injector, controllerCapture, createNiceMock(KerberosHelper.class));
 
-    expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(3);
+    expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(5);
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
     expect(cluster.getClusterName()).andReturn("clusterOld").times(1);
