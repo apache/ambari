@@ -124,7 +124,7 @@ public class MpackResponse {
 
   @Override
   public int hashCode() {
-    int result = 1;
+    int result;
     result = 31 + getId().hashCode();
     return result;
   }

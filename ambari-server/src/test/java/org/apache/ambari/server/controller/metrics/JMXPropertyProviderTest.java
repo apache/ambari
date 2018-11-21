@@ -639,7 +639,7 @@ public class JMXPropertyProviderTest {
       } else if (componentName.equals("DATANODE")) {
         return "50075";
       } else if (componentName.equals("HBASE_MASTER")) {
-        if(clusterName == "c2") {
+        if(clusterName.equals("c2")) {
           return "60011";
         } else {
           // Caters the case where 'clusterName' is null or

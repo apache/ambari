@@ -491,7 +491,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
           Set<Long> resourceIds = getResourceEntities(properties).keySet();
           Long      resourceId  = resourceIds.iterator().next();
 
-          if (resource != null && resourceId != resource) {
+          if (resource != null && ! resourceId.equals(resource)) {
             throw new AmbariException("Can't update privileges of multiple resources in one request");
           }
           resource = resourceId;
