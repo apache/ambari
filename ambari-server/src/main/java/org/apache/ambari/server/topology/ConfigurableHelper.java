@@ -44,7 +44,7 @@ import com.google.common.collect.Sets;
  */
 public class ConfigurableHelper {
 
-  static final ImmutableSet<String> PERMITTED_CONFIG_FIELDS = ImmutableSet.of(PROPERTIES_PROPERTY_ID, PROPERTIES_ATTRIBUTES_PROPERTY_ID);
+  private static final ImmutableSet<String> PERMITTED_CONFIG_FIELDS = ImmutableSet.of(PROPERTIES_PROPERTY_ID, PROPERTIES_ATTRIBUTES_PROPERTY_ID);
 
   /**
    * Parses configuration maps The configs can be in fully structured JSON, e.g.
@@ -65,8 +65,6 @@ public class ConfigurableHelper {
    * }]
    * </code>
    * In the latter case it calls {@link ConfigurationFactory#getConfiguration(Collection)}
-   * @param configs
-   * @return
    */
   public static Configuration parseConfigs(@Nullable Collection<? extends Map<String, ?>> configs) {
     Configuration configuration;
@@ -74,7 +72,7 @@ public class ConfigurableHelper {
     if (null == configs || configs.isEmpty()) {
       configuration = Configuration.newEmpty();
     }
-    else if (!configs.isEmpty() && configs.iterator().next().keySet().iterator().next().contains("/")) {
+    else if (configs.iterator().next().keySet().iterator().next().contains("/")) {
       // Configuration has keys with slashes like "zk.cfg/properties/dataDir" means it is coming through
       // the resource framework and must be parsed with configuration factories
       checkFlattenedConfig(configs);
@@ -117,7 +115,7 @@ public class ConfigurableHelper {
             checkMap(PROPERTIES_ATTRIBUTES_PROPERTY_ID, configData.get(PROPERTIES_ATTRIBUTES_PROPERTY_ID), Map.class);
             Map<String, Map<String, String>> attributes =
               (Map<String, Map<String, String>>) configData.get(PROPERTIES_ATTRIBUTES_PROPERTY_ID);
-            attributes.entrySet().forEach(entry -> checkMap(entry.getKey(), entry.getValue(), String.class));
+            attributes.forEach((key, value) -> checkMap(key, value, String.class));
 
             allAttributes.put(configName, attributes);
           }
@@ -138,7 +136,7 @@ public class ConfigurableHelper {
     Collection<Map<String, Map<String, ?>>> configurations = new ArrayList<>();
     Set<String> allConfigTypes = Sets.union(configuration.getProperties().keySet(), configuration.getAttributes().keySet());
     for (String configType: allConfigTypes) {
-      Map<String, Map<String, ? extends Object>> configData = new HashMap<>();
+      Map<String, Map<String, ?>> configData = new HashMap<>();
       if (configuration.getProperties().containsKey(configType)) {
         configData.put(PROPERTIES_PROPERTY_ID, configuration.getProperties().get(configType));
       }
@@ -174,10 +172,10 @@ public class ConfigurableHelper {
   private static void checkMap(String fieldName, Object mapObj, Class<?> valueType) {
     checkArgument(mapObj instanceof Map, "'%s' needs to be a JSON object. Found: %s", fieldName, getClassName(mapObj));
     Map<?, ?> map = (Map<?, ?>)mapObj;
-    map.forEach( (__, value) -> {
-      checkArgument(valueType.isInstance(value), "Expected %s as value type, found %s, type: %s",
-        valueType.getName(), value, getClassName(value));
-    });
+    map.forEach( (__, value) ->
+      checkArgument(valueType.isInstance(value),
+        "Expected %s as value type, found %s, type: %s",
+        valueType.getName(), value, getClassName(value)));
   }
 
   private static String getClassName(Object object) {
