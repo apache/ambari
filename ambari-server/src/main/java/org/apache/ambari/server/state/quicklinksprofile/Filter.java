@@ -19,10 +19,10 @@
 package org.apache.ambari.server.state.quicklinksprofile;
 
 import org.apache.ambari.server.state.quicklinks.Link;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.base.Preconditions;
 
 /**
@@ -66,9 +66,14 @@ public abstract class Filter {
   }
 
   static LinkNameFilter linkNameFilter(String linkName, boolean visible) {
+    return linkNameFilter(linkName, null, visible);
+  }
+
+  static LinkNameFilter linkNameFilter(String linkName, String linkUrl, boolean visible) {
     Preconditions.checkNotNull(linkName, "Link name must not be null");
     LinkNameFilter linkNameFilter = new LinkNameFilter();
     linkNameFilter.setLinkName(linkName);
+    linkNameFilter.setLinkUrl(linkUrl);
     linkNameFilter.setVisible(visible);
     return linkNameFilter;
   }

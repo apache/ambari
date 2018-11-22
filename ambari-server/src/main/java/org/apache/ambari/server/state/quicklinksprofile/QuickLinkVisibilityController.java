@@ -19,6 +19,8 @@
 package org.apache.ambari.server.state.quicklinksprofile;
 
 
+import java.util.Optional;
+
 import javax.annotation.Nonnull;
 
 import org.apache.ambari.server.state.quicklinks.Link;
@@ -32,6 +34,13 @@ public interface QuickLinkVisibilityController {
    * @return a boolean indicating if the link should be visible
    */
   boolean isVisible(@Nonnull String service, @Nonnull Link quickLink);
+
+  /**
+   * @param service The name of the service the quicklink belongs to
+   * @param quickLink the link
+   * @return An optional url override for this link
+   */
+  Optional<String> getUrlOverride(@Nonnull String service, @Nonnull Link quickLink);
 
 }
 
