@@ -296,6 +296,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public static final String SKIP_INSTALL_FOR_COMPONENTS = "skipInstallForComponents";
   public static final String DONT_SKIP_INSTALL_FOR_COMPONENTS = "dontSkipInstallForComponents";
   public static final String CLUSTER_NAME_VALIDATION_REGEXP = "^[a-zA-Z0-9_-]{1,100}$";
+  public static final Pattern CLUSTER_NAME_PTRN = Pattern.compile(CLUSTER_NAME_VALIDATION_REGEXP);
 
   private final Clusters clusters;
 
@@ -2125,8 +2126,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (clusterName.isEmpty()) {
       throw new IllegalArgumentException("Invalid arguments, cluster name should not be empty");
     }
-    Pattern clusterNamePtrn = Pattern.compile(CLUSTER_NAME_VALIDATION_REGEXP);
-    Matcher mtch = clusterNamePtrn.matcher(clusterName);
+    Matcher mtch = CLUSTER_NAME_PTRN.matcher(clusterName);
     if(!mtch.matches()){
       throw new IllegalArgumentException("Invalid arguments, cluster name should contains only alphabetical, numeric, '_' and '-' characters and length 1-100 characters");
     }
