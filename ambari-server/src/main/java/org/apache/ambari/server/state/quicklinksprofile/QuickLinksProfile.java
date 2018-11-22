@@ -18,11 +18,13 @@
 
 package org.apache.ambari.server.state.quicklinksprofile;
 
+import static java.util.Collections.emptyList;
+
 import java.util.List;
 
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * A quicklinks profile is essentially a set of quick link filters defined on three levels:
@@ -37,7 +39,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
  * before being returned by {@link org.apache.ambari.server.controller.internal.QuickLinkArtifactResourceProvider}.</p>
  * <p>When no profile is set, all quick link's visibility flat will be set to {@code true} by the provider</p>
  */
-@JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class QuickLinksProfile {
 
@@ -67,7 +69,7 @@ public class QuickLinksProfile {
    * @return service-specific quicklink filter definitions
    */
   public List<Service> getServices() {
-    return services;
+    return services != null ? services : emptyList();
   }
 
   public void setServices(List<Service> services) {
@@ -78,7 +80,7 @@ public class QuickLinksProfile {
    * @return the global quicklink filters
    */
   public List<Filter> getFilters() {
-    return filters;
+    return null != filters ? filters : emptyList();
   }
 
   public void setFilters(List<Filter> filters) {

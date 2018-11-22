@@ -21,7 +21,9 @@ package org.apache.ambari.server.state.quicklinksprofile;
 import java.util.Objects;
 
 import org.apache.ambari.server.state.quicklinks.Link;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 /**
  * A quicklink filter based on link attribute match (the filter's link_attribute is contained by the links set of
@@ -57,5 +59,12 @@ public class LinkAttributeFilter extends Filter {
   @Override
   public int hashCode() {
     return Objects.hash(isVisible(), linkAttribute);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+      .add("linkAttribute", linkAttribute)
+      .toString();
   }
 }

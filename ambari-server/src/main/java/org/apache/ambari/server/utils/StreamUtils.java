@@ -16,29 +16,24 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.quicklinksprofile;
+package org.apache.ambari.server.utils;
 
-
-import java.util.Optional;
-
-import javax.annotation.Nonnull;
-
-import org.apache.ambari.server.state.quicklinks.Link;
+import java.util.stream.Stream;
 
 /**
- * A visibility controller that shows all quicklinks. This is used when no quicklinks profile is set or the profile is
- * invalid. This mimics legacy behavior when all quicklinks were shown.
- *
+ * Utilities for Streams
  */
-public class ShowAllLinksVisibilityController implements QuickLinkVisibilityController {
+public class StreamUtils {
 
-  @Override
-  public boolean isVisible(@Nonnull String service, @Nonnull Link quickLink) {
-    return true;
+  /**
+   * Filters a stream for instances of a class and returns a typed stream
+   * @param stream the stream to filter
+   * @param clazz stream will be filtered to instances of this class
+   * @param <T> the type of the class
+   * @return A stream of containing only instances of {@link T}
+   */
+  public static <T> Stream<T> instancesOf(Stream<?> stream, Class<? extends T> clazz) {
+    return stream.filter(clazz::isInstance).map(clazz::cast);
   }
 
-  @Override
-  public Optional<String> getUrlOverride(@Nonnull String service, @Nonnull Link quickLink) {
-    return Optional.empty();
-  }
 }
