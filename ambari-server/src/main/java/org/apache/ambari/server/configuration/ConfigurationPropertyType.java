@@ -18,5 +18,5 @@ package org.apache.ambari.server.configuration;
  * Constants representing types for AMBARI-level properties that are being stored in the DB
  */
 public enum ConfigurationPropertyType {
-  PLAINTEXT, PASSWORD;
+  PLAINTEXT, PASSWORD, UNKNOWN;
 }
