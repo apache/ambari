@@ -45,6 +45,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javax.xml.bind.JAXBException;
 
@@ -616,5 +618,27 @@ public class StageUtils {
         hostLevelParams.put(JCE_NAME, null); // custom jdk for stack
       }
     }
+  }
+
+  /**
+   * Create a component -> hosts mapping that can be used for clusterHostInfo.
+   * Component names are transformed to clusterHostInfo keys ("_hosts" is appended).
+   * List of hosts is comma-separated.
+   *
+   * @param services collection of services to create the mapping for
+   * @param componentsLookup function to find components of a given service
+   * @param hostAssignmentLookup function to find hosts of a given (service, component) pair
+   * @return component names
+   */
+  public static Map<String, String> createComponentHostMap(Collection<String> services, Function<String, Collection<String>> componentsLookup, BiFunction<String, String, Collection<String>> hostAssignmentLookup) {
+    Map<String, String> componentHostsMap = new HashMap<>();
+    for (String service : services) {
+      Collection<String> components = componentsLookup.apply(service);
+      for (String component : components) {
+        Collection<String> hosts = hostAssignmentLookup.apply(service, component);
+        componentHostsMap.put(getClusterHostInfoKey(component), StringUtils.join(hosts, ","));
+      }
+    }
+    return componentHostsMap;
   }
 }

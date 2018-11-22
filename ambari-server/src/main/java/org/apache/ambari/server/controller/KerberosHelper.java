@@ -155,6 +155,11 @@ public interface KerberosHelper {
   String ALLOW_RETRY = "allow_retry_on_failure";
 
   /**
+   * Used as key in config maps to store component to host assignment mapping.
+   */
+  String CLUSTER_HOST_INFO = "clusterHostInfo";
+
+  /**
    * Toggles Kerberos security to enable it or remove it depending on the state of the cluster.
    * <p/>
    * The cluster "security_type" property is used to determine the security state of the cluster.

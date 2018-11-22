@@ -22,12 +22,19 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Configuration for a topology entity such as a blueprint, hostgroup or cluster.
  */
 public class Configuration {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
+
   /**
    * properties for this configuration instance
    */
@@ -45,6 +52,64 @@ public class Configuration {
 
   public static Configuration newEmpty() {
     return new Configuration(new HashMap<>(), new HashMap<>());
+  }
+
+  /**
+   * Apply configuration changes from {@code updatedConfigs} to {@code config}, but only
+   * change properties that are either absent in the existing config, or have values that
+   * match the stack default config.
+   *
+   * @return config types that had any updates applied
+   */
+  public Set<String> applyUpdatesToStackDefaultProperties(Configuration stackDefaultConfig, Map<String, Map<String, String>> existingConfigurations, Map<String, Map<String, String>> updatedConfigs) {
+    Set<String> updatedConfigTypes = new HashSet<>();
+
+    Map<String, Map<String, String>> stackDefaults = stackDefaultConfig.getProperties();
+
+    for (Map.Entry<String, Map<String, String>> configEntry : updatedConfigs.entrySet()) {
+      String configType = configEntry.getKey();
+      Map<String, String> propertyMap = configEntry.getValue();
+      Map<String, String> clusterConfigProperties = existingConfigurations.get(configType);
+      Map<String, String> stackDefaultConfigProperties = stackDefaults.get(configType);
+      for (Map.Entry<String, String> propertyEntry : propertyMap.entrySet()) {
+        String property = propertyEntry.getKey();
+        String newValue = propertyEntry.getValue();
+        String currentValue = getPropertyValue(configType, property);
+
+        if (!propertyHasCustomValue(clusterConfigProperties, stackDefaultConfigProperties, property) && !Objects.equals(currentValue, newValue)) {
+          LOG.debug("Update config property {}/{}: {} -> {}", configType, property, currentValue, newValue);
+          setProperty(configType, property, newValue);
+          updatedConfigTypes.add(configType);
+        }
+      }
+    }
+
+    return updatedConfigTypes;
+  }
+
+  /**
+   * Returns true if the property exists in clusterConfigProperties and has a custom user defined value. Property has
+   * custom value in case we there's no stack default value for it or it's not equal to stack default value.
+   */
+  private static boolean propertyHasCustomValue(Map<String, String> clusterConfigProperties, Map<String, String> stackDefaultConfigProperties, String property) {
+
+    boolean propertyHasCustomValue = false;
+    if (clusterConfigProperties != null) {
+      String propertyValue = clusterConfigProperties.get(property);
+      if (propertyValue != null) {
+        if (stackDefaultConfigProperties != null) {
+          String stackDefaultValue = stackDefaultConfigProperties.get(property);
+          if (stackDefaultValue != null) {
+            propertyHasCustomValue = !propertyValue.equals(stackDefaultValue);
+          } else {
+            propertyHasCustomValue = true;
+          }
+        } else {
+          propertyHasCustomValue = true;
+        }
+      }
+    }
+    return propertyHasCustomValue;
   }
 
   public Configuration copy() {

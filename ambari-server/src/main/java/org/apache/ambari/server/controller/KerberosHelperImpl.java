@@ -605,12 +605,8 @@ public class KerberosHelperImpl implements KerberosHelper {
           }
         }
 
-        // Get (and created if needed) the clusterHostInfo map
-        Map<String, String> clusterHostInfoMap = configurations.get("clusterHostInfo");
-        if (clusterHostInfoMap == null) {
-          clusterHostInfoMap = new HashMap<>();
-          configurations.put("clusterHostInfo", clusterHostInfoMap);
-        }
+        // Get (and create if needed) the clusterHostInfo map
+        Map<String, String> clusterHostInfoMap = configurations.computeIfAbsent(CLUSTER_HOST_INFO, __ -> new HashMap<>());
 
         // Iterate through the recommendations to find the recommended host assignments
         for (RecommendationResponse.HostGroup hostGroup : hostGroups) {
@@ -2955,7 +2951,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     generalProperties.put("short_date", new SimpleDateFormat("MMddyy").format(new Date()));
 
     // add clusterHostInfo config
-    if (configurations.get("clusterHostInfo") == null) {
+    if (configurations.get(CLUSTER_HOST_INFO) == null) {
       Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
 
       if (clusterHostInfo != null) {
@@ -2967,7 +2963,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           componentHosts.put(entry.getKey(), StringUtils.join(entry.getValue(), ","));
         }
 
-        configurations.put("clusterHostInfo", componentHosts);
+        configurations.put(CLUSTER_HOST_INFO, componentHosts);
       }
     }
     configurations.put("principals", principalNames(cluster, configurations));

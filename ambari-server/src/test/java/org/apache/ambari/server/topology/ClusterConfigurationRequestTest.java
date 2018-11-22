@@ -230,7 +230,7 @@ public class ClusterConfigurationRequestTest {
     expectLastCall().andReturn(controller).anyTimes();
 
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.getKerberosHelper()).andReturn(kerberosHelper).times(2);
+    expect(controller.getKerberosHelper()).andReturn(kerberosHelper).times(1);
 
     expect(clusters.getCluster("testCluster")).andReturn(cluster).anyTimes();
 

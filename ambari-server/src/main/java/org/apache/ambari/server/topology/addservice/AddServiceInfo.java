@@ -22,6 +22,7 @@ import static java.util.stream.Collectors.joining;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.topology.Configuration;
@@ -31,13 +32,15 @@ import org.apache.ambari.server.topology.Configuration;
  */
 public final class AddServiceInfo {
 
+  private final AddServiceRequest request;
   private final String clusterName;
   private final Stack stack;
   private final Map<String, Map<String, Set<String>>> newServices;
   private final RequestStageContainer stages;
   private final Configuration config;
 
-  public AddServiceInfo(String clusterName, Stack stack, Configuration config, RequestStageContainer stages, Map<String, Map<String, Set<String>>> newServices) {
+  public AddServiceInfo(AddServiceRequest request, String clusterName, Stack stack, Configuration config, RequestStageContainer stages, Map<String, Map<String, Set<String>>> newServices) {
+    this.request = request;
     this.clusterName = clusterName;
     this.stack = stack;
     this.newServices = newServices;
@@ -48,6 +51,10 @@ public final class AddServiceInfo {
   @Override
   public String toString() {
     return "AddServiceRequest(" + stages.getId() + ")";
+  }
+
+  public AddServiceRequest getRequest() {
+    return request;
   }
 
   public String clusterName() {
