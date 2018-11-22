@@ -180,6 +180,43 @@ public class BlueprintValidatorImplTest {
     verify(group1);
   }
 
+  @Test(expected=InvalidTopologyException.class)
+  public void testValidateTopology_exclusiveDependency() throws Exception {
+    group1Components.add("component2");
+    group1Components.add("component3");
+    dependencies1.add(dependency1);
+    services.addAll(Collections.singleton("service1"));
+
+    expect(blueprint.getHostGroupsForComponent("component1")).andReturn(Arrays.asList(group1, group2)).anyTimes();
+    expect(blueprint.getHostGroupsForComponent("component2")).andReturn(Arrays.asList(group1, group2)).anyTimes();
+    expect(blueprint.getHostGroupsForComponent("component3")).andReturn(Arrays.asList(group1, group2)).anyTimes();
+
+    expect(stack.getComponents("service1")).andReturn(Arrays.asList("component1", "component2")).anyTimes();
+    expect(stack.getComponents("service2")).andReturn(Collections.singleton("component3")).anyTimes();
+    expect(stack.getAutoDeployInfo("component1")).andReturn(autoDeploy).anyTimes();
+
+    AutoDeployInfo dependencyAutoDeploy = new AutoDeployInfo();
+    dependencyAutoDeploy.setEnabled(true);
+    dependencyAutoDeploy.setCoLocate("service1/component1");
+
+    expect(dependency1.getScope()).andReturn("host").anyTimes();
+    expect(dependency1.getType()).andReturn("exclusive").anyTimes();
+    expect(dependency1.getAutoDeploy()).andReturn(dependencyAutoDeploy).anyTimes();
+    expect(dependency1.getComponentName()).andReturn("component3").anyTimes();
+    expect(dependency1.getServiceName()).andReturn("service1").anyTimes();
+    expect(dependency1.getName()).andReturn("dependency1").anyTimes();
+
+    expect(dependencyComponentInfo.isClient()).andReturn(true).anyTimes();
+    expect(stack.getComponentInfo("component3")).andReturn(dependencyComponentInfo).anyTimes();
+
+    replay(blueprint, stack, group1, group2, dependency1, dependencyComponentInfo);
+
+    BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
+    validator.validateTopology();
+
+    verify(group1);
+  }
+
   @Test
   public void testValidateTopology_autoDeploy_hasDependency() throws Exception {
     group1Components.add("component2");
@@ -199,6 +236,7 @@ public class BlueprintValidatorImplTest {
     dependencyAutoDeploy.setCoLocate("service1/component1");
 
     expect(dependency1.getScope()).andReturn("host").anyTimes();
+    expect(dependency1.getType()).andReturn("inclusive").anyTimes();
     expect(dependency1.getAutoDeploy()).andReturn(dependencyAutoDeploy).anyTimes();
     expect(dependency1.getComponentName()).andReturn("component3").anyTimes();
     expect(dependency1.getServiceName()).andReturn("service1").anyTimes();
@@ -343,6 +381,7 @@ public class BlueprintValidatorImplTest {
     AutoDeployInfo dependencyAutoDeploy = null;
 
     expect(dependency1.getScope()).andReturn("host").anyTimes();
+    expect(dependency1.getType()).andReturn("inclusive").anyTimes();
     expect(dependency1.getAutoDeploy()).andReturn(dependencyAutoDeploy).anyTimes();
     expect(dependency1.getComponentName()).andReturn("component-d").anyTimes();
     expect(dependency1.getServiceName()).andReturn("service-d").anyTimes();
@@ -393,6 +432,7 @@ public class BlueprintValidatorImplTest {
     AutoDeployInfo dependencyAutoDeploy = null;
 
     expect(dependency1.getScope()).andReturn("host").anyTimes();
+    expect(dependency1.getType()).andReturn("inclusive").anyTimes();
     expect(dependency1.getAutoDeploy()).andReturn(dependencyAutoDeploy).anyTimes();
     expect(dependency1.getComponentName()).andReturn("component-d").anyTimes();
     expect(dependency1.getServiceName()).andReturn("service-d").anyTimes();
@@ -400,6 +440,7 @@ public class BlueprintValidatorImplTest {
     expect(dependency1.hasDependencyConditions()).andReturn(true).anyTimes();
     expect(dependency1.getDependencyConditions()).andReturn(dependenciesConditionInfos1).anyTimes();
     expect(dependency2.getScope()).andReturn("host").anyTimes();
+    expect(dependency2.getType()).andReturn("inclusive").anyTimes();
     expect(dependency2.getAutoDeploy()).andReturn(dependencyAutoDeploy).anyTimes();
     expect(dependency2.getComponentName()).andReturn("component-d").anyTimes();
     expect(dependency2.getServiceName()).andReturn("service-d").anyTimes();
