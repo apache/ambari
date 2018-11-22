@@ -70,6 +70,8 @@ EXCEPTIONS_TO_RETRY = {
   "RetriableException": ("", 20, 6),
 }
 
+DFS_WHICH_SUPPORT_WEBHDFS = ['hdfs']
+
 class HdfsResourceJar:
   """
   This is slower than HdfsResourceWebHDFS implementation of HdfsResouce, but it works in any cases on any DFS types.
@@ -92,16 +94,9 @@ class HdfsResourceJar:
     if not nameservices or len(nameservices) < 2:
       self.action_delayed_for_nameservice(None, action_name, main_resource)
     else:
-      default_fs_protocol = urlparse(main_resource.resource.default_fs).scheme
-
-      if not default_fs_protocol or default_fs_protocol == "viewfs":
-        protocol = dfs_type.lower()
-      else:
-        protocol = default_fs_protocol
-
       for nameservice in nameservices:
         try:
-          nameservice = protocol + "://" + nameservice
+          nameservice = main_resource.default_protocol + "://" + nameservice
           self.action_delayed_for_nameservice(nameservice, action_name, main_resource)
         except namenode_ha_utils.NoActiveNamenodeException as ex:
           # one of ns can be down (during initial start forexample) no need to worry for federated cluster
@@ -212,12 +207,17 @@ class WebHDFSUtil:
     self.run_user = run_user
     self.security_enabled = security_enabled
     self.logoutput = logoutput
+
+  @staticmethod
+  def get_default_protocol(default_fs, dfs_type):
+    default_fs_protocol = urlparse(default_fs).scheme.lower()
+    is_viewfs = default_fs_protocol == 'viewfs'
+    return dfs_type.lower() if is_viewfs else default_fs_protocol
     
   @staticmethod
-  def is_webhdfs_available(is_webhdfs_enabled, dfs_type):
-    # only hdfs seems to support webHDFS
-    return (is_webhdfs_enabled and dfs_type.lower() == 'hdfs')
-    
+  def is_webhdfs_available(is_webhdfs_enabled, default_protocol):
+    return (is_webhdfs_enabled and default_protocol in DFS_WHICH_SUPPORT_WEBHDFS)
+
   def run_command(self, *args, **kwargs):
     """
     This functions is a wrapper for self._run_command which does retry routine for it.
@@ -637,6 +637,8 @@ class HdfsResourceProvider(Provider):
 
     self.assert_parameter_is_set('dfs_type')
     self.fsType = getattr(resource, 'dfs_type').lower()
+
+    self.default_protocol = WebHDFSUtil.get_default_protocol(resource.default_fs, self.fsType)
     self.can_use_webhdfs = True
 
     if self.fsType == 'hdfs':
@@ -684,13 +686,12 @@ class HdfsResourceProvider(Provider):
 
     if self.has_core_configs:
       path_protocol = urlparse(self.resource.target).scheme.lower()
-      default_fs_protocol = urlparse(self.resource.default_fs).scheme.lower()
 
-      self.create_as_root = path_protocol == 'file' or default_fs_protocol == 'file' and not path_protocol
+      self.create_as_root = path_protocol == 'file' or self.default_protocol == 'file' and path_protocol == None
 
       # for protocols which are different that defaultFs webhdfs will not be able to create directories
       # so for them fast-hdfs-resource.jar should be used
-      if path_protocol and default_fs_protocol != "viewfs" and path_protocol != default_fs_protocol:
+      if path_protocol and path_protocol != self.default_protocol:
         self.can_use_webhdfs = False
         Logger.info("Cannot use webhdfs for {0} defaultFs = {1} has different protocol".format(self.resource.target, self.resource.default_fs))
     else:
@@ -723,7 +724,7 @@ class HdfsResourceProvider(Provider):
     HdfsResourceJar().action_execute(self, sudo=True)
 
   def get_hdfs_resource_executor(self):
-    if self.can_use_webhdfs and WebHDFSUtil.is_webhdfs_available(self.webhdfs_enabled, self.fsType):
+    if self.can_use_webhdfs and WebHDFSUtil.is_webhdfs_available(self.webhdfs_enabled, self.default_protocol):
       return HdfsResourceWebHDFS()
     else:
       return HdfsResourceJar()
