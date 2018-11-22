@@ -448,6 +448,7 @@ var files = [
   'test/views/application_test',
   'test/views/installer_test',
   'test/views/login_test',
+  'test/views/main/cluster_metrics/cpu_test',
   'test/models/service/flume_test',
   'test/models/service/hdfs_test',
   'test/models/service/yarn_test',
