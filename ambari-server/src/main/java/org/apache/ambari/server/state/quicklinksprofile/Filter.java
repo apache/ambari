@@ -23,7 +23,6 @@ import org.apache.ambari.server.state.quicklinks.Link;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import com.google.common.base.Preconditions;
 
 /**

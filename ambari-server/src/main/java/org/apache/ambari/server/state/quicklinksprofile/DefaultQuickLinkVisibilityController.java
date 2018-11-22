@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state.quicklinksprofile;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.Collection;
@@ -25,8 +26,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,7 +47,10 @@ public class DefaultQuickLinkVisibilityController implements QuickLinkVisibility
 
   private final FilterEvaluator globalRules;
   private final Map<String, FilterEvaluator> serviceRules = new HashMap<>();
-  private final Map<ServiceComponent, FilterEvaluator> componentRules = new HashMap<>();
+  /**
+   * Map of (service name, component name) -> filter evaluator
+   */
+  private final Map<Pair<String, String>, FilterEvaluator> componentRules = new HashMap<>();
   /**
    * Map of (service name, link name) -> url
    */
@@ -61,7 +65,7 @@ public class DefaultQuickLinkVisibilityController implements QuickLinkVisibility
       serviceRules.put(service.getName(), new FilterEvaluator(service.getFilters()));
       for (Component component: service.getComponents()) {
         filterCount += size(component.getFilters());
-        componentRules.put(ServiceComponent.of(service.getName(), component.getName()),
+        componentRules.put(Pair.of(service.getName(), component.getName()),
             new FilterEvaluator(component.getFilters()));
       }
     }
@@ -70,16 +74,20 @@ public class DefaultQuickLinkVisibilityController implements QuickLinkVisibility
     }
 
     // compute url overrides
-    profile.getFilters().stream()
-      .filter(f -> f instanceof LinkNameFilter && ((LinkNameFilter)f).getLinkUrl() != null)
-      .findAny()
-      .ifPresent(f -> LOG.warn("Link url overrides only work on service and component levels. Global filter: {}", f));
+    String globalOverrides = LinkNameFilter.getLinkNameFilters(profile.getFilters().stream())
+      .filter(f -> f.getLinkUrl() != null)
+      .map(f -> f.getLinkName() + " -> " + f.getLinkUrl())
+      .collect(joining(", "));
+    if (!globalOverrides.isEmpty()) {
+      LOG.warn("Link url overrides only work on service and component levels. The following global overrides will be " +
+        "ignored: {}", globalOverrides);
+    }
     for (Service service : profile.getServices()) {
       urlOverrides.putAll(getUrlOverrides(service.getName(), service.getFilters()));
 
       for (Component component : service.getComponents()) {
         Map<Pair<String, String>, String> componentUrlOverrides = getUrlOverrides(service.getName(), component.getFilters());
-        Sets.SetView<Pair<String, String>> duplicateOverrides = Sets.difference(urlOverrides.keySet(), componentUrlOverrides.keySet());
+        Set<Pair<String, String>> duplicateOverrides = Sets.intersection(urlOverrides.keySet(), componentUrlOverrides.keySet());
         if (!duplicateOverrides.isEmpty()) {
           LOG.warn("Duplicate url overrides in quick links profile: {}", duplicateOverrides);
         }
@@ -99,7 +107,7 @@ public class DefaultQuickLinkVisibilityController implements QuickLinkVisibility
   }
 
   @Override
-  public java.util.Optional<String> getUrlOverride(@Nonnull String service, @Nonnull Link quickLink) {
+  public Optional<String> getUrlOverride(@Nonnull String service, @Nonnull Link quickLink) {
     return Optional.ofNullable( urlOverrides.get(Pair.of(service, quickLink.getName())) );
   }
 
@@ -134,7 +142,7 @@ public class DefaultQuickLinkVisibilityController implements QuickLinkVisibility
       return Optional.empty();
     }
     else {
-      FilterEvaluator componentEvaluator = componentRules.get(ServiceComponent.of(service, quickLink.getComponentName()));
+      FilterEvaluator componentEvaluator = componentRules.get(Pair.of(service, quickLink.getComponentName()));
       return componentEvaluator != null ? componentEvaluator.isVisible(quickLink) : Optional.empty();
     }
   }
@@ -148,35 +156,5 @@ public class DefaultQuickLinkVisibilityController implements QuickLinkVisibility
     return items != null ? items : Collections.emptyList();
   }
 
-  /**
-   * Simple value class encapsulating a link name an component name.
-   */
-  static class ServiceComponent {
-    private final String service;
-    private final String component;
-
-    ServiceComponent(String service, String component) {
-      this.service = service;
-      this.component = component;
-    }
-
-    static ServiceComponent of(String service, String component) {
-      return new ServiceComponent(service, component);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      ServiceComponent that = (ServiceComponent) o;
-      return Objects.equals(service, that.service) &&
-        Objects.equals(component, that.component);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(service, component);
-    }
-  }
 }
 

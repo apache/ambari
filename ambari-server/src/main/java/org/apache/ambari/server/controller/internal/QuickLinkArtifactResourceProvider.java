@@ -213,7 +213,7 @@ public class QuickLinkArtifactResourceProvider extends AbstractControllerResourc
       for (QuickLinks links: configurationInfo.getQuickLinksConfigurationMap().values()) {
         for(Link link: links.getQuickLinksConfiguration().getLinks()) {
           link.setVisible(visibilityController.isVisible(serviceName, link));
-          visibilityController.getUrlOverride(serviceName, link).ifPresent( url -> link.setUrl(url) );
+          visibilityController.getUrlOverride(serviceName, link).ifPresent(link::setUrl);
         }
       }
     }

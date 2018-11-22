@@ -103,11 +103,6 @@ class QuickLinksFilterDeserializer extends StdDeserializer<Filter> {
           filterClass = LinkAttributeFilter.class;
           break;
         case LinkNameFilter.LINK_NAME:
-          if (null != filterClass && !filterClass.equals(LinkNameFilter.class)) {
-            throw new JsonParseException(parser, PARSE_ERROR_MESSAGE_AMBIGUOUS_FILTER, parser.getCurrentLocation());
-          }
-          filterClass = LinkNameFilter.class;
-          break;
         case LinkNameFilter.LINK_URL:
           if (null != filterClass && !filterClass.equals(LinkNameFilter.class)) {
             throw new JsonParseException(parser, PARSE_ERROR_MESSAGE_AMBIGUOUS_FILTER, parser.getCurrentLocation());

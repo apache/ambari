@@ -19,10 +19,12 @@
 package org.apache.ambari.server.state.quicklinksprofile;
 
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
 import org.apache.ambari.server.state.quicklinks.Link;
+import org.apache.ambari.server.utils.StreamUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -94,5 +96,9 @@ public class LinkNameFilter extends Filter {
       .add("linkUrl", linkUrl)
       .add("visible", isVisible())
       .toString();
+  }
+
+  static Stream<LinkNameFilter> getLinkNameFilters(Stream<Filter> input) {
+    return StreamUtils.instancesOf(input, LinkNameFilter.class);
   }
 }
