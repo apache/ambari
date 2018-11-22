@@ -52,6 +52,24 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <dependencies>
+            <dependency>
+              <name>HDFS/EXCLUSIVE_DEPENDENCY_COMPONENT</name>
+              <scope>host</scope>
+              <type>exclusive</type>
+            </dependency>
+          </dependencies>
+        </component>
+
+        <component>
+          <name>EXCLUSIVE_DEPENDENCY_COMPONENT</name>
+          <category>SLAVE</category>
+          <cardinality>1+</cardinality>
+          <commandScript>
+            <script>scripts/datanode.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
         </component>
 
         <component>

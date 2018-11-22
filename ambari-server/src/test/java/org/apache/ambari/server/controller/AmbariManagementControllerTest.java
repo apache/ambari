@@ -50,6 +50,7 @@ import java.util.UUID;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.H2DatabaseCleaner;
@@ -194,7 +195,7 @@ public class AmbariManagementControllerTest {
   private static final int STACK_VERSIONS_CNT = 17;
   private static final int REPOS_CNT = 3;
   private static final int STACK_PROPERTIES_CNT = 103;
-  private static final int STACK_COMPONENTS_CNT = 4;
+  private static final int STACK_COMPONENTS_CNT = 5;
   private static final int OS_CNT = 2;
 
   private static final String NON_EXT_VALUE = "XXX";
@@ -1524,6 +1525,46 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(clusters.getCluster(cluster1)
         .getService(serviceName).getServiceComponent(componentName2)
         .getServiceComponentHost(host2));
+  }
+
+  @Test(expected=AmbariException.class)
+  public void testCreateServiceComponentHostExclusiveAmbariException()
+      throws Exception {
+    String cluster1 = getUniqueName();
+    createCluster(cluster1);
+    String serviceName = "HDFS";
+    createService(cluster1, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "EXCLUSIVE_DEPENDENCY_COMPONENT";
+    createServiceComponent(cluster1, serviceName, componentName1,
+        State.INIT);
+    createServiceComponent(cluster1, serviceName, componentName2,
+        State.INIT);
+    createServiceComponent(cluster1, serviceName, componentName3,
+        State.INIT);
+    String host1 = getUniqueName();
+    String host2 = getUniqueName();
+    addHostToCluster(host1, cluster1);
+    addHostToCluster(host2, cluster1);
+
+    Set<ServiceComponentHostRequest> set1 =
+      new HashSet<>();
+    ServiceComponentHostRequest r1 =
+        new ServiceComponentHostRequest(cluster1, serviceName,
+            componentName1, host1, State.INIT.toString());
+    ServiceComponentHostRequest r2 =
+        new ServiceComponentHostRequest(cluster1, serviceName,
+            componentName3, host1, State.INIT.toString());
+    ServiceComponentHostRequest r3 =
+        new ServiceComponentHostRequest(cluster1, serviceName,
+            componentName2, host1, State.INIT.toString());
+
+    set1.add(r1);
+    set1.add(r2);
+    set1.add(r3);
+
+    controller.createHostComponents(set1);
   }
 
   @Test
