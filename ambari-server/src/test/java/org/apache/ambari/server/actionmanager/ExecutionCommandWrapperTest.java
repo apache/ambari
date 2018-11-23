@@ -325,9 +325,9 @@ public class ExecutionCommandWrapperTest {
     Cluster cluster = clusters.getCluster(CLUSTER1);
 
     StackId stackId = cluster.getDesiredStackVersion();
-    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId, "0.1-0000");
+    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(new StackId("HDP", "0.2"), "0.2-0000");
     repositoryVersion.setResolved(true); // has build number
-    Service service = cluster.getService("HDFS");
+    Service service = cluster.addService("HIVE", repositoryVersion);
     service.setDesiredRepositoryVersion(repositoryVersion);
 
     repositoryVersion.addRepoOsEntities(new ArrayList<>());
@@ -342,10 +342,10 @@ public class ExecutionCommandWrapperTest {
     executionCommand.setTaskId(1);
     executionCommand.setRequestAndStage(1, 1);
     executionCommand.setHostname(HOST1);
-    executionCommand.setRole("NAMENODE");
+    executionCommand.setRole("HIVE_SERVER");
     executionCommand.setRoleParams(Collections.<String, String>emptyMap());
     executionCommand.setRoleCommand(RoleCommand.INSTALL);
-    executionCommand.setServiceName("HDFS");
+    executionCommand.setServiceName("HIVE");
     executionCommand.setCommandType(AgentCommandType.EXECUTION_COMMAND);
     executionCommand.setCommandParams(commandParams);
 
@@ -366,10 +366,10 @@ public class ExecutionCommandWrapperTest {
     executionCommand.setTaskId(1);
     executionCommand.setRequestAndStage(1, 1);
     executionCommand.setHostname(HOST1);
-    executionCommand.setRole("NAMENODE");
+    executionCommand.setRole("HIVE_SERVER");
     executionCommand.setRoleParams(Collections.<String, String> emptyMap());
     executionCommand.setRoleCommand(RoleCommand.START);
-    executionCommand.setServiceName("HDFS");
+    executionCommand.setServiceName("HIVE");
     executionCommand.setCommandType(AgentCommandType.EXECUTION_COMMAND);
     executionCommand.setCommandParams(commandParams);
 
@@ -379,7 +379,7 @@ public class ExecutionCommandWrapperTest {
 
     processedExecutionCommand = execCommWrap.getExecutionCommand();
     commandParams = processedExecutionCommand.getCommandParams();
-    Assert.assertEquals("0.1-0000", commandParams.get(KeyNames.VERSION));
+    Assert.assertEquals("0.2-0000", commandParams.get(KeyNames.VERSION));
   }
 
   @AfterClass
