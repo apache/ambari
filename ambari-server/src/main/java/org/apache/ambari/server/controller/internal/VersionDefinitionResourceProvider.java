@@ -296,7 +296,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       if (dryRun) {
         validations.add(err);
       } else {
-        throw new IllegalArgumentException(err);
+        throw new ResourceAlreadyExistsException(err);
       }
     }
 
@@ -307,7 +307,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       if (dryRun) {
         validations.add(err);
       } else {
-        throw new IllegalArgumentException(err);
+        throw new ResourceAlreadyExistsException(err);
       }
     }
 

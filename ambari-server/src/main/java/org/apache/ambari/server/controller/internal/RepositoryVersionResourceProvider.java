@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
 import org.apache.ambari.server.api.resources.RepositoryResourceDefinition;
@@ -201,10 +202,10 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
           RepositoryVersionEntity entity = toRepositoryVersionEntity(properties);
 
           if (repositoryVersionDAO.findByDisplayName(entity.getDisplayName()) != null) {
-            throw new AmbariException("Repository version with name " + entity.getDisplayName() + " already exists");
+            throw new DuplicateResourceException("Repository version with name " + entity.getDisplayName() + " already exists");
           }
           if (repositoryVersionDAO.findByStackAndVersion(entity.getStack(), entity.getVersion()) != null) {
-            throw new AmbariException("Repository version for stack " + entity.getStack() + " and version " + entity.getVersion() + " already exists");
+            throw new DuplicateResourceException("Repository version for stack " + entity.getStack() + " and version " + entity.getVersion() + " already exists");
           }
 
           validateRepositoryVersion(repositoryVersionDAO, ambariMetaInfo, entity);
@@ -479,7 +480,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       for (RepoDefinitionEntity repositoryEntity : os.getRepoDefinitionEntities()) {
         String baseUrl = repositoryEntity.getBaseUrl();
         if (!skipUrlCheck && os.isAmbariManaged() && existingRepoUrls.contains(baseUrl)) {
-          throw new AmbariException("Base url " + baseUrl + " is already defined for another repository version. " +
+          throw new DuplicateResourceException("Base url " + baseUrl + " is already defined for another repository version. " +
                   "Setting up base urls that contain the same versions of components will cause stack upgrade to fail.");
         }
       }
