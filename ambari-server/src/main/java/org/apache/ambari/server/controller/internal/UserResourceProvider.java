@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.UserRequest;
@@ -170,7 +171,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
       public Void invoke() throws AmbariException {
         try {
           createUsers(requests);
-        } catch (ResourceAlreadyExistsException | AuthorizationException e) {
+        } catch (AuthorizationException e) {
           throw new AmbariException(e.getMessage(), e);
         }
         return null;
@@ -354,7 +355,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
    * @param requests the request objects which define the user.
    * @throws AmbariException when the user cannot be created.
    */
-  private void createUsers(Set<UserRequest> requests) throws AmbariException, ResourceAlreadyExistsException, AuthorizationException {
+  private void createUsers(Set<UserRequest> requests) throws AmbariException, AuthorizationException {
     // First check for obvious issues... then try to create the accounts.  This will help to avoid
     // some accounts being created and some not due to an issue with one or more of the users.
     for (UserRequest request : requests) {
@@ -371,7 +372,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
         } else {
           message = "One or more of the requested usernames already exists.";
         }
-        throw new ResourceAlreadyExistsException(message);
+        throw new DuplicateResourceException(message);
       }
     }
 

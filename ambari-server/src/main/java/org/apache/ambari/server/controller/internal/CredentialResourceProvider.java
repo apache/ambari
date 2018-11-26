@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -368,7 +369,7 @@ public class CredentialResourceProvider extends AbstractControllerResourceProvid
       String alias = getAlias(properties);
 
       if (credentialStoreService.containsCredential(clusterName, alias)) {
-        throw new AmbariException("A credential with the alias of " + alias + " already exists");
+        throw new DuplicateResourceException("A credential with the alias of " + alias + " already exists");
       }
 
       credentialStoreService.setCredential(clusterName, alias, createCredential(properties), credentialStoreType);
