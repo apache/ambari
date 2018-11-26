@@ -295,3 +295,35 @@ def is_api_ssl_enabled(properties):
     ssl_enabled = api_ssl_prop.lower() == "true"
 
   return ssl_enabled
+
+def eligible(service_info, is_sso_integration):
+  if  is_sso_integration:
+    return service_info['sso_integration_supported'] and (not service_info['sso_integration_requires_kerberos'] or service_info['kerberos_enabled'])
+  else:
+    return service_info['ldap_integration_supported']
+
+def get_eligible_services(properties, admin_login, admin_password, cluster_name, entry_point, service_qualifier):
+  print_info_msg("Fetching %s enabled services" % service_qualifier)
+
+  safe_cluster_name = urllib2.quote(cluster_name)
+
+  response_code, json_data = get_json_via_rest_api(properties, admin_login, admin_password, entry_point % safe_cluster_name)
+
+  services = []
+
+  if json_data and 'items' in json_data:
+    services = [item['ServiceInfo']['service_name'] for item in json_data['items'] if eligible(item['ServiceInfo'], 'SSO' ==  service_qualifier)]
+
+    if len(services) > 0:
+      print_info_msg('Found %s enabled services: %s' % (service_qualifier, ', '.join(services)))
+    else:
+      print_info_msg('No %s enabled services were found' % service_qualifier)
+
+  return services
+
+def get_value_from_dictionary(properties, key, default_value=None):
+  return properties[key] if properties and key in properties else default_value
+
+def get_boolean_from_dictionary(properties, key, default_value=False):
+  value = get_value_from_dictionary(properties, key, None)
+  return 'true' == value.lower() if value else default_value

@@ -54,7 +54,8 @@ from ambari_server.serverConfiguration import configDefaults, parse_properties_f
   get_resources_location, SECURITY_MASTER_KEY_LOCATION, SETUP_OR_UPGRADE_MSG, \
   CHECK_AMBARI_KRB_JAAS_CONFIGURATION_PROPERTY
 from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base, \
-  get_ambari_admin_username_password_pair, perform_changes_via_rest_api, get_ssl_context
+  get_ambari_admin_username_password_pair, perform_changes_via_rest_api, get_ssl_context, get_cluster_name, \
+  get_eligible_services, get_boolean_from_dictionary, get_value_from_dictionary
 from ambari_server.setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input, \
   quit_if_has_answer
@@ -89,13 +90,18 @@ SETUP_LDAP_CONFIG_URL = 'services/AMBARI/components/AMBARI_SERVER/configurations
 
 PAM_CONFIG_FILE = 'pam.configuration'
 
-IS_LDAP_CONFIGURED = "ambari.ldap.authentication.enabled"
 LDAP_MGR_USERNAME_PROPERTY = "ambari.ldap.connectivity.bind_dn"
 LDAP_MGR_PASSWORD_FILENAME = "ldap-password.dat"
 LDAP_ANONYMOUS_BIND="ambari.ldap.connectivity.anonymous_bind"
 LDAP_USE_SSL="ambari.ldap.connectivity.use_ssl"
 LDAP_DISABLE_ENDPOINT_IDENTIFICATION = "ambari.ldap.advanced.disable_endpoint_identification"
 NO_AUTH_METHOD_CONFIGURED = "no auth method"
+
+AMBARI_LDAP_AUTH_ENABLED = "ambari.ldap.authentication.enabled"
+LDAP_MANAGE_SERVICES = "ambari.ldap.manage_services"
+LDAP_ENABLED_SERVICES = "ambari.ldap.enabled_services"
+WILDCARD_FOR_ALL_SERVICES = "*"
+FETCH_SERVICES_FOR_LDAP_ENTRYPOINT = "clusters/%s/services?ServiceInfo/ldap_integration_supported=true&fields=ServiceInfo/*"
 
 def read_master_key(isReset=False, options = None):
   passwordPattern = ".*"
@@ -338,7 +344,7 @@ def get_ldap_properties_from_db(properties, admin_login, admin_password):
   return ldap_properties
 
 def is_ldap_enabled(properties, admin_login, admin_password):
-  ldap_enabled = get_ldap_property_from_db(properties, admin_login, admin_password, IS_LDAP_CONFIGURED)
+  ldap_enabled = get_ldap_property_from_db(properties, admin_login, admin_password, AMBARI_LDAP_AUTH_ENABLED)
   return ldap_enabled if ldap_enabled is not None else 'false'
 
 
@@ -814,7 +820,9 @@ def setup_ldap(options):
                             LDAP_DISABLE_ENDPOINT_IDENTIFICATION,
                             SSL_TRUSTSTORE_TYPE_PROPERTY,
                             SSL_TRUSTSTORE_PATH_PROPERTY,
-                            SSL_TRUSTSTORE_PASSWORD_PROPERTY]
+                            SSL_TRUSTSTORE_PASSWORD_PROPERTY,
+                            LDAP_MANAGE_SERVICES,
+                            LDAP_ENABLED_SERVICES]
 
   ldap_property_list_passwords=[LDAP_MGR_PASSWORD_PROPERTY, SSL_TRUSTSTORE_PASSWORD_PROPERTY]
 
@@ -891,6 +899,9 @@ def setup_ldap(options):
         pass
       pass
 
+  populate_ambari_requires_ldap(options, ldap_property_value_map)
+  populate_service_management(options, ldap_property_value_map, properties, admin_login, admin_password)
+
   print '=' * 20
   print 'Review Settings'
   print '=' * 20
@@ -934,7 +945,6 @@ def setup_ldap(options):
 
     print 'Saving LDAP properties...'
 
-    ldap_property_value_map[IS_LDAP_CONFIGURED] = "true"
     #Saving LDAP configuration in Ambari DB using the REST API
     update_ldap_configuration(admin_login, admin_password, properties, ldap_property_value_map)
 
@@ -1127,3 +1137,61 @@ def migrate_ldap_pam(args):
   else:
     print_info_msg('LDAP to PAM migration completed')
   return retcode
+
+
+def populate_ambari_requires_ldap(options, properties):
+  if options.ldap_enabled_ambari is None:
+    enabled = get_boolean_from_dictionary(properties, AMBARI_LDAP_AUTH_ENABLED, False)
+    enabled = get_YN_input("Use LDAP authentication for Ambari [y/n] ({0})? ".format('y' if enabled else 'n'), enabled)
+  else:
+    enabled = 'true' == options.ldap_enabled_ambari
+
+  properties[AMBARI_LDAP_AUTH_ENABLED] = 'true' if enabled else 'false'
+
+
+def populate_service_management(options, properties, ambari_properties, admin_login, admin_password):
+  services = ""
+  if options.ldap_enabled_services is None:
+    if options.ldap_manage_services is None:
+      manage_services = get_boolean_from_dictionary(properties, LDAP_MANAGE_SERVICES, False)
+      manage_services = get_YN_input("Manage LDAP configurations for eligible services [y/n] ({0})? ".format('y' if manage_services else 'n'), manage_services)
+    else:
+      manage_services = 'true' == options.ldap_manage_services
+      stored_manage_services = get_boolean_from_dictionary(properties, LDAP_MANAGE_SERVICES, False)
+      print("Manage LDAP configurations for eligible services [y/n] ({0})? {1}".format('y' if stored_manage_services else 'n', 'y' if manage_services else 'n'))
+
+    if manage_services:
+      enabled_services = get_value_from_dictionary(properties, LDAP_ENABLED_SERVICES, "").upper().split(',')
+
+      all = "*" in enabled_services
+      configure_for_all_services = get_YN_input(" Manage LDAP for all services [y/n] ({0})? ".format('y' if all else 'n'), all)
+      if configure_for_all_services:
+        services = WILDCARD_FOR_ALL_SERVICES
+      else:
+        cluster_name = get_cluster_name(ambari_properties, admin_login, admin_password)
+
+        if cluster_name:
+          eligible_services = get_eligible_services(ambari_properties, admin_login, admin_password, cluster_name, FETCH_SERVICES_FOR_LDAP_ENTRYPOINT, 'LDAP')
+
+          if eligible_services and len(eligible_services) > 0:
+            service_list = []
+
+            for service in eligible_services:
+              enabled = service.upper() in enabled_services
+              question = "   Manage LDAP for {0} [y/n] ({1})? ".format(service, 'y' if enabled else 'n')
+              if get_YN_input(question, enabled):
+                service_list.append(service)
+
+            services = ','.join(service_list)
+          else:
+            print ("   There are no eligible services installed.")
+  else:
+    if options.ldap_manage_services:
+      manage_services = 'true' == options.ldap_manage_services
+    else:
+      manage_services = True
+
+    services = options.ldap_enabled_services.upper() if options.ldap_enabled_services else ""
+
+  properties[LDAP_MANAGE_SERVICES] = 'true' if manage_services else 'false'
+  properties[LDAP_ENABLED_SERVICES] = services
