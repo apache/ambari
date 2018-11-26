@@ -22,11 +22,25 @@ require('mappers/components_state_mapper');
 describe('App.componentsStateMapper', function () {
 
   describe('#getComponentConfig', function() {
+    
+    beforeEach(function() {
+      sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create({
+        isClient: true
+      }));
+    });
+    afterEach(function() {
+      App.StackServiceComponent.find.restore();
+    });
     it('should paths to component properties', function() {
       expect(App.componentsStateMapper.getComponentConfig('DATANODE')).to.be.eql({
         "data_nodes_installed": "ServiceComponentInfo.installed_count",
         "data_nodes_started": "ServiceComponentInfo.started_count",
         "data_nodes_total": "ServiceComponentInfo.total_count"
+      });
+    });
+    it('Client paths', function() {
+      expect(App.componentsStateMapper.getComponentConfig('HDFS_CLIENT')).to.be.eql({
+        "installed_clients": "ServiceComponentInfo.total_count"
       });
     });
   });
