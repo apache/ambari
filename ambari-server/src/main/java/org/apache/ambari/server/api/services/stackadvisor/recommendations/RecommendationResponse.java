@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services.stackadvisor.recommendations;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
@@ -163,6 +164,20 @@ public class RecommendationResponse extends StackAdvisorResponse {
     public void setPropertyAttributes(Map<String, ValueAttributesInfo> propertyAttributes) {
       this.propertyAttributes = propertyAttributes;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      BlueprintConfigurations that = (BlueprintConfigurations) o;
+      return Objects.equals(properties, that.properties) &&
+          Objects.equals(propertyAttributes, that.propertyAttributes);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(properties, propertyAttributes);
+    }
   }
 
   public static class HostGroup {
@@ -267,6 +282,21 @@ public class RecommendationResponse extends StackAdvisorResponse {
 
     public void setDependentConfigurations(Map<String, BlueprintConfigurations> dependentConfigurations) {
       this.dependentConfigurations = dependentConfigurations;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      ConfigGroup that = (ConfigGroup) o;
+      return Objects.equals(hosts, that.hosts) &&
+          Objects.equals(configurations, that.configurations) &&
+          Objects.equals(dependentConfigurations, that.dependentConfigurations);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(hosts, configurations, dependentConfigurations);
     }
   }
 
