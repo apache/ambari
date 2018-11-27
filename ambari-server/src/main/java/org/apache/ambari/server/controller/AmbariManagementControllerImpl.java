@@ -757,7 +757,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       throw new DuplicateResourceException(msg + names);
     }
 
-    validateExclusiveDependencies(hostComponentNames);
+    if (!isBlueprintProvisioned) {
+      validateExclusiveDependencies(hostComponentNames);
+    }
 
     // set restartRequired flag for  monitoring services
     setMonitoringServicesRestartRequired(requests);
@@ -788,7 +790,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
             for (DependencyInfo dependencyInfo : dependencyInfos) {
               if ("host".equals(dependencyInfo.getScope()) && "exclusive".equals(dependencyInfo.getType())) {
-                Service depService = clusters.getCluster(clusterEntry.getKey()).getService(dependencyInfo.getServiceName());
+                Service depService;
+                try {
+                  depService = clusters.getCluster(clusterEntry.getKey()).getService(dependencyInfo.getServiceName());
+                } catch (ServiceNotFoundException e) {
+                  LOG.debug("Skipping dependency " + dependencyInfo + " for " + serviceEntry.getKey() + " since the dependent service is not installed ");
+                  continue;
+                }
                 if (depService != null && depService.getServiceComponents().containsKey(dependencyInfo.getComponentName())) {
                   ServiceComponent dependentSC = depService.getServiceComponent(dependencyInfo.getComponentName());
                   if (dependentSC != null) {
