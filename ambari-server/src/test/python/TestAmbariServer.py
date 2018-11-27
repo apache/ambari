@@ -7047,7 +7047,9 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.attributes.user.search_base": "uid",
         "ambari.ldap.connectivity.anonymous_bind": "true",
         "ambari.ldap.advanced.referrals": "follow",
-        "ambari.ldap.authentication.enabled": "true"
+        "ambari.ldap.authentication.enabled": "true",
+        "ambari.ldap.manage_services": "true",
+        "ambari.ldap.enabled_services":"*"
       }
     return ldap_properties_map
 
@@ -7073,7 +7075,9 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.advanced.collision_behavior": "skip",
         "ambari.ldap.advanced.force_lowercase_usernames": "false",
         "ambari.ldap.advanced.pagination_enabled": "false",
-        "ambari.ldap.authentication.enabled": "true"
+        "ambari.ldap.authentication.enabled": "true",
+        "ambari.ldap.manage_services": "true",
+        "ambari.ldap.enabled_services":"*"
       }
     return ldap_properties_map
 
@@ -7092,7 +7096,9 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.advanced.force_lowercase_usernames": "false",
         "ambari.ldap.advanced.pagination_enabled": "false",
         "ambari.ldap.advanced.referrals": "follow",
-        "ambari.ldap.authentication.enabled": "true"
+        "ambari.ldap.authentication.enabled": "true",
+        "ambari.ldap.manage_services": "true",
+        "ambari.ldap.enabled_services":"*"
       }
     return ldap_properties_map
 
@@ -7116,7 +7122,9 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.advanced.collision_behavior": "skip",
         "ambari.ldap.advanced.force_lowercase_usernames": "false",
         "ambari.ldap.advanced.pagination_enabled": "false",
-        "ambari.ldap.authentication.enabled": "true"
+        "ambari.ldap.authentication.enabled": "true",
+        "ambari.ldap.manage_services": "true",
+        "ambari.ldap.enabled_services":"*"
       }
     return ldap_properties_map
 
@@ -7280,7 +7288,9 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.attributes.dn_attr": "test",
         "ambari.ldap.advanced.referrals": "test",
         LDAP_MGR_PASSWORD_PROPERTY: "ldap-password.dat",
-        "ambari.ldap.authentication.enabled": "true"
+        "ambari.ldap.authentication.enabled": "true",
+        "ambari.ldap.manage_services": "true",
+        "ambari.ldap.enabled_services":"ZOOKEEPER",
       }
     return ldap_properties_map
 
@@ -7301,7 +7311,10 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.query_ldap_type")
   @patch("ambari_server.setupSecurity.get_ldap_properties_from_db")
-  def test_setup_ldap(self, get_ldap_properties_from_db_method, query_ldap_type_method, is_server_runing_method, logger_mock, exists_method, read_password_method, get_ambari_properties_method,
+  @patch("ambari_server.setupSecurity.get_eligible_services")
+  @patch("ambari_server.setupSecurity.get_cluster_name")
+  def test_setup_ldap(self, get_cluster_name_method, get_eligible_services_method,
+                      get_ldap_properties_from_db_method, query_ldap_type_method, is_server_runing_method, logger_mock, exists_method, read_password_method, get_ambari_properties_method,
                       search_file_message,
                       get_validated_string_input_method,
                       configure_ldap_password_method, update_properties_method,
@@ -7334,6 +7347,10 @@ class TestAmbariServer(TestCase):
     def yn_input_side_effect(*args, **kwargs):
       if 'TrustStore' in args[0]:
         return False
+      if 'for all services' in args[0]:
+        return False
+      if 'Manage LDAP for HDFS' in args[0]: #note that LDAP is enabled for HDFS (see below) but we say we do not want it to be managed by Ambari
+        return False
       else:
         return True
 
@@ -7354,6 +7371,10 @@ class TestAmbariServer(TestCase):
         return "test"
 
     get_validated_string_input_method.side_effect = valid_input_side_effect
+
+    get_cluster_name_method.return_value = "cluster1"
+    eligible_services = ["HDFS", "ZOOKEEPER"]
+    get_eligible_services_method.return_value = eligible_services
 
     response = MagicMock()
     response.getcode.return_value = 200
@@ -7415,7 +7436,7 @@ class TestAmbariServer(TestCase):
     get_validated_string_input_method.side_effect = input_enable_ssl
     read_password_method.return_value = "password"
     get_YN_input_method.reset_mock()
-    get_YN_input_method.side_effect = [True, True, True]
+    get_YN_input_method.side_effect = [True, True, True, False, True]
     update_properties_method.reset_mock()
 
     options.ldap_primary_host = None
@@ -8781,6 +8802,10 @@ class TestAmbariServer(TestCase):
 
   def _create_empty_options_mock(self):
     options = MagicMock()
+    options.ldap_enabled = None
+    options.ldap_enabled_ambari = None
+    options.ldap_manage_services = None
+    options.ldap_enabled_services = None
     options.ldap_url = None
     options.ldap_primary_host = None
     options.ldap_primary_port = None

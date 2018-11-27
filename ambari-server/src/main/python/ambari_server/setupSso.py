@@ -26,7 +26,8 @@ from ambari_commons.logging_utils import get_silent, print_info_msg
 
 from ambari_server.serverConfiguration import get_ambari_properties
 from ambari_server.serverUtils import is_server_runing, get_ambari_admin_username_password_pair, \
-  get_cluster_name, perform_changes_via_rest_api, get_json_via_rest_api
+  get_cluster_name, perform_changes_via_rest_api, get_json_via_rest_api, get_eligible_services, \
+  get_boolean_from_dictionary, get_value_from_dictionary
 from ambari_server.setupSecurity import REGEX_TRUE_FALSE
 from ambari_server.userInput import get_validated_string_input, get_YN_input, get_multi_line_input
 
@@ -134,31 +135,6 @@ def populate_ambari_requires_sso(options, properties):
 
   properties[AMBARI_SSO_AUTH_ENABLED] = 'true' if enabled else 'false'
 
-def eligible(service_info):
-  return service_info['sso_integration_supported'] \
-         and (not service_info['sso_integration_requires_kerberos'] or service_info['kerberos_enabled'])
-
-def get_eligible_services(properties, admin_login, admin_password, cluster_name):
-  print_info_msg("Fetching SSO enabled services")
-
-  safe_cluster_name = urllib2.quote(cluster_name)
-
-  response_code, json_data = get_json_via_rest_api(properties, admin_login, admin_password,
-                                                   FETCH_SERVICES_FOR_SSO_ENTRYPOINT % safe_cluster_name)
-
-  services = []
-
-  if json_data and 'items' in json_data:
-    services = [item['ServiceInfo']['service_name'] for item in json_data['items'] if eligible(item['ServiceInfo'])]
-
-    if len(services) > 0:
-      print_info_msg('Found SSO enabled services: %s' % ', '.join(services))
-    else:
-      print_info_msg('No SSO enabled services were found')
-
-  return services
-
-
 def populate_service_management(options, properties, ambari_properties, admin_login, admin_password):
   if not options.sso_enabled_services:
     if not options.sso_manage_services:
@@ -183,7 +159,7 @@ def populate_service_management(options, properties, ambari_properties, admin_lo
         cluster_name = get_cluster_name(ambari_properties, admin_login, admin_password)
 
         if cluster_name:
-          eligible_services = get_eligible_services(ambari_properties, admin_login, admin_password, cluster_name)
+          eligible_services = get_eligible_services(ambari_properties, admin_login, admin_password, cluster_name, FETCH_SERVICES_FOR_SSO_ENTRYPOINT, 'SSO')
 
           if eligible_services and len(eligible_services) > 0:
             service_list = []
@@ -318,11 +294,4 @@ def ensure_complete_cert(cert_string):
       cert_string = cert_string + '\n' + CERTIFICATE_FOOTER
 
   return cert_string
-
-def get_value_from_dictionary(properties, key, default_value=None):
-  return properties[key] if properties and key in properties else default_value
-
-def get_boolean_from_dictionary(properties, key, default_value=False):
-  value = get_value_from_dictionary(properties, key, None)
-  return 'true' == value.lower() if value else default_value
 
