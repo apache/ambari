@@ -482,6 +482,7 @@ class TestSetupSso(unittest.TestCase):
     self.assertEqual(ssoProperties[SSO_ENABLED_SERVICES], "*")
 
 
+  @patch("urllib2.urlopen")
   @patch("ambari_server.setupSso.perform_changes_via_rest_api")
   @patch("ambari_server.setupSso.get_cluster_name")
   @patch("ambari_server.setupSso.get_YN_input")
@@ -497,7 +498,8 @@ class TestSetupSso(unittest.TestCase):
                                                              get_ambari_properties_mock,
                                                              get_YN_input_mock,
                                                              get_cluster_name_mock,
-                                                             perform_changes_via_rest_api_mock):
+                                                             perform_changes_via_rest_api_mock,
+                                                             urlopen_mock):
     out = StringIO.StringIO()
     sys.stdout = out
 
@@ -582,6 +584,7 @@ class TestSetupSso(unittest.TestCase):
     response = MagicMock()
     response.getcode.return_value = 200
     response.read.return_value = eligible_services
+    urlopen_mock.return_value = response
 
     options = self._create_empty_options_mock()
     options.sso_enabled = 'true'

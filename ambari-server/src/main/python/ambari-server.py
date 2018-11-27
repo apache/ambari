@@ -581,6 +581,10 @@ def init_ldap_setup_parser_options(parser):
   parser.add_option('--truststore-path', default=None, help="Path of TrustStore", dest="trust_store_path")
   parser.add_option('--truststore-password', default=None, help="Password for TrustStore", dest="trust_store_password")
   parser.add_option('--truststore-reconfigure', action="store_true", default=None, help="Force to reconfigure TrustStore if exits", dest="trust_store_reconfigure")
+  parser.add_option('--ldap-enabled-ambari', default=None, help="Indicates whether to enable/disable LDAP authentication for Ambari, itself", dest='ldap_enabled_ambari')
+  parser.add_option('--ldap-manage-services', default=None, help="Indicates whether Ambari should manage the LDAP configurations for specified services", dest='ldap_manage_services')
+  parser.add_option('--ldap-enabled-services', default=None, help="A comma separated list of services that are expected to be configured for LDAP (you are allowed to use '*' to indicate ALL services)", dest='ldap_enabled_services')
+
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_setup_sso_options(parser):
