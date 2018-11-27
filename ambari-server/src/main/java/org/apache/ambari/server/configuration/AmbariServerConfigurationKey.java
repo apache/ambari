@@ -54,7 +54,7 @@ public enum AmbariServerConfigurationKey {
 
   USER_OBJECT_CLASS(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.attributes.user.object_class", PLAINTEXT, "person", "The class to which user objects in LDAP belong.", false),
   USER_NAME_ATTRIBUTE(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.attributes.user.name_attr", PLAINTEXT, "uid", "The attribute used for determining the user name, such as 'uid'.", false),
-  USER_GROUP_MEMBER_ATTRIBUTE(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.attributes.user.group_member_attr", PLAINTEXT, "", "", false), //TODO
+  USER_GROUP_MEMBER_ATTRIBUTE(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.attributes.user.group_member_attr", PLAINTEXT, "memberof", "The LDAP attribute which identifies user group membership.", false),
   USER_SEARCH_BASE(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.attributes.user.search_base", PLAINTEXT, "dc=ambari,dc=apache,dc=org", "The base DN to use when filtering LDAP users and groups. This is only used when LDAP authentication is enabled.", false),
   USER_BASE(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.attributes.search_user_base", PLAINTEXT, "ou=people,dc=ambari,dc=apache,dc=org", "The filter used when searching for users in LDAP.", false),
 

@@ -560,6 +560,7 @@ def init_ldap_setup_parser_options(parser):
   parser.add_option('--ldap-type', default=None, help="Specify ldap type [{}] for offering defaults for missing options.".format("/".join(LDAP_TYPES)), dest="ldap_type")
   parser.add_option('--ldap-user-class', default=None, help="User Attribute Object Class for LDAP", dest="ldap_user_class")
   parser.add_option('--ldap-user-attr', default=None, help="User Attribute Name for LDAP", dest="ldap_user_attr")
+  parser.add_option('--ldap-user-group-member-attr', default=None, help="User Group Member Attribute for LDAP", dest="ldap_user_group_member_attr")
   parser.add_option('--ldap-group-class', default=None, help="Group Attribute Object Class for LDAP", dest="ldap_group_class")
   parser.add_option('--ldap-group-attr', default=None, help="Group Attribute Name for LDAP", dest="ldap_group_attr")
   parser.add_option('--ldap-member-attr', default=None, help="Group Membership Attribute Name for LDAP", dest="ldap_member_attr")
