@@ -1163,7 +1163,7 @@ def populate_service_management(options, properties, ambari_properties, admin_lo
     if manage_services:
       enabled_services = get_value_from_dictionary(properties, LDAP_ENABLED_SERVICES, "").upper().split(',')
 
-      all = "*" in enabled_services
+      all = WILDCARD_FOR_ALL_SERVICES in enabled_services
       configure_for_all_services = get_YN_input(" Manage LDAP for all services [y/n] ({0})? ".format('y' if all else 'n'), all)
       if configure_for_all_services:
         services = WILDCARD_FOR_ALL_SERVICES
