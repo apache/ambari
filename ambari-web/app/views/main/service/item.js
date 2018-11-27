@@ -158,11 +158,11 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
     var allMasters = service.get('hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
     var allSlaves = service.get('slaveComponents').rejectProperty('totalCount', 0).mapProperty('componentName');
     var actionMap = App.HostComponentActionMap.getMap(this);
-    var serviceCheckSupported = App.get('services.supportsServiceCheck').contains(service.get('serviceName'))
-      && service.get('installedClients') > 0;
+    var serviceName = service.get('serviceName');
+    var hasClient = App.StackService.find(serviceName).get('hasClient') ? service.get('installedClients') > 0 : true;
+    var serviceCheckSupported = App.get('services.supportsServiceCheck').contains(serviceName) && hasClient;
     var hasConfigTab = this.get('hasConfigTab');
     var excludedCommands = this.get('mastersExcludedCommands');
-    var serviceName = service.get('serviceName');
     var hasMultipleMasterComponentGroups = this.get('service.hasMultipleMasterComponentGroups');
 
     if (App.isAuthorized('SERVICE.START_STOP')) {
