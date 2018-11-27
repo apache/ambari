@@ -7065,6 +7065,7 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.connectivity.use_ssl": "false",
         "ambari.ldap.attributes.user.object_class": "user",
         "ambari.ldap.attributes.user.name_attr": "uid",
+        "ambari.ldap.attributes.user.group_member_attr": "memberof",
         "ambari.ldap.attributes.group.object_class": "group",
         "ambari.ldap.attributes.group.name_attr": "cn",
         "ambari.ldap.attributes.group.member_attr": "member",
@@ -7112,6 +7113,7 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.connectivity.use_ssl": "false",
         "ambari.ldap.attributes.user.object_class": "user",
         "ambari.ldap.attributes.user.name_attr": "uid",
+        "ambari.ldap.attributes.user.group_member_attr": "memberof",
         "ambari.ldap.attributes.group.object_class": "group",
         "ambari.ldap.attributes.group.name_attr": "cn",
         "ambari.ldap.attributes.group.member_attr": "member",
@@ -7159,7 +7161,7 @@ class TestAmbariServer(TestCase):
     properties.process_pair(CLIENT_API_PORT_PROPERTY, '8080')
 
     get_ambari_properties_method.return_value = properties
-    raw_input_mock.side_effect = [LDAP_GENERIC, 'a', '3', 'b', 'b', 'hody', 'b', '2', 'false', 'user', 'uid', 'group', 'cn', 'member', 'dn', 'base', 'follow', 'true', 'skip', 'false', 'false', 'admin']
+    raw_input_mock.side_effect = [LDAP_GENERIC, 'a', '3', 'b', 'b', 'hody', 'b', '2', 'false', 'user', 'uid', 'memberof', 'group', 'cn', 'member', 'dn', 'base', 'follow', 'true', 'skip', 'false', 'false', 'admin']
     get_password_mock.side_effect = ['admin']
     set_silent(False)
     get_YN_input_method.return_value = True
@@ -7189,11 +7191,11 @@ class TestAmbariServer(TestCase):
     self.assertTrue(urlopen_mock.called)
     self.assertTrue(update_properties_method.called)
     self.assertTrue(get_YN_input_method.called)
-    self.assertEquals(21, raw_input_mock.call_count)
+    self.assertEquals(22, raw_input_mock.call_count)
     self.assertEqual(1, get_password_mock.call_count)
     
     raw_input_mock.reset_mock()
-    raw_input_mock.side_effect = [LDAP_GENERIC, 'a', '3', '', '', 'b', '2', 'false', 'user', 'uid', 'group', 'cn', 'member', 'dn', 'base', 'follow', 'true', 'skip', 'false', 'false', 'admin']
+    raw_input_mock.side_effect = [LDAP_GENERIC, 'a', '3', '', '', 'b', '2', 'false', 'user', 'uid', 'memberof', 'group', 'cn', 'member', 'dn', 'base', 'follow', 'true', 'skip', 'false', 'false', 'admin']
     get_password_mock.reset_mock()
     get_password_mock.side_effect = ['admin']
 
@@ -7219,7 +7221,7 @@ class TestAmbariServer(TestCase):
     self.assertTrue(urlopen_mock.called)
     self.assertTrue(update_properties_method.called)
     self.assertTrue(get_YN_input_method.called)
-    self.assertEquals(20, raw_input_mock.call_count)
+    self.assertEquals(21, raw_input_mock.call_count)
     self.assertEqual(1, get_password_mock.call_count)
 
     sys.stdout = sys.__stdout__
@@ -7276,6 +7278,7 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.connectivity.use_ssl": "false",
         "ambari.ldap.attributes.user.object_class": "test",
         "ambari.ldap.attributes.user.name_attr": "test",
+        "ambari.ldap.attributes.user.group_member_attr": "test",
         "ambari.ldap.attributes.user.search_base": "test",
         "ambari.ldap.connectivity.anonymous_bind": "false",
         "ambari.ldap.advanced.collision_behavior": "skip",
@@ -8815,6 +8818,7 @@ class TestAmbariServer(TestCase):
     options.ldap_ssl = None
     options.ldap_user_class = None
     options.ldap_user_attr = None
+    options.ldap_user_group_member_attr = None
     options.ldap_group_class = None
     options.ldap_group_attr = None
     options.ldap_member_attr = None
