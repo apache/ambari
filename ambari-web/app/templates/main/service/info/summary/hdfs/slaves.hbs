@@ -84,6 +84,19 @@
         </div>
       </div>
     {{/if}}
+    {{! HDFS Clients }}
+    {{#if view.isHDFSClientCreated}}
+      <div {{bindAttr class=":row :component :col-md-3 view.hdfsClientComponent.componentName"}}>
+        <div class="summary-value main-info">
+          <span>{{view.service.installedClients}} {{t common.installed}} </span>
+        </div>
+        <div class="summary-label">
+          <a {{action filterHosts view.hdfsClientComponent}} href="javascript:void(null)">
+            {{pluralize view.service.installedClients singular="t:dashboard.services.hdfs.client" plural="t:dashboard.services.hdfs.clients"}}
+          </a>
+        </div>
+      </div>
+    {{/if}}
     {{! indent next row}}
     <div class="row"></div>
     <div class="summary-label col-md-12">{{t dashboard.services.hdfs.datanodecounts}}</div>

@@ -53,6 +53,11 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   clientsLength: 0,
 
   /**
+   * @type {boolean}
+   */
+  hasComponents: Em.computed.or('mastersLength', 'slavesLength', 'clientsLength'),
+
+  /**
    *  @property {String} templatePathPrefix - base path for custom templates
    *    if you want to add custom template, add <service_name>.hbs file to
    *    templates/main/service/info/summary folder.
