@@ -34,6 +34,13 @@ public interface ServerAction {
   String ACTION_USER_NAME = "ACTION_USER_NAME";
 
   /**
+   * The name of the class that the server action is going to delegate to. This
+   * is used in cases were a server action is being told to run another
+   * non-server action, such as during an upgrade.
+   */
+  String WRAPPED_CLASS_NAME = "WRAPPED_CLASS_NAME";
+
+  /**
    * The default timeout (in seconds) to use for potentially long running tasks such as creating
    * Kerberos principals and generating Kerberos keytab files
    */

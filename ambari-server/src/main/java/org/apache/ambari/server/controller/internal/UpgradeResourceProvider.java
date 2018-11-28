@@ -45,6 +45,7 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.cleanup.ClasspathScannerUtils;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
 import org.apache.ambari.server.controller.AmbariActionExecutionHelper;
@@ -82,7 +83,9 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
+import org.apache.ambari.server.serveraction.upgrades.PluginUpgradeServerAction;
 import org.apache.ambari.server.stack.upgrade.AddComponentTask;
 import org.apache.ambari.server.stack.upgrade.ConfigUpgradePack;
 import org.apache.ambari.server.stack.upgrade.ConfigureTask;
@@ -106,7 +109,9 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
+import org.apache.ambari.spi.upgrade.UpgradeAction;
 import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -1278,14 +1283,22 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   /**
-   * Creates a stage consisting of server side actions
-   * @param context upgrade context
-   * @param request upgrade request
-   * @param entity a single of upgrade
-   * @param task server-side task (if any)
-   * @param configUpgradePack a runtime-generated config upgrade pack that
-   * contains all config change definitions from all stacks involved into
-   * upgrade
+   * Creates a stage consisting of server side actions. If the server action is
+   * a {@link ServerAction} instance, then it will schedule it after verifying
+   * that the class can be loaded. If the action is an {@link UpgradeAction},
+   * then it will be scheduled as a {@link PluginUpgradeServerAction}.
+   * 
+   * @param context
+   *          upgrade context
+   * @param request
+   *          upgrade request
+   * @param entity
+   *          a single of upgrade
+   * @param task
+   *          server-side task (if any)
+   * @param configUpgradePack
+   *          a runtime-generated config upgrade pack that contains all config
+   *          change definitions from all stacks involved into upgrade
    * @throws AmbariException
    */
   private boolean makeServerSideStage(UpgradeGroupHolder group, UpgradeContext context,
@@ -1448,7 +1461,38 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     Map<String, String> taskParameters = task.getParameters();
     commandParams.putAll(taskParameters);
-    stage.addServerActionCommand(task.getImplementationClass(),
+
+    // attempt to get a classloader from the stack (for plugins), and if there
+    // is not one, then default to Ambari's classloader
+    StackInfo stackInfo = s_metaProvider.get().getStack(stackId);
+    ClassLoader classLoader = stackInfo.getLibraryClassLoader();
+    if (null == classLoader) {
+      classLoader = ClasspathScannerUtils.class.getClassLoader();
+    }
+
+    // try to figure out what the class is so it can be scheduled correctly
+    final String classToSchedule;
+    String taskClass = task.getImplementationClass();
+    try {
+      Class<?> clazz = classLoader.loadClass(taskClass);
+      if (UpgradeAction.class.isAssignableFrom(clazz)) {
+        // upgrade actions are scheduled using our own server action, passing
+        // the name of the upgrade action in via the command params
+        classToSchedule = PluginUpgradeServerAction.class.getName();
+        commandParams.put(ServerAction.WRAPPED_CLASS_NAME, taskClass);
+      } else if (ServerAction.class.isAssignableFrom(clazz)) {
+        classToSchedule = task.getImplementationClass();
+      } else {
+        throw new AmbariException("The class " + taskClass
+            + " was not able to be scheduled during the upgrade because it is not compatible");
+      }
+    } catch (ClassNotFoundException cnfe) {
+      LOG.error("Unable to load {} specified in the upgrade pack", taskClass, cnfe);
+      throw new AmbariException("The class " + taskClass
+          + " was not able to be scheduled during the upgrade because it was not found");
+    }
+
+    stage.addServerActionCommand(classToSchedule,
         getManagementController().getAuthName(), Role.AMBARI_SERVER_ACTION, RoleCommand.EXECUTE,
         cluster.getClusterName(),
         new ServiceComponentHostServerActionEvent(null, System.currentTimeMillis()), commandParams,
