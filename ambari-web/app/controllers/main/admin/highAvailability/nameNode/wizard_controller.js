@@ -198,20 +198,14 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
         type: 'async',
         callback: function () {
           var dfd = $.Deferred(),
-            self = this,
-            usersLoadingCallback = function () {
-              self.saveHdfsUser();
-              self.load('cluster');
-              dfd.resolve();
-            };
-          if (App.db.getHighAvailabilityWizardHdfsUser()) {
-            usersLoadingCallback();
-          } else {
-            this.loadHdfsUserFromServer().done(function (data) {
-              self.set('content.hdfsUser', Em.get(data, '0.properties.hdfs_user'));
-              usersLoadingCallback();
-            });
-          }
+            self = this;
+            
+          this.loadHdfsUserFromServer().done(function (data) {
+            self.set('content.hdfsUser', Em.get(data, '0.properties.hdfs_user'));
+            self.saveHdfsUser();
+            self.load('cluster');
+            dfd.resolve();
+          });
           return dfd.promise();
         }
       }

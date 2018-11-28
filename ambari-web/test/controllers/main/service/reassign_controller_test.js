@@ -130,5 +130,23 @@ describe('App.ReassignMasterController', function () {
     });
 
   });
+  
+  describe('#updateUserConfigs', function() {
+    
+    it('should update user and group from configs', function() {
+      reassignMasterController.set('content.configs', {
+        'hadoop-env': {
+          'hdfs_user': 'u1'
+        },
+        'cluster-env': {
+          'user_group': 'g1'
+        }
+      });
+      reassignMasterController.updateUserConfigs();
+      expect(reassignMasterController.get('content.hdfsUser')).to.be.equal('u1');
+      expect(reassignMasterController.get('content.group')).to.be.equal('g1');
+      
+    });
+  });
 
 });
