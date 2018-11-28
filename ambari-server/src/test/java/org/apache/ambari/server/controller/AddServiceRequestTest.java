@@ -42,11 +42,16 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
+import org.apache.ambari.server.security.encryption.CredentialStoreType;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configurable;
 import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.Credential;
+import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -110,6 +115,16 @@ public class AddServiceRequestTest {
       ImmutableSet.of(Service.of("STORM"), Service.of("BEACON")),
       request.getServices());
 
+    assertEquals(
+      Optional.of(new SecurityConfiguration(SecurityType.KERBEROS, "ref_to_kerb_desc", null)),
+      request.getSecurity());
+
+    assertEquals(
+      ImmutableMap.of(
+        "kdc.admin.credential", new Credential( "kdc.admin.credential", "admin/admin@EXAMPLE.COM", "k", CredentialStoreType.TEMPORARY)
+      ),
+      request.getCredentials()
+    );
   }
 
   @Test
@@ -131,6 +146,8 @@ public class AddServiceRequestTest {
     assertEquals(INSTALL_AND_START, request.getProvisionAction());
     assertNull(request.getStackName());
     assertNull(request.getStackVersion());
+    assertEquals(Optional.empty(), request.getSecurity());
+    assertEquals(ImmutableMap.of(), request.getCredentials());
 
     Configuration configuration = request.getConfiguration();
     assertTrue(configuration.getFullAttributes().isEmpty());

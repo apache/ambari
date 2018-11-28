@@ -18,53 +18,108 @@
 
 package org.apache.ambari.server.topology;
 
+import static org.apache.ambari.server.controller.internal.ProvisionClusterRequest.ALIAS;
+import static org.apache.ambari.server.controller.internal.ProvisionClusterRequest.KEY;
+import static org.apache.ambari.server.controller.internal.ProvisionClusterRequest.PRINCIPAL;
+import static org.apache.ambari.server.controller.internal.ProvisionClusterRequest.TYPE;
+
+import java.util.Objects;
+
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Holds credential info submitted in a cluster create template.
  */
+@ApiModel
 public class Credential {
 
   /**
    * Credential alias like kdc.admin.credential.
    */
-  private String alias;
+  private final String alias;
 
   /**
    * Name of a principal.
    */
-  private String principal;
+  private final String principal;
 
   /**
    * Key of credential.
    */
-  private String key;
+  private final String key;
 
   /**
    * Type of credential store.
    */
-  private CredentialStoreType type;
+  private final CredentialStoreType type;
 
-  public Credential(String alias, String principal, String key, CredentialStoreType type) {
+  @JsonCreator
+  public Credential(
+    @JsonProperty(ALIAS) String alias,
+    @JsonProperty(PRINCIPAL) String principal,
+    @JsonProperty(KEY) String key,
+    @JsonProperty(TYPE) CredentialStoreType type
+  ) {
     this.alias = alias;
     this.principal = principal;
     this.key = key;
     this.type = type;
   }
 
+  @JsonProperty(ALIAS)
+  @ApiModelProperty(name = ALIAS)
   public String getAlias() {
     return alias;
   }
 
+  @JsonProperty(PRINCIPAL)
+  @ApiModelProperty(name = PRINCIPAL)
   public String getPrincipal() {
     return principal;
   }
 
+  @JsonProperty(KEY)
+  @ApiModelProperty(name = KEY)
   public String getKey() {
     return key;
   }
 
+  @JsonProperty(TYPE)
+  @ApiModelProperty(name = TYPE)
   public CredentialStoreType getType() {
     return type;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || obj.getClass() != getClass()) {
+      return false;
+    }
+
+    Credential other = (Credential) obj;
+
+    return Objects.equals(alias, other.alias) &&
+      Objects.equals(principal, other.principal) &&
+      Objects.equals(key, other.key) &&
+      Objects.equals(type, other.type);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(alias, principal, key, type);
+  }
+
+  @Override
+  public String toString() {
+    return alias;
   }
 }

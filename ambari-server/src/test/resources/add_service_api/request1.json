@@ -21,6 +21,20 @@
     }
   ],
 
+  "security": {
+    "type": "KERBEROS",
+    "kerberos_descriptor_reference": "ref_to_kerb_desc"
+  },
+
+  "credentials": [
+    {
+      "alias": "kdc.admin.credential",
+      "principal": "admin/admin@EXAMPLE.COM",
+      "key": "k",
+      "type": "TEMPORARY"
+    }
+  ],
+
   "configurations" : [
     {
       "storm-site" : {

@@ -48,12 +48,12 @@ import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
-import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
@@ -76,6 +76,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
+import org.apache.ambari.server.topology.addservice.ResourceProviderAdapter;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.topology.validators.TopologyValidatorService;
@@ -84,6 +85,8 @@ import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
@@ -395,32 +398,23 @@ public class TopologyManager {
     }
   }
 
-  private void submitCredential(String clusterName, Credential credential) {
-
-    ResourceProvider provider =
-        ambariContext.getClusterController().ensureResourceProvider(Resource.Type.Credential);
-
-    Map<String, Object> properties = new HashMap<>();
-    properties.put(CredentialResourceProvider.CREDENTIAL_CLUSTER_NAME_PROPERTY_ID, clusterName);
-    properties.put(CredentialResourceProvider.CREDENTIAL_ALIAS_PROPERTY_ID, KDC_ADMIN_CREDENTIAL);
-    properties.put(CredentialResourceProvider.CREDENTIAL_PRINCIPAL_PROPERTY_ID, credential.getPrincipal());
-    properties.put(CredentialResourceProvider.CREDENTIAL_KEY_PROPERTY_ID, credential.getKey());
-    properties.put(CredentialResourceProvider.CREDENTIAL_TYPE_PROPERTY_ID, credential.getType().name());
-
-    org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.emptySet(),
-        Collections.singleton(properties), Collections.emptyMap(), null);
-
+  private static void submitCredential(String clusterName, Credential credential) {
+    ResourceProvider provider = AmbariContext.getClusterController().ensureResourceProvider(Resource.Type.Credential);
+    Map<String, Object> credentialProperties = ResourceProviderAdapter.createCredentialRequestProperties(clusterName, credential);
+    Request request = new RequestImpl(ImmutableSet.of(), ImmutableSet.of(credentialProperties), ImmutableMap.of(), null);
+    String baseMessage = String.format("Failed to add credential %s to cluster %s", credential.getAlias(), clusterName);
     try {
       RequestStatus status = provider.createResources(request);
       if (status.getStatus() != RequestStatus.Status.Complete) {
-        throw new RuntimeException("Failed to attach kerberos_descriptor artifact to cluster!");
+        String msg = String.format("%s, received status: %s", baseMessage, status.getStatus());
+        LOG.error(msg);
+        throw new RuntimeException(msg);
       }
-    } catch (SystemException | UnsupportedPropertyException | NoSuchParentResourceException e) {
-      throw new RuntimeException("Failed to attach kerberos_descriptor artifact to cluster: " + e);
-    } catch (ResourceAlreadyExistsException e) {
-      throw new RuntimeException("Failed to attach kerberos_descriptor artifact to cluster as resource already exists.");
+    } catch (ResourceAlreadyExistsException | SystemException | UnsupportedPropertyException | NoSuchParentResourceException e) {
+      String msg = String.format("%s, %s", baseMessage, e);
+      LOG.error(msg);
+      throw new RuntimeException(msg, e);
     }
-
   }
 
   /**

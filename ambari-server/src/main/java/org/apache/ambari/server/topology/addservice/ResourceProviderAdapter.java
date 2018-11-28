@@ -36,6 +36,7 @@ import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
+import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
@@ -56,10 +57,9 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
-import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.Credential;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,9 +79,6 @@ public class ResourceProviderAdapter {
   @Inject
   private AmbariManagementController controller;
 
-  @Inject
-  private ConfigHelper configHelper;
-
   public void createServices(AddServiceInfo request) {
     LOG.info("Creating service resources for {}", request);
 
@@ -89,7 +86,7 @@ public class ResourceProviderAdapter {
       .map(service -> createServiceRequestProperties(request, service))
       .collect(toSet());
 
-    createResources(request, properties, Resource.Type.Service);
+    createResources(request, properties, Resource.Type.Service, false);
   }
 
   public void createComponents(AddServiceInfo request) {
@@ -100,7 +97,7 @@ public class ResourceProviderAdapter {
         .map(component -> createComponentRequestProperties(request, componentsOfService.getKey(), component)))
       .collect(toSet());
 
-    createResources(request, properties, Resource.Type.Component);
+    createResources(request, properties, Resource.Type.Component, false);
   }
 
   public void createHostComponents(AddServiceInfo request) {
@@ -112,7 +109,7 @@ public class ResourceProviderAdapter {
           .map(host -> createHostComponentRequestProperties(request, componentsOfService.getKey(), hostsOfComponent.getKey(), host))))
       .collect(toSet());
 
-    createResources(request, properties, Resource.Type.HostComponent);
+    createResources(request, properties, Resource.Type.HostComponent, false);
   }
 
   public void createConfigs(AddServiceInfo request) {
@@ -121,9 +118,22 @@ public class ResourceProviderAdapter {
     updateCluster(request, requests, "Error creating configurations for %s");
   }
 
-  public void updateExistingConfigs(AddServiceInfo request) {
+  public void createCredentials(AddServiceInfo request) {
+    if (!request.getRequest().getCredentials().isEmpty()) {
+      LOG.info("Creating {} credential(s) for {}", request.getRequest().getCredentials().size(), request);
+
+      request.getRequest().getCredentials().values().stream()
+        .peek(credential -> LOG.debug("Creating credential {}", credential))
+        .map(credential -> createCredentialRequestProperties(request.clusterName(), credential))
+        .forEach(
+          properties -> createResources(request, ImmutableSet.of(properties), Resource.Type.Credential, true)
+        );
+    }
+  }
+
+  public void updateExistingConfigs(AddServiceInfo request, Set<String> existingServices) {
     LOG.info("Updating existing configurations for {}", request);
-    Set<ClusterRequest> requests = createConfigRequestsForExistingServices(request);
+    Set<ClusterRequest> requests = createConfigRequestsForExistingServices(request, existingServices);
     updateCluster(request, requests, "Error updating configurations for %s");
   }
 
@@ -154,15 +164,19 @@ public class ResourceProviderAdapter {
     }
   }
 
-  private static void createResources(AddServiceInfo request, Set<Map<String, Object>> properties, Resource.Type resourceType) {
+  private static void createResources(AddServiceInfo request, Set<Map<String, Object>> properties, Resource.Type resourceType, boolean okIfExists) {
     Request internalRequest = new RequestImpl(null, properties, null, null);
     ResourceProvider rp = getClusterController().ensureResourceProvider(resourceType);
     try {
       rp.createResources(internalRequest);
     } catch (UnsupportedPropertyException | SystemException | ResourceAlreadyExistsException | NoSuchParentResourceException e) {
-      String msg = String.format("Error creating resources %s for %s", resourceType, request);
-      LOG.error(msg, e);
-      throw new RuntimeException(msg, e);
+      if (okIfExists && e instanceof ResourceAlreadyExistsException) {
+        LOG.info("Resource already exists: {}, no need to create", e.getMessage());
+      } else {
+        String msg = String.format("Error creating resources %s for %s", resourceType, request);
+        LOG.error(msg, e);
+        throw new RuntimeException(msg, e);
+      }
     }
   }
 
@@ -229,6 +243,18 @@ public class ResourceProviderAdapter {
     return properties.build();
   }
 
+  public static Map<String, Object> createCredentialRequestProperties(String clusterName, Credential credential) {
+    ImmutableMap.Builder<String, Object> properties = ImmutableMap.builder();
+
+    properties.put(CredentialResourceProvider.CREDENTIAL_CLUSTER_NAME_PROPERTY_ID, clusterName);
+    properties.put(CredentialResourceProvider.CREDENTIAL_ALIAS_PROPERTY_ID, credential.getAlias());
+    properties.put(CredentialResourceProvider.CREDENTIAL_PRINCIPAL_PROPERTY_ID, credential.getPrincipal());
+    properties.put(CredentialResourceProvider.CREDENTIAL_KEY_PROPERTY_ID, credential.getKey());
+    properties.put(CredentialResourceProvider.CREDENTIAL_TYPE_PROPERTY_ID, credential.getType().name());
+
+    return properties.build();
+  }
+
   private static Set<ClusterRequest> createConfigRequestsForNewServices(AddServiceInfo request) {
     Map<String, Map<String, String>> fullProperties = request.getConfig().getFullProperties();
     Map<String, Map<String, Map<String, String>>> fullAttributes = request.getConfig().getFullAttributes();
@@ -240,17 +266,7 @@ public class ResourceProviderAdapter {
     );
   }
 
-  private Set<ClusterRequest> createConfigRequestsForExistingServices(AddServiceInfo request) {
-    Cluster cluster = getCluster(request.clusterName());
-    Map<String, Map<String, String>> desiredConfigTags = getDesiredTags(cluster);
-    Configuration mergedConfig = new Configuration(
-      request.getConfig().getProperties(), request.getConfig().getAttributes(),
-      new Configuration(
-        configHelper.getEffectiveConfigProperties(cluster, desiredConfigTags),
-        configHelper.getEffectiveConfigAttributes(cluster, desiredConfigTags)
-      )
-    );
-
+  private Set<ClusterRequest> createConfigRequestsForExistingServices(AddServiceInfo request, Set<String> existingServices) {
     Set<String> configTypesInRequest = ImmutableSet.copyOf(
       Sets.difference(
         Sets.union(
@@ -259,11 +275,11 @@ public class ResourceProviderAdapter {
         ImmutableSet.of(ConfigHelper.CLUSTER_ENV))
     );
 
-    Map<String, Map<String, String>> fullProperties = mergedConfig.getFullProperties();
-    Map<String, Map<String, Map<String, String>>> fullAttributes = mergedConfig.getFullAttributes();
+    Map<String, Map<String, String>> fullProperties = request.getConfig().getFullProperties();
+    Map<String, Map<String, Map<String, String>>> fullAttributes = request.getConfig().getFullAttributes();
 
     Set<ClusterRequest> clusterRequests = createConfigRequestsForServices(
-      cluster.getServices().keySet(),
+      existingServices,
       configTypesInRequest::contains,
       request, fullProperties, fullAttributes
     );
@@ -321,26 +337,6 @@ public class ResourceProviderAdapter {
     ClusterRequest clusterRequest = new ClusterRequest(null, addServiceRequest.clusterName(), null, null);
     clusterRequest.setDesiredConfig(configRequests);
     return Optional.of(clusterRequest);
-  }
-
-  private Map<String, Map<String, String>> getDesiredTags(Cluster cluster) {
-    try {
-      return configHelper.getEffectiveDesiredTags(cluster, null);
-    } catch (AmbariException e) {
-      String msg = String.format("Error getting tags for desired config of cluster %s", cluster.getClusterName());
-      LOG.error(msg);
-      throw new IllegalStateException(msg, e);
-    }
-  }
-
-  private Cluster getCluster(String clusterName) {
-    try {
-      return controller.getClusters().getCluster(clusterName);
-    } catch (AmbariException e) {
-      String msg = String.format("Cannot find cluster %s", clusterName);
-      LOG.error(msg);
-      throw new IllegalStateException(msg, e);
-    }
   }
 
   private static Predicate predicateForNewServices(AddServiceInfo request, String category) {
