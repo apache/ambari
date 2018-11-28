@@ -64,6 +64,20 @@
     {{/if}}
   {{/if}}
 {{/each}}
-{{#if view.componentCommonWidgetsView}}
-  {{view view.componentCommonWidgetsView}}
+{{#unless view.mastersComp.length}}
+  <div class="col-md-12">
+    <div class="col-md-2">
+      {{#if view.parentView.parentView.hasComponents}}
+        {{t dashboard.services.hdfs.summary.components}}
+      {{/if}}
+    </div>
+    <div class="col-md-10">
+      {{view App.SummaryClientComponentsView clientsObjBinding="view.parentView.parentView.clientObj"}}
+    </div>
+  </div>
+{{/unless}}
+{{#if view.parentView.parentView.service.hasMasterOrSlaveComponent}}
+  {{#if view.componentCommonWidgetsView}}
+    {{view view.componentCommonWidgetsView}}
+  {{/if}}
 {{/if}}
