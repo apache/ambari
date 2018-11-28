@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import static org.apache.ambari.server.configuration.AmbariServerConfigurationKey.GROUP_MAPPING_RULES;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
@@ -32,13 +31,10 @@ import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
-import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
-import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
-import org.apache.ambari.server.events.JpaInitializedEvent;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
@@ -46,7 +42,6 @@ import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
-import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
@@ -58,6 +53,7 @@ import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapGroupDto;
 import org.apache.ambari.server.security.ldap.LdapUserDto;
 import org.apache.ambari.server.security.ldap.LdapUserGroupMemberDto;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -540,16 +536,13 @@ public class TestUsers {
 
   @Test
   public void testProcessLdapSync() {
-    // Setup LDAP properties
-    AmbariConfigurationEntity entity = new AmbariConfigurationEntity();
-    entity.setCategoryName(GROUP_MAPPING_RULES.getConfigurationCategory().getCategoryName());
-    entity.setPropertyName(GROUP_MAPPING_RULES.key());
-    entity.setPropertyValue("admins");
-    injector.getInstance(AmbariConfigurationDAO.class).create(entity);
+    AmbariLdapConfiguration ambariLdapConfiguration = EasyMock.createMock(AmbariLdapConfiguration.class);
+    EasyMock.expect(ambariLdapConfiguration.groupMappingRules()).andReturn("admins").anyTimes();
 
-    AmbariEventPublisher eventPublisher = injector.getInstance(AmbariEventPublisher.class);
-    eventPublisher.publish(new JpaInitializedEvent());
-    eventPublisher.publish(new AmbariConfigurationChangedEvent(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.name()));
+    AmbariLdapConfigurationProvider ambariLdapConfigurationProvider = injector.getInstance(AmbariLdapConfigurationProvider.class);
+    EasyMock.expect(ambariLdapConfigurationProvider.get()).andReturn(ambariLdapConfiguration).anyTimes();
+
+    EasyMock.replay(ambariLdapConfigurationProvider, ambariLdapConfiguration);
 
     LdapBatchDto batchInfo = new LdapBatchDto();
     LdapUserDto userToBeCreated;

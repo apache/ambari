@@ -58,7 +58,7 @@ public class AmbariErrorHandlerTest extends EasyMockSupport {
   public void testErrorWithJetty() throws Exception {
     Server server = new Server(0);
     JwtAuthenticationPropertiesProvider propertiesProvider = createNiceMock(JwtAuthenticationPropertiesProvider.class);
-    expect(propertiesProvider.getProperties()).andReturn(null).anyTimes();
+    expect(propertiesProvider.get()).andReturn(null).anyTimes();
 
     replayAll();
 
