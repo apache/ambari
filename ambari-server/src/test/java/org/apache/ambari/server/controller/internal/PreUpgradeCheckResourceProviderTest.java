@@ -95,6 +95,7 @@ import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
+import org.apache.ambari.spi.ClusterInformation;
 import org.apache.ambari.spi.RepositoryType;
 import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
 import org.apache.ambari.spi.upgrade.UpgradeCheckType;
@@ -121,6 +122,8 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
 
   private static final String TEST_SERVICE_CHECK_CLASS_NAME = "org.apache.ambari.server.sample.checks.SampleServiceCheck";
 
+  private static final String CLUSTER_NAME = "Cluster100";
+
   @Test
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public void testGetResources() throws Exception{
@@ -138,6 +141,7 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+    ClusterInformation clusterInformation = createNiceMock(ClusterInformation.class);
 
     expect(service.getDesiredRepositoryVersion()).andReturn(repo).atLeastOnce();
 
@@ -155,6 +159,9 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
     expect(desiredConfig.getTag()).andReturn("config-tag-1").atLeastOnce();
     expect(cluster.getDesiredConfigs()).andReturn(configMap).atLeastOnce();
     expect(cluster.getConfig("config-type", "config-tag-1")).andReturn(actualConfig).atLeastOnce();
+    expect(cluster.buildClusterInformation()).andReturn(clusterInformation).anyTimes();
+
+    expect(clusterInformation.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
 
     Map<String, Service> allServiceMap = new HashMap<>();
     allServiceMap.put("Service100", service);
@@ -174,8 +181,8 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
-    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
-    expect(cluster.getClusterName()).andReturn("Cluster100").atLeastOnce();
+    expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterName()).andReturn(CLUSTER_NAME).atLeastOnce();
     expect(cluster.getServices()).andReturn(allServiceMap).anyTimes();
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(currentStackId).anyTimes();
@@ -191,7 +198,7 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
     expect(repo.getId()).andReturn(1L).atLeastOnce();
     expect(repo.getType()).andReturn(RepositoryType.STANDARD).atLeastOnce();
     expect(repo.getVersion()).andReturn("1.1.0.0").atLeastOnce();
-    expect(upgradeHelper.suggestUpgradePack("Cluster100", currentStackId, targetStackId, Direction.UPGRADE, UpgradeType.NON_ROLLING, "upgrade_pack11")).andReturn(upgradePack);
+    expect(upgradeHelper.suggestUpgradePack(CLUSTER_NAME, currentStackId, targetStackId, Direction.UPGRADE, UpgradeType.NON_ROLLING, "upgrade_pack11")).andReturn(upgradePack);
 
     List<String> prerequisiteChecks = new LinkedList<>();
     prerequisiteChecks.add(TEST_SERVICE_CHECK_CLASS_NAME);
@@ -220,7 +227,7 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
     // create the request
     Request request = PropertyHelper.getReadRequest(new HashSet<>());
     PredicateBuilder builder = new PredicateBuilder();
-    Predicate predicate = builder.property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
+    Predicate predicate = builder.property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals(CLUSTER_NAME).and()
         .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID).equals("upgrade_pack11").and()
         .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(UpgradeType.NON_ROLLING).and()
         .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_TARGET_REPOSITORY_VERSION_ID_ID).equals("1").toPredicate();
@@ -256,7 +263,7 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
     UpgradeCheckType checkType = (UpgradeCheckType) customUpgradeCheck.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID);
     Assert.assertEquals(UpgradeCheckType.HOST, checkType);
     String clusterName = (String) customUpgradeCheck.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID);
-    Assert.assertEquals("Cluster100", clusterName);
+    Assert.assertEquals(CLUSTER_NAME, clusterName);
     UpgradeType upgradeType = (UpgradeType) customUpgradeCheck.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID);
     Assert.assertEquals(UpgradeType.NON_ROLLING, upgradeType);
   }

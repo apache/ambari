@@ -34,7 +34,7 @@ public interface UpgradeAction {
    * during the upgrade.
    *
    * @param clusterInformation
-   *          the cluster information, such as topology, configruations, etc.
+   *          the cluster information, such as topology, configurations, etc.
    *
    * @return the changes to perform during the upgrade, such as updating
    *         configurations.

@@ -1287,18 +1287,27 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * a {@link ServerAction} instance, then it will schedule it after verifying
    * that the class can be loaded. If the action is an {@link UpgradeAction},
    * then it will be scheduled as a {@link PluginUpgradeServerAction}.
-   * 
+   *
+   * @param group
+   *          the upgrade group
    * @param context
-   *          upgrade context
+   *          the upgrade context containing all of the information about the
+   *          upgrade.
+   * @param stackId
+   *          the ID of the stack that this stage is being created for. In some
+   *          upgrades, the stack ID changes part way through, such as during an
+   *          express upgrade.
    * @param request
-   *          upgrade request
+   *          the request being constructed, but not yet persisted.
    * @param entity
-   *          a single of upgrade
+   *          the upgrade item entity associated with the stage.
    * @param task
-   *          server-side task (if any)
+   *          the task from the upgrade pack XML which this command is being
+   *          built for.
    * @param configUpgradePack
-   *          a runtime-generated config upgrade pack that contains all config
-   *          change definitions from all stacks involved into upgrade
+   *          the configuration changes for the upgrade.
+   * @return {@code true} if the stage creation was successful, or {@code false}
+   *         if no processing was performed.
    * @throws AmbariException
    */
   private boolean makeServerSideStage(UpgradeGroupHolder group, UpgradeContext context,
