@@ -45,6 +45,21 @@ public class UpgradeActionException extends AmbariException {
   }
 
   /**
+   * Constructor.
+   *
+   * @param failedClass
+   *          the failed {@link UpgradeAction}.
+   * @param message
+   *          the failure message.
+   * @param cause
+   *          the underlying exception
+   */
+  public UpgradeActionException(Class<? extends UpgradeAction> failedClass, String message, Throwable cause) {
+    super(message, cause);
+    m_failedClass = failedClass;
+  }
+
+  /**
    * Gets the class of the failed upgrade action.
    *
    * @return the failed {@link UpgradeAction}.

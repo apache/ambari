@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The {@link UpgradeActionOperations} is used to instruct Ambari Server to perform
- * actions during an upgrade. It is returns by
+ * The {@link UpgradeActionOperations} is used to instruct Ambari Server to
+ * perform actions during an upgrade. It is returned by
  * {@link UpgradeAction#getOperations()}.
  */
 public class UpgradeActionOperations {
