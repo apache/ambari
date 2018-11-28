@@ -18,6 +18,11 @@
 
 package org.apache.ambari.server.api.services.stackadvisor.recommendations;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,8 +31,12 @@ import java.util.Set;
 
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.state.ValueAttributesInfo;
+import org.apache.commons.lang3.tuple.Pair;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Recommendation response POJO.
@@ -125,6 +134,12 @@ public class RecommendationResponse extends StackAdvisorResponse {
     public void setHostGroups(Set<HostGroup> hostGroups) {
       this.hostGroups = hostGroups;
     }
+
+    public Map<String, Set<String>> getHostgroupComponentMap() {
+      return hostGroups.stream()
+        .flatMap(hg -> hg.getComponentNames().stream().map(comp -> Pair.of(hg.getName(), comp)))
+        .collect(groupingBy(Pair::getKey, mapping(Pair::getValue, toSet())));
+    }
   }
 
   public static class BlueprintConfigurations {
@@ -202,6 +217,25 @@ public class RecommendationResponse extends StackAdvisorResponse {
     public void setComponents(Set<Map<String, String>> components) {
       this.components = components;
     }
+
+    @JsonIgnore
+    public Set<String> getComponentNames() {
+      return components.stream().map(comp -> comp.get("name")).collect(toSet());
+    }
+
+    public static Set<HostGroup> fromHostGroupComponents(Map<String, Set<String>> hostGroupComponents) {
+      return hostGroupComponents.entrySet().stream()
+        .map(entry -> create(entry.getKey(), entry.getValue()))
+        .collect(toSet());
+    }
+
+    public static HostGroup create(String name, Set<String> componentNames) {
+      HostGroup group = new HostGroup();
+      group.setName(name);
+      Set<Map<String, String>> components = componentNames.stream().map(comp -> ImmutableMap.of("name", comp)).collect(toSet());
+      group.setComponents(components);
+      return group;
+    }
   }
 
   public static class BlueprintClusterBinding {
@@ -214,6 +248,26 @@ public class RecommendationResponse extends StackAdvisorResponse {
 
     public void setHostGroups(Set<BindingHostGroup> hostGroups) {
       this.hostGroups = hostGroups;
+    }
+
+    @JsonIgnore
+    public Map<String, Set<String>> getHostgroupHostMap() {
+      return hostGroups.stream().collect(toMap(BindingHostGroup::getName, BindingHostGroup::getHostNames));
+    }
+
+    public static BlueprintClusterBinding fromHostGroupHostMap(Map<String, Set<String>> hostGroupHosts) {
+      Set<BindingHostGroup> hostGroups = hostGroupHosts.entrySet().stream()
+        .map(entry -> {
+          BindingHostGroup hostGroup = new BindingHostGroup();
+          hostGroup.setName(entry.getKey());
+          Set<Map<String, String>> hosts = entry.getValue().stream().map(hostName -> ImmutableMap.of("fqdn", hostName)).collect(toSet());
+          hostGroup.setHosts(hosts);
+          return hostGroup;
+        })
+        .collect(toSet());
+      BlueprintClusterBinding binding = new BlueprintClusterBinding();
+      binding.setHostGroups(hostGroups);
+      return binding;
     }
   }
 
@@ -238,6 +292,10 @@ public class RecommendationResponse extends StackAdvisorResponse {
 
     public void setHosts(Set<Map<String, String>> hosts) {
       this.hosts = hosts;
+    }
+
+    public Set<String> getHostNames() {
+      return hosts.stream().map(host -> host.get("fqdn")).collect(toSet());
     }
   }
 

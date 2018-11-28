@@ -68,6 +68,8 @@ import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.state.services.RetryUpgradeActionService;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.topology.addservice.GroupByComponentsStrategy;
+import org.apache.ambari.server.topology.addservice.HostGroupStrategy;
 import org.apache.ambari.server.upgrade.AbstractUpgradeCatalog;
 import org.apache.ambari.server.utils.AmbariPath;
 import org.apache.ambari.server.utils.DateUtils;
@@ -2602,6 +2604,14 @@ public class Configuration {
   @Markdown(description = "Default value of max number of tasks to schedule in parallel for upgrades. Upgrade packs can override this value.")
   public static final ConfigurationProperty<Integer> DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES = new ConfigurationProperty<>(
     "stack.upgrade.default.parallelism", 100);
+
+  /**
+   * Fully qualified class name of the strategy used to form host groups for add service request layout recommendation.
+   */
+  @Markdown(description = "Fully qualified class name of the strategy used to form host groups for add service request layout recommendation.")
+  public static final ConfigurationProperty<String> ADD_SERVICE_HOST_GROUP_STRATEGY = new ConfigurationProperty<>(
+    "addservice.hostgroup.strategy", GroupByComponentsStrategy.class.getName());
+
 
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
@@ -5534,6 +5544,15 @@ public class Configuration {
    */
   public int getDefaultMaxParallelismForUpgrades() {
     return Integer.parseInt(getProperty(DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES));
+  }
+
+  /**
+   * @return The class of the host group strategy for add service requests.
+   * @throws ClassNotFoundException if the specified class is not found
+   * @throws ClassCastException if the specified class is not a subclass of {@link HostGroupStrategy}
+   */
+  public Class<? extends HostGroupStrategy> getAddServiceHostGroupStrategyClass() throws ClassNotFoundException {
+    return Class.forName(getProperty(ADD_SERVICE_HOST_GROUP_STRATEGY)).asSubclass(HostGroupStrategy.class);
   }
 
   /**

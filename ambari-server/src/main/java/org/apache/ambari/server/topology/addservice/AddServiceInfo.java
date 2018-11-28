@@ -48,6 +48,10 @@ public final class AddServiceInfo {
     this.config = config;
   }
 
+  public AddServiceInfo withNewServices(Map<String, Map<String, Set<String>>> services) {
+    return new AddServiceInfo(request, clusterName, stack, config, stages, services);
+  }
+
   @Override
   public String toString() {
     return "AddServiceRequest(" + stages.getId() + ")";

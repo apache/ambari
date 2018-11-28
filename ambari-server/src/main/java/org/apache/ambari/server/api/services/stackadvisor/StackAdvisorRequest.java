@@ -29,6 +29,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.state.ChangedConfigInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.base.Preconditions;
@@ -155,6 +156,10 @@ public class StackAdvisorRequest {
 
     private StackAdvisorRequestBuilder(String stackName, String stackVersion) {
       this.instance = new StackAdvisorRequest(stackName, stackVersion);
+    }
+
+    public static StackAdvisorRequestBuilder forStack(StackId stackId) {
+      return forStack(stackId.getStackName(), stackId.getStackVersion());
     }
 
     public static StackAdvisorRequestBuilder forStack(String stackName, String stackVersion) {

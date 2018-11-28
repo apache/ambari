@@ -72,6 +72,9 @@ public class AddServiceOrchestrator {
   @Inject
   private ConfigHelper configHelper;
 
+  @Inject
+  private StackAdvisorAdapter stackAdvisorAdapter;
+
   public RequestStatusResponse processAddServiceRequest(Cluster cluster, AddServiceRequest request) {
     LOG.info("Received {} request for {}: {}", request.getOperationType(), cluster.getClusterName(), request);
 
@@ -108,18 +111,19 @@ public class AddServiceOrchestrator {
     try {
       stack = new Stack(stackId, controller);
       Set<String> existingServices = cluster.getServices().keySet();
+      // process service declarations
+      for (AddServiceRequest.Service service : request.getServices()) {
+        checkAndLog(!stack.getServices().contains(service.getName()),
+          "Unknown service %s in stack %s", service, stack.getStackId());
+        newServices.computeIfAbsent(service.getName(), __ -> new HashMap<>());
+      }
+      // process component declarations
       for (AddServiceRequest.Component requestedComponent : request.getComponents()) {
         String serviceName = stack.getServiceForComponent(requestedComponent.getName());
-        if (serviceName == null) {
-          String msg = String.format("No service found for component %s in stack %s", requestedComponent.getName(), stackId);
-          LOG.error(msg);
-          throw new IllegalArgumentException(msg);
-        }
-        if (existingServices.contains(serviceName)) {
-          String msg = String.format("Service %s already exists in cluster %s", serviceName, cluster.getClusterName());
-          LOG.error(msg);
-          throw new IllegalArgumentException(msg);
-        }
+        checkAndLog( serviceName == null,
+          "No service found for component %s in stack %s", requestedComponent.getName(), stackId);
+        checkAndLog( existingServices.contains(serviceName),
+          "Service %s already exists in cluster %s", serviceName, cluster.getClusterName());
 
         newServices.computeIfAbsent(serviceName, __ -> new HashMap<>())
           .computeIfAbsent(requestedComponent.getName(), __ -> new HashSet<>())
@@ -128,6 +132,10 @@ public class AddServiceOrchestrator {
     } catch (AmbariException e) {
       LOG.error("Stack {} not found", stackId);
       throw new IllegalArgumentException(e);
+    }
+
+    for(AddServiceRequest.Service service: request.getServices()) {
+      stack.getServices().contains(service);
     }
 
     if (newServices.isEmpty()) {
@@ -145,6 +153,14 @@ public class AddServiceOrchestrator {
     return validatedRequest;
   }
 
+  private static void checkAndLog(boolean errorCondition, String errorMessage, Object... messageParams) {
+    if (errorCondition) {
+      String msg = String.format(errorMessage, messageParams);
+      LOG.error(msg);
+      throw new IllegalArgumentException(msg);
+    }
+  }
+
   /**
    * Requests layout recommendation from the stack advisor.
    * @return new request, updated based on the recommended layout
@@ -152,8 +168,7 @@ public class AddServiceOrchestrator {
    */
   private AddServiceInfo recommendLayout(AddServiceInfo request) {
     LOG.info("Recommending layout for {}", request);
-    // TODO implement
-    return request;
+    return stackAdvisorAdapter.recommendLayout(request);
   }
 
   /**
