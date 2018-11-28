@@ -200,6 +200,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(LDAP_INTEGRATION_DESIRED_PROPERTY_ID);
 
     PROPERTY_IDS.add(OPERATION_TYPE);
+    PROPERTY_IDS.add(ClusterResourceProvider.SECURITY);
+    PROPERTY_IDS.add(ClusterResourceProvider.CREDENTIALS);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Service, SERVICE_SERVICE_NAME_PROPERTY_ID);
@@ -1234,7 +1236,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private RequestStatusResponse processAddServiceRequest(Map<String, Object> requestProperties, Map<String, String> requestInfoProperties) throws NoSuchParentResourceException {
-    AddServiceRequest request = createAddServiceRequest(requestProperties, requestInfoProperties);
+    AddServiceRequest request = createAddServiceRequest(requestInfoProperties);
     String clusterName = String.valueOf(requestProperties.get(SERVICE_CLUSTER_NAME_PROPERTY_ID));
     try {
       return addServiceOrchestrator.processAddServiceRequest(getManagementController().getClusters().getCluster(clusterName), request);
@@ -1243,7 +1245,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     }
   }
 
-  private static AddServiceRequest createAddServiceRequest(Map<String, Object> requestProperties, Map<String, String> requestInfoProperties) {
+  private static AddServiceRequest createAddServiceRequest(Map<String, String> requestInfoProperties) {
     return AddServiceRequest.of(requestInfoProperties.get(Request.REQUEST_INFO_BODY_PROPERTY));
   }
 

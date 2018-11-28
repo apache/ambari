@@ -119,6 +119,11 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    */
   public static final String QUICKLINKS_PROFILE_SERVICES_PROPERTY = "quicklinks_profile/services";
 
+  public static final String ALIAS = "alias";
+  public static final String PRINCIPAL = "principal";
+  public static final String KEY = "key";
+  public static final String TYPE = "type";
+
 
   /**
    * configuration factory
@@ -217,19 +222,19 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     Set<Map<String, String>> credentialsSet = (Set<Map<String, String>>) properties.get(ClusterResourceProvider.CREDENTIALS);
     if (credentialsSet != null) {
       for (Map<String, String> credentialMap : credentialsSet) {
-        String alias = Strings.emptyToNull(credentialMap.get("alias"));
+        String alias = Strings.emptyToNull(credentialMap.get(ALIAS));
         if (alias == null) {
           throw new InvalidTopologyTemplateException("credential.alias property is missing.");
         }
-        String principal = Strings.emptyToNull(credentialMap.get("principal"));
+        String principal = Strings.emptyToNull(credentialMap.get(PRINCIPAL));
         if (principal == null) {
           throw new InvalidTopologyTemplateException("credential.principal property is missing.");
         }
-        String key = Strings.emptyToNull(credentialMap.get("key"));
+        String key = Strings.emptyToNull(credentialMap.get(KEY));
         if (key == null) {
           throw new InvalidTopologyTemplateException("credential.key is missing.");
         }
-        String typeString = Strings.emptyToNull(credentialMap.get("type"));
+        String typeString = Strings.emptyToNull(credentialMap.get(TYPE));
         if (typeString == null) {
           throw new InvalidTopologyTemplateException("credential.type is missing.");
         }

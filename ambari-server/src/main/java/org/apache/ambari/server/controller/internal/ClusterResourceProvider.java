@@ -100,8 +100,8 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   public static final String CLUSTER_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters","state");
 
   static final String BLUEPRINT = "blueprint";
-  private static final String SECURITY = "security";
-  static final String CREDENTIALS = "credentials";
+  public static final String SECURITY = "security";
+  public static final String CREDENTIALS = "credentials";
   private static final String QUICKLINKS_PROFILE = "quicklinks_profile";
   private static final String SESSION_ATTRIBUTES = "session_attributes";
 

@@ -20,7 +20,10 @@ package org.apache.ambari.server.controller;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.ambari.server.controller.internal.BaseClusterRequest.PROVISION_ACTION_PROPERTY;
+import static org.apache.ambari.server.controller.internal.ClusterResourceProvider.CREDENTIALS;
+import static org.apache.ambari.server.controller.internal.ClusterResourceProvider.SECURITY;
 import static org.apache.ambari.server.controller.internal.ProvisionClusterRequest.CONFIG_RECOMMENDATION_STRATEGY;
 import static org.apache.ambari.server.controller.internal.ServiceResourceProvider.OPERATION_TYPE;
 import static org.apache.ambari.server.topology.Configurable.CONFIGURATIONS;
@@ -31,19 +34,24 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.ConfigurableHelper;
 import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.Credential;
+import org.apache.ambari.server.topology.SecurityConfiguration;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import io.swagger.annotations.ApiModel;
@@ -73,30 +81,42 @@ public final class AddServiceRequest {
   private final String stackVersion;
   private final Set<Service> services;
   private final Set<Component> components;
+  private final SecurityConfiguration security;
+  private final Map<String, Credential> credentials;
   private final Configuration configuration;
 
   @JsonCreator
-  public AddServiceRequest(@JsonProperty(OPERATION_TYPE) OperationType operationType,
-                           @JsonProperty(CONFIG_RECOMMENDATION_STRATEGY) ConfigRecommendationStrategy recommendationStrategy,
-                           @JsonProperty(PROVISION_ACTION_PROPERTY)ProvisionAction provisionAction,
-                           @JsonProperty(STACK_NAME) String stackName,
-                           @JsonProperty(STACK_VERSION) String stackVersion,
-                           @JsonProperty(SERVICES) Set<Service> services,
-                           @JsonProperty(COMPONENTS)Set<Component> components,
-                           @JsonProperty(CONFIGURATIONS) Collection<? extends Map<String, ?>> configs) {
+  public AddServiceRequest(
+    @JsonProperty(OPERATION_TYPE) OperationType operationType,
+    @JsonProperty(CONFIG_RECOMMENDATION_STRATEGY) ConfigRecommendationStrategy recommendationStrategy,
+    @JsonProperty(PROVISION_ACTION_PROPERTY) ProvisionAction provisionAction,
+    @JsonProperty(STACK_NAME) String stackName,
+    @JsonProperty(STACK_VERSION) String stackVersion,
+    @JsonProperty(SERVICES) Set<Service> services,
+    @JsonProperty(COMPONENTS) Set<Component> components,
+    @JsonProperty(SECURITY) SecurityConfiguration security,
+    @JsonProperty(CREDENTIALS) Set<Credential> credentials,
+    @JsonProperty(CONFIGURATIONS) Collection<? extends Map<String, ?>> configs
+  ) {
     this(operationType, recommendationStrategy, provisionAction, stackName, stackVersion, services, components,
-      ConfigurableHelper.parseConfigs(configs));
+      security, credentials,
+      ConfigurableHelper.parseConfigs(configs)
+    );
   }
 
 
-  private AddServiceRequest(OperationType operationType,
-                            ConfigRecommendationStrategy recommendationStrategy,
-                            ProvisionAction provisionAction,
-                            String stackName,
-                            String stackVersion,
-                            Set<Service> services,
-                            Set<Component> components,
-                            Configuration configuration) {
+  private AddServiceRequest(
+    OperationType operationType,
+    ConfigRecommendationStrategy recommendationStrategy,
+    ProvisionAction provisionAction,
+    String stackName,
+    String stackVersion,
+    Set<Service> services,
+    Set<Component> components,
+    SecurityConfiguration security,
+    Set<Credential> credentials,
+    Configuration configuration
+  ) {
     this.operationType = null != operationType ? operationType : OperationType.ADD_SERVICE;
     this.recommendationStrategy = null != recommendationStrategy ? recommendationStrategy : ConfigRecommendationStrategy.NEVER_APPLY;
     this.provisionAction = null != provisionAction ? provisionAction : ProvisionAction.INSTALL_AND_START;
@@ -104,7 +124,11 @@ public final class AddServiceRequest {
     this.stackVersion = stackVersion;
     this.services = null != services ? services : emptySet();
     this.components = null != components ? components : emptySet();
+    this.security = security;
     this.configuration = null != configuration ? configuration : new Configuration(new HashMap<>(), new HashMap<>());
+    this.credentials = null != credentials
+      ? credentials.stream().collect(toMap(Credential::getAlias, Function.identity()))
+      : ImmutableMap.of();
 
     checkArgument(!this.services.isEmpty() || !this.components.isEmpty(), "Either services or components must be specified");
   }
@@ -172,20 +196,39 @@ public final class AddServiceRequest {
     return ConfigurableHelper.convertConfigToMap(configuration);
   }
 
+  @JsonIgnore // TODO confirm: credentials shouldn't be serialized
+  @ApiIgnore
+  public Map<String, Credential> getCredentials() {
+    return credentials;
+  }
+
+  @JsonIgnore
+  @ApiIgnore
+  public Optional<SecurityConfiguration> getSecurity() {
+    return Optional.ofNullable(security);
+  }
+
+  @JsonProperty(SECURITY)
+  @ApiModelProperty(name = SECURITY)
+  public SecurityConfiguration _getSecurity() {
+    return security;
+  }
+
+
 // ------- inner classes -------
 
   public enum OperationType {
     ADD_SERVICE, DELETE_SERVICE, MOVE_SERVICE
   }
 
-  public static class Component {
+  public static final class Component {
     static final String COMPONENT_NAME = "component_name";
     static final String FQDN = "fqdn";
 
     private String name;
     private String fqdn;
 
-    public static final Component of(String name, String fqdn) {
+    public static Component of(String name, String fqdn) {
       Component component = new Component();
       component.setName(name);
       component.setFqdn(fqdn);
@@ -230,12 +273,12 @@ public final class AddServiceRequest {
   }
 
   @ApiModel
-  public static class Service {
+  public static final class Service {
     static final String NAME = "name";
 
     private String name;
 
-    public static final Service of(String name) {
+    public static Service of(String name) {
       Service service = new Service();
       service.setName(name);
       return service;

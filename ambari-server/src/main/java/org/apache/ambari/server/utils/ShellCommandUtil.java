@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -442,6 +443,8 @@ public class ShellCommandUtil {
       Map<String, String> env = builder.environment();
       env.putAll(vars);
     }
+
+    LOG.debug("Executing the command {}", Arrays.toString(processArgs));
 
     Process process;
     if (WINDOWS) {
