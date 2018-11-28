@@ -3123,6 +3123,8 @@ Em.I18n.translations = {
   'dashboard.services.yarn.nodes.heapUsedPercent':'{0}%',
   'dashboard.services.yarn.clients':'YARN Clients',
   'dashboard.services.yarn.client':'YARN Client',
+  'dashboard.services.hdfs.clients':'HDFS Clients',
+  'dashboard.services.hdfs.client':'HDFS Client',
   'dashboard.services.yarn.resourceManager.uptime':'ResourceManager Uptime',
   'dashboard.services.yarn.resourceManager.active':'Active ResourceManager',
   'dashboard.services.yarn.resourceManager.standby':'Standby ResourceManager',

@@ -51,6 +51,11 @@ App.MainServiceInfoSummaryView = Em.View.extend({
    */
   clientObj: [],
   clientsLength: 0,
+  
+  /**
+   * @type {boolean}
+   */
+  hasComponents: Em.computed.or('mastersLength', 'slavesLength', 'clientsLength'),
 
   /**
    *  @property {String} templatePathPrefix - base path for custom templates
