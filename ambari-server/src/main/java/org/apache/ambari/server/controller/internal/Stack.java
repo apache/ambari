@@ -206,6 +206,9 @@ public class Stack {
     return version;
   }
 
+  public StackId getStackId() {
+    return new StackId(name, version);
+  }
 
   Map<DependencyInfo, String> getDependencyConditionalServiceMap() {
     return dependencyConditionalServiceMap;
@@ -214,9 +217,9 @@ public class Stack {
   /**
    * Get services contained in the stack.
    *
-   * @return collection of all services for the stack
+   * @return set of all services for the stack
    */
-  public Collection<String> getServices() {
+  public Set<String> getServices() {
     return serviceComponents.keySet();
   }
 

@@ -40,6 +40,7 @@ import java.util.function.Function;
 
 import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.ConfigurableHelper;
 import org.apache.ambari.server.topology.Configuration;
@@ -170,6 +171,13 @@ public final class AddServiceRequest {
   @ApiModelProperty(name = STACK_VERSION)
   public String getStackVersion() {
     return stackVersion;
+  }
+
+  @JsonIgnore
+  @ApiIgnore
+  public Optional<StackId> getStackId() {
+    return null != stackName && null != stackVersion
+      ? Optional.of(new StackId(stackName, stackVersion)) : Optional.empty();
   }
 
   @JsonProperty(SERVICES)
