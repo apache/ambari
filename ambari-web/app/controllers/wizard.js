@@ -875,7 +875,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     var interval = setInterval(function () {
       if (miscController.get('dataIsLoaded')) {
         if (self.get("content.hdfsUser")) {
-          self.set('content.hdfsUser', miscController.get('content.hdfsUser'));
+          var hdfsUser = miscController.get('users').filterProperty('filename', 'hadoop-env.xml').findProperty('name','hdfs_user');
+          if (hdfsUser) {
+            self.set('content.hdfsUser', hdfsUser.get('value'));
+          }
         }
         dfd.resolve();
         clearInterval(interval);
