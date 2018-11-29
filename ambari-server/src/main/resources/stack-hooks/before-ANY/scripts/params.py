@@ -114,7 +114,10 @@ hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
 ozone_manager_hosts = default("/clusterHostInfo/ozone_manager_hosts", [])
 has_ozone = not len(ozone_manager_hosts) == 0
-hadoop_ozone_home = os.path.join(stack_root, version, "hadoop-ozone")
+if version:
+  hadoop_ozone_home = os.path.join(stack_root, version, "hadoop-ozone")
+else:
+  hadoop_ozone_home = os.path.join(stack_root, "current", "hadoop-ozone")
 
 hadoop_dir = "/etc/hadoop"
 hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
