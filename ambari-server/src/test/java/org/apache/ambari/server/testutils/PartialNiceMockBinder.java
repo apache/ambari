@@ -46,6 +46,7 @@ import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.PostUserCreationHookContext;
 import org.apache.ambari.server.hooks.users.UserCreatedEvent;
 import org.apache.ambari.server.hooks.users.UserHookService;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.ldap.service.LdapFacade;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
@@ -246,7 +247,10 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addLdapBindings() {
-      configurers.add((Binder binder) -> binder.bind(LdapFacade.class).toInstance(easyMockSupport.createNiceMock(LdapFacade.class)));
+      configurers.add((Binder binder) -> {
+        binder.bind(LdapFacade.class).toInstance(easyMockSupport.createNiceMock(LdapFacade.class));
+        binder.bind(AmbariLdapConfigurationProvider.class).toInstance(easyMockSupport.createNiceMock(AmbariLdapConfigurationProvider.class));
+      });
       return this;
     }
 

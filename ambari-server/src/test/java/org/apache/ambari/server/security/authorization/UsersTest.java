@@ -38,6 +38,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
@@ -204,6 +205,7 @@ public class UsersTest extends EasyMockSupport {
         bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
         bind(PrincipalDAO.class).toInstance(createMock(PrincipalDAO.class));
         bind(Configuration.class).toInstance(createNiceMock(Configuration.class));
+        bind(AmbariLdapConfigurationProvider.class).toInstance(createMock(AmbariLdapConfigurationProvider.class));
       }
     });
   }
