@@ -17,11 +17,7 @@
  */
 package org.apache.ambari.server.topology.addservice;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,14 +31,10 @@ import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.internal.RequestStageContainer;
-import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.utils.StageUtils;
@@ -70,7 +62,7 @@ public class AddServiceOrchestrator {
   private RequestFactory requestFactory;
 
   @Inject
-  private ConfigHelper configHelper;
+  private RequestValidatorFactory requestValidatorFactory;
 
   @Inject
   private StackAdvisorAdapter stackAdvisorAdapter;
@@ -82,7 +74,7 @@ public class AddServiceOrchestrator {
     AddServiceInfo requestWithLayout = recommendLayout(validatedRequest);
     AddServiceInfo requestWithConfig = recommendConfiguration(requestWithLayout);
 
-    createResources(requestWithConfig);
+    createResources(cluster, requestWithConfig);
     createHostTasks(requestWithConfig);
 
     return requestWithConfig.getStages().getRequestStatusResponse();
@@ -97,64 +89,10 @@ public class AddServiceOrchestrator {
   private AddServiceInfo validate(Cluster cluster, AddServiceRequest request) {
     LOG.info("Validating {}", request);
 
-    request.getSecurity().ifPresent(requestSecurity ->
-      checkArgument(requestSecurity.getType() == cluster.getSecurityType(),
-        "Security type in the request (%s), if specified, should match cluster's security type (%s)",
-        requestSecurity.getType(), cluster.getSecurityType()
-      )
-    );
+    RequestValidator validator = requestValidatorFactory.create(request, cluster);
+    validator.validate();
 
-    Map<String, Map<String, Set<String>>> newServices = new LinkedHashMap<>();
-
-    StackId stackId = new StackId(request.getStackName(), request.getStackVersion());
-    Stack stack;
-    try {
-      stack = new Stack(stackId, controller);
-      Set<String> existingServices = cluster.getServices().keySet();
-      // process service declarations
-      for (AddServiceRequest.Service service : request.getServices()) {
-        checkAndLog(!stack.getServices().contains(service.getName()),
-          "Unknown service %s in stack %s", service, stack.getStackId());
-        newServices.computeIfAbsent(service.getName(), __ -> new HashMap<>());
-      }
-      // process component declarations
-      for (AddServiceRequest.Component requestedComponent : request.getComponents()) {
-        String serviceName = stack.getServiceForComponent(requestedComponent.getName());
-        checkAndLog( serviceName == null,
-          "No service found for component %s in stack %s", requestedComponent.getName(), stackId);
-        checkAndLog( existingServices.contains(serviceName),
-          "Service %s already exists in cluster %s", serviceName, cluster.getClusterName());
-
-        newServices.computeIfAbsent(serviceName, __ -> new HashMap<>())
-          .computeIfAbsent(requestedComponent.getName(), __ -> new HashSet<>())
-          .add(requestedComponent.getFqdn());
-      }
-    } catch (AmbariException e) {
-      LOG.error("Stack {} not found", stackId);
-      throw new IllegalArgumentException(e);
-    }
-
-    if (newServices.isEmpty()) {
-      throw new IllegalArgumentException("No new services to be added");
-    }
-
-    Configuration config = request.getConfiguration();
-    Configuration clusterConfig = getClusterDesiredConfigs(cluster);
-    clusterConfig.setParentConfiguration(stack.getValidDefaultConfig());
-    config.setParentConfiguration(clusterConfig);
-
-    RequestStageContainer stages = new RequestStageContainer(actionManager.getNextRequestId(), null, requestFactory, actionManager);
-    AddServiceInfo validatedRequest = new AddServiceInfo(request, cluster.getClusterName(), stack, config, stages, newServices);
-    stages.setRequestContext(validatedRequest.describe());
-    return validatedRequest;
-  }
-
-  private static void checkAndLog(boolean errorCondition, String errorMessage, Object... messageParams) {
-    if (errorCondition) {
-      String msg = String.format(errorMessage, messageParams);
-      LOG.error(msg);
-      throw new IllegalArgumentException(msg);
-    }
+    return validator.createValidServiceInfo(actionManager, requestFactory);
   }
 
   /**
@@ -181,10 +119,9 @@ public class AddServiceOrchestrator {
   /**
    * Creates the service, component and host component resources for the request.
    */
-  private void createResources(AddServiceInfo request) {
+  private void createResources(Cluster cluster, AddServiceInfo request) {
     LOG.info("Creating resources for {}", request);
 
-    Cluster cluster = getCluster(request.clusterName());
     Set<String> existingServices = cluster.getServices().keySet();
 
     resourceProviders.createCredentials(request);
@@ -272,35 +209,6 @@ public class AddServiceOrchestrator {
       serviceComponentMap.put(e.getKey(), ImmutableSet.copyOf(e.getValue().getServiceComponents().keySet()));
     }
     return serviceComponentMap;
-  }
-
-  private Configuration getClusterDesiredConfigs(Cluster cluster) {
-    Map<String, Map<String, String>> desiredConfigTags = getDesiredTags(cluster);
-
-    return new Configuration(
-      configHelper.getEffectiveConfigProperties(cluster, desiredConfigTags),
-      configHelper.getEffectiveConfigAttributes(cluster, desiredConfigTags)
-    );
-  }
-
-  private Map<String, Map<String, String>> getDesiredTags(Cluster cluster) {
-    try {
-      return configHelper.getEffectiveDesiredTags(cluster, null);
-    } catch (AmbariException e) {
-      String msg = String.format("Error getting tags for desired config of cluster %s", cluster.getClusterName());
-      LOG.error(msg);
-      throw new IllegalStateException(msg, e);
-    }
-  }
-
-  private Cluster getCluster(String clusterName) {
-    try {
-      return controller.getClusters().getCluster(clusterName);
-    } catch (AmbariException e) {
-      String msg = String.format("Cannot find cluster %s", clusterName);
-      LOG.error(msg);
-      throw new IllegalStateException(msg, e);
-    }
   }
 
 }

@@ -166,8 +166,8 @@ public class BlueprintFactoryTest {
   @Test(expected=NoSuchStackException.class)
   public void testCreateInvalidStack() throws Exception {
     EasyMockSupport mockSupport = new EasyMockSupport();
-    BlueprintFactory.StackFactory mockStackFactory =
-      mockSupport.createMock(BlueprintFactory.StackFactory.class);
+    StackFactory mockStackFactory =
+      mockSupport.createMock(StackFactory.class);
 
     // setup mock to throw exception, to simulate invalid stack request
     expect(mockStackFactory.createStack("null", "null", null)).andThrow(new ObjectNotFoundException("Invalid Stack"));
