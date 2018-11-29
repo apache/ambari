@@ -149,7 +149,9 @@ import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.apache.ambari.server.topology.TopologyRequest;
+import org.apache.ambari.spi.ClusterInformation;
 import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.RepositoryVersion;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -164,6 +166,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -2909,5 +2912,56 @@ public class ClusterImpl implements Cluster {
     }
 
     return componentVersionMap;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ClusterInformation buildClusterInformation() {
+    SecurityType securityType = getSecurityType();
+    Map<String, Set<String>> topology = new HashMap<>();
+    List<ServiceComponentHost> serviceComponentHosts = getServiceComponentHosts();
+    for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
+      String hash = serviceComponentHost.getServiceName() + "/"
+          + serviceComponentHost.getServiceComponentName();
+
+      Set<String> hosts = topology.get(hash);
+      if (null == hosts) {
+        hosts = Sets.newTreeSet();
+        topology.put(hash, hosts);
+      }
+
+      hosts.add(serviceComponentHost.getHostName());
+    }
+
+    Map<String, Map<String, String>> configurations = new HashMap<>();
+    Map<String, DesiredConfig> desiredConfigs = getDesiredConfigs();
+    for (Map.Entry<String, DesiredConfig> desiredConfigEntry : desiredConfigs.entrySet()) {
+      String configType = desiredConfigEntry.getKey();
+      DesiredConfig desiredConfig = desiredConfigEntry.getValue();
+      Config clusterConfig = getConfig(configType, desiredConfig.getTag());
+      configurations.put(configType, clusterConfig.getProperties());
+    }
+
+    Map<String, Service> clusterServices = getServices();
+    Map<String, RepositoryVersion> clusterServiceVersions = new HashMap<>();
+    if (null != clusterServices) {
+      for (Map.Entry<String, Service> serviceEntry : clusterServices.entrySet()) {
+        Service service = serviceEntry.getValue();
+        RepositoryVersionEntity desiredRepositoryEntity = service.getDesiredRepositoryVersion();
+        StackId stackId = desiredRepositoryEntity.getStackId();
+
+        RepositoryVersion desiredRepositoryVersion = new RepositoryVersion(
+            desiredRepositoryEntity.getId(), stackId.getStackName(), stackId.getStackVersion(),
+            stackId.getStackId(), desiredRepositoryEntity.getVersion(),
+            desiredRepositoryEntity.getType());
+
+        clusterServiceVersions.put(serviceEntry.getKey(), desiredRepositoryVersion);
+      }
+    }
+
+    return new ClusterInformation(getClusterName(), securityType == SecurityType.KERBEROS,
+        configurations, topology, clusterServiceVersions);
   }
 }

@@ -18,6 +18,7 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
@@ -26,9 +27,11 @@ import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.StackInfo;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * Abstract class that reads values from command params in a consistent way.
@@ -63,6 +66,12 @@ public abstract class AbstractUpgradeServerAction extends AbstractServerAction {
 
   @Inject
   protected AgentConfigsHolder agentConfigsHolder;
+
+  /**
+   * Used for getting references to objects like {@link StackInfo}.
+   */
+  @Inject
+  protected Provider<AmbariMetaInfo> m_metainfoProvider;
 
   /**
    * Gets the injected instance of the {@link Gson} serializer/deserializer.
