@@ -836,11 +836,13 @@ describe('App.WizardController', function () {
           if (type === 'dataIsLoaded') {
             return true;
           }
-          return Em.Object.create({
-            hdfsUser: {
-              name: 'user'
-            }
-          });
+          return Em.A([
+            Em.Object.create({
+              name: 'hdfs_user',
+              filename: 'hadoop-env.xml',
+              value: 'cstm-hdfs'
+            })
+          ]);
         }
       });
     });
