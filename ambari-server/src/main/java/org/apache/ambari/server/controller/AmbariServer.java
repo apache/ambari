@@ -149,6 +149,7 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.GzipFilter;
+import org.eclipse.jetty.servlets.QoSFilter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
@@ -424,6 +425,11 @@ public class AmbariServer {
       root.addEventListener(new RequestContextListener());
       root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", DISPATCHER_TYPES);
       root.addFilter(new FilterHolder(new UserNameOverrideFilter()), "/api/v1/users/*", DISPATCHER_TYPES);
+
+      // Apply the QoSFilter for api
+      QoSFilter qosFilter = new QoSFilter();
+      qosFilter.setMaxRequests(configs.getClientThreadPoolSize());
+      root.addFilter(new FilterHolder(qosFilter), "/api/*", DISPATCHER_TYPES);
 
       // session-per-request strategy for agents
       agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", DISPATCHER_TYPES);
