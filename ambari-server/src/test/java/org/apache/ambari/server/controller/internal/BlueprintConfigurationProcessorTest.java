@@ -10336,7 +10336,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createNiceMock(ClusterTopology.class);
     Stack stack = createNiceMock(Stack.class);
-    Collection<String> services = ImmutableList.of("HDFS");
+    Set<String> services = ImmutableSet.of("HDFS");
     expect(stack.getServices()).andReturn(services).anyTimes();
     expect(stack.getConfiguration()).andReturn(stackConfig).anyTimes();
     expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
@@ -10360,7 +10360,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     ClusterTopology topology = createNiceMock(ClusterTopology.class);
     Stack stack = createNiceMock(Stack.class);
-    Collection<String> services = ImmutableList.of("HDFS");
+    Set<String> services = ImmutableSet.of("HDFS");
     expect(stack.getServices()).andReturn(services).anyTimes();
     expect(stack.getConfiguration()).andReturn(stackConfig).anyTimes();
     expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
