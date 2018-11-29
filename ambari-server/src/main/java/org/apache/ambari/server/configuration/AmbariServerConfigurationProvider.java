@@ -73,18 +73,6 @@ public abstract class AmbariServerConfigurationProvider<T extends AmbariServerCo
     }
   }
 
-  //  @Inject
-  void register(AmbariEventPublisher publisher, GuiceJpaInitializer guiceJpaInitializer) {
-    if (publisher != null) {
-      publisher.register(this);
-      LOGGER.info("Registered {} in event publisher", this.getClass().getName());
-    }
-
-    if (guiceJpaInitializer != null) {
-      jpaInitialized.set(guiceJpaInitializer.isInitialized());
-    }
-  }
-
   /**
    * Upon receiving this event, if the expected configuration category has been updated, the data is
    * reloaded.
