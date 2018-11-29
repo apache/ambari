@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.IntStream;
 
-import org.apache.commons.lang3.tuple.Pair;
 
 public class GroupByComponentsStrategy implements HostGroupStrategy {
   @Override
