@@ -1096,7 +1096,7 @@ public class AmbariServer {
 
       // Start and Initialize JPA
       GuiceJpaInitializer jpaInitializer = injector.getInstance(GuiceJpaInitializer.class);
-      jpaInitializer.setInitialized(); // This must be called to alert Ambari that JPA is initialized.
+      jpaInitializer.setInitialized(injector.getInstance(AmbariEventPublisher.class)); // This must be called to alert Ambari that JPA is initialized.
 
       DatabaseConsistencyCheckHelper.checkDBVersionCompatible();
 

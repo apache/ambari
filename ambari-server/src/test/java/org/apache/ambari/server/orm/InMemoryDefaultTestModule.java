@@ -28,6 +28,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.ldap.LdapModule;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.mpack.MpackManager;
 import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.mpack.MpackManagerMock;
@@ -136,6 +137,8 @@ public class InMemoryDefaultTestModule extends AbstractModule {
       AuditLogger al = EasyMock.createNiceMock(AuditLogger.class);
       EasyMock.expect(al.isEnabled()).andReturn(false).anyTimes();
       bind(AuditLogger.class).toInstance(al);
+      bind(AmbariLdapConfigurationProvider.class).toInstance(EasyMock.createMock(AmbariLdapConfigurationProvider.class));
+
       bind(new TypeLiteral<Encryptor<AgentConfigsUpdateEvent>>() {}).annotatedWith(Names.named("AgentConfigEncryptor")).toInstance(Encryptor.NONE);
     } catch (Exception e) {
       throw new RuntimeException(e);

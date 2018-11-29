@@ -101,9 +101,9 @@ public enum AmbariServerConfigurationKey {
    * Trusted Proxy Configuration Keys
    * ******************************************************** */
   TPROXY_AUTHENTICATION_ENABLED(AmbariServerConfigurationCategory.TPROXY_CONFIGURATION, "ambari.tproxy.authentication.enabled", PLAINTEXT, "false", "Determines whether to allow a proxy user to specifiy a proxied user when logging into Ambari.", false),
-  TPROXY_ALLOWED_HOSTS(AmbariServerConfigurationCategory.TPROXY_CONFIGURATION, "ambari\\.tproxy\\.proxyuser\\..+\\.hosts", PLAINTEXT, "*", "List of hosts from which trusted-proxy user can connect.", true),
-  TPROXY_ALLOWED_USERS(AmbariServerConfigurationCategory.TPROXY_CONFIGURATION, "ambari\\.tproxy\\.proxyuser\\..+\\.users", PLAINTEXT, "*", "List of users which the trusted-proxy user can proxy for.", true),
-  TPROXY_ALLOWED_GROUPS(AmbariServerConfigurationCategory.TPROXY_CONFIGURATION, "ambari\\.tproxy\\.proxyuser\\..+\\.groups", PLAINTEXT, "*", "List of groups which the trusted-proxy user can proxy user for.", true);
+  TPROXY_ALLOWED_HOSTS(AmbariServerConfigurationCategory.TPROXY_CONFIGURATION, "ambari\\.tproxy\\.proxyuser\\..+\\.hosts", PLAINTEXT, "", "List of hosts from which trusted-proxy user can connect.", true),
+  TPROXY_ALLOWED_USERS(AmbariServerConfigurationCategory.TPROXY_CONFIGURATION, "ambari\\.tproxy\\.proxyuser\\..+\\.users", PLAINTEXT, "", "List of users which the trusted-proxy user can proxy for.", true),
+  TPROXY_ALLOWED_GROUPS(AmbariServerConfigurationCategory.TPROXY_CONFIGURATION, "ambari\\.tproxy\\.proxyuser\\..+\\.groups", PLAINTEXT, "", "List of groups which the trusted-proxy user can proxy user for.", true);
 
   private static final Logger LOG = LoggerFactory.getLogger(AmbariServerConfigurationKey.class);
 
