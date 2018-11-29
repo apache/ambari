@@ -39,6 +39,7 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
+import org.apache.ambari.spi.ClusterInformation;
 
 import com.google.common.collect.ListMultimap;
 
@@ -719,4 +720,12 @@ public interface Cluster {
    * @return a mapping of service to component version, or an empty map.
    */
   Map<String, Map<String, String>> getComponentVersionMap();
+
+  /**
+   * Builds a {@link ClusterInformation} instance from a {@link Cluster}.
+   *
+   * @return the {@link ClusterInformation} instance comprised of simple POJOs
+   *         and SPI classes.
+   */
+  ClusterInformation buildClusterInformation();
 }
