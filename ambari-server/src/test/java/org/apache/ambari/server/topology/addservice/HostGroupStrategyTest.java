@@ -43,14 +43,14 @@ public class HostGroupStrategyTest {
     .build();
 
   Map<String, Set<String>> HOST_GROUPS_FOR_EACH_HOST = ImmutableMap.<String, Set<String>>builder()
-    .put("hostgroup_c7401", ImmutableSet.of("c7401"))
-    .put("hostgroup_c7402", ImmutableSet.of("c7402"))
-    .put("hostgroup_c7403", ImmutableSet.of("c7403"))
-    .put("hostgroup_c7404", ImmutableSet.of("c7404"))
-    .put("hostgroup_c7405", ImmutableSet.of("c7405"))
-    .put("hostgroup_c7406", ImmutableSet.of("c7406"))
-    .put("hostgroup_c7407", ImmutableSet.of("c7407"))
-    .put("hostgroup_c7408", ImmutableSet.of("c7408"))
+    .put("host_group_c7401", ImmutableSet.of("c7401"))
+    .put("host_group_c7402", ImmutableSet.of("c7402"))
+    .put("host_group_c7403", ImmutableSet.of("c7403"))
+    .put("host_group_c7404", ImmutableSet.of("c7404"))
+    .put("host_group_c7405", ImmutableSet.of("c7405"))
+    .put("host_group_c7406", ImmutableSet.of("c7406"))
+    .put("host_group_c7407", ImmutableSet.of("c7407"))
+    .put("host_group_c7408", ImmutableSet.of("c7408"))
     .build();
 
   Map<String, Set<String>> HOST_GROUPS_BY_COMPONENTS = ImmutableMap.of(

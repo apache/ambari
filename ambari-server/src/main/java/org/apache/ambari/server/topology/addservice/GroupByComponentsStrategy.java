@@ -43,9 +43,8 @@ public class GroupByComponentsStrategy implements HostGroupStrategy {
     hostGroups.sort(comparing(hosts -> hosts.iterator().next())); // alphabetical order by the first hostname in the group to have consistent outcome
 
     // give a name to each host group and add to a map
-    Map<String, Set<String>> hostgroupMap = IntStream.range(0, hostGroups.size())
-      .mapToObj(i -> Pair.of("host_group_" + (i + 1), hostGroups.get(i)))
-      .collect(toMap(Pair::getKey, Pair::getValue));
+    Map<String, Set<String>> hostgroupMap = IntStream.range(0, hostGroups.size()).boxed()
+      .collect(toMap(i -> "host_group_" + (i + 1), i -> hostGroups.get(i)));
 
     return hostgroupMap;
   }

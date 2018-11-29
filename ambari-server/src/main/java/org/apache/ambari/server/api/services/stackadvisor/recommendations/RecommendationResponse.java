@@ -257,13 +257,7 @@ public class RecommendationResponse extends StackAdvisorResponse {
 
     public static BlueprintClusterBinding fromHostGroupHostMap(Map<String, Set<String>> hostGroupHosts) {
       Set<BindingHostGroup> hostGroups = hostGroupHosts.entrySet().stream()
-        .map(entry -> {
-          BindingHostGroup hostGroup = new BindingHostGroup();
-          hostGroup.setName(entry.getKey());
-          Set<Map<String, String>> hosts = entry.getValue().stream().map(hostName -> ImmutableMap.of("fqdn", hostName)).collect(toSet());
-          hostGroup.setHosts(hosts);
-          return hostGroup;
-        })
+        .map(entry -> BindingHostGroup.create(entry.getKey(), entry.getValue()))
         .collect(toSet());
       BlueprintClusterBinding binding = new BlueprintClusterBinding();
       binding.setHostGroups(hostGroups);
@@ -294,8 +288,17 @@ public class RecommendationResponse extends StackAdvisorResponse {
       this.hosts = hosts;
     }
 
+    @JsonIgnore
     public Set<String> getHostNames() {
       return hosts.stream().map(host -> host.get("fqdn")).collect(toSet());
+    }
+
+    public static BindingHostGroup create(String name, Set<String> hostNames) {
+      BindingHostGroup hostGroup = new BindingHostGroup();
+      hostGroup.setName(name);
+      Set<Map<String, String>> hosts = hostNames.stream().map(hostName -> ImmutableMap.of("fqdn", hostName)).collect(toSet());
+      hostGroup.setHosts(hosts);
+      return hostGroup;
     }
   }
 

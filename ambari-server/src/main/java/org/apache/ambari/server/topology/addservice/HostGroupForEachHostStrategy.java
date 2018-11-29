@@ -29,6 +29,6 @@ public class HostGroupForEachHostStrategy implements HostGroupStrategy {
   @Override
   public Map<String, Set<String>> calculateHostGroups(Map<String, Set<String>> hostComponentMap) {
     return hostComponentMap.keySet().stream()
-      .collect(toMap(host -> "hostgroup_" + host, host -> ImmutableSet.of(host)));
+      .collect(toMap(host -> "host_group_" + host, host -> ImmutableSet.of(host)));
   }
 }

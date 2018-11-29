@@ -134,10 +134,6 @@ public class AddServiceOrchestrator {
       throw new IllegalArgumentException(e);
     }
 
-    for(AddServiceRequest.Service service: request.getServices()) {
-      stack.getServices().contains(service);
-    }
-
     if (newServices.isEmpty()) {
       throw new IllegalArgumentException("No new services to be added");
     }

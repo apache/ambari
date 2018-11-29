@@ -153,7 +153,7 @@ public class StackAdvisorAdapter {
   }
 
   static void keepNewServicesOnly(Map<String,Map<String,Set<String>>> recommendedLayout, Map<String,Map<String,Set<String>>> newServices) {
-    recommendedLayout.keySet().removeIf(service -> !newServices.containsKey(service));
+    recommendedLayout.keySet().retainAll(newServices.keySet());
   }
 
   static Map<String, Map<String, Set<String>>> getRecommendedLayout(Map<String, Set<String>> hostGroupHosts,
@@ -196,7 +196,7 @@ public class StackAdvisorAdapter {
   static <S, T> Map<S, T> mergeDisjunctMaps(Map<? extends S, ? extends T> map1, Map<? extends S, ? extends T> map2) {
     Sets.SetView<? extends S> commonKeys = Sets.intersection(map1.keySet(), map2.keySet());
     checkArgument(commonKeys.isEmpty(), "Maps must be disjunct. Common keys: %s", commonKeys);
-    HashMap<S, T> merged = new HashMap(map1);
+    Map<S, T> merged = new HashMap<>(map1);
     merged.putAll(map2);
     return merged;
   }
