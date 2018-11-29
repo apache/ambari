@@ -101,7 +101,7 @@ class HivePreUpgrade(Script):
       Execute(hive_kinit_cmd, user = params.hive_user)
     
     # in the M10 release PreUpgradeTool was fixed to use Hive1 instead of Hive2 
-    if target_version >= "3.0.3":
+    if target_version >= "3.1":
       hive_lib_dir = format("{source_dir}/hive/lib")
     else:
       hive_lib_dir = format("{source_dir}/hive2/lib")
