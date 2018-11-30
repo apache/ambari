@@ -210,6 +210,11 @@ public class Stack {
     return new StackId(name, version);
   }
 
+  @Override
+  public String toString() {
+    return "stack " + getStackId();
+  }
+
   Map<DependencyInfo, String> getDependencyConditionalServiceMap() {
     return dependencyConditionalServiceMap;
   }

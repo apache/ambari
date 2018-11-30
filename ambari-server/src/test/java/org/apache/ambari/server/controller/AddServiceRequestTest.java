@@ -200,8 +200,9 @@ public class AddServiceRequestTest {
     assertTrue(request.getServices().isEmpty());
   }
 
-  @Test(expected = JsonProcessingException.class)
+  @Test
   public void testDeserialize_invalid_noServicesAndComponents() throws Exception {
+    // empty service/component list should be accepted at the JSON level, will be rejected by the request handler
     mapper.readValue(REQUEST_INVALID_NO_SERVICES_AND_COMPONENTS, AddServiceRequest.class);
   }
 
