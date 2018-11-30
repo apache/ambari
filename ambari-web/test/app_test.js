@@ -160,22 +160,30 @@ describe('App', function () {
 
     beforeEach(function () {
       sinon.stub(App.Service, 'find').returns(Em.Object.create({'isLoaded': true}));
-      this.mock = sinon.stub(App.HostComponent, 'find');
+      this.mock = sinon.stub(App.MasterComponent, 'find');
     });
     afterEach(function () {
       App.Service.find.restore();
       this.mock.restore();
     });
 
-    it('if hadoop stack version higher than 2 then isHaEnabled should be true', function () {
-      this.mock.returns([]);
+    it('if one SECONDARY_NAMENODE and one NAMENODE then isHaEnabled should be false', function () {
+      this.mock.withArgs('SECONDARY_NAMENODE').returns(Em.Object.create({totalCount: 1}));
+      this.mock.withArgs('NAMENODE').returns(Em.Object.create({totalCount: 1}));
       App.propertyDidChange('isHaEnabled');
-      expect(App.get('isHaEnabled')).to.equal(true);
+      expect(App.get('isHaEnabled')).to.be.false;
     });
-    it('if cluster has SECONDARY_NAMENODE then isHaEnabled should be false', function () {
-      this.mock.returns([Em.Object.create({componentName: 'SECONDARY_NAMENODE'})]);
+    it('if no SECONDARY_NAMENODE and two NAMENODE then isHaEnabled should be true', function () {
+      this.mock.withArgs('SECONDARY_NAMENODE').returns(Em.Object.create({totalCount: 0}));
+      this.mock.withArgs('NAMENODE').returns(Em.Object.create({totalCount: 2}));
       App.propertyDidChange('isHaEnabled');
-      expect(App.get('isHaEnabled')).to.equal(false);
+      expect(App.get('isHaEnabled')).to.be.true;
+    });
+    it('if no SECONDARY_NAMENODE and no NAMENODE then isHaEnabled should be false', function () {
+      this.mock.withArgs('SECONDARY_NAMENODE').returns(Em.Object.create({totalCount: 0}));
+      this.mock.withArgs('NAMENODE').returns(Em.Object.create({totalCount: 0}));
+      App.propertyDidChange('isHaEnabled');
+      expect(App.get('isHaEnabled')).to.be.false;
     });
   });
 

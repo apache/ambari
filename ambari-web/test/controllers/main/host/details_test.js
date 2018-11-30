@@ -1028,14 +1028,9 @@ describe('App.MainHostDetailsController', function () {
 
     it('isHaEnabled = true', function () {
       loadService('HDFS');
-
-      App.HostComponent.find().clear();
-      App.propertyDidChange('isHaEnabled');
+      sinon.stub(App, 'get').returns(true);
       expect(controller.constructZookeeperConfigUrlParams(data)).to.eql(['(type=core-site&tag=1)']);
-      App.store.safeLoad(App.HostComponent, {
-        id: 'SECONDARY_NAMENODE_host1',
-        component_name: 'SECONDARY_NAMENODE'
-      });
+      App.get.restore();
     });
 
     it('HBASE is installed', function () {
