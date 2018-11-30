@@ -59,6 +59,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -2147,7 +2148,6 @@ public class ConfigHelper {
    * @param cluster  the cluster
    * @param hostname a hostname
    * @return a map of the existing configurations
-   * @throws AmbariException
    */
   public Map<String, Map<String, String>> calculateExistingConfigurations(AmbariManagementController ambariManagementController, Cluster cluster, String hostname) throws AmbariException {
     // For a configuration type, both tag and an actual configuration can be stored
@@ -2177,6 +2177,17 @@ public class ConfigHelper {
     }
 
     return configurations;
+  }
+
+  /**
+   * Determines the existing configurations for the cluster, both properties and attributes.
+   */
+  public Pair<Map<String, Map<String, String>>, Map<String, Map<String, Map<String, String>>>> calculateExistingConfigs(Cluster cluster) throws AmbariException {
+    Map<String, Map<String, String>> desiredConfigTags = getEffectiveDesiredTags(cluster, null);
+    return Pair.of(
+      getEffectiveConfigProperties(cluster, desiredConfigTags),
+      getEffectiveConfigAttributes(cluster, desiredConfigTags)
+    );
   }
 
 }

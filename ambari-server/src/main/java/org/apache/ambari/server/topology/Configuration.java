@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -471,5 +472,21 @@ public class Configuration {
     if (parentConfiguration != null) {
       parentConfiguration.removeConfigType(configType);
     }
+  }
+
+  /**
+   * Create a new {@code Configuration} based on a pair of maps.
+   * (This is just a convenience method to be able to avoid local variables in a few places.)
+   */
+  public static Configuration of(Pair<Map<String, Map<String, String>>, Map<String, Map<String, Map<String, String>>>> propertiesAndAttributes) {
+    return new Configuration(propertiesAndAttributes.getLeft(), propertiesAndAttributes.getRight());
+  }
+
+  /**
+   * @return this configuration's properties and attributes as a pair of maps,
+   * in order to be able to pass around more easily without polluting non-topology code with the Configuration object
+   */
+  public Pair<Map<String, Map<String, String>>, Map<String, Map<String, Map<String, String>>>> asPair() {
+    return Pair.of(properties, attributes);
   }
 }

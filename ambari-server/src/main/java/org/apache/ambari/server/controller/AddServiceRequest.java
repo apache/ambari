@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.ambari.server.controller.internal.BaseClusterRequest.PROVISION_ACTION_PROPERTY;
@@ -63,7 +62,7 @@ import io.swagger.annotations.ApiModelProperty;
  */
 @ApiModel
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public final class AddServiceRequest {
+public class AddServiceRequest {
 
   static final String STACK_NAME = "stack_name";
   static final String STACK_VERSION = "stack_version";
@@ -130,8 +129,6 @@ public final class AddServiceRequest {
     this.credentials = null != credentials
       ? credentials.stream().collect(toMap(Credential::getAlias, Function.identity()))
       : ImmutableMap.of();
-
-    checkArgument(!this.services.isEmpty() || !this.components.isEmpty(), "Either services or components must be specified");
   }
 
   // TODO move to JsonUtils -- pick part of 0252c08d86f
@@ -278,6 +275,11 @@ public final class AddServiceRequest {
     public int hashCode() {
       return Objects.hash(name, fqdn);
     }
+
+    @Override
+    public String toString() {
+      return name;
+    }
   }
 
   @ApiModel
@@ -314,6 +316,11 @@ public final class AddServiceRequest {
     @Override
     public int hashCode() {
       return Objects.hash(name);
+    }
+
+    @Override
+    public String toString() {
+      return name;
     }
   }
 }
