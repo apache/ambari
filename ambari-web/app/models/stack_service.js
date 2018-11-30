@@ -191,7 +191,7 @@ App.StackService = DS.Model.extend({
 
   // Is the service a distributed filesystem
   isDFS: function () {
-    return this.get('serviceType') === 'HCFS' || ['HDFS', 'GLUSTERFS'].contains(this.get('serviceName'));
+    return this.get('serviceType') === 'HCFS' || ['HDFS', 'GLUSTERFS', 'OZONE'].contains(this.get('serviceName'));
   }.property('serviceName', 'serviceType'),
 
   // Primary DFS. used if there is more than one DFS in a stack.
