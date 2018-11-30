@@ -111,7 +111,7 @@ class HivePreUpgrade(Script):
     derby_jars = glob.glob(source_dir + "/hive2/lib/*derby-*.jar")
     if len(derby_jars) == 1:
       classpath = derby_jars[0] + ":" + classpath
-    cmd = format("{java64_home}/bin/java -Djavax.security.auth.useSubjectCredsOnly=false -cp {classpath} org.apache.hadoop.hive.upgrade.acid.PreUpgradeTool -execute")
+    cmd = format("{java64_home}/bin/java -Djavax.security.auth.useSubjectCredsOnly=false -cp {classpath} org.apache.hadoop.hive.upgrade.acid.PreUpgradeTool -execute &> {hive_log_dir}/pre_upgrade_{target_version}.log")
     Execute(cmd, user = params.hive_user)
 
 if __name__ == "__main__":
