@@ -99,13 +99,14 @@ class TestContentSources(TestCase):
     self.assertEqual(opener_mock.call_count, 1)
     request_mock.assert_called_with('http://download/source')
     self.assertEqual(web_file_mock.read.call_count, 1)
-    
+
   @patch("__builtin__.open")
   @patch.object(urllib2, "Request")
   @patch.object(urllib2, "build_opener")
   @patch.object(os, "makedirs")
   @patch.object(os.path, "exists")
-  def test_download_source_get_content_cache_new(self, exists_mock, makedirs_mock, opener_mock, request_mock, open_mock):
+  @patch("resource_management.core.sudo.create_file")
+  def test_download_source_get_content_cache_new(self, create_mock, exists_mock, makedirs_mock, opener_mock, request_mock, open_mock):
     """
     Testing DownloadSource.get_content with cache on non-cached resource
     """
