@@ -97,11 +97,13 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/topologies/default.xml',
                               group='knox',
                               owner = 'knox',
+                              mode = 0600,
                               content = InlineTemplate(self.getConfig()['configurations']['topology']['content'])
     )
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/topologies/admin.xml',
                               group='knox',
                               owner = 'knox',
+                              mode = 0600,
                               content = InlineTemplate(self.getConfig()['configurations']['admin-topology']['content'])
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/knox-server/bin/knoxcli.sh create-master --master sa',
@@ -406,11 +408,13 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/topologies/default.xml',
                               group='knox',
                               owner = 'knox',
+                              mode = 0600,
                               content = InlineTemplate(self.getConfig()['configurations']['topology']['content'])
     )
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/topologies/admin.xml',
                               group='knox',
                               owner = 'knox',
+                              mode = 0600,
                               content = InlineTemplate(self.getConfig()['configurations']['admin-topology']['content'])
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/knox-server/bin/knoxcli.sh create-master --master sa',
@@ -440,7 +444,7 @@ class TestKnoxGateway(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/log/knox',
                               owner = 'knox',
-                              mode = 0755,
+                              mode = 0700,
                               group = 'knox',
                               create_parents = True,
                               cd_access = 'a',
