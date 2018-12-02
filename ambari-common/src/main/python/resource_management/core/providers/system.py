@@ -133,15 +133,18 @@ class FileProvider(Provider):
           if self.resource.backup:
             self.resource.env.backup_file(path)
 
+    owner = self.resource.owner or 'root'
+    group = self.resource.group or 'root'
+
     if write:
       Logger.info("Writing %s because %s" % (self.resource, reason))
       def on_file_created(filename):
-        _ensure_metadata(filename, self.resource.owner, self.resource.group, mode=self.resource.mode, cd_access=self.resource.cd_access)
+        _ensure_metadata(filename, owner, group, mode=self.resource.mode, cd_access=self.resource.cd_access)
         Logger.info("Moving %s to %s" % (filename, path))
 
       sudo.create_file(path, content, encoding=self.resource.encoding, on_file_created=on_file_created)
     else:
-      _ensure_metadata(path, self.resource.owner, self.resource.group, mode=self.resource.mode, cd_access=self.resource.cd_access)
+      _ensure_metadata(path, owner, group, mode=self.resource.mode, cd_access=self.resource.cd_access)
 
   def action_delete(self):
     path = self.resource.path

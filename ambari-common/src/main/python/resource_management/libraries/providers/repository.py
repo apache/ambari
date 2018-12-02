@@ -23,7 +23,7 @@ Ambari Agent
 import os
 import filecmp
 import tempfile
-from ambari_commons import OSCheck
+from ambari_commons import OSCheck, os_utils
 from resource_management.core.resources import Execute
 from resource_management.core.resources import File
 from resource_management.core.providers import Provider
@@ -50,13 +50,15 @@ class RepositoryProvider(Provider):
           repo_file_content = repo_file_content.strip()
 
           File(tmpf.name,
-               content=repo_file_content
+               content=repo_file_content,
+               owner=os_utils.current_user(),
           )
 
           if os.path.isfile(repo_file_path):
             # a copy of old repo file, which will be readable by current user
             File(old_repo_tmpf.name,
                  content=StaticFile(repo_file_path),
+                 owner=os_utils.current_user(),
             )
 
           if not os.path.isfile(repo_file_path) or not filecmp.cmp(tmpf.name, old_repo_tmpf.name):
