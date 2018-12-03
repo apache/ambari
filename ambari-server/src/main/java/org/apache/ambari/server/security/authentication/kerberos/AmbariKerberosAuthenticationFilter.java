@@ -32,6 +32,10 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationEventHandler;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationException;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
+import org.apache.ambari.server.security.authentication.tproxy.TrustedProxyAuthenticationDetailsSource;
+import org.apache.ambari.server.utils.RequestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -51,6 +55,8 @@ import org.springframework.stereotype.Component;
 @Component
 @Order(2)
 public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProcessingFilter implements AmbariAuthenticationFilter {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AmbariKerberosAuthenticationFilter.class);
 
   /**
    * Ambari authentication event handler
@@ -83,13 +89,15 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
 
     kerberosAuthenticationEnabled = (kerberosAuthenticationProperties != null) && kerberosAuthenticationProperties.isKerberosAuthenticationEnabled();
 
-    if(eventHandler == null) {
+    if (eventHandler == null) {
       throw new IllegalArgumentException("The AmbariAuthenticationEventHandler must not be null");
     }
 
     this.eventHandler = eventHandler;
 
     setAuthenticationManager(authenticationManager);
+
+    setAuthenticationDetailsSource(new TrustedProxyAuthenticationDetailsSource());
 
     setFailureHandler(new AuthenticationFailureHandler() {
       @Override
@@ -131,6 +139,10 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
    */
   @Override
   public boolean shouldApply(HttpServletRequest httpServletRequest) {
+    if (LOG.isDebugEnabled()) {
+      RequestUtils.logRequestHeadersAndQueryParams(httpServletRequest, LOG);
+    }
+
     if (kerberosAuthenticationEnabled) {
       String header = httpServletRequest.getHeader("Authorization");
       return (header != null) && (header.startsWith("Negotiate ") || header.startsWith("Kerberos "));

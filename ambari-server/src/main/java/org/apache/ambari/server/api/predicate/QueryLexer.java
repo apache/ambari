@@ -53,6 +53,7 @@ public class QueryLexer {
   public static final String QUERY_FROM      = "from";
   public static final String QUERY_MINIMAL   = "minimal_response";
   public static final String QUERY_SORT      = "sortBy";
+  public static final String QUERY_DOAS      = "doAs";
 
   /**
    * All valid deliminators.
@@ -216,6 +217,7 @@ public class QueryLexer {
     SET_IGNORE.add(QUERY_FROM);
     SET_IGNORE.add(QUERY_MINIMAL);
     SET_IGNORE.add(QUERY_SORT);
+    SET_IGNORE.add(QUERY_DOAS);
     SET_IGNORE.add("_");
   }
 

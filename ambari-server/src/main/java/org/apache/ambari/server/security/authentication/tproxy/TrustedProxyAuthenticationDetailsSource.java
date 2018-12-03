@@ -15,15 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.security.authentication;
 
-import org.springframework.security.core.userdetails.UserDetails;
+package org.apache.ambari.server.security.authentication.tproxy;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.security.authentication.AuthenticationDetailsSource;
 
 /**
- * AmbariUserDetails implementations are extensions of {@link UserDetails} that contain information
- * about the authenticated user that is needed specifically by Ambari.  For example, the user's
- * <code>userId</code>.
+ * TrustedProxyAuthenticationDetailsSource is an implementation of a {@link AuthenticationDetailsSource}
+ * that produces {@link TrustedProxyAuthenticationDetails} instances.
+ *
+ * @see TrustedProxyAuthenticationDetails
  */
-public interface AmbariUserDetails extends UserDetails {
-  Integer getUserId();
+public class TrustedProxyAuthenticationDetailsSource implements AuthenticationDetailsSource<HttpServletRequest, TrustedProxyAuthenticationDetails> {
+  @Override
+  public TrustedProxyAuthenticationDetails buildDetails(HttpServletRequest httpServletRequest) {
+    return new TrustedProxyAuthenticationDetails(httpServletRequest);
+  }
 }

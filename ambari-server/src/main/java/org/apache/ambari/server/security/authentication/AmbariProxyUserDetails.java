@@ -15,15 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.security.authentication;
 
-import org.springframework.security.core.userdetails.UserDetails;
+import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 
 /**
- * AmbariUserDetails implementations are extensions of {@link UserDetails} that contain information
- * about the authenticated user that is needed specifically by Ambari.  For example, the user's
- * <code>userId</code>.
+ * AmbariProxyUserDetails contains information about the proxy user authenticated during a trusted
+ * proxy authentication attempt.
  */
-public interface AmbariUserDetails extends UserDetails {
-  Integer getUserId();
+public interface AmbariProxyUserDetails {
+  /**
+   * Returns the local username of the authenticated proxy user.
+   *
+   * @return the local username of the authenticated proxy user
+   */
+  String getUsername();
+
+  /**
+   * Returns the authentication type used to peform authentication.
+   *
+   * @return a {@link UserAuthenticationType}
+   */
+  UserAuthenticationType getAuthenticationType();
 }

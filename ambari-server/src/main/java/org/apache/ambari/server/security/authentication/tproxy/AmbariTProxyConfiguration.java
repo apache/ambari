@@ -71,7 +71,7 @@ public class AmbariTProxyConfiguration extends AmbariServerConfiguration {
    * @return <code>true</code> if trusted proxy support is enabed; <code>false</code> otherwise
    * @see AmbariServerConfigurationKey#TPROXY_AUTHENTICATION_ENABLED
    */
-  boolean isEnabled() {
+  public boolean isEnabled() {
     return Boolean.valueOf(getValue(AmbariServerConfigurationKey.TPROXY_AUTHENTICATION_ENABLED, configurationMap));
   }
 
