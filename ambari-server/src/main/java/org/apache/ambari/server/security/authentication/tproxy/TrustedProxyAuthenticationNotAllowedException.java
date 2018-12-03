@@ -15,15 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.security.authentication;
 
-import org.springframework.security.core.userdetails.UserDetails;
+package org.apache.ambari.server.security.authentication.tproxy;
+
+import org.springframework.security.core.AuthenticationException;
 
 /**
- * AmbariUserDetails implementations are extensions of {@link UserDetails} that contain information
- * about the authenticated user that is needed specifically by Ambari.  For example, the user's
- * <code>userId</code>.
+ * TrustedProxyAuthenticationNotAllowedException is an AuthenticationException implementation to be
+ * thrown a Trusted proxy authentication attempt fails.
  */
-public interface AmbariUserDetails extends UserDetails {
-  Integer getUserId();
+public class TrustedProxyAuthenticationNotAllowedException extends AuthenticationException {
+
+  public TrustedProxyAuthenticationNotAllowedException(String message) {
+    super(message);
+  }
 }

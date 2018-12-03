@@ -29,6 +29,7 @@ import org.apache.ambari.server.security.authentication.AccountDisabledException
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationProvider;
 import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authentication.AmbariUserDetails;
+import org.apache.ambari.server.security.authentication.AmbariUserDetailsImpl;
 import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
 import org.apache.commons.collections.CollectionUtils;
@@ -110,7 +111,7 @@ public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvid
             }
           }
 
-          AmbariUserDetails userDetails = new AmbariUserDetails(users.getUser(userEntity), null, users.getUserAuthorities(userEntity));
+          AmbariUserDetails userDetails = new AmbariUserDetailsImpl(users.getUser(userEntity), null, users.getUserAuthorities(userEntity));
           return new AmbariUserAuthentication(null, userDetails, true);
         }
       } catch (AuthenticationException e) {
