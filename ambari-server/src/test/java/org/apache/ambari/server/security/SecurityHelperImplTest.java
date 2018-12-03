@@ -23,7 +23,7 @@ import java.util.Collection;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
-import org.apache.ambari.server.security.authentication.AmbariUserDetails;
+import org.apache.ambari.server.security.authentication.AmbariUserDetailsImpl;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserName;
 import org.junit.Assert;
@@ -48,7 +48,7 @@ public class SecurityHelperImplTest {
     userEntity.setUserName(UserName.fromString("userName").toString());
     userEntity.setUserId(1);
     User user = new User(userEntity);
-    Authentication auth = new AmbariUserAuthentication(null, new AmbariUserDetails(user, null, null));
+    Authentication auth = new AmbariUserAuthentication(null, new AmbariUserDetailsImpl(user, null, null));
     ctx.setAuthentication(auth);
 
     // Username is expected to be lowercase
