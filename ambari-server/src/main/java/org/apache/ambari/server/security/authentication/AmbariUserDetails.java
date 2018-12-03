@@ -20,7 +20,7 @@ package org.apache.ambari.server.security.authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 
 /**
- * AmbariUserDetails implementations are extenstions of {@link UserDetails} that contain information
+ * AmbariUserDetails implementations are extensions of {@link UserDetails} that contain information
  * about the authenticated user that is needed specifically by Ambari.  For example, the user's
  * <code>userId</code>.
  */

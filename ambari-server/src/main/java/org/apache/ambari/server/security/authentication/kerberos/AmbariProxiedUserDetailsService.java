@@ -141,7 +141,7 @@ public class AmbariProxiedUserDetailsService implements UserDetailsService {
     // We also need this later if all validations succeed.
     UserEntity userEntity = users.getUserEntity(proxiedUserName);
     if (userEntity == null) {
-      String message = String.format("Failed to find and account for proxied user, %s.", proxiedUserName);
+      String message = String.format("Failed to find an account for the proxied user, %s.", proxiedUserName);
       LOG.warn(message);
       throw new UsernameNotFoundException(message);
     }
@@ -173,7 +173,7 @@ public class AmbariProxiedUserDetailsService implements UserDetailsService {
             GroupEntity group = memberEntity.getGroup();
             if (group != null) {
               String groupName = group.getGroupName();
-              if (groupSpecs.contains(groupName.toLowerCase())) {
+              if (StringUtils.isNotEmpty(groupName) && groupSpecs.contains(groupName.toLowerCase())) {
                 return true;
               }
             }
@@ -249,20 +249,34 @@ public class AmbariProxiedUserDetailsService implements UserDetailsService {
     return (inetAddress == null) ? null : inetAddress.getHostAddress();
   }
 
-  boolean isInIpAddressRange(String hostSpec, String remoteAddress) {
-    Matcher matcher = IP_ADDRESS_RANGE_PATTERN.matcher(hostSpec);
+  /**
+   * Determines if an IP address is in the subnet specified by the CIDR value.
+   * <p>
+   * The logic for ths method comes from an example found at
+   * https://stackoverflow.com/questions/4209760/validate-an-ip-address-with-mask.
+   * <p>
+   * A CIDR is an IP address with a mask, denoting a subnet.  For example, <code>192.168.1.0/24</code> contains all
+   * IP addresses in the range of <code>192.168.1.0</code> through <code>192.168.1.255</code>. See https://www.ipaddressguide.com/cidr
+   * for an on-line calculator.
+   *
+   * @param cidr      a CIDR
+   * @param ipAddress the IP address to test
+   * @return <code>true</code> if the IP Address is withing the range specified by the CIDR; <code>false</code> otherwise.
+   */
+  boolean isInIpAddressRange(String cidr, String ipAddress) {
+    Matcher matcher = IP_ADDRESS_RANGE_PATTERN.matcher(cidr);
 
     if (matcher.matches() && matcher.groupCount() == 2) {
       try {
         String hostSpecIPAddress = matcher.group(1);
         String hostSpecBits = matcher.group(2);
         int hostSpecIPAddressInt = ipAddressToInt(hostSpecIPAddress);
-        int remoteAddressInt = ipAddressToInt(remoteAddress);
+        int remoteAddressInt = ipAddressToInt(ipAddress);
 
         int mask = -1 << (32 - Integer.valueOf(hostSpecBits));
         return ((hostSpecIPAddressInt & mask) == (remoteAddressInt & mask));
       } catch (Throwable t) {
-        LOG.warn("Invalid CIDR in host specification, skipping: " + hostSpec, t);
+        LOG.warn("Invalid CIDR in host specification, skipping: " + cidr, t);
       }
     }
 

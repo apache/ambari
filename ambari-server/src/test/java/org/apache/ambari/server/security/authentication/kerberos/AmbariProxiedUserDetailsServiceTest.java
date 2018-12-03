@@ -142,6 +142,14 @@ public class AmbariProxiedUserDetailsServiceTest extends EasyMockSupport {
     memberEntities.add(createMockMemberEntity("validGroup"));
     memberEntities.add(createMockMemberEntity("users"));
 
+    // Null Group name - maybe this is not possible
+    memberEntities.add(createMockMemberEntity(null));
+
+    // Null Group - maybe this is not possible
+    MemberEntity memberEntity = createMock(MemberEntity.class);
+    expect(memberEntity.getGroup()).andReturn(null).anyTimes();
+    memberEntities.add(memberEntity);
+
     UserEntity userEntity = createMock(UserEntity.class);
     expect(userEntity.getMemberEntities()).andReturn(memberEntities).anyTimes();
 
@@ -179,9 +187,9 @@ public class AmbariProxiedUserDetailsServiceTest extends EasyMockSupport {
     Assert.assertFalse(service.isInIpAddressRange("192.168.74.10/32", "192.168.74.11"));
 
     for (int i = 0; i <= 255; i++) {
-      Assert.assertTrue(service.isInIpAddressRange("192.168.1.0/16", String.format("192.168.1.%d", i)));
+      Assert.assertTrue(service.isInIpAddressRange("192.168.1.0/24", String.format("192.168.1.%d", i)));
     }
-
+    Assert.assertFalse(service.isInIpAddressRange("192.168.1.0/24", "192.168.2.100"));
   }
 
   private MemberEntity createMockMemberEntity(String groupName) {
