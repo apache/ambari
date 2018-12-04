@@ -253,6 +253,7 @@ var files = [
   'test/utils/configs/config_initializer_test',
   'test/utils/configs/add_component_config_initializer_test',
   'test/utils/configs/hosts_based_initializer_test',
+  'test/utils/configs/move_hm_config_initializer_test',
   'test/utils/configs/modification_handlers/modification_handler_test',
   'test/utils/configs/modification_handlers/misc_test',
   'test/utils/load_timer_test',
