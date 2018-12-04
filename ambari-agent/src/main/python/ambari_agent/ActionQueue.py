@@ -336,8 +336,8 @@ class ActionQueue(threading.Thread):
 
     role_result = self.commandStatuses.generate_report_template(command)
     role_result.update({
-      'stdout': command_result['stdout'],
-      'stderr': command_result['stderr'],
+      'stdout': unicode(command_result['stdout'], errors='replace'),
+      'stderr': unicode(command_result['stderr'], errors='replace'),
       'exitCode': command_result['exitcode'],
       'status': status,
     })
