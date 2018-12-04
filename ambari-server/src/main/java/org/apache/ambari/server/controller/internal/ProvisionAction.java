@@ -18,9 +18,27 @@
 
 package org.apache.ambari.server.controller.internal;
 
-
 public enum ProvisionAction {
-  INSTALL_ONLY,     // Skip Start
-  START_ONLY,     // Skip Install
-  INSTALL_AND_START // Default action
+  INSTALL_ONLY {
+    @Override
+    public boolean skipStart() {
+      return true;
+    }
+  },
+  START_ONLY {
+    @Override
+    public boolean skipInstall() {
+      return true;
+    }
+  },
+  INSTALL_AND_START, // Default action
+  ;
+
+  public boolean skipInstall() {
+    return false;
+  }
+
+  public boolean skipStart() {
+    return false;
+  }
 }

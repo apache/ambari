@@ -32,12 +32,14 @@ import javax.inject.Singleton;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
+import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
@@ -153,8 +155,12 @@ public class ResourceProviderAdapter {
       HostComponentResourceProvider.STATE, desiredState.name(),
       "context", String.format("Put new components to %s state", desiredState)
     ));
+
+    ImmutableMap.Builder<String, String> requestInfo = createRequestInfo(request.clusterName(), Resource.Type.HostComponent);
+    addProvisionProperties(requestInfo, desiredState, request.getRequest().getProvisionAction());
+
     HostComponentResourceProvider rp = (HostComponentResourceProvider) getClusterController().ensureResourceProvider(Resource.Type.HostComponent);
-    Request internalRequest = createRequest(request.clusterName(), properties, Resource.Type.HostComponent);
+    Request internalRequest = createRequest(properties, requestInfo.build());
     try {
       rp.doUpdateResources(request.getStages(), internalRequest, predicateForNewServices(request, HostComponentResourceProvider.HOST_ROLES), false, false, false);
     } catch (UnsupportedPropertyException | SystemException | NoSuchParentResourceException | NoSuchResourceException e) {
@@ -165,7 +171,7 @@ public class ResourceProviderAdapter {
   }
 
   private static void createResources(AddServiceInfo request, Set<Map<String, Object>> properties, Resource.Type resourceType, boolean okIfExists) {
-    Request internalRequest = new RequestImpl(null, properties, null, null);
+    Request internalRequest = createRequest(properties, null);
     ResourceProvider rp = getClusterController().ensureResourceProvider(resourceType);
     try {
       rp.createResources(internalRequest);
@@ -181,7 +187,7 @@ public class ResourceProviderAdapter {
   }
 
   private static void updateResources(AddServiceInfo request, Set<Map<String, Object>> properties, Resource.Type resourceType, Predicate predicate) {
-    Request internalRequest = createRequest(request.clusterName(), properties, resourceType);
+    Request internalRequest = createRequest(properties, createRequestInfo(request.clusterName(), resourceType).build());
     ResourceProvider rp = getClusterController().ensureResourceProvider(resourceType);
     try {
       rp.updateResources(internalRequest, predicate);
@@ -202,12 +208,21 @@ public class ResourceProviderAdapter {
     }
   }
 
-  private static Request createRequest(String clusterName, Set<Map<String, Object>> properties, Resource.Type resourceType) {
-    Map<String, String> requestInfoProperties = ImmutableMap.of(
-      RequestOperationLevel.OPERATION_LEVEL_ID, RequestOperationLevel.getExternalLevelName(resourceType.name()),
-      RequestOperationLevel.OPERATION_CLUSTER_ID, clusterName
-    );
+  private static Request createRequest(Set<Map<String, Object>> properties, Map<String, String> requestInfoProperties) {
     return new RequestImpl(null, properties, requestInfoProperties, null);
+  }
+
+  private static ImmutableMap.Builder<String, String> createRequestInfo(String clusterName, Resource.Type resourceType) {
+    return new ImmutableMap.Builder<String, String>()
+      .put(RequestOperationLevel.OPERATION_LEVEL_ID, RequestOperationLevel.getExternalLevelName(resourceType.name()))
+      .put(RequestOperationLevel.OPERATION_CLUSTER_ID, clusterName);
+  }
+
+  private static void addProvisionProperties(ImmutableMap.Builder<String, String> requestInfo, State desiredState, ProvisionAction requestAction) {
+    if (desiredState == State.INSTALLED && requestAction.skipInstall()) {
+      requestInfo.put(AmbariManagementControllerImpl.SKIP_INSTALL_FOR_COMPONENTS, "ALL");
+      requestInfo.put(AmbariManagementControllerImpl.DONT_SKIP_INSTALL_FOR_COMPONENTS, "");
+    }
   }
 
   private static Map<String, Object> createServiceRequestProperties(AddServiceInfo request, String service) {
