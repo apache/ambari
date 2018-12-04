@@ -35,13 +35,14 @@ public interface UpgradeAction {
    *
    * @param clusterInformation
    *          the cluster information, such as topology, configurations, etc.
-   *
+   * @param upgradeInformation
+   *          the upgrade type, direction, services, repository versions, etc.
    * @return the changes to perform during the upgrade, such as updating
    *         configurations.
    * @throws UpgradeActionException
    *           if the class is unable to create the operations for the Ambari
    *           Server to execute.
    */
-  UpgradeActionOperations getOperations(ClusterInformation clusterInformation)
-      throws UpgradeActionException;
+  UpgradeActionOperations getOperations(ClusterInformation clusterInformation,
+      UpgradeInformation upgradeInformation) throws UpgradeActionException;
 }

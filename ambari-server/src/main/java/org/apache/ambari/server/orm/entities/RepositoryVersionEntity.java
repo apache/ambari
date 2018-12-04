@@ -47,16 +47,14 @@ import javax.persistence.UniqueConstraint;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.RepositoryVersion;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 
 @Entity
 @Table(name = "repo_version", uniqueConstraints = {
@@ -93,9 +91,6 @@ import com.google.inject.Provider;
         query = "SELECT repositoryVersion FROM RepositoryVersionEntity repositoryVersion WHERE repositoryVersion IN (SELECT DISTINCT sd1.desiredRepositoryVersion FROM ServiceDesiredStateEntity sd1 WHERE sd1.desiredRepositoryVersion IN ?1)") })
 @StaticallyInject
 public class RepositoryVersionEntity {
-  @Inject
-  private static Provider<RepositoryVersionHelper> repositoryVersionHelperProvider;
-
   @Id
   @Column(name = "repo_version_id")
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "repository_version_id_generator")
@@ -503,5 +498,15 @@ public class RepositoryVersionEntity {
     for (RepoOsEntity repoOsEntity : repoOsEntities) {
       repoOsEntity.setRepositoryVersionEntity(this);
     }
+  }
+
+  /**
+   * Builds a {@link RepositoryVersion} instance type from this entity.
+   *
+   * @return a single POJO to represent this entity.
+   */
+  public RepositoryVersion getRepositoryVersion() {
+    return new RepositoryVersion(getId(), getStackName(), getStackVersion(),
+        getStackId().getStackId(), getVersion(), getType());
   }
 }

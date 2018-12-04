@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.serveraction.ServerAction;
+import org.apache.ambari.server.stack.upgrade.Direction;
 import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
 import org.apache.ambari.server.state.Cluster;
@@ -98,14 +100,15 @@ public class PluginUpgradeServerAction extends AbstractUpgradeServerAction {
     try {
       ClusterInformation clusterInformation = cluster.buildClusterInformation();
       UpgradeActionOperations upgradeActionOperations = upgradeAction.getOperations(
-          clusterInformation);
+          clusterInformation, upgradeContext.buildUpgradeInformation());
 
       // update configurations
-      changeConfigurations(cluster, upgradeActionOperations.getConfigurationChanges());
+      changeConfigurations(cluster, upgradeActionOperations.getConfigurationChanges(), upgradeContext);
+      removeConfigurationTypes(cluster, upgradeActionOperations.getConfigurationTypeRemovals());
 
       standardOutput = "Successfully executed " + pluginClassName;
       if(null != upgradeActionOperations.getStandardOutput()) {
-        standardOutput = upgradeActionOperations.getStandardOutput().toString();
+        standardOutput = upgradeActionOperations.getStandardOutput();
       }
     } catch (UpgradeActionException exception) {
       LOG.error("Unable to run the upgrade action {}", pluginClassName, exception);
@@ -124,22 +127,51 @@ public class PluginUpgradeServerAction extends AbstractUpgradeServerAction {
   }
 
   /**
-   * Updates configurations in the cluster.
+   * Updates configurations in the cluster. This will create new configuration
+   * types if changes are required for one which does not exist.
    *
    * @param cluster
    *          the cluster used to retrieve the configurations.
    * @param configurationChanges
    *          the changes to make.
+   * @param upgradeContext
+   *          upgrade information for the current upgrade or downgrade.
    * @throws AmbariException
    *           if there was a problem determining what change to make or while
    *           making changes.
    */
   private void changeConfigurations(Cluster cluster,
-      List<ConfigurationChanges> configurationChanges)
+      List<ConfigurationChanges> configurationChanges, UpgradeContext upgradeContext)
       throws AmbariException {
+    if (null == configurationChanges) {
+      return;
+    }
+
     for (ConfigurationChanges configTypeChanges : configurationChanges) {
       String configType = configTypeChanges.getConfigType();
+
+      // the configuration could be null, so try to figure out if we're creating
+      // it by checking all of the changes being made
       Config config = cluster.getDesiredConfigByType(configType);
+      if (null == config) {
+        // no additions/updates, so just skip it entirely
+        if (configTypeChanges.isOnlyRemovals()) {
+          continue;
+        }
+
+        Direction direction = upgradeContext.getDirection();
+        String serviceVersionNote = String.format("%s %s %s", direction.getText(true),
+            direction.getPreposition(), upgradeContext.getRepositoryVersion().getVersion());
+
+        m_configHelper.createConfigType(cluster, upgradeContext.getRepositoryVersion().getStackId(),
+            m_amc, configType, new HashMap<>(), m_amc.getAuthName(), serviceVersionNote);
+
+        config = cluster.getDesiredConfigByType(configType);
+        if (null == config) {
+          throw new AmbariException(
+              String.format("Unable to create the % configuration type", configType));
+        }
+      }
 
       List<PropertyChange> propertyChanges = configTypeChanges.getPropertyChanges();
       for (PropertyChange propertyChange : propertyChanges) {
@@ -161,6 +193,27 @@ public class PluginUpgradeServerAction extends AbstractUpgradeServerAction {
       }
 
       config.save();
+    }
+  }
+
+  /**
+   * Remove the specified configuration types from the cluster.
+   *
+   * @param cluster
+   *          the cluster to remove the configurations from.
+   * @param configurationTypeRemovals
+   *          the types to remove.
+   * @throws AmbariException
+   *           if there were problems removing the configuration types.
+   */
+  private void removeConfigurationTypes(Cluster cluster, Set<String> configurationTypeRemovals)
+      throws AmbariException {
+    if (null == configurationTypeRemovals) {
+      return;
+    }
+
+    for (String configType : configurationTypeRemovals) {
+      m_configHelper.removeConfigsByType(cluster, configType);
     }
   }
 
