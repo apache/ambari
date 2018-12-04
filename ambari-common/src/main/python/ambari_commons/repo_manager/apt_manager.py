@@ -49,7 +49,7 @@ class AptManagerProperties(GenericManagerProperties):
   repo_update_cmd = [repo_manager_bin, 'update', '-qq']
 
   available_packages_cmd = [repo_cache_bin, "dump"]
-  installed_packages_cmd = [pkg_manager_bin, "-l"]
+  installed_packages_cmd = ['COLUMNS=999', pkg_manager_bin, "-l"]
 
   repo_definition_location = "/etc/apt/sources.list.d"
 
