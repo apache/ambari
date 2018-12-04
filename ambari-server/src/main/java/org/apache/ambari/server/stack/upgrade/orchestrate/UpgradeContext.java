@@ -86,7 +86,9 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.RepositoryVersion;
 import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
+import org.apache.ambari.spi.upgrade.UpgradeInformation;
 import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -1456,5 +1458,45 @@ public class UpgradeContext {
         stackId.getStackName(), stackId.getStackVersion());
 
     return packs.get(upgrade.getUpgradePackage());
+  }
+
+  /**
+   * Builds a {@link UpgradeInformation} instance from a {@link Cluster} where
+   * there is an upgrade in progress.
+   *
+   * @return the {@link UpgradeInformation} instance comprised of simple POJOs
+   *         and SPI classes.
+   */
+  public UpgradeInformation buildUpgradeInformation() {
+    RepositoryVersionEntity targetRepositoryVersionEntity = m_repositoryVersion;
+
+    Map<String, Service> clusterServices = m_cluster.getServices();
+    Map<String, RepositoryVersion> clusterServiceVersions = new HashMap<>();
+    if (null != clusterServices) {
+      for (Map.Entry<String, Service> serviceEntry : clusterServices.entrySet()) {
+        Service service = serviceEntry.getValue();
+        RepositoryVersionEntity desiredRepositoryEntity = service.getDesiredRepositoryVersion();
+        RepositoryVersion desiredRepositoryVersion = desiredRepositoryEntity.from();
+
+        clusterServiceVersions.put(serviceEntry.getKey(), desiredRepositoryVersion);
+      }
+    }
+
+    Map<String, RepositoryVersionEntity> sourceVersionEntites = getSourceVersions();
+    Map<String, RepositoryVersionEntity> targetVersionEntites = getTargetVersions();
+    Map<String, RepositoryVersion> sourceVersions = new HashMap<>();
+    Map<String, RepositoryVersion> targetVersions = new HashMap<>();
+
+    sourceVersionEntites.forEach(
+        (service, repositoryVersion) -> sourceVersions.put(service, repositoryVersion.from()));
+
+    targetVersionEntites.forEach(
+        (service, repositoryVersion) -> targetVersions.put(service, repositoryVersion.from()));
+
+    UpgradeInformation upgradeInformation = new UpgradeInformation(
+        getDirection().isUpgrade(), getType(),
+        targetRepositoryVersionEntity.from(), sourceVersions, targetVersions);
+
+    return upgradeInformation;
   }
 }

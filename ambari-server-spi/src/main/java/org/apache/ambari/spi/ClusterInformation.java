@@ -21,8 +21,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Maps;
-
 /**
  * The {@link ClusterInformation} class is used to pass the state of the cluster
  * as simple primitive values and collections. It contains the following types of information:
@@ -124,13 +122,17 @@ public class ClusterInformation {
     return hosts;
   }
 
+  /**
+   * Gets the configuration properties for the specified type. If the type does
+   * not exist, this will return {@code null}.
+   *
+   * @param configurationType
+   *          the configuration type to retrieve.
+   * @return the property name and value pairs for the configuration type, or
+   *         {@code null} if no configuration type exists.
+   */
   public Map<String, String> getConfigurationProperties(String configurationType) {
-    Map<String, String> properties = m_configurations.get(configurationType);
-    if (null == properties) {
-      return Maps.newHashMap();
-    }
-
-    return properties;
+    return m_configurations.get(configurationType);
   }
 
   /**
@@ -143,7 +145,12 @@ public class ClusterInformation {
    * @return the property value, or {@code null} if it does not exist.
    */
   public String getConfigurationProperty(String configurationType, String propertyName) {
-    return getConfigurationProperties(configurationType).get(propertyName);
+    Map<String, String> configType = getConfigurationProperties(configurationType);
+    if (null == configType) {
+      return null;
+    }
+
+    return configType.get(propertyName);
   }
 
   /**

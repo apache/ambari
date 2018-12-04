@@ -2950,12 +2950,7 @@ public class ClusterImpl implements Cluster {
       for (Map.Entry<String, Service> serviceEntry : clusterServices.entrySet()) {
         Service service = serviceEntry.getValue();
         RepositoryVersionEntity desiredRepositoryEntity = service.getDesiredRepositoryVersion();
-        StackId stackId = desiredRepositoryEntity.getStackId();
-
-        RepositoryVersion desiredRepositoryVersion = new RepositoryVersion(
-            desiredRepositoryEntity.getId(), stackId.getStackName(), stackId.getStackVersion(),
-            stackId.getStackId(), desiredRepositoryEntity.getVersion(),
-            desiredRepositoryEntity.getType());
+        RepositoryVersion desiredRepositoryVersion = desiredRepositoryEntity.from();
 
         clusterServiceVersions.put(serviceEntry.getKey(), desiredRepositoryVersion);
       }

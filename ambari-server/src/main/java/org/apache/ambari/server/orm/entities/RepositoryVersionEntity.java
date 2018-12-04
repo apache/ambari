@@ -51,6 +51,7 @@ import org.apache.ambari.server.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.RepositoryVersion;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.base.MoreObjects;
@@ -503,5 +504,15 @@ public class RepositoryVersionEntity {
     for (RepoOsEntity repoOsEntity : repoOsEntities) {
       repoOsEntity.setRepositoryVersionEntity(this);
     }
+  }
+
+  /**
+   * Builds a {@link RepositoryVersion} instance type from this entity.
+   *
+   * @return a single POJO to represent this entity.
+   */
+  public RepositoryVersion from() {
+    return new RepositoryVersion(getId(), getStackName(), getStackVersion(),
+        getStackId().getStackId(), getVersion(), getType());
   }
 }
