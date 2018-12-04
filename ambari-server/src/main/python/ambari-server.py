@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import textwrap
 import logging
 import logging.config
 import logging.handlers
@@ -613,6 +614,11 @@ def init_tproxy_setup_parser_options(parser):
   parser.add_option('--ambari-admin-username', default=None, help="Ambari administrator username for accessing Ambari's REST API", dest="ambari_admin_username")
   parser.add_option('--ambari-admin-password', default=None, help="Ambari administrator password for accessing Ambari's REST API", dest="ambari_admin_password")
   parser.add_option('--tproxy-enabled', default=None, help="Indicates whether to enable/disable Trusted Proxy Support", dest="tproxy_enabled")
+  parser.add_option('--tproxy-configuration-file-path', default=None,
+                    help="The path where the Trusted Proxy configuration is located. The content is expected to be in JSON format." \
+                    "Sample configuration:[{\"proxyuser\": \"knox\", \"hosts\": \"host1\", \"users\": \"user1, user2\", \"groups\": \"group1\"}]",
+                    dest="tproxy_configuration_file_path"
+                    )
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)

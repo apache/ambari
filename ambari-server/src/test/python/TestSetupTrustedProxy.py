@@ -70,7 +70,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
               with patch("__builtin__.open"):
                 from ambari_commons.exceptions import FatalException, NonFatalException
                 from ambari_server.properties import Properties
-                from ambari_server.setupTrustedProxy import setup_trusted_proxy, PROXYUSER_PLACEHOLDER, TPROXY_SUPPORT_ENABLED, PROXYUSER_HOSTS, PROXYUSER_USERS, PROXYUSER_GROUPS
+                from ambari_server.setupTrustedProxy import setup_trusted_proxy, TPROXY_SUPPORT_ENABLED, PROXYUSER_HOSTS, PROXYUSER_USERS, PROXYUSER_GROUPS
 
 class TestSetupTrustedProxy(unittest.TestCase):
 
@@ -107,7 +107,7 @@ class TestSetupTrustedProxy(unittest.TestCase):
       setup_trusted_proxy(options)
       self.fail("Should fail with fatal exception")
     except NonFatalException as e:
-      self.assertTrue("setup-tproxy is not enabled in silent mode." in e.reason)
+      self.assertTrue("setup-trusted-proxy is not enabled in silent mode." in e.reason)
       pass
 
     sys.stdout = sys.__stdout__
@@ -180,13 +180,13 @@ class TestSetupTrustedProxy(unittest.TestCase):
     tproxyProperties = requestData['Configuration']['properties']
     self.assertEqual(tproxyProperties[TPROXY_SUPPORT_ENABLED], 'true')
 
-    self.assertEqual(tproxyProperties[PROXYUSER_HOSTS.replace(PROXYUSER_PLACEHOLDER, user_name1)], hosts1)
-    self.assertEqual(tproxyProperties[PROXYUSER_USERS.replace(PROXYUSER_PLACEHOLDER, user_name1)], users1)
-    self.assertEqual(tproxyProperties[PROXYUSER_GROUPS.replace(PROXYUSER_PLACEHOLDER, user_name1)], groups1)
+    self.assertEqual(tproxyProperties[PROXYUSER_HOSTS.format(user_name1)], hosts1)
+    self.assertEqual(tproxyProperties[PROXYUSER_USERS.format(user_name1)], users1)
+    self.assertEqual(tproxyProperties[PROXYUSER_GROUPS.format(user_name1)], groups1)
 
-    self.assertEqual(tproxyProperties[PROXYUSER_HOSTS.replace(PROXYUSER_PLACEHOLDER, user_name2)], hosts2)
-    self.assertEqual(tproxyProperties[PROXYUSER_USERS.replace(PROXYUSER_PLACEHOLDER, user_name2)], users2)
-    self.assertEqual(tproxyProperties[PROXYUSER_GROUPS.replace(PROXYUSER_PLACEHOLDER, user_name2)], groups2)
+    self.assertEqual(tproxyProperties[PROXYUSER_HOSTS.format(user_name2)], hosts2)
+    self.assertEqual(tproxyProperties[PROXYUSER_USERS.format(user_name2)], users2)
+    self.assertEqual(tproxyProperties[PROXYUSER_GROUPS.format(user_name2)], groups2)
 
     sys.stdout = sys.__stdout__
     pass
@@ -224,7 +224,100 @@ class TestSetupTrustedProxy(unittest.TestCase):
     sys.stdout = sys.__stdout__
     pass
 
+  @patch("ambari_server.setupTrustedProxy.get_silent")
+  @patch("ambari_server.setupTrustedProxy.is_server_runing")
+  @patch("os.path.isfile")
+  def test_enable_tproxy_support_using_configuration_file_path_from_command_line_should_fail_if_file_does_not_exist(self, isfile_mock, is_server_runing_mock, get_silent_mock):
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    is_server_runing_mock.return_value = (True, 0)
+    get_silent_mock.return_value = False
+    isfile_mock.return_value = False
+
+    options = self._create_empty_options_mock()
+    options.tproxy_enabled = 'true'
+    options.tproxy_configuration_file_path = 'samplePath'
+
+    try:
+      setup_trusted_proxy(options)
+      self.fail("Should fail with fatal exception")
+    except FatalException as e:
+      self.assertTrue("--tproxy-configuration-file-path is set to a non-existing file" in e.reason)
+      pass
+
+    sys.stdout = sys.__stdout__
+    pass
+
+
+  @patch("ambari_server.setupTrustedProxy.perform_changes_via_rest_api")
+  @patch("ambari_server.setupTrustedProxy.get_ambari_properties")
+  @patch("ambari_server.setupTrustedProxy.get_silent")
+  @patch("ambari_server.setupTrustedProxy.is_server_runing")
+  @patch("ambari_server.setupTrustedProxy.get_json_via_rest_api")
+  @patch("os.path.isfile")
+  @patch('__builtin__.open')
+  def test_enable_tproxy_support_using_configuration_file_path_from_command_line(self, open_mock, isfile_mock, get_json_via_rest_api_mock, is_server_runing_mock, get_silent_mock, get_ambari_properties_mock, perform_changes_via_rest_api_mock):
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    get_json_via_rest_api_mock.return_value = (200, {})
+
+    is_server_runing_mock.return_value = (True, 0)
+    get_silent_mock.return_value = False
+
+    properties = Properties()
+    get_ambari_properties_mock.return_value = properties
+
+    isfile_mock.return_value = True
+
+    tproxy_configurations = "["\
+                            "  {"\
+                            "    \"proxyuser\" : \"knox\"," \
+                            "    \"hosts\"     : \"host1\"," \
+                            "    \"users\"     : \"user1\"," \
+                            "    \"groups\"    : \"group1\"" \
+                            "  }," \
+                            "  {"\
+                            "    \"proxyuser\": \"admin\"," \
+                            "    \"hosts\"    : \"host2\"," \
+                            "    \"users\"    : \"user2\"," \
+                            "    \"groups\"   : \"group2\"" \
+                            "  }" \
+                            "]"
+    mock_file = MagicFile(tproxy_configurations)
+    open_mock.side_effect = [mock_file]
+
+    options = self._create_empty_options_mock()
+    options.tproxy_enabled = 'true'
+    options.tproxy_configuration_file_path = 'samplePath'
+
+    setup_trusted_proxy(options)
+
+    self.assertTrue(perform_changes_via_rest_api_mock.called)
+    requestCall = perform_changes_via_rest_api_mock.call_args_list[0]
+    args, kwargs = requestCall
+    requestData = args[5]
+    self.assertTrue(isinstance(requestData, dict))
+    tproxyProperties = requestData['Configuration']['properties']
+    self.assertEqual(tproxyProperties[TPROXY_SUPPORT_ENABLED], 'true')
+
+    user_name1="knox"
+    self.assertEqual(tproxyProperties[PROXYUSER_HOSTS.format(user_name1)], "host1")
+    self.assertEqual(tproxyProperties[PROXYUSER_USERS.format(user_name1)], "user1")
+    self.assertEqual(tproxyProperties[PROXYUSER_GROUPS.format(user_name1)], "group1")
+
+    user_name2="admin"
+    self.assertEqual(tproxyProperties[PROXYUSER_HOSTS.format(user_name2)], "host2")
+    self.assertEqual(tproxyProperties[PROXYUSER_USERS.format(user_name2)], "user2")
+    self.assertEqual(tproxyProperties[PROXYUSER_GROUPS.format(user_name2)], "group2")
+
+    sys.stdout = sys.__stdout__
+    pass
+
+
   def _create_empty_options_mock(self):
     options = MagicMock()
     options.tproxy_enabled = None
+    options.tproxy_configuration_file_path = None
     return options
