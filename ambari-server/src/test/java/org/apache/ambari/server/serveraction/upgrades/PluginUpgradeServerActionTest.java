@@ -119,7 +119,7 @@ public class PluginUpgradeServerActionTest extends EasyMockSupport {
 
     expect(m_mocRepoEntity.getStackId()).andReturn(m_stackId).anyTimes();
     expect(m_mocRepoEntity.getVersion()).andReturn("1.0.0.0-b1").anyTimes();
-    expect(m_mocRepoEntity.from()).andReturn(m_repositoryVersion).anyTimes();
+    expect(m_mocRepoEntity.getRepositoryVersion()).andReturn(m_repositoryVersion).anyTimes();
 
     expect(m_mockUpgradeContext.getUpgradePack()).andReturn(m_mockUpgradePack).atLeastOnce();
     expect(m_mockUpgradeContext.getDirection()).andReturn(Direction.UPGRADE).anyTimes();
