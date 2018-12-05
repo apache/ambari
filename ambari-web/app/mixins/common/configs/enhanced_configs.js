@@ -651,6 +651,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     this.prepareSectionsConfigProperties(serviceName);
     const service = this.get('stepConfigs').findProperty('serviceName', serviceName);
     if (service) {
+      try{
       const serviceConfigs = service.get('configs'),
         configConditions = App.ThemeCondition.find().filter(condition => {
           const dependentConfigName = condition.get('configName'),
@@ -667,6 +668,9 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
           });
         });
       this.updateAttributesFromConditions(configConditions, serviceConfigs, serviceName);
+    }catch(err){
+      return;
+    }
     }
   },
 
