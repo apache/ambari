@@ -283,9 +283,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private static final Type hostAttributesType =
           new TypeToken<Map<String, String>>() {}.getType();
 
-  private static final String CLUSTER_PHASE_PROPERTY = "phase";
-  private static final String CLUSTER_PHASE_INITIAL_INSTALL = "INITIAL_INSTALL";
-  private static final String CLUSTER_PHASE_INITIAL_START = "INITIAL_START";
+  public static final String CLUSTER_PHASE_PROPERTY = "phase";
+  public static final String CLUSTER_PHASE_INITIAL_INSTALL = "INITIAL_INSTALL";
+  public static final String CLUSTER_PHASE_INITIAL_START = "INITIAL_START";
   private static final String AMBARI_SERVER_HOST = "ambari_server_host";
   private static final String AMBARI_SERVER_PORT = "ambari_server_port";
   private static final String AMBARI_SERVER_USE_SSL = "ambari_server_use_ssl";
@@ -2962,7 +2962,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                       // reset Kerberos-related configs.
                       // Check if it's blueprint install. If it is, then do not configure this service
                       // at this time.
-                      if (!hostComponentAlreadyExists(cluster, scHost) && !("INITIAL_INSTALL".equals(requestProperties.get("phase")))) {
+                      if (!hostComponentAlreadyExists(cluster, scHost) && !(CLUSTER_PHASE_INITIAL_INSTALL.equals(requestProperties.get(CLUSTER_PHASE_PROPERTY)))) {
                         componentsToConfigureForKerberos.add(scHost);
                       }
 
@@ -3279,8 +3279,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       RoleGraph rg = roleGraphFactory.createNew(rco);
 
 
-      if (CommandExecutionType.DEPENDENCY_ORDERED == configs.getStageExecutionType() && "INITIAL_START".equals
-        (requestProperties.get("phase"))) {
+      if (CommandExecutionType.DEPENDENCY_ORDERED == configs.getStageExecutionType() &&
+        CLUSTER_PHASE_INITIAL_START.equals(requestProperties.get(CLUSTER_PHASE_PROPERTY))
+      ) {
         LOG.info("Set DEPENDENCY_ORDERED CommandExecutionType on stage: {}", stage.getRequestContext());
         rg.setCommandExecutionType(CommandExecutionType.DEPENDENCY_ORDERED);
       }
@@ -3347,23 +3348,22 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                               ServiceComponentHost sch) throws AmbariException {
     boolean isClientComponent = false;
     Service service = cluster.getService(sch.getServiceName());
+    String componentName = sch.getServiceComponentName();
     if (service != null) {
-      ServiceComponent serviceComponent = service.getServiceComponent(sch.getServiceComponentName());
+      ServiceComponent serviceComponent = service.getServiceComponent(componentName);
       if (serviceComponent != null) {
         isClientComponent = serviceComponent.isClientComponent();
       }
     }
     // Skip INSTALL for service components if START_ONLY is set for component, or if START_ONLY is set on cluster
     // level and no other provsion action is specified for component
-    if (requestProperties.get(SKIP_INSTALL_FOR_COMPONENTS) != null &&
-      (requestProperties.get(SKIP_INSTALL_FOR_COMPONENTS).contains(sch.getServiceComponentName()) ||
-        (requestProperties.get(SKIP_INSTALL_FOR_COMPONENTS).equals("ALL") && !requestProperties.get
-          (DONT_SKIP_INSTALL_FOR_COMPONENTS).contains(sch
-          .getServiceComponentName()))) &&
-      "INITIAL_INSTALL".equals(requestProperties.get("phase")) && !isClientComponent) {
-      return true;
-    }
-    return false;
+    String skipInstallForComponents = requestProperties.get(SKIP_INSTALL_FOR_COMPONENTS);
+    return !isClientComponent &&
+      CLUSTER_PHASE_INITIAL_INSTALL.equals(requestProperties.get(CLUSTER_PHASE_PROPERTY)) &&
+      skipInstallForComponents != null &&
+      (skipInstallForComponents.contains(componentName) ||
+        (skipInstallForComponents.equals("ALL") && !requestProperties.get(DONT_SKIP_INSTALL_FOR_COMPONENTS).contains(componentName))
+      );
 
   }
 

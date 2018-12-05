@@ -130,7 +130,9 @@ public class AddServiceOrchestrator {
     resourceProviders.createComponents(request);
 
     resourceProviders.updateServiceDesiredState(request, State.INSTALLED);
-    resourceProviders.updateServiceDesiredState(request, State.STARTED);
+    if (!request.getRequest().getProvisionAction().skipStart()) {
+      resourceProviders.updateServiceDesiredState(request, State.STARTED);
+    }
     resourceProviders.createHostComponents(request);
 
     configureKerberos(request, cluster, existingServices);
@@ -164,10 +166,13 @@ public class AddServiceOrchestrator {
   }
 
   private void createHostTasks(AddServiceInfo request) {
-    LOG.info("Creating host tasks for {}", request);
+    LOG.info("Creating host tasks for {}: {}", request, request.getRequest().getProvisionAction());
 
     resourceProviders.updateHostComponentDesiredState(request, State.INSTALLED);
-    resourceProviders.updateHostComponentDesiredState(request, State.STARTED);
+    if (!request.getRequest().getProvisionAction().skipStart()) {
+      resourceProviders.updateHostComponentDesiredState(request, State.STARTED);
+    }
+
     try {
       request.getStages().persist();
     } catch (AmbariException e) {
