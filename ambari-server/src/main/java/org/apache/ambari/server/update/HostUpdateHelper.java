@@ -579,9 +579,6 @@ public class HostUpdateHelper {
     } catch (AmbariException e) {
         LOG.error("Exception occurred during host names update, failed", e);
         throw e;
-    } catch (Throwable e){
-        LOG.error("Unexpected error, host names update failed", e);
-        throw new Exception("Unexpected error, host names update failed", e);
     } finally {
       hostUpdateHelper.stopPersistenceService();
     }
