@@ -93,6 +93,6 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   },
 
   isNodeManagerCreated: function () {
-    return this.isServiceComponentCreated('NODEMANAGER');
+    return App.SlaveComponent.find('NODEMANAGER').get('totalCount') > 0;
   }.property('App.router.clusterController.isComponentsStateLoaded')
 });
