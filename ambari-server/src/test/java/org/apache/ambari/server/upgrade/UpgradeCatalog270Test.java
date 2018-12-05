@@ -550,7 +550,7 @@ public class UpgradeCatalog270Test {
         Arrays.asList(
             new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN, String.class, 100, null, false),
             new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN, String.class, 100, null, false),
-            new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN, String.class, 4000, null, false))
+            new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN, String.class, 2048, null, true))
     );
 
     List<DBAccessor.DBColumnInfo> columns = ambariConfigurationTableColumns.getValue();
@@ -571,9 +571,9 @@ public class UpgradeCatalog270Test {
         Assert.assertFalse(column.isNullable());
       } else if (AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN.equals(columnName)) {
         Assert.assertEquals(String.class, column.getType());
-        Assert.assertEquals(Integer.valueOf(4000), column.getLength());
+        Assert.assertEquals(Integer.valueOf(2048), column.getLength());
         Assert.assertEquals(null, column.getDefaultValue());
-        Assert.assertFalse(column.isNullable());
+        Assert.assertTrue(column.isNullable());
       } else {
         Assert.fail("Unexpected column name: " + columnName);
       }

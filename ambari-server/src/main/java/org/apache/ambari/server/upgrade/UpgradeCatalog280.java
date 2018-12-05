@@ -44,6 +44,9 @@ public class UpgradeCatalog280 extends AbstractUpgradeCatalog {
   private static final String UPGRADE_TABLE = "upgrade";
   private static final String UPGRADE_PACK_STACK_ID = "upgrade_pack_stack_id";
 
+  protected static final String AMBARI_CONFIGURATION_TABLE = "ambari_configuration";
+  protected static final String AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN = "property_value";
+
   @Inject
   public UpgradeCatalog280(Injector injector) {
     super(injector);
@@ -64,6 +67,12 @@ public class UpgradeCatalog280 extends AbstractUpgradeCatalog {
     removeLastValidState();
     addColumnsToRequestScheduleTable();
     addColumnsToUpgradeTable();
+    modifyPropertyValueColumnInAmbariConfigurationTable();
+  }
+
+  private void modifyPropertyValueColumnInAmbariConfigurationTable() throws SQLException {
+    dbAccessor.alterColumn(AMBARI_CONFIGURATION_TABLE, new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN, String.class, 4000, null, false));
+    LOG.info("Altered {}.{} to NOT NULL and extended its length to 4000", AMBARI_CONFIGURATION_TABLE, AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN);
   }
 
   @Override
