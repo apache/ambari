@@ -165,7 +165,7 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
     var excludedCommands = this.get('mastersExcludedCommands');
     var hasMultipleMasterComponentGroups = this.get('service.hasMultipleMasterComponentGroups');
 
-    if (App.isAuthorized('SERVICE.START_STOP')) {
+    if (App.isAuthorized('SERVICE.START_STOP') && this.get('hasMasterOrSlaveComponent')) {
       options.push(actionMap.START_ALL);
       options.push(actionMap.STOP_ALL);
     }
@@ -181,10 +181,12 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
         if (this.get('serviceName') === 'FLUME') {
           options.push(actionMap.REFRESH_CONFIGS);
         }
-        if (this.get('serviceName') === 'YARN') {
+        if (this.get('serviceName') === 'YARN' && this.get('hasMasterOrSlaveComponent')) {
           options.push(actionMap.REFRESHQUEUES);
         }
-        options.push(actionMap.RESTART_ALL);
+        if (this.get('hasMasterOrSlaveComponent')) {
+          options.push(actionMap.RESTART_ALL);
+        }
         //currently adding it as experimental property as it is ongoing development
         if (App.get('supports.enableNewServiceRestartOptions')) {
           options.push(actionMap.RESTART_SERVICE);
@@ -216,7 +218,7 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
           && (App.router.get('mainHostController.totalCount') > JNCount || JNCount > 3)) {
           options.push(actionMap.MANAGE_JN);
         }
-        if (service.get('serviceTypes').contains('HA_MODE') && App.isAuthorized('SERVICE.ENABLE_HA')) {
+        if (service.get('serviceTypes').contains('HA_MODE') && App.isAuthorized('SERVICE.ENABLE_HA') && this.get('hasMasterOrSlaveComponent')) {
           switch (service.get('serviceName')) {
             case 'HDFS':
               options.push(actionMap.TOGGLE_NN_HA);
@@ -232,7 +234,7 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
               break;
           }
         }
-        if (service.get('serviceTypes').contains('FEDERATION') && App.isAuthorized('SERVICE.ENABLE_HA')) {
+        if (service.get('serviceTypes').contains('FEDERATION') && App.isAuthorized('SERVICE.ENABLE_HA') && this.get('hasMasterOrSlaveComponent')) {
           switch (service.get('serviceName')) {
             case 'HDFS':
               options.push(actionMap.TOGGLE_NN_FEDERATION);
@@ -245,7 +247,7 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
         options.push(actionMap.TOGGLE_PASSIVE);
         var nnComponent = App.StackServiceComponent.find().findProperty('componentName', 'NAMENODE');
         var knoxGatewayComponent = App.StackServiceComponent.find().findProperty('componentName', 'KNOX_GATEWAY');
-        if (serviceName === 'HDFS' && nnComponent) {
+        if (serviceName === 'HDFS' && nnComponent && this.get('hasMasterOrSlaveComponent')) {
           var namenodeCustomCommands = nnComponent.get('customCommands');
           if (namenodeCustomCommands && namenodeCustomCommands.contains('REBALANCEHDFS')) {
             options.push(actionMap.REBALANCEHDFS);
@@ -402,7 +404,14 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
     this.get('controller').setStartStopState();
   },
 
-  maintenanceObsFields: ['isStopDisabled', 'isClientsOnlyService', 'content.isRestartRequired', 'isServicesInfoLoaded', 'isServiceConfigsLoaded'],
+  maintenanceObsFields: [
+    'isStopDisabled',
+    'isClientsOnlyService',
+    'content.isRestartRequired',
+    'isServicesInfoLoaded',
+    'isServiceConfigsLoaded',
+    'content.hasMasterOrSlaveComponent'
+  ],
 
   willInsertElement: function () {
     var self = this;
