@@ -18,6 +18,8 @@
 package org.apache.ambari.server.upgrade;
 
 
+import static org.apache.ambari.server.upgrade.UpgradeCatalog280.AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog280.AMBARI_CONFIGURATION_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog280.HOST_COMPONENT_STATE_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog280.LAST_LIVE_STATE_COLUMN;
 import static org.easymock.EasyMock.capture;
@@ -68,6 +70,10 @@ public class UpgradeCatalog280Test {
     dbAccessor.addColumn(eq("upgrade"), capture(upgradePackStackColumn));
     expectLastCall().once();
 
+    final Capture<DBAccessor.DBColumnInfo> alterPropertyValueColumnCapture = newCapture(CaptureType.ALL);
+    dbAccessor.alterColumn(eq(AMBARI_CONFIGURATION_TABLE), capture(alterPropertyValueColumnCapture));
+    expectLastCall().once();
+
     replay(dbAccessor, injector);
 
     UpgradeCatalog280 upgradeCatalog280 = new UpgradeCatalog280(injector);
@@ -93,6 +99,11 @@ public class UpgradeCatalog280Test {
     Assert.assertEquals(String.class, capturedUpgradeColumn.getType());
     Assert.assertEquals((Integer) 255, capturedUpgradeColumn.getLength());
 
+    final DBAccessor.DBColumnInfo alterPropertyValueColumn = alterPropertyValueColumnCapture.getValue();
+    Assert.assertEquals(AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN, alterPropertyValueColumn.getName());
+    Assert.assertEquals(String.class, alterPropertyValueColumn.getType());
+    Assert.assertEquals((Integer) 4000, alterPropertyValueColumn.getLength());
+    Assert.assertFalse(alterPropertyValueColumn.isNullable());
 
     verify(dbAccessor);
   }
