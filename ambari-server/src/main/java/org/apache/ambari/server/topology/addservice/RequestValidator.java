@@ -48,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.assistedinject.Assisted;
 
@@ -57,6 +58,8 @@ import com.google.inject.assistedinject.Assisted;
 public class RequestValidator {
 
   private static final Logger LOG = LoggerFactory.getLogger(RequestValidator.class);
+
+  private static final Set<String> NOT_ALLOWED_CONFIG_TYPES = ImmutableSet.of("kerberos-env", "krb5-conf");
 
   private final AddServiceRequest request;
   private final Cluster cluster;
@@ -185,11 +188,14 @@ public class RequestValidator {
   @VisibleForTesting
   void validateConfiguration() {
     Configuration config = request.getConfiguration();
+
+    for (String type : NOT_ALLOWED_CONFIG_TYPES) {
+      checkArgument(!config.getProperties().containsKey(type), "Cannot change '%s' configuration in Add Service request", type);
+    }
+
     Configuration clusterConfig = getClusterDesiredConfigs();
     clusterConfig.setParentConfiguration(state.getStack().getValidDefaultConfig());
     config.setParentConfiguration(clusterConfig);
-
-    // no validation here so far
 
     state = state.with(config);
   }

@@ -375,6 +375,26 @@ public class RequestValidatorTest extends EasyMockSupport {
     verifyConfigOverrides(requestConfig, clusterConfig, stackConfig, config);
   }
 
+  @Test
+  public void rejectsKerberosEnvChange() {
+    Configuration requestConfig = Configuration.newEmpty();
+    requestConfig.setProperty("kerberos-env", "some-property", "some-value");
+    expect(request.getConfiguration()).andReturn(requestConfig.copy()).anyTimes();
+    replayAll();
+
+    assertThrows(IllegalArgumentException.class, validator::validateConfiguration);
+  }
+
+  @Test
+  public void rejectsKrb5ConfChange() {
+    Configuration requestConfig = Configuration.newEmpty();
+    requestConfig.setProperty("krb5-conf", "some-property", "some-value");
+    expect(request.getConfiguration()).andReturn(requestConfig.copy()).anyTimes();
+    replayAll();
+
+    assertThrows(IllegalArgumentException.class, validator::validateConfiguration);
+  }
+
   private static void verifyConfigOverrides(Configuration requestConfig, Configuration clusterConfig, Configuration stackConfig, Configuration actualConfig) {
     requestConfig.getProperties().forEach(
       (type, properties) -> properties.forEach(
