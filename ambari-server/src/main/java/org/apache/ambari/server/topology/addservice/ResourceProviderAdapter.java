@@ -19,6 +19,9 @@ package org.apache.ambari.server.topology.addservice;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_PROPERTY;
+import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.DONT_SKIP_INSTALL_FOR_COMPONENTS;
+import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.SKIP_INSTALL_FOR_COMPONENTS;
 
 import java.util.List;
 import java.util.Map;
@@ -220,8 +223,9 @@ public class ResourceProviderAdapter {
 
   private static void addProvisionProperties(ImmutableMap.Builder<String, String> requestInfo, State desiredState, ProvisionAction requestAction) {
     if (desiredState == State.INSTALLED && requestAction.skipInstall()) {
-      requestInfo.put(AmbariManagementControllerImpl.SKIP_INSTALL_FOR_COMPONENTS, "ALL");
-      requestInfo.put(AmbariManagementControllerImpl.DONT_SKIP_INSTALL_FOR_COMPONENTS, "");
+      requestInfo.put(SKIP_INSTALL_FOR_COMPONENTS, "ALL");
+      requestInfo.put(DONT_SKIP_INSTALL_FOR_COMPONENTS, "");
+      requestInfo.put(CLUSTER_PHASE_PROPERTY, AmbariManagementControllerImpl.CLUSTER_PHASE_INITIAL_INSTALL);
     }
   }
 
