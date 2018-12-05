@@ -540,6 +540,7 @@ describe('App.MainServiceItemView', function () {
             ];
         }
       });
+      sinon.stub(App.router, 'get').returns(0);
       /*eslint-enable complexity */
     });
 
@@ -547,6 +548,7 @@ describe('App.MainServiceItemView', function () {
       App.get.restore();
       App.HostComponent.find.restore();
       App.StackServiceComponent.find.restore();
+      App.router.get.restore();
     });
 
     testCases.forEach(function (testCase) {
@@ -564,7 +566,8 @@ describe('App.MainServiceItemView', function () {
                 displayName: testCase.displayName,
                 serviceTypes: testCase.serviceTypes,
                 installedClients: 1,
-                passiveState: 'OFF'
+                passiveState: 'OFF',
+                hasMasterOrSlaveComponent: true
               }),
               isSeveralClients: false,
               clientComponents: [],
