@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_INITIAL_INSTALL;
+import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_INITIAL_START;
+import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_PROPERTY;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -385,7 +389,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     installProperties.put(DESIRED_STATE, "INSTALLED");
     Map<String, String> requestInfo = new HashMap<>();
     requestInfo.put("context", String.format("Install components on host %s", hostname));
-    requestInfo.put("phase", "INITIAL_INSTALL");
+    requestInfo.put(CLUSTER_PHASE_PROPERTY, CLUSTER_PHASE_INITIAL_INSTALL);
     requestInfo.put(AmbariManagementControllerImpl.SKIP_INSTALL_FOR_COMPONENTS, StringUtils.join
       (skipInstallForComponents, ";"));
     requestInfo.put(AmbariManagementControllerImpl.DONT_SKIP_INSTALL_FOR_COMPONENTS, StringUtils.join
@@ -436,7 +440,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     Map<String, String> requestInfo = new HashMap<>();
     requestInfo.put("context", String.format("Start components on host %s", hostName));
-    requestInfo.put("phase", "INITIAL_START");
+    requestInfo.put(CLUSTER_PHASE_PROPERTY, CLUSTER_PHASE_INITIAL_START);
     requestInfo.put(Setting.SETTING_NAME_SKIP_FAILURE, Boolean.toString(skipFailure));
 
     Predicate clusterPredicate = new EqualsPredicate<>(CLUSTER_NAME, cluster);
