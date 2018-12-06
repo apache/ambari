@@ -252,6 +252,7 @@ var files = [
   'test/utils/configs/database_test',
   'test/utils/configs/config_initializer_test',
   'test/utils/configs/add_component_config_initializer_test',
+  'test/utils/configs/move_rm_config_initializer_test',
   'test/utils/configs/hosts_based_initializer_test',
   'test/utils/configs/move_hm_config_initializer_test',
   'test/utils/configs/move_namenode_config_initializer_test',
