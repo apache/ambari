@@ -48,6 +48,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
@@ -113,7 +114,9 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
+import org.apache.ambari.spi.ClusterInformation;
 import org.apache.ambari.spi.RepositoryType;
+import org.apache.ambari.spi.upgrade.OrchestrationOptions;
 import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -712,7 +715,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     assertEquals(4, groups.get(0).items.size());
     assertEquals(8, groups.get(1).items.size());
     assertEquals(6, groups.get(2).items.size());
-    assertEquals(7, groups.get(3).items.size());
+    assertEquals(6, groups.get(3).items.size());
     assertEquals(8, groups.get(4).items.size());
   }
 
@@ -2870,6 +2873,46 @@ public class UpgradeHelperTest extends EasyMockSupport {
     assertEquals(2, taskWrapper.getHosts().size());
   }
 
+  @Test
+  public void testOrchestrationOptions() throws Exception {
+
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.2.0");
+    assertTrue(upgrades.containsKey("upgrade_from_211"));
+
+    UpgradePack upgrade = upgrades.get("upgrade_from_211");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING, false);
+
+    SimpleOrchestrationOptions options = new SimpleOrchestrationOptions(1);
+
+    expect(context.getOrchestrationOptions()).andReturn(options).anyTimes();
+    replay(context);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+    groups = groups.stream().filter(g -> g.name.equals("CORE_SLAVES")).collect(Collectors.toList());
+    assertEquals(1, groups.size());
+
+    List<StageWrapper> restarts = groups.get(0).items.stream().filter(sw ->
+        sw.getType() == StageWrapper.Type.RESTART && sw.getText().contains("DataNode"))
+        .collect(Collectors.toList());
+
+    assertEquals("Expecting wrappers for each of 3 hosts", 3, restarts.size());
+
+    options.m_count = 2;
+    groups = m_upgradeHelper.createSequence(upgrade, context);
+    groups = groups.stream().filter(g -> g.name.equals("CORE_SLAVES")).collect(Collectors.toList());
+    assertEquals(1, groups.size());
+
+    restarts = groups.get(0).items.stream().filter(sw ->
+        sw.getType() == StageWrapper.Type.RESTART && sw.getText().contains("DataNode"))
+        .collect(Collectors.toList());
+
+    assertEquals("Expecting wrappers for each", 2, restarts.size());
+  }
+
   /**
    * Builds a mock upgrade context using the following parameters:
    * <ul>
@@ -3213,5 +3256,18 @@ public class UpgradeHelperTest extends EasyMockSupport {
       return null;
     }
 
+  }
+
+  private static class SimpleOrchestrationOptions implements OrchestrationOptions {
+    private int m_count;
+
+    private SimpleOrchestrationOptions(int count) {
+      m_count = count;
+    }
+
+    @Override
+    public int getConcurrencyCount(ClusterInformation cluster, String service, String component) {
+      return m_count;
+    }
   }
 }

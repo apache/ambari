@@ -83,10 +83,12 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.spi.RepositoryType;
 import org.apache.ambari.spi.RepositoryVersion;
+import org.apache.ambari.spi.upgrade.OrchestrationOptions;
 import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
 import org.apache.ambari.spi.upgrade.UpgradeInformation;
 import org.apache.ambari.spi.upgrade.UpgradeType;
@@ -287,6 +289,8 @@ public class UpgradeContext {
   @Inject
   private Configuration configuration;
 
+  private OrchestrationOptions m_orchestrationOptions;
+
   /**
    * Reading upgrade type from provided request  or if nothing were provided,
    * from previous upgrade for downgrade direction.
@@ -400,6 +404,8 @@ public class UpgradeContext {
       m_direction = Direction.DOWNGRADE;
       m_orchestration = revertUpgrade.getOrchestration();
       m_upgradePack = getUpgradePack(revertUpgrade);
+      m_orchestrationOptions = getOrchestrationOptions(metaInfo, m_upgradePack);
+
     } else {
 
       // determine direction
@@ -446,6 +452,8 @@ public class UpgradeContext {
               upgradeFromRepositoryVersion.getStackId(), m_repositoryVersion.getStackId(), m_direction,
               m_type, preferredUpgradePackName);
 
+          m_orchestrationOptions = getOrchestrationOptions(metaInfo, m_upgradePack);
+
           break;
         }
         case DOWNGRADE:{
@@ -464,6 +472,7 @@ public class UpgradeContext {
           }
 
           m_upgradePack = getUpgradePack(upgrade);
+          m_orchestrationOptions = getOrchestrationOptions(metaInfo, m_upgradePack);
 
           break;
         }
@@ -561,6 +570,8 @@ public class UpgradeContext {
 
     m_isRevert = upgradeEntity.getOrchestration().isRevertable()
         && upgradeEntity.getDirection() == Direction.DOWNGRADE;
+
+    m_orchestrationOptions = getOrchestrationOptions(ambariMetaInfo, m_upgradePack);
   }
 
   /**
@@ -1054,6 +1065,13 @@ public class UpgradeContext {
   }
 
   /**
+   * @return the orchestration options, or {@code null} if not defined
+   */
+  public OrchestrationOptions getOrchestrationOptions() {
+    return m_orchestrationOptions;
+  }
+
+  /**
    * Gets the set of services which will participate in the upgrade. The
    * services available in the repository are compared against those installed
    * in the cluster to arrive at the final subset.
@@ -1451,7 +1469,7 @@ public class UpgradeContext {
    * @return
    *          the upgrade pack.  May be {@code null} if it doesn't exist
    */
-  UpgradePack getUpgradePack(UpgradeEntity upgrade) {
+  private UpgradePack getUpgradePack(UpgradeEntity upgrade) {
     StackId stackId = upgrade.getUpgradePackStackId();
 
     Map<String, UpgradePack> packs = m_metaInfo.getUpgradePacks(
@@ -1498,5 +1516,45 @@ public class UpgradeContext {
         targetRepositoryVersionEntity.getRepositoryVersion(), sourceVersions, targetVersions);
 
     return upgradeInformation;
+  }
+
+  /**
+   * Loads the orchestration options for the context
+   *
+   * @param metaInfo
+   *          the ambari meta-info used to load custom classes
+   * @param pack
+   *          the upgrade pack
+   * @return
+   *          the orchestration options instance.  Can return {@code null}.
+   */
+  private OrchestrationOptions getOrchestrationOptions(AmbariMetaInfo metaInfo, UpgradePack pack) {
+
+    // !!! only for testing
+    if (null == pack) {
+       return null;
+    }
+
+    String className = pack.getOrchestrationOptions();
+
+    if (null == className) {
+      return null;
+    }
+
+    StackId stackId = pack.getOwnerStackId();
+
+    try {
+      StackInfo stack = metaInfo.getStack(stackId);
+      ClassLoader cl = stack.getLibraryClassLoader();
+
+      Class<?> clazz = (null == cl) ? Class.forName(className) :
+        cl.loadClass(className);
+
+      return (OrchestrationOptions) clazz.newInstance();
+    } catch (Exception e) {
+      LOG.error(String.format("Could not load orchestration options for stack {}: {}",
+          stackId, e.getMessage()));
+      return null;
+    }
   }
 }

@@ -229,15 +229,8 @@ public class Grouping {
       for (TaskWrapper tw : tasks) {
         List<Set<String>> hostSets = null;
 
-        if (m_grouping.parallelScheduler != null) {
-          int taskParallelism = m_grouping.parallelScheduler.maxDegreeOfParallelism;
-          if (taskParallelism == Integer.MAX_VALUE) {
-            taskParallelism = ctx.getDefaultMaxDegreeOfParallelism();
-          }
-          hostSets = SetUtils.split(tw.getHosts(), taskParallelism);
-        } else {
-          hostSets = SetUtils.split(tw.getHosts(), 1);
-        }
+        int parallel = getParallelHostCount(ctx, 1);
+        hostSets = SetUtils.split(tw.getHosts(), parallel);
 
         int numBatchesNeeded = hostSets.size();
         int batchNum = 0;

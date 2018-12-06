@@ -82,6 +82,9 @@ public class UpgradePack {
   @XmlElement(name="prerequisite-checks")
   private PrerequisiteChecks prerequisiteChecks;
 
+  @XmlElement(name="orchestration-options-class")
+  private String orchestrationOptionsClass;
+
   /**
    * In the case of a rolling upgrade, will specify processing logic for a particular component.
    * NonRolling upgrades are simpler so the "processing" is embedded into the  group's "type", which is a function like
@@ -882,4 +885,13 @@ public class UpgradePack {
   public StackId getOwnerStackId() {
     return ownerStackId;
   }
+
+  /**
+   * @return
+   *      the class name used for orchestration options
+   */
+  public String getOrchestrationOptions() {
+    return orchestrationOptionsClass;
+  }
+
 }

@@ -22,12 +22,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
@@ -40,6 +42,8 @@ import org.apache.ambari.server.stack.upgrade.orchestrate.StageWrapperBuilder;
 import org.apache.ambari.server.stack.upgrade.orchestrate.TaskWrapper;
 import org.apache.ambari.server.stack.upgrade.orchestrate.TaskWrapperBuilder;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
+import org.apache.ambari.server.utils.SetUtils;
+import org.apache.ambari.spi.upgrade.OrchestrationOptions;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -69,7 +73,7 @@ public class ColocatedGrouping extends Grouping {
    */
   @Override
   public StageWrapperBuilder getBuilder() {
-    return new MultiHomedBuilder(this, batch, performServiceCheck);
+    return new MultiHomedBuilder(this, batch, performServiceCheck, parallelScheduler);
   }
 
   private static class MultiHomedBuilder extends StageWrapperBuilder {
@@ -77,12 +81,13 @@ public class ColocatedGrouping extends Grouping {
     private Batch m_batch;
     private boolean m_serviceCheck = true;
 
-    // !!! host -> list of tasks
-    private Map<String, List<TaskProxy>> initialBatch = new LinkedHashMap<>();
-    private Map<String, List<TaskProxy>> finalBatches = new LinkedHashMap<>();
+    // lists of tasks
+    private List<TaskProxy> initialBatch = new LinkedList<>();
+    private List<TaskProxy> finalBatches = new LinkedList<>();
 
 
-    private MultiHomedBuilder(Grouping grouping, Batch batch, boolean serviceCheck) {
+    private MultiHomedBuilder(Grouping grouping, Batch batch,
+        boolean serviceCheck, ParallelScheduler parallel) {
       super(grouping);
 
       m_batch = batch;
@@ -93,75 +98,107 @@ public class ColocatedGrouping extends Grouping {
     public void add(UpgradeContext context, HostsType hostsType, String service,
         boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
 
+      // !!! the percent is the number of co-located items that should be run
+      // before pausing. This value has no bearing on how many should be in a single stage.
       int count = Double.valueOf(Math.ceil(
           (double) m_batch.percent / 100 * hostsType.getHosts().size())).intValue();
 
-      int i = 0;
-      for (String host : hostsType.getHosts()) {
-        // This class required inserting a single host into the collection
-        HostsType singleHostsType = HostsType.single(host);
-
-        Map<String, List<TaskProxy>> targetMap = ((i++) < count) ? initialBatch : finalBatches;
-        List<TaskProxy> targetList = targetMap.get(host);
-
-        if (null == targetList) {
-          targetList = new ArrayList<>();
-          targetMap.put(host, targetList);
+      LinkedHashSet<String> first = new LinkedHashSet<>();
+      LinkedHashSet<String> remaining = new LinkedHashSet<>();
+      hostsType.getHosts().stream().forEach(hostName -> {
+        if (first.size() < count) {
+          first.add(hostName);
+        } else {
+          remaining.add(hostName);
         }
+      });
 
-        TaskProxy proxy = null;
+      // !!! resolve tasks only once
+      List<Task> preTasks = resolveTasks(context, true, pc);
+      Task task = resolveTask(context, pc);
+      List<Task> postTasks = resolveTasks(context, false, pc);
+      AtomicBoolean processInitial = new AtomicBoolean(true);
 
-        List<Task> tasks = resolveTasks(context, true, pc);
-
-        if (null != tasks && tasks.size() > 0) {
-          // Our assumption is that all of the tasks in the StageWrapper are of
-          // the same type.
-          StageWrapper.Type type = tasks.get(0).getStageWrapperType();
-
-          proxy = new TaskProxy();
-          proxy.clientOnly = clientOnly;
-          proxy.message = getStageText("Preparing",
-              context.getComponentDisplay(service, pc.name), Collections.singleton(host));
-          proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks, params));
-          proxy.service = service;
-          proxy.component = pc.name;
-          proxy.type = type;
-          targetList.add(proxy);
-        }
-
-        // !!! FIXME upgrade definition have only one step, and it better be a restart
-        Task t = resolveTask(context, pc);
-        if (null != t && RestartTask.class.isInstance(t)) {
-          proxy = new TaskProxy();
-          proxy.clientOnly = clientOnly;
-          proxy.tasks.add(new TaskWrapper(service, pc.name, Collections.singleton(host), params, t));
-          proxy.restart = true;
-          proxy.service = service;
-          proxy.component = pc.name;
-          proxy.type = Type.RESTART;
-          proxy.message = getStageText("Restarting",
-              context.getComponentDisplay(service, pc.name), Collections.singleton(host));
-          targetList.add(proxy);
-        }
-
-        tasks = resolveTasks(context, false, pc);
-
-        if (null != tasks && tasks.size() > 0) {
-          // Our assumption is that all of the tasks in the StageWrapper are of
-          // the same type.
-          StageWrapper.Type type = tasks.get(0).getStageWrapperType();
-
-          proxy = new TaskProxy();
-          proxy.clientOnly = clientOnly;
-          proxy.component = pc.name;
-          proxy.service = service;
-          proxy.type = type;
-          proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks, params));
-          proxy.message = getStageText("Completing",
-              context.getComponentDisplay(service, pc.name), Collections.singleton(host));
-          targetList.add(proxy);
-        }
+      int parallelCount = -1;
+      OrchestrationOptions options = context.getOrchestrationOptions();
+      if (null != options) {
+        parallelCount = context.getOrchestrationOptions().getConcurrencyCount(
+            context.getCluster().buildClusterInformation(), service, pc.name);
       }
+
+      if (parallelCount < 1) {
+        parallelCount = getParallelHostCount(context, 1);
+      }
+
+      // !!! stupid effective-final check
+      final int hostCount = parallelCount;
+
+      Stream.of(first, remaining).forEach(hosts -> {
+
+        List<TaskProxy> targetList = processInitial.get() ? initialBatch : finalBatches;
+
+        List<Set<String>> hostSplit = SetUtils.split(hosts, hostCount);
+
+        hostSplit.forEach(hostSet -> {
+
+          List<Task> tasks = preTasks;
+
+          TaskProxy proxy;
+          if (CollectionUtils.isNotEmpty(preTasks)) {
+            // Our assumption is that all of the tasks in the StageWrapper are of
+            // the same type.
+            StageWrapper.Type type = preTasks.get(0).getStageWrapperType();
+
+            proxy = new TaskProxy();
+            proxy.clientOnly = clientOnly;
+            proxy.message = getStageText("Preparing",
+                context.getComponentDisplay(service, pc.name), hostSet);
+            proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name,
+                HostsType.normal(new LinkedHashSet<>(hostSet)), tasks, params));
+            proxy.service = service;
+            proxy.component = pc.name;
+            proxy.type = type;
+
+            targetList.add(proxy);
+          }
+
+          if (null != task && RestartTask.class.isInstance(task)) {
+            proxy = new TaskProxy();
+            proxy.clientOnly = clientOnly;
+            proxy.tasks.add(new TaskWrapper(service, pc.name, hostSet, params, task));
+            proxy.restart = true;
+            proxy.service = service;
+            proxy.component = pc.name;
+            proxy.type = Type.RESTART;
+            proxy.message = getStageText("Restarting",
+                context.getComponentDisplay(service, pc.name), hostSet);
+
+            targetList.add(proxy);
+          }
+
+          tasks = postTasks;
+          if (CollectionUtils.isNotEmpty(preTasks)) {
+            // Our assumption is that all of the tasks in the StageWrapper are of
+            // the same type.
+            StageWrapper.Type type = preTasks.get(0).getStageWrapperType();
+
+            proxy = new TaskProxy();
+            proxy.clientOnly = clientOnly;
+            proxy.message = getStageText("Completing",
+                context.getComponentDisplay(service, pc.name), hostSet);
+            proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name,
+                HostsType.normal(new LinkedHashSet<>(hostSet)), tasks, params));
+            proxy.service = service;
+            proxy.component = pc.name;
+            proxy.type = type;
+
+            targetList.add(proxy);
+          }
+        });
+
+        processInitial.set(false);
+      });
+
     }
 
 
@@ -222,47 +259,45 @@ public class ColocatedGrouping extends Grouping {
     }
 
     private List<StageWrapper> fromProxies(Direction direction,
-        Map<String, List<TaskProxy>> wrappers, Predicate<Task> predicate) {
+        List<TaskProxy> proxies, Predicate<Task> predicate) {
 
       List<StageWrapper> results = new ArrayList<>();
 
       Set<String> serviceChecks = new HashSet<>();
 
-      for (Entry<String, List<TaskProxy>> entry : wrappers.entrySet()) {
 
-        // !!! stage per host, per type
+      proxies.forEach(proxy -> {
         StageWrapper wrapper = null;
         List<StageWrapper> execwrappers = new ArrayList<>();
 
-        for (TaskProxy t : entry.getValue()) {
-          if (!t.clientOnly) {
-            serviceChecks.add(t.service);
-          }
+        if (!proxy.clientOnly) {
+          serviceChecks.add(proxy.service);
+        }
 
-          if (!t.restart) {
-            if (null == wrapper) {
-              TaskWrapper[] tasks = t.getTasksArray(predicate);
-
-              if (LOG.isDebugEnabled()) {
-                for (TaskWrapper tw : tasks) {
-                  LOG.debug("{}", tw);
-                }
-              }
-
-              if (ArrayUtils.isNotEmpty(tasks)) {
-                wrapper = new StageWrapper(t.type, t.message, tasks);
-              }
-            }
-          } else {
-            TaskWrapper[] tasks = t.getTasksArray(null);
+        if (!proxy.restart) {
+          if (null == wrapper) {
+            TaskWrapper[] tasks = proxy.getTasksArray(predicate);
 
             if (LOG.isDebugEnabled()) {
               for (TaskWrapper tw : tasks) {
                 LOG.debug("{}", tw);
               }
             }
-            execwrappers.add(new StageWrapper(StageWrapper.Type.RESTART, t.message, tasks));
+
+            if (ArrayUtils.isNotEmpty(tasks)) {
+              wrapper = new StageWrapper(proxy.type, proxy.message, tasks);
+            }
           }
+        } else {
+          TaskWrapper[] tasks = proxy.getTasksArray(null);
+
+          if (LOG.isDebugEnabled()) {
+            for (TaskWrapper tw : tasks) {
+              LOG.debug("{}", tw);
+            }
+          }
+          // !!! TODO check parallelism values
+          execwrappers.add(new StageWrapper(StageWrapper.Type.RESTART, proxy.message, tasks));
         }
 
         if (null != wrapper) {
@@ -272,8 +307,7 @@ public class ColocatedGrouping extends Grouping {
         if (execwrappers.size() > 0) {
           results.addAll(execwrappers);
         }
-
-      }
+      });
 
       if (direction.isUpgrade() && m_serviceCheck && serviceChecks.size() > 0) {
         // !!! add the service check task
