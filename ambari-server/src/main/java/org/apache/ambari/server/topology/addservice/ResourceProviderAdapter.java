@@ -344,7 +344,7 @@ public class ResourceProviderAdapter {
   ) {
     List<ConfigurationRequest> configRequests = configTypes
       .peek(configType -> LOG.info("Creating request for config type {} for {}", configType, addServiceRequest))
-      .map(configType -> new ConfigurationRequest(addServiceRequest.clusterName(), configType, "ADD_SERVICE",
+      .map(configType -> new ConfigurationRequest(addServiceRequest.clusterName(), configType, "ADD_SERVICE_" + System.currentTimeMillis(),
         fullProperties.getOrDefault(configType, ImmutableMap.of()),
         fullAttributes.getOrDefault(configType, ImmutableMap.of())))
       .collect(toList());
