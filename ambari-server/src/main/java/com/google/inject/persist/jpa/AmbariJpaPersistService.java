@@ -18,6 +18,7 @@
 package com.google.inject.persist.jpa;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.google.inject.Inject;
 
@@ -26,10 +27,31 @@ import com.google.inject.Inject;
  */
 public class AmbariJpaPersistService extends JpaPersistService {
 
+  private final AtomicBoolean jpaStarted = new AtomicBoolean(false);
+
   @Inject
   public AmbariJpaPersistService(@Jpa String persistenceUnitName, @Jpa Map<?, ?> persistenceProperties) {
     super(persistenceUnitName, persistenceProperties);
   }
 
+  /**
+   * Starts the PersistService if it has not been previously started.
+   */
+  @Override
+  public synchronized void start() {
+    if (!jpaStarted.get()) {
+      super.start();
+      jpaStarted.set(true);
+    }
+  }
+
+  /**
+   * Returns whether JPA has been started or not
+   *
+   * @return <code>true</code> if JPA has been started; <code>false</code> if JPA has not been started
+   */
+  public boolean isStarted() {
+    return jpaStarted.get();
+  }
 
 }

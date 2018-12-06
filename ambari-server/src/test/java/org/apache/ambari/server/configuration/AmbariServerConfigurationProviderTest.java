@@ -33,7 +33,6 @@ import javax.persistence.EntityManager;
 import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
 import org.apache.ambari.server.events.JpaInitializedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -44,6 +43,7 @@ import org.junit.Test;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.persist.jpa.AmbariJpaPersistService;
 
 public class AmbariServerConfigurationProviderTest extends EasyMockSupport {
 
@@ -60,11 +60,11 @@ public class AmbariServerConfigurationProviderTest extends EasyMockSupport {
     AmbariServerConfiguration filledTestConfiguration2 = createMock(AmbariServerConfiguration.class);
 
     AmbariEventPublisher publisher = injector.getInstance(AmbariEventPublisher.class);
-    GuiceJpaInitializer jpaInitializer = injector.getInstance(GuiceJpaInitializer.class);
+    AmbariJpaPersistService persistService = injector.getInstance(AmbariJpaPersistService.class);
 
     AmbariServerConfigurationProvider provider = createMockBuilder(AmbariServerConfigurationProvider.class)
         .addMockedMethod("loadInstance", Collection.class)
-        .withConstructor(TEST_CONFIGURATION, publisher, jpaInitializer)
+        .withConstructor(TEST_CONFIGURATION, publisher, persistService)
         .createMock();
 
     expect(provider.loadInstance(Collections.emptyList())).andReturn(emptyTestConfiguration).once();
@@ -106,10 +106,10 @@ public class AmbariServerConfigurationProviderTest extends EasyMockSupport {
     Injector injector = getInjector();
 
     AmbariEventPublisher publisher = injector.getInstance(AmbariEventPublisher.class);
-    GuiceJpaInitializer jpaInitializer = injector.getInstance(GuiceJpaInitializer.class);
+    AmbariJpaPersistService persistService = injector.getInstance(AmbariJpaPersistService.class);
 
     AmbariServerConfigurationProvider provider = createMockBuilder(AmbariServerConfigurationProvider.class)
-        .withConstructor(TEST_CONFIGURATION, publisher, jpaInitializer)
+        .withConstructor(TEST_CONFIGURATION, publisher, persistService)
         .createMock();
 
     replayAll();
@@ -156,9 +156,13 @@ public class AmbariServerConfigurationProviderTest extends EasyMockSupport {
 
       @Override
       protected void configure() {
+        AmbariJpaPersistService persistService = createMockBuilder(AmbariJpaPersistService.class)
+            .withConstructor("test", Collections.emptyMap())
+            .createMock();
+
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-        bind(GuiceJpaInitializer.class).toInstance(new GuiceJpaInitializer(null));
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+        bind(AmbariJpaPersistService.class).toInstance(persistService);
         bind(AmbariConfigurationDAO.class).toInstance(createNiceMock(AmbariConfigurationDAO.class));
       }
     });
