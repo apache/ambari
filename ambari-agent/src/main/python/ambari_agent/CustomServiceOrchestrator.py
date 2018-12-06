@@ -30,11 +30,12 @@ import ambari_simplejson as json
 from collections import defaultdict
 from ConfigParser import NoOptionError
 
-from ambari_commons import shell, subprocess32
+from ambari_commons import shell
 from ambari_commons.constants import AGENT_TMP_DIR
 from resource_management.libraries.functions.log_process_information import log_process_information
 from resource_management.core.utils import PasswordString
 from resource_management.core.encryption import ensure_decrypted
+from resource_management.core import shell as rmf_shell
 
 from ambari_agent.models.commands import AgentCommand
 from ambari_agent.Utils import Utils
@@ -305,8 +306,7 @@ class CustomServiceOrchestrator(object):
         cmd = (java_bin, '-cp', cs_lib_path, self.credential_shell_cmd, 'create',
                alias, '-value', protected_pwd, '-provider', provider_path)
         logger.info(cmd)
-        cmd_result = subprocess32.call(cmd)
-        logger.info('cmd_result = {0}'.format(cmd_result))
+        rmf_shell.checked_call(cmd)
         os.chmod(file_path, 0644) # group and others should have read access so that the service user can read
       # Add JCEKS provider path instead
       config[self.CREDENTIAL_PROVIDER_PROPERTY_NAME] = provider_path
