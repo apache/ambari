@@ -24,11 +24,11 @@ import java.util.Collection;
 
 import org.apache.ambari.server.configuration.AmbariServerConfigurationProvider;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.persist.jpa.AmbariJpaPersistService;
 
 /**
  * JwtAuthenticationPropertiesProvider manages a {@link JwtAuthenticationProperties} instance by
@@ -41,8 +41,8 @@ import com.google.inject.Singleton;
 public class JwtAuthenticationPropertiesProvider extends AmbariServerConfigurationProvider<JwtAuthenticationProperties> {
 
   @Inject
-  public JwtAuthenticationPropertiesProvider(AmbariEventPublisher ambariEventPublisher, GuiceJpaInitializer guiceJpaInitializer) {
-    super(SSO_CONFIGURATION, ambariEventPublisher, guiceJpaInitializer);
+  public JwtAuthenticationPropertiesProvider(AmbariEventPublisher ambariEventPublisher, AmbariJpaPersistService ambariJpaPersistService) {
+    super(SSO_CONFIGURATION, ambariEventPublisher, ambariJpaPersistService);
   }
 
   /**
