@@ -23,11 +23,11 @@ import java.util.Collection;
 import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.configuration.AmbariServerConfigurationProvider;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.persist.jpa.AmbariJpaPersistService;
 
 /**
  * Provider implementation for {@link AmbariTProxyConfiguration} objects.
@@ -45,8 +45,8 @@ import com.google.inject.Singleton;
 public class AmbariTProxyConfigurationProvider extends AmbariServerConfigurationProvider<AmbariTProxyConfiguration> {
 
   @Inject
-  public AmbariTProxyConfigurationProvider(AmbariEventPublisher ambariEventPublisher, GuiceJpaInitializer guiceJpaInitializer) {
-    super(AmbariServerConfigurationCategory.TPROXY_CONFIGURATION, ambariEventPublisher, guiceJpaInitializer);
+  public AmbariTProxyConfigurationProvider(AmbariEventPublisher ambariEventPublisher, AmbariJpaPersistService persistService) {
+    super(AmbariServerConfigurationCategory.TPROXY_CONFIGURATION, ambariEventPublisher, persistService);
   }
 
   /**

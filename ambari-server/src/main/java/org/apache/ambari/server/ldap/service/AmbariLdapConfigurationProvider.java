@@ -24,11 +24,11 @@ import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.configuration.AmbariServerConfigurationProvider;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.persist.jpa.AmbariJpaPersistService;
 
 /**
  * Provider implementation for LDAP configurations.
@@ -46,8 +46,8 @@ import com.google.inject.Singleton;
 public class AmbariLdapConfigurationProvider extends AmbariServerConfigurationProvider<AmbariLdapConfiguration> {
 
   @Inject
-  public AmbariLdapConfigurationProvider(AmbariEventPublisher publisher, GuiceJpaInitializer guiceJpaInitializer) {
-    super(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, publisher, guiceJpaInitializer);
+  public AmbariLdapConfigurationProvider(AmbariEventPublisher publisher, AmbariJpaPersistService persistService) {
+    super(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, publisher, persistService);
   }
 
   @Override
