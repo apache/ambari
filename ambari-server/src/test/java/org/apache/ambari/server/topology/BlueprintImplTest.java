@@ -123,7 +123,7 @@ public class BlueprintImplTest {
     properties.put("category2", category2Props);
     category2Props.put("prop2", "val");
 
-    SecurityConfiguration securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef", null);
+    SecurityConfiguration securityConfiguration = SecurityConfiguration.withReference("testRef");
     Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, securityConfiguration);
     blueprint.validateRequiredProperties();
     BlueprintEntity entity = blueprint.toEntity();

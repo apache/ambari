@@ -77,6 +77,8 @@ public class AddServiceRequestTest {
   private static String REQUEST_INVALID_NO_SERVICES_AND_COMPONENTS;
   private static String REQUEST_INVALID_INVALID_FIELD;
   private static String REQUEST_INVALID_INVALID_CONFIG;
+  private static final Map<String, List<Map<String, String>>> KERBEROS_DESCRIPTOR1 =
+    ImmutableMap.of("services", ImmutableList.of(ImmutableMap.of("name", "ZOOKEEPER")));
 
   private ObjectMapper mapper = new ObjectMapper();
 
@@ -118,7 +120,7 @@ public class AddServiceRequestTest {
       request.getServices());
 
     assertEquals(
-      Optional.of(new SecurityConfiguration(SecurityType.KERBEROS, "ref_to_kerb_desc", "kerb_desc")),
+      Optional.of(SecurityConfiguration.forTest(SecurityType.KERBEROS, "ref_to_kerb_desc", KERBEROS_DESCRIPTOR1)),
       request.getSecurity());
 
     assertEquals(
@@ -256,7 +258,7 @@ public class AddServiceRequestTest {
     assertEquals(
       ImmutableMap.of(
         SecurityConfigurationFactory.TYPE_PROPERTY_ID, SecurityType.KERBEROS.name(),
-        SecurityConfigurationFactory.KERBEROS_DESCRIPTOR_PROPERTY_ID, "kerb_desc",
+        SecurityConfigurationFactory.KERBEROS_DESCRIPTOR_PROPERTY_ID, KERBEROS_DESCRIPTOR1,
         SecurityConfigurationFactory.KERBEROS_DESCRIPTOR_REFERENCE_PROPERTY_ID, "ref_to_kerb_desc"
       ),
       serialized.get(ClusterResourceProvider.SECURITY)

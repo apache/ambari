@@ -20,11 +20,13 @@ package org.apache.ambari.server.topology.addservice;
 import static java.util.stream.Collectors.joining;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.topology.Configuration;
 
 /**
@@ -35,21 +37,31 @@ public final class AddServiceInfo {
   private final AddServiceRequest request;
   private final String clusterName;
   private final Stack stack;
+  private final KerberosDescriptor kerberosDescriptor;
   private final Map<String, Map<String, Set<String>>> newServices;
   private final RequestStageContainer stages;
   private final Configuration config;
 
-  public AddServiceInfo(AddServiceRequest request, String clusterName, Stack stack, Configuration config, RequestStageContainer stages, Map<String, Map<String, Set<String>>> newServices) {
+  public AddServiceInfo(
+    AddServiceRequest request,
+    String clusterName,
+    Stack stack,
+    Configuration config,
+    KerberosDescriptor kerberosDescriptor,
+    RequestStageContainer stages,
+    Map<String, Map<String, Set<String>>> newServices
+  ) {
     this.request = request;
     this.clusterName = clusterName;
     this.stack = stack;
+    this.kerberosDescriptor = kerberosDescriptor;
     this.newServices = newServices;
     this.stages = stages;
     this.config = config;
   }
 
   public AddServiceInfo withNewServices(Map<String, Map<String, Set<String>>> services) {
-    return new AddServiceInfo(request, clusterName, stack, config, stages, services);
+    return new AddServiceInfo(request, clusterName, stack, config, kerberosDescriptor, stages, services);
   }
 
   @Override
@@ -83,6 +95,10 @@ public final class AddServiceInfo {
 
   public Configuration getConfig() {
     return config;
+  }
+
+  public Optional<KerberosDescriptor> getKerberosDescriptor() {
+    return Optional.ofNullable(kerberosDescriptor);
   }
 
   /**

@@ -23,7 +23,9 @@
 
   "security": {
     "type": "KERBEROS",
-    "kerberos_descriptor": "kerb_desc",
+    "kerberos_descriptor": {
+      "services": [ { "name": "ZOOKEEPER" } ]
+    },
     "kerberos_descriptor_reference": "ref_to_kerb_desc"
   },
 

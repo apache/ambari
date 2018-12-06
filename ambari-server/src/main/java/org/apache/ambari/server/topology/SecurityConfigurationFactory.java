@@ -64,19 +64,18 @@ public class SecurityConfigurationFactory {
    *
    * @param properties Security properties from Json parsed into a Map
    * @param persistEmbeddedDescriptor whether to save embedded descriptor or not
-   * @return
    */
   public SecurityConfiguration createSecurityConfigurationFromRequest(Map<String, Object> properties, boolean
     persistEmbeddedDescriptor) {
 
-    SecurityConfiguration securityConfiguration = null;
+    SecurityConfiguration securityConfiguration;
 
     LOGGER.debug("Creating security configuration from properties: {}", properties);
-    Map<String, Object> securityProperties = (Map<String, Object>) properties.get(SECURITY_PROPERTY_ID);
+    Map<?, ?> securityProperties = (Map<?, ?>) properties.get(SECURITY_PROPERTY_ID);
 
     if (securityProperties == null) {
       LOGGER.debug("No security information properties provided, returning null");
-      return securityConfiguration;
+      return null;
     }
 
     String securityTypeString = Strings.emptyToNull((String) securityProperties.get(TYPE_PROPERTY_ID));
@@ -105,31 +104,34 @@ public class SecurityConfigurationFactory {
             + KERBEROS_DESCRIPTOR_REFERENCE_PROPERTY_ID + " at the same time, is not allowed.");
       }
 
-      String descriptorText = null;
+      String descriptorText;
 
       if (descriptorJsonMap != null) { // this means the reference is null
         LOGGER.debug("Found embedded descriptor: {}", descriptorJsonMap);
-        descriptorText = jsonSerializer.<Map<String, Object>>toJson(descriptorJsonMap, Map.class);
+        descriptorText = jsonSerializer.toJson(descriptorJsonMap, Map.class);
         if (persistEmbeddedDescriptor) {
           descriptorReference = persistKerberosDescriptor(descriptorText);
         }
-        securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, descriptorReference, descriptorText);
+        Map<?, ?> descriptorMap = (Map<?, ?>) descriptorJsonMap;
+        securityConfiguration = persistEmbeddedDescriptor
+          ? SecurityConfiguration.withReference(descriptorReference)
+          : SecurityConfiguration.withDescriptor(descriptorMap);
       } else if (descriptorReference != null) { // this means the reference is not null
         LOGGER.debug("Found descriptor reference: {}", descriptorReference);
         securityConfiguration = loadSecurityConfigurationByReference(descriptorReference);
       } else {
         LOGGER.debug("There is no security descriptor found in the request");
-        securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS);
+        securityConfiguration = SecurityConfiguration.KERBEROS;
       }
     } else {
       LOGGER.debug("There is no security configuration found in the request");
-      securityConfiguration = new SecurityConfiguration(SecurityType.NONE);
+      securityConfiguration = SecurityConfiguration.NONE;
     }
     return securityConfiguration;
   }
 
   public SecurityConfiguration loadSecurityConfigurationByReference(String reference) {
-    SecurityConfiguration securityConfiguration = null;
+    SecurityConfiguration securityConfiguration;
     LOGGER.debug("Loading security configuration by reference: {}", reference);
 
     if (reference == null) {
@@ -144,7 +146,9 @@ public class SecurityConfigurationFactory {
       throw new IllegalArgumentException("No security configuration found for the reference: " + reference);
     }
 
-    securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, reference, descriptorEntity.getKerberosDescriptorText());
+    String descriptorText = descriptorEntity.getKerberosDescriptorText();
+    Map<String, ?> descriptorMap = jsonSerializer.<Map<String, ?>>fromJson(descriptorText, Map.class);
+    securityConfiguration =  SecurityConfiguration.withDescriptor(descriptorMap);
 
     return securityConfiguration;
 
