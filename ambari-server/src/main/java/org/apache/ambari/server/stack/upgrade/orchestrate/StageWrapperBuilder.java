@@ -282,6 +282,7 @@ public abstract class StageWrapperBuilder {
       if (taskParallelism == ParallelScheduler.DEFAULT_MAX_DEGREE_OF_PARALLELISM) {
         taskParallelism = ctx.getDefaultMaxDegreeOfParallelism();
       }
+      return taskParallelism;
     }
 
     return defaultValue;
