@@ -90,6 +90,7 @@ public class HostUpdateHelper {
           (HostUpdateHelper.class);
 
   private static final String AUTHENTICATED_USER_NAME = "ambari-host-update";
+  public static final String TMP_PREFIX = "tmpvalue";
 
 
   private PersistService persistService;
@@ -403,20 +404,31 @@ public class HostUpdateHelper {
     for (Map.Entry<String, Map<String,String>> clusterHosts : hostChangesFileMap.entrySet()) {
       String clusterName = clusterHosts.getKey();
       Map<String, String> hostMapping = clusterHosts.getValue();
-      ClusterEntity clusterEntity = clusterDAO.findByName(clusterName);
-      List<String> currentHostNames = new ArrayList<>();
-
+      Map<String, String> toTmpHostMapping = new HashMap<>();
+      Map<String, String> fromTmpHostMapping = new HashMap<>();
       for (Map.Entry<String, String> hostPair : hostMapping.entrySet()) {
-        currentHostNames.add(hostPair.getKey());
+        toTmpHostMapping.put(hostPair.getKey(), TMP_PREFIX + hostPair.getValue());
+        fromTmpHostMapping.put(TMP_PREFIX + hostPair.getValue(), hostPair.getValue());
       }
+      ClusterEntity clusterEntity = clusterDAO.findByName(clusterName);
+      renameHostsInDB(hostDAO, toTmpHostMapping, clusterEntity);
+      renameHostsInDB(hostDAO, fromTmpHostMapping, clusterEntity);
+    }
+  }
 
-      if (clusterEntity != null) {
-        Collection<HostEntity> hostEntities = clusterEntity.getHostEntities();
-        for (HostEntity hostEntity : hostEntities) {
-          if (currentHostNames.contains(hostEntity.getHostName())) {
-            hostEntity.setHostName(hostMapping.get(hostEntity.getHostName()));
-            hostDAO.merge(hostEntity);
-          }
+  private void renameHostsInDB(HostDAO hostDAO, Map<String, String> hostMapping, ClusterEntity clusterEntity) {
+    List<String> currentHostNames = new ArrayList<>();
+
+    for (Map.Entry<String, String> hostPair : hostMapping.entrySet()) {
+      currentHostNames.add(hostPair.getKey());
+    }
+
+    if (clusterEntity != null) {
+      Collection<HostEntity> hostEntities = clusterEntity.getHostEntities();
+      for (HostEntity hostEntity : hostEntities) {
+        if (currentHostNames.contains(hostEntity.getHostName())) {
+          hostEntity.setHostName(hostMapping.get(hostEntity.getHostName()));
+          hostDAO.merge(hostEntity);
         }
       }
     }
@@ -534,6 +546,8 @@ public class HostUpdateHelper {
   }
 
   public static void main(String[] args) throws Exception {
+    Injector injector = Guice.createInjector(new UpdateHelperModule(), new CheckHelperAuditModule(), new LdapModule());
+    HostUpdateHelper hostUpdateHelper = injector.getInstance(HostUpdateHelper.class);
     try {
       LOG.info("Host names update started.");
 
@@ -542,10 +556,6 @@ public class HostUpdateHelper {
       if (hostChangesFile == null || hostChangesFile.isEmpty()) {
         throw new AmbariException("Path to file with host names changes is empty or null.");
       }
-
-      Injector injector = Guice.createInjector(new UpdateHelperModule(), new CheckHelperAuditModule(), new LdapModule());
-      HostUpdateHelper hostUpdateHelper = injector.getInstance(HostUpdateHelper.class);
-
       hostUpdateHelper.setHostChangesFile(hostChangesFile);
 
       hostUpdateHelper.initHostChangesFileMap();
@@ -566,15 +576,11 @@ public class HostUpdateHelper {
 
       LOG.info("Host names update completed successfully.");
 
-      hostUpdateHelper.stopPersistenceService();
-    } catch (Throwable e) {
-      if (e instanceof AmbariException) {
+    } catch (AmbariException e) {
         LOG.error("Exception occurred during host names update, failed", e);
-        throw (AmbariException)e;
-      }else{
-        LOG.error("Unexpected error, host names update failed", e);
-        throw new Exception("Unexpected error, host names update failed", e);
-      }
+        throw e;
+    } finally {
+      hostUpdateHelper.stopPersistenceService();
     }
   }
 }

@@ -411,8 +411,8 @@ public class HostUpdateHelperTest {
     final EntityManager entityManager = createNiceMock(EntityManager.class);
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     ClusterEntity mockClusterEntity = easyMockSupport.createNiceMock(ClusterEntity.class);
-    HostEntity mockHostEntity1 = easyMockSupport.createNiceMock(HostEntity.class);
-    HostEntity mockHostEntity2 = easyMockSupport.createNiceMock(HostEntity.class);
+    HostEntity mockHostEntity1 = new HostEntity();
+    HostEntity mockHostEntity2 = new HostEntity();
     Map<String, Map<String, String>> clusterHostsToChange = new HashMap<>();
     List<HostEntity> hostEntities = new ArrayList<>();
     Map<String, String> hosts = new HashMap<>();
@@ -437,15 +437,10 @@ public class HostUpdateHelperTest {
     });
 
     expect(mockClusterDAO.findByName("cl1")).andReturn(mockClusterEntity).once();
-    expect(mockClusterEntity.getHostEntities()).andReturn(hostEntities).once();
-    expect(mockHostEntity1.getHostName()).andReturn("host1").atLeastOnce();
-    expect(mockHostEntity2.getHostName()).andReturn("host2").atLeastOnce();
+    expect(mockClusterEntity.getHostEntities()).andReturn(hostEntities).times(2);
+    mockHostEntity1.setHostName("host1");
+    mockHostEntity2.setHostName("host2");
 
-    mockHostEntity1.setHostName("host10");
-    expectLastCall();
-
-    mockHostEntity2.setHostName("host11");
-    expectLastCall();
 
     HostUpdateHelper hostUpdateHelper = new HostUpdateHelper(null, null, mockInjector);
 
@@ -454,6 +449,11 @@ public class HostUpdateHelperTest {
     easyMockSupport.replayAll();
     hostUpdateHelper.updateHostsInDB();
     easyMockSupport.verifyAll();
+
+
+    Assert.assertEquals(mockHostEntity1.getHostName(),"host10");
+    Assert.assertEquals(mockHostEntity2.getHostName(),"host11");
+
   }
 
   @Test
