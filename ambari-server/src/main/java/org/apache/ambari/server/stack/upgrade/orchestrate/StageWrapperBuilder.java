@@ -26,6 +26,7 @@ import java.util.Set;
 import org.apache.ambari.server.serveraction.upgrades.AutoSkipFailedSummaryAction;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.upgrade.Grouping;
+import org.apache.ambari.server.stack.upgrade.ParallelScheduler;
 import org.apache.ambari.server.stack.upgrade.ServerActionTask;
 import org.apache.ambari.server.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.stack.upgrade.Task;
@@ -199,7 +200,7 @@ public abstract class StageWrapperBuilder {
   }
 
   /**
-   * Determine the list of tasks given these rules
+   * Determine the list of pre- or post-tasks given these rules
    * <ul>
    *   <li>When performing an upgrade, only use upgrade tasks</li>
    *   <li>When performing a downgrade, use the downgrade tasks if they are defined</li>
@@ -263,4 +264,28 @@ public abstract class StageWrapperBuilder {
 
     return null;
   }
+
+  /**
+   * Gets the parallel setting for a grouping, if defined.
+   *
+   * @param ctx
+   *          the upgrade context
+   * @param defaultValue
+   *          if the parallel scheduler is not found, return this value instead
+   * @return
+   *          the count of hosts to run in parallel
+   */
+  protected int getParallelHostCount(UpgradeContext ctx, int defaultValue) {
+
+    if (m_grouping.parallelScheduler != null) {
+      int taskParallelism = m_grouping.parallelScheduler.maxDegreeOfParallelism;
+      if (taskParallelism == ParallelScheduler.DEFAULT_MAX_DEGREE_OF_PARALLELISM) {
+        taskParallelism = ctx.getDefaultMaxDegreeOfParallelism();
+      }
+      return taskParallelism;
+    }
+
+    return defaultValue;
+  }
+
 }

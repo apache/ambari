@@ -478,6 +478,7 @@
           <xs:element name="source-stack" type="xs:string" />
           <xs:element name="target-stack" type="xs:string" />
         </xs:choice>
+        <xs:element name="orchestration-options-class" minOccurs="0" type="xs:string" />
         <xs:element name="skip-failures" minOccurs="0" type="xs:boolean" />
         <xs:element name="skip-service-check-failures" minOccurs="0" type="xs:boolean" />
         <xs:element name="downgrade-allowed" minOccurs="0" type="xs:boolean" />
