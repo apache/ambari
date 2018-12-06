@@ -101,7 +101,7 @@ def _ensure_metadata(path, user, group, mode=None, cd_access=None, recursive_own
       raise Fail("'cd_acess' value '%s' is not valid" % (cd_access))
     
     dir_path = re.sub('/+', '/', path)
-    while dir_path != os.sep:
+    while dir_path and dir_path != os.sep:
       if sudo.path_isdir(dir_path):
         sudo.chmod_extended(dir_path, cd_access+"+rx")
         
