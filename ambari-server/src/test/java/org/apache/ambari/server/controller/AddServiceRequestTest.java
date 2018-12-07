@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.state.SecurityType;
@@ -52,6 +53,7 @@ import org.apache.ambari.server.topology.Configurable;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.Credential;
 import org.apache.ambari.server.topology.SecurityConfiguration;
+import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -116,7 +118,7 @@ public class AddServiceRequestTest {
       request.getServices());
 
     assertEquals(
-      Optional.of(new SecurityConfiguration(SecurityType.KERBEROS, "ref_to_kerb_desc", null)),
+      Optional.of(new SecurityConfiguration(SecurityType.KERBEROS, "ref_to_kerb_desc", "kerb_desc")),
       request.getSecurity());
 
     assertEquals(
@@ -250,6 +252,17 @@ public class AddServiceRequestTest {
       ),
       serialized.get(Configurable.CONFIGURATIONS)
     );
+
+    assertEquals(
+      ImmutableMap.of(
+        SecurityConfigurationFactory.TYPE_PROPERTY_ID, SecurityType.KERBEROS.name(),
+        SecurityConfigurationFactory.KERBEROS_DESCRIPTOR_PROPERTY_ID, "kerb_desc",
+        SecurityConfigurationFactory.KERBEROS_DESCRIPTOR_REFERENCE_PROPERTY_ID, "ref_to_kerb_desc"
+      ),
+      serialized.get(ClusterResourceProvider.SECURITY)
+    );
+
+    assertNull(serialized.get(ClusterResourceProvider.CREDENTIALS));
   }
 
   @Test

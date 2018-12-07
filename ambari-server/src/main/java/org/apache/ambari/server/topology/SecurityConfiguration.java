@@ -80,14 +80,14 @@ public class SecurityConfiguration {
     return type;
   }
 
-  @JsonProperty(KERBEROS_DESCRIPTOR_REFERENCE_PROPERTY_ID)
-  @ApiModelProperty(name = KERBEROS_DESCRIPTOR_REFERENCE_PROPERTY_ID)
+  @JsonProperty(KERBEROS_DESCRIPTOR_PROPERTY_ID)
+  @ApiModelProperty(name = KERBEROS_DESCRIPTOR_PROPERTY_ID)
   public String getDescriptor() {
     return descriptor;
   }
 
-  @JsonProperty(KERBEROS_DESCRIPTOR_PROPERTY_ID)
-  @ApiModelProperty(name = KERBEROS_DESCRIPTOR_PROPERTY_ID)
+  @JsonProperty(KERBEROS_DESCRIPTOR_REFERENCE_PROPERTY_ID)
+  @ApiModelProperty(name = KERBEROS_DESCRIPTOR_REFERENCE_PROPERTY_ID)
   public String getDescriptorReference() {
     return descriptorReference;
   }
