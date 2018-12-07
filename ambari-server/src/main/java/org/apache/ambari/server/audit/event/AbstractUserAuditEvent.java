@@ -39,7 +39,7 @@ public abstract class AbstractUserAuditEvent extends AbstractAuditEvent {
     /**
      * Name of the proxy user if proxied
      */
-    private String proxyUserName = AuthorizationHelper.getAuthenticatedName();
+    private String proxyUserName = AuthorizationHelper.getProxyUserName();
 
     /**
      * Ip of the user who started the operation. Note: remote ip might not be the original ip (proxies, routers can modify it)
