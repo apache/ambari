@@ -30,6 +30,7 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.security.authentication.AmbariUserDetails;
+import org.apache.ambari.server.security.authentication.tproxy.TrustedProxyAuthenticationDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -57,6 +58,35 @@ public class AuthorizationHelper {
 
   @Inject
   static Provider<ViewInstanceDAO> viewInstanceDAOProvider;
+
+  /**
+   * Gets the name of the logged-in proxy user, if any.
+   *
+   * @param authentication
+   * @return the name of the logged-in proxy user
+   */
+  public static String getProxyUserName(Authentication authentication) {
+    if (authentication==null){
+      return null;
+    }
+    Object requestDetails = authentication.getDetails();
+    if (requestDetails instanceof TrustedProxyAuthenticationDetails) {
+      TrustedProxyAuthenticationDetails trustedProxyAuthenticationDetails = (TrustedProxyAuthenticationDetails) requestDetails;
+      return  trustedProxyAuthenticationDetails.getDoAs();
+    }
+    return null;
+  }
+
+  /**
+   * Gets the name of the logged-in proxy user, if any.
+   *
+   * @return the name of the logged-in proxy user
+   */
+  public static String getProxyUserName() {
+    SecurityContext securityContext = SecurityContextHolder.getContext();
+    Authentication auth = securityContext.getAuthentication();
+    return getProxyUserName(auth);
+  }
 
   /**
    * Converts collection of RoleEntities to collection of GrantedAuthorities
