@@ -21,6 +21,9 @@ package org.apache.ambari.server.topology.addservice;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType.HOST_GROUPS;
+import static org.apache.ambari.server.controller.internal.UnitUpdaterTest.configProperty;
+import static org.apache.ambari.server.testutils.TestCollectionUtils.map;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
@@ -28,15 +31,19 @@ import static org.easymock.EasyMock.getCurrentArguments;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
-import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.Cluster;
@@ -44,8 +51,11 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
+import org.apache.ambari.server.topology.Configuration;
 import org.apache.commons.lang3.tuple.Pair;
 import org.easymock.EasyMockRunner;
+import org.easymock.IExpectationSetters;
 import org.easymock.Mock;
 import org.easymock.TestSubject;
 import org.junit.Before;
@@ -66,7 +76,7 @@ public class StackAdvisorAdapterTest {
   private StackAdvisorHelper stackAdvisorHelper;
 
   @Mock
-  private Configuration serverConfig;
+  private org.apache.ambari.server.configuration.Configuration serverConfig;
 
   @Mock
   private Injector injector;
@@ -163,15 +173,15 @@ public class StackAdvisorAdapterTest {
       "KAFKA", emptyMap(),
       "PIG", emptyMap());
 
-    Map<String, Map<String, Set<String>>> recommendationForNewServices = ImmutableMap.of(
+    Map<String, Map<String, Set<String>>> expectedNewServiceRecommendations = ImmutableMap.of(
       "KAFKA", ImmutableMap.of("KAFKA_BROKER", ImmutableSet.of("c7405")),
       "PIG", ImmutableMap.of("PIG_CLIENT", ImmutableSet.of("c7405", "c7406")));
 
     Map<String, Map<String, Set<String>>> recommendations = new HashMap<>(SERVICE_COMPONENT_HOST_MAP_1);
-    recommendations.putAll(recommendationForNewServices);
+    recommendations.putAll(expectedNewServiceRecommendations);
 
-    StackAdvisorAdapter.keepNewServicesOnly(recommendations, newServices);
-    assertEquals(recommendationForNewServices, recommendations);
+    Map<String, Map<String, Set<String>>> newServiceRecommendations = StackAdvisorAdapter.keepNewServicesOnly(recommendations, newServices);
+    assertEquals(expectedNewServiceRecommendations, newServiceRecommendations);
   }
 
   @Before
@@ -182,39 +192,71 @@ public class StackAdvisorAdapterTest {
       "HDFS",
       service("HDFS", ImmutableMap.of("NAMENODE", ImmutableSet.of("c7401"), "HDFS_CLIENT", ImmutableSet.of("c7401", "c7402"))),
       "ZOOKEEPER",
-      service("ZOOKEEPER", ImmutableMap.of("ZOOKEEPER_SERVER", ImmutableSet.of("c7401"), "ZOOKEEPER_CLIENT", ImmutableSet.of("c7401", "c7402")))));
+      service("ZOOKEEPER", ImmutableMap.of("ZOOKEEPER_SERVER", ImmutableSet.of("c7401"), "ZOOKEEPER_CLIENT", ImmutableSet.of("c7401", "c7402"))),
+      "MAPREDUCE2",
+      service("MAPREDUCE2", ImmutableMap.of("HISTORYSERVER", ImmutableSet.of("c7401")))));
     Clusters clusters = mock(Clusters.class);
     expect(clusters.getCluster(anyString())).andReturn(cluster).anyTimes();
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     replay(clusters, cluster, managementController);
 
     expect(serverConfig.getGplLicenseAccepted()).andReturn(Boolean.FALSE).anyTimes();
-    expect(serverConfig.getAddServiceHostGroupStrategyClass()).andReturn((Class)GroupByComponentsStrategy.class).anyTimes();
+    @SuppressWarnings("unchecked")
+    IExpectationSetters iExpectationSetters = expect(serverConfig.getAddServiceHostGroupStrategyClass()).andReturn((Class) GroupByComponentsStrategy.class).anyTimes();
     replay(serverConfig);
 
     expect(injector.getInstance(GroupByComponentsStrategy.class)).andReturn(new GroupByComponentsStrategy()).anyTimes();
     replay(injector);
 
-    RecommendationResponse response = new RecommendationResponse();
-    RecommendationResponse.Recommendation recommendation = new RecommendationResponse.Recommendation();
-    response.setRecommendations(recommendation);
     RecommendationResponse.BlueprintClusterBinding binding = RecommendationResponse.BlueprintClusterBinding.fromHostGroupHostMap(
       ImmutableMap.of(
         "hostgroup-1", ImmutableSet.of("c7401"),
         "hostgroup-2", ImmutableSet.of("c7402")));
-    recommendation.setBlueprintClusterBinding(binding);
     RecommendationResponse.Blueprint blueprint = new RecommendationResponse.Blueprint();
     blueprint.setHostGroups(RecommendationResponse.HostGroup.fromHostGroupComponents(
       ImmutableMap.of(
-        "hostgroup-1", ImmutableSet.of("NAMENODE", "HDFS_CLIENT", "ZOOKEEPER_SERVER", "ZOOKEEPER_CLIENT"),
+        "hostgroup-1", ImmutableSet.of("NAMENODE", "HDFS_CLIENT", "ZOOKEEPER_SERVER", "ZOOKEEPER_CLIENT", "HISTORYSERVER"),
         "hostgroup-2", ImmutableSet.of("HDFS_CLIENT", "ZOOKEEPER_CLIENT", "KAFKA_BROKER"))
     ));
-    recommendation.setBlueprint(blueprint);
-    expect(stackAdvisorHelper.recommend(anyObject())).andReturn(response);
+    RecommendationResponse layoutResponse = createRecommendation(blueprint, binding);
+
+    RecommendationResponse.Blueprint configBlueprint = new RecommendationResponse.Blueprint();
+    RecommendationResponse.BlueprintConfigurations kafkaBroker = RecommendationResponse.BlueprintConfigurations.create(
+      ImmutableMap.of("log.dirs", "/kafka-logs", "offsets.topic.replication.factor", "1"),
+      ImmutableMap.of("offsets.topic.replication.factor", ImmutableMap.of("maximum", "10")));
+    RecommendationResponse.BlueprintConfigurations spark2Defaults = RecommendationResponse.BlueprintConfigurations.create(
+      ImmutableMap.of("spark.yarn.queue", "default"), null);
+    RecommendationResponse.BlueprintConfigurations mapredSite = RecommendationResponse.BlueprintConfigurations.create(
+      ImmutableMap.of("mapreduce.map.memory.mb", "682", "mapreduce.reduce.memory.mb", "1364"),
+      ImmutableMap.of(
+        "mapreduce.map.memory.mb", ImmutableMap.of("minimum", "682", "maximum", "2046"),
+        "mapreduce.reduce.memory.mb" , ImmutableMap.of("minimum", "682", "maximum", "2046")));
+    configBlueprint.setConfigurations(ImmutableMap.of(
+      "kafka-broker", kafkaBroker,
+      "spark2-defaults", spark2Defaults,
+      "mapred-site", mapredSite
+    ));
+    RecommendationResponse configResponse = createRecommendation(configBlueprint, binding);
+
+    expect(stackAdvisorHelper.recommend(anyObject())).andAnswer(() -> {
+      StackAdvisorRequest request = (StackAdvisorRequest) getCurrentArguments()[0];
+      assertNotNull(request.getHosts());
+      assertNotNull(request.getServices());
+      assertNotNull(request.getStackName());
+      assertNotNull(request.getStackVersion());
+      assertNotNull(request.getConfigurations());
+      assertNotNull(request.getHostComponents());
+      assertNotNull(request.getComponentHostsMap());
+      assertNotNull(request.getHostGroupBindings());
+      assertNotNull(request.getLdapConfig());
+      assertNotNull(request.getRequestType());
+      return request.getRequestType() == HOST_GROUPS ? layoutResponse : configResponse;
+    });
 
     ValidationResponse validationResponse = new ValidationResponse();
     validationResponse.setItems(emptySet());
     expect(stackAdvisorHelper.validate(anyObject())).andReturn(validationResponse);
+
     replay(stackAdvisorHelper);
 
     expect(stack.getStackId()).andReturn(new StackId("HDP", "3.0")).anyTimes();
@@ -224,9 +266,30 @@ public class StackAdvisorAdapterTest {
       .put("HDFS_CLIENT", "HDFS")
       .put("ZOOKEEPER_SERVER", "ZOOKEEPER")
       .put("ZOOKEEPER_CLIENT", "ZOOKEEPER")
+      .put("HISTORYSERVER", "MAPREDUCE2")
       .build();
     expect(stack.getServiceForComponent(anyString())).andAnswer(() -> serviceComponentMap.get(getCurrentArguments()[0])).anyTimes();
+    ImmutableMap<String, String> configTypeServiceMap = ImmutableMap.<String, String>builder()
+      .put("kafka-broker", "KAFKA")
+      .put("spark2-defaults", "SPARK2")
+      .put("mapred-site", "MAPREDUCE2")
+      .build();
+    expect(stack.getServiceForConfigType(anyString())).andAnswer(() -> configTypeServiceMap.get(getCurrentArguments()[0])).anyTimes();
+    expect(stack.getConfigurationPropertiesWithMetadata("OOZIE", "oozie-env")).andReturn(
+      ImmutableMap.of(
+        "mapreduce.map.memory.mb", configProperty("mapreduce.map.memory.mb", "MB"),
+        "mapreduce.reduce.memory.mb", configProperty("mapreduce.reduce.memory.mb", "MB"))).anyTimes();
     replay(stack);
+  }
+
+  private static RecommendationResponse createRecommendation(RecommendationResponse.Blueprint blueprint,
+                                                                            RecommendationResponse.BlueprintClusterBinding binding) {
+    RecommendationResponse response = new RecommendationResponse();
+    RecommendationResponse.Recommendation recommendation = new RecommendationResponse.Recommendation();
+    response.setRecommendations(recommendation);
+    recommendation.setBlueprint(blueprint);
+    recommendation.setBlueprintClusterBinding(binding);
+    return response;
   }
 
   private static Service service(String name, ImmutableMap<String,ImmutableSet<String>> componentHostMap) {
@@ -252,7 +315,7 @@ public class StackAdvisorAdapterTest {
       "KAFKA",
       ImmutableMap.of("KAFKA_BROKER", emptySet()));
 
-    AddServiceInfo info = new AddServiceInfo(null, "c1", stack, org.apache.ambari.server.topology.Configuration.newEmpty(), null, newServices);
+    AddServiceInfo info = new AddServiceInfo(null, "c1", stack, org.apache.ambari.server.topology.Configuration.newEmpty(), null, newServices, Optional.empty());
     AddServiceInfo infoWithRecommendations = adapter.recommendLayout(info);
 
     Map<String, Map<String, Set<String>>> expectedNewLayout = ImmutableMap.of(
@@ -263,13 +326,199 @@ public class StackAdvisorAdapterTest {
     assertEquals(expectedNewLayout, infoWithRecommendations.newServices());
   }
 
-
-  private static Map<String, Map<String, Set<String>>> mutableCopy(Map<String, Map<String, Set<String>>> map) {
-    Map<String, Map<String, Set<String>>> copy = new HashMap<>();
-    map.entrySet().forEach( outer -> {
-      Map<String, Set<String>> innerCopy = new HashMap<>(outer.getValue());
-      copy.put(outer.getKey(), innerCopy);
-    });
-    return copy;
+  @Test(expected = IllegalStateException.class)
+  public void recommendConfigurations_noLayoutInfo() {
+    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ALWAYS_APPLY), null, null , null, null, null, Optional.empty());
+    adapter.recommendConfigurations(info);
   }
+
+  @Test
+  public void recommendConfigurations_alwaysApply() {
+    Map<String, Map<String, Set<String>>> newServices = ImmutableMap.of(
+      "KAFKA", ImmutableMap.of(
+        "KAFKA_BROKER", ImmutableSet.of("c7401")),
+      "SPARK2", ImmutableMap.of(
+        "SPARK2_JOBHISTORYSERVER", ImmutableSet.of("c7402"),
+        "SPARK2_CLIENT", ImmutableSet.of("c7403", "c7404")),
+      "OOZIE", ImmutableMap.of(
+        "OOZIE_SERVER", ImmutableSet.of("c7401"),
+        "OOZIE_CLIENT", ImmutableSet.of("c7403", "c7404")));
+
+    Configuration stackConfig = Configuration.newEmpty();
+    Configuration clusterConfig = new Configuration(
+      map("oozie-env", map("oozie_heapsize", "1024", "oozie_permsize", "256")),
+      emptyMap());
+    Configuration userConfig = Configuration.newEmpty();
+    userConfig.setParentConfiguration(clusterConfig);
+    clusterConfig.setParentConfiguration(stackConfig);
+
+    LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
+    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ALWAYS_APPLY), "c1", stack , userConfig,
+      null, newServices, Optional.of(layoutRecommendationInfo));
+    AddServiceInfo infoWithConfig = adapter.recommendConfigurations(info);
+
+    Configuration recommendedConfig = infoWithConfig.getConfig();
+    assertSame(userConfig, recommendedConfig.getParentConfiguration());
+    assertSame(clusterConfig, userConfig.getParentConfiguration());
+    assertSame(stackConfig, clusterConfig.getParentConfiguration());
+
+    // Yarn/Mapred config is excpected to be removed as it does not belong to newly added services
+    assertEquals(
+      ImmutableMap.of(
+        "kafka-broker", ImmutableMap.of(
+          "log.dirs", "/kafka-logs",
+          "offsets.topic.replication.factor", "1"),
+        "spark2-defaults", ImmutableMap.of(
+          "spark.yarn.queue", "default"),
+        "oozie-env", ImmutableMap.of(
+          "oozie_heapsize", "1024m",  // unit updates should happen
+          "oozie_permsize", "256m")),
+      recommendedConfig.getProperties());
+
+    assertEquals(
+      ImmutableMap.of(
+        "kafka-broker", ImmutableMap.of(
+          "offsets.topic.replication.factor", ImmutableMap.of("maximum", "10"))),
+      recommendedConfig.getAttributes());
+  }
+
+  @Test
+  public void recommendConfigurations_alwaysDoNotOverrideCustomValues() {
+    Map<String, Map<String, Set<String>>> newServices = ImmutableMap.of(
+      "KAFKA", ImmutableMap.of(
+        "KAFKA_BROKER", ImmutableSet.of("c7401")),
+      "SPARK2", ImmutableMap.of(
+        "SPARK2_JOBHISTORYSERVER", ImmutableSet.of("c7402"),
+        "SPARK2_CLIENT", ImmutableSet.of("c7403", "c7404")),
+      "OOZIE", ImmutableMap.of(
+        "OOZIE_SERVER", ImmutableSet.of("c7401"),
+        "OOZIE_CLIENT", ImmutableSet.of("c7403", "c7404")));
+
+    Configuration stackConfig = Configuration.newEmpty();
+    Configuration clusterConfig = new Configuration(
+      map("oozie-env", map("oozie_heapsize", "1024", "oozie_permsize", "256")),
+      emptyMap());
+    Configuration userConfig = Configuration.newEmpty();
+    userConfig.setParentConfiguration(clusterConfig);
+    clusterConfig.setParentConfiguration(stackConfig);
+
+    LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
+    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES), "c1", stack , userConfig,
+      null, newServices, Optional.of(layoutRecommendationInfo));
+    AddServiceInfo infoWithConfig = adapter.recommendConfigurations(info);
+
+    assertSame(userConfig, infoWithConfig.getConfig()); // user config stays top priority
+    Configuration recommendedConfig = userConfig.getParentConfiguration();
+    assertSame(clusterConfig, recommendedConfig.getParentConfiguration());
+    assertSame(stackConfig, clusterConfig.getParentConfiguration());
+
+    // Yarn/Mapred config is excpected to be removed as it does not belong to newly added services
+    assertEquals(
+      ImmutableMap.of(
+        "kafka-broker", ImmutableMap.of(
+          "log.dirs", "/kafka-logs",
+          "offsets.topic.replication.factor", "1"),
+        "spark2-defaults", ImmutableMap.of(
+          "spark.yarn.queue", "default")),
+      recommendedConfig.getProperties());
+
+    // the result of unit updates always happen in the top level config
+    assertEquals(
+      ImmutableMap.of(
+        "oozie-env", ImmutableMap.of(
+          "oozie_heapsize", "1024m",
+          "oozie_permsize", "256m")),
+      userConfig.getProperties());
+
+    assertEquals(
+      ImmutableMap.of(
+        "kafka-broker", ImmutableMap.of(
+          "offsets.topic.replication.factor", ImmutableMap.of("maximum", "10"))),
+      recommendedConfig.getAttributes());
+  }
+
+  @Test
+  public void recommendConfigurations_neverApply() {
+    Map<String, Map<String, Set<String>>> newServices = ImmutableMap.of(
+      "KAFKA", ImmutableMap.of(
+        "KAFKA_BROKER", ImmutableSet.of("c7401")),
+      "SPARK2", ImmutableMap.of(
+        "SPARK2_JOBHISTORYSERVER", ImmutableSet.of("c7402"),
+        "SPARK2_CLIENT", ImmutableSet.of("c7403", "c7404")),
+      "OOZIE", ImmutableMap.of(
+        "OOZIE_SERVER", ImmutableSet.of("c7401"),
+        "OOZIE_CLIENT", ImmutableSet.of("c7403", "c7404")));
+
+    Configuration stackConfig = Configuration.newEmpty();
+    Configuration clusterConfig = new Configuration(
+      map("oozie-env", map("oozie_heapsize", "1024", "oozie_permsize", "256")),
+      emptyMap());
+    Configuration userConfig = Configuration.newEmpty();
+    userConfig.setParentConfiguration(clusterConfig);
+    clusterConfig.setParentConfiguration(stackConfig);
+
+    LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
+    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.NEVER_APPLY), "c1", stack , userConfig,
+      null, newServices, Optional.of(layoutRecommendationInfo));
+    AddServiceInfo infoWithConfig = adapter.recommendConfigurations(info);
+
+    // No recommended config, no stack config
+    assertSame(userConfig, infoWithConfig.getConfig());
+    assertSame(clusterConfig, userConfig.getParentConfiguration());
+    assertNotNull(clusterConfig.getParentConfiguration());
+
+    // the result of unit updates always happen in the top level config
+    assertEquals(
+      ImmutableMap.of(
+        "oozie-env", ImmutableMap.of(
+          "oozie_heapsize", "1024m",
+          "oozie_permsize", "256m")),
+      userConfig.getProperties());
+  }
+
+  @Test
+  public void recommendConfigurations_onlyStackDefaultsApply() {
+    Map<String, Map<String, Set<String>>> newServices = ImmutableMap.of(
+      "KAFKA", ImmutableMap.of(
+        "KAFKA_BROKER", ImmutableSet.of("c7401")),
+      "SPARK2", ImmutableMap.of(
+        "SPARK2_JOBHISTORYSERVER", ImmutableSet.of("c7402"),
+        "SPARK2_CLIENT", ImmutableSet.of("c7403", "c7404")),
+      "OOZIE", ImmutableMap.of(
+        "OOZIE_SERVER", ImmutableSet.of("c7401"),
+        "OOZIE_CLIENT", ImmutableSet.of("c7403", "c7404")));
+
+    Configuration stackConfig = Configuration.newEmpty();
+    Configuration clusterConfig = new Configuration(
+      map("oozie-env", map("oozie_heapsize", "1024", "oozie_permsize", "256")),
+      emptyMap());
+    Configuration userConfig = Configuration.newEmpty();
+    userConfig.setParentConfiguration(clusterConfig);
+    clusterConfig.setParentConfiguration(stackConfig);
+
+    LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
+    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY), "c1", stack , userConfig,
+      null, newServices, Optional.of(layoutRecommendationInfo));
+    AddServiceInfo infoWithConfig = adapter.recommendConfigurations(info);
+
+    // No recommended config
+    assertSame(userConfig, infoWithConfig.getConfig());
+    assertSame(clusterConfig, userConfig.getParentConfiguration());
+    assertSame(stackConfig, clusterConfig.getParentConfiguration());
+
+    // the result of unit updates always happen in the top level config
+    assertEquals(
+      ImmutableMap.of(
+        "oozie-env", ImmutableMap.of(
+          "oozie_heapsize", "1024m",
+          "oozie_permsize", "256m")),
+      userConfig.getProperties());
+  }
+
+
+
+  private AddServiceRequest request(ConfigRecommendationStrategy strategy) {
+    return new AddServiceRequest(null, strategy, null, null, null, null, null, null, null, null);
+  }
+
 }

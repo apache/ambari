@@ -40,10 +40,10 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.internal.UnitUpdater;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.topology.Configuration;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +64,7 @@ public class StackAdvisorAdapter {
   private StackAdvisorHelper stackAdvisorHelper;
 
   @Inject
-  private Configuration serverConfig;
+  private org.apache.ambari.server.configuration.Configuration serverConfig;
 
   @Inject
   private Injector injector;
@@ -104,6 +104,7 @@ public class StackAdvisorAdapter {
         .forHostComponents(hostsToComponents)
         .forHostsGroupBindings(hostGroups)
         .withComponentHostsMap(componentsToHosts)
+        .withConfigurations(info.getConfig())
         .withGPLLicenseAccepted(serverConfig.getGplLicenseAccepted())
         .build();
       RecommendationResponse response = stackAdvisorHelper.recommend(request);
@@ -113,47 +114,113 @@ public class StackAdvisorAdapter {
         response.getRecommendations().getBlueprint().getHostgroupComponentMap(),
         info.getStack()::getServiceForComponent);
 
-      Set<ValidationResponse.ValidationItem> validationItems = validateRecommendedLayout(info.getStack().getStackId(),
-        recommendedLayout,
-        response.getRecommendations().getBlueprintClusterBinding().getHostgroupHostMap());
-      if (!validationItems.isEmpty()) {
-        LOG.warn("Issues found during recommended topology validation:\n{}", Joiner.on('\n').join(validationItems));
-      }
+      // Validate layout
+      Map<String, Set<String>> recommendedComponentHosts = getComponentHostMap(recommendedLayout);
+      StackAdvisorRequest validationRequest = request.builder()
+        .forHostsGroupBindings(response.getRecommendations().getBlueprintClusterBinding().getHostgroupHostMap())
+        .withComponentHostsMap(recommendedComponentHosts)
+        .forHostComponents(getHostComponentMap(recommendedComponentHosts)).build();
+      validate(validationRequest);
 
-      // Keep the recommendations for new services only
-      keepNewServicesOnly(recommendedLayout, info.newServices());
-
-      return info.withNewServices(recommendedLayout);
+      Map<String,Map<String,Set<String>>> newServiceRecommendations = keepNewServicesOnly(recommendedLayout, info.newServices());
+      LayoutRecommendationInfo recommendationInfo = new LayoutRecommendationInfo(
+        response.getRecommendations().getBlueprintClusterBinding().getHostgroupHostMap(),
+        recommendedLayout);
+      return info.withLayoutRecommendation(newServiceRecommendations, recommendationInfo);
     }
     catch (AmbariException|StackAdvisorException ex) {
       throw new IllegalArgumentException("Layout recommendation failed.", ex);
     }
   }
 
-  Set<ValidationResponse.ValidationItem> validateRecommendedLayout(StackId stackId,
-                                                              Map<String,Map<String,Set<String>>> recommendedLayout,
-                                                              Map<String, Set<String>> recommendedHostgroups) throws StackAdvisorException {
-    Map<String, Set<String>> componentsToHosts = getComponentHostMap(recommendedLayout);
-    Map<String, Set<String>> hostsToComponents = getHostComponentMap(componentsToHosts);
-    List<String> hosts = ImmutableList.copyOf(hostsToComponents.keySet());
+  AddServiceInfo recommendConfigurations(AddServiceInfo info) {
+    Configuration config = info.getConfig();
 
-    StackAdvisorRequest request = StackAdvisorRequest.StackAdvisorRequestBuilder
-      .forStack(stackId)
-      .ofType(StackAdvisorRequest.StackAdvisorRequestType.HOST_GROUPS)
-      .forHosts(hosts)
-      .forServices(recommendedLayout.keySet())
-      .forHostComponents(hostsToComponents)
-      .forHostsGroupBindings(recommendedHostgroups)
-      .withComponentHostsMap(componentsToHosts)
-      .withGPLLicenseAccepted(serverConfig.getGplLicenseAccepted())
-      .build();
-    ValidationResponse response = stackAdvisorHelper.validate(request);
+    if (info.getRequest().getRecommendationStrategy().shouldUseStackAdvisor()) {
+      // Reuse information from layout recommendation.
+      // Layout recommendation is currently mandatory. When it will be optional, this will have to be rewritten to
+      // compute this information if missing
+      LayoutRecommendationInfo layoutInfo =
+        info.getRecommendationInfo().orElseThrow(() -> new IllegalStateException("Config recommendation must happen after layout recommendation"));
 
-    return response.getItems();
+      Map<String, Set<String>> componentHostMap = getComponentHostMap(layoutInfo.getAllServiceLayouts());
+      Map<String, Set<String>> hostComponentMap = getHostComponentMap(componentHostMap);
+      StackAdvisorRequest request = StackAdvisorRequest.StackAdvisorRequestBuilder
+        .forStack(info.getStack().getStackId())
+        .ofType(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS)
+        .forHosts(layoutInfo.getHosts())
+        .forServices(layoutInfo.getAllServiceLayouts().keySet())
+        .forHostComponents(hostComponentMap)
+        .forHostsGroupBindings(layoutInfo.getHostGroups())
+        .withComponentHostsMap(componentHostMap)
+        .withConfigurations(config)
+        .withGPLLicenseAccepted(serverConfig.getGplLicenseAccepted())
+        .build();
+      RecommendationResponse response;
+      try {
+        response = stackAdvisorHelper.recommend(request);
+      }
+      catch (StackAdvisorException|AmbariException ex) {
+        throw new IllegalArgumentException("Configuration recommendation failed.", ex);
+      }
+      Configuration recommendedConfig = toConfiguration(response.getRecommendations().getBlueprint().getConfigurations());
+
+      // Discard recommendations for existing configs.
+      recommendedConfig.getAllConfigTypes().stream()
+        .filter( configType -> !info.newServices().keySet().contains(info.getStack().getServiceForConfigType(configType)) )
+        .forEach( recommendedConfig::removeConfigType );
+
+      Configuration userConfig = config;
+      Configuration clusterAndStackConfig = userConfig.getParentConfiguration();
+
+      if (info.getRequest().getRecommendationStrategy().shouldOverrideCustomValues()) {
+        config = recommendedConfig;
+        config.setParentConfiguration(userConfig);
+      }
+      else {
+        config = userConfig;
+        config.setParentConfiguration(recommendedConfig);
+        recommendedConfig.setParentConfiguration(clusterAndStackConfig);
+      }
+
+      StackAdvisorRequest validationRequest = request.builder().withConfigurations(config).build();
+      validate(validationRequest);
+    }
+
+    UnitUpdater.updateUnits(config, info.getStack());
+    return info.withConfig(config);
   }
 
-  static void keepNewServicesOnly(Map<String,Map<String,Set<String>>> recommendedLayout, Map<String,Map<String,Set<String>>> newServices) {
-    recommendedLayout.keySet().retainAll(newServices.keySet());
+  private void validate(StackAdvisorRequest request) {
+    try {
+      Set<ValidationResponse.ValidationItem> items = stackAdvisorHelper.validate(request).getItems();
+      if (!items.isEmpty()) {
+        LOG.warn("Issues found during recommended {} validation:\n{}", request.getRequestType(), Joiner.on('\n').join(items));
+      }
+    }
+    catch (StackAdvisorException ex) {
+      LOG.error(request.getRequestType() + " validation failed", ex);
+    }
+  }
+
+  static Configuration toConfiguration(Map<String, RecommendationResponse.BlueprintConfigurations> configs) {
+    Map<String, Map<String, String>> properties = configs.entrySet().stream()
+      .filter( e -> e.getValue().getProperties() != null && !e.getValue().getProperties().isEmpty())
+      .map(e -> Pair.of(e.getKey(), e.getValue().getProperties()))
+      .collect(toMap(Pair::getKey, Pair::getValue));
+
+    Map<String, Map<String, Map<String, String>>> propertyAttributes = configs.entrySet().stream()
+        .filter( e -> e.getValue().getPropertyAttributes() != null && !e.getValue().getPropertyAttributes().isEmpty())
+        .map(e -> Pair.of(e.getKey(), e.getValue().getPropertyAttributesAsMap()))
+        .collect(toMap(Pair::getKey, Pair::getValue));
+
+    return new Configuration(properties, propertyAttributes);
+  }
+
+  static Map<String,Map<String,Set<String>>> keepNewServicesOnly(Map<String,Map<String,Set<String>>> recommendedLayout, Map<String,Map<String,Set<String>>> newServices) {
+    HashMap<String, java.util.Map<String, Set<String>>> newServiceRecommendations = new HashMap<>(recommendedLayout);
+    newServiceRecommendations.keySet().retainAll(newServices.keySet());
+    return newServiceRecommendations;
   }
 
   static Map<String, Map<String, Set<String>>> getRecommendedLayout(Map<String, Set<String>> hostGroupHosts,

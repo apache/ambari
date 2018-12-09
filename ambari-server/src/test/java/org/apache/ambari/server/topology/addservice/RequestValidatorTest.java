@@ -39,6 +39,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.StackFactory;
@@ -349,11 +350,12 @@ public class RequestValidatorTest extends EasyMockSupport {
   }
 
   @Test
-  public void combinesRequestConfigWithClusterAndStack() throws AmbariException {
+  public void combinesRequestConfigWithCluster() throws AmbariException {
     Configuration requestConfig = Configuration.newEmpty();
     requestConfig.setProperty("kafka-broker", "zookeeper.connect", "zookeeper.connect:request");
     requestConfig.setProperty("kafka-env", "custom_property", "custom_property:request");
     expect(request.getConfiguration()).andReturn(requestConfig.copy()).anyTimes();
+    expect(request.getRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
 
     Configuration clusterConfig = Configuration.newEmpty();
     clusterConfig.setProperty("zookeeper-env", "zk_user", "zk_user:cluster_level");
@@ -364,7 +366,35 @@ public class RequestValidatorTest extends EasyMockSupport {
     stackConfig.setProperty("zookeeper-env", "zk_user", "zk_user:stack_default");
     stackConfig.setProperty("zookeeper-env", "zk_log_dir", "zk_log_dir:stack_default");
     stackConfig.setProperty("kafka-broker", "zookeeper.connect", "zookeeper.connect:stack_default");
-    expect(stack.getValidDefaultConfig()).andReturn(stackConfig).anyTimes();
+    expect(stack.getDefaultConfig()).andReturn(stackConfig).anyTimes();
+
+    replayAll();
+
+    validator.setState(RequestValidator.State.INITIAL.with(stack));
+    validator.validateConfiguration();
+
+    Configuration config = validator.getState().getConfig();
+    verifyConfigOverrides(requestConfig, clusterConfig, Configuration.newEmpty() /* instead of stack config */, config);
+  }
+
+  @Test
+  public void combinesRequestConfigWithClusterAndStack() throws AmbariException {
+    Configuration requestConfig = Configuration.newEmpty();
+    requestConfig.setProperty("kafka-broker", "zookeeper.connect", "zookeeper.connect:request");
+    requestConfig.setProperty("kafka-env", "custom_property", "custom_property:request");
+    expect(request.getConfiguration()).andReturn(requestConfig.copy()).anyTimes();
+    expect(request.getRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ALWAYS_APPLY).anyTimes();
+
+    Configuration clusterConfig = Configuration.newEmpty();
+    clusterConfig.setProperty("zookeeper-env", "zk_user", "zk_user:cluster_level");
+    expect(configHelper.calculateExistingConfigs(cluster)).andReturn(clusterConfig.asPair()).anyTimes();
+
+    Stack stack = simpleMockStack();
+    Configuration stackConfig = Configuration.newEmpty();
+    stackConfig.setProperty("zookeeper-env", "zk_user", "zk_user:stack_default");
+    stackConfig.setProperty("zookeeper-env", "zk_log_dir", "zk_log_dir:stack_default");
+    stackConfig.setProperty("kafka-broker", "zookeeper.connect", "zookeeper.connect:stack_default");
+    expect(stack.getDefaultConfig()).andReturn(stackConfig).anyTimes();
 
     replayAll();
 

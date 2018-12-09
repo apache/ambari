@@ -39,6 +39,7 @@ import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.UnitUpdater;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
@@ -105,7 +106,7 @@ public class RequestValidator {
     checkState(!serviceInfoCreated.getAndSet(true), "Can create only one instance for each validated add service request");
 
     RequestStageContainer stages = new RequestStageContainer(actionManager.getNextRequestId(), null, requestFactory, actionManager);
-    AddServiceInfo validatedRequest = new AddServiceInfo(request, cluster.getClusterName(), state.getStack(), state.getConfig(), stages, state.getNewServices());
+    AddServiceInfo validatedRequest = new AddServiceInfo(request, cluster.getClusterName(), state.getStack(), state.getConfig(), stages, state.getNewServices(), Optional.empty());
     stages.setRequestContext(validatedRequest.describe());
     return validatedRequest;
   }
@@ -194,9 +195,12 @@ public class RequestValidator {
     }
 
     Configuration clusterConfig = getClusterDesiredConfigs();
-    clusterConfig.setParentConfiguration(state.getStack().getValidDefaultConfig());
+    if (request.getRecommendationStrategy().shouldUseStackDefaults()) {
+      clusterConfig.setParentConfiguration(state.getStack().getDefaultConfig());
+    }
     config.setParentConfiguration(clusterConfig);
 
+    UnitUpdater.removeUnits(config); // stack advisor doesn't like units; they'll be added back after recommendation
     state = state.with(config);
   }
 

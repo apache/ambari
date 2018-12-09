@@ -112,8 +112,7 @@ public class AddServiceOrchestrator {
    */
   private AddServiceInfo recommendConfiguration(AddServiceInfo request) {
     LOG.info("Recommending configuration for {}", request);
-    // TODO implement
-    return request;
+    return stackAdvisorAdapter.recommendConfigurations(request);
   }
 
   /**

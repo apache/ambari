@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.validators.UnitValidatedProperty;
 
 /**
@@ -63,6 +64,36 @@ public class UnitUpdater implements BlueprintConfigurationProcessor.PropertyUpda
     } else { // should not happen because of pre-validation in UnitValidator
       throw new IllegalArgumentException("Property " + propertyName + "=" + origValue + " has an unsupported unit. Stack supported unit is: " + stackUnit + " or no unit");
     }
+  }
+
+  public static void updateUnits(Configuration configuration, Stack stack) {
+    for (UnitValidatedProperty p : UnitValidatedProperty.ALL) {
+      if (configuration.isPropertySet(p.getConfigType(), p.getPropertyName())) {
+        String value = configuration.getPropertyValue(p.getConfigType(), p.getPropertyName());
+        String updatedValue = updateForClusterCreate(stack, p.getServiceName(), p.getConfigType(), p.getPropertyName(), value);
+        configuration.setProperty(p.getConfigType(), p.getPropertyName(), updatedValue);
+      }
+    }
+  }
+
+  public static void removeUnits(Configuration configuration) {
+    for (UnitValidatedProperty p : UnitValidatedProperty.ALL) {
+      if (configuration.isPropertySet(p.getConfigType(), p.getPropertyName())) {
+        String value = configuration.getPropertyValue(p.getConfigType(), p.getPropertyName());
+        String updatedValue = removeUnit(value);
+        configuration.setProperty(p.getConfigType(), p.getPropertyName(), updatedValue);
+      }
+    }
+  }
+
+  public static String removeUnit(String origValue) {
+    int idx = 0;
+    for(; idx < origValue.length(); idx++) {
+      if (!Character.isDigit(origValue.charAt(idx))) {
+        break;
+      }
+    }
+    return idx == origValue.length() ? origValue : origValue.substring(0, idx);
   }
 
   /**

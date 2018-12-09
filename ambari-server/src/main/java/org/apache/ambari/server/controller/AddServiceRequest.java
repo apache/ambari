@@ -118,7 +118,7 @@ public class AddServiceRequest {
     Configuration configuration
   ) {
     this.operationType = null != operationType ? operationType : OperationType.ADD_SERVICE;
-    this.recommendationStrategy = null != recommendationStrategy ? recommendationStrategy : ConfigRecommendationStrategy.NEVER_APPLY;
+    this.recommendationStrategy = null != recommendationStrategy ? recommendationStrategy : ConfigRecommendationStrategy.getDefault();
     this.provisionAction = null != provisionAction ? provisionAction : ProvisionAction.INSTALL_AND_START;
     this.stackName = stackName;
     this.stackVersion = stackVersion;

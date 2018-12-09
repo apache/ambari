@@ -20,6 +20,7 @@ package org.apache.ambari.server.topology.addservice;
 import static java.util.stream.Collectors.joining;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.AddServiceRequest;
@@ -38,18 +39,32 @@ public final class AddServiceInfo {
   private final Map<String, Map<String, Set<String>>> newServices;
   private final RequestStageContainer stages;
   private final Configuration config;
+  private final Optional<LayoutRecommendationInfo> recommendationInfo;
 
-  public AddServiceInfo(AddServiceRequest request, String clusterName, Stack stack, Configuration config, RequestStageContainer stages, Map<String, Map<String, Set<String>>> newServices) {
+  public AddServiceInfo(AddServiceRequest request,
+                        String clusterName,
+                        Stack stack,
+                        Configuration config,
+                        RequestStageContainer stages,
+                        Map<String, Map<String,
+                        Set<String>>> newServices,
+                        Optional<LayoutRecommendationInfo> recommendationInfo) {
     this.request = request;
     this.clusterName = clusterName;
     this.stack = stack;
     this.newServices = newServices;
     this.stages = stages;
     this.config = config;
+    this.recommendationInfo = null != recommendationInfo ? recommendationInfo : Optional.empty();
   }
 
-  public AddServiceInfo withNewServices(Map<String, Map<String, Set<String>>> services) {
-    return new AddServiceInfo(request, clusterName, stack, config, stages, services);
+  public AddServiceInfo withLayoutRecommendation(Map<String, Map<String, Set<String>>> services,
+                                                 LayoutRecommendationInfo recommendation) {
+    return new AddServiceInfo(request, clusterName, stack, config, stages, services, Optional.of(recommendation));
+  }
+
+  public AddServiceInfo withConfig(Configuration newConfig) {
+    return new AddServiceInfo(request, clusterName, stack, newConfig, stages, newServices, recommendationInfo);
   }
 
   @Override
@@ -85,8 +100,12 @@ public final class AddServiceInfo {
     return config;
   }
 
+  public Optional<LayoutRecommendationInfo> getRecommendationInfo() {
+    return recommendationInfo;
+  }
+
   /**
-   * Creates a descriptive label to be displayed in the UI.
+   * Creates a descriptive label to be displayed in the UI.[
    */
   public String describe() {
     int maxServicesToShow = 3;
