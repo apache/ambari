@@ -38,6 +38,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
@@ -60,11 +61,15 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.topology.Credential;
+import org.apache.ambari.server.utils.LoggingPreconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,9 +85,14 @@ import com.google.common.collect.Sets;
 public class ResourceProviderAdapter {
 
   private static final Logger LOG = LoggerFactory.getLogger(ResourceProviderAdapter.class);
+  private static final LoggingPreconditions CHECK = new LoggingPreconditions(LOG);
+
+  private final KerberosDescriptorFactory descriptorFactory = new KerberosDescriptorFactory();
 
   @Inject
   private AmbariManagementController controller;
+
+  // business methods
 
   public void createServices(AddServiceInfo request) {
     LOG.info("Creating service resources for {}", request);
@@ -91,7 +101,7 @@ public class ResourceProviderAdapter {
       .map(service -> createServiceRequestProperties(request, service))
       .collect(toSet());
 
-    createResources(request, properties, Resource.Type.Service, false);
+    createResources(request, Resource.Type.Service, properties, null, false);
   }
 
   public void createComponents(AddServiceInfo request) {
@@ -102,7 +112,7 @@ public class ResourceProviderAdapter {
         .map(component -> createComponentRequestProperties(request, componentsOfService.getKey(), component)))
       .collect(toSet());
 
-    createResources(request, properties, Resource.Type.Component, false);
+    createResources(request, Resource.Type.Component, properties, null, false);
   }
 
   public void createHostComponents(AddServiceInfo request) {
@@ -114,7 +124,7 @@ public class ResourceProviderAdapter {
           .map(host -> createHostComponentRequestProperties(request, componentsOfService.getKey(), hostsOfComponent.getKey(), host))))
       .collect(toSet());
 
-    createResources(request, properties, Resource.Type.HostComponent, false);
+    createResources(request, Resource.Type.HostComponent, properties, null, false);
   }
 
   public void createConfigs(AddServiceInfo request) {
@@ -131,9 +141,46 @@ public class ResourceProviderAdapter {
         .peek(credential -> LOG.debug("Creating credential {}", credential))
         .map(credential -> createCredentialRequestProperties(request.clusterName(), credential))
         .forEach(
-          properties -> createResources(request, ImmutableSet.of(properties), Resource.Type.Credential, true)
+          properties -> createResources(request, Resource.Type.Credential, ImmutableSet.of(properties), null, true)
         );
     }
+  }
+
+  /**
+   * @return {@code Optional} with the cluster's kerberos descriptor artifact if it exists, otherwise empty {@code Optional}
+   */
+  public Optional<KerberosDescriptor> getKerberosDescriptor(AddServiceInfo request) {
+    Set<String> propertyIds = ImmutableSet.of(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY);
+    Predicate predicate = predicateForKerberosDescriptorArtifact(request.clusterName());
+
+    Set<Resource> resources = getResources(request, propertyIds, Resource.Type.Artifact, predicate);
+
+    if (resources == null || resources.isEmpty()) {
+      return Optional.empty();
+    }
+
+    CHECK.checkArgument(resources.size() == 1,
+      "Expected only one artifact of type %s, but got %d",
+      ArtifactResourceProvider.KERBEROS_DESCRIPTOR,
+      resources.size()
+    );
+
+    return Optional.of(descriptorFactory.createInstance(resources.iterator().next().getPropertiesMap().get(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY)));
+  }
+
+  public void createKerberosDescriptor(AddServiceInfo request, KerberosDescriptor descriptor) {
+    LOG.info("Creating Kerberos descriptor for {}", request);
+    Map<String, Object> properties = createKerberosDescriptorRequestProperties(request.clusterName());
+    Map<String, String> requestInfo = requestInfoForKerberosDescriptor(descriptor);
+    createResources(request, Resource.Type.Artifact, ImmutableSet.of(properties), requestInfo, false);
+  }
+
+  public void updateKerberosDescriptor(AddServiceInfo request, KerberosDescriptor descriptor) {
+    LOG.info("Updating Kerberos descriptor from {}", request);
+    Map<String, Object> properties = createKerberosDescriptorRequestProperties(request.clusterName());
+    Map<String, String> requestInfo = requestInfoForKerberosDescriptor(descriptor);
+    Predicate predicate = predicateForKerberosDescriptorArtifact(request.clusterName());
+    updateResources(request, ImmutableSet.of(properties), Resource.Type.Artifact, predicate, requestInfo);
   }
 
   public void updateExistingConfigs(AddServiceInfo request, Set<String> existingServices) {
@@ -148,7 +195,9 @@ public class ResourceProviderAdapter {
     Set<Map<String, Object>> properties = ImmutableSet.of(ImmutableMap.of(
       ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, desiredState.name()
     ));
-    updateResources(request, properties, Resource.Type.Service, predicateForNewServices(request, "ServiceInfo"));
+    Map<String, String> requestInfo = createRequestInfo(request.clusterName(), Resource.Type.Service).build();
+    Predicate predicate = predicateForNewServices(request, "ServiceInfo");
+    updateResources(request, properties, Resource.Type.Service, predicate, requestInfo);
   }
 
   public void updateHostComponentDesiredState(AddServiceInfo request, State desiredState) {
@@ -163,18 +212,30 @@ public class ResourceProviderAdapter {
     addProvisionProperties(requestInfo, desiredState, request.getRequest().getProvisionAction());
 
     HostComponentResourceProvider rp = (HostComponentResourceProvider) getClusterController().ensureResourceProvider(Resource.Type.HostComponent);
-    Request internalRequest = createRequest(properties, requestInfo.build());
+    Request internalRequest = createRequest(properties, requestInfo.build(), null);
     try {
       rp.doUpdateResources(request.getStages(), internalRequest, predicateForNewServices(request, HostComponentResourceProvider.HOST_ROLES), false, false, false);
     } catch (UnsupportedPropertyException | SystemException | NoSuchParentResourceException | NoSuchResourceException e) {
-      String msg = String.format("Error updating host component desired state for %s", request);
-      LOG.error(msg, e);
-      throw new RuntimeException(msg, e);
+      CHECK.wrapInUnchecked(e, RuntimeException::new, "Error updating host component desired state for %s", request);
     }
   }
 
-  private static void createResources(AddServiceInfo request, Set<Map<String, Object>> properties, Resource.Type resourceType, boolean okIfExists) {
-    Request internalRequest = createRequest(properties, null);
+  // ResourceProvider calls
+
+  private static Set<Resource> getResources(AddServiceInfo request, Set<String> propertyIds, Resource.Type resourceType, Predicate predicate) {
+    Request internalRequest = createRequest(null, null, propertyIds);
+    ResourceProvider rp = getClusterController().ensureResourceProvider(resourceType);
+    try {
+      return rp.getResources(internalRequest, predicate);
+    } catch (NoSuchResourceException e) {
+      return ImmutableSet.of();
+    } catch (UnsupportedPropertyException | SystemException | NoSuchParentResourceException e) {
+      return CHECK.wrapInUnchecked(e, RuntimeException::new, "Error getting resources %s for %s", resourceType, request);
+    }
+  }
+
+  private static void createResources(AddServiceInfo request, Resource.Type resourceType, Set<Map<String, Object>> properties, Map<String, String> requestInfo, boolean okIfExists) {
+    Request internalRequest = createRequest(properties, requestInfo, null);
     ResourceProvider rp = getClusterController().ensureResourceProvider(resourceType);
     try {
       rp.createResources(internalRequest);
@@ -182,22 +243,18 @@ public class ResourceProviderAdapter {
       if (okIfExists && e instanceof ResourceAlreadyExistsException) {
         LOG.info("Resource already exists: {}, no need to create", e.getMessage());
       } else {
-        String msg = String.format("Error creating resources %s for %s", resourceType, request);
-        LOG.error(msg, e);
-        throw new RuntimeException(msg, e);
+        CHECK.wrapInUnchecked(e, RuntimeException::new, "Error creating resources %s for %s", resourceType, request);
       }
     }
   }
 
-  private static void updateResources(AddServiceInfo request, Set<Map<String, Object>> properties, Resource.Type resourceType, Predicate predicate) {
-    Request internalRequest = createRequest(properties, createRequestInfo(request.clusterName(), resourceType).build());
+  private static void updateResources(AddServiceInfo request, Set<Map<String, Object>> properties, Resource.Type resourceType, Predicate predicate, Map<String, String> requestInfo) {
+    Request internalRequest = createRequest(properties, requestInfo, null);
     ResourceProvider rp = getClusterController().ensureResourceProvider(resourceType);
     try {
       rp.updateResources(internalRequest, predicate);
     } catch (UnsupportedPropertyException | SystemException | NoSuchParentResourceException | NoSuchResourceException e) {
-      String msg = String.format("Error updating resources %s for %s", resourceType, request);
-      LOG.error(msg, e);
-      throw new RuntimeException(msg, e);
+      CHECK.wrapInUnchecked(e, RuntimeException::new, "Error updating resources %s for %s", resourceType, request);
     }
   }
 
@@ -205,14 +262,12 @@ public class ResourceProviderAdapter {
     try {
       controller.updateClusters(requests, null);
     } catch (AmbariException | AuthorizationException e) {
-      String msg = String.format(errorMessageFormat, addServiceRequest);
-      LOG.error(msg, e);
-      throw new RuntimeException(msg, e);
+      CHECK.wrapInUnchecked(e, RuntimeException::new, errorMessageFormat, addServiceRequest);
     }
   }
 
-  private static Request createRequest(Set<Map<String, Object>> properties, Map<String, String> requestInfoProperties) {
-    return new RequestImpl(null, properties, requestInfoProperties, null);
+  private static Request createRequest(Set<Map<String, Object>> properties, Map<String, String> requestInfoProperties, Set<String> propertyIds) {
+    return new RequestImpl(propertyIds, properties, requestInfoProperties, null);
   }
 
   private static ImmutableMap.Builder<String, String> createRequestInfo(String clusterName, Resource.Type resourceType) {
@@ -228,6 +283,12 @@ public class ResourceProviderAdapter {
       requestInfo.put(CLUSTER_PHASE_PROPERTY, AmbariManagementControllerImpl.CLUSTER_PHASE_INITIAL_INSTALL);
     }
   }
+
+  public static Map<String, String> requestInfoForKerberosDescriptor(KerberosDescriptor descriptor) {
+    return ImmutableMap.of(Request.REQUEST_INFO_BODY_PROPERTY, ArtifactResourceProvider.toArtifactDataJson(descriptor.toMap()));
+  }
+
+  // request creation (as map of properties)
 
   private static Map<String, Object> createServiceRequestProperties(AddServiceInfo request, String service) {
     ImmutableMap.Builder<String, Object> properties = ImmutableMap.builder();
@@ -273,6 +334,15 @@ public class ResourceProviderAdapter {
 
     return properties.build();
   }
+
+  public static Map<String, Object> createKerberosDescriptorRequestProperties(String clusterName) {
+    return ImmutableMap.of(
+      ArtifactResourceProvider.CLUSTER_NAME_PROPERTY, clusterName,
+      ArtifactResourceProvider.ARTIFACT_NAME_PROPERTY, ArtifactResourceProvider.KERBEROS_DESCRIPTOR
+    );
+  }
+
+  // ClusterRequest creation (for configuration)
 
   private static Set<ClusterRequest> createConfigRequestsForNewServices(AddServiceInfo request) {
     Map<String, Map<String, String>> fullProperties = request.getConfig().getFullProperties();
@@ -358,6 +428,16 @@ public class ResourceProviderAdapter {
     return Optional.of(clusterRequest);
   }
 
+  // Predicate creation
+
+  public static Predicate predicateForKerberosDescriptorArtifact(String clusterName) {
+    return new PredicateBuilder().begin()
+      .property(ArtifactResourceProvider.CLUSTER_NAME_PROPERTY).equals(clusterName)
+      .and()
+      .property(ArtifactResourceProvider.ARTIFACT_NAME_PROPERTY).equals(ArtifactResourceProvider.KERBEROS_DESCRIPTOR)
+      .end().toPredicate();
+  }
+
   private static Predicate predicateForNewServices(AddServiceInfo request, String category) {
     return new AndPredicate(
       new EqualsPredicate<>(PropertyHelper.getPropertyId(category, ClusterResourceProvider.CLUSTER_NAME), request.clusterName()),
@@ -369,7 +449,9 @@ public class ResourceProviderAdapter {
     );
   }
 
+  // TODO should be injected
   private static ClusterController getClusterController() {
     return ClusterControllerHelper.getClusterController();
   }
+
 }

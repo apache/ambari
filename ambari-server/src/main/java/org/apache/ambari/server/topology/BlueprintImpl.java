@@ -64,8 +64,7 @@ public class BlueprintImpl implements Blueprint {
   public BlueprintImpl(BlueprintEntity entity) throws NoSuchStackException {
     this.name = entity.getBlueprintName();
     if (entity.getSecurityType() != null) {
-      this.security = new SecurityConfiguration(entity.getSecurityType(), entity.getSecurityDescriptorReference(),
-        null);
+      this.security = SecurityConfiguration.of(entity.getSecurityType(), entity.getSecurityDescriptorReference(), null);
     }
 
     parseStack(entity.getStack());

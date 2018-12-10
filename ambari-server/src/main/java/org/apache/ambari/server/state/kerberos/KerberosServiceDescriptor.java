@@ -86,6 +86,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
  */
 public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContainer {
 
+  public static final String KEY_NAME = "name";
   static final String KEY_PRECONFIGURE = "preconfigure";
   static final String KEY_COMPONENTS = Type.COMPONENT.getDescriptorPluralName();
 
@@ -111,7 +112,7 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
   KerberosServiceDescriptor(Map<?, ?> data) {
     // The name for this KerberosServiceDescriptor is stored in the "name" entry in the map
     // This is not automatically set by the super classes.
-    this(getStringValue(data, "name"), data);
+    this(getStringValue(data, KEY_NAME), data);
   }
 
   @Override

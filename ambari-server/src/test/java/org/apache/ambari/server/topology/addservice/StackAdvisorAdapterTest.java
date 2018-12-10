@@ -252,7 +252,7 @@ public class StackAdvisorAdapterTest {
       "KAFKA",
       ImmutableMap.of("KAFKA_BROKER", emptySet()));
 
-    AddServiceInfo info = new AddServiceInfo(null, "c1", stack, org.apache.ambari.server.topology.Configuration.newEmpty(), null, newServices);
+    AddServiceInfo info = new AddServiceInfo(null, "c1", stack, org.apache.ambari.server.topology.Configuration.newEmpty(), null, null, newServices);
     AddServiceInfo infoWithRecommendations = adapter.recommendLayout(info);
 
     Map<String, Map<String, Set<String>>> expectedNewLayout = ImmutableMap.of(
