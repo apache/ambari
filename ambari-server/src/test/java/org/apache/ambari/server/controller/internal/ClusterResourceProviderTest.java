@@ -177,9 +177,8 @@ public class ClusterResourceProviderTest {
     Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"security\" : {\n\"type\" : \"NONE\"," +
       "\n\"kerberos_descriptor_reference\" : " + "\"testRef\"\n}}");
-    SecurityConfiguration blueprintSecurityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef",
-      null);
-    SecurityConfiguration securityConfiguration = new SecurityConfiguration(SecurityType.NONE, null, null);
+    SecurityConfiguration blueprintSecurityConfiguration = SecurityConfiguration.withReference("testRef");
+    SecurityConfiguration securityConfiguration = SecurityConfiguration.NONE;
 
     // set expectations
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
@@ -201,7 +200,7 @@ public class ClusterResourceProviderTest {
   public void testCreateResource_blueprint_withSecurityConfiguration() throws Exception {
     Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
     Map<String, Object> properties = requestProperties.iterator().next();
-    SecurityConfiguration securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef", null);
+    SecurityConfiguration securityConfiguration = SecurityConfiguration.withReference("testRef");
 
     Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"security\" : {\n\"type\" : \"KERBEROS\",\n\"kerberos_descriptor_reference\" : " +

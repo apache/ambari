@@ -75,6 +75,9 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   public static final String CLUSTER_NAME_PROPERTY = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_NAME;
   public static final String SERVICE_NAME_PROPERTY = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + SERVICE_NAME;
 
+  // artifact names
+  public static final String KERBEROS_DESCRIPTOR = "kerberos_descriptor";
+
   /**
    * primary key fields
    */
@@ -545,6 +548,10 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   private boolean isInstanceRequest(Set<Map<String, Object>> requestProps) {
     return requestProps.size() == 1 &&
         requestProps.iterator().next().get(ARTIFACT_NAME_PROPERTY) != null;
+  }
+
+  public static String toArtifactDataJson(Map<?,?> properties) {
+    return String.format("{ \"%s\": %s }", ARTIFACT_DATA_PROPERTY, jsonSerializer.toJson(properties));
   }
 
   //todo: when static registration is changed to external registration, this interface
