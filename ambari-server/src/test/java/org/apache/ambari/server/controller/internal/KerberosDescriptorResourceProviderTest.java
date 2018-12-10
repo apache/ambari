@@ -1,32 +1,4 @@
-package org.apache.ambari.server.controller.internal;
-
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.reset;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.orm.dao.KerberosDescriptorDAO;
-import org.apache.ambari.server.orm.entities.KerberosDescriptorEntity;
-import org.apache.ambari.server.topology.KerberosDescriptorFactory;
-import org.apache.ambari.server.topology.KerberosDescriptorImpl;
-import org.easymock.Capture;
-import org.easymock.EasyMock;
-import org.easymock.EasyMockRule;
-import org.easymock.Mock;
-import org.easymock.MockType;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -43,44 +15,68 @@ import org.junit.Test;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.controller.internal;
+
+import static org.apache.ambari.server.controller.internal.KerberosDescriptorResourceProvider.KERBEROS_DESCRIPTOR_NAME_PROPERTY_ID;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.PersistenceException;
+
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.orm.dao.KerberosDescriptorDAO;
+import org.apache.ambari.server.orm.entities.KerberosDescriptorEntity;
+import org.apache.ambari.server.topology.KerberosDescriptorFactory;
+import org.easymock.Capture;
+import org.easymock.EasyMock;
+import org.easymock.EasyMockRule;
+import org.easymock.Mock;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 public class KerberosDescriptorResourceProviderTest {
 
-  private static final String TEST_KERBEROS_DESCRIPTOR_NAME = "descriptor-name-0";
-  private static final String TEST_KERBEROS_DESCRIPTOR = "descriptor";
-  public static final String KERBEROS_DESCRIPTORS_KERBEROS_DESCRIPTOR_NAME = "KerberosDescriptors/kerberos_descriptor_name";
-
   @Rule
-  public EasyMockRule mocks = new EasyMockRule(this);
+  public final EasyMockRule mocks = new EasyMockRule(this);
 
-  @Mock(type = MockType.STRICT)
+  @Mock
   private KerberosDescriptorDAO kerberosDescriptorDAO;
 
-  @Mock(type = MockType.STRICT)
-  private KerberosDescriptorFactory kerberosDescriptorFactory;
+  private final KerberosDescriptorFactory kerberosDescriptorFactory = new KerberosDescriptorFactory();
 
-  @Mock(type = MockType.STRICT)
+  @Mock
   private Request request;
 
   private KerberosDescriptorResourceProvider kerberosDescriptorResourceProvider;
 
   @Before
   public void before() {
-    reset(request);
-
+    reset(request, kerberosDescriptorDAO);
+    kerberosDescriptorResourceProvider = new KerberosDescriptorResourceProvider(kerberosDescriptorDAO, kerberosDescriptorFactory, null);
+    expect(kerberosDescriptorDAO.findByName(anyObject())).andStubReturn(null);
   }
 
-  @Test(expected = UnsupportedPropertyException.class)
-  public void testCreateShouldThrowExceptionWhenNoDescriptorProvided() throws Exception {
-
+  @Test(expected = IllegalArgumentException.class)
+  public void rejectsCreateWithoutDescriptorText() throws Exception {
     // GIVEN
-    EasyMock.expect(request.getProperties()).andReturn(requestPropertySet(KERBEROS_DESCRIPTORS_KERBEROS_DESCRIPTOR_NAME,
-        TEST_KERBEROS_DESCRIPTOR_NAME)).times(3);
-    EasyMock.expect(request.getRequestInfoProperties()).andReturn(requestInfoPropertyMap("", "")).times(2);
-    EasyMock.replay(request);
-
-    kerberosDescriptorResourceProvider = new KerberosDescriptorResourceProvider(kerberosDescriptorDAO,
-        kerberosDescriptorFactory, null);
+    expect(request.getProperties()).andReturn(descriptorNamed("any name")).anyTimes();
+    expect(request.getRequestInfoProperties()).andReturn(ImmutableMap.of()).anyTimes();
+    replay(request);
 
     // WHEN
     kerberosDescriptorResourceProvider.createResources(request);
@@ -89,15 +85,11 @@ public class KerberosDescriptorResourceProviderTest {
     // exception is thrown
   }
 
-  @Test(expected = UnsupportedPropertyException.class)
-  public void testCreateShouldThrowExceptionWhenNoNameProvided() throws Exception {
-
+  @Test(expected = IllegalArgumentException.class)
+  public void rejectsCreateWithoutName() throws Exception {
     // GIVEN
-    EasyMock.expect(request.getProperties()).andReturn(emptyRequestPropertySet()).times(2);
-    EasyMock.replay(request);
-
-    kerberosDescriptorResourceProvider = new KerberosDescriptorResourceProvider(kerberosDescriptorDAO,
-        kerberosDescriptorFactory, null);
+    expect(request.getProperties()).andReturn(ImmutableSet.of()).anyTimes();
+    replay(request);
 
     // WHEN
     kerberosDescriptorResourceProvider.createResources(request);
@@ -105,56 +97,84 @@ public class KerberosDescriptorResourceProviderTest {
     // THEN
     // exception is thrown
   }
-
 
   @Test
-  public void testShoudCreateResourceWhenNameAndDescriptorProvided() throws Exception {
-
+  public void acceptsValidRequest() throws Exception {
     // GIVEN
-    kerberosDescriptorResourceProvider = new KerberosDescriptorResourceProvider(kerberosDescriptorDAO,
-        kerberosDescriptorFactory, null);
+    String name = "some name", text = "any text";
+    Capture<KerberosDescriptorEntity> entityCapture = creatingDescriptor(name, text);
+    replay(request, kerberosDescriptorDAO);
 
-    EasyMock.expect(request.getProperties())
-        .andReturn(requestPropertySet(KERBEROS_DESCRIPTORS_KERBEROS_DESCRIPTOR_NAME, TEST_KERBEROS_DESCRIPTOR_NAME))
-        .times(3);
-    EasyMock.expect(request.getRequestInfoProperties())
-        .andReturn(requestInfoPropertyMap(Request.REQUEST_INFO_BODY_PROPERTY, TEST_KERBEROS_DESCRIPTOR))
-        .times(3);
-    EasyMock.expect(kerberosDescriptorFactory.createKerberosDescriptor(anyString(), anyString()))
-        .andReturn(new KerberosDescriptorImpl(TEST_KERBEROS_DESCRIPTOR_NAME, TEST_KERBEROS_DESCRIPTOR));
+    // WHEN
+    kerberosDescriptorResourceProvider.createResources(request);
+
+    // THEN
+    verifyDescriptorCreated(entityCapture, name, text);
+  }
+
+  @Test(expected = ResourceAlreadyExistsException.class)
+  public void rejectsDuplicateName() throws Exception {
+    String name = "any name";
+    descriptorAlreadyExists(name);
+    tryingToCreateDescriptor(name, "any text");
+    replay(request, kerberosDescriptorDAO);
+
+    kerberosDescriptorResourceProvider.createResources(request);
+  }
+
+  @Test
+  public void canCreateDescriptorWithDifferentName() throws Exception {
+    // GIVEN
+    descriptorAlreadyExists("some name");
+
+    String name = "another name", text = "any text";
+    Capture<KerberosDescriptorEntity> entityCapture = creatingDescriptor(name, text);
+
+    replay(request, kerberosDescriptorDAO);
+
+    // WHEN
+    kerberosDescriptorResourceProvider.createResources(request);
+
+    // THEN
+    verifyDescriptorCreated(entityCapture, name, text);
+  }
+
+  private void verifyDescriptorCreated(Capture<KerberosDescriptorEntity> entityCapture, String name, String text) {
+    assertNotNull(entityCapture.getValue());
+    assertEquals(name, entityCapture.getValue().getName());
+    assertEquals(text, entityCapture.getValue().getKerberosDescriptorText());
+  }
+
+  private void descriptorAlreadyExists(String name) {
+    KerberosDescriptorEntity entity = new KerberosDescriptorEntity();
+    entity.setName(name);
+    expect(kerberosDescriptorDAO.findByName(eq(name))).andReturn(entity).anyTimes();
+
+    kerberosDescriptorDAO.create(eq(entity));
+    expectLastCall().andThrow(new PersistenceException()).anyTimes();
+  }
+
+  private Capture<KerberosDescriptorEntity> creatingDescriptor(String name, String text) {
+    tryingToCreateDescriptor(name, text);
 
     Capture<KerberosDescriptorEntity> entityCapture = EasyMock.newCapture();
     kerberosDescriptorDAO.create(capture(entityCapture));
+    expectLastCall().anyTimes();
 
-    EasyMock.replay(request, kerberosDescriptorFactory, kerberosDescriptorDAO);
-
-    // WHEN
-    kerberosDescriptorResourceProvider.createResources(request);
-
-    // THEN
-    Assert.assertNotNull(entityCapture.getValue());
-    Assert.assertEquals("The resource name is invalid!", TEST_KERBEROS_DESCRIPTOR_NAME, entityCapture.getValue()
-        .getName());
-
+    return entityCapture;
   }
 
-  private Set<Map<String, Object>> emptyRequestPropertySet() {
-    return Collections.emptySet();
+  private void tryingToCreateDescriptor(String name, String text) {
+    expect(request.getProperties()).andReturn(descriptorNamed(name)).anyTimes();
+    expect(request.getRequestInfoProperties()).andReturn(descriptorWithText(text)).anyTimes();
   }
 
-
-  private Map<String, String> requestInfoPropertyMap(String propertyKey, String propertyValue) {
-    Map<String, String> propsMap = new HashMap<>();
-    propsMap.put(propertyKey, propertyValue);
-    return propsMap;
+  private static Map<String, String> descriptorWithText(String text) {
+    return ImmutableMap.of(Request.REQUEST_INFO_BODY_PROPERTY, text);
   }
 
-  private Set<Map<String, Object>> requestPropertySet(String testPropertyKey, String testPropertyValue) {
-    Set<Map<String, Object>> invalidProps = new HashSet<>();
-    Map<String, Object> invalidMap = new HashMap<>();
-    invalidMap.put(testPropertyKey, testPropertyValue);
-    invalidProps.add(invalidMap);
-    return invalidProps;
+  private static Set<Map<String, Object>> descriptorNamed(String name) {
+    return ImmutableSet.of(ImmutableMap.of(KERBEROS_DESCRIPTOR_NAME_PROPERTY_ID, name));
   }
 
 }
