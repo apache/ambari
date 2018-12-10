@@ -8135,7 +8135,7 @@ class TestAmbariServer(TestCase):
     sys.stdout = out
     read_password_method.return_value = "blah"
     options = self._create_empty_options_mock()
-    configure_ldap_password(options)
+    configure_ldap_password(options, True)
 
     self.assertTrue(read_password_method.called)
 
