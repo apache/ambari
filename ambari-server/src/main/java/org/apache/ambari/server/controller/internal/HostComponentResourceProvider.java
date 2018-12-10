@@ -72,6 +72,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
@@ -390,10 +391,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Map<String, String> requestInfo = new HashMap<>();
     requestInfo.put("context", String.format("Install components on host %s", hostname));
     requestInfo.put(CLUSTER_PHASE_PROPERTY, CLUSTER_PHASE_INITIAL_INSTALL);
-    requestInfo.put(AmbariManagementControllerImpl.SKIP_INSTALL_FOR_COMPONENTS, StringUtils.join
-      (skipInstallForComponents, ";"));
-    requestInfo.put(AmbariManagementControllerImpl.DONT_SKIP_INSTALL_FOR_COMPONENTS, StringUtils.join
-      (dontSkipInstallForComponents, ";"));
+    addProvisionActionProperties(skipInstallForComponents, dontSkipInstallForComponents, requestInfo);
 
     Request installRequest = PropertyHelper.getUpdateRequest(installProperties, requestInfo);
 
@@ -423,6 +421,16 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       }
 
     return requestStages.getRequestStatusResponse();
+  }
+
+  @VisibleForTesting
+  static void addProvisionActionProperties(Collection<String> skipInstallForComponents, Collection<String> dontSkipInstallForComponents, Map<String, String> requestInfo) {
+    requestInfo.put(AmbariManagementControllerImpl.SKIP_INSTALL_FOR_COMPONENTS, joinComponentList(skipInstallForComponents));
+    requestInfo.put(AmbariManagementControllerImpl.DONT_SKIP_INSTALL_FOR_COMPONENTS, joinComponentList(dontSkipInstallForComponents));
+  }
+
+  private static String joinComponentList(Collection<String> components) {
+    return components != null ? String.join(";", components) : "";
   }
 
 
@@ -921,6 +929,18 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         break;
     }
     return false;
+  }
+
+  public static boolean shouldSkipInstallTaskForComponent(String componentName, boolean isClientComponent, Map<String, String> requestProperties) {
+    // Skip INSTALL for service components if START_ONLY is set for component, or if START_ONLY is set on cluster
+    // level and no other provision action is specified for component
+    String skipInstallForComponents = requestProperties.get(AmbariManagementControllerImpl.SKIP_INSTALL_FOR_COMPONENTS);
+    return !isClientComponent &&
+      CLUSTER_PHASE_INITIAL_INSTALL.equals(requestProperties.get(CLUSTER_PHASE_PROPERTY)) &&
+      skipInstallForComponents != null &&
+      (skipInstallForComponents.contains(componentName) ||
+        (skipInstallForComponents.equals("ALL") && !requestProperties.get(AmbariManagementControllerImpl.DONT_SKIP_INSTALL_FOR_COMPONENTS).contains(componentName))
+      );
   }
 
   private ServiceComponent getServiceComponent(String clusterName, String serviceName, String componentName)

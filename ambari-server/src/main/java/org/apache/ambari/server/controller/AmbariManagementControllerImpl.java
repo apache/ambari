@@ -124,6 +124,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
+import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
@@ -3355,15 +3356,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         isClientComponent = serviceComponent.isClientComponent();
       }
     }
-    // Skip INSTALL for service components if START_ONLY is set for component, or if START_ONLY is set on cluster
-    // level and no other provsion action is specified for component
-    String skipInstallForComponents = requestProperties.get(SKIP_INSTALL_FOR_COMPONENTS);
-    return !isClientComponent &&
-      CLUSTER_PHASE_INITIAL_INSTALL.equals(requestProperties.get(CLUSTER_PHASE_PROPERTY)) &&
-      skipInstallForComponents != null &&
-      (skipInstallForComponents.contains(componentName) ||
-        (skipInstallForComponents.equals("ALL") && !requestProperties.get(DONT_SKIP_INSTALL_FOR_COMPONENTS).contains(componentName))
-      );
+    return HostComponentResourceProvider.shouldSkipInstallTaskForComponent(componentName, isClientComponent, requestProperties);
 
   }
 
