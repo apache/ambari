@@ -104,11 +104,9 @@ public class SecurityConfigurationFactory {
             + KERBEROS_DESCRIPTOR_REFERENCE_PROPERTY_ID + " at the same time, is not allowed.");
       }
 
-      String descriptorText;
-
       if (descriptorJsonMap != null) { // this means the reference is null
         LOGGER.debug("Found embedded descriptor: {}", descriptorJsonMap);
-        descriptorText = jsonSerializer.toJson(descriptorJsonMap, Map.class);
+        String descriptorText = jsonSerializer.toJson(descriptorJsonMap, Map.class);
         if (persistEmbeddedDescriptor) {
           descriptorReference = persistKerberosDescriptor(descriptorText);
         }
