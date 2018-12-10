@@ -34,7 +34,6 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
@@ -173,8 +172,11 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       UPGRADE_STATE,
       QUERY_PARAMETERS_RUN_SMOKE_TEST_ID);
 
+  public static final String SKIP_INSTALL_FOR_COMPONENTS = "skipInstallForComponents";
+  public static final String DO_NOT_SKIP_INSTALL_FOR_COMPONENTS = "dontSkipInstallForComponents";
   public static final String ALL_COMPONENTS = "ALL";
   public static final String SKIP_INSTALL_FOR_ALL_COMPONENTS = joinComponentList(ImmutableSet.of(ALL_COMPONENTS));
+  public static final String DO_NOT_SKIP_INSTALL_FOR_ANY_COMPONENTS = joinComponentList(ImmutableSet.of());
 
   /**
    * maintenance state helper
@@ -428,16 +430,29 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
   @VisibleForTesting
   static void addProvisionActionProperties(Collection<String> skipInstallForComponents, Collection<String> dontSkipInstallForComponents, Map<String, String> requestInfo) {
-    requestInfo.put(AmbariManagementControllerImpl.SKIP_INSTALL_FOR_COMPONENTS, joinComponentList(skipInstallForComponents));
-    requestInfo.put(AmbariManagementControllerImpl.DONT_SKIP_INSTALL_FOR_COMPONENTS, joinComponentList(dontSkipInstallForComponents));
+    requestInfo.put(SKIP_INSTALL_FOR_COMPONENTS, joinComponentList(skipInstallForComponents));
+    requestInfo.put(DO_NOT_SKIP_INSTALL_FOR_COMPONENTS, joinComponentList(dontSkipInstallForComponents));
   }
 
-  private static String joinComponentList(Collection<String> components) {
+  public static String joinComponentList(Collection<String> components) {
     return components != null
       ? ";" + String.join(";", components) + ";"
       : "";
   }
 
+  public static boolean shouldSkipInstallTaskForComponent(String componentName, boolean isClientComponent, Map<String, String> requestProperties) {
+    // Skip INSTALL for service components if START_ONLY is set for component, or if START_ONLY is set on cluster
+    // level and no other provision action is specified for component
+    String skipInstallForComponents = requestProperties.get(SKIP_INSTALL_FOR_COMPONENTS);
+    String searchString = joinComponentList(ImmutableSet.of(componentName));
+    return !isClientComponent &&
+      CLUSTER_PHASE_INITIAL_INSTALL.equals(requestProperties.get(CLUSTER_PHASE_PROPERTY)) &&
+      skipInstallForComponents != null &&
+      (skipInstallForComponents.contains(searchString) ||
+        (skipInstallForComponents.equals(SKIP_INSTALL_FOR_ALL_COMPONENTS) &&
+          !requestProperties.get(DO_NOT_SKIP_INSTALL_FOR_COMPONENTS).contains(searchString))
+      );
+  }
 
   // TODO, revisit this extra method, that appears to be used during Add Hosts
   // TODO, How do we determine the component list for INSTALL_ONLY during an Add Hosts operation? rwn
@@ -934,20 +949,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         break;
     }
     return false;
-  }
-
-  public static boolean shouldSkipInstallTaskForComponent(String componentName, boolean isClientComponent, Map<String, String> requestProperties) {
-    // Skip INSTALL for service components if START_ONLY is set for component, or if START_ONLY is set on cluster
-    // level and no other provision action is specified for component
-    String skipInstallForComponents = requestProperties.get(AmbariManagementControllerImpl.SKIP_INSTALL_FOR_COMPONENTS);
-    String searchString = joinComponentList(ImmutableSet.of(componentName));
-    return !isClientComponent &&
-      CLUSTER_PHASE_INITIAL_INSTALL.equals(requestProperties.get(CLUSTER_PHASE_PROPERTY)) &&
-      skipInstallForComponents != null &&
-      (skipInstallForComponents.contains(searchString) ||
-        (skipInstallForComponents.equals(SKIP_INSTALL_FOR_ALL_COMPONENTS) &&
-        !requestProperties.get(AmbariManagementControllerImpl.DONT_SKIP_INSTALL_FOR_COMPONENTS).contains(searchString))
-      );
   }
 
   private ServiceComponent getServiceComponent(String clusterName, String serviceName, String componentName)

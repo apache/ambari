@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 
 import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_INITIAL_INSTALL;
 import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_PROPERTY;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.ALL_COMPONENTS;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.shouldSkipInstallTaskForComponent;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -610,7 +611,7 @@ public class HostComponentResourceProviderTest {
   public void doesNotSkipInstallTaskForClient() {
     String component = "SOME_COMPONENT";
     assertFalse(shouldSkipInstallTaskForComponent(component, true, new RequestInfoBuilder().skipInstall(component).build()));
-    assertFalse(shouldSkipInstallTaskForComponent(component, true, new RequestInfoBuilder().skipInstall("ALL").build()));
+    assertFalse(shouldSkipInstallTaskForComponent(component, true, new RequestInfoBuilder().skipInstall(ALL_COMPONENTS).build()));
   }
 
   @Test
@@ -618,13 +619,13 @@ public class HostComponentResourceProviderTest {
     String component = "SOME_COMPONENT";
     RequestInfoBuilder requestInfoBuilder = new RequestInfoBuilder().phase("INSTALL");
     assertFalse(shouldSkipInstallTaskForComponent(component, false, requestInfoBuilder.skipInstall(component).build()));
-    assertFalse(shouldSkipInstallTaskForComponent(component, false, requestInfoBuilder.skipInstall("ALL").build()));
+    assertFalse(shouldSkipInstallTaskForComponent(component, false, requestInfoBuilder.skipInstall(ALL_COMPONENTS).build()));
   }
 
   @Test
   public void doesNotSkipInstallTaskForExplicitException() {
     String component = "SOME_COMPONENT";
-    RequestInfoBuilder requestInfoBuilder = new RequestInfoBuilder().skipInstall("ALL").doNotSkipInstall(component);
+    RequestInfoBuilder requestInfoBuilder = new RequestInfoBuilder().skipInstall(ALL_COMPONENTS).doNotSkipInstall(component);
     assertFalse(shouldSkipInstallTaskForComponent(component, false, requestInfoBuilder.build()));
   }
 
@@ -637,7 +638,7 @@ public class HostComponentResourceProviderTest {
 
   @Test
   public void skipsInstallTaskForAll() {
-    RequestInfoBuilder requestInfoBuilder = new RequestInfoBuilder().skipInstall("ALL");
+    RequestInfoBuilder requestInfoBuilder = new RequestInfoBuilder().skipInstall(ALL_COMPONENTS);
     assertTrue(shouldSkipInstallTaskForComponent("ANY_COMPONENT", false, requestInfoBuilder.build()));
   }
 

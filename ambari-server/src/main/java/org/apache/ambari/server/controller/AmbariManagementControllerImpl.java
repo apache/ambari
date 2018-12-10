@@ -295,8 +295,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private static final String PASSWORD = "password";
 
-  public static final String SKIP_INSTALL_FOR_COMPONENTS = "skipInstallForComponents";
-  public static final String DONT_SKIP_INSTALL_FOR_COMPONENTS = "dontSkipInstallForComponents";
   public static final String CLUSTER_NAME_VALIDATION_REGEXP = "^[a-zA-Z0-9_-]{1,100}$";
   public static final Pattern CLUSTER_NAME_PTRN = Pattern.compile(CLUSTER_NAME_VALIDATION_REGEXP);
 
