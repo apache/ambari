@@ -102,6 +102,7 @@ import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
 import org.apache.ambari.spi.upgrade.UpgradeCheckType;
 import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.lang3.StringUtils;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Test;
@@ -214,12 +215,11 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
     expect(serviceInfo.getChecksFolder()).andReturn(new File(checks));
 
     ClassLoader classLoader = createNiceMock(ClassLoader.class);
-    Class clazz = SampleServiceCheck.class;
-    expect(classLoader.loadClass(TEST_SERVICE_CHECK_CLASS_NAME)).andReturn(clazz).atLeastOnce();
-
     StackInfo stackInfo = createNiceMock(StackInfo.class);
     expect(ambariMetaInfo.getStack(targetStackId)).andReturn(stackInfo).atLeastOnce();
     expect(stackInfo.getLibraryClassLoader()).andReturn(classLoader).atLeastOnce();
+    expect(stackInfo.getLibraryInstance(EasyMock.anyObject(), EasyMock.eq(TEST_SERVICE_CHECK_CLASS_NAME)))
+      .andReturn(new SampleServiceCheck()).atLeastOnce();
 
     // replay
     replayAll();
