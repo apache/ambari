@@ -687,7 +687,7 @@ class HdfsResourceProvider(Provider):
     if self.has_core_configs:
       path_protocol = urlparse(self.resource.target).scheme.lower()
       
-      self.create_as_root = path_protocol == 'file' or self.default_protocol == 'file' and path_protocol == None
+      self.create_as_root = path_protocol == 'file' or self.default_protocol == 'file' and not path_protocol
 
       # for protocols which are different that defaultFs webhdfs will not be able to create directories
       # so for them fast-hdfs-resource.jar should be used
