@@ -127,6 +127,11 @@ public class AddServiceOrchestrator {
    * @throws IllegalArgumentException if the request cannot be satisfied
    */
   private AddServiceInfo recommendLayout(AddServiceInfo request) {
+    if (!request.requiresLayoutRecommendation()) {
+      LOG.info("Using layout specified in request for {}", request);
+      return request;
+    }
+
     LOG.info("Recommending layout for {}", request);
     return stackAdvisorAdapter.recommendLayout(request);
   }
