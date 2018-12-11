@@ -164,98 +164,6 @@ describe('App.AddServiceController', function() {
 
   });
 
-  describe('#loadHostsSuccessCallback', function () {
-
-    it('should load hosts to local db and model', function () {
-      var hostComponents = [
-          [
-            {
-              HostRoles: {
-                component_name: 'c0',
-                state: 'STARTED'
-              }
-            },
-            {
-              HostRoles: {
-                component_name: 'c1',
-                state: 'INSTALLED'
-              }
-            }
-          ],
-          [
-            {
-              HostRoles: {
-                component_name: 'c2',
-                state: 'STARTED'
-              }
-            },
-            {
-              HostRoles: {
-                component_name: 'c3',
-                state: 'INSTALLED'
-              }
-            }
-          ]
-        ],
-        response = {
-          items: [
-            {
-              Hosts: {
-                host_name: 'h0',
-              },
-              host_components: hostComponents[0]
-            },
-            {
-              Hosts: {
-                host_name: 'h1'
-              },
-              host_components: hostComponents[1]
-            }
-          ]
-        },
-        expected = {
-          h0: {
-            name: 'h0',
-            bootStatus: 'REGISTERED',
-            isInstalled: true,
-            hostComponents: hostComponents[0],
-            id: 0
-          },
-          h1: {
-            name: 'h1',
-            bootStatus: 'REGISTERED',
-            isInstalled: true,
-            hostComponents: hostComponents[1],
-            id: 1
-          }
-        };
-      addServiceController.loadHostsSuccessCallback(response);
-      var hostsInDb = addServiceController.getDBProperty('hosts');
-      var hostsInModel = addServiceController.get('content.hosts');
-      expect(hostsInDb).to.eql(expected);
-      expect(hostsInModel).to.eql(expected);
-    });
-
-  });
-
-  describe('#loadHostsErrorCallback', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'defaultErrorHandler', Em.K);
-    });
-
-    afterEach(function () {
-      App.ajax.defaultErrorHandler.restore();
-    });
-
-    it('should execute default error handler', function () {
-      addServiceController.loadHostsErrorCallback({status: '500'}, 'textStatus', 'errorThrown', {url: 'url', type: 'GET'});
-      expect(App.ajax.defaultErrorHandler.calledOnce).to.be.true;
-      expect(App.ajax.defaultErrorHandler.calledWith({status: '500'}, 'url', 'GET', '500')).to.be.true;
-    });
-
-  });
-
   describe('#loadServices', function() {
     var mock = {
       db: {}
@@ -556,6 +464,486 @@ describe('App.AddServiceController', function() {
           })
         });
 
+  });
+  describe('#setCurrentStep', function() {
+    beforeEach(function() {
+      sinon.stub(App.clusterStatus, 'setClusterStatus');
+    });
+    afterEach(function() {
+      App.clusterStatus.setClusterStatus.restore();
+    });
+
+    it('setClusterStatus should be called', function() {
+      addServiceController.setCurrentStep();
+      expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#loadCurrentHostGroups', function() {
+    beforeEach(function() {
+      sinon.stub(addServiceController, 'getDBProperty').returns({});
+    });
+    afterEach(function() {
+      addServiceController.getDBProperty.restore();
+    });
+
+    it('should set recommendationsHostGroups', function() {
+      addServiceController.loadCurrentHostGroups();
+      expect(addServiceController.get('content.recommendationsHostGroups')).to.be.eql({});
+    });
+  });
+
+  describe('#saveMasterComponentHosts', function() {
+    var stepController = Em.Object.create({
+      selectedServicesMasters: [
+        {
+          component_name: 'C1',
+          display_name: 'c1',
+          selectedHost: 'host1',
+          serviceId: 'S1'
+        }
+      ]
+    });
+    beforeEach(function() {
+      sinon.stub(App.HostComponent, 'find').returns([
+        Em.Object.create({
+          componentName: 'C1',
+          workStatus: 'INSTALLED'
+        })
+      ]);
+      sinon.stub(addServiceController, 'setDBProperty');
+      addServiceController.saveMasterComponentHosts(stepController);
+    });
+    afterEach(function() {
+      App.HostComponent.find.restore();
+      addServiceController.setDBProperty.restore();
+    });
+
+    it('setDBProperty should be called', function() {
+      expect(addServiceController.setDBProperty.calledWith(
+        'masterComponentHosts',
+        [
+          {
+            display_name: 'c1',
+            component: 'C1',
+            hostName: 'host1',
+            serviceId: 'S1',
+            isInstalled: true,
+            workStatus: 'INSTALLED'
+          }
+        ]
+      )).to.be.true;
+    });
+    it('masterComponentHosts should be set', function() {
+      expect(addServiceController.get('content.masterComponentHosts')).to.be.eql([
+        {
+          display_name: 'c1',
+          component: 'C1',
+          hostName: 'host1',
+          serviceId: 'S1',
+          isInstalled: true,
+          workStatus: 'INSTALLED'
+        }
+      ]);
+    });
+    it('skipMasterStep should be true when all components installed', function() {
+      expect(addServiceController.get('content.skipMasterStep')).to.be.true;
+    });
+    it('second step should be disabled when skipMasterStep is true', function() {
+      expect(addServiceController.get('isStepDisabled').findProperty('step', 2).get('value')).to.be.true;
+    });
+  });
+
+  describe('#isServiceNotConfigurable', function() {
+    beforeEach(function() {
+      sinon.stub(App, 'get').returns(['S1']);
+    });
+    afterEach(function() {
+      App.get.restore();
+    });
+
+    it('should return true when service does not have configs', function() {
+      expect(addServiceController.isServiceNotConfigurable('S1')).to.be.true;
+    });
+  });
+
+  describe('#skipConfigStep', function() {
+    beforeEach(function() {
+      sinon.stub(addServiceController, 'isServiceNotConfigurable').returns(false);
+    });
+    afterEach(function() {
+      addServiceController.isServiceNotConfigurable.restore();
+    });
+
+    it('should return false when there is configurable service', function() {
+      addServiceController.set('content.services', [
+        Em.Object.create({
+          isSelected: true,
+          isInstalled: false,
+          serviceName: 'S1'
+        })
+      ]);
+      expect(addServiceController.skipConfigStep()).to.be.false;
+    });
+  });
+
+  describe('#loadServiceConfigProperties', function() {
+    beforeEach(function() {
+      sinon.stub(addServiceController, 'loadServices');
+      sinon.stub(addServiceController, 'skipConfigStep').returns(true);
+    });
+    afterEach(function() {
+      addServiceController.loadServices.restore();
+      addServiceController.skipConfigStep.restore();
+    });
+
+    it('loadServices should be called when no service found', function() {
+      addServiceController.set('content.services', null);
+      addServiceController.loadServiceConfigProperties();
+      expect(addServiceController.loadServices.calledOnce).to.be.true;
+    });
+
+    it('step 4 should be disabled when skipConfigStep is true', function() {
+      addServiceController.reopen({
+        currentStep: 5
+      });
+      addServiceController.loadServiceConfigProperties();
+      expect(addServiceController.get('content.skipConfigStep')).to.be.true;
+      expect(addServiceController.get('isStepDisabled').findProperty('step', 4).get('value')).to.be.true;
+    });
+  });
+
+  describe('#loadKerberosDescriptorConfigs', function() {
+    beforeEach(function() {
+      sinon.stub(addServiceController, 'loadClusterDescriptorStackConfigs').returns({
+        then: Em.clb
+      });
+      sinon.stub(addServiceController, 'loadClusterDescriptorConfigs').returns({
+        then: function(clb) {
+          clb([{}]);
+          return {
+            always: Em.clb
+          }
+        }
+      });
+      sinon.stub(App, 'get').returns(true);
+      sinon.stub(addServiceController, 'mergeDescriptorStackWithConfigs').returns([{}]);
+    });
+    afterEach(function() {
+      addServiceController.loadClusterDescriptorStackConfigs.restore();
+      addServiceController.loadClusterDescriptorConfigs.restore();
+      addServiceController.mergeDescriptorStackWithConfigs.restore();
+      App.get.restore();
+    });
+
+    it('loadClusterDescriptorStackConfigs should be called', function() {
+      addServiceController.loadKerberosDescriptorConfigs();
+      expect(addServiceController.loadClusterDescriptorStackConfigs.calledOnce).to.be.true;
+    });
+    it('loadClusterDescriptorConfigs should be called', function() {
+      addServiceController.loadKerberosDescriptorConfigs();
+      expect(addServiceController.loadClusterDescriptorConfigs.calledOnce).to.be.true;
+    });
+    it('kerberosDescriptorConfigs should be set', function() {
+      addServiceController.loadKerberosDescriptorConfigs();
+      expect(addServiceController.get('kerberosDescriptorConfigs')).to.be.eql([{}]);
+    });
+    it('kerberosDescriptorData should be set', function() {
+      addServiceController.loadKerberosDescriptorConfigs();
+      expect(addServiceController.get('kerberosDescriptorData')).to.be.eql([{}]);
+    });
+  });
+
+  describe('#saveServiceConfigProperties', function() {
+    beforeEach(function() {
+      sinon.stub(addServiceController, 'skipConfigStep').returns(true);
+    });
+    afterEach(function() {
+      addServiceController.skipConfigStep.restore();
+    });
+
+    it('step 4 should be disabled when skipConfigStep is true', function() {
+      addServiceController.reopen({
+        currentStep: 2
+      });
+      addServiceController.saveServiceConfigProperties(Em.Object.create({
+        stepConfigs: []
+      }));
+      expect(addServiceController.get('content.skipConfigStep')).to.be.true;
+      expect(addServiceController.get('isStepDisabled').findProperty('step', 4).get('value')).to.be.true;
+    });
+  });
+
+  describe('#loadSlaveComponentHosts', function() {
+    beforeEach(function() {
+      sinon.stub(addServiceController, 'getDBProperties').returns({
+        hosts: {
+          host1: {
+            id: 'host1'
+          }
+        },
+        slaveComponentHosts: [
+          {
+            hosts: [
+              {
+                host_id: 'host1'
+              }
+            ]
+          }
+        ]
+      });
+      sinon.stub(addServiceController, 'getDBProperty').returns({
+        host1: {
+          id: 'host1'
+        }
+      });
+    });
+    afterEach(function() {
+      addServiceController.getDBProperties.restore();
+      addServiceController.getDBProperty.restore();
+    });
+
+    it('should set installedHosts from db', function() {
+      addServiceController.loadSlaveComponentHosts();
+      expect(addServiceController.get('content.installedHosts')).to.be.eql({
+        host1: {
+          id: 'host1'
+        }
+      });
+    });
+    it('should set slaveComponentHosts', function() {
+      addServiceController.loadSlaveComponentHosts();
+      expect(addServiceController.get('content.slaveComponentHosts')).to.be.eql([
+        {
+          hosts: [
+            {
+              host_id: 'host1',
+              hostName: 'host1'
+            }
+          ]
+        }
+      ]);
+    });
+  });
+
+  describe('#saveClients', function() {
+    beforeEach(function() {
+      sinon.stub(App.StackServiceComponent, 'find').returns([
+        Em.Object.create({
+          isClient: true,
+          componentName: 'C1',
+          displayName: 'c1',
+          serviceName: 'S1'
+        })
+      ]);
+      sinon.stub(addServiceController, 'setDBProperty');
+    });
+    afterEach(function() {
+      App.StackServiceComponent.find.restore();
+      addServiceController.setDBProperty.restore();
+    });
+
+    it('should save client components', function() {
+      addServiceController.set('content.services', [
+        Em.Object.create({
+          isSelected: true,
+          isInstalled: false,
+          serviceName: 'S1'
+        })
+      ]);
+      addServiceController.saveClients();
+      expect(addServiceController.get('content.clients')).to.be.eql([
+        {
+          component_name: 'C1',
+          display_name: 'c1',
+          isInstalled: false
+        }
+      ]);
+      expect(addServiceController.setDBProperty.calledWith('clientInfo', [
+        {
+          component_name: 'C1',
+          display_name: 'c1',
+          isInstalled: false
+        }
+      ])).to.be.true;
+    });
+  });
+  
+  describe('#clearAllSteps', function() {
+    beforeEach(function() {
+      sinon.stub(addServiceController, 'clearInstallOptions');
+      sinon.stub(addServiceController, 'getCluster').returns({});
+    });
+    afterEach(function() {
+      addServiceController.clearInstallOptions.restore();
+      addServiceController.getCluster.restore();
+    });
+    
+    it('clearInstallOptions should be called', function() {
+      addServiceController.clearAllSteps();
+      expect(addServiceController.clearInstallOptions.calledOnce).to.be.true;
+      expect(addServiceController.get('content.cluster')).to.be.eql({});
+    });
+  });
+  
+  describe('#finish', function() {
+    beforeEach(function() {
+      sinon.stub(addServiceController, 'clearAllSteps');
+      sinon.stub(addServiceController, 'clearStorageData');
+      sinon.stub(addServiceController, 'clearServiceConfigProperties');
+      sinon.stub(addServiceController, 'resetDbNamespace');
+      addServiceController.finish();
+    });
+    afterEach(function() {
+      addServiceController.clearAllSteps.restore();
+      addServiceController.clearStorageData.restore();
+      addServiceController.clearServiceConfigProperties.restore();
+      addServiceController.resetDbNamespace.restore();
+    });
+    
+    it('clearAllSteps should be called', function() {
+      expect(addServiceController.clearAllSteps.calledOnce).to.be.true;
+    });
+    it('clearStorageData should be called', function() {
+      expect(addServiceController.clearStorageData.calledOnce).to.be.true;
+    });
+    it('clearServiceConfigProperties should be called', function() {
+      expect(addServiceController.clearServiceConfigProperties.calledOnce).to.be.true;
+    });
+    it('resetDbNamespace should be called', function() {
+      expect(addServiceController.resetDbNamespace.calledOnce).to.be.true;
+    });
+  });
+  
+  describe('#installServices', function() {
+    beforeEach(function() {
+      sinon.stub(addServiceController, 'installAdditionalClients').returns({
+        done: Em.clb
+      });
+      sinon.stub(addServiceController, 'installSelectedServices');
+      addServiceController.installServices();
+    });
+    afterEach(function() {
+      addServiceController.installAdditionalClients.restore();
+      addServiceController.installSelectedServices.restore();
+    });
+    
+    it('installAdditionalClients should be called', function() {
+      expect(addServiceController.installAdditionalClients.calledOnce).to.be.true;
+    });
+    it('installSelectedServices should be called', function() {
+      expect(addServiceController.installSelectedServices.calledOnce).to.be.true;
+    });
+    it('oldRequestsId should be empty', function() {
+      expect(addServiceController.get('content.cluster.oldRequestsId')).to.be.eql([]);
+    });
+  });
+  
+  describe('#installSelectedServices', function() {
+    beforeEach(function() {
+      sinon.stub(addServiceController, 'getServicesBySelectedSlaves').returns([]);
+      sinon.stub(addServiceController, 'generateDataForInstallServices').returns([]);
+      sinon.stub(addServiceController, 'installServicesRequest');
+    });
+    afterEach(function() {
+      addServiceController.getServicesBySelectedSlaves.restore();
+      addServiceController.generateDataForInstallServices.restore();
+      addServiceController.installServicesRequest.restore();
+    });
+    
+    it('installServicesRequest should be called', function() {
+      addServiceController.installSelectedServices(Em.K);
+      expect(addServiceController.installServicesRequest.calledWith('common.services.update', [])).to.be.true;
+    });
+  });
+  
+  describe('#installServicesRequest', function() {
+   
+    it('request should be made', function() {
+      addServiceController.installServicesRequest('wizard.step3.host_info');
+      expect(testHelpers.findAjaxRequest('name', 'wizard.step3.host_info')).to.exist;
+    });
+  });
+  
+  describe('#getServicesBySelectedSlaves', function() {
+    beforeEach(function() {
+      sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create({
+        isLoaded: true,
+        serviceName: 'S1'
+      }));
+    });
+    afterEach(function() {
+      App.StackServiceComponent.find.restore();
+    });
+    
+    it('should return selected services list', function() {
+      addServiceController.set('content.slaveComponentHosts', [
+        {
+          hosts: [{isInstalled: false}],
+          componentName: 'C1'
+        }
+      ]);
+      expect(addServiceController.getServicesBySelectedSlaves()).to.be.eql(['S1']);
+    });
+  });
+  
+  describe('#installAdditionalClients', function() {
+    var mock = {
+      addRequest: sinon.spy(),
+      start: sinon.spy(),
+      queue: [{}]
+    };
+    
+    it('addRequest should be called', function() {
+      addServiceController.set('content.additionalClients', [
+        {
+          componentName: 'C1',
+          hostNames: ['host1']
+        }
+      ]);
+      addServiceController.set('installClietsQueue', mock);
+      addServiceController.installAdditionalClients();
+      expect(mock.addRequest.calledOnce).to.be.true;
+    });
+    it('start should be called', function() {
+      addServiceController.set('content.additionalClients', [
+        {
+          componentName: 'C1',
+          hostNames: ['host1']
+        }
+      ]);
+      addServiceController.set('installClietsQueue', mock);
+      addServiceController.installAdditionalClients();
+      expect(mock.start.called).to.be.true;
+    });
+  });
+  
+  describe('#installClientSuccess', function() {
+    it('deferred should be resolved', function() {
+      var params = {
+        counter: 1,
+        deferred: {
+          resolve: sinon.spy()
+        }
+      };
+      addServiceController.set('installClientQueueLength', 2);
+      addServiceController.installClientSuccess({}, {}, params);
+      expect(params.deferred.resolve.calledOnce).to.be.true;
+    });
+  });
+  
+  describe('#installClientError', function() {
+    it('deferred should be resolved', function() {
+      var params = {
+        counter: 1,
+        deferred: {
+          resolve: sinon.spy()
+        }
+      };
+      addServiceController.set('installClientQueueLength', 2);
+      addServiceController.installClientError({}, {}, null, null, params);
+      expect(params.deferred.resolve.calledOnce).to.be.true;
+    });
   });
 
 });

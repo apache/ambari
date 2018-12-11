@@ -233,19 +233,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   startStopPopupSuccessCallback: function (data, ajaxOptions, params) {
     if (data && data.Requests) {
       params.query.set('status', 'SUCCESS');
-      if (App.get('testMode')) {
-        const requestData = JSON.parse(ajaxOptions.data),
-          state = requestData.Body.ServiceInfo.state || requestData.Body.HostRoles.state,
-          config = this.get('callBackConfig')[state];
-        this.set('content.workStatus', App.Service.Health[config.f]);
-        this.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus[config.f]);
-        setTimeout(() => {
-          this.set('content.workStatus', App.Service.Health[config.c2]);
-          this.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus[config.hs]);
-        }, App.get('testModeDelayForActions'));
-      }
       // load data (if we need to show this background operations popup) from persist
-      App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
+      App.router.get('userSettingsController').dataLoading('show_bg').done((initValue) => {
         if (initValue) {
           App.router.get('backgroundOperationsController').showPopup();
         }
@@ -356,33 +345,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       if (nameNodesWithOldCheckpoints.length) {
         // too old
         this.getHdfsUser().done(() => {
-          const maxAge = App.nnCheckpointAgeAlertThreshold,
-            hdfsUser = this.get('hdfsUser'),
-            confirmButton = Em.I18n.t('common.next');
-          let msg;
-          if (App.get('hasNameNodeFederation') && !groupName) {
-            const oldCheckpointNameSpacesList = nameNodesWithOldCheckpoints.map(nn => `<li>${nn.haNameSpace}</li>`),
-              nameSpacesString = `<ul>${oldCheckpointNameSpacesList.join('')}</ul>`,
-              hostNamesList = nameNodesWithOldCheckpoints.map(nn => `<b>${nn.hostName}</b>`).join(', ');
-            msg = Em.Object.create({
-              confirmMsg: Em.I18n.t('services.service.stop.HDFS.warningMsg.nameSpaces.checkPointTooOld').format(maxAge) +
-                nameSpacesString +
-                Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.makeSure') +
-                Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions.multipleHosts.login').format(hostNamesList) +
-                Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(hdfsUser),
-              confirmButton
-            })
-          } else {
-            const hostName = nameNodesWithOldCheckpoints[0].hostName;
-            msg = Em.Object.create({
-              confirmMsg: Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld').format(maxAge) +
-                Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.makeSure') +
-                Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions.singleHost.login').format(hostName) +
-                Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(hdfsUser),
-              confirmButton
-            })
-          }
-          return App.showConfirmationFeedBackPopup(callback, msg);
+          const message = this.getMessageForOldCheckpoints(groupName, nameNodesWithOldCheckpoints);
+          return App.showConfirmationFeedBackPopup(callback, message);
         });
       } else if (isNameNodeCheckpointUnavailable) {
         // not available
@@ -395,6 +359,40 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         callback();
       }
     });
+  },
+  
+  /**
+   *
+   * @param {string} groupName
+   * @param {Array} nameNodesWithOldCheckpoints
+   * @return {Em.Object}
+   */
+  getMessageForOldCheckpoints: function(groupName, nameNodesWithOldCheckpoints) {
+    const maxAge = App.nnCheckpointAgeAlertThreshold,
+      hdfsUser = this.get('hdfsUser'),
+      confirmButton = Em.I18n.t('common.next');
+    if (App.get('hasNameNodeFederation') && !groupName) {
+      const oldCheckpointNameSpacesList = nameNodesWithOldCheckpoints.map(nn => `<li>${nn.haNameSpace}</li>`),
+        nameSpacesString = `<ul>${oldCheckpointNameSpacesList.join('')}</ul>`,
+        hostNamesList = nameNodesWithOldCheckpoints.map(nn => `<b>${nn.hostName}</b>`).join(', ');
+      return Em.Object.create({
+        confirmMsg: Em.I18n.t('services.service.stop.HDFS.warningMsg.nameSpaces.checkPointTooOld').format(maxAge) +
+        nameSpacesString +
+        Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.makeSure') +
+        Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions.multipleHosts.login').format(hostNamesList) +
+        Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(hdfsUser),
+        confirmButton
+      });
+    } else {
+      const hostName = nameNodesWithOldCheckpoints[0].hostName;
+      return Em.Object.create({
+        confirmMsg: Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld').format(maxAge) +
+        Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.makeSure') +
+        Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions.singleHost.login').format(hostName) +
+        Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(hdfsUser),
+        confirmButton
+      });
+    }
   },
 
   pullNnCheckPointTime: function (haNameSpace) {
@@ -641,35 +639,32 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
    /**
    * On click handler for Yarn Refresh Queues command from items menu
-   * @param event
    */
-  refreshYarnQueues : function (event) {
-    var controller = this;
-    var hosts = App.Service.find('YARN').get('hostComponents').filterProperty('componentName', 'RESOURCEMANAGER').mapProperty('hostName');
-    return App.showConfirmationPopup(function() {
-    App.ajax.send({
-      name : 'service.item.refreshQueueYarnRequest',
-        sender: controller,
-      data : {
-        command : "REFRESHQUEUES",
-        context : Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context') ,
-        hosts : hosts.join(','),
-        serviceName : "YARN",
-        componentName : "RESOURCEMANAGER",
-        forceRefreshConfigTags : "capacity-scheduler"
-      },
-      success : 'refreshYarnQueuesSuccessCallback',
-      error : 'refreshYarnQueuesErrorCallback',
-      showLoadingPopup: true
-    });
-    });
+  refreshYarnQueues : function () {
+     return App.showConfirmationPopup(() => {
+       App.ajax.send({
+         name: 'service.item.refreshQueueYarnRequest',
+         sender: this,
+         data: {
+           command: "REFRESHQUEUES",
+           context: Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context'),
+           hosts: App.MasterComponent.find('RESOURCEMANAGER').get('hostNames').join(','),
+           serviceName: "YARN",
+           componentName: "RESOURCEMANAGER",
+           forceRefreshConfigTags: "capacity-scheduler"
+         },
+         success: 'refreshYarnQueuesSuccessCallback',
+         error: 'refreshYarnQueuesErrorCallback',
+         showLoadingPopup: true
+       });
+     });
   },
-  refreshYarnQueuesSuccessCallback  : function(data, ajaxOptions, params) {
+  refreshYarnQueuesSuccessCallback: function(data, ajaxOptions, params) {
     if (data.Requests.id) {
       App.router.get('backgroundOperationsController').showPopup();
     }
   },
-  refreshYarnQueuesErrorCallback : function(data) {
+  refreshYarnQueuesErrorCallback: function(data) {
     var error = Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error');
     if(data && data.responseText){
       try {
@@ -689,11 +684,11 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     var context = Em.I18n.t('services.service.actions.run.stopLdapKnox.context');
     this.startStopLdapKnox('STOPDEMOLDAP',context);
   },
-
-  startStopLdapKnox: function(command,context) {
+  
+  startStopLdapKnox: function (command, context) {
     var controller = this;
     var host = App.HostComponent.find().findProperty('componentName', 'KNOX_GATEWAY').get('hostName');
-    return App.showConfirmationPopup(function() {
+    return App.showConfirmationPopup(() => {
       App.ajax.send({
         name: 'service.item.startStopLdapKnox',
         sender: controller,
@@ -731,7 +726,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     var isRefreshQueueRequired, self = this;
     return App.showConfirmationPopup(function () {
       // regresh queue request is sending only if YARN service has stale configs
-      isRefreshQueueRequired = App.Service.find().findProperty('serviceName', 'YARN').get('isRestartRequired');
+      isRefreshQueueRequired = App.Service.find('YARN').get('isRestartRequired');
       if (isRefreshQueueRequired) {
         self.restartLLAPAndRefreshQueueRequest();
       } else {
@@ -759,8 +754,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   restartLLAPAndRefreshQueueRequest: function () {
-    var hiveServerInteractiveHost = App.HostComponent.find().findProperty('componentName', 'HIVE_SERVER_INTERACTIVE').get('hostName');
-    var resourceManagerHost = App.HostComponent.find().findProperty('componentName', 'RESOURCEMANAGER').get('hostName');
+    var hiveServerInteractiveHost = App.MasterComponent.find('HIVE_SERVER_INTERACTIVE').get('hostNames')[0];
+    var resourceManagerHost = App.MasterComponent.find('RESOURCEMANAGER').get('hostNames')[0];
     var batches = [{
       "order_id": 1,
       "type": "POST",
@@ -909,7 +904,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   regenerateKeytabFileOperationsRequestError: function () {
-    App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('alerts.notifications.regenerateKeytab.service.error').format(this.content.get('serviceName')));
+    App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('alerts.notifications.regenerateKeytab.service.error').format(this.get('content.serviceName')));
   },
   /**
    * On click callback for <code>run compaction</code> button
