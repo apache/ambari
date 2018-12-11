@@ -49,6 +49,7 @@ import org.apache.ambari.spi.upgrade.UpgradeAction;
 import org.apache.ambari.spi.upgrade.UpgradeActionOperations;
 import org.apache.ambari.spi.upgrade.UpgradeActionOperations.ConfigurationChanges;
 import org.apache.ambari.spi.upgrade.UpgradeInformation;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Before;
@@ -128,12 +129,10 @@ public class PluginUpgradeServerActionTest extends EasyMockSupport {
     expect(m_mockUpgradePack.getOwnerStackId()).andReturn(m_stackId).atLeastOnce();
     expect(m_mockMetaInfo.getStack(m_stackId)).andReturn(m_mockStackInfo).atLeastOnce();
     expect(m_mockStackInfo.getLibraryClassLoader()).andReturn(m_mockClassLoader).atLeastOnce();
+    expect(m_mockStackInfo.getLibraryInstance(EasyMock.anyString())).andReturn(new MockUpgradeAction()).atLeastOnce();
 
     expect(m_action.getClusters()).andReturn(m_mockClusters).anyTimes();
     expect(m_action.getUpgradeContext(m_mockCluster)).andReturn(m_mockUpgradeContext).once();
-
-    Class clazz = MockUpgradeAction.class;
-    expect(m_mockClassLoader.loadClass(CLASS_NAME)).andReturn(clazz).atLeastOnce();
 
     m_action.agentConfigsHolder = m_mockAgentConfigsHolder;
 

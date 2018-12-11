@@ -1545,12 +1545,9 @@ public class UpgradeContext {
 
     try {
       StackInfo stack = metaInfo.getStack(stackId);
-      ClassLoader cl = stack.getLibraryClassLoader();
 
-      Class<?> clazz = (null == cl) ? Class.forName(className) :
-        cl.loadClass(className);
+      return stack.getLibraryInstance(className);
 
-      return (OrchestrationOptions) clazz.newInstance();
     } catch (Exception e) {
       LOG.error(String.format("Could not load orchestration options for stack {}: {}",
           stackId, e.getMessage()));
