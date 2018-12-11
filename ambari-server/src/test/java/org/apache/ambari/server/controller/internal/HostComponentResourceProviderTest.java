@@ -18,6 +18,10 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_INITIAL_INSTALL;
+import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_PROPERTY;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.ALL_COMPONENTS;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.shouldSkipInstallTaskForComponent;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
@@ -25,16 +29,20 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -597,6 +605,82 @@ public class HostComponentResourceProviderTest {
 
     // verify
     verify(managementController, resourceProviderFactory, stageContainer);
+  }
+
+  @Test
+  public void doesNotSkipInstallTaskForClient() {
+    String component = "SOME_COMPONENT";
+    assertFalse(shouldSkipInstallTaskForComponent(component, true, new RequestInfoBuilder().skipInstall(component).build()));
+    assertFalse(shouldSkipInstallTaskForComponent(component, true, new RequestInfoBuilder().skipInstall(ALL_COMPONENTS).build()));
+  }
+
+  @Test
+  public void doesNotSkipInstallTaskForOtherPhase() {
+    String component = "SOME_COMPONENT";
+    RequestInfoBuilder requestInfoBuilder = new RequestInfoBuilder().phase("INSTALL");
+    assertFalse(shouldSkipInstallTaskForComponent(component, false, requestInfoBuilder.skipInstall(component).build()));
+    assertFalse(shouldSkipInstallTaskForComponent(component, false, requestInfoBuilder.skipInstall(ALL_COMPONENTS).build()));
+  }
+
+  @Test
+  public void doesNotSkipInstallTaskForExplicitException() {
+    String component = "SOME_COMPONENT";
+    RequestInfoBuilder requestInfoBuilder = new RequestInfoBuilder().skipInstall(ALL_COMPONENTS).doNotSkipInstall(component);
+    assertFalse(shouldSkipInstallTaskForComponent(component, false, requestInfoBuilder.build()));
+  }
+
+  @Test
+  public void skipsInstallTaskIfRequested() {
+    String component = "SOME_COMPONENT";
+    RequestInfoBuilder requestInfoBuilder = new RequestInfoBuilder().skipInstall(component);
+    assertTrue(shouldSkipInstallTaskForComponent(component, false, requestInfoBuilder.build()));
+  }
+
+  @Test
+  public void skipsInstallTaskForAll() {
+    RequestInfoBuilder requestInfoBuilder = new RequestInfoBuilder().skipInstall(ALL_COMPONENTS);
+    assertTrue(shouldSkipInstallTaskForComponent("ANY_COMPONENT", false, requestInfoBuilder.build()));
+  }
+
+  @Test
+  public void doesNotSkipInstallOfPrefixedComponent() {
+    String prefix = "HIVE_SERVER", component = prefix + "_INTERACTIVE";
+    Map<String, String> requestInfo = new RequestInfoBuilder().skipInstall(component).build();
+    assertTrue(shouldSkipInstallTaskForComponent(component, false, requestInfo));
+    assertFalse(shouldSkipInstallTaskForComponent(prefix, false, requestInfo));
+  }
+
+  private static class RequestInfoBuilder {
+
+    private String phase = CLUSTER_PHASE_INITIAL_INSTALL;
+    private final Collection<String> skipInstall = new LinkedList<>();
+    private final Collection<String> doNotSkipInstall = new LinkedList<>();
+
+    public RequestInfoBuilder skipInstall(String... components) {
+      skipInstall.clear();
+      skipInstall.addAll(Arrays.asList(components));
+      return this;
+    }
+
+    public RequestInfoBuilder doNotSkipInstall(String... components) {
+      doNotSkipInstall.clear();
+      doNotSkipInstall.addAll(Arrays.asList(components));
+      return this;
+    }
+
+    public RequestInfoBuilder phase(String phase) {
+      this.phase = phase;
+      return this;
+    }
+
+    public Map<String, String> build() {
+      Map<String, String> info = new HashMap<>();
+      if (phase != null) {
+        info.put(CLUSTER_PHASE_PROPERTY, phase);
+      }
+      HostComponentResourceProvider.addProvisionActionProperties(skipInstall, doNotSkipInstall, info);
+      return info;
+    }
   }
 
   // Used to directly call updateHostComponents on the resource provider.
