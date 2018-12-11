@@ -1775,6 +1775,16 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         groups.push(group);
       }
     });
+    if (App.get('isHaEnabled') && installedServiceNames.contains('HDFS')) {
+      var group = {
+          properties: {},
+          properties_attributes: {}
+        };
+      var type= 'core-site';
+      group.properties[type] = configs[type];
+      group.properties_attributes[type] = attributes[type];
+      groups.push(group);
+    }
     this.setConfigsChanges(groups);
   },
 
