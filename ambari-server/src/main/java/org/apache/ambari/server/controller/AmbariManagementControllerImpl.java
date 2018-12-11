@@ -124,6 +124,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
+import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
@@ -294,8 +295,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private static final String PASSWORD = "password";
 
-  public static final String SKIP_INSTALL_FOR_COMPONENTS = "skipInstallForComponents";
-  public static final String DONT_SKIP_INSTALL_FOR_COMPONENTS = "dontSkipInstallForComponents";
   public static final String CLUSTER_NAME_VALIDATION_REGEXP = "^[a-zA-Z0-9_-]{1,100}$";
   public static final Pattern CLUSTER_NAME_PTRN = Pattern.compile(CLUSTER_NAME_VALIDATION_REGEXP);
 
@@ -3355,15 +3354,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         isClientComponent = serviceComponent.isClientComponent();
       }
     }
-    // Skip INSTALL for service components if START_ONLY is set for component, or if START_ONLY is set on cluster
-    // level and no other provsion action is specified for component
-    String skipInstallForComponents = requestProperties.get(SKIP_INSTALL_FOR_COMPONENTS);
-    return !isClientComponent &&
-      CLUSTER_PHASE_INITIAL_INSTALL.equals(requestProperties.get(CLUSTER_PHASE_PROPERTY)) &&
-      skipInstallForComponents != null &&
-      (skipInstallForComponents.contains(componentName) ||
-        (skipInstallForComponents.equals("ALL") && !requestProperties.get(DONT_SKIP_INSTALL_FOR_COMPONENTS).contains(componentName))
-      );
+    return HostComponentResourceProvider.shouldSkipInstallTaskForComponent(componentName, isClientComponent, requestProperties);
 
   }
 

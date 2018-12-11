@@ -19,6 +19,7 @@
 package org.apache.ambari.server.topology;
 
 import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.ALL_COMPONENTS;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
 import static org.apache.ambari.server.state.ServiceInfo.HADOOP_COMPATIBLE_FS;
@@ -221,7 +222,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
       Collection<String> skipInstallForComponents = new ArrayList<>();
       if (skipInstallTaskCreate) {
-        skipInstallForComponents.add("ALL");
+        skipInstallForComponents.add(ALL_COMPONENTS);
       } else {
         // get the set of components that are marked as START_ONLY for this hostgroup
         skipInstallForComponents.addAll(hostGroup.getComponentNames(ProvisionAction.START_ONLY));
