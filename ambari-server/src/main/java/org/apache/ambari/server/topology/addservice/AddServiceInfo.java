@@ -115,4 +115,8 @@ public final class AddServiceInfo {
     return sb.toString();
   }
 
+  public boolean requiresLayoutRecommendation() {
+    return !request.getServices().isEmpty();
+  }
+
 }
