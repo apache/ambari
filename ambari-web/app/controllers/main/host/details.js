@@ -133,6 +133,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       typesToSave: ['hive-site', 'webhcat-site']
     },
     {
+      serviceName: 'HDFS',
+      typesToLoad: ['core-site'],
+      typesToSave: ['core-site']
+    }, 
+    {
       serviceName: 'YARN',
       typesToLoad: ['yarn-site', 'zoo.cfg'],
       typesToSave: ['yarn-site']
