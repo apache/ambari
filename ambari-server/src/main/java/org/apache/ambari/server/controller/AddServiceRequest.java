@@ -284,7 +284,7 @@ public class AddServiceRequest {
     @JsonCreator
     public Component(@JsonProperty(COMPONENT_NAME) String name, @JsonProperty(HOSTS) Set<Host> hosts) {
       this.name = name;
-      this.hosts = hosts != null ? ImmutableSet.copyOf(hosts) : null;
+      this.hosts = hosts != null ? ImmutableSet.copyOf(hosts) : ImmutableSet.of();
     }
 
     public static Component of(String name, String... hosts) {
