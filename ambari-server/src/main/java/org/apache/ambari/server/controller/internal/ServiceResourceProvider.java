@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -79,6 +80,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.apache.ambari.server.topology.addservice.AddServiceOrchestrator;
+import org.apache.ambari.server.utils.LoggingPreconditions;
 import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -96,6 +98,7 @@ import com.google.inject.assistedinject.AssistedInject;
 public class ServiceResourceProvider extends AbstractControllerResourceProvider {
 
   private static final Logger LOG = LoggerFactory.getLogger(ServiceResourceProvider.class);
+  private static final LoggingPreconditions CHECK = new LoggingPreconditions(LOG);
 
   public static final String SERVICE_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
       "ServiceInfo", "cluster_name");
@@ -1246,7 +1249,11 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private static AddServiceRequest createAddServiceRequest(Map<String, String> requestInfoProperties) {
-    return AddServiceRequest.of(requestInfoProperties.get(Request.REQUEST_INFO_BODY_PROPERTY));
+    try {
+      return AddServiceRequest.of(requestInfoProperties.get(Request.REQUEST_INFO_BODY_PROPERTY));
+    } catch (UncheckedIOException e) {
+      return CHECK.wrapInUnchecked(e, IllegalArgumentException::new, "Could not parse input as valid Add Service request: " + e.getCause().getMessage());
+    }
   }
 
 }
