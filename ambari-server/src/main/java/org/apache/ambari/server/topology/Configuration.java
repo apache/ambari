@@ -501,4 +501,20 @@ public class Configuration {
   public Pair<Map<String, Map<String, String>>, Map<String, Map<String, Map<String, String>>>> asPair() {
     return Pair.of(properties, attributes);
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+
+    Configuration other = (Configuration) obj;
+
+    return Objects.equals(properties, other.properties) &&
+      Objects.equals(attributes, other.attributes) &&
+      Objects.equals(parentConfiguration, other.parentConfiguration);
+  }
 }

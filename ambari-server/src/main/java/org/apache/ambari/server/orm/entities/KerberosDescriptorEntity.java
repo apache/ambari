@@ -1,5 +1,7 @@
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -52,5 +54,23 @@ public class KerberosDescriptorEntity {
 
   public void setKerberosDescriptorText(String kerberosDescriptorText) {
     this.kerberosDescriptorText = kerberosDescriptorText;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+    KerberosDescriptorEntity other = (KerberosDescriptorEntity) obj;
+    return Objects.equals(name, other.name) &&
+      Objects.equals(kerberosDescriptorText, other.kerberosDescriptorText);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, kerberosDescriptorText);
   }
 }

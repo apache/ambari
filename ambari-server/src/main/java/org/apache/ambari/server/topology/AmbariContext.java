@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -265,23 +266,35 @@ public class AmbariContext {
         repoVersion = stackRepoVersions.get(0);
         LOG.warn("Cluster is being provisioned using the single matching repository version {}", repoVersion.getVersion());
       }
-    } else if (null != repoVersionId){
-      repoVersion = repositoryVersionDAO.findByPK(repoVersionId);
-
-      if (null == repoVersion) {
-        throw new IllegalArgumentException(String.format(
-          "Could not identify repository version with repository version id %s for installing services. "
-            + "Specify a valid repository version id with '%s'",
-          repoVersionId, ProvisionClusterRequest.REPO_VERSION_ID_PROPERTY));
-      }
     } else {
-      repoVersion = repositoryVersionDAO.findByStackAndVersion(stackId, repoVersionString);
+      if (null != repoVersionId) {
+        repoVersion = repositoryVersionDAO.findByPK(repoVersionId);
 
-      if (null == repoVersion) {
-        throw new IllegalArgumentException(String.format(
-          "Could not identify repository version with stack %s and version %s for installing services. "
-            + "Specify a valid version with '%s'",
-          stackId, repoVersionString, ProvisionClusterRequest.REPO_VERSION_PROPERTY));
+        if (null == repoVersion) {
+          throw new IllegalArgumentException(String.format(
+            "Could not identify repository version with repository version id %s for installing services. "
+              + "Specify a valid repository version id with '%s'",
+            repoVersionId, ProvisionClusterRequest.REPO_VERSION_ID_PROPERTY));
+        }
+      } else {
+        repoVersion = repositoryVersionDAO.findByStackAndVersion(stackId, repoVersionString);
+
+        if (null == repoVersion) {
+          throw new IllegalArgumentException(String.format(
+            "Could not identify repository version with stack %s and version %s for installing services. "
+              + "Specify a valid version with '%s'",
+            stackId, repoVersionString, ProvisionClusterRequest.REPO_VERSION_PROPERTY));
+        }
+      }
+
+      if (!Objects.equals(repoVersion.getStackId(), stackId)) {
+        String repoVersionPair = repoVersionId != null
+          ? String.format("'%s' = %d", ProvisionClusterRequest.REPO_VERSION_ID_PROPERTY, repoVersionId)
+          : String.format("'%s' = '%s'", ProvisionClusterRequest.REPO_VERSION_PROPERTY, repoVersionString);
+        String msg = String.format(
+          "The stack specified in the blueprint (%s) and the repository version (%s for %s) should match",
+          stackId, repoVersion.getStackId(), repoVersionPair);
+        throw new IllegalArgumentException(msg);
       }
     }
 

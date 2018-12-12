@@ -12,17 +12,26 @@
 
   "components" : [
     {
-      "component_name" : "NIMBUS",
-      "fqdn" : "c7401.ambari.apache.org"
+      "name" : "NIMBUS",
+      "hosts": [
+        { "fqdn" : "c7401.ambari.apache.org" },
+        { "fqdn" : "c7402.ambari.apache.org" }
+      ]
     },
     {
-      "component_name" : "BEACON_SERVER",
-      "fqdn" : "c7402.ambari.apache.org"
+      "name" : "BEACON_SERVER",
+      "hosts": [
+        { "fqdn" : "c7402.ambari.apache.org" },
+        { "fqdn" : "c7403.ambari.apache.org" }
+      ]
     }
   ],
 
   "security": {
     "type": "KERBEROS",
+    "kerberos_descriptor": {
+      "services": [ { "name": "ZOOKEEPER" } ]
+    },
     "kerberos_descriptor_reference": "ref_to_kerb_desc"
   },
 

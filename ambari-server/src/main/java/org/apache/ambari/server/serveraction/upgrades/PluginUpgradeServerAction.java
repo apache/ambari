@@ -83,11 +83,7 @@ public class PluginUpgradeServerAction extends AbstractUpgradeServerAction {
     final String pluginClassName = getActionClassName();
 
     try {
-      @SuppressWarnings("unchecked")
-      Class<? extends UpgradeAction> upgradeActionClass = (Class<? extends UpgradeAction>) pluginClassLoader.loadClass(
-          pluginClassName);
-
-      upgradeAction = upgradeActionClass.newInstance();
+      upgradeAction = stackInfo.getLibraryInstance(pluginClassName);
     } catch (Exception exception) {
       LOG.error("Unable to load the upgrade action {}", pluginClassName, exception);
 

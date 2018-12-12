@@ -313,8 +313,8 @@ public class TopologyManager {
     // create resources
     ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion, repoVersionID);
 
-    if (securityConfiguration != null && securityConfiguration.getDescriptor() != null) {
-      submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
+    if (securityConfiguration != null) {
+      securityConfiguration.getDescriptor().ifPresent(descriptor -> submitKerberosDescriptorAsArtifact(clusterName, descriptor));
     }
 
     if (credential != null) {
@@ -440,21 +440,16 @@ public class TopologyManager {
     return securityConfiguration;
   }
 
-  private void submitKerberosDescriptorAsArtifact(String clusterName, String descriptor) {
+  private void submitKerberosDescriptorAsArtifact(String clusterName, Map<?,?> descriptor) {
 
     ResourceProvider artifactProvider =
         ambariContext.getClusterController().ensureResourceProvider(Resource.Type.Artifact);
 
-    Map<String, Object> properties = new HashMap<>();
-    properties.put(ArtifactResourceProvider.ARTIFACT_NAME_PROPERTY, "kerberos_descriptor");
-    properties.put("Artifacts/cluster_name", clusterName);
-
-    Map<String, String> requestInfoProps = new HashMap<>();
-    requestInfoProps.put(org.apache.ambari.server.controller.spi.Request.REQUEST_INFO_BODY_PROPERTY,
-            "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
-
-    org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.emptySet(),
-        Collections.singleton(properties), requestInfoProps, null);
+    Map<String, Object> properties = ResourceProviderAdapter.createKerberosDescriptorRequestProperties(clusterName);
+    Map<String, String> requestInfoProps = ImmutableMap.of(
+      Request.REQUEST_INFO_BODY_PROPERTY, ArtifactResourceProvider.toArtifactDataJson(descriptor)
+    );
+    Request request = new RequestImpl(Collections.emptySet(), Collections.singleton(properties), requestInfoProps, null);
 
     try {
       RequestStatus status = artifactProvider.createResources(request);

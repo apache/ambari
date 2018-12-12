@@ -26,6 +26,7 @@ import java.util.Set;
 import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.topology.Configuration;
 
 /**
@@ -36,22 +37,26 @@ public final class AddServiceInfo {
   private final AddServiceRequest request;
   private final String clusterName;
   private final Stack stack;
+  private final KerberosDescriptor kerberosDescriptor;
   private final Map<String, Map<String, Set<String>>> newServices;
   private final RequestStageContainer stages;
   private final Configuration config;
   private final LayoutRecommendationInfo recommendationInfo;
 
-  public AddServiceInfo(AddServiceRequest request,
-                        String clusterName,
-                        Stack stack,
-                        Configuration config,
-                        RequestStageContainer stages,
-                        Map<String, Map<String,
-                        Set<String>>> newServices,
-                        LayoutRecommendationInfo recommendationInfo) {
+  public AddServiceInfo(
+    AddServiceRequest request,
+    String clusterName,
+    Stack stack,
+    Configuration config,
+    KerberosDescriptor kerberosDescriptor,
+    RequestStageContainer stages,
+    Map<String, Map<String,
+    Set<String>>> newServices,
+    LayoutRecommendationInfo recommendationInfo) {
     this.request = request;
     this.clusterName = clusterName;
     this.stack = stack;
+    this.kerberosDescriptor = kerberosDescriptor;
     this.newServices = newServices;
     this.stages = stages;
     this.config = config;
@@ -60,11 +65,11 @@ public final class AddServiceInfo {
 
   public AddServiceInfo withLayoutRecommendation(Map<String, Map<String, Set<String>>> services,
                                                  LayoutRecommendationInfo recommendation) {
-    return new AddServiceInfo(request, clusterName, stack, config, stages, services, recommendation);
+    return new AddServiceInfo(request, clusterName, stack, config, kerberosDescriptor, stages, services, recommendation);
   }
 
   public AddServiceInfo withConfig(Configuration newConfig) {
-    return new AddServiceInfo(request, clusterName, stack, newConfig, stages, newServices, recommendationInfo);
+    return new AddServiceInfo(request, clusterName, stack, newConfig, kerberosDescriptor, stages, newServices, recommendationInfo);
   }
 
   @Override
@@ -104,6 +109,10 @@ public final class AddServiceInfo {
     return Optional.ofNullable(recommendationInfo);
   }
 
+  public Optional<KerberosDescriptor> getKerberosDescriptor() {
+    return Optional.ofNullable(kerberosDescriptor);
+  }
+
   /**
    * Creates a descriptive label to be displayed in the UI.
    */
@@ -116,6 +125,10 @@ public final class AddServiceInfo {
     }
     sb.append(" to cluster ").append(clusterName);
     return sb.toString();
+  }
+
+  public boolean requiresLayoutRecommendation() {
+    return !request.getServices().isEmpty();
   }
 
 }

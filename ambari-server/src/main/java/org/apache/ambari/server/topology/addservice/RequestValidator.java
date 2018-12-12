@@ -21,14 +21,12 @@ import static java.util.stream.Collectors.toSet;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
 
 import javax.inject.Inject;
 
@@ -42,9 +40,14 @@ import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.internal.UnitUpdater;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.StackFactory;
+import org.apache.ambari.server.utils.LoggingPreconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +62,7 @@ import com.google.inject.assistedinject.Assisted;
 public class RequestValidator {
 
   private static final Logger LOG = LoggerFactory.getLogger(RequestValidator.class);
+  private static final LoggingPreconditions CHECK = new LoggingPreconditions(LOG);
 
   private static final Set<String> NOT_ALLOWED_CONFIG_TYPES = ImmutableSet.of("kerberos-env", "krb5-conf");
 
@@ -67,7 +71,9 @@ public class RequestValidator {
   private final AmbariManagementController controller;
   private final ConfigHelper configHelper;
   private final StackFactory stackFactory;
+  private final KerberosDescriptorFactory kerberosDescriptorFactory;
   private final AtomicBoolean serviceInfoCreated = new AtomicBoolean();
+  private final SecurityConfigurationFactory securityConfigurationFactory;
 
   private State state;
 
@@ -75,7 +81,8 @@ public class RequestValidator {
   public RequestValidator(
     @Assisted AddServiceRequest request, @Assisted Cluster cluster,
     AmbariManagementController controller, ConfigHelper configHelper,
-    StackFactory stackFactory
+    StackFactory stackFactory, KerberosDescriptorFactory kerberosDescriptorFactory,
+    SecurityConfigurationFactory securityConfigurationFactory
   ) {
     this.state = State.INITIAL;
     this.request = request;
@@ -83,15 +90,17 @@ public class RequestValidator {
     this.controller = controller;
     this.configHelper = configHelper;
     this.stackFactory = stackFactory;
+    this.kerberosDescriptorFactory = kerberosDescriptorFactory;
+    this.securityConfigurationFactory = securityConfigurationFactory;
   }
 
   /**
    * Perform validation of the request.
    */
   void validate() {
-    validateSecurity();
     validateStack();
     validateServicesAndComponents();
+    validateSecurity();
     validateHosts();
     validateConfiguration();
   }
@@ -102,11 +111,13 @@ public class RequestValidator {
   AddServiceInfo createValidServiceInfo(ActionManager actionManager, RequestFactory requestFactory) {
     final State state = this.state;
 
-    checkState(state.isValid(), "The request needs to be validated first");
-    checkState(!serviceInfoCreated.getAndSet(true), "Can create only one instance for each validated add service request");
+    CHECK.checkState(state.isValid(), "The request needs to be validated first");
+    CHECK.checkState(!serviceInfoCreated.getAndSet(true), "Can create only one instance for each validated add service request");
 
     RequestStageContainer stages = new RequestStageContainer(actionManager.getNextRequestId(), null, requestFactory, actionManager);
-    AddServiceInfo validatedRequest = new AddServiceInfo(request, cluster.getClusterName(), state.getStack(), state.getConfig(), stages, state.getNewServices(), null);
+    AddServiceInfo validatedRequest = new AddServiceInfo(request, cluster.getClusterName(),
+      state.getStack(), state.getConfig(), state.getKerberosDescriptor(),
+      stages, state.getNewServices(), null);
     stages.setRequestContext(validatedRequest.describe());
     return validatedRequest;
   }
@@ -123,12 +134,52 @@ public class RequestValidator {
 
   @VisibleForTesting
   void validateSecurity() {
-    request.getSecurity().ifPresent(requestSecurity ->
-      checkArgument(requestSecurity.getType() == cluster.getSecurityType(),
+    request.getSecurity().ifPresent(requestSecurity -> {
+      CHECK.checkArgument(requestSecurity.getType() == cluster.getSecurityType(),
         "Security type in the request (%s), if specified, should match cluster's security type (%s)",
         requestSecurity.getType(), cluster.getSecurityType()
-      )
-    );
+      );
+
+      boolean hasDescriptor = requestSecurity.getDescriptor().isPresent();
+      boolean hasDescriptorReference = requestSecurity.getDescriptorReference() != null;
+      boolean secureCluster = cluster.getSecurityType() == SecurityType.KERBEROS;
+
+      CHECK.checkArgument(secureCluster || !hasDescriptor,
+        "Kerberos descriptor cannot be set for security type %s", cluster.getSecurityType());
+      CHECK.checkArgument(secureCluster || !hasDescriptorReference,
+        "Kerberos descriptor reference cannot be set for security type %s", cluster.getSecurityType());
+      CHECK.checkArgument(!hasDescriptor || !hasDescriptorReference,
+        "Kerberos descriptor and reference cannot be both set");
+
+      Optional<Map<?,?>> kerberosDescriptor = hasDescriptor
+        ? requestSecurity.getDescriptor()
+        : hasDescriptorReference
+          ? loadKerberosDescriptor(requestSecurity.getDescriptorReference())
+          : Optional.empty();
+
+      kerberosDescriptor.ifPresent(descriptorMap -> {
+        CHECK.checkState(state.getNewServices() != null,
+          "Services need to be validated before security settings");
+
+        KerberosDescriptor descriptor = kerberosDescriptorFactory.createInstance(descriptorMap);
+
+        Set<String> servicesWithNewDescriptor = descriptor.getServices().keySet();
+        Set<String> newServices = state.getNewServices().keySet();
+        Set<String> nonNewServices = ImmutableSet.copyOf(Sets.difference(servicesWithNewDescriptor, newServices));
+
+        CHECK.checkArgument(nonNewServices.isEmpty(),
+          "Kerberos descriptor should be provided only for new services, but found other services: %s",
+          nonNewServices);
+
+        try {
+          descriptor.toMap();
+        } catch (Exception e) {
+          CHECK.wrapInUnchecked(e, IllegalArgumentException::new, "Error validating Kerberos descriptor: %s", e);
+        }
+
+        state = state.with(descriptor);
+      });
+    });
   }
 
   @VisibleForTesting
@@ -139,9 +190,8 @@ public class RequestValidator {
       Stack stack = stackFactory.createStack(stackId.getStackName(), stackId.getStackVersion(), controller);
       state = state.with(stack);
     } catch (AmbariException e) {
-      logAndThrow(requestStackId.isPresent()
-        ? msg -> new IllegalArgumentException(msg, e)
-        : IllegalStateException::new,
+      CHECK.wrapInUnchecked(e,
+        requestStackId.isPresent() ? IllegalArgumentException::new : IllegalStateException::new,
         "Stack %s not found", stackId
       );
     }
@@ -158,9 +208,9 @@ public class RequestValidator {
     for (AddServiceRequest.Service service : request.getServices()) {
       String serviceName = service.getName();
 
-      checkArgument(stack.getServices().contains(serviceName),
+      CHECK.checkArgument(stack.getServices().contains(serviceName),
         "Unknown service %s in %s", service, stack);
-      checkArgument(!existingServices.contains(serviceName),
+      CHECK.checkArgument(!existingServices.contains(serviceName),
         "Service %s already exists in cluster %s", serviceName, cluster.getClusterName());
 
       newServices.computeIfAbsent(serviceName, __ -> new HashMap<>());
@@ -171,17 +221,16 @@ public class RequestValidator {
       String componentName = requestedComponent.getName();
       String serviceName = stack.getServiceForComponent(componentName);
 
-      checkArgument(serviceName != null,
+      CHECK.checkArgument(serviceName != null,
         "No service found for component %s in %s", componentName, stack);
-      checkArgument(!existingServices.contains(serviceName),
+      CHECK.checkArgument(!existingServices.contains(serviceName),
         "Service %s (for component %s) already exists in cluster %s", serviceName, componentName, cluster.getClusterName());
 
       newServices.computeIfAbsent(serviceName, __ -> new HashMap<>())
-        .computeIfAbsent(componentName, __ -> new HashSet<>())
-        .add(requestedComponent.getFqdn());
+        .put(componentName, requestedComponent.getHosts().stream().map(AddServiceRequest.Host::getFqdn).collect(toSet()));
     }
 
-    checkArgument(!newServices.isEmpty(), "Request should have at least one new service or component to be added");
+    CHECK.checkArgument(!newServices.isEmpty(), "Request should have at least one new service or component to be added");
 
     state = state.withNewServices(newServices);
   }
@@ -191,7 +240,7 @@ public class RequestValidator {
     Configuration config = request.getConfiguration();
 
     for (String type : NOT_ALLOWED_CONFIG_TYPES) {
-      checkArgument(!config.getProperties().containsKey(type), "Cannot change '%s' configuration in Add Service request", type);
+      CHECK.checkArgument(!config.getProperties().containsKey(type), "Cannot change '%s' configuration in Add Service request", type);
     }
 
     Configuration clusterConfig = getClusterDesiredConfigs();
@@ -211,7 +260,7 @@ public class RequestValidator {
       .collect(toSet());
     Set<String> unknownHosts = new TreeSet<>(Sets.difference(requestHosts, clusterHosts));
 
-    checkArgument(unknownHosts.isEmpty(),
+    CHECK.checkArgument(unknownHosts.isEmpty(),
       "Requested host not associated with cluster %s: %s", cluster.getClusterName(), unknownHosts);
   }
 
@@ -219,42 +268,29 @@ public class RequestValidator {
     try {
       return Configuration.of(configHelper.calculateExistingConfigs(cluster));
     } catch (AmbariException e) {
-      logAndThrow(msg -> new IllegalStateException(msg, e), "Error getting effective configuration of cluster %s", cluster.getClusterName());
-      return Configuration.newEmpty(); // unreachable
+      return CHECK.wrapInUnchecked(e, IllegalStateException::new, "Error getting effective configuration of cluster %s", cluster.getClusterName());
     }
   }
 
-  private static void checkArgument(boolean expression, String errorMessage, Object... messageParams) {
-    if (!expression) {
-      logAndThrow(IllegalArgumentException::new, errorMessage, messageParams);
-    }
-  }
-
-  private static void checkState(boolean expression, String errorMessage, Object... messageParams) {
-    if (!expression) {
-      logAndThrow(IllegalStateException::new, errorMessage, messageParams);
-    }
-  }
-
-  private static void logAndThrow(Function<String, RuntimeException> exceptionCreator, String errorMessage, Object... messageParams) {
-    String msg = String.format(errorMessage, messageParams);
-    LOG.error(msg);
-    throw exceptionCreator.apply(msg);
+  private Optional<Map<?,?>> loadKerberosDescriptor(String descriptorReference) {
+    return securityConfigurationFactory.loadSecurityConfigurationByReference(descriptorReference).getDescriptor();
   }
 
   @VisibleForTesting
   static class State {
 
-    static final State INITIAL = new State(null, null, null);
+    static final State INITIAL = new State(null, null, null, null);
 
     private final Stack stack;
     private final Map<String, Map<String, Set<String>>> newServices;
     private final Configuration config;
+    private final KerberosDescriptor kerberosDescriptor;
 
-    State(Stack stack, Map<String, Map<String, Set<String>>> newServices, Configuration config) {
+    State(Stack stack, Map<String, Map<String, Set<String>>> newServices, Configuration config, KerberosDescriptor kerberosDescriptor) {
       this.stack = stack;
       this.newServices = newServices;
       this.config = config;
+      this.kerberosDescriptor = kerberosDescriptor;
     }
 
     boolean isValid() {
@@ -262,15 +298,19 @@ public class RequestValidator {
     }
 
     State with(Stack stack) {
-      return new State(stack, newServices, config);
+      return new State(stack, newServices, config, kerberosDescriptor);
     }
 
     State withNewServices(Map<String, Map<String, Set<String>>> newServices) {
-      return new State(stack, newServices, config);
+      return new State(stack, newServices, config, kerberosDescriptor);
     }
 
     State with(Configuration config) {
-      return new State(stack, newServices, config);
+      return new State(stack, newServices, config, kerberosDescriptor);
+    }
+
+    State with(KerberosDescriptor kerberosDescriptor) {
+      return new State(stack, newServices, config, kerberosDescriptor);
     }
 
     Stack getStack() {
@@ -283,6 +323,10 @@ public class RequestValidator {
 
     Configuration getConfig() {
       return config;
+    }
+
+    KerberosDescriptor getKerberosDescriptor() {
+      return kerberosDescriptor;
     }
   }
 

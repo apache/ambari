@@ -178,7 +178,6 @@ public class UpgradeCheckRegistry {
    * @param pluginChecks
    *          the collection to popoulate.
    */
-  @SuppressWarnings("unchecked")
   private void loadPluginUpgradeChecksFromStack(UpgradePack upgradePack,
       PluginUpgradeChecks pluginChecks) throws AmbariException {
     List<String> pluginCheckClassNames = upgradePack.getPrerequisiteChecks();
@@ -189,13 +188,11 @@ public class UpgradeCheckRegistry {
     if (null != classLoader) {
       for (String pluginCheckClassName : pluginCheckClassNames) {
         try {
-          Class<? extends UpgradeCheck> upgradeCheckClass = (Class<? extends UpgradeCheck>) classLoader.loadClass(
-              pluginCheckClassName);
+          UpgradeCheck upgradeCheck = stackInfo.getLibraryInstance(m_injector, pluginCheckClassName);
 
-          UpgradeCheck upgradeCheck = m_injector.getInstance(upgradeCheckClass);
           pluginChecks.m_loadedChecks.add(upgradeCheck);
 
-          LOG.info("Registered pre-upgrade check {} for stack {}", upgradeCheckClass, ownerStackId);
+          LOG.info("Registered pre-upgrade check {} for stack {}", pluginCheckClassName, ownerStackId);
         } catch (Exception exception) {
           LOG.error("Unable to load the upgrade check {}", pluginCheckClassName, exception);
 

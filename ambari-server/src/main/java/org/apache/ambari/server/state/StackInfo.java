@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.io.Files;
+import com.google.inject.Injector;
 
 public class StackInfo implements Comparable<StackInfo>, Validable {
   private static final Logger LOG = LoggerFactory.getLogger(StackInfo.class);
@@ -654,17 +655,8 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   public StackReleaseVersion getReleaseVersion() {
 
     if (StringUtils.isNotEmpty(releaseVersionClass)) {
-
       try {
-        Class<?> clazz = null;
-
-        if (null != libraryClassLoader) {
-          clazz = libraryClassLoader.loadClass(releaseVersionClass);
-        } else {
-          clazz = Class.forName(releaseVersionClass);
-        }
-
-        return (StackReleaseVersion) clazz.newInstance();
+        return getLibraryInstance(releaseVersionClass);
       } catch (Exception e) {
         LOG.error("Could not create stack release instance.  Using default. {}", e.getMessage());
         return new DefaultStackVersion();
@@ -695,4 +687,45 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   public void setLibraryClassLoader(ClassLoader libraryClassLoader) {
     this.libraryClassLoader = libraryClassLoader;
   }
+
+  /**
+   * Loads an instance of the class from the stack classloader, if available.
+   *
+   * @param className
+   *          the name of the class to get an instance
+   * @return
+   *          the instance of the class
+   * @throws Exception
+   *          when the class cannot be loaded or instantiated
+   */
+  public <T> T getLibraryInstance(String className) throws Exception {
+    return getLibraryInstance(null, className);
+  }
+
+  /**
+   * Loads an instance of the class from the stack classloader, if available.
+   *
+   * @param injector
+   *          the injector to use, or {@code null} to invoke the default, no-arg
+   *          constructor
+   * @param className
+   *          the name of the class to get an instance
+   * @return
+   *          the instance of the class
+   * @throws Exception
+   *          when the class cannot be loaded or instantiated
+   */
+  @SuppressWarnings("unchecked")
+  public <T> T getLibraryInstance(Injector injector, String className) throws Exception {
+    Class<? extends T> clazz;
+
+    if (null != libraryClassLoader) {
+      clazz = (Class<? extends T>) libraryClassLoader.loadClass(className);
+    } else {
+      clazz = (Class<? extends T>) Class.forName(className);
+    }
+
+    return (null == injector) ? clazz.newInstance() : injector.getInstance(clazz);
+  }
+
 }
