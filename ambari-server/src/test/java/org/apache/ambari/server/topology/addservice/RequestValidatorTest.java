@@ -20,6 +20,7 @@ package org.apache.ambari.server.topology.addservice;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.utils.Assertions.assertThrows;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -602,19 +603,6 @@ public class RequestValidatorTest extends EasyMockSupport {
         .map(each -> ImmutableMap.of(KerberosServiceDescriptor.KEY_NAME, each))
         .collect(toList())
     ));
-  }
-
-  private static <T extends Throwable> T assertThrows(Class<T> expectedException, Runnable code) {
-    try {
-      code.run();
-    } catch (Throwable t) {
-      if (expectedException.isInstance(t)) {
-        return expectedException.cast(t);
-      }
-      throw new AssertionError("Expected exception: " + expectedException + " but " + t.getClass() + " was thrown instead");
-    }
-
-    throw new AssertionError("Expected exception: " + expectedException + ", but was not thrown");
   }
 
 }
