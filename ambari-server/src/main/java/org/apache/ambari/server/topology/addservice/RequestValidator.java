@@ -106,7 +106,7 @@ public class RequestValidator {
     checkState(!serviceInfoCreated.getAndSet(true), "Can create only one instance for each validated add service request");
 
     RequestStageContainer stages = new RequestStageContainer(actionManager.getNextRequestId(), null, requestFactory, actionManager);
-    AddServiceInfo validatedRequest = new AddServiceInfo(request, cluster.getClusterName(), state.getStack(), state.getConfig(), stages, state.getNewServices(), Optional.empty());
+    AddServiceInfo validatedRequest = new AddServiceInfo(request, cluster.getClusterName(), state.getStack(), state.getConfig(), stages, state.getNewServices(), null);
     stages.setRequestContext(validatedRequest.describe());
     return validatedRequest;
   }
@@ -195,12 +195,10 @@ public class RequestValidator {
     }
 
     Configuration clusterConfig = getClusterDesiredConfigs();
-    if (request.getRecommendationStrategy().shouldUseStackDefaults()) {
-      clusterConfig.setParentConfiguration(state.getStack().getDefaultConfig());
-    }
+    clusterConfig.setParentConfiguration(state.getStack().getDefaultConfig());
     config.setParentConfiguration(clusterConfig);
 
-    UnitUpdater.removeUnits(config); // stack advisor doesn't like units; they'll be added back after recommendation
+    UnitUpdater.removeUnits(config, state.getStack()); // stack advisor doesn't like units; they'll be added back after recommendation
     state = state.with(config);
   }
 

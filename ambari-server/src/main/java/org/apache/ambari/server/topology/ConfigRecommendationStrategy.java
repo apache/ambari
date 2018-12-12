@@ -24,46 +24,41 @@ public enum ConfigRecommendationStrategy {
    *  Configuration recommendations are always applied, overriding stack defaults and
    *  configuration defined by the user in the Blueprint and/or Cluster Creation Template.
    */
-  ALWAYS_APPLY(true, true, true),
+  ALWAYS_APPLY(true, true),
   /**
    * Configuration recommendations are ignored with this option, both for stack defaults
    * and configuration defined by the user in the Blueprint and/or Cluster Creation Template.
    */
-  NEVER_APPLY(false, false, false),
+  NEVER_APPLY(false, false),
+
   /**
    *  Configuration recommendations are always applied for properties listed as stack defaults,
    *  but not for configurations defined by the user in the Blueprint and/or Cluster Creation Template.
    */
-  ONLY_STACK_DEFAULTS_APPLY(false, true, false),
+  ONLY_STACK_DEFAULTS_APPLY(true, false),
   /**
    *  Configuration recommendations are always applied, overriding stack defaults but they don't
    *  override configuration defined by the user in the Blueprint and/or Cluster Creation Template.
    */
-  ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES(true, true, false);
+  ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES(true, false);
 
-  public static ConfigRecommendationStrategy getDefault() {
-    return NEVER_APPLY;
+  public static ConfigRecommendationStrategy defaultForAddService() {
+    return ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES;
   }
 
   private final boolean useStackAdvisor;
-  private final boolean useStackDefaults;
   private final boolean overrideCustomValues;
 
   public boolean shouldUseStackAdvisor() {
     return useStackAdvisor;
   }
 
-  public boolean shouldUseStackDefaults() {
-    return useStackDefaults;
-  }
-
   public boolean shouldOverrideCustomValues() {
     return overrideCustomValues;
   }
 
-  ConfigRecommendationStrategy(boolean useStackAdvisor, boolean useStackDefaults, boolean overrideCustomValues) {
+  ConfigRecommendationStrategy(boolean useStackAdvisor, boolean overrideCustomValues) {
     this.useStackAdvisor = useStackAdvisor;
-    this.useStackDefaults = useStackDefaults;
     this.overrideCustomValues = overrideCustomValues;
   }
 }

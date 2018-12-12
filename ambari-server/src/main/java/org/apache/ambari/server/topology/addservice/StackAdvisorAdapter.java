@@ -43,6 +43,7 @@ import org.apache.ambari.server.api.services.stackadvisor.validations.Validation
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.UnitUpdater;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -163,12 +164,16 @@ public class StackAdvisorAdapter {
       catch (StackAdvisorException|AmbariException ex) {
         throw new IllegalArgumentException("Configuration recommendation failed.", ex);
       }
-      Configuration recommendedConfig = toConfiguration(response.getRecommendations().getBlueprint().getConfigurations());
+      Map<String, RecommendationResponse.BlueprintConfigurations> configRecommendations = response.getRecommendations().getBlueprint().getConfigurations();
 
-      // Discard recommendations for existing configs.
-      recommendedConfig.getAllConfigTypes().stream()
-        .filter( configType -> !info.newServices().keySet().contains(info.getStack().getServiceForConfigType(configType)) )
-        .forEach( recommendedConfig::removeConfigType );
+      // remove recommendations for existing services
+      configRecommendations.keySet().removeIf(configType -> !info.newServices().containsKey(info.getStack().getServiceForConfigType(configType)));
+
+      if (info.getRequest().getRecommendationStrategy() == ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY) {
+        removeNonStackConfigRecommendations(info.getConfig().getParentConfiguration().getParentConfiguration(), configRecommendations);
+      }
+
+      Configuration recommendedConfig = toConfiguration(configRecommendations);
 
       Configuration userConfig = config;
       Configuration clusterAndStackConfig = userConfig.getParentConfiguration();
@@ -189,6 +194,17 @@ public class StackAdvisorAdapter {
 
     UnitUpdater.updateUnits(config, info.getStack());
     return info.withConfig(config);
+  }
+
+  static void removeNonStackConfigRecommendations(Configuration stackConfig,  Map<String, RecommendationResponse.BlueprintConfigurations> configRecommendations) {
+    configRecommendations.keySet().removeIf(configType -> !stackConfig.containsConfigType(configType));
+    configRecommendations.entrySet().forEach( e -> {
+      String cfgType = e.getKey();
+      RecommendationResponse.BlueprintConfigurations cfg = e.getValue();
+      cfg.getProperties().keySet().removeIf(propName -> !stackConfig.containsConfig(cfgType, propName));
+      cfg.getPropertyAttributes().keySet().removeIf(propName -> !stackConfig.containsConfig(cfgType, propName));
+    });
+    configRecommendations.values().removeIf(cfg -> cfg.getProperties().isEmpty() && cfg.getPropertyAttributes().isEmpty());
   }
 
   private void validate(StackAdvisorRequest request) {

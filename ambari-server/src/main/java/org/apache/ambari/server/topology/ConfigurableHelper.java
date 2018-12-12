@@ -19,6 +19,8 @@
 package org.apache.ambari.server.topology;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.PROPERTIES_ATTRIBUTES_PROPERTY_ID;
 import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.PROPERTIES_PROPERTY_ID;
 import static org.apache.ambari.server.topology.ConfigurationFactory.isKeyInLegacyFormat;
@@ -34,6 +36,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nullable;
+
+import org.apache.commons.lang3.tuple.Triple;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -180,6 +184,19 @@ public class ConfigurableHelper {
 
   private static String getClassName(Object object) {
     return null != object ? object.getClass().getName() : null;
+  }
+
+
+  /**
+   * Transform attibutes map from <i>attributeName -> propertyName -> value</i> to <i>propertyName -> attributeName -> value</i>
+   * or vice versa
+   * @param input the input map
+   * @return the output map
+   */
+  public static Map<String, Map<String, String>> transformAttributesMap(Map<String, Map<String, String>> input) {
+    return input.entrySet().stream()
+      .flatMap(outer -> outer.getValue().entrySet().stream().map(inner -> Triple.of(outer.getKey(), inner.getKey(), inner.getValue())))
+      .collect(groupingBy(Triple::getMiddle, toMap(Triple::getLeft, Triple::getRight)));
   }
 
 }

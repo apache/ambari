@@ -39,7 +39,7 @@ public final class AddServiceInfo {
   private final Map<String, Map<String, Set<String>>> newServices;
   private final RequestStageContainer stages;
   private final Configuration config;
-  private final Optional<LayoutRecommendationInfo> recommendationInfo;
+  private final LayoutRecommendationInfo recommendationInfo;
 
   public AddServiceInfo(AddServiceRequest request,
                         String clusterName,
@@ -48,19 +48,19 @@ public final class AddServiceInfo {
                         RequestStageContainer stages,
                         Map<String, Map<String,
                         Set<String>>> newServices,
-                        Optional<LayoutRecommendationInfo> recommendationInfo) {
+                        LayoutRecommendationInfo recommendationInfo) {
     this.request = request;
     this.clusterName = clusterName;
     this.stack = stack;
     this.newServices = newServices;
     this.stages = stages;
     this.config = config;
-    this.recommendationInfo = null != recommendationInfo ? recommendationInfo : Optional.empty();
+    this.recommendationInfo = recommendationInfo;
   }
 
   public AddServiceInfo withLayoutRecommendation(Map<String, Map<String, Set<String>>> services,
                                                  LayoutRecommendationInfo recommendation) {
-    return new AddServiceInfo(request, clusterName, stack, config, stages, services, Optional.of(recommendation));
+    return new AddServiceInfo(request, clusterName, stack, config, stages, services, recommendation);
   }
 
   public AddServiceInfo withConfig(Configuration newConfig) {
@@ -101,11 +101,11 @@ public final class AddServiceInfo {
   }
 
   public Optional<LayoutRecommendationInfo> getRecommendationInfo() {
-    return recommendationInfo;
+    return Optional.ofNullable(recommendationInfo);
   }
 
   /**
-   * Creates a descriptive label to be displayed in the UI.[
+   * Creates a descriptive label to be displayed in the UI.
    */
   public String describe() {
     int maxServicesToShow = 3;

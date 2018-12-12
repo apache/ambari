@@ -29,6 +29,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 /**
  * Configuration for a topology entity such as a blueprint, hostgroup or cluster.
  */
@@ -149,8 +150,8 @@ public class Configuration {
   /**
    * Configuration.
    *
-   * @param properties  properties
-   * @param attributes  attributes
+   * @param properties  properties in configType -> propertyName -> value format
+   * @param attributes  attributes in configType -> attributeName -> propertyName -> attributeValue format
    */
   public Configuration(Map<String, Map<String, String>> properties,
                        Map<String, Map<String, Map<String, String>>> attributes) {
@@ -439,6 +440,17 @@ public class Configuration {
     }
 
     return allTypes;
+  }
+
+  public boolean containsConfigType(String configType) {
+    return properties.containsKey(configType) || attributes.containsKey(configType) ||
+      (parentConfiguration != null && parentConfiguration.containsConfigType(configType));
+  }
+
+  public boolean containsConfig(String configType, String propertyName) {
+    return (properties.containsKey(configType) && properties.get(configType).containsKey(propertyName))
+      || (attributes.containsKey(configType) && attributes.get(configType).values().stream().filter(map -> map.containsKey(propertyName)).findAny().isPresent())
+      || (parentConfiguration != null && parentConfiguration.containsConfig(configType, propertyName));
   }
 
   /**

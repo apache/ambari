@@ -25,6 +25,7 @@ import static org.junit.Assert.fail;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -133,6 +134,21 @@ public class ConfigurableTest {
         "custom-property", "true"
       )),
       configurable.getConfiguration().getProperties());
+  }
+
+  @Test
+  public void testTransformAttributesMap() {
+    Map<String, Map<String, String>> attributes = ImmutableMap.of(
+      "propertyName1", ImmutableMap.of("minimum", "3000", "maximum", "4000"),
+      "propertyName2", ImmutableMap.of("minimum", "3500", "maximum", "4500", "hidden", "true"));
+
+    Map<String, Map<String, String>> transformed = ImmutableMap.of(
+      "minimum", ImmutableMap.of("propertyName1", "3000", "propertyName2", "3500"),
+      "maximum", ImmutableMap.of("propertyName1", "4000", "propertyName2", "4500"),
+      "hidden", ImmutableMap.of("propertyName2", "true"));
+
+    assertEquals(transformed, ConfigurableHelper.transformAttributesMap(attributes));
+    assertEquals(attributes, ConfigurableHelper.transformAttributesMap(transformed));
   }
 
   static class TestConfigurable implements Configurable {

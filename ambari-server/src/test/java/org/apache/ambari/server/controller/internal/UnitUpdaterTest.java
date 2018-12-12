@@ -88,14 +88,6 @@ public class UnitUpdaterTest extends EasyMockSupport {
   }
 
   @Test
-  public void removeUnit() {
-    assertEquals("1", UnitUpdater.removeUnit("1GB"));
-    assertEquals("238", UnitUpdater.removeUnit("238m"));
-    assertEquals("1024", UnitUpdater.removeUnit("1024MB"));
-    assertEquals("1024", UnitUpdater.removeUnit("1024"));
-  }
-
-  @Test
   public void updateUnits() {
     stackUnitIs(HEAPSIZE, "MB");
     setUpStack(OOZIE, OOZIE_ENV);
@@ -116,17 +108,18 @@ public class UnitUpdaterTest extends EasyMockSupport {
 
   @Test
   public void removeUnits() {
+    stackUnitIs(HEAPSIZE, "MB");
+    setUpStack(OOZIE, OOZIE_ENV);
+
     Map<String, Map<String, String>> properties = map(
       OOZIE_ENV, map(HEAPSIZE, "1024m"),
-      "zookeeper-env", map("zk_server_heapsize", "2048m"),
       "core-site", map("fs.trash.interval", "360"));
     Configuration configuration = new Configuration(properties, new HashMap<>());
 
-    UnitUpdater.removeUnits(configuration);
+    UnitUpdater.removeUnits(configuration, stack);
 
     Map<String, Map<String, String>> expected = map(
       OOZIE_ENV, map(HEAPSIZE, "1024"),
-      "zookeeper-env", map("zk_server_heapsize", "2048"),
       "core-site", map("fs.trash.interval", "360"));
 
     assertEquals(expected, configuration.getProperties());

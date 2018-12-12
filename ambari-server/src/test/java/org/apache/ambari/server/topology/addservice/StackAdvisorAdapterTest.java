@@ -36,7 +36,6 @@ import static org.junit.Assert.assertSame;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
@@ -223,15 +222,15 @@ public class StackAdvisorAdapterTest {
     RecommendationResponse.Blueprint configBlueprint = new RecommendationResponse.Blueprint();
     RecommendationResponse.BlueprintConfigurations kafkaBroker = RecommendationResponse.BlueprintConfigurations.create(
       ImmutableMap.of("log.dirs", "/kafka-logs", "offsets.topic.replication.factor", "1"),
-      ImmutableMap.of("offsets.topic.replication.factor", ImmutableMap.of("maximum", "10")));
+      ImmutableMap.of("maximum", ImmutableMap.of("offsets.topic.replication.factor", "10")));
     RecommendationResponse.BlueprintConfigurations spark2Defaults = RecommendationResponse.BlueprintConfigurations.create(
       ImmutableMap.of("spark.yarn.queue", "default"), null);
     RecommendationResponse.BlueprintConfigurations mapredSite = RecommendationResponse.BlueprintConfigurations.create(
       ImmutableMap.of("mapreduce.map.memory.mb", "682", "mapreduce.reduce.memory.mb", "1364"),
       ImmutableMap.of(
-        "mapreduce.map.memory.mb", ImmutableMap.of("minimum", "682", "maximum", "2046"),
-        "mapreduce.reduce.memory.mb" , ImmutableMap.of("minimum", "682", "maximum", "2046")));
-    configBlueprint.setConfigurations(ImmutableMap.of(
+        "minimum", ImmutableMap.of("mapreduce.map.memory.mb", "682", "mapreduce.reduce.memory.mb", "682"),
+        "maximum" , ImmutableMap.of("mapreduce.map.memory.mb", "2046", "mapreduce.reduce.memory.mb", "2046")));
+    configBlueprint.setConfigurations(map(
       "kafka-broker", kafkaBroker,
       "spark2-defaults", spark2Defaults,
       "mapred-site", mapredSite
@@ -315,7 +314,7 @@ public class StackAdvisorAdapterTest {
       "KAFKA",
       ImmutableMap.of("KAFKA_BROKER", emptySet()));
 
-    AddServiceInfo info = new AddServiceInfo(null, "c1", stack, org.apache.ambari.server.topology.Configuration.newEmpty(), null, newServices, Optional.empty());
+    AddServiceInfo info = new AddServiceInfo(null, "c1", stack, org.apache.ambari.server.topology.Configuration.newEmpty(), null, newServices, null);
     AddServiceInfo infoWithRecommendations = adapter.recommendLayout(info);
 
     Map<String, Map<String, Set<String>>> expectedNewLayout = ImmutableMap.of(
@@ -328,7 +327,7 @@ public class StackAdvisorAdapterTest {
 
   @Test(expected = IllegalStateException.class)
   public void recommendConfigurations_noLayoutInfo() {
-    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ALWAYS_APPLY), null, null , null, null, null, Optional.empty());
+    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ALWAYS_APPLY), null, null , null, null, null, null);
     adapter.recommendConfigurations(info);
   }
 
@@ -354,7 +353,7 @@ public class StackAdvisorAdapterTest {
 
     LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
     AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ALWAYS_APPLY), "c1", stack , userConfig,
-      null, newServices, Optional.of(layoutRecommendationInfo));
+      null, newServices, layoutRecommendationInfo);
     AddServiceInfo infoWithConfig = adapter.recommendConfigurations(info);
 
     Configuration recommendedConfig = infoWithConfig.getConfig();
@@ -378,7 +377,7 @@ public class StackAdvisorAdapterTest {
     assertEquals(
       ImmutableMap.of(
         "kafka-broker", ImmutableMap.of(
-          "offsets.topic.replication.factor", ImmutableMap.of("maximum", "10"))),
+          "maximum", ImmutableMap.of("offsets.topic.replication.factor", "10"))),
       recommendedConfig.getAttributes());
   }
 
@@ -404,7 +403,7 @@ public class StackAdvisorAdapterTest {
 
     LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
     AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES), "c1", stack , userConfig,
-      null, newServices, Optional.of(layoutRecommendationInfo));
+      null, newServices, layoutRecommendationInfo);
     AddServiceInfo infoWithConfig = adapter.recommendConfigurations(info);
 
     assertSame(userConfig, infoWithConfig.getConfig()); // user config stays top priority
@@ -433,7 +432,7 @@ public class StackAdvisorAdapterTest {
     assertEquals(
       ImmutableMap.of(
         "kafka-broker", ImmutableMap.of(
-          "offsets.topic.replication.factor", ImmutableMap.of("maximum", "10"))),
+          "maximum", ImmutableMap.of("offsets.topic.replication.factor", "10"))),
       recommendedConfig.getAttributes());
   }
 
@@ -459,7 +458,7 @@ public class StackAdvisorAdapterTest {
 
     LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
     AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.NEVER_APPLY), "c1", stack , userConfig,
-      null, newServices, Optional.of(layoutRecommendationInfo));
+      null, newServices, layoutRecommendationInfo);
     AddServiceInfo infoWithConfig = adapter.recommendConfigurations(info);
 
     // No recommended config, no stack config
@@ -488,9 +487,11 @@ public class StackAdvisorAdapterTest {
         "OOZIE_SERVER", ImmutableSet.of("c7401"),
         "OOZIE_CLIENT", ImmutableSet.of("c7403", "c7404")));
 
-    Configuration stackConfig = Configuration.newEmpty();
+    Configuration stackConfig = new Configuration(
+      ImmutableMap.of("kafka-broker", ImmutableMap.of("log.dirs", "/kafka-logs-stackdefault")),
+      ImmutableMap.of());
     Configuration clusterConfig = new Configuration(
-      map("oozie-env", map("oozie_heapsize", "1024", "oozie_permsize", "256")),
+      ImmutableMap.of("oozie-env", ImmutableMap.of("oozie_heapsize", "1024", "oozie_permsize", "256")),
       emptyMap());
     Configuration userConfig = Configuration.newEmpty();
     userConfig.setParentConfiguration(clusterConfig);
@@ -498,13 +499,20 @@ public class StackAdvisorAdapterTest {
 
     LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
     AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY), "c1", stack , userConfig,
-      null, newServices, Optional.of(layoutRecommendationInfo));
+      null, newServices, layoutRecommendationInfo);
     AddServiceInfo infoWithConfig = adapter.recommendConfigurations(info);
+    Configuration recommendedConfig = infoWithConfig.getConfig().getParentConfiguration();
 
     // No recommended config
-    assertSame(userConfig, infoWithConfig.getConfig());
-    assertSame(clusterConfig, userConfig.getParentConfiguration());
+    assertSame(userConfig, infoWithConfig.getConfig()); // user config is top level in this case
+    assertSame(clusterConfig, recommendedConfig.getParentConfiguration());
     assertSame(stackConfig, clusterConfig.getParentConfiguration());
+
+    assertEquals(
+      ImmutableMap.of(
+        "kafka-broker", ImmutableMap.of(
+          "log.dirs", "/kafka-logs")),
+      recommendedConfig.getProperties());
 
     // the result of unit updates always happen in the top level config
     assertEquals(
@@ -515,7 +523,28 @@ public class StackAdvisorAdapterTest {
       userConfig.getProperties());
   }
 
+  @Test
+  public void removeNonStackConfigRecommendations() {
+    Map<String, Map<String, String>> stackProperties = ImmutableMap.of(
+      "kafka-broker", ImmutableMap.of(
+        "log.dirs", "/kafka-logs",
+        "offsets.topic.replication.factor", "1"),
+      "spark2-defaults", ImmutableMap.of(
+        "spark.yarn.queue", "default"));
 
+    Map<String, Map<String, Map<String, String>>> stackAttributes = ImmutableMap.of(
+      "oozie-env",
+      ImmutableMap.of(
+        "miniumum",
+        ImmutableMap.of("oozie_heapsize", "1024m", "oozie_permsize", "256m")));
+
+    Configuration stackConfig = new Configuration(stackProperties, stackAttributes);
+
+//    Map<String, RecommendationResponse.BlueprintConfigurations> recommendedConfigs =
+//      ImmutableMap.of(
+//        "hdfs-site", RecommendationResponse.BlueprintConfigurations.create()
+//      )
+  }
 
   private AddServiceRequest request(ConfigRecommendationStrategy strategy) {
     return new AddServiceRequest(null, strategy, null, null, null, null, null, null, null, null);

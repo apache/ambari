@@ -402,7 +402,7 @@ public class ValueAttributesInfo implements ApiModel {
 
   public Map<String, String> toMap(Optional<ObjectMapper> mapper) {
     Map<String, String> map =
-      mapper.orElseGet(() -> new ObjectMapper()).convertValue(this, new TypeReference<Map<String, String>>(){});
+      mapper.orElseGet(ObjectMapper::new).convertValue(this, new TypeReference<Map<String, String>>(){});
     if ( !Boolean.parseBoolean(map.get("keyStore")) ) { // keyStore is declared as a primitive value instead of Boolean -> treat false as unset
       map.remove("keyStore");
     }
@@ -410,7 +410,7 @@ public class ValueAttributesInfo implements ApiModel {
   }
 
   public static ValueAttributesInfo fromMap(Map<String, String> attributes, Optional<ObjectMapper> mapper) {
-    return mapper.orElseGet(() -> new ObjectMapper()).convertValue(attributes, ValueAttributesInfo.class);
+    return mapper.orElseGet(ObjectMapper::new).convertValue(attributes, ValueAttributesInfo.class);
   }
 
   @Override
