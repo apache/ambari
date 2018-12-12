@@ -536,14 +536,34 @@ public class StackAdvisorAdapterTest {
       "oozie-env",
       ImmutableMap.of(
         "miniumum",
-        ImmutableMap.of("oozie_heapsize", "1024m", "oozie_permsize", "256m")));
+        ImmutableMap.of("oozie_heapsize", "1024", "oozie_permsize", "256")));
 
     Configuration stackConfig = new Configuration(stackProperties, stackAttributes);
 
-//    Map<String, RecommendationResponse.BlueprintConfigurations> recommendedConfigs =
-//      ImmutableMap.of(
-//        "hdfs-site", RecommendationResponse.BlueprintConfigurations.create()
-//      )
+    Map<String, RecommendationResponse.BlueprintConfigurations> recommendedConfigs =
+      map(
+        "hdfs-site", RecommendationResponse.BlueprintConfigurations.create(
+          map("dfs.namenode.name.dir", "/hadoop/hdfs/namenode"),
+          map("visible", ImmutableMap.of("dfs.namenode.name.dir", "false"))),
+        "oozie-env", RecommendationResponse.BlueprintConfigurations.create(
+          map("oozie_heapsize", "2048"),
+          new HashMap<>()),
+        "spark2-defaults", RecommendationResponse.BlueprintConfigurations.create(
+          map("spark.yarn.queue", "spark2"),
+          new HashMap<>()));
+
+    Map<String, RecommendationResponse.BlueprintConfigurations> recommendedConfigsForStackDefaults =
+      ImmutableMap.of(
+        "oozie-env", RecommendationResponse.BlueprintConfigurations.create(
+          ImmutableMap.of("oozie_heapsize", "2048"),
+          ImmutableMap.of()),
+        "spark2-defaults", RecommendationResponse.BlueprintConfigurations.create(
+          ImmutableMap.of("spark.yarn.queue", "spark2"),
+          ImmutableMap.of()));
+
+    StackAdvisorAdapter.removeNonStackConfigRecommendations(stackConfig, recommendedConfigs);
+
+    assertEquals(recommendedConfigsForStackDefaults, recommendedConfigs);
   }
 
   private AddServiceRequest request(ConfigRecommendationStrategy strategy) {
