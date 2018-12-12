@@ -21,6 +21,8 @@ import java.util.Map;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
+import com.google.common.collect.ImmutableMap;
+
 /**
  * Operation level is specified along with some requests. It identifies
  * the logical level, at which the operation is executed.
@@ -183,4 +185,12 @@ public class RequestOperationLevel {
             ", hostName='" + hostName + '\'' +
             '}';
   }
+
+  public static Map<String, String> propertiesFor(Resource.Type type, String clusterName) {
+    return ImmutableMap.of(
+      OPERATION_LEVEL_ID, getExternalLevelName(type.name()),
+      OPERATION_CLUSTER_ID, clusterName
+    );
+  }
+
 }

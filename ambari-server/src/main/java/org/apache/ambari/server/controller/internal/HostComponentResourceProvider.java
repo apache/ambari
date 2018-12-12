@@ -396,6 +396,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Map<String, String> requestInfo = new HashMap<>();
     requestInfo.put("context", String.format("Install components on host %s", hostname));
     requestInfo.put(CLUSTER_PHASE_PROPERTY, CLUSTER_PHASE_INITIAL_INSTALL);
+    requestInfo.putAll(RequestOperationLevel.propertiesFor(Resource.Type.HostComponent, cluster));
     addProvisionActionProperties(skipInstallForComponents, dontSkipInstallForComponents, requestInfo);
 
     Request installRequest = PropertyHelper.getUpdateRequest(installProperties, requestInfo);
@@ -469,6 +470,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Map<String, String> requestInfo = new HashMap<>();
     requestInfo.put("context", String.format("Start components on host %s", hostName));
     requestInfo.put(CLUSTER_PHASE_PROPERTY, CLUSTER_PHASE_INITIAL_START);
+    requestInfo.putAll(RequestOperationLevel.propertiesFor(Resource.Type.HostComponent, cluster));
     requestInfo.put(Setting.SETTING_NAME_SKIP_FAILURE, Boolean.toString(skipFailure));
 
     Predicate clusterPredicate = new EqualsPredicate<>(CLUSTER_NAME, cluster);
@@ -531,7 +533,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     return requestStages.getRequestStatusResponse();
   }
-
 
   /**
    * Update the host component identified by the given request object with the
