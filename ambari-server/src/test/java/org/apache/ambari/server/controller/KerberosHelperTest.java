@@ -1992,6 +1992,138 @@ public class KerberosHelperTest extends EasyMockSupport {
   }
 
   @Test
+  public void testSettingAuthToLocalRulesForUninstalledServiceComponents() throws Exception {
+    final KerberosPrincipalDescriptor principalDescriptor1 = createMock(KerberosPrincipalDescriptor.class);
+    expect(principalDescriptor1.getValue()).andReturn("principal1/host1@EXAMPLE.COM").times(2);
+    expect(principalDescriptor1.getLocalUsername()).andReturn("principal1_user").times(2);
+
+    final KerberosPrincipalDescriptor principalDescriptor2 = createMock(KerberosPrincipalDescriptor.class);
+    expect(principalDescriptor2.getValue()).andReturn("principal2/host2@EXAMPLE.COM").times(1);
+    expect(principalDescriptor2.getLocalUsername()).andReturn("principal2_user").times(1);
+
+    final KerberosIdentityDescriptor identityDescriptor1 = createMock(KerberosIdentityDescriptor.class);
+    expect(identityDescriptor1.getPrincipalDescriptor()).andReturn(principalDescriptor1).times(2);
+    expect(identityDescriptor1.shouldInclude(EasyMock.anyObject())).andReturn(true).anyTimes();
+
+    final KerberosIdentityDescriptor identityDescriptor2 = createMock(KerberosIdentityDescriptor.class);
+    expect(identityDescriptor2.getPrincipalDescriptor()).andReturn(principalDescriptor2).times(1);
+    expect(identityDescriptor2.shouldInclude(EasyMock.anyObject())).andReturn(true).anyTimes();
+
+    final KerberosComponentDescriptor componentDescriptor1 = createMockComponentDescriptor("COMPONENT1", Collections.singletonList(identityDescriptor1), null); //only this is installed
+    final KerberosComponentDescriptor componentDescriptor2 = createMockComponentDescriptor("COMPONENT2", Collections.singletonList(identityDescriptor2), null);
+
+    final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
+    expect(serviceDescriptor1.getName()).andReturn("SERVICE1").anyTimes();
+    expect(serviceDescriptor1.getIdentities(eq(true), EasyMock.anyObject())).andReturn(Arrays.asList(identityDescriptor1)).times(1);
+    final Map<String, KerberosComponentDescriptor> kerberosComponents = new HashMap<>();
+    kerberosComponents.put("COMPONENT1", componentDescriptor1);
+    kerberosComponents.put("COMPONENT2", componentDescriptor2);
+    expect(serviceDescriptor1.getComponents()).andReturn(kerberosComponents).times(1);
+    expect(serviceDescriptor1.getAuthToLocalProperties()).andReturn(new HashSet<>(Arrays.asList(
+        "default",
+        "explicit_multiple_lines|new_lines",
+        "explicit_multiple_lines_escaped|new_lines_escaped",
+        "explicit_single_line|spaces",
+        "service-site/default",
+        "service-site/explicit_multiple_lines|new_lines",
+        "service-site/explicit_multiple_lines_escaped|new_lines_escaped",
+        "service-site/explicit_single_line|spaces"
+    ))).times(1);
+
+    final Map<String, KerberosServiceDescriptor> serviceDescriptorMap = new HashMap<>();
+    serviceDescriptorMap.put("SERVICE1", serviceDescriptor1);
+
+    final Service service1 = createMockService("SERVICE1", new HashMap<>());
+
+    final Map<String, Service> serviceMap = new HashMap<>();
+    serviceMap.put("SERVICE1", service1);
+
+    final Map<String, String> serviceSiteProperties = new HashMap<>();
+    serviceSiteProperties.put("default", "RULE:[1:$1@$0](service_site@EXAMPLE.COM)s/.*/service_user/\nDEFAULT");
+    serviceSiteProperties.put("explicit_multiple_lines", "RULE:[1:$1@$0](service_site@EXAMPLE.COM)s/.*/service_user/\nDEFAULT");
+    serviceSiteProperties.put("explicit_multiple_lines_escaped", "RULE:[1:$1@$0](service_site@EXAMPLE.COM)s/.*/service_user/\\\nDEFAULT");
+    serviceSiteProperties.put("explicit_single_line", "RULE:[1:$1@$0](service_site@EXAMPLE.COM)s/.*/service_user/ DEFAULT");
+
+    final Map<String, Map<String, String>> existingConfigs = new HashMap<>();
+    existingConfigs.put("kerberos-env", new HashMap<String, String>());
+    existingConfigs.get("kerberos-env").put(KerberosHelper.INCLUDE_ALL_COMPONENTS_IN_AUTH_TO_LOCAL_RULES, "true");
+    existingConfigs.put("service-site", serviceSiteProperties);
+
+    final KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
+    expect(kerberosDescriptor.getProperty("additional_realms")).andReturn(null).times(1);
+    expect(kerberosDescriptor.getIdentities(eq(true), EasyMock.anyObject())).andReturn(null).times(1);
+    expect(kerberosDescriptor.getAuthToLocalProperties()).andReturn(null).times(1);
+    expect(kerberosDescriptor.getServices()).andReturn(serviceDescriptorMap).times(1);
+
+    final Cluster cluster = createMockCluster("c1", Collections.<Host>emptyList(), SecurityType.KERBEROS, null, null);
+    final Map<String, Set<String>> installedServices = Collections.singletonMap("SERVICE1", Collections.singleton("COMPONENT1"));
+    final Map<String, Map<String, String>> kerberosConfigurations = new HashMap<>();
+
+    replayAll();
+
+    // Needed by infrastructure
+    injector.getInstance(AmbariMetaInfo.class).init();
+
+    injector.getInstance(KerberosHelper.class).setAuthToLocalRules(cluster, kerberosDescriptor, "EXAMPLE.COM", installedServices, existingConfigs, kerberosConfigurations, false);
+
+    verifyAll();
+
+    Map<String, String> configs = kerberosConfigurations.get("");
+    assertNotNull(configs);
+
+    //asserts that the rules contain COMPONENT2 related rules too (with principal2) even if COMPONENT2 is not installed (see installedServices declaration above)
+    assertEquals("RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\n" +
+            "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/\n" +
+            "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/\n" +
+            "DEFAULT",
+        configs.get("default"));
+    assertEquals("RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\n" +
+            "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/\n" +
+            "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/\n" +
+            "DEFAULT",
+        configs.get("explicit_multiple_lines"));
+    assertEquals("RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\\\n" +
+            "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/\\\n" +
+            "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/\\\n" +
+            "DEFAULT",
+        configs.get("explicit_multiple_lines_escaped"));
+    assertEquals("RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*// " +
+            "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/ " +
+            "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/ " +
+            "DEFAULT",
+        configs.get("explicit_single_line"));
+
+  configs = kerberosConfigurations.get("service-site");
+  assertNotNull(configs);
+
+  assertEquals("RULE:[1:$1@$0](service_site@EXAMPLE.COM)s/.*/service_user/\n" +
+          "RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\n" +
+          "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/\n" +
+          "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/\n" +
+          "DEFAULT",
+      configs.get("default"));
+  assertEquals("RULE:[1:$1@$0](service_site@EXAMPLE.COM)s/.*/service_user/\n" +
+          "RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\n" +
+          "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/\n" +
+          "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/\n" +
+          "DEFAULT",
+      configs.get("explicit_multiple_lines"));
+  assertEquals("RULE:[1:$1@$0](service_site@EXAMPLE.COM)s/.*/service_user/\\\n" +
+          "RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\\\n" +
+          "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/\\\n" +
+          "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/\\\n" +
+          "DEFAULT",
+      configs.get("explicit_multiple_lines_escaped"));
+  assertEquals("RULE:[1:$1@$0](service_site@EXAMPLE.COM)s/.*/service_user/ " +
+          "RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*// " +
+          "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/ " +
+          "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/ " +
+          "DEFAULT",
+      configs.get("explicit_single_line"));
+    }
+
+
+  @Test
   public void testMergeConfigurationsForPreconfiguring() throws Exception {
     Service existingService = createMockService("EXISTING_SERVICE", null);
 
