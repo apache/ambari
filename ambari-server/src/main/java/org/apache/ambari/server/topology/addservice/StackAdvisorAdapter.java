@@ -229,7 +229,9 @@ public class StackAdvisorAdapter {
       String cfgType = e.getKey();
       RecommendationResponse.BlueprintConfigurations cfg = e.getValue();
       cfg.getProperties().keySet().removeIf(propName -> !stackConfig.containsConfig(cfgType, propName));
-      cfg.getPropertyAttributes().keySet().removeIf(propName -> !stackConfig.containsConfig(cfgType, propName));
+      if (null != cfg.getPropertyAttributes()) {
+        cfg.getPropertyAttributes().keySet().removeIf(propName -> !stackConfig.containsConfig(cfgType, propName));
+      }
     });
     configRecommendations.values().removeIf(cfg -> cfg.getProperties().isEmpty() && cfg.getPropertyAttributes().isEmpty());
   }
