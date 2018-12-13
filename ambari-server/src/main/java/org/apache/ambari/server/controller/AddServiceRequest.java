@@ -71,15 +71,17 @@ public class AddServiceRequest {
   private static final String STACK_VERSION = "stack_version";
   private static final String SERVICES = "services";
   private static final String COMPONENTS = "components";
+  private static final String VALIDATION = "validation";
 
   public static final Set<String> TOP_LEVEL_PROPERTIES = ImmutableSet.of(
-    OPERATION_TYPE, CONFIG_RECOMMENDATION_STRATEGY, PROVISION_ACTION_PROPERTY,
+    OPERATION_TYPE, CONFIG_RECOMMENDATION_STRATEGY, PROVISION_ACTION_PROPERTY, VALIDATION,
     STACK_NAME, STACK_VERSION, SERVICES, COMPONENTS, CONFIGURATIONS
   );
 
   private final OperationType operationType;
   private final ConfigRecommendationStrategy recommendationStrategy;
   private final ProvisionAction provisionAction;
+  private final ValidationType validationType;
   private final String stackName;
   private final String stackVersion;
   private final Set<Service> services;
@@ -93,6 +95,7 @@ public class AddServiceRequest {
     @JsonProperty(OPERATION_TYPE) OperationType operationType,
     @JsonProperty(CONFIG_RECOMMENDATION_STRATEGY) ConfigRecommendationStrategy recommendationStrategy,
     @JsonProperty(PROVISION_ACTION_PROPERTY) ProvisionAction provisionAction,
+    @JsonProperty(VALIDATION) ValidationType validationType,
     @JsonProperty(STACK_NAME) String stackName,
     @JsonProperty(STACK_VERSION) String stackVersion,
     @JsonProperty(SERVICES) Set<Service> services,
@@ -101,7 +104,7 @@ public class AddServiceRequest {
     @JsonProperty(CREDENTIALS) Set<Credential> credentials,
     @JsonProperty(CONFIGURATIONS) Collection<? extends Map<String, ?>> configs
   ) {
-    this(operationType, recommendationStrategy, provisionAction, stackName, stackVersion, services, components,
+    this(operationType, recommendationStrategy, provisionAction, validationType, stackName, stackVersion, services, components,
       security, credentials,
       ConfigurableHelper.parseConfigs(configs)
     );
@@ -111,6 +114,7 @@ public class AddServiceRequest {
     OperationType operationType,
     ConfigRecommendationStrategy recommendationStrategy,
     ProvisionAction provisionAction,
+    ValidationType validationType,
     String stackName,
     String stackVersion,
     Set<Service> services,
@@ -122,6 +126,7 @@ public class AddServiceRequest {
     this.operationType = null != operationType ? operationType : OperationType.ADD_SERVICE;
     this.recommendationStrategy = null != recommendationStrategy ? recommendationStrategy : ConfigRecommendationStrategy.defaultForAddService();
     this.provisionAction = null != provisionAction ? provisionAction : ProvisionAction.INSTALL_AND_START;
+    this.validationType = validationType != null ? validationType : ValidationType.DEFAULT;
     this.stackName = stackName;
     this.stackVersion = stackVersion;
     this.services = null != services ? services : emptySet();
@@ -158,6 +163,12 @@ public class AddServiceRequest {
   @ApiModelProperty(name = PROVISION_ACTION_PROPERTY)
   public ProvisionAction getProvisionAction() {
     return provisionAction;
+  }
+
+  @JsonProperty(VALIDATION)
+  @ApiModelProperty(name = VALIDATION)
+  public ValidationType getValidationType() {
+    return validationType;
   }
 
   @JsonProperty(STACK_NAME)
@@ -233,6 +244,7 @@ public class AddServiceRequest {
     AddServiceRequest other = (AddServiceRequest) obj;
 
     return Objects.equals(operationType, other.operationType) &&
+      Objects.equals(validationType, other.validationType) &&
       Objects.equals(recommendationStrategy, other.recommendationStrategy) &&
       Objects.equals(provisionAction, other.provisionAction) &&
       Objects.equals(stackName, other.stackName) &&
@@ -246,7 +258,7 @@ public class AddServiceRequest {
 
   @Override
   public int hashCode() {
-    return Objects.hash(operationType, recommendationStrategy, provisionAction, stackName, stackVersion,
+    return Objects.hash(operationType, validationType, recommendationStrategy, provisionAction, stackName, stackVersion,
       services, components, configuration, security);
     // credentials is ignored for hashcode, since it's not serialized
   }
@@ -255,6 +267,7 @@ public class AddServiceRequest {
   public String toString() {
     return MoreObjects.toStringHelper(this)
       .add(OPERATION_TYPE, operationType)
+      .add(VALIDATION, validationType)
       .add(CONFIG_RECOMMENDATION_STRATEGY, recommendationStrategy)
       .add(PROVISION_ACTION_PROPERTY, provisionAction)
       .add(STACK_NAME, stackName)
@@ -271,6 +284,32 @@ public class AddServiceRequest {
 
   public enum OperationType {
     ADD_SERVICE, DELETE_SERVICE, MOVE_SERVICE
+  }
+
+  public enum ValidationType {
+    /**
+     * Perform all validation checks.
+     */
+    STRICT {
+      @Override
+      public boolean strictValidation() {
+        return true;
+      }
+    },
+    /**
+     * Skip the parts of validation that are not strictly necessary.
+     */
+    PERMISSIVE {
+      @Override
+      public boolean strictValidation() {
+        return false;
+      }
+    },
+    ;
+
+    public static final ValidationType DEFAULT = STRICT;
+
+    public abstract boolean strictValidation();
   }
 
   public static final class Component {

@@ -434,12 +434,17 @@ describe('App.HostComponentView', function() {
     });
 
     it('should return list of commands', function() {
-      hostComponentView.set('content');
       hostComponentView.propertyDidChange('clientCustomCommands');
       expect(hostComponentView.get('clientCustomCommands')).to.be.eql([{
         command: 'COMMAND1',
         label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format('COMMAND1')
       }]);
+    });
+  
+    it('should return empty list of commands', function() {
+      hostComponentView.set('content.componentName', 'KERBEROS_CLIENT');
+      hostComponentView.propertyDidChange('clientCustomCommands');
+      expect(hostComponentView.get('clientCustomCommands')).to.be.empty;
     });
   });
 
@@ -448,6 +453,106 @@ describe('App.HostComponentView', function() {
     it('installClients should be called', function() {
       hostComponentView.installClient();
       expect(hostComponentView.get('controller').installClients.calledOnce).to.be.true;
+    });
+  });
+  
+  describe('#typeDisplay', function() {
+    
+    it('should return label for master component', function() {
+      hostComponentView.set('content.isMaster', true);
+      hostComponentView.propertyDidChange('typeDisplay');
+      expect(hostComponentView.get('typeDisplay')).to.be.equal(Em.I18n.t('common.master'));
+    });
+  
+    it('should return label for slave component', function() {
+      hostComponentView.set('content.isSlave', true);
+      hostComponentView.propertyDidChange('typeDisplay');
+      expect(hostComponentView.get('typeDisplay')).to.be.equal(Em.I18n.t('common.slave'));
+    });
+  
+    it('should return label for client component', function() {
+      hostComponentView.set('content.isClient', true);
+      hostComponentView.propertyDidChange('typeDisplay');
+      expect(hostComponentView.get('typeDisplay')).to.be.equal(Em.I18n.t('common.client'));
+    });
+  });
+  
+  describe('#maintenanceTooltip', function() {
+    beforeEach(function() {
+      hostComponentView.get('content').setProperties({
+        service: {
+          serviceName: 'S1'
+        },
+        displayName: 's1',
+        host: {
+          hostName: 'host1'
+        }
+      });
+    });
+    
+    it('should return label for IMPLIED_FROM_SERVICE', function() {
+      hostComponentView.set('content.passiveState', 'IMPLIED_FROM_SERVICE');
+      hostComponentView.propertyDidChange('maintenanceTooltip');
+      expect(hostComponentView.get('maintenanceTooltip')).to.be.equal(
+        Em.I18n.t('passiveState.disabled.impliedFromHighLevel').format('s1', 'S1')
+      );
+    });
+  
+    it('should return label for IMPLIED_FROM_HOST', function() {
+      hostComponentView.set('content.passiveState', 'IMPLIED_FROM_HOST');
+      hostComponentView.propertyDidChange('maintenanceTooltip');
+      expect(hostComponentView.get('maintenanceTooltip')).to.be.equal(
+        Em.I18n.t('passiveState.disabled.impliedFromHighLevel').format('s1', 'host1')
+      );
+    });
+  
+    it('should return label for IMPLIED_FROM_SERVICE_AND_HOST', function() {
+      hostComponentView.set('content.passiveState', 'IMPLIED_FROM_SERVICE_AND_HOST');
+      hostComponentView.propertyDidChange('maintenanceTooltip');
+      expect(hostComponentView.get('maintenanceTooltip')).to.be.equal(
+        Em.I18n.t('passiveState.disabled.impliedFromServiceAndHost').format('s1', 'S1', 'host1')
+      );
+    });
+  
+    it('should return label for unknown', function() {
+      hostComponentView.set('content.passiveState', '');
+      hostComponentView.propertyDidChange('maintenanceTooltip');
+      expect(hostComponentView.get('maintenanceTooltip')).to.be.empty;
+    });
+  });
+  
+  describe('#meetsCustomCommandReq', function() {
+    var component = Em.Object.create({cardinality: "1"});
+    beforeEach(function() {
+      sinon.stub(hostComponentView, 'runningComponentCounter').returns(true);
+      this.mock = sinon.stub(App.HostComponent, 'getCount');
+      hostComponentView.set('excludedMasterCommands', ['command1']);
+    });
+    afterEach(function() {
+      hostComponentView.runningComponentCounter.restore();
+      this.mock.restore();
+    });
+    
+    it('should return false when command excluded', function() {
+      expect(hostComponentView.meetsCustomCommandReq(component, 'command1')).to.be.false;
+    });
+  
+    it('should return true when cardinality !== 1', function() {
+      expect(hostComponentView.meetsCustomCommandReq(component, 'command2')).to.be.true;
+    });
+  
+    it('should return false when total count > 2 and running', function() {
+      component.set('cardinality', '0+');
+      hostComponentView.set('workStatus', App.HostComponentStatus.stopped);
+      this.mock.returns(2);
+      expect(hostComponentView.meetsCustomCommandReq(component, 'command2')).to.be.false;
+    });
+  
+    it('should return false when total count = 1', function() {
+      component.set('cardinality', '0+');
+      hostComponentView.set('workStatus', App.HostComponentStatus.stopped);
+      this.mock.returns(1);
+      expect(hostComponentView.meetsCustomCommandReq(component, 'command2')).to.be.false;
     });
   });
 

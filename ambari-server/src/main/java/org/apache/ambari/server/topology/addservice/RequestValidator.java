@@ -44,6 +44,7 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.StackFactory;
@@ -135,7 +136,7 @@ public class RequestValidator {
   @VisibleForTesting
   void validateSecurity() {
     request.getSecurity().ifPresent(requestSecurity -> {
-      CHECK.checkArgument(requestSecurity.getType() == cluster.getSecurityType(),
+      CHECK.checkArgument(!strictValidation() || requestSecurity.getType() == cluster.getSecurityType(),
         "Security type in the request (%s), if specified, should match cluster's security type (%s)",
         requestSecurity.getType(), cluster.getSecurityType()
       );
@@ -163,13 +164,17 @@ public class RequestValidator {
 
         KerberosDescriptor descriptor = kerberosDescriptorFactory.createInstance(descriptorMap);
 
-        Set<String> servicesWithNewDescriptor = descriptor.getServices().keySet();
-        Set<String> newServices = state.getNewServices().keySet();
-        Set<String> nonNewServices = ImmutableSet.copyOf(Sets.difference(servicesWithNewDescriptor, newServices));
+        if (strictValidation()) {
+          Map<String, KerberosServiceDescriptor> descriptorServices = descriptor.getServices();
+          Set<String> servicesWithNewDescriptor = descriptorServices != null ? descriptorServices.keySet() : ImmutableSet.of();
+          Set<String> newServices = state.getNewServices().keySet();
+          Set<String> nonNewServices = ImmutableSet.copyOf(Sets.difference(servicesWithNewDescriptor, newServices));
 
-        CHECK.checkArgument(nonNewServices.isEmpty(),
-          "Kerberos descriptor should be provided only for new services, but found other services: %s",
-          nonNewServices);
+          CHECK.checkArgument(nonNewServices.isEmpty(),
+            "Kerberos descriptor should be provided only for new services, but found other services: %s",
+            nonNewServices
+          );
+        }
 
         try {
           descriptor.toMap();
@@ -239,8 +244,10 @@ public class RequestValidator {
   void validateConfiguration() {
     Configuration config = request.getConfiguration();
 
-    for (String type : NOT_ALLOWED_CONFIG_TYPES) {
-      CHECK.checkArgument(!config.getProperties().containsKey(type), "Cannot change '%s' configuration in Add Service request", type);
+    if (strictValidation()) {
+      for (String type : NOT_ALLOWED_CONFIG_TYPES) {
+        CHECK.checkArgument(!config.getProperties().containsKey(type), "Cannot change '%s' configuration in Add Service request", type);
+      }
     }
 
     Configuration clusterConfig = getClusterDesiredConfigs();
@@ -262,6 +269,10 @@ public class RequestValidator {
 
     CHECK.checkArgument(unknownHosts.isEmpty(),
       "Requested host not associated with cluster %s: %s", cluster.getClusterName(), unknownHosts);
+  }
+
+  private boolean strictValidation() {
+    return request.getValidationType().strictValidation();
   }
 
   private Configuration getClusterDesiredConfigs() {
