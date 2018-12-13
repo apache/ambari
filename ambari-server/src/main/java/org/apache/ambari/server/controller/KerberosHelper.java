@@ -135,6 +135,10 @@ public interface KerberosHelper {
    */
   String MANAGE_AUTH_TO_LOCAL_RULES = "manage_auth_to_local";
   /**
+   * The kerberos-env property name declaring whether the Hadoop auth_to_local rules should be included for all components of an installed service even if the component itself is not installed
+   */
+  String INCLUDE_ALL_COMPONENTS_IN_AUTH_TO_LOCAL_RULES = "include_all_components_in_auth_to_local_rules";
+  /**
    * The kerberos-env property name declaring whether auth-to-local rules should be case-insensitive or not
    */
   String CASE_INSENSITIVE_USERNAME_RULES = "case_insensitive_username_rules";
