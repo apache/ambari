@@ -57,11 +57,11 @@ App.HostComponentView = Em.View.extend({
    */
   typeDisplay: function() {
     if (this.get('content.isMaster')) {
-      return Em.I18n.t('common.master')
+      return Em.I18n.t('common.master');
     } else if (this.get('content.isSlave')) {
-      return Em.I18n.t('common.slave')
+      return Em.I18n.t('common.slave');
     } else if (this.get('content.isClient')) {
-      return Em.I18n.t('common.client')
+      return Em.I18n.t('common.client');
     }
   }.property('content'),
 
@@ -214,17 +214,13 @@ App.HostComponentView = Em.View.extend({
   isDeleteComponentDisabled: function () {
     var stackComponentCount = App.StackServiceComponent.find(this.get('content.componentName')).get('minToInstall');
     var installedCount = App.HostComponent.getCount(this.get('content.componentName'), 'totalCount');
-    if(this.get('content.componentName') === 'MYSQL_SERVER' && this.get('content.serviceDisplayName') === 'Hive') {
-      var db_type=App.db.getConfigs().findProperty('type','hive-env').properties['hive_database'];
-      var status=[App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus'));
-      if(db_type.indexOf('Existing') > -1 && status)
-        return false;
-      else
-    	return true;
+    if (this.get('content.componentName') === 'MYSQL_SERVER' && this.get('content.serviceDisplayName') === 'Hive') {
+      var db_type = App.db.getConfigs().findProperty('type', 'hive-env').properties['hive_database'];
+      var status = [App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus'));
+      return !(db_type.indexOf('Existing') > -1 && status);
     }
     if (this.get('content.componentName') === 'JOURNALNODE') {
-      var count_JN = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').get('length');
-      return count_JN <= 3; // TODO get 3 from stack
+      return installedCount <= 3; // TODO get 3 from stack
     }
     return (installedCount <= stackComponentCount)
       || ![App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus'));
