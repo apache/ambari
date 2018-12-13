@@ -44,6 +44,10 @@ public class LayoutRecommendationInfo {
   }
 
   public List<String> getHosts() {
+    return getHostsFromHostGroups(hostGroups);
+  }
+
+  public static List<String> getHostsFromHostGroups(Map<String, Set<String>> hostGroups) {
     return hostGroups.values().stream().flatMap(Set::stream).collect(toList());
   }
 }

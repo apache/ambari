@@ -167,6 +167,53 @@ public class StackAdvisorAdapterTest {
   }
 
   @Test
+  public void getLayoutRecommendationInfo() {
+    Map<String, Map<String, Set<String>>> newServices = ImmutableMap.of(
+      "KAFKA", ImmutableMap.of(
+        "KAFKA_BROKER", ImmutableSet.of("c7401")),
+      "SPARK2", ImmutableMap.of(
+        "SPARK2_JOBHISTORYSERVER", ImmutableSet.of("c7402"),
+        "SPARK2_CLIENT", ImmutableSet.of("c7403", "c7404")),
+      "OOZIE", ImmutableMap.of(
+        "OOZIE_SERVER", ImmutableSet.of("c7401"),
+        "OOZIE_CLIENT", ImmutableSet.of("c7403", "c7404")));
+
+    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ALWAYS_APPLY), "c1", stack , Configuration.newEmpty(),
+      null, null, newServices, null); // No LayoutReommendationInfo -> needs to be calculated
+
+    LayoutRecommendationInfo layoutRecommendationInfo = adapter.getLayoutRecommendationInfo(info);
+    layoutRecommendationInfo.getAllServiceLayouts();
+
+    assertEquals(
+      ImmutableMap.of(
+        "host_group_1", ImmutableSet.of("c7401"),
+        "host_group_2", ImmutableSet.of("c7402"),
+        "host_group_3", ImmutableSet.of("c7403", "c7404")),
+      layoutRecommendationInfo.getHostGroups());
+
+    assertEquals(
+      ImmutableMap.<String, Map<String, Set<String>>>builder()
+        .put("KAFKA", ImmutableMap.of(
+          "KAFKA_BROKER", ImmutableSet.of("c7401")))
+        .put("SPARK2", ImmutableMap.of(
+          "SPARK2_JOBHISTORYSERVER", ImmutableSet.of("c7402"),
+          "SPARK2_CLIENT", ImmutableSet.of("c7403", "c7404")))
+        .put("OOZIE", ImmutableMap.of(
+          "OOZIE_SERVER", ImmutableSet.of("c7401"),
+          "OOZIE_CLIENT", ImmutableSet.of("c7403", "c7404")))
+        .put("HDFS", ImmutableMap.of(
+          "NAMENODE", ImmutableSet.of("c7401"),
+          "HDFS_CLIENT", ImmutableSet.of("c7401", "c7402")))
+        .put("ZOOKEEPER", ImmutableMap.of(
+          "ZOOKEEPER_SERVER", ImmutableSet.of("c7401"),
+          "ZOOKEEPER_CLIENT", ImmutableSet.of("c7401", "c7402")))
+        .put("MAPREDUCE2", ImmutableMap.of(
+          "HISTORYSERVER", ImmutableSet.of("c7401")))
+        .build(),
+      layoutRecommendationInfo.getAllServiceLayouts());
+  }
+
+  @Test
   public void keepNewServicesOnly() {
     Map<String, Map<String, Set<String>>> newServices = ImmutableMap.of(
       "KAFKA", emptyMap(),
@@ -325,10 +372,53 @@ public class StackAdvisorAdapterTest {
     assertEquals(expectedNewLayout, infoWithRecommendations.newServices());
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void recommendConfigurations_noLayoutInfo() {
-    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ALWAYS_APPLY), null, null , null, null, null, null, null);
-    adapter.recommendConfigurations(info);
+    Map<String, Map<String, Set<String>>> newServices = ImmutableMap.of(
+      "KAFKA", ImmutableMap.of(
+        "KAFKA_BROKER", ImmutableSet.of("c7401")),
+      "SPARK2", ImmutableMap.of(
+        "SPARK2_JOBHISTORYSERVER", ImmutableSet.of("c7402"),
+        "SPARK2_CLIENT", ImmutableSet.of("c7403", "c7404")),
+      "OOZIE", ImmutableMap.of(
+        "OOZIE_SERVER", ImmutableSet.of("c7401"),
+        "OOZIE_CLIENT", ImmutableSet.of("c7403", "c7404")));
+
+    Configuration stackConfig = Configuration.newEmpty();
+    Configuration clusterConfig = new Configuration(
+      map("oozie-env", map("oozie_heapsize", "1024", "oozie_permsize", "256")),
+      emptyMap());
+    Configuration userConfig = Configuration.newEmpty();
+    userConfig.setParentConfiguration(clusterConfig);
+    clusterConfig.setParentConfiguration(stackConfig);
+
+    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ALWAYS_APPLY), "c1", stack , userConfig,
+      null, null, newServices, null); // No LayoutRecommendationInfo
+    AddServiceInfo infoWithConfig = adapter.recommendConfigurations(info);
+
+    Configuration recommendedConfig = infoWithConfig.getConfig();
+    assertSame(userConfig, recommendedConfig.getParentConfiguration());
+    assertSame(clusterConfig, userConfig.getParentConfiguration());
+    assertSame(stackConfig, clusterConfig.getParentConfiguration());
+
+    // Yarn/Mapred config is excpected to be removed as it does not belong to newly added services
+    assertEquals(
+      ImmutableMap.of(
+        "kafka-broker", ImmutableMap.of(
+          "log.dirs", "/kafka-logs",
+          "offsets.topic.replication.factor", "1"),
+        "spark2-defaults", ImmutableMap.of(
+          "spark.yarn.queue", "default"),
+        "oozie-env", ImmutableMap.of(
+          "oozie_heapsize", "1024m",  // unit updates should happen
+          "oozie_permsize", "256m")),
+      recommendedConfig.getProperties());
+
+    assertEquals(
+      ImmutableMap.of(
+        "kafka-broker", ImmutableMap.of(
+          "maximum", ImmutableMap.of("offsets.topic.replication.factor", "10"))),
+      recommendedConfig.getAttributes());
   }
 
   @Test

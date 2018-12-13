@@ -80,19 +80,14 @@ public class StackAdvisorAdapter {
    */
   AddServiceInfo recommendLayout(AddServiceInfo info) {
     try {
-      Cluster cluster = managementController.getClusters().getCluster(info.clusterName());
-      Map<String, Map<String, Set<String>>> clusterServices = transformValues(
-        cluster.getServices(),
-        service -> transformValues(service.getServiceComponents(), component -> component.getServiceComponentsHosts()));
-
       // Requested component layout will be added to the StackAdvisor input in addition to existing
       // component layout.
-      Map<String, Map<String, Set<String>>> allServices = mergeDisjunctMaps(clusterServices, info.newServices());
+      Map<String, Map<String, Set<String>>> allServices = getAllServices(info);
 
       Map<String, Set<String>> componentsToHosts = getComponentHostMap(allServices);
 
       Map<String, Set<String>> hostsToComponents = getHostComponentMap(componentsToHosts);
-      List<String> hosts = ImmutableList.copyOf(cluster.getHostNames());
+      List<String> hosts = ImmutableList.copyOf(getCluster(info).getHostNames());
       hosts.forEach( host -> hostsToComponents.putIfAbsent(host, new HashSet<>())); // just in case there are hosts that have no components
 
       Map<String, Set<String>> hostGroups = getHostGroupStrategy().calculateHostGroups(hostsToComponents);
@@ -134,15 +129,29 @@ public class StackAdvisorAdapter {
     }
   }
 
+  /**
+   * Gets all services from the cluster together together with services from AddServiceInfo.
+   * @param info
+   * @return A map of <i>service name -> component name -> hosts</i> for all services in the cluster and the input
+   *  AddServiceInfo combined.
+   */
+  Map<String, Map<String, Set<String>>> getAllServices(AddServiceInfo info) throws AmbariException {
+    Cluster cluster = managementController.getClusters().getCluster(info.clusterName());
+    Map<String, Map<String, Set<String>>> clusterServices = transformValues(
+      cluster.getServices(),
+      service -> transformValues(service.getServiceComponents(), component -> component.getServiceComponentsHosts()));
+
+   return  mergeDisjunctMaps(clusterServices, info.newServices());
+  }
+
+  private Cluster getCluster(AddServiceInfo info) throws AmbariException {
+    return managementController.getClusters().getCluster(info.clusterName());
+  }
+
   AddServiceInfo recommendConfigurations(AddServiceInfo info) {
     Configuration config = info.getConfig();
-
     if (info.getRequest().getRecommendationStrategy().shouldUseStackAdvisor()) {
-      // Reuse information from layout recommendation.
-      // Layout recommendation is currently mandatory. When it will be optional, this will have to be rewritten to
-      // compute this information if missing
-      LayoutRecommendationInfo layoutInfo =
-        info.getRecommendationInfo().orElseThrow(() -> new IllegalStateException("Config recommendation must happen after layout recommendation"));
+      LayoutRecommendationInfo layoutInfo = getLayoutRecommendationInfo(info);
 
       Map<String, Set<String>> componentHostMap = getComponentHostMap(layoutInfo.getAllServiceLayouts());
       Map<String, Set<String>> hostComponentMap = getHostComponentMap(componentHostMap);
@@ -194,6 +203,24 @@ public class StackAdvisorAdapter {
 
     UnitUpdater.updateUnits(config, info.getStack());
     return info.withConfig(config);
+  }
+
+  /**
+   * Reuse information from layout recommendation if it happened
+   */
+  LayoutRecommendationInfo getLayoutRecommendationInfo(AddServiceInfo info) {
+    if (info.getRecommendationInfo().isPresent()) {
+      return info.getRecommendationInfo().get();
+    }
+    try {
+      Map<String, Map<String, Set<String>>> allServices = getAllServices(info);
+      Map<String, Set<String>> hostGroups =
+        getHostGroupStrategy().calculateHostGroups(getHostComponentMap(getComponentHostMap(allServices)));
+      return new LayoutRecommendationInfo(hostGroups, allServices);
+    }
+    catch (AmbariException ex) {
+      throw new IllegalArgumentException("Error gathering host groups and services", ex);
+    }
   }
 
   static void removeNonStackConfigRecommendations(Configuration stackConfig,  Map<String, RecommendationResponse.BlueprintConfigurations> configRecommendations) {
@@ -252,6 +279,7 @@ public class StackAdvisorAdapter {
         cmpHost -> componentToService.apply(cmpHost.getKey()),
         toMap(Map.Entry::getKey, Map.Entry::getValue)));
   }
+
 
   /**
    * Transform a map of component -> hosts to a map of hosts -> components

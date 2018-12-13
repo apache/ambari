@@ -24,7 +24,6 @@ import static org.apache.ambari.server.controller.AddServiceRequest.Service;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.ALWAYS_APPLY;
-import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.NEVER_APPLY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -38,6 +37,7 @@ import java.util.Optional;
 
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.Credential;
 import org.apache.ambari.server.topology.SecurityConfiguration;
@@ -132,7 +132,7 @@ public class AddServiceRequestTest {
 
     // default / empty values
     assertEquals(ADD_SERVICE, request.getOperationType());
-    assertEquals(NEVER_APPLY, request.getRecommendationStrategy());
+    assertEquals(ConfigRecommendationStrategy.defaultForAddService(), request.getRecommendationStrategy());
     assertEquals(INSTALL_AND_START, request.getProvisionAction());
     assertNull(request.getStackName());
     assertNull(request.getStackVersion());
@@ -155,7 +155,7 @@ public class AddServiceRequestTest {
 
     // default / empty values
     assertEquals(ADD_SERVICE, request.getOperationType());
-    assertEquals(NEVER_APPLY, request.getRecommendationStrategy());
+    assertEquals(ConfigRecommendationStrategy.defaultForAddService(), request.getRecommendationStrategy());
     assertEquals(INSTALL_AND_START, request.getProvisionAction());
     assertNull(request.getStackName());
     assertNull(request.getStackVersion());
@@ -178,7 +178,7 @@ public class AddServiceRequestTest {
 
     // default / empty values
     assertEquals(ADD_SERVICE, request.getOperationType());
-    assertEquals(NEVER_APPLY, request.getRecommendationStrategy());
+    assertEquals(ConfigRecommendationStrategy.defaultForAddService(), request.getRecommendationStrategy());
     assertEquals(INSTALL_AND_START, request.getProvisionAction());
     assertNull(request.getStackName());
     assertNull(request.getStackVersion());
