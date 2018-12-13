@@ -21,6 +21,8 @@ package org.apache.ambari.server.controller;
 import static org.apache.ambari.server.controller.AddServiceRequest.Component;
 import static org.apache.ambari.server.controller.AddServiceRequest.OperationType.ADD_SERVICE;
 import static org.apache.ambari.server.controller.AddServiceRequest.Service;
+import static org.apache.ambari.server.controller.AddServiceRequest.ValidationType.PERMISSIVE;
+import static org.apache.ambari.server.controller.AddServiceRequest.ValidationType.STRICT;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.ALWAYS_APPLY;
@@ -86,6 +88,7 @@ public class AddServiceRequestTest {
     assertEquals(ADD_SERVICE, request.getOperationType());
     assertEquals(ALWAYS_APPLY, request.getRecommendationStrategy());
     assertEquals(INSTALL_ONLY, request.getProvisionAction());
+    assertEquals(PERMISSIVE, request.getValidationType());
     assertEquals("HDP", request.getStackName());
     assertEquals("3.0", request.getStackVersion());
 
@@ -134,6 +137,7 @@ public class AddServiceRequestTest {
     assertEquals(ADD_SERVICE, request.getOperationType());
     assertEquals(NEVER_APPLY, request.getRecommendationStrategy());
     assertEquals(INSTALL_AND_START, request.getProvisionAction());
+    assertEquals(STRICT, request.getValidationType());
     assertNull(request.getStackName());
     assertNull(request.getStackVersion());
     assertEquals(Optional.empty(), request.getSecurity());

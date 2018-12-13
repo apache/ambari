@@ -1,6 +1,7 @@
 {
   "operation_type" : "ADD_SERVICE",
   "config_recommendation_strategy" : "ALWAYS_APPLY",
+  "validation": "PERMISSIVE",
   "provision_action" : "INSTALL_ONLY",
   "stack_name" : "HDP",
   "stack_version" : "3.0",
