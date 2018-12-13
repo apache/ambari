@@ -657,7 +657,7 @@ public class StackAdvisorAdapterTest {
   }
 
   private AddServiceRequest request(ConfigRecommendationStrategy strategy) {
-    return new AddServiceRequest(null, strategy, null, null, null, null, null, null, null, null);
+    return new AddServiceRequest(null, strategy, null, null, null, null, null, null, null, null, null);
   }
 
 }
