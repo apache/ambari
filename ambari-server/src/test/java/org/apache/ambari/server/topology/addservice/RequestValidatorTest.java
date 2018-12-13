@@ -77,13 +77,19 @@ public class RequestValidatorTest extends EasyMockSupport {
 
   @Before
   public void setUp() {
-    validator.setState(RequestValidator.State.INITIAL);
-    expect(cluster.getClusterName()).andReturn("TEST").anyTimes();
-    expect(cluster.getServices()).andStubReturn(ImmutableMap.of());
-    expect(cluster.getSecurityType()).andStubReturn(SecurityType.NONE);
-    expect(request.getServices()).andStubReturn(ImmutableSet.of());
-    expect(request.getComponents()).andStubReturn(ImmutableSet.of());
-    expect(request.getSecurity()).andStubReturn(Optional.empty());
+    try {
+      validator.setState(RequestValidator.State.INITIAL);
+      expect(cluster.getClusterName()).andReturn("TEST").anyTimes();
+      expect(cluster.getServices()).andStubReturn(ImmutableMap.of());
+      expect(cluster.getSecurityType()).andStubReturn(SecurityType.NONE);
+      expect(configHelper.calculateExistingConfigs(cluster)).andStubReturn(Configuration.newEmpty().asPair());
+      expect(request.getServices()).andStubReturn(ImmutableSet.of());
+      expect(request.getComponents()).andStubReturn(ImmutableSet.of());
+      expect(request.getSecurity()).andStubReturn(Optional.empty());
+      expect(request.getValidationType()).andStubReturn(AddServiceRequest.ValidationType.DEFAULT);
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   @After
@@ -347,22 +353,15 @@ public class RequestValidatorTest extends EasyMockSupport {
 
   @Test
   public void rejectsNoneSecurityWhenClusterHasKerberos() {
-    secureCluster();
-    expect(request.getSecurity()).andReturn(Optional.of(SecurityConfiguration.NONE)).anyTimes();
-    replayAll();
-
-    IllegalArgumentException e = assertThrows(IllegalArgumentException.class, validator::validateSecurity);
-    assertTrue(e.getMessage().contains("KERBEROS"));
+    testBothValidationTypes(validator::validateSecurity, "KERBEROS", () -> {
+      secureCluster();
+      expect(request.getSecurity()).andReturn(Optional.of(SecurityConfiguration.NONE)).anyTimes();
+    });
   }
 
   @Test
   public void rejectsKerberosSecurityWhenClusterHasNone() {
-    requestSpecifiesSecurity();
-    replayAll();
-
-    assertThrows(IllegalArgumentException.class, validator::validateSecurity);
-    IllegalArgumentException e = assertThrows(IllegalArgumentException.class, validator::validateSecurity);
-    assertTrue(e.getMessage().contains("KERBEROS"));
+    testBothValidationTypes(validator::validateSecurity, "KERBEROS", this::requestSpecifiesSecurity);
   }
 
   @Test
@@ -371,7 +370,6 @@ public class RequestValidatorTest extends EasyMockSupport {
     expect(request.getSecurity()).andReturn(Optional.of(requestSecurity)).anyTimes();
     replayAll();
 
-    assertThrows(IllegalArgumentException.class, validator::validateSecurity);
     IllegalArgumentException e = assertThrows(IllegalArgumentException.class, validator::validateSecurity);
     assertTrue(e.getMessage().contains("Kerberos descriptor"));
   }
@@ -382,7 +380,6 @@ public class RequestValidatorTest extends EasyMockSupport {
     expect(request.getSecurity()).andReturn(Optional.of(requestSecurity)).anyTimes();
     replayAll();
 
-    assertThrows(IllegalArgumentException.class, validator::validateSecurity);
     IllegalArgumentException e = assertThrows(IllegalArgumentException.class, validator::validateSecurity);
     assertTrue(e.getMessage().contains("Kerberos descriptor reference"));
   }
@@ -394,7 +391,6 @@ public class RequestValidatorTest extends EasyMockSupport {
     expect(request.getSecurity()).andReturn(Optional.of(invalidConfig)).anyTimes();
     replayAll();
 
-    assertThrows(IllegalArgumentException.class, validator::validateSecurity);
     IllegalArgumentException e = assertThrows(IllegalArgumentException.class, validator::validateSecurity);
     assertTrue(e.getMessage().contains("Kerberos descriptor and reference"));
   }
@@ -442,7 +438,7 @@ public class RequestValidatorTest extends EasyMockSupport {
   }
 
   @Test
-  public void rejectsDescriptorWithAdditionalServices() {
+  public void acceptsDescriptorWithAdditionalServices() {
     String newService = "KAFKA", otherService = "ZOOKEEPER";
     secureCluster();
     requestServices(true, newService);
@@ -451,6 +447,18 @@ public class RequestValidatorTest extends EasyMockSupport {
 
     IllegalArgumentException e = assertThrows(IllegalArgumentException.class, validator::validateSecurity);
     assertTrue(e.getMessage().contains("only for new services"));
+  }
+
+  @Test
+  public void acceptsDescriptorWithoutServices() {
+    secureCluster();
+    requestServices(true, "KAFKA");
+    KerberosDescriptor kerberosDescriptor = requestHasKerberosDescriptorFor(false);
+    replayAll();
+
+    validator.validateSecurity();
+
+    assertEquals(kerberosDescriptor, validator.getState().getKerberosDescriptor());
   }
 
   @Test
@@ -482,22 +490,47 @@ public class RequestValidatorTest extends EasyMockSupport {
 
   @Test
   public void rejectsKerberosEnvChange() {
-    Configuration requestConfig = Configuration.newEmpty();
-    requestConfig.setProperty("kerberos-env", "some-property", "some-value");
-    expect(request.getConfiguration()).andReturn(requestConfig.copy()).anyTimes();
-    replayAll();
-
-    assertThrows(IllegalArgumentException.class, validator::validateConfiguration);
+    testBothValidationTypes(validator::validateConfiguration, () -> {
+      Configuration requestConfig = Configuration.newEmpty();
+      requestConfig.setProperty("kerberos-env", "some-property", "some-value");
+      expect(request.getConfiguration()).andReturn(requestConfig.copy()).anyTimes();
+      validator.setState(RequestValidator.State.INITIAL.with(simpleMockStack()));
+    });
   }
 
   @Test
   public void rejectsKrb5ConfChange() {
-    Configuration requestConfig = Configuration.newEmpty();
-    requestConfig.setProperty("krb5-conf", "some-property", "some-value");
-    expect(request.getConfiguration()).andReturn(requestConfig.copy()).anyTimes();
-    replayAll();
+    testBothValidationTypes(validator::validateConfiguration, () -> {
+      Configuration requestConfig = Configuration.newEmpty();
+      requestConfig.setProperty("krb5-conf", "some-property", "some-value");
+      expect(request.getConfiguration()).andReturn(requestConfig.copy()).anyTimes();
+      validator.setState(RequestValidator.State.INITIAL.with(simpleMockStack()));
+    });
+  }
 
-    assertThrows(IllegalArgumentException.class, validator::validateConfiguration);
+  /**
+   * Tests that the state created by {@code testCaseSetup} is rejected by strict validation, but accepted by permissive one.
+   * @param validation the method to call on validator
+   * @param testCaseSetup code to setup the state ("when"), call to replayAll() should be omitted
+   */
+  private void testBothValidationTypes(Runnable validation, Runnable testCaseSetup) {
+    testBothValidationTypes(validation, null, testCaseSetup);
+  }
+
+  private void testBothValidationTypes(Runnable validation, String expectedMessage, Runnable testCaseSetup) {
+    testCaseSetup.run();
+    replayAll();
+    Exception e = assertThrows(IllegalArgumentException.class, validation);
+    if (expectedMessage != null) {
+      assertTrue(e.getMessage().contains(expectedMessage));
+    };
+
+    resetAll();
+    setUp();
+    permissiveValidation();
+    testCaseSetup.run();
+    replayAll();
+    validation.run();
   }
 
   private static void verifyConfigOverrides(Configuration requestConfig, Configuration clusterConfig, Configuration stackConfig, Configuration actualConfig) {
@@ -529,10 +562,11 @@ public class RequestValidatorTest extends EasyMockSupport {
   private Stack simpleMockStack() {
     Stack stack = createNiceMock(Stack.class);
     Set<String> stackServices = ImmutableSet.of("KAFKA", "ZOOKEEPER");
-    expect(stack.getServices()).andReturn(stackServices).anyTimes();
-    expect(stack.getServiceForComponent("KAFKA_BROKER")).andReturn("KAFKA").anyTimes();
-    expect(stack.getServiceForComponent("ZOOKEEPER_SERVER")).andReturn("ZOOKEEPER").anyTimes();
-    expect(stack.getServiceForComponent("ZOOKEEPER_CLIENT")).andReturn("ZOOKEEPER").anyTimes();
+    expect(stack.getServices()).andStubReturn(stackServices);
+    expect(stack.getServiceForComponent("KAFKA_BROKER")).andStubReturn("KAFKA");
+    expect(stack.getServiceForComponent("ZOOKEEPER_SERVER")).andStubReturn("ZOOKEEPER");
+    expect(stack.getServiceForComponent("ZOOKEEPER_CLIENT")).andStubReturn("ZOOKEEPER");
+    expect(stack.getValidDefaultConfig()).andStubReturn(Configuration.newEmpty());
     return stack;
   }
 
@@ -540,6 +574,10 @@ public class RequestValidatorTest extends EasyMockSupport {
     return ImmutableMap.of(
       "KAFKA", ImmutableMap.of("KAFKA_BROKER", ImmutableSet.of("c7401.ambari.apache.org"))
     );
+  }
+
+  private void permissiveValidation() {
+    expect(request.getValidationType()).andReturn(AddServiceRequest.ValidationType.PERMISSIVE).anyTimes();
   }
 
   private void requestServices(boolean validated, String... services) {
