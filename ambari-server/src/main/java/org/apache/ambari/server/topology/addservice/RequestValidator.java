@@ -37,6 +37,7 @@ import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.UnitUpdater;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.SecurityType;
@@ -117,7 +118,7 @@ public class RequestValidator {
     RequestStageContainer stages = new RequestStageContainer(actionManager.getNextRequestId(), null, requestFactory, actionManager);
     AddServiceInfo validatedRequest = new AddServiceInfo(request, cluster.getClusterName(),
       state.getStack(), state.getConfig(), state.getKerberosDescriptor(),
-      stages, state.getNewServices());
+      stages, state.getNewServices(), null);
     stages.setRequestContext(validatedRequest.describe());
     return validatedRequest;
   }
@@ -250,9 +251,10 @@ public class RequestValidator {
     }
 
     Configuration clusterConfig = getClusterDesiredConfigs();
-    clusterConfig.setParentConfiguration(state.getStack().getValidDefaultConfig());
+    clusterConfig.setParentConfiguration(state.getStack().getDefaultConfig());
     config.setParentConfiguration(clusterConfig);
 
+    UnitUpdater.removeUnits(config, state.getStack()); // stack advisor doesn't like units; they'll be added back after recommendation
     state = state.with(config);
   }
 

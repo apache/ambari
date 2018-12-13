@@ -41,6 +41,7 @@ public final class AddServiceInfo {
   private final Map<String, Map<String, Set<String>>> newServices;
   private final RequestStageContainer stages;
   private final Configuration config;
+  private final LayoutRecommendationInfo recommendationInfo;
 
   public AddServiceInfo(
     AddServiceRequest request,
@@ -49,8 +50,9 @@ public final class AddServiceInfo {
     Configuration config,
     KerberosDescriptor kerberosDescriptor,
     RequestStageContainer stages,
-    Map<String, Map<String, Set<String>>> newServices
-  ) {
+    Map<String, Map<String,
+    Set<String>>> newServices,
+    LayoutRecommendationInfo recommendationInfo) {
     this.request = request;
     this.clusterName = clusterName;
     this.stack = stack;
@@ -58,10 +60,16 @@ public final class AddServiceInfo {
     this.newServices = newServices;
     this.stages = stages;
     this.config = config;
+    this.recommendationInfo = recommendationInfo;
   }
 
-  public AddServiceInfo withNewServices(Map<String, Map<String, Set<String>>> services) {
-    return new AddServiceInfo(request, clusterName, stack, config, kerberosDescriptor, stages, services);
+  public AddServiceInfo withLayoutRecommendation(Map<String, Map<String, Set<String>>> services,
+                                                 LayoutRecommendationInfo recommendation) {
+    return new AddServiceInfo(request, clusterName, stack, config, kerberosDescriptor, stages, services, recommendation);
+  }
+
+  public AddServiceInfo withConfig(Configuration newConfig) {
+    return new AddServiceInfo(request, clusterName, stack, newConfig, kerberosDescriptor, stages, newServices, recommendationInfo);
   }
 
   @Override
@@ -95,6 +103,10 @@ public final class AddServiceInfo {
 
   public Configuration getConfig() {
     return config;
+  }
+
+  public Optional<LayoutRecommendationInfo> getRecommendationInfo() {
+    return Optional.ofNullable(recommendationInfo);
   }
 
   public Optional<KerberosDescriptor> getKerberosDescriptor() {

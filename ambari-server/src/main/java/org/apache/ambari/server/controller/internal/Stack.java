@@ -49,7 +49,6 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
-import org.apache.ambari.server.topology.validators.UnitValidatedProperty;
 
 /**
  * Encapsulates stack information.
@@ -657,22 +656,19 @@ public class Stack {
    * (eg. some properties need a unit to be appended)
    */
   public Configuration getValidDefaultConfig() {
+    Configuration config = getDefaultConfig();
+    UnitUpdater.updateUnits(config, this);
+    return config;
+  }
+
+  public Configuration getDefaultConfig() {
     Configuration config = getConfiguration();
-
-    for (UnitValidatedProperty p : UnitValidatedProperty.ALL) {
-      if (config.isPropertySet(p.getConfigType(), p.getPropertyName())) {
-        String value = config.getPropertyValue(p.getConfigType(), p.getPropertyName());
-        String updatedValue = UnitUpdater.updateForClusterCreate(this, p.getServiceName(), p.getConfigType(), p.getPropertyName(), value);
-        config.setProperty(p.getConfigType(), p.getPropertyName(), updatedValue);
-      }
-    }
-
     config.getProperties().values().forEach(
       each -> each.values().removeIf(Objects::isNull)
     );
-
     return config;
   }
+
 
   /**
    * Parse components for the specified service from the stack definition.
