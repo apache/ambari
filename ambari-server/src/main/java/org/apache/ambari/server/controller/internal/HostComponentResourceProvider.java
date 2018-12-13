@@ -396,6 +396,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Map<String, String> requestInfo = new HashMap<>();
     requestInfo.put("context", String.format("Install components on host %s", hostname));
     requestInfo.put(CLUSTER_PHASE_PROPERTY, CLUSTER_PHASE_INITIAL_INSTALL);
+    // although the operation is really for a specific host, the level needs to be set to HostComponent
+    // to make sure that any service in maintenance mode does not prevent install/start on the new host during scale-up
     requestInfo.putAll(RequestOperationLevel.propertiesFor(Resource.Type.HostComponent, cluster));
     addProvisionActionProperties(skipInstallForComponents, dontSkipInstallForComponents, requestInfo);
 
@@ -470,6 +472,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Map<String, String> requestInfo = new HashMap<>();
     requestInfo.put("context", String.format("Start components on host %s", hostName));
     requestInfo.put(CLUSTER_PHASE_PROPERTY, CLUSTER_PHASE_INITIAL_START);
+    // see rationale for marking the operation as HostComponent-level at "Install components on host"
     requestInfo.putAll(RequestOperationLevel.propertiesFor(Resource.Type.HostComponent, cluster));
     requestInfo.put(Setting.SETTING_NAME_SKIP_FAILURE, Boolean.toString(skipFailure));
 
