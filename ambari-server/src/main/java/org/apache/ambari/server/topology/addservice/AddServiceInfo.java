@@ -49,9 +49,9 @@ public final class AddServiceInfo {
     Configuration config,
     KerberosDescriptor kerberosDescriptor,
     RequestStageContainer stages,
-    Map<String, Map<String,
-    Set<String>>> newServices,
-    LayoutRecommendationInfo recommendationInfo) {
+    Map<String, Map<String, Set<String>>> newServices,
+    LayoutRecommendationInfo recommendationInfo
+  ) {
     this.request = request;
     this.clusterName = clusterName;
     this.stack = stack;
