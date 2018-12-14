@@ -16,17 +16,15 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller;
+package org.apache.ambari.server.topology.addservice;
 
-import static org.apache.ambari.server.controller.AddServiceRequest.Component;
-import static org.apache.ambari.server.controller.AddServiceRequest.OperationType.ADD_SERVICE;
-import static org.apache.ambari.server.controller.AddServiceRequest.Service;
-import static org.apache.ambari.server.controller.AddServiceRequest.ValidationType.PERMISSIVE;
-import static org.apache.ambari.server.controller.AddServiceRequest.ValidationType.STRICT;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.START_ONLY;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.ALWAYS_APPLY;
+import static org.apache.ambari.server.topology.addservice.AddServiceRequest.OperationType.ADD_SERVICE;
+import static org.apache.ambari.server.topology.addservice.AddServiceRequest.ValidationType.PERMISSIVE;
+import static org.apache.ambari.server.topology.addservice.AddServiceRequest.ValidationType.STRICT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;

@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;

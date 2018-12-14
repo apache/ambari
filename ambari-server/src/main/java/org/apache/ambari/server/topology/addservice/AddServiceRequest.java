@@ -16,11 +16,10 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller;
+package org.apache.ambari.server.topology.addservice;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.controller.internal.BaseClusterRequest.PROVISION_ACTION_PROPERTY;
 import static org.apache.ambari.server.controller.internal.ClusterResourceProvider.CREDENTIALS;
 import static org.apache.ambari.server.controller.internal.ClusterResourceProvider.SECURITY;
@@ -30,7 +29,6 @@ import static org.apache.ambari.server.topology.Configurable.CONFIGURATIONS;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -312,186 +310,4 @@ public class AddServiceRequest {
     public abstract boolean strictValidation();
   }
 
-  public static final class Component {
-
-    static final String COMPONENT_NAME = "name";
-    static final String HOSTS = "hosts";
-
-    private final String name;
-    private final Set<Host> hosts;
-    private final ProvisionAction provisionAction;
-
-    @JsonCreator
-    public Component(
-      @JsonProperty(COMPONENT_NAME) String name,
-      @JsonProperty(PROVISION_ACTION_PROPERTY) ProvisionAction provisionAction,
-      @JsonProperty(HOSTS) Set<Host> hosts
-    ) {
-      this.name = name;
-      this.provisionAction = provisionAction;
-      this.hosts = hosts != null ? ImmutableSet.copyOf(hosts) : ImmutableSet.of();
-    }
-
-    public static Component of(String name, String... hosts) {
-      return of(name, null, hosts);
-    }
-
-    public static Component of(String name, ProvisionAction provisionAction, String... hosts) {
-      return new Component(name, provisionAction, Arrays.stream(hosts).map(Host::new).collect(toSet()));
-    }
-
-    @JsonProperty(COMPONENT_NAME)
-    @ApiModelProperty(name = COMPONENT_NAME)
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(HOSTS)
-    @ApiModelProperty(name = HOSTS)
-    public Set<Host> getHosts() {
-      return hosts;
-    }
-
-    @JsonProperty(PROVISION_ACTION_PROPERTY)
-    @ApiModelProperty(name = PROVISION_ACTION_PROPERTY)
-    public ProvisionAction _getProvisionAction() {
-      return provisionAction;
-    }
-
-    @ApiIgnore @JsonIgnore
-    public Optional<ProvisionAction> getProvisionAction() {
-      return Optional.ofNullable(provisionAction);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      Component other = (Component) o;
-
-      return Objects.equals(name, other.name) &&
-        Objects.equals(hosts, other.hosts) &&
-        Objects.equals(provisionAction, other.provisionAction);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(name, hosts, provisionAction);
-    }
-
-    @Override
-    public String toString() {
-      return name;
-    }
-  }
-
-  public static final class Host {
-
-    static final String FQDN = "fqdn";
-
-    private final String fqdn;
-
-    @JsonCreator
-    public Host(@JsonProperty(FQDN) String fqdn) {
-      this.fqdn = fqdn;
-    }
-
-    @JsonProperty(FQDN)
-    @ApiModelProperty(name = FQDN)
-    public String getFqdn() {
-      return fqdn;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      Host other = (Host) o;
-
-      return Objects.equals(fqdn, other.fqdn);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(fqdn);
-    }
-
-    @Override
-    public String toString() {
-      return "host: " + fqdn;
-    }
-
-  }
-
-  @ApiModel
-  public static final class Service {
-
-    static final String NAME = "name";
-
-    private final String name;
-    private final ProvisionAction provisionAction;
-
-    @JsonCreator
-    public Service(
-      @JsonProperty(NAME) String name,
-      @JsonProperty(PROVISION_ACTION_PROPERTY) ProvisionAction provisionAction
-    ) {
-      this.name = name;
-      this.provisionAction = provisionAction;
-    }
-
-    public static Service of(String name) {
-      return of(name, null);
-    }
-
-    public static Service of(String name, ProvisionAction provisionAction) {
-      return new Service(name, provisionAction);
-    }
-
-    @JsonProperty(NAME)
-    @ApiModelProperty(name = NAME)
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(PROVISION_ACTION_PROPERTY)
-    @ApiModelProperty(name = PROVISION_ACTION_PROPERTY)
-    public ProvisionAction _getProvisionAction() {
-      return provisionAction;
-    }
-
-    @ApiIgnore @JsonIgnore
-    public Optional<ProvisionAction> getProvisionAction() {
-      return Optional.ofNullable(provisionAction);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      Service service = (Service) o;
-      return Objects.equals(name, service.name) &&
-        Objects.equals(provisionAction, service.provisionAction);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(name, provisionAction);
-    }
-
-    @Override
-    public String toString() {
-      return name;
-    }
-  }
 }

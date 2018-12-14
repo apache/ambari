@@ -33,7 +33,6 @@ import javax.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.RequestFactory;
-import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.Stack;
@@ -210,7 +209,7 @@ public class RequestValidator {
     Set<String> existingServices = cluster.getServices().keySet();
 
     // process service declarations
-    for (AddServiceRequest.Service service : request.getServices()) {
+    for (Service service : request.getServices()) {
       String serviceName = service.getName();
 
       CHECK.checkArgument(stack.getServices().contains(serviceName),
@@ -222,7 +221,7 @@ public class RequestValidator {
     }
 
     // process component declarations
-    for (AddServiceRequest.Component requestedComponent : request.getComponents()) {
+    for (Component requestedComponent : request.getComponents()) {
       String componentName = requestedComponent.getName();
       String serviceName = stack.getServiceForComponent(componentName);
 
@@ -232,7 +231,7 @@ public class RequestValidator {
         "Service %s (for component %s) already exists in cluster %s", serviceName, componentName, cluster.getClusterName());
 
       newServices.computeIfAbsent(serviceName, __ -> new HashMap<>())
-        .put(componentName, requestedComponent.getHosts().stream().map(AddServiceRequest.Host::getFqdn).collect(toSet()));
+        .put(componentName, requestedComponent.getHosts().stream().map(Host::getFqdn).collect(toSet()));
     }
 
     CHECK.checkArgument(!newServices.isEmpty(), "Request should have at least one new service or component to be added");

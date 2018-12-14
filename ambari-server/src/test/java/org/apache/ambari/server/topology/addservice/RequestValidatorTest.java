@@ -37,7 +37,6 @@ import java.util.function.Function;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.RequestFactory;
-import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.Cluster;
@@ -585,7 +584,7 @@ public class RequestValidatorTest extends EasyMockSupport {
   private void requestServices(boolean validated, String... services) {
     expect(request.getServices()).andReturn(
       Arrays.stream(services)
-        .map(AddServiceRequest.Service::of)
+        .map(org.apache.ambari.server.topology.addservice.Service::of)
         .collect(toSet())
     ).anyTimes();
     if (validated) {
@@ -607,7 +606,7 @@ public class RequestValidatorTest extends EasyMockSupport {
   private void requestComponents(String... components) {
     expect(request.getComponents()).andReturn(
       Arrays.stream(components)
-        .map(componentName -> AddServiceRequest.Component.of(componentName, "c7401.ambari.apache.org"))
+        .map(componentName -> Component.of(componentName, "c7401.ambari.apache.org"))
         .collect(toSet())
     );
   }
