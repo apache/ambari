@@ -30,7 +30,6 @@ import static org.apache.ambari.server.topology.Configurable.CONFIGURATIONS;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -102,25 +101,6 @@ public class AddServiceRequest {
     @JsonProperty(CREDENTIALS) Set<Credential> credentials,
     @JsonProperty(CONFIGURATIONS) Collection<? extends Map<String, ?>> configs
   ) {
-    this(operationType, recommendationStrategy, provisionAction, validationType, stackName, stackVersion, services, components,
-      security, credentials,
-      ConfigurableHelper.parseConfigs(configs)
-    );
-  }
-
-  private AddServiceRequest(
-    OperationType operationType,
-    ConfigRecommendationStrategy recommendationStrategy,
-    ProvisionAction provisionAction,
-    ValidationType validationType,
-    String stackName,
-    String stackVersion,
-    Set<Service> services,
-    Set<Component> components,
-    SecurityConfiguration security,
-    Set<Credential> credentials,
-    Configuration configuration
-  ) {
     this.operationType = null != operationType ? operationType : OperationType.ADD_SERVICE;
     this.recommendationStrategy = null != recommendationStrategy ? recommendationStrategy : ConfigRecommendationStrategy.defaultForAddService();
     this.provisionAction = null != provisionAction ? provisionAction : ProvisionAction.INSTALL_AND_START;
@@ -130,7 +110,7 @@ public class AddServiceRequest {
     this.services = null != services ? services : emptySet();
     this.components = null != components ? components : emptySet();
     this.security = security;
-    this.configuration = null != configuration ? configuration : new Configuration(new HashMap<>(), new HashMap<>());
+    this.configuration = null != configs ? ConfigurableHelper.parseConfigs(configs) : Configuration.newEmpty();
     this.credentials = null != credentials
       ? credentials.stream().collect(toMap(Credential::getAlias, Function.identity()))
       : ImmutableMap.of();
