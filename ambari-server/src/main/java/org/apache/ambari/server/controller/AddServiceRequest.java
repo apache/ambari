@@ -319,15 +319,25 @@ public class AddServiceRequest {
 
     private final String name;
     private final Set<Host> hosts;
+    private final ProvisionAction provisionAction;
 
     @JsonCreator
-    public Component(@JsonProperty(COMPONENT_NAME) String name, @JsonProperty(HOSTS) Set<Host> hosts) {
+    public Component(
+      @JsonProperty(COMPONENT_NAME) String name,
+      @JsonProperty(PROVISION_ACTION_PROPERTY) ProvisionAction provisionAction,
+      @JsonProperty(HOSTS) Set<Host> hosts
+    ) {
       this.name = name;
+      this.provisionAction = provisionAction;
       this.hosts = hosts != null ? ImmutableSet.copyOf(hosts) : ImmutableSet.of();
     }
 
     public static Component of(String name, String... hosts) {
-      return new Component(name, Arrays.stream(hosts).map(Host::new).collect(toSet()));
+      return of(name, null, hosts);
+    }
+
+    public static Component of(String name, ProvisionAction provisionAction, String... hosts) {
+      return new Component(name, provisionAction, Arrays.stream(hosts).map(Host::new).collect(toSet()));
     }
 
     @JsonProperty(COMPONENT_NAME)
@@ -342,6 +352,17 @@ public class AddServiceRequest {
       return hosts;
     }
 
+    @JsonProperty(PROVISION_ACTION_PROPERTY)
+    @ApiModelProperty(name = PROVISION_ACTION_PROPERTY)
+    public ProvisionAction _getProvisionAction() {
+      return provisionAction;
+    }
+
+    @ApiIgnore @JsonIgnore
+    public Optional<ProvisionAction> getProvisionAction() {
+      return Optional.ofNullable(provisionAction);
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) {
@@ -354,12 +375,13 @@ public class AddServiceRequest {
       Component other = (Component) o;
 
       return Objects.equals(name, other.name) &&
-        Objects.equals(hosts, other.hosts);
+        Objects.equals(hosts, other.hosts) &&
+        Objects.equals(provisionAction, other.provisionAction);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(name, hosts);
+      return Objects.hash(name, hosts, provisionAction);
     }
 
     @Override
@@ -417,14 +439,23 @@ public class AddServiceRequest {
     static final String NAME = "name";
 
     private final String name;
+    private final ProvisionAction provisionAction;
 
     @JsonCreator
-    public Service(@JsonProperty(NAME) String name) {
+    public Service(
+      @JsonProperty(NAME) String name,
+      @JsonProperty(PROVISION_ACTION_PROPERTY) ProvisionAction provisionAction
+    ) {
       this.name = name;
+      this.provisionAction = provisionAction;
     }
 
     public static Service of(String name) {
-      return new Service(name);
+      return of(name, null);
+    }
+
+    public static Service of(String name, ProvisionAction provisionAction) {
+      return new Service(name, provisionAction);
     }
 
     @JsonProperty(NAME)
@@ -433,17 +464,29 @@ public class AddServiceRequest {
       return name;
     }
 
+    @JsonProperty(PROVISION_ACTION_PROPERTY)
+    @ApiModelProperty(name = PROVISION_ACTION_PROPERTY)
+    public ProvisionAction _getProvisionAction() {
+      return provisionAction;
+    }
+
+    @ApiIgnore @JsonIgnore
+    public Optional<ProvisionAction> getProvisionAction() {
+      return Optional.ofNullable(provisionAction);
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       Service service = (Service) o;
-      return Objects.equals(name, service.name);
+      return Objects.equals(name, service.name) &&
+        Objects.equals(provisionAction, service.provisionAction);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(name);
+      return Objects.hash(name, provisionAction);
     }
 
     @Override

@@ -7,13 +7,14 @@
   "stack_version" : "3.0",
 
   "services": [
-    { "name" : "STORM" },
+    { "name" : "STORM", "provision_action": "INSTALL_AND_START" },
     { "name" : "BEACON" }
   ],
 
   "components" : [
     {
       "name" : "NIMBUS",
+      "provision_action" : "START_ONLY",
       "hosts": [
         { "fqdn" : "c7401.ambari.apache.org" },
         { "fqdn" : "c7402.ambari.apache.org" }
