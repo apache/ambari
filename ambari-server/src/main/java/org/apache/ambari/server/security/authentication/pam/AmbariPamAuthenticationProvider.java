@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.security.authentication.pam;
 
+import static org.apache.ambari.server.security.authentication.AmbariAuthenticationException.AmbariAuthenticationExceptionBuilder.anAmbariAuthenticationException;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -30,13 +32,13 @@ import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authentication.AccountDisabledException;
-import org.apache.ambari.server.security.authentication.AmbariAuthenticationException;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationProvider;
 import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authentication.AmbariUserDetails;
 import org.apache.ambari.server.security.authentication.AmbariUserDetailsImpl;
 import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.GroupType;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.Users;
@@ -79,6 +81,7 @@ public class AmbariPamAuthenticationProvider extends AmbariAuthenticationProvide
       }
 
       String userName = authentication.getName().trim();
+      String proxyUserName = AuthorizationHelper.getProxyUserName(authentication);
 
       if (authentication.getCredentials() == null) {
         LOG.info("Authentication failed: no credentials provided: {}", userName);
@@ -122,7 +125,7 @@ public class AmbariPamAuthenticationProvider extends AmbariAuthenticationProvide
       }
 
       // Perform authentication....
-      UnixUser unixUser = performPAMAuthentication(ambariUsername, localUsername, password);
+      UnixUser unixUser = performPAMAuthentication(ambariUsername, localUsername, password, proxyUserName);
 
       if (unixUser != null) {
         // Authentication was successful via PAM.  Make sure that the user exists and has a PAM
@@ -132,8 +135,14 @@ public class AmbariPamAuthenticationProvider extends AmbariAuthenticationProvide
           try {
             userEntity = users.createUser(ambariUsername, unixUser.getUserName(), ambariUsername, true);
           } catch (AmbariException e) {
-            LOG.error(String.format("Failed to add the user, %s: %s", ambariUsername, e.getLocalizedMessage()), e);
-            throw new AmbariAuthenticationException(ambariUsername, "Unexpected error has occurred", false, e);
+            LOG.error("Failed to add the user, {}: {}", ambariUsername, e.getLocalizedMessage(), e);
+            throw anAmbariAuthenticationException()
+                .withUsername(ambariUsername)
+                .withProxyUserName(proxyUserName)
+                .withMessage("Unexpected error has occurred")
+                .withCredentialFailure(false)
+                .withTrowable(e)
+                .build();
           }
         } else {
           // Ensure the user is allowed to login....
@@ -155,8 +164,14 @@ public class AmbariPamAuthenticationProvider extends AmbariAuthenticationProvide
           try {
             users.addPamAuthentication(userEntity, unixUser.getUserName());
           } catch (AmbariException e) {
-            LOG.error(String.format("Failed to add the PAM authentication method for %s: %s", ambariUsername, e.getLocalizedMessage()), e);
-            throw new AmbariAuthenticationException(ambariUsername, "Unexpected error has occurred", false, e);
+            LOG.error("Failed to add the PAM authentication method for {}: {}", ambariUsername, e.getLocalizedMessage(), e);
+            throw anAmbariAuthenticationException()
+                .withUsername(ambariUsername)
+                .withProxyUserName(proxyUserName)
+                .withMessage("Unexpected error has occurred")
+                .withCredentialFailure(false)
+                .withTrowable(e)
+                .build();
           }
         }
 
@@ -170,7 +185,7 @@ public class AmbariPamAuthenticationProvider extends AmbariAuthenticationProvide
 
 
       // The user was not authenticated, catch-all fail
-      LOG.debug(String.format("Authentication failed: password does not match stored value: %s", localUsername));
+      LOG.debug("Authentication failed: password does not match stored value: {}", localUsername);
       throw new InvalidUsernamePasswordCombinationException(ambariUsername);
     } else {
       return null;
@@ -185,13 +200,18 @@ public class AmbariPamAuthenticationProvider extends AmbariAuthenticationProvide
    * @param password       the password to use for authenticating
    * @return the resulting user object
    */
-  private UnixUser performPAMAuthentication(String ambariUsername, String localUsername, String password) {
+  private UnixUser performPAMAuthentication(String ambariUsername, String localUsername, String password, String proxyUserName) {
     PAM pam = pamAuthenticationFactory.createInstance(getConfiguration());
 
     if (pam == null) {
       String message = "Failed to authenticate the user using the PAM authentication method: unexpected error";
       LOG.error(message);
-      throw new AmbariAuthenticationException(ambariUsername, message, false);
+      throw anAmbariAuthenticationException()
+          .withUsername(ambariUsername)
+          .withProxyUserName(proxyUserName)
+          .withMessage(message)
+          .withCredentialFailure(false)
+          .build();
     } else {
       if (LOG.isDebugEnabled() && !ambariUsername.equals(localUsername)) {
         LOG.debug("Authenticating Ambari user {} using the local username {}", ambariUsername, localUsername);
@@ -202,7 +222,7 @@ public class AmbariPamAuthenticationProvider extends AmbariAuthenticationProvide
         return pam.authenticate(localUsername, password);
       } catch (PAMException e) {
         // The user was not authenticated, fail
-        LOG.debug(String.format("Authentication failed: password does not match stored value: %s", localUsername), e);
+        LOG.debug("Authentication failed: password does not match stored value: {}", localUsername, e);
         throw new InvalidUsernamePasswordCombinationException(ambariUsername, true, e);
       } finally {
         pam.dispose();

@@ -206,13 +206,13 @@ public class ControllerModule extends AbstractModule {
 
   // ----- Constructors ------------------------------------------------------
 
-  public ControllerModule() throws Exception {
+  public ControllerModule() {
     configuration = new Configuration();
     hostsMap = new HostsMap(configuration);
     os_family = new OsFamily(configuration);
   }
 
-  public ControllerModule(Properties properties) throws Exception {
+  public ControllerModule(Properties properties) {
     configuration = new Configuration(properties);
     hostsMap = new HostsMap(configuration);
     os_family = new OsFamily(configuration);
@@ -572,7 +572,7 @@ public class ControllerModule extends AbstractModule {
 
       matchedClasses = ClasspathScannerUtils.findOnClassPath(AMBARI_PACKAGE, new ArrayList<>(), classes);
 
-      if (null == matchedClasses || matchedClasses.size() == 0) {
+      if (null == matchedClasses || matchedClasses.isEmpty()) {
         LOG.warn("No instances of {} found to register", classes);
         return matchedClasses;
       }

@@ -108,7 +108,7 @@ public class AmbariAuthenticationEventHandlerImpl implements AmbariAuthenticatio
       incrementFailureCount = false;
     } else {
       username = cause.getUsername();
-      proxyUser = RequestUtils.getQueryStringParameterValue(servletRequest, "doAs");
+      proxyUser = cause.getProxyUserName();
       message = cause.getLocalizedMessage();
       incrementFailureCount = cause.isCredentialFailure();
     }

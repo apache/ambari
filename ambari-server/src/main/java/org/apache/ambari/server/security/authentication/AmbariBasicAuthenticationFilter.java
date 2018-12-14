@@ -17,7 +17,10 @@
  */
 package org.apache.ambari.server.security.authentication;
 
+import static org.apache.ambari.server.security.authentication.AmbariAuthenticationException.AmbariAuthenticationExceptionBuilder.anAmbariAuthenticationException;
+
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -150,7 +153,7 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
   @Override
   protected void onSuccessfulAuthentication(HttpServletRequest servletRequest,
                                             HttpServletResponse servletResponse,
-                                            Authentication authResult) throws IOException {
+                                            Authentication authResult) {
 
     if (eventHandler != null) {
       eventHandler.onSuccessfulAuthentication(this, servletRequest, servletResponse, authResult);
@@ -168,7 +171,7 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
   @Override
   protected void onUnsuccessfulAuthentication(HttpServletRequest servletRequest,
                                               HttpServletResponse servletResponse,
-                                              AuthenticationException authException) throws IOException {
+                                              AuthenticationException authException) {
     if (eventHandler != null) {
       AmbariAuthenticationException cause;
       if (authException instanceof AmbariAuthenticationException) {
@@ -181,8 +184,14 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
         } catch (Exception e) {
           LOG.warn("Error occurred during decoding authorization header.", e);
         }
-
-        cause = new AmbariAuthenticationException(username, authException.getMessage(), false, authException);
+        String proxyUser = RequestUtils.getQueryStringParameterValue(servletRequest, "doAs");
+        cause = anAmbariAuthenticationException()
+            .withUsername(username)
+            .withProxyUserName(proxyUser)
+            .withMessage(authException.getMessage())
+            .withCredentialFailure(false)
+            .withTrowable(authException)
+            .build();
       }
 
       eventHandler.onUnsuccessfulAuthentication(this, servletRequest, servletResponse, cause);
@@ -198,7 +207,7 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
    * @throws IOException
    */
   private String getUsernameFromAuth(String authenticationValue, String charSet) throws IOException {
-    byte[] base64Token = authenticationValue.substring(6).getBytes("UTF-8");
+    byte[] base64Token = authenticationValue.substring(6).getBytes(StandardCharsets.UTF_8);
 
     byte[] decoded;
     try {
@@ -208,7 +217,7 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
     }
 
     String token = new String(decoded, charSet);
-    int delimiter = token.indexOf(":");
+    int delimiter = token.indexOf(':');
     if (delimiter == -1) {
       throw new BadCredentialsException("Invalid basic authentication token");
     } else {
