@@ -524,7 +524,7 @@ public class RequestValidatorTest extends EasyMockSupport {
     Exception e = assertThrows(IllegalArgumentException.class, validation);
     if (expectedMessage != null) {
       assertTrue(e.getMessage().contains(expectedMessage));
-    };
+    }
 
     resetAll();
     setUp();
