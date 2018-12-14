@@ -115,9 +115,10 @@ public class RequestValidator {
     CHECK.checkState(!serviceInfoCreated.getAndSet(true), "Can create only one instance for each validated add service request");
 
     RequestStageContainer stages = new RequestStageContainer(actionManager.getNextRequestId(), null, requestFactory, actionManager);
-    AddServiceInfo validatedRequest = new AddServiceInfo(request, cluster.getClusterName(),
-      state.getStack(), state.getConfig(), state.getKerberosDescriptor(),
-      stages, state.getNewServices(), null);
+    AddServiceInfo validatedRequest = new AddServiceInfo(request, cluster.getClusterName(), stages,
+      state.getStack(), state.getConfig(), state.getNewServices(), state.getKerberosDescriptor(),
+      null
+    );
     stages.setRequestContext(validatedRequest.describe());
     return validatedRequest;
   }

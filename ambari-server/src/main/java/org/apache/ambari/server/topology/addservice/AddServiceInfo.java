@@ -45,11 +45,22 @@ public final class AddServiceInfo {
   public AddServiceInfo(
     AddServiceRequest request,
     String clusterName,
+    RequestStageContainer stages,
     Stack stack,
     Configuration config,
-    KerberosDescriptor kerberosDescriptor,
+    Map<String, Map<String, Set<String>>> newServices
+  ) {
+    this(request, clusterName, stages, stack, config, newServices, null, null);
+  }
+
+  AddServiceInfo(
+    AddServiceRequest request,
+    String clusterName,
     RequestStageContainer stages,
+    Stack stack,
+    Configuration config,
     Map<String, Map<String, Set<String>>> newServices,
+    KerberosDescriptor kerberosDescriptor,
     LayoutRecommendationInfo recommendationInfo
   ) {
     this.request = request;
@@ -64,11 +75,11 @@ public final class AddServiceInfo {
 
   public AddServiceInfo withLayoutRecommendation(Map<String, Map<String, Set<String>>> services,
                                                  LayoutRecommendationInfo recommendation) {
-    return new AddServiceInfo(request, clusterName, stack, config, kerberosDescriptor, stages, services, recommendation);
+    return new AddServiceInfo(request, clusterName, stages, stack, config, services, kerberosDescriptor, recommendation);
   }
 
   public AddServiceInfo withConfig(Configuration newConfig) {
-    return new AddServiceInfo(request, clusterName, stack, newConfig, kerberosDescriptor, stages, newServices, recommendationInfo);
+    return new AddServiceInfo(request, clusterName, stages, stack, newConfig, newServices, kerberosDescriptor, recommendationInfo);
   }
 
   @Override
