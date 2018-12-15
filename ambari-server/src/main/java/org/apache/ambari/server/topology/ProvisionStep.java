@@ -20,9 +20,9 @@ package org.apache.ambari.server.topology;
 import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_INITIAL_INSTALL;
 import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_INITIAL_START;
 import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_PROPERTY;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.FOR_NO_COMPONENTS;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.DO_NOT_SKIP_INSTALL_FOR_COMPONENTS;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.FOR_ALL_COMPONENTS;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.FOR_NO_COMPONENTS;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.SKIP_INSTALL_FOR_COMPONENTS;
 
 import java.util.Map;
