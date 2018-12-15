@@ -43,7 +43,7 @@ import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
-import org.apache.ambari.server.controller.predicate.InPredicate;
+import org.apache.ambari.server.controller.predicate.OrPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -422,9 +422,13 @@ public class ResourceProviderAdapter {
   }
 
   private static Predicate predicateForNewServices(AddServiceInfo request) {
-    return AndPredicate.instance(
+    return new AndPredicate(
       new EqualsPredicate<>(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, request.clusterName()),
-      new InPredicate(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, request.newServices().keySet())
+      OrPredicate.of(
+        request.newServices().keySet().stream()
+          .map(service -> new EqualsPredicate<>(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, service))
+          .collect(toList())
+      )
     );
   }
 

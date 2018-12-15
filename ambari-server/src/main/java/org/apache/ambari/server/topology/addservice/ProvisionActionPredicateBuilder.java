@@ -38,12 +38,11 @@ import java.util.Set;
 import java.util.function.Function;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
-import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
-import org.apache.ambari.server.controller.predicate.InPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.topology.ProvisionStep;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -98,8 +97,10 @@ public class ProvisionActionPredicateBuilder {
             }
 
             Set<String> leftoverHosts = ImmutableSet.copyOf(Sets.difference(allHosts, customActionHosts));
-            Predicate componentPredicate = predicateForComponentHosts(componentName, leftoverHosts);
-            classifyItem(serviceAction, componentPredicate, componentPredicatesByStep);
+            if (!leftoverHosts.isEmpty()) {
+              Predicate componentPredicate = predicateForComponentHosts(componentName, leftoverHosts);
+              classifyItem(serviceAction, componentPredicate, componentPredicatesByStep);
+            }
           } else {
             Predicate componentPredicate = predicateForComponent(componentName);
             classifyItem(serviceAction, componentPredicate, componentPredicatesByStep);
@@ -200,13 +201,17 @@ public class ProvisionActionPredicateBuilder {
   }
 
   private static Predicate predicateForComponentHosts(String componentName, Set<String> hosts) {
-    return new AndPredicate(
-      predicateForComponent(componentName),
-      new InPredicate(HOST_NAME, hosts)
-    );
+    Preconditions.checkNotNull(hosts);
+    Preconditions.checkArgument(!hosts.isEmpty());
+    Set<Predicate> hostPredicates = hosts.stream().map(ProvisionActionPredicateBuilder::predicateForHostname).collect(toSet());
+    return anyOf(hostPredicates).map(and(predicateForComponent(componentName))).get();
   }
 
   private static Predicate predicateForComponent(String componentName) {
     return new EqualsPredicate<>(COMPONENT_NAME, componentName);
+  }
+
+  private static Predicate predicateForHostname(String hostname) {
+    return new EqualsPredicate<>(HOST_NAME, hostname);
   }
 }
