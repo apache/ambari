@@ -19,11 +19,6 @@ package org.apache.ambari.server.topology.addservice;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_PROPERTY;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.DO_NOT_SKIP_INSTALL_FOR_ANY_COMPONENTS;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.DO_NOT_SKIP_INSTALL_FOR_COMPONENTS;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.SKIP_INSTALL_FOR_ALL_COMPONENTS;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.SKIP_INSTALL_FOR_COMPONENTS;
 
 import java.util.List;
 import java.util.Map;
@@ -37,21 +32,18 @@ import javax.inject.Singleton;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
-import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
-import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
-import org.apache.ambari.server.controller.predicate.OrPredicate;
+import org.apache.ambari.server.controller.predicate.InPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -64,13 +56,13 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.topology.Credential;
+import org.apache.ambari.server.topology.ProvisionStep;
 import org.apache.ambari.server.utils.LoggingPreconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -198,12 +190,13 @@ public class ResourceProviderAdapter {
       ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, desiredState.name()
     ));
     Map<String, String> requestInfo = createRequestInfo(request.clusterName(), Resource.Type.Service).build();
-    Predicate predicate = predicateForNewServices(request, "ServiceInfo");
+    Predicate predicate = predicateForNewServices(request);
     updateResources(request, properties, Resource.Type.Service, predicate, requestInfo);
   }
 
-  public void updateHostComponentDesiredState(AddServiceInfo request, State desiredState) {
-    LOG.info("Updating host component desired state to {} for {}", desiredState, request);
+  public void updateHostComponentDesiredState(AddServiceInfo request, Predicate predicate, ProvisionStep step) {
+    State desiredState = step.getDesiredStateToSet();
+    LOG.info("Updating host component desired state to {} per {} for {}", desiredState, step, request);
 
     Set<Map<String, Object>> properties = ImmutableSet.of(ImmutableMap.of(
       HostComponentResourceProvider.STATE, desiredState.name(),
@@ -211,12 +204,12 @@ public class ResourceProviderAdapter {
     ));
 
     ImmutableMap.Builder<String, String> requestInfo = createRequestInfo(request.clusterName(), Resource.Type.HostComponent);
-    addProvisionProperties(requestInfo, desiredState, request.getRequest().getProvisionAction());
+    requestInfo.putAll(step.getProvisionProperties());
 
     HostComponentResourceProvider rp = (HostComponentResourceProvider) getClusterController().ensureResourceProvider(Resource.Type.HostComponent);
     Request internalRequest = createRequest(properties, requestInfo.build(), null);
     try {
-      rp.doUpdateResources(request.getStages(), internalRequest, predicateForNewServices(request, HostComponentResourceProvider.HOST_ROLES), false, false, false);
+      rp.doUpdateResources(request.getStages(), internalRequest, predicate, false, false, false);
     } catch (UnsupportedPropertyException | SystemException | NoSuchParentResourceException | NoSuchResourceException e) {
       CHECK.wrapInUnchecked(e, RuntimeException::new, "Error updating host component desired state for %s", request);
     }
@@ -276,14 +269,6 @@ public class ResourceProviderAdapter {
     return new ImmutableMap.Builder<String, String>()
       .put(RequestOperationLevel.OPERATION_LEVEL_ID, RequestOperationLevel.getExternalLevelName(resourceType.name()))
       .put(RequestOperationLevel.OPERATION_CLUSTER_ID, clusterName);
-  }
-
-  private static void addProvisionProperties(ImmutableMap.Builder<String, String> requestInfo, State desiredState, ProvisionAction requestAction) {
-    if (desiredState == State.INSTALLED && requestAction.skipInstall()) {
-      requestInfo.put(SKIP_INSTALL_FOR_COMPONENTS, SKIP_INSTALL_FOR_ALL_COMPONENTS);
-      requestInfo.put(DO_NOT_SKIP_INSTALL_FOR_COMPONENTS, DO_NOT_SKIP_INSTALL_FOR_ANY_COMPONENTS);
-      requestInfo.put(CLUSTER_PHASE_PROPERTY, AmbariManagementControllerImpl.CLUSTER_PHASE_INITIAL_INSTALL);
-    }
   }
 
   public static Map<String, String> requestInfoForKerberosDescriptor(KerberosDescriptor descriptor) {
@@ -440,14 +425,10 @@ public class ResourceProviderAdapter {
       .end().toPredicate();
   }
 
-  private static Predicate predicateForNewServices(AddServiceInfo request, String category) {
-    return new AndPredicate(
-      new EqualsPredicate<>(PropertyHelper.getPropertyId(category, ClusterResourceProvider.CLUSTER_NAME), request.clusterName()),
-      new OrPredicate(
-        request.newServices().keySet().stream()
-          .map(service -> new EqualsPredicate<>(PropertyHelper.getPropertyId(category, "service_name"), service))
-          .toArray(Predicate[]::new)
-      )
+  private static Predicate predicateForNewServices(AddServiceInfo request) {
+    return AndPredicate.instance(
+      new EqualsPredicate<>(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, request.clusterName()),
+      new InPredicate(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, request.newServices().keySet())
     );
   }
 

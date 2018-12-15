@@ -175,8 +175,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   public static final String SKIP_INSTALL_FOR_COMPONENTS = "skipInstallForComponents";
   public static final String DO_NOT_SKIP_INSTALL_FOR_COMPONENTS = "dontSkipInstallForComponents";
   public static final String ALL_COMPONENTS = "ALL";
-  public static final String SKIP_INSTALL_FOR_ALL_COMPONENTS = joinComponentList(ImmutableSet.of(ALL_COMPONENTS));
-  public static final String DO_NOT_SKIP_INSTALL_FOR_ANY_COMPONENTS = joinComponentList(ImmutableSet.of());
+  public static final String FOR_ALL_COMPONENTS = joinComponentList(ImmutableSet.of(ALL_COMPONENTS));
+  public static final String FOR_NO_COMPONENTS = joinComponentList(ImmutableSet.of());
 
   /**
    * maintenance state helper
@@ -452,7 +452,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       CLUSTER_PHASE_INITIAL_INSTALL.equals(requestProperties.get(CLUSTER_PHASE_PROPERTY)) &&
       skipInstallForComponents != null &&
       (skipInstallForComponents.contains(searchString) ||
-        (skipInstallForComponents.equals(SKIP_INSTALL_FOR_ALL_COMPONENTS) &&
+        (skipInstallForComponents.equals(FOR_ALL_COMPONENTS) &&
           !requestProperties.get(DO_NOT_SKIP_INSTALL_FOR_COMPONENTS).contains(searchString))
       );
   }

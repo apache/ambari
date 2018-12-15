@@ -18,27 +18,33 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.List;
+
+import org.apache.ambari.server.topology.ProvisionStep;
+
+import com.google.common.collect.ImmutableList;
+
 public enum ProvisionAction {
   INSTALL_ONLY {
     @Override
-    public boolean skipStart() {
-      return true;
+    public List<ProvisionStep> getSteps() {
+      return ImmutableList.of(ProvisionStep.INSTALL);
     }
   },
   START_ONLY {
     @Override
-    public boolean skipInstall() {
-      return true;
+    public List<ProvisionStep> getSteps() {
+      return ImmutableList.of(ProvisionStep.SKIP_INSTALL, ProvisionStep.START);
     }
   },
-  INSTALL_AND_START, // Default action
+  INSTALL_AND_START {
+    @Override
+    public List<ProvisionStep> getSteps() {
+      return ImmutableList.of(ProvisionStep.INSTALL, ProvisionStep.START);
+    }
+  },
   ;
 
-  public boolean skipInstall() {
-    return false;
-  }
+  public abstract List<ProvisionStep> getSteps();
 
-  public boolean skipStart() {
-    return false;
-  }
 }

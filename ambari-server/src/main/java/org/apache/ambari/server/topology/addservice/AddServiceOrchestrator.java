@@ -40,6 +40,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.ProvisionStep;
 import org.apache.ambari.server.utils.LoggingPreconditions;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
@@ -159,9 +160,8 @@ public class AddServiceOrchestrator {
     resourceProviders.createComponents(request);
 
     resourceProviders.updateServiceDesiredState(request, State.INSTALLED);
-    if (!request.getRequest().getProvisionAction().skipStart()) {
-      resourceProviders.updateServiceDesiredState(request, State.STARTED);
-    }
+    resourceProviders.updateServiceDesiredState(request, State.STARTED);
+
     resourceProviders.createHostComponents(request);
 
     configureKerberos(request, cluster, existingServices);
@@ -194,11 +194,13 @@ public class AddServiceOrchestrator {
   }
 
   private void createHostTasks(AddServiceInfo request) {
-    LOG.info("Creating host tasks for {}: {}", request, request.getRequest().getProvisionAction());
+    LOG.info("Creating host tasks for {}", request);
 
-    resourceProviders.updateHostComponentDesiredState(request, State.INSTALLED);
-    if (!request.getRequest().getProvisionAction().skipStart()) {
-      resourceProviders.updateHostComponentDesiredState(request, State.STARTED);
+    ProvisionActionPredicateBuilder predicates = new ProvisionActionPredicateBuilder(request);
+    for (ProvisionStep step : ProvisionStep.values()) {
+      predicates.getPredicate(step).ifPresent(predicate ->
+        resourceProviders.updateHostComponentDesiredState(request, predicate, step)
+      );
     }
 
     try {
