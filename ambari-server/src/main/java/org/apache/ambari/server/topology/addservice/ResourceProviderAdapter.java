@@ -19,6 +19,7 @@ package org.apache.ambari.server.topology.addservice;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.controller.internal.RequestResourceProvider.CONTEXT;
 
 import java.util.List;
 import java.util.Map;
@@ -201,7 +202,7 @@ public class ResourceProviderAdapter {
 
     Set<Map<String, Object>> properties = ImmutableSet.of(ImmutableMap.of(
       HostComponentResourceProvider.STATE, desiredState.name(),
-      "context", String.format("Put new components to %s state", desiredState)
+      CONTEXT, String.format("Put new components to %s state", desiredState)
     ));
 
     Map<String, String> requestInfo = new ImmutableMap.Builder<String, String>()

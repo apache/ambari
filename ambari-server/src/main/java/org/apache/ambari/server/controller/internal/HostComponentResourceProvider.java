@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_INITIAL_INSTALL;
 import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_INITIAL_START;
 import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_PROPERTY;
+import static org.apache.ambari.server.controller.internal.RequestResourceProvider.CONTEXT;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -394,7 +395,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     installProperties.put(DESIRED_STATE, "INSTALLED");
     Map<String, String> requestInfo = new HashMap<>();
-    requestInfo.put("context", String.format("Install components on host %s", hostname));
+    requestInfo.put(CONTEXT, String.format("Install components on host %s", hostname));
     requestInfo.put(CLUSTER_PHASE_PROPERTY, CLUSTER_PHASE_INITIAL_INSTALL);
     // although the operation is really for a specific host, the level needs to be set to HostComponent
     // to make sure that any service in maintenance mode does not prevent install/start on the new host during scale-up
@@ -470,7 +471,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       UnsupportedPropertyException, NoSuchParentResourceException {
 
     Map<String, String> requestInfo = new HashMap<>();
-    requestInfo.put("context", String.format("Start components on host %s", hostName));
+    requestInfo.put(CONTEXT, String.format("Start components on host %s", hostName));
     requestInfo.put(CLUSTER_PHASE_PROPERTY, CLUSTER_PHASE_INITIAL_START);
     // see rationale for marking the operation as HostComponent-level at "Install components on host"
     requestInfo.putAll(RequestOperationLevel.propertiesFor(Resource.Type.HostComponent, cluster));

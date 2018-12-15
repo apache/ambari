@@ -127,6 +127,7 @@ import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
+import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.internal.WidgetLayoutResourceProvider;
@@ -275,11 +276,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariManagementControllerImpl.class);
   private final static Logger configChangeLog = LoggerFactory.getLogger("configchange");
-
-  /**
-   * Property name of request context.
-   */
-  private static final String REQUEST_CONTEXT_PROPERTY = "context";
 
   private static final Type hostAttributesType =
           new TypeToken<Map<String, String>>() {}.getType();
@@ -2910,7 +2906,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
 
       Stage stage = createNewStage(requestStages.getLastStageId(), cluster,
-          requestStages.getId(), requestProperties.get(REQUEST_CONTEXT_PROPERTY),
+          requestStages.getId(), requestProperties.get(RequestResourceProvider.CONTEXT),
           "{}", null);
       boolean skipFailure = false;
       if (requestProperties.containsKey(Setting.SETTING_NAME_SKIP_FAILURE) && requestProperties.get(Setting.SETTING_NAME_SKIP_FAILURE).equalsIgnoreCase("true")) {
@@ -3810,7 +3806,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     LOG.debug("Refresh include/exclude files action will be executed for " + serviceMasterMap);
     HashMap<String, String> requestProperties = new HashMap<>();
-    requestProperties.put("context", "Update Include/Exclude Files for " + serviceMasterMap.keySet().toString());
+    requestProperties.put(RequestResourceProvider.CONTEXT, "Update Include/Exclude Files for " + serviceMasterMap.keySet().toString());
     HashMap<String, String> params = new HashMap<>();
     params.put(AmbariCustomCommandExecutionHelper.UPDATE_FILES_ONLY, String.valueOf(isDecommission));
 
@@ -4164,7 +4160,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String requestContext = "";
 
     if (requestProperties != null) {
-      requestContext = requestProperties.get(REQUEST_CONTEXT_PROPERTY);
+      requestContext = requestProperties.get(RequestResourceProvider.CONTEXT);
       if (requestContext == null) {
         // guice needs a non-null value as there is no way to mark this parameter @Nullable
         requestContext = "";
