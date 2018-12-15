@@ -189,7 +189,7 @@ public class ResourceProviderAdapter {
     Set<Map<String, Object>> properties = ImmutableSet.of(ImmutableMap.of(
       ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, desiredState.name()
     ));
-    Map<String, String> requestInfo = createRequestInfo(request.clusterName(), Resource.Type.Service).build();
+    Map<String, String> requestInfo = RequestOperationLevel.propertiesFor(Resource.Type.Service, request.clusterName());
     Predicate predicate = predicateForNewServices(request);
     updateResources(request, properties, Resource.Type.Service, predicate, requestInfo);
   }
@@ -203,11 +203,13 @@ public class ResourceProviderAdapter {
       "context", String.format("Put new components to %s state", desiredState)
     ));
 
-    ImmutableMap.Builder<String, String> requestInfo = createRequestInfo(request.clusterName(), Resource.Type.HostComponent);
-    requestInfo.putAll(step.getProvisionProperties());
+    Map<String, String> requestInfo = new ImmutableMap.Builder<String, String>()
+      .putAll(RequestOperationLevel.propertiesFor(Resource.Type.HostComponent, request.clusterName()))
+      .putAll(step.getProvisionProperties())
+      .build();
 
     HostComponentResourceProvider rp = (HostComponentResourceProvider) getClusterController().ensureResourceProvider(Resource.Type.HostComponent);
-    Request internalRequest = createRequest(properties, requestInfo.build(), null);
+    Request internalRequest = createRequest(properties, requestInfo, null);
     try {
       rp.doUpdateResources(request.getStages(), internalRequest, predicate, false, false, false);
     } catch (UnsupportedPropertyException | SystemException | NoSuchParentResourceException | NoSuchResourceException e) {
@@ -263,12 +265,6 @@ public class ResourceProviderAdapter {
 
   private static Request createRequest(Set<Map<String, Object>> properties, Map<String, String> requestInfoProperties, Set<String> propertyIds) {
     return new RequestImpl(propertyIds, properties, requestInfoProperties, null);
-  }
-
-  private static ImmutableMap.Builder<String, String> createRequestInfo(String clusterName, Resource.Type resourceType) {
-    return new ImmutableMap.Builder<String, String>()
-      .put(RequestOperationLevel.OPERATION_LEVEL_ID, RequestOperationLevel.getExternalLevelName(resourceType.name()))
-      .put(RequestOperationLevel.OPERATION_CLUSTER_ID, clusterName);
   }
 
   public static Map<String, String> requestInfoForKerberosDescriptor(KerberosDescriptor descriptor) {
