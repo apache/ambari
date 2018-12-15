@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -222,6 +223,23 @@ public class RequestValidatorTest extends EasyMockSupport {
 
     Map<String, Map<String, Set<String>>> expectedNewServices = ImmutableMap.of(
       "KAFKA", ImmutableMap.of("KAFKA_BROKER", ImmutableSet.of("c7401.ambari.apache.org"))
+    );
+    assertEquals(expectedNewServices, validator.getState().getNewServices());
+  }
+
+  @Test
+  public void handlesMultipleComponentInstances() {
+    expect(request.getComponents()).andReturn(
+      Stream.of("c7401", "c7402")
+        .map(hostname -> Component.of("KAFKA_BROKER", hostname))
+        .collect(toSet()));
+    validator.setState(RequestValidator.State.INITIAL.with(simpleMockStack()));
+    replayAll();
+
+    validator.validateServicesAndComponents();
+
+    Map<String, Map<String, Set<String>>> expectedNewServices = ImmutableMap.of(
+      "KAFKA", ImmutableMap.of("KAFKA_BROKER", ImmutableSet.of("c7401", "c7402"))
     );
     assertEquals(expectedNewServices, validator.getState().getNewServices());
   }

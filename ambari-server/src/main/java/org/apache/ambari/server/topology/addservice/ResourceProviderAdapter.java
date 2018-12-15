@@ -197,6 +197,7 @@ public class ResourceProviderAdapter {
   public void updateHostComponentDesiredState(AddServiceInfo request, Predicate predicate, ProvisionStep step) {
     State desiredState = step.getDesiredStateToSet();
     LOG.info("Updating host component desired state to {} per {} for {}", desiredState, step, request);
+    LOG.debug("Using predicate {}", predicate);
 
     Set<Map<String, Object>> properties = ImmutableSet.of(ImmutableMap.of(
       HostComponentResourceProvider.STATE, desiredState.name(),

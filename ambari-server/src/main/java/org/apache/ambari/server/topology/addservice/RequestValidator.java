@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toSet;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -232,7 +233,8 @@ public class RequestValidator {
         "Service %s (for component %s) already exists in cluster %s", serviceName, componentName, cluster.getClusterName());
 
       newServices.computeIfAbsent(serviceName, __ -> new HashMap<>())
-        .put(componentName, requestedComponent.getHosts().stream().map(Host::getFqdn).collect(toSet()));
+        .computeIfAbsent(componentName, __ -> new HashSet<>())
+        .addAll(requestedComponent.getHosts().stream().map(Host::getFqdn).collect(toSet()));
     }
 
     CHECK.checkArgument(!newServices.isEmpty(), "Request should have at least one new service or component to be added");
