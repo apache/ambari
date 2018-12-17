@@ -17,12 +17,14 @@
  */
 package org.apache.ambari.server.topology.addservice;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -53,7 +55,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
 import com.google.common.collect.Sets;
 import com.google.inject.assistedinject.Assisted;
 
@@ -207,6 +212,7 @@ public class RequestValidator {
   void validateServicesAndComponents() {
     Stack stack = state.getStack();
     Map<String, Map<String, Set<String>>> newServices = new LinkedHashMap<>();
+    Map<String, Map<String, Multiset<String>>> withAllHosts = new LinkedHashMap<>();
 
     Set<String> existingServices = cluster.getServices().keySet();
 
@@ -232,12 +238,26 @@ public class RequestValidator {
       CHECK.checkArgument(!existingServices.contains(serviceName),
         "Service %s (for component %s) already exists in cluster %s", serviceName, componentName, cluster.getClusterName());
 
+      List<String> hosts = requestedComponent.getHosts().stream().map(Host::getFqdn).collect(toList());
       newServices.computeIfAbsent(serviceName, __ -> new HashMap<>())
         .computeIfAbsent(componentName, __ -> new HashSet<>())
-        .addAll(requestedComponent.getHosts().stream().map(Host::getFqdn).collect(toSet()));
+        .addAll(hosts);
+      withAllHosts.computeIfAbsent(serviceName, __ -> new HashMap<>())
+        .computeIfAbsent(componentName, __ -> HashMultiset.create())
+        .addAll(hosts);
     }
 
     CHECK.checkArgument(!newServices.isEmpty(), "Request should have at least one new service or component to be added");
+
+    newServices.forEach(
+      (service, components) -> components.forEach(
+        (component, hosts) -> {
+          Multiset<String> allHosts = withAllHosts.get(service).get(component);
+          Multisets.removeOccurrences(allHosts, hosts);
+          CHECK.checkArgument(allHosts.isEmpty(), "Some hosts appear multiple times for the same component (%s) in the request: %s", component, allHosts);
+        }
+      )
+    );
 
     state = state.withNewServices(newServices);
   }

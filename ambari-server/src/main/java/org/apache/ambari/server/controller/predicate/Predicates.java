@@ -45,6 +45,6 @@ public class Predicates {
    * @return the {@code Function}
    */
   public static Function<Predicate, Predicate> and(Predicate presetPredicate) {
-    return predicate -> AndPredicate.instance(presetPredicate, predicate);
+    return predicate -> new AndPredicate(presetPredicate, predicate);
   }
 }
