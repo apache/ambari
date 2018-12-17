@@ -22,9 +22,12 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.validators.UnitValidatedProperty;
 
 /**
@@ -65,12 +68,38 @@ public class UnitUpdater implements BlueprintConfigurationProcessor.PropertyUpda
     }
   }
 
+  public static void updateUnits(Configuration configuration, Stack stack) {
+    updateAllUnitValidatedProperties(configuration,
+      (property, value) -> updateForClusterCreate(stack, property.getServiceName(), property.getConfigType(), property.getPropertyName(), value));
+  }
+
+  public static void removeUnits(Configuration configuration, Stack stack) {
+    updateAllUnitValidatedProperties(configuration,
+      (property, value) -> removeStackUnit(stack, property.getServiceName(), property.getConfigType(), property.getPropertyName(), value));
+  }
+
+  private static void updateAllUnitValidatedProperties(Configuration configuration, BiFunction<UnitValidatedProperty, String, String> valueUpdater) {
+    for (UnitValidatedProperty p : UnitValidatedProperty.ALL) {
+      if (configuration.isPropertySet(p.getConfigType(), p.getPropertyName())) {
+        String value = configuration.getPropertyValue(p.getConfigType(), p.getPropertyName());
+        String updatedValue = valueUpdater.apply(p, value);
+        if (!Objects.equals(value, updatedValue)) {
+          configuration.setProperty(p.getConfigType(), p.getPropertyName(), updatedValue);
+        }
+      }
+    }
+  }
+
   /**
    * @return property value with removed unit
    */
   @Override
   public String updateForBlueprintExport(String propertyName, String origValue, Map<String, Map<String, String>> properties, ClusterTopology topology) {
-    PropertyUnit stackUnit = PropertyUnit.of(topology.getBlueprint().getStack(), serviceName, configType, propertyName);
+    return removeStackUnit(topology.getBlueprint().getStack(), serviceName, configType, propertyName, origValue);
+  }
+
+  static String removeStackUnit(Stack stack, String serviceName, String configType, String propertyName, String origValue) {
+    PropertyUnit stackUnit = PropertyUnit.of(stack, serviceName, configType, propertyName);
     PropertyValue value = PropertyValue.of(propertyName, origValue);
     return value.withoutUnit(stackUnit);
   }
@@ -150,6 +179,10 @@ public class UnitUpdater implements BlueprintConfigurationProcessor.PropertyUpda
     }
 
     public boolean hasAnyUnit() {
+      return hasAnyUnit(value);
+    }
+
+    static boolean hasAnyUnit(String value) {
       return !Character.isDigit(value.charAt(value.length() -1));
     }
 

@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.controller.internal.BaseClusterRequest.PROVISION_ACTION_PROPERTY;
 import static org.apache.ambari.server.controller.internal.ClusterResourceProvider.CREDENTIALS;
 import static org.apache.ambari.server.controller.internal.ClusterResourceProvider.SECURITY;
@@ -29,6 +30,7 @@ import static org.apache.ambari.server.topology.Configurable.CONFIGURATIONS;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,6 +53,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -64,19 +67,21 @@ import io.swagger.annotations.ApiModelProperty;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AddServiceRequest {
 
-  static final String STACK_NAME = "stack_name";
-  static final String STACK_VERSION = "stack_version";
-  static final String SERVICES = "services";
-  static final String COMPONENTS = "components";
+  private static final String STACK_NAME = "stack_name";
+  private static final String STACK_VERSION = "stack_version";
+  private static final String SERVICES = "services";
+  private static final String COMPONENTS = "components";
+  private static final String VALIDATION = "validation";
 
   public static final Set<String> TOP_LEVEL_PROPERTIES = ImmutableSet.of(
-    OPERATION_TYPE, CONFIG_RECOMMENDATION_STRATEGY, PROVISION_ACTION_PROPERTY,
+    OPERATION_TYPE, CONFIG_RECOMMENDATION_STRATEGY, PROVISION_ACTION_PROPERTY, VALIDATION,
     STACK_NAME, STACK_VERSION, SERVICES, COMPONENTS, CONFIGURATIONS
   );
 
   private final OperationType operationType;
   private final ConfigRecommendationStrategy recommendationStrategy;
   private final ProvisionAction provisionAction;
+  private final ValidationType validationType;
   private final String stackName;
   private final String stackVersion;
   private final Set<Service> services;
@@ -90,6 +95,7 @@ public class AddServiceRequest {
     @JsonProperty(OPERATION_TYPE) OperationType operationType,
     @JsonProperty(CONFIG_RECOMMENDATION_STRATEGY) ConfigRecommendationStrategy recommendationStrategy,
     @JsonProperty(PROVISION_ACTION_PROPERTY) ProvisionAction provisionAction,
+    @JsonProperty(VALIDATION) ValidationType validationType,
     @JsonProperty(STACK_NAME) String stackName,
     @JsonProperty(STACK_VERSION) String stackVersion,
     @JsonProperty(SERVICES) Set<Service> services,
@@ -98,17 +104,17 @@ public class AddServiceRequest {
     @JsonProperty(CREDENTIALS) Set<Credential> credentials,
     @JsonProperty(CONFIGURATIONS) Collection<? extends Map<String, ?>> configs
   ) {
-    this(operationType, recommendationStrategy, provisionAction, stackName, stackVersion, services, components,
+    this(operationType, recommendationStrategy, provisionAction, validationType, stackName, stackVersion, services, components,
       security, credentials,
       ConfigurableHelper.parseConfigs(configs)
     );
   }
 
-
   private AddServiceRequest(
     OperationType operationType,
     ConfigRecommendationStrategy recommendationStrategy,
     ProvisionAction provisionAction,
+    ValidationType validationType,
     String stackName,
     String stackVersion,
     Set<Service> services,
@@ -118,8 +124,9 @@ public class AddServiceRequest {
     Configuration configuration
   ) {
     this.operationType = null != operationType ? operationType : OperationType.ADD_SERVICE;
-    this.recommendationStrategy = null != recommendationStrategy ? recommendationStrategy : ConfigRecommendationStrategy.NEVER_APPLY;
+    this.recommendationStrategy = null != recommendationStrategy ? recommendationStrategy : ConfigRecommendationStrategy.defaultForAddService();
     this.provisionAction = null != provisionAction ? provisionAction : ProvisionAction.INSTALL_AND_START;
+    this.validationType = validationType != null ? validationType : ValidationType.DEFAULT;
     this.stackName = stackName;
     this.stackVersion = stackVersion;
     this.services = null != services ? services : emptySet();
@@ -156,6 +163,12 @@ public class AddServiceRequest {
   @ApiModelProperty(name = PROVISION_ACTION_PROPERTY)
   public ProvisionAction getProvisionAction() {
     return provisionAction;
+  }
+
+  @JsonProperty(VALIDATION)
+  @ApiModelProperty(name = VALIDATION)
+  public ValidationType getValidationType() {
+    return validationType;
   }
 
   @JsonProperty(STACK_NAME)
@@ -219,25 +232,102 @@ public class AddServiceRequest {
     return security;
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
 
-// ------- inner classes -------
+    AddServiceRequest other = (AddServiceRequest) obj;
+
+    return Objects.equals(operationType, other.operationType) &&
+      Objects.equals(validationType, other.validationType) &&
+      Objects.equals(recommendationStrategy, other.recommendationStrategy) &&
+      Objects.equals(provisionAction, other.provisionAction) &&
+      Objects.equals(stackName, other.stackName) &&
+      Objects.equals(stackVersion, other.stackVersion) &&
+      Objects.equals(services, other.services) &&
+      Objects.equals(components, other.components) &&
+      Objects.equals(security, other.security) &&
+      Objects.equals(configuration, other.configuration);
+    // credentials is ignored for equality, since it's not serialized
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(operationType, validationType, recommendationStrategy, provisionAction, stackName, stackVersion,
+      services, components, configuration, security);
+    // credentials is ignored for hashcode, since it's not serialized
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+      .add(OPERATION_TYPE, operationType)
+      .add(VALIDATION, validationType)
+      .add(CONFIG_RECOMMENDATION_STRATEGY, recommendationStrategy)
+      .add(PROVISION_ACTION_PROPERTY, provisionAction)
+      .add(STACK_NAME, stackName)
+      .add(STACK_VERSION, stackVersion)
+      .add(SERVICES, services)
+      .add(COMPONENTS, components)
+      .add(CONFIGURATIONS, configuration)
+      .add(SECURITY, security)
+      // credentials is not part of string output
+      .toString();
+  }
+
+  // ------- inner classes -------
 
   public enum OperationType {
     ADD_SERVICE, DELETE_SERVICE, MOVE_SERVICE
   }
 
+  public enum ValidationType {
+    /**
+     * Perform all validation checks.
+     */
+    STRICT {
+      @Override
+      public boolean strictValidation() {
+        return true;
+      }
+    },
+    /**
+     * Skip the parts of validation that are not strictly necessary.
+     */
+    PERMISSIVE {
+      @Override
+      public boolean strictValidation() {
+        return false;
+      }
+    },
+    ;
+
+    public static final ValidationType DEFAULT = STRICT;
+
+    public abstract boolean strictValidation();
+  }
+
   public static final class Component {
-    static final String COMPONENT_NAME = "component_name";
-    static final String FQDN = "fqdn";
 
-    private String name;
-    private String fqdn;
+    static final String COMPONENT_NAME = "name";
+    static final String HOSTS = "hosts";
 
-    public static Component of(String name, String fqdn) {
-      Component component = new Component();
-      component.setName(name);
-      component.setFqdn(fqdn);
-      return component;
+    private final String name;
+    private final Set<Host> hosts;
+
+    @JsonCreator
+    public Component(@JsonProperty(COMPONENT_NAME) String name, @JsonProperty(HOSTS) Set<Host> hosts) {
+      this.name = name;
+      this.hosts = hosts != null ? ImmutableSet.copyOf(hosts) : ImmutableSet.of();
+    }
+
+    public static Component of(String name, String... hosts) {
+      return new Component(name, Arrays.stream(hosts).map(Host::new).collect(toSet()));
     }
 
     @JsonProperty(COMPONENT_NAME)
@@ -246,34 +336,30 @@ public class AddServiceRequest {
       return name;
     }
 
-    @JsonProperty(COMPONENT_NAME)
-    public void setName(String name) {
-      this.name = name;
-    }
-
-    @JsonProperty(FQDN)
-    @ApiModelProperty(name = FQDN)
-    public String getFqdn() {
-      return fqdn;
-    }
-
-    @JsonProperty(FQDN)
-    public void setFqdn(String fqdn) {
-      this.fqdn = fqdn;
+    @JsonProperty(HOSTS)
+    @ApiModelProperty(name = HOSTS)
+    public Set<Host> getHosts() {
+      return hosts;
     }
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      Component component = (Component) o;
-      return Objects.equals(name, component.name) &&
-        Objects.equals(fqdn, component.fqdn);
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      Component other = (Component) o;
+
+      return Objects.equals(name, other.name) &&
+        Objects.equals(hosts, other.hosts);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(name, fqdn);
+      return Objects.hash(name, hosts);
     }
 
     @Override
@@ -282,27 +368,69 @@ public class AddServiceRequest {
     }
   }
 
+  public static final class Host {
+
+    static final String FQDN = "fqdn";
+
+    private final String fqdn;
+
+    @JsonCreator
+    public Host(@JsonProperty(FQDN) String fqdn) {
+      this.fqdn = fqdn;
+    }
+
+    @JsonProperty(FQDN)
+    @ApiModelProperty(name = FQDN)
+    public String getFqdn() {
+      return fqdn;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      Host other = (Host) o;
+
+      return Objects.equals(fqdn, other.fqdn);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(fqdn);
+    }
+
+    @Override
+    public String toString() {
+      return "host: " + fqdn;
+    }
+
+  }
+
   @ApiModel
   public static final class Service {
+
     static final String NAME = "name";
 
-    private String name;
+    private final String name;
+
+    @JsonCreator
+    public Service(@JsonProperty(NAME) String name) {
+      this.name = name;
+    }
 
     public static Service of(String name) {
-      Service service = new Service();
-      service.setName(name);
-      return service;
+      return new Service(name);
     }
 
     @JsonProperty(NAME)
     @ApiModelProperty(name = NAME)
     public String getName() {
       return name;
-    }
-
-    @JsonProperty(NAME)
-    public void setName(String name) {
-      this.name = name;
     }
 
     @Override

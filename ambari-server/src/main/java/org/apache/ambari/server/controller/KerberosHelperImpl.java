@@ -1183,6 +1183,7 @@ public class KerberosHelperImpl implements KerberosHelper {
       // or marked to be preconfigured, add the relevant data to the auth-to-local rules.
       Map<String, KerberosServiceDescriptor> serviceDescriptors = kerberosDescriptor.getServices();
       if (serviceDescriptors != null) {
+        final boolean includeAllComponents = Boolean.valueOf(kerberosEnvProperties.get(INCLUDE_ALL_COMPONENTS_IN_AUTH_TO_LOCAL_RULES));
         for (KerberosServiceDescriptor serviceDescriptor : serviceDescriptors.values()) {
           String serviceName = serviceDescriptor.getName();
           boolean preconfigure = includePreconfigureData && serviceDescriptor.shouldPreconfigure();
@@ -1217,7 +1218,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
                 // Add this component's identities if we are implicitly preconfiguring the parent
                 // service or if the component has been explicitly added to the cluster
-                if (preconfigure || (installedServiceComponents.contains(componentName))) {
+                if (preconfigure || includeAllComponents || installedServiceComponents.contains(componentName)) {
                   LOG.info("Adding identities for component {} to auth to local mapping", componentName);
                   addIdentities(authToLocalBuilder, componentDescriptor.getIdentities(true, filterContext), null, replacements);
 

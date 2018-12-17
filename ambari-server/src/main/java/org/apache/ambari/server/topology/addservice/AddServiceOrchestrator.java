@@ -19,6 +19,7 @@ package org.apache.ambari.server.topology.addservice;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -31,12 +32,16 @@ import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.utils.LoggingPreconditions;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +53,7 @@ import com.google.common.collect.Sets;
 public class AddServiceOrchestrator {
 
   private static final Logger LOG = LoggerFactory.getLogger(AddServiceOrchestrator.class);
+  private static final LoggingPreconditions CHECK = new LoggingPreconditions(LOG);
 
   @Inject
   private ResourceProviderAdapter resourceProviders;
@@ -71,6 +77,7 @@ public class AddServiceOrchestrator {
     LOG.info("Received {} request for {}: {}", request.getOperationType(), cluster.getClusterName(), request);
 
     AddServiceInfo validatedRequest = validate(cluster, request);
+    ensureCredentials(cluster, validatedRequest);
     AddServiceInfo requestWithLayout = recommendLayout(validatedRequest);
     AddServiceInfo requestWithConfig = recommendConfiguration(requestWithLayout);
 
@@ -96,11 +103,35 @@ public class AddServiceOrchestrator {
   }
 
   /**
+   * Stores any credentials provided in the request, and
+   * validates KDC credentials if the cluster has Kerberos enabled.
+   * The goal is to make sure that no resources (services, components, etc.) get created
+   * (except the credentials) if the request as a whole would fail due to missing credentials.
+   */
+  private void ensureCredentials(Cluster cluster, AddServiceInfo validatedRequest) {
+    resourceProviders.createCredentials(validatedRequest);
+    if (cluster.getSecurityType() == SecurityType.KERBEROS) {
+      try {
+        controller.getKerberosHelper().validateKDCCredentials(cluster);
+      } catch (KerberosMissingAdminCredentialsException | KerberosAdminAuthenticationException | KerberosInvalidConfigurationException e) {
+        CHECK.wrapInUnchecked(e, IllegalArgumentException::new, "KDC credentials validation failed: %s", e);
+      } catch (AmbariException e) {
+        CHECK.wrapInUnchecked(e, IllegalStateException::new, "Error occurred while validating KDC credentials: %s", e);
+      }
+    }
+  }
+
+  /**
    * Requests layout recommendation from the stack advisor.
    * @return new request, updated based on the recommended layout
    * @throws IllegalArgumentException if the request cannot be satisfied
    */
   private AddServiceInfo recommendLayout(AddServiceInfo request) {
+    if (!request.requiresLayoutRecommendation()) {
+      LOG.info("Using layout specified in request for {}", request);
+      return request;
+    }
+
     LOG.info("Recommending layout for {}", request);
     return stackAdvisorAdapter.recommendLayout(request);
   }
@@ -112,8 +143,7 @@ public class AddServiceOrchestrator {
    */
   private AddServiceInfo recommendConfiguration(AddServiceInfo request) {
     LOG.info("Recommending configuration for {}", request);
-    // TODO implement
-    return request;
+    return stackAdvisorAdapter.recommendConfigurations(request);
   }
 
   /**
@@ -124,7 +154,7 @@ public class AddServiceOrchestrator {
 
     Set<String> existingServices = cluster.getServices().keySet();
 
-    resourceProviders.createCredentials(request);
+    updateKerberosDescriptor(request);
 
     resourceProviders.createServices(request);
     resourceProviders.createComponents(request);
@@ -159,8 +189,7 @@ public class AddServiceOrchestrator {
           )
         );
       } catch (AmbariException | KerberosInvalidConfigurationException e) {
-        LOG.error("Error configuring Kerberos: {}", e, e);
-        throw new RuntimeException(e);
+        CHECK.wrapInUnchecked(e, RuntimeException::new, "Error configuring Kerberos for %s: %s", request, e);
       }
     }
   }
@@ -176,10 +205,20 @@ public class AddServiceOrchestrator {
     try {
       request.getStages().persist();
     } catch (AmbariException e) {
-      String msg = String.format("Error creating host tasks for %s", request);
-      LOG.error(msg, e);
-      throw new IllegalStateException(msg, e);
+      CHECK.wrapInUnchecked(e, IllegalStateException::new, "Error creating host tasks for %s", request);
     }
+  }
+
+  private void updateKerberosDescriptor(AddServiceInfo request) {
+    request.getKerberosDescriptor().ifPresent(descriptorInRequest -> {
+      Optional<KerberosDescriptor> existingDescriptor = resourceProviders.getKerberosDescriptor(request);
+      if (existingDescriptor.isPresent()) {
+        KerberosDescriptor newDescriptor = existingDescriptor.get().update(descriptorInRequest);
+        resourceProviders.updateKerberosDescriptor(request, newDescriptor);
+      } else {
+        resourceProviders.createKerberosDescriptor(request, descriptorInRequest);
+      }
+    });
   }
 
   private static Map<String, String> createComponentHostMap(Cluster cluster) {
@@ -194,8 +233,7 @@ public class AddServiceOrchestrator {
     try {
       return cluster.getService(service).getServiceComponent(component).getServiceComponentsHosts();
     } catch (AmbariException e) {
-      LOG.error("Error getting components of service {}: {}", service, e, e);
-      throw new RuntimeException(e);
+      return CHECK.wrapInUnchecked(e, IllegalStateException::new, "Error getting hosts for service %s component %: %s", service, component, e, e);
     }
   }
 
@@ -203,8 +241,7 @@ public class AddServiceOrchestrator {
     try {
       return cluster.getService(service).getServiceComponents().keySet();
     } catch (AmbariException e) {
-      LOG.error("Error getting components of service {}: {}", service, e, e);
-      throw new RuntimeException(e);
+      return CHECK.wrapInUnchecked(e, IllegalStateException::new, "Error getting components of service %s: %s", service, e, e);
     }
   }
 

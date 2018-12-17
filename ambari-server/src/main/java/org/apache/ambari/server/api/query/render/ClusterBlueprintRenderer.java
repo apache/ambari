@@ -55,7 +55,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.topology.AmbariContext;
@@ -68,6 +67,7 @@ import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
+import org.apache.ambari.server.topology.addservice.ResourceProviderAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -331,11 +331,8 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     return blueprintSetting;
   }
 
-  private Map<String, Object> getKerberosDescriptor(ClusterController clusterController, String clusterName) throws AmbariException {
-    PredicateBuilder pb = new PredicateBuilder();
-    Predicate predicate = pb.begin().property("Artifacts/cluster_name").equals(clusterName).and().
-      property(ArtifactResourceProvider.ARTIFACT_NAME_PROPERTY).equals("kerberos_descriptor").
-      end().toPredicate();
+  private static Map<String, Object> getKerberosDescriptor(ClusterController clusterController, String clusterName) throws AmbariException {
+    Predicate predicate = ResourceProviderAdapter.predicateForKerberosDescriptorArtifact(clusterName);
 
     ResourceProvider artifactProvider =
        clusterController.ensureResourceProvider(Resource.Type.Artifact);

@@ -34,7 +34,6 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
@@ -72,6 +71,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
@@ -171,6 +171,12 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       MAINTENANCE_STATE,
       UPGRADE_STATE,
       QUERY_PARAMETERS_RUN_SMOKE_TEST_ID);
+
+  public static final String SKIP_INSTALL_FOR_COMPONENTS = "skipInstallForComponents";
+  public static final String DO_NOT_SKIP_INSTALL_FOR_COMPONENTS = "dontSkipInstallForComponents";
+  public static final String ALL_COMPONENTS = "ALL";
+  public static final String SKIP_INSTALL_FOR_ALL_COMPONENTS = joinComponentList(ImmutableSet.of(ALL_COMPONENTS));
+  public static final String DO_NOT_SKIP_INSTALL_FOR_ANY_COMPONENTS = joinComponentList(ImmutableSet.of());
 
   /**
    * maintenance state helper
@@ -390,10 +396,10 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Map<String, String> requestInfo = new HashMap<>();
     requestInfo.put("context", String.format("Install components on host %s", hostname));
     requestInfo.put(CLUSTER_PHASE_PROPERTY, CLUSTER_PHASE_INITIAL_INSTALL);
-    requestInfo.put(AmbariManagementControllerImpl.SKIP_INSTALL_FOR_COMPONENTS, StringUtils.join
-      (skipInstallForComponents, ";"));
-    requestInfo.put(AmbariManagementControllerImpl.DONT_SKIP_INSTALL_FOR_COMPONENTS, StringUtils.join
-      (dontSkipInstallForComponents, ";"));
+    // although the operation is really for a specific host, the level needs to be set to HostComponent
+    // to make sure that any service in maintenance mode does not prevent install/start on the new host during scale-up
+    requestInfo.putAll(RequestOperationLevel.propertiesFor(Resource.Type.HostComponent, cluster));
+    addProvisionActionProperties(skipInstallForComponents, dontSkipInstallForComponents, requestInfo);
 
     Request installRequest = PropertyHelper.getUpdateRequest(installProperties, requestInfo);
 
@@ -425,6 +431,31 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     return requestStages.getRequestStatusResponse();
   }
 
+  @VisibleForTesting
+  static void addProvisionActionProperties(Collection<String> skipInstallForComponents, Collection<String> dontSkipInstallForComponents, Map<String, String> requestInfo) {
+    requestInfo.put(SKIP_INSTALL_FOR_COMPONENTS, joinComponentList(skipInstallForComponents));
+    requestInfo.put(DO_NOT_SKIP_INSTALL_FOR_COMPONENTS, joinComponentList(dontSkipInstallForComponents));
+  }
+
+  public static String joinComponentList(Collection<String> components) {
+    return components != null
+      ? ";" + String.join(";", components) + ";"
+      : "";
+  }
+
+  public static boolean shouldSkipInstallTaskForComponent(String componentName, boolean isClientComponent, Map<String, String> requestProperties) {
+    // Skip INSTALL for service components if START_ONLY is set for component, or if START_ONLY is set on cluster
+    // level and no other provision action is specified for component
+    String skipInstallForComponents = requestProperties.get(SKIP_INSTALL_FOR_COMPONENTS);
+    String searchString = joinComponentList(ImmutableSet.of(componentName));
+    return !isClientComponent &&
+      CLUSTER_PHASE_INITIAL_INSTALL.equals(requestProperties.get(CLUSTER_PHASE_PROPERTY)) &&
+      skipInstallForComponents != null &&
+      (skipInstallForComponents.contains(searchString) ||
+        (skipInstallForComponents.equals(SKIP_INSTALL_FOR_ALL_COMPONENTS) &&
+          !requestProperties.get(DO_NOT_SKIP_INSTALL_FOR_COMPONENTS).contains(searchString))
+      );
+  }
 
   // TODO, revisit this extra method, that appears to be used during Add Hosts
   // TODO, How do we determine the component list for INSTALL_ONLY during an Add Hosts operation? rwn
@@ -441,6 +472,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Map<String, String> requestInfo = new HashMap<>();
     requestInfo.put("context", String.format("Start components on host %s", hostName));
     requestInfo.put(CLUSTER_PHASE_PROPERTY, CLUSTER_PHASE_INITIAL_START);
+    // see rationale for marking the operation as HostComponent-level at "Install components on host"
+    requestInfo.putAll(RequestOperationLevel.propertiesFor(Resource.Type.HostComponent, cluster));
     requestInfo.put(Setting.SETTING_NAME_SKIP_FAILURE, Boolean.toString(skipFailure));
 
     Predicate clusterPredicate = new EqualsPredicate<>(CLUSTER_NAME, cluster);
@@ -503,7 +536,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     return requestStages.getRequestStatusResponse();
   }
-
 
   /**
    * Update the host component identified by the given request object with the

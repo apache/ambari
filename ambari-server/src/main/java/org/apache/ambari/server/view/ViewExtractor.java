@@ -95,7 +95,14 @@ public class ViewExtractor {
             view.setStatusDetail(msg);
             LOG.info(msg);
 
-            // create the META-INF directory
+            // pre-create the META-INF directory since JAR compression ordering
+            // can sometimes cause problems with creation of the files inside of
+            // META-INF if the directory appears after
+            //
+            // 473 12-07-2018 11:37   META-INF/MANIFEST.MF
+            // 0   12-07-2018 11:37   META-INF/
+            // 0   12-07-2018 11:37   META-INF/maven/
+            //
             File metaInfDir = archiveUtility.getFile(archivePath + File.separator + "META-INF");
             if (!metaInfDir.mkdir()) {
               msg = "Could not create archive META-INF directory.";
@@ -116,14 +123,18 @@ public class ViewExtractor {
 
                 if (jarEntry.isDirectory()) {
 
-                  LOG.debug("Making directory {}", entryPath);
+                  // only try to create the directory if it doesn't already
+                  // exist (like META-INFO might)
+                  if (!entryFile.exists()) {
+                    LOG.debug("Making directory {}", entryPath);
 
-                  if (!entryFile.mkdir()) {
-                    msg = "Could not create archive entry directory " + entryPath + ".";
+                    if (!entryFile.mkdir()) {
+                      msg = "Could not create archive entry directory " + entryPath + ".";
 
-                    view.setStatusDetail(msg);
-                    LOG.error(msg);
-                    throw new ExtractionException(msg);
+                      view.setStatusDetail(msg);
+                      LOG.error(msg);
+                      throw new ExtractionException(msg);
+                    }
                   }
                 } else {
 

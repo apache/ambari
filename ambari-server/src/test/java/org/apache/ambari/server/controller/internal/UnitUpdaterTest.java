@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.apache.ambari.server.testutils.TestCollectionUtils.map;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 
@@ -28,7 +29,7 @@ import org.apache.ambari.server.controller.StackConfigurationResponse;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
-import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.Configuration;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -86,10 +87,54 @@ public class UnitUpdaterTest extends EasyMockSupport {
     updateUnit(OOZIE, OOZIE_ENV, HEAPSIZE, "");
   }
 
+  @Test
+  public void updateUnits() {
+    stackUnitIs(HEAPSIZE, "MB");
+    setUpStack(OOZIE, OOZIE_ENV);
+
+    Map<String, Map<String, String>> properties = map(
+      OOZIE_ENV, map(HEAPSIZE, "1024"),
+      "core-site", map("fs.trash.interval", "360"));
+    Configuration configuration = new Configuration(properties, new HashMap<>());
+
+    UnitUpdater.updateUnits(configuration, stack);
+
+    Map<String, Map<String, String>> expected = map(
+      OOZIE_ENV, map(HEAPSIZE, "1024m"),
+      "core-site", map("fs.trash.interval", "360"));
+
+    assertEquals(expected, configuration.getProperties());
+  }
+
+  @Test
+  public void removeUnits() {
+    stackUnitIs(HEAPSIZE, "MB");
+    setUpStack(OOZIE, OOZIE_ENV);
+
+    Map<String, Map<String, String>> properties = map(
+      OOZIE_ENV, map(HEAPSIZE, "1024m"),
+      "core-site", map("fs.trash.interval", "360"));
+    Configuration configuration = new Configuration(properties, new HashMap<>());
+
+    UnitUpdater.removeUnits(configuration, stack);
+
+    Map<String, Map<String, String>> expected = map(
+      OOZIE_ENV, map(HEAPSIZE, "1024"),
+      "core-site", map("fs.trash.interval", "360"));
+
+    assertEquals(expected, configuration.getProperties());
+  }
+
   private void stackUnitIs(String name, String unit) {
     ValueAttributesInfo propertyValueAttributes = new ValueAttributesInfo();
     propertyValueAttributes.setUnit(unit);
-    stackConfigWithMetadata.put(name, new Stack.ConfigProperty(new StackConfigurationResponse(
+    stackConfigWithMetadata.put(name, configProperty(name, unit));
+  }
+
+  public static Stack.ConfigProperty configProperty(String name, String unit) {
+    ValueAttributesInfo propertyValueAttributes = new ValueAttributesInfo();
+    propertyValueAttributes.setUnit(unit);
+    return new Stack.ConfigProperty(new StackConfigurationResponse(
       name,
       "any",
       "any",
@@ -99,16 +144,20 @@ public class UnitUpdaterTest extends EasyMockSupport {
       Collections.emptySet(),
       Collections.emptyMap(),
       propertyValueAttributes,
-      Collections.emptySet()
-    )));
+      Collections.emptySet()));
   }
 
-  private String updateUnit(String serviceName, String configType, String propName, String propValue) throws InvalidTopologyException, ConfigurationTopologyException {
-    UnitUpdater updater = new UnitUpdater(serviceName, configType);
+  private void setUpStack(String serviceName, String configType) {
     expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(serviceName, configType)).andReturn(stackConfigWithMetadata).anyTimes();
     replayAll();
+  }
+
+  private String updateUnit(String serviceName, String configType, String propName, String propValue) {
+    UnitUpdater updater = new UnitUpdater(serviceName, configType);
+    setUpStack(serviceName, configType);
     return updater.updateForClusterCreate(propName, propValue, Collections.emptyMap(), clusterTopology);
   }
+
 }

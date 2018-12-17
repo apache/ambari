@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.topology.addservice;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.utils.Assertions.assertThrows;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -24,9 +28,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -39,8 +45,13 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.SecurityConfiguration;
+import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.StackFactory;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
@@ -53,20 +64,33 @@ import com.google.common.collect.Sets;
 
 public class RequestValidatorTest extends EasyMockSupport {
 
+  private static final Map<String, ?> FAKE_DESCRIPTOR = ImmutableMap.of("kerberos", "descriptor");
+  private static final String FAKE_DESCRIPTOR_REFERENCE = "ref";
+
   private final AddServiceRequest request = createNiceMock(AddServiceRequest.class);
   private final Cluster cluster = createMock(Cluster.class);
   private final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
   private final ConfigHelper configHelper = createMock(ConfigHelper.class);
   private final StackFactory stackFactory = createNiceMock(StackFactory.class);
-  private final RequestValidator validator = new RequestValidator(request, cluster, controller, configHelper, stackFactory);
+  private final KerberosDescriptorFactory kerberosDescriptorFactory = createNiceMock(KerberosDescriptorFactory.class);
+  private final SecurityConfigurationFactory securityConfigurationFactory = createStrictMock(SecurityConfigurationFactory.class);
+  private final RequestValidator validator = new RequestValidator(request, cluster, controller, configHelper, stackFactory, kerberosDescriptorFactory, securityConfigurationFactory);
 
   @Before
   public void setUp() {
-    validator.setState(RequestValidator.State.INITIAL);
-    expect(cluster.getClusterName()).andReturn("TEST").anyTimes();
-    expect(cluster.getServices()).andStubReturn(ImmutableMap.of());
-    expect(request.getServices()).andStubReturn(ImmutableSet.of());
-    expect(request.getComponents()).andStubReturn(ImmutableSet.of());
+    try {
+      validator.setState(RequestValidator.State.INITIAL);
+      expect(cluster.getClusterName()).andReturn("TEST").anyTimes();
+      expect(cluster.getServices()).andStubReturn(ImmutableMap.of());
+      expect(cluster.getSecurityType()).andStubReturn(SecurityType.NONE);
+      expect(configHelper.calculateExistingConfigs(cluster)).andStubReturn(Configuration.newEmpty().asPair());
+      expect(request.getServices()).andStubReturn(ImmutableSet.of());
+      expect(request.getComponents()).andStubReturn(ImmutableSet.of());
+      expect(request.getSecurity()).andStubReturn(Optional.empty());
+      expect(request.getValidationType()).andStubReturn(AddServiceRequest.ValidationType.DEFAULT);
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   @After
@@ -176,21 +200,22 @@ public class RequestValidatorTest extends EasyMockSupport {
 
   @Test
   public void acceptsKnownServices() {
-    expect(request.getServices()).andReturn(ImmutableSet.of(AddServiceRequest.Service.of("KAFKA")));
+    String newService = "KAFKA";
+    requestServices(false, newService);
     validator.setState(RequestValidator.State.INITIAL.with(simpleMockStack()));
     replayAll();
 
     validator.validateServicesAndComponents();
 
     Map<String, Map<String, Set<String>>> expectedNewServices = ImmutableMap.of(
-      "KAFKA", ImmutableMap.of()
+      newService, ImmutableMap.of()
     );
     assertEquals(expectedNewServices, validator.getState().getNewServices());
   }
 
   @Test
   public void acceptsKnownComponents() {
-    expect(request.getComponents()).andReturn(ImmutableSet.of(AddServiceRequest.Component.of("KAFKA_BROKER", "c7401.ambari.apache.org")));
+    requestComponents("KAFKA_BROKER");
     validator.setState(RequestValidator.State.INITIAL.with(simpleMockStack()));
     replayAll();
 
@@ -205,7 +230,7 @@ public class RequestValidatorTest extends EasyMockSupport {
   @Test
   public void rejectsUnknownService() {
     String serviceName = "UNKNOWN_SERVICE";
-    expect(request.getServices()).andReturn(ImmutableSet.of(AddServiceRequest.Service.of(serviceName)));
+    requestServices(false, serviceName);
     validator.setState(RequestValidator.State.INITIAL.with(simpleMockStack()));
     replayAll();
 
@@ -217,7 +242,7 @@ public class RequestValidatorTest extends EasyMockSupport {
   @Test
   public void rejectsUnknownComponent() {
     String componentName = "UNKNOWN_COMPONENT";
-    expect(request.getComponents()).andReturn(ImmutableSet.of(AddServiceRequest.Component.of(componentName, "c7401.ambari.apache.org")));
+    requestComponents(componentName);
     validator.setState(RequestValidator.State.INITIAL.with(simpleMockStack()));
     replayAll();
 
@@ -229,8 +254,8 @@ public class RequestValidatorTest extends EasyMockSupport {
   @Test
   public void rejectsExistingServiceForService() {
     String serviceName = "KAFKA";
-    expect(cluster.getServices()).andReturn(ImmutableMap.of(serviceName, createNiceMock(Service.class))).anyTimes();
-    expect(request.getServices()).andReturn(ImmutableSet.of(AddServiceRequest.Service.of(serviceName)));
+    requestServices(false, serviceName);
+    clusterAlreadyHasServices(serviceName);
     validator.setState(RequestValidator.State.INITIAL.with(simpleMockStack()));
     replayAll();
 
@@ -239,12 +264,16 @@ public class RequestValidatorTest extends EasyMockSupport {
     assertNull(validator.getState().getNewServices());
   }
 
+  private void clusterAlreadyHasServices(String serviceName) {
+    expect(cluster.getServices()).andReturn(ImmutableMap.of(serviceName, createNiceMock(Service.class))).anyTimes();
+  }
+
   @Test
   public void rejectsExistingServiceForComponent() {
     String serviceName = "KAFKA";
     String componentName = "KAFKA_BROKER";
-    expect(cluster.getServices()).andReturn(ImmutableMap.of(serviceName, createNiceMock(Service.class))).anyTimes();
-    expect(request.getComponents()).andReturn(ImmutableSet.of(AddServiceRequest.Component.of(componentName, "c7401.ambari.apache.org")));
+    clusterAlreadyHasServices(serviceName);
+    requestComponents(componentName);
     validator.setState(RequestValidator.State.INITIAL.with(simpleMockStack()));
     replayAll();
 
@@ -293,8 +322,7 @@ public class RequestValidatorTest extends EasyMockSupport {
 
   @Test
   public void acceptsAbsentSecurityWhenClusterHasKerberos() {
-    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
-    expect(request.getSecurity()).andReturn(Optional.empty()).anyTimes();
+    secureCluster();
     replayAll();
 
     validator.validateSecurity();
@@ -302,8 +330,6 @@ public class RequestValidatorTest extends EasyMockSupport {
 
   @Test
   public void acceptsAbsentSecurityWhenClusterHasNone() {
-    expect(cluster.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
-    expect(request.getSecurity()).andReturn(Optional.empty()).anyTimes();
     replayAll();
 
     validator.validateSecurity();
@@ -311,8 +337,8 @@ public class RequestValidatorTest extends EasyMockSupport {
 
   @Test
   public void acceptsMatchingKerberosSecurity() {
-    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
-    expect(request.getSecurity()).andReturn(Optional.of(new SecurityConfiguration(SecurityType.KERBEROS))).anyTimes();
+    secureCluster();
+    requestSpecifiesSecurity();
     replayAll();
 
     validator.validateSecurity();
@@ -320,7 +346,6 @@ public class RequestValidatorTest extends EasyMockSupport {
 
   @Test
   public void acceptsMatchingNoneSecurity() {
-    expect(cluster.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
     expect(request.getSecurity()).andReturn(Optional.of(SecurityConfiguration.NONE)).anyTimes();
     replayAll();
 
@@ -329,23 +354,112 @@ public class RequestValidatorTest extends EasyMockSupport {
 
   @Test
   public void rejectsNoneSecurityWhenClusterHasKerberos() {
-    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
-    expect(request.getSecurity()).andReturn(Optional.of(SecurityConfiguration.NONE)).anyTimes();
-    replayAll();
-
-    IllegalArgumentException e = assertThrows(IllegalArgumentException.class, validator::validateSecurity);
-    assertTrue(e.getMessage().contains("KERBEROS"));
+    testBothValidationTypes(validator::validateSecurity, "KERBEROS", () -> {
+      secureCluster();
+      expect(request.getSecurity()).andReturn(Optional.of(SecurityConfiguration.NONE)).anyTimes();
+    });
   }
 
   @Test
   public void rejectsKerberosSecurityWhenClusterHasNone() {
-    expect(cluster.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
-    expect(request.getSecurity()).andReturn(Optional.of(new SecurityConfiguration(SecurityType.KERBEROS))).anyTimes();
+    testBothValidationTypes(validator::validateSecurity, "KERBEROS", this::requestSpecifiesSecurity);
+  }
+
+  @Test
+  public void rejectsKerberosDescriptorForNoSecurity() {
+    SecurityConfiguration requestSecurity = SecurityConfiguration.forTest(SecurityType.NONE, null, ImmutableMap.of("kerberos", "descriptor"));
+    expect(request.getSecurity()).andReturn(Optional.of(requestSecurity)).anyTimes();
+    replayAll();
+
+    IllegalArgumentException e = assertThrows(IllegalArgumentException.class, validator::validateSecurity);
+    assertTrue(e.getMessage().contains("Kerberos descriptor"));
+  }
+
+  @Test
+  public void rejectsKerberosDescriptorReferenceForNoSecurity() {
+    SecurityConfiguration requestSecurity = SecurityConfiguration.forTest(SecurityType.NONE, "ref", null);
+    expect(request.getSecurity()).andReturn(Optional.of(requestSecurity)).anyTimes();
+    replayAll();
+
+    IllegalArgumentException e = assertThrows(IllegalArgumentException.class, validator::validateSecurity);
+    assertTrue(e.getMessage().contains("Kerberos descriptor reference"));
+  }
+
+  @Test
+  public void rejectsRequestWithBothKerberosDescriptorAndReference() {
+    secureCluster();
+    SecurityConfiguration invalidConfig = SecurityConfiguration.forTest(SecurityType.KERBEROS, "ref", ImmutableMap.of());
+    expect(request.getSecurity()).andReturn(Optional.of(invalidConfig)).anyTimes();
+    replayAll();
+
+    IllegalArgumentException e = assertThrows(IllegalArgumentException.class, validator::validateSecurity);
+    assertTrue(e.getMessage().contains("Kerberos descriptor and reference"));
+  }
+
+  @Test
+  public void loadsKerberosDescriptorByReference() {
+    String newService = "KAFKA";
+    secureCluster();
+    requestServices(true, newService);
+    KerberosDescriptor kerberosDescriptor = requestHasKerberosDescriptorFor(true, newService);
+    replayAll();
+
+    validator.validateSecurity();
+
+    assertEquals(kerberosDescriptor, validator.getState().getKerberosDescriptor());
+    verifyAll();
+  }
+
+  @Test
+  public void reportsDanglingKerberosDescriptorReference() {
+    String newService = "KAFKA";
+    secureCluster();
+    requestServices(true, newService);
+    SecurityConfiguration requestSecurity = SecurityConfiguration.withReference(FAKE_DESCRIPTOR_REFERENCE);
+    expect(request.getSecurity()).andReturn(Optional.of(requestSecurity)).anyTimes();
+    expect(securityConfigurationFactory.loadSecurityConfigurationByReference(FAKE_DESCRIPTOR_REFERENCE))
+      .andThrow(new IllegalArgumentException("No security configuration found for the reference: " + FAKE_DESCRIPTOR_REFERENCE));
     replayAll();
 
     assertThrows(IllegalArgumentException.class, validator::validateSecurity);
+    verifyAll();
+  }
+
+  @Test
+  public void acceptsDescriptorWithOnlyNewServices() {
+    String newService = "KAFKA";
+    secureCluster();
+    requestServices(true, newService);
+    KerberosDescriptor kerberosDescriptor = requestHasKerberosDescriptorFor(false, newService);
+    replayAll();
+
+    validator.validateSecurity();
+
+    assertEquals(kerberosDescriptor, validator.getState().getKerberosDescriptor());
+  }
+
+  @Test
+  public void acceptsDescriptorWithAdditionalServices() {
+    String newService = "KAFKA", otherService = "ZOOKEEPER";
+    secureCluster();
+    requestServices(true, newService);
+    requestHasKerberosDescriptorFor(false, newService, otherService);
+    replayAll();
+
     IllegalArgumentException e = assertThrows(IllegalArgumentException.class, validator::validateSecurity);
-    assertTrue(e.getMessage().contains("KERBEROS"));
+    assertTrue(e.getMessage().contains("only for new services"));
+  }
+
+  @Test
+  public void acceptsDescriptorWithoutServices() {
+    secureCluster();
+    requestServices(true, "KAFKA");
+    KerberosDescriptor kerberosDescriptor = requestHasKerberosDescriptorFor(false);
+    replayAll();
+
+    validator.validateSecurity();
+
+    assertEquals(kerberosDescriptor, validator.getState().getKerberosDescriptor());
   }
 
   @Test
@@ -354,6 +468,7 @@ public class RequestValidatorTest extends EasyMockSupport {
     requestConfig.setProperty("kafka-broker", "zookeeper.connect", "zookeeper.connect:request");
     requestConfig.setProperty("kafka-env", "custom_property", "custom_property:request");
     expect(request.getConfiguration()).andReturn(requestConfig.copy()).anyTimes();
+    expect(request.getRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ALWAYS_APPLY).anyTimes();
 
     Configuration clusterConfig = Configuration.newEmpty();
     clusterConfig.setProperty("zookeeper-env", "zk_user", "zk_user:cluster_level");
@@ -364,7 +479,7 @@ public class RequestValidatorTest extends EasyMockSupport {
     stackConfig.setProperty("zookeeper-env", "zk_user", "zk_user:stack_default");
     stackConfig.setProperty("zookeeper-env", "zk_log_dir", "zk_log_dir:stack_default");
     stackConfig.setProperty("kafka-broker", "zookeeper.connect", "zookeeper.connect:stack_default");
-    expect(stack.getValidDefaultConfig()).andReturn(stackConfig).anyTimes();
+    expect(stack.getDefaultConfig()).andReturn(stackConfig).anyTimes();
 
     replayAll();
 
@@ -377,22 +492,47 @@ public class RequestValidatorTest extends EasyMockSupport {
 
   @Test
   public void rejectsKerberosEnvChange() {
-    Configuration requestConfig = Configuration.newEmpty();
-    requestConfig.setProperty("kerberos-env", "some-property", "some-value");
-    expect(request.getConfiguration()).andReturn(requestConfig.copy()).anyTimes();
-    replayAll();
-
-    assertThrows(IllegalArgumentException.class, validator::validateConfiguration);
+    testBothValidationTypes(validator::validateConfiguration, () -> {
+      Configuration requestConfig = Configuration.newEmpty();
+      requestConfig.setProperty("kerberos-env", "some-property", "some-value");
+      expect(request.getConfiguration()).andReturn(requestConfig.copy()).anyTimes();
+      validator.setState(RequestValidator.State.INITIAL.with(simpleMockStack()));
+    });
   }
 
   @Test
   public void rejectsKrb5ConfChange() {
-    Configuration requestConfig = Configuration.newEmpty();
-    requestConfig.setProperty("krb5-conf", "some-property", "some-value");
-    expect(request.getConfiguration()).andReturn(requestConfig.copy()).anyTimes();
-    replayAll();
+    testBothValidationTypes(validator::validateConfiguration, () -> {
+      Configuration requestConfig = Configuration.newEmpty();
+      requestConfig.setProperty("krb5-conf", "some-property", "some-value");
+      expect(request.getConfiguration()).andReturn(requestConfig.copy()).anyTimes();
+      validator.setState(RequestValidator.State.INITIAL.with(simpleMockStack()));
+    });
+  }
 
-    assertThrows(IllegalArgumentException.class, validator::validateConfiguration);
+  /**
+   * Tests that the state created by {@code testCaseSetup} is rejected by strict validation, but accepted by permissive one.
+   * @param validation the method to call on validator
+   * @param testCaseSetup code to setup the state ("when"), call to replayAll() should be omitted
+   */
+  private void testBothValidationTypes(Runnable validation, Runnable testCaseSetup) {
+    testBothValidationTypes(validation, null, testCaseSetup);
+  }
+
+  private void testBothValidationTypes(Runnable validation, String expectedMessage, Runnable testCaseSetup) {
+    testCaseSetup.run();
+    replayAll();
+    Exception e = assertThrows(IllegalArgumentException.class, validation);
+    if (expectedMessage != null) {
+      assertTrue(e.getMessage().contains(expectedMessage));
+    };
+
+    resetAll();
+    setUp();
+    permissiveValidation();
+    testCaseSetup.run();
+    replayAll();
+    validation.run();
   }
 
   private static void verifyConfigOverrides(Configuration requestConfig, Configuration clusterConfig, Configuration stackConfig, Configuration actualConfig) {
@@ -424,10 +564,11 @@ public class RequestValidatorTest extends EasyMockSupport {
   private Stack simpleMockStack() {
     Stack stack = createNiceMock(Stack.class);
     Set<String> stackServices = ImmutableSet.of("KAFKA", "ZOOKEEPER");
-    expect(stack.getServices()).andReturn(stackServices).anyTimes();
-    expect(stack.getServiceForComponent("KAFKA_BROKER")).andReturn("KAFKA").anyTimes();
-    expect(stack.getServiceForComponent("ZOOKEEPER_SERVER")).andReturn("ZOOKEEPER").anyTimes();
-    expect(stack.getServiceForComponent("ZOOKEEPER_CLIENT")).andReturn("ZOOKEEPER").anyTimes();
+    expect(stack.getServices()).andStubReturn(stackServices);
+    expect(stack.getServiceForComponent("KAFKA_BROKER")).andStubReturn("KAFKA");
+    expect(stack.getServiceForComponent("ZOOKEEPER_SERVER")).andStubReturn("ZOOKEEPER");
+    expect(stack.getServiceForComponent("ZOOKEEPER_CLIENT")).andStubReturn("ZOOKEEPER");
+    expect(stack.getValidDefaultConfig()).andStubReturn(Configuration.newEmpty());
     return stack;
   }
 
@@ -437,17 +578,71 @@ public class RequestValidatorTest extends EasyMockSupport {
     );
   }
 
-  private static <T extends Throwable> T assertThrows(Class<T> expectedException, Runnable code) {
-    try {
-      code.run();
-    } catch (Throwable t) {
-      if (expectedException.isInstance(t)) {
-        return expectedException.cast(t);
-      }
-      throw new AssertionError("Expected exception: " + expectedException + " but " + t.getClass() + " was thrown instead");
+  private void permissiveValidation() {
+    expect(request.getValidationType()).andReturn(AddServiceRequest.ValidationType.PERMISSIVE).anyTimes();
+  }
+
+  private void requestServices(boolean validated, String... services) {
+    expect(request.getServices()).andReturn(
+      Arrays.stream(services)
+        .map(AddServiceRequest.Service::of)
+        .collect(toSet())
+    ).anyTimes();
+    if (validated) {
+      validatedServices(services);
+    }
+  }
+
+  private void validatedServices(String... services) {
+    validator.setState(
+      RequestValidator.State.INITIAL
+        .with(simpleMockStack())
+        .withNewServices(
+          Arrays.stream(services)
+            .collect(toMap(Function.identity(), __ -> ImmutableMap.of()))
+        )
+    );
+  }
+
+  private void requestComponents(String... components) {
+    expect(request.getComponents()).andReturn(
+      Arrays.stream(components)
+        .map(componentName -> AddServiceRequest.Component.of(componentName, "c7401.ambari.apache.org"))
+        .collect(toSet())
+    );
+  }
+
+  private void secureCluster() {
+    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+  }
+
+  private void requestSpecifiesSecurity() {
+    expect(request.getSecurity()).andReturn(Optional.of(SecurityConfiguration.KERBEROS)).anyTimes();
+  }
+
+  private KerberosDescriptor requestHasKerberosDescriptorFor(boolean byReference, String... services) {
+    SecurityConfiguration requestSecurity = byReference
+      ? SecurityConfiguration.withReference(FAKE_DESCRIPTOR_REFERENCE)
+      : SecurityConfiguration.withDescriptor(FAKE_DESCRIPTOR);
+    expect(request.getSecurity()).andReturn(Optional.of(requestSecurity)).anyTimes();
+
+    if (byReference) {
+      expect(securityConfigurationFactory.loadSecurityConfigurationByReference(FAKE_DESCRIPTOR_REFERENCE))
+        .andReturn(SecurityConfiguration.forTest(SecurityType.KERBEROS, FAKE_DESCRIPTOR_REFERENCE, FAKE_DESCRIPTOR));
     }
 
-    throw new AssertionError("Expected exception: " + expectedException + ", but was not thrown");
+    KerberosDescriptor kerberosDescriptor = kerberosDescriptorForServices(services);
+    expect(kerberosDescriptorFactory.createInstance(FAKE_DESCRIPTOR)).andReturn(kerberosDescriptor).anyTimes();
+
+    return kerberosDescriptor;
+  }
+
+  private static KerberosDescriptor kerberosDescriptorForServices(String... newServices) {
+    return new KerberosDescriptorFactory().createInstance(ImmutableMap.of(
+      KerberosDescriptor.KEY_SERVICES, Arrays.stream(newServices)
+        .map(each -> ImmutableMap.of(KerberosServiceDescriptor.KEY_NAME, each))
+        .collect(toList())
+    ));
   }
 
 }

@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.api.services.stackadvisor;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,9 +32,12 @@ import java.util.Set;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.state.ChangedConfigInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.topology.Configuration;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Stack advisor request.
@@ -151,6 +156,22 @@ public class StackAdvisorRequest {
     this.stackVersion = stackVersion;
   }
 
+  public StackAdvisorRequestBuilder builder() {
+    return StackAdvisorRequestBuilder.forStack(stackName, stackVersion)
+      .ofType(requestType)
+      .forHosts(hosts)
+      .forServices(services)
+      .forHostComponents(hostComponents)
+      .forHostsGroupBindings(hostGroupBindings)
+      .withComponentHostsMap(componentHostsMap)
+      .withConfigurations(configurations)
+      .withChangedConfigurations(changedConfigurations)
+      .withConfigGroups(configGroups)
+      .withUserContext(userContext)
+      .withGPLLicenseAccepted(gplLicenseAccepted)
+      .withLdapConfig(ldapConfig);
+  }
+
   public static class StackAdvisorRequestBuilder {
     StackAdvisorRequest instance;
 
@@ -203,6 +224,15 @@ public class StackAdvisorRequest {
       this.instance.configurations = configurations;
       return this;
     }
+
+    public StackAdvisorRequestBuilder withConfigurations(Configuration configuration) {
+      Map<String, Map<String, String>> properties = configuration.getFullProperties();
+      this.instance.configurations = properties.entrySet().stream()
+        .map( e -> Pair.of(e.getKey(), ImmutableMap.of("properties", e.getValue())))
+        .collect(toMap(Pair::getKey, Pair::getValue));
+      return this;
+    }
+
 
     public StackAdvisorRequestBuilder withChangedConfigurations(
       List<ChangedConfigInfo> changedConfigurations) {

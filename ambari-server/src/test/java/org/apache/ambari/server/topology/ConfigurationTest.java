@@ -158,6 +158,55 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void containsConfigType() {
+    Configuration configuration = createConfigurationWithParents_PropsOnly();
+    assertTrue(configuration.containsConfigType("type1"));
+    assertTrue(configuration.containsConfigType("type2"));
+    assertTrue(configuration.containsConfigType("type3"));
+    assertTrue(configuration.containsConfigType("type4"));
+    assertFalse(configuration.containsConfigType("type5"));
+
+    configuration = createConfigurationWithParents_AttributesOnly();
+    assertTrue(configuration.containsConfigType("type1"));
+    assertTrue(configuration.containsConfigType("type2"));
+    assertFalse(configuration.containsConfigType("type3"));
+  }
+
+  @Test
+  public void containsConfig() {
+    Configuration configuration = createConfigurationWithParents_PropsOnly();
+    assertTrue(configuration.containsConfig("type1", "prop1"));
+    assertTrue(configuration.containsConfig("type1", "prop2"));
+    assertTrue(configuration.containsConfig("type1", "prop3"));
+    assertTrue(configuration.containsConfig("type2", "prop4"));
+    assertTrue(configuration.containsConfig("type2", "prop5"));
+    assertTrue(configuration.containsConfig("type1", "prop6"));
+    assertTrue(configuration.containsConfig("type1", "prop9"));
+    assertTrue(configuration.containsConfig("type3", "prop7"));
+    assertTrue(configuration.containsConfig("type3", "prop8"));
+    assertTrue(configuration.containsConfig("type4", "prop10"));
+    assertTrue(configuration.containsConfig("type4", "prop11"));
+    assertFalse(configuration.containsConfig("type1", "prop99"));
+    assertFalse(configuration.containsConfig("core-site", "io.file.buffer.size"));
+
+    configuration = createConfigurationWithParents_AttributesOnly();
+    assertTrue(configuration.containsConfig("type1", "prop1"));
+    assertTrue(configuration.containsConfig("type1", "prop2"));
+    assertTrue(configuration.containsConfig("type1", "prop3"));
+    assertTrue(configuration.containsConfig("type1", "prop6"));
+    assertTrue(configuration.containsConfig("type1", "prop7"));
+    assertTrue(configuration.containsConfig("type1", "prop8"));
+    assertTrue(configuration.containsConfig("type1", "prop9"));
+    assertTrue(configuration.containsConfig("type1", "prop10"));
+    assertTrue(configuration.containsConfig("type1", "prop11"));
+    assertTrue(configuration.containsConfig("type2", "prop100"));
+    assertTrue(configuration.containsConfig("type2", "prop101"));
+    assertTrue(configuration.containsConfig("type2", "prop102"));
+    assertFalse(configuration.containsConfig("type1", "prop99"));
+    assertFalse(configuration.containsConfig("core-site", "io.file.buffer.size"));
+  }
+
+  @Test
   public void testGetFullProperties_withParent_specifyDepth() {
     Configuration configuration = createConfigurationWithParents_PropsOnly();
     // specify a depth of 1 which means to include only 1 level up the parent chain

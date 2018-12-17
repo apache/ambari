@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.services.stackadvisor.recommendations;
 
+import static com.google.common.collect.Maps.transformValues;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toMap;
@@ -27,13 +28,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.state.ValueAttributesInfo;
+import org.apache.ambari.server.topology.ConfigurableHelper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import com.google.common.collect.ImmutableMap;
@@ -150,6 +154,24 @@ public class RecommendationResponse extends StackAdvisorResponse {
     @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
     private Map<String, ValueAttributesInfo> propertyAttributes = null;
 
+    /**
+     *
+     * @param properties properties in <i>name -> value</i> format
+     * @param attributes attributes in <i>attribute name -> property name -> value</i> format
+     */
+    public static BlueprintConfigurations create(Map<String, String> properties, Map<String, Map<String, String>> attributes) {
+      BlueprintConfigurations config = new BlueprintConfigurations();
+      config.setProperties(properties);
+      if (attributes != null) {
+        // transform map to property name -> attribute name -> value format
+        Map<String, Map<String, String>> transformedAttributes = ConfigurableHelper.transformAttributesMap(attributes);
+        ObjectMapper mapper = new ObjectMapper();
+        config.setPropertyAttributes(
+          new HashMap<>(transformValues(transformedAttributes, attr -> ValueAttributesInfo.fromMap(attr, Optional.of(mapper)))));
+      }
+      return config;
+    }
+
     public BlueprintConfigurations() {
 
     }
@@ -174,6 +196,16 @@ public class RecommendationResponse extends StackAdvisorResponse {
 
     public Map<String, ValueAttributesInfo> getPropertyAttributes() {
       return propertyAttributes;
+    }
+
+    /**
+     * @return value attributes in <i>attribute name -> property name -> value</i> format
+     */
+    @JsonIgnore
+    public Map<String, Map<String, String>> getPropertyAttributesAsMap() {
+      ObjectMapper mapper = new ObjectMapper();
+      return null == propertyAttributes ? null :
+        ConfigurableHelper.transformAttributesMap( transformValues(propertyAttributes, vaInfo -> vaInfo.toMap(Optional.of(mapper))) );
     }
 
     public void setPropertyAttributes(Map<String, ValueAttributesInfo> propertyAttributes) {
