@@ -3723,6 +3723,20 @@ describe('App.MainHostDetailsController', function () {
       this.mock.withArgs('C3').returns(App.StackServiceComponent.createRecord({ componentName: 'C3' }));
       expect(controller.checkComponentDependencies('C1', opt)).to.eql(['C3']);
     });
+    it("dependecies should be excluded when exclusive type", function () {
+      var opt = {scope: '*', installedComponents: ['C2']};
+      this.mock.returns([
+        App.StackServiceComponent.createRecord({componentName: 'C1'}),
+        App.StackServiceComponent.createRecord({componentName: 'C2'}),
+        App.StackServiceComponent.createRecord({componentName: 'C3'})
+      ]);
+      this.mock.withArgs('C1').returns(App.StackServiceComponent.createRecord({
+        dependencies: [{componentName: 'C3', type: 'exclusive'}]
+      }));
+      this.mock.withArgs('C2').returns(App.StackServiceComponent.createRecord({ componentName: 'C2' }));
+      this.mock.withArgs('C3').returns(App.StackServiceComponent.createRecord({ componentName: 'C3' }));
+      expect(controller.checkComponentDependencies('C1', opt)).to.be.empty;
+    });
     it("dependecies already installed by component type", function () {
       var opt = {scope: '*', installedComponents: ['C3']};
       this.mock.withArgs('C1').returns(App.StackServiceComponent.createRecord({

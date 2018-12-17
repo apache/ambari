@@ -3003,7 +3003,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         break;
     }
     var component = App.StackServiceComponent.find(componentName);
-    return component.missingDependencies(installedComponents, opt).map(function(componentDependency) {
+    const excludeExclusiveDependencies = (d) => d.type !== 'exclusive';
+    return component.missingDependencies(installedComponents, opt)
+    .filter(excludeExclusiveDependencies) //If type is "exclusive" the dependent component should never be co-hosted.
+    .map(function(componentDependency) {
       return componentDependency.chooseCompatible();
     });
   },
