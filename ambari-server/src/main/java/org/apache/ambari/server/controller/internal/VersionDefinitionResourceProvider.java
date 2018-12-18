@@ -573,6 +573,9 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       InputStream stream = null;
 
       if (uri.getScheme().equalsIgnoreCase("file")) {
+        if (!s_configuration.areFileVDFAllowed()) {
+          throw new AmbariException("File URL for VDF are not enabled");
+        }
         stream = uri.toURL().openStream();
       } else {
         URLStreamProvider provider = new URLStreamProvider(connectTimeout, readTimeout,
