@@ -2612,6 +2612,12 @@ public class Configuration {
   public static final ConfigurationProperty<String> ADD_SERVICE_HOST_GROUP_STRATEGY = new ConfigurationProperty<>(
     "addservice.hostgroup.strategy", GroupByComponentsStrategy.class.getName());
 
+  /**
+   * Gets whether file-based VDF are allowed to be used.
+   */
+  @Markdown(description = "Controls whether VDF can be read from the filesystem.")
+  public static final ConfigurationProperty<Boolean> VDF_FROM_FILESYSTEM = new ConfigurationProperty<>(
+      "server.version_definition.allow_from_filesystem", Boolean.FALSE);
 
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
@@ -6064,5 +6070,12 @@ public class Configuration {
 
   public int getAlertServiceCorePoolSize() {
     return Integer.parseInt(getProperty(SERVER_SIDE_ALERTS_CORE_POOL_SIZE));
+  }
+
+  /**
+   * @return {@code true} if local files can be specified in the API to consume VDF
+   */
+  public boolean areFileVDFAllowed() {
+    return Boolean.parseBoolean(getProperty(VDF_FROM_FILESYSTEM));
   }
 }
