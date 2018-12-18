@@ -101,7 +101,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
       var serviceComponents = [];
       item.components.forEach(function (serviceComponent) {
         var dependencies = serviceComponent.dependencies.map(function (dependecy) {
-          return { Dependencies: App.keysUnderscoreToCamelCase(App.permit(dependecy.Dependencies, ['component_name', 'scope', 'service_name'])) };
+          return { Dependencies: App.keysUnderscoreToCamelCase(App.permit(dependecy.Dependencies, ['component_name', 'scope', 'service_name', 'type'])) };
         });
         serviceComponent.StackServiceComponents.id = serviceComponent.StackServiceComponents.component_name;
         serviceComponent.StackServiceComponents.dependencies = dependencies;
