@@ -19,7 +19,11 @@
 package org.apache.ambari.funtest.server.tests;
 
 
-import com.google.gson.JsonElement;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
+import java.util.HashMap;
+
 import org.apache.ambari.funtest.server.AmbariUserRole;
 import org.apache.ambari.funtest.server.ClusterConfigParams;
 import org.apache.ambari.funtest.server.ConnectionParams;
@@ -32,19 +36,18 @@ import org.apache.ambari.funtest.server.api.cluster.GetAllClustersWebRequest;
 import org.apache.ambari.funtest.server.api.user.DeleteUserWebRequest;
 import org.apache.ambari.funtest.server.utils.ClusterUtils;
 import org.apache.ambari.funtest.server.utils.RestApiUtils;
-import org.apache.http.HttpStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpStatus;
+import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.HashMap;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertEquals;
+import com.google.gson.JsonElement;
 
 /**
  * Tests operations with users with different levels of privileges
  */
+@Ignore
 public class RoleBasedAccessControlBasicTest extends ServerTestBase {
 
     private String clusterName = "c1";
