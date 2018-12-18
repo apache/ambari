@@ -6073,7 +6073,7 @@ public class Configuration {
   }
 
   /**
-   * @return {@code true} if files can be specified in the API to consume VDF
+   * @return {@code true} if local files can be specified in the API to consume VDF
    */
   public boolean areFileVDFAllowed() {
     return Boolean.parseBoolean(getProperty(VDF_FROM_FILESYSTEM));
