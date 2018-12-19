@@ -4128,6 +4128,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Stage stage = createNewStage(requestStageContainer.getLastStageId(), cluster, requestId, requestContext,
         commandParamsForStage, jsons.getHostParamsForStage());
+    boolean skipFailure = false;
+    if (requestProperties.containsKey(Setting.SETTING_NAME_SKIP_FAILURE) && requestProperties.get(Setting.SETTING_NAME_SKIP_FAILURE).equalsIgnoreCase("true")) {
+        skipFailure = true;
+    }
+//    stage.setAutoSkipFailureSupported(skipFailure);
+    stage.setSkippable(skipFailure);
 
     if (actionRequest.isCommand()) {
       customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
