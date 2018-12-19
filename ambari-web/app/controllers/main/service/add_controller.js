@@ -234,7 +234,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    */
   saveMasterComponentHosts: function (stepController) {
     var masterComponentHosts = [];
-    var installedComponentsMap = App.HostComponent.find().toMapByProperty('componentName');
+    var installedComponentsMap = App.HostComponent.find().toArray().toMapByProperty('componentName');
 
     stepController.get('selectedServicesMasters').forEach(function (_component) {
       var installedComponent = installedComponentsMap[_component.component_name];
