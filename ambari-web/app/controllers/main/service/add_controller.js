@@ -233,12 +233,11 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    * @param stepController App.WizardStep5Controller
    */
   saveMasterComponentHosts: function (stepController) {
-    var obj = stepController.get('selectedServicesMasters');
     var masterComponentHosts = [];
-    var installedComponents = App.HostComponent.find();
+    var installedComponentsMap = App.HostComponent.find().toArray().toMapByProperty('componentName');
 
-    obj.forEach(function (_component) {
-      var installedComponent = installedComponents.findProperty('componentName', _component.component_name);
+    stepController.get('selectedServicesMasters').forEach(function (_component) {
+      var installedComponent = installedComponentsMap[_component.component_name];
       masterComponentHosts.push({
         display_name: _component.display_name,
         component: _component.component_name,
@@ -252,7 +251,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
     this.setDBProperty('masterComponentHosts', masterComponentHosts);
     this.set('content.masterComponentHosts', masterComponentHosts);
 
-    this.set('content.skipMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
+    this.set('content.skipMasterStep', masterComponentHosts.everyProperty('isInstalled', true));
     this.get('isStepDisabled').findProperty('step', 2).set('value', this.get('content.skipMasterStep'));
   },
 
