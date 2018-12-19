@@ -115,6 +115,7 @@
               <exclude>src/test/resources/os_family.json</exclude>
               <exclude>src/test/resources/stacks/**</exclude>
               <exclude>derby.log</exclude>
+              <exclude>pass.txt</exclude>
             </excludes>
           </configuration>
       </plugin>
