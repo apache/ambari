@@ -18,7 +18,7 @@
 -- DROP DATABASE IF EXISTS `ambari`;
 -- DROP USER `ambari`;
 
-delimiter ;
+# delimiter ;
 
 # CREATE DATABASE `ambari` /*!40100 DEFAULT CHARACTER SET utf8 */;
 #

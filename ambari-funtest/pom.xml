@@ -21,8 +21,20 @@
   <packaging>jar</packaging>
   <name>Ambari Functional Tests</name>
   <description>Ambari Functional Tests</description>
+  <properties>
+    <jdk.version>1.8</jdk.version>
+  </properties>
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.2</version>
+        <configuration>
+          <source>${jdk.version}</source>
+          <target>${jdk.version}</target>
+          <useIncrementalCompilation>false</useIncrementalCompilation>
+         </configuration>
+      </plugin>
        <plugin>
          <groupId>org.vafer</groupId>
          <artifactId>jdeb</artifactId>
@@ -76,10 +88,15 @@
           <includes>
             <include>**/*.java</include>
           </includes>
-          <forkMode>once</forkMode>
         </configuration>
         <executions>
           <!-- Will display BUILD FAILURE if build fails or any test fails -->
+          <execution>
+            <id>integration-test</id>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+          </execution>
           <execution>
             <id>run-verify</id>
             <phase>verify</phase>
@@ -98,6 +115,7 @@
               <exclude>src/test/resources/os_family.json</exclude>
               <exclude>src/test/resources/stacks/**</exclude>
               <exclude>derby.log</exclude>
+              <exclude>pass.txt</exclude>
             </excludes>
           </configuration>
       </plugin>
@@ -178,6 +196,38 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>mariadb</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mariadb.jdbc</groupId>
+      <artifactId>mariadb-java-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>mssqlserver</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.microsoft.sqlserver</groupId>
+      <artifactId>mssql-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>mysql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
     </dependency>
   </dependencies>
 </project>
