@@ -5323,6 +5323,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             List<WidgetLayoutInfo> layoutInfoList = widgetLayout.getWidgetLayoutInfoList();
             if (layoutInfoList != null && !layoutInfoList.isEmpty()) {
               for (WidgetLayoutInfo layoutInfo : layoutInfoList) {
+                if (layoutInfo.getDefaultSectionName() == null) {
+                  layoutInfo.setDefaultSectionName(existingLayoutEntity.getSectionName());
+                }
                 WidgetEntity widgetEntity = addIfNotExistsWidgetEntity(layoutInfo, clusterEntity, user, now);
                 if (widgetEntity != null && layoutInfo.isVisible()) {
                   WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity = new WidgetLayoutUserWidgetEntity();
