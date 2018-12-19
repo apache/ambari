@@ -108,19 +108,6 @@
               <failIfNoMatch>false</failIfNoMatch>
             </configuration>
           </execution>
-          <execution>
-            <id>add-test-source</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>add-test-source</goal>
-            </goals>
-            <configuration>
-              <skip>${skipIT}</skip>
-              <sources>
-                <source>src/it/java</source>
-              </sources>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
       <plugin>
