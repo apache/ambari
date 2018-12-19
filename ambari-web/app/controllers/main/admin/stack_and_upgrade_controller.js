@@ -2283,15 +2283,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.initDBProperties();
     App.set('upgradeState', lastUpgradeData.Upgrade.request_status);
     this.loadRepoVersionsToModel().done(function () {
-      var upgradeVersion;
-      if (isDowngrade) {
-        var services = Object.keys(lastUpgradeData.versions);
-        upgradeVersion = services[0].from_repository_version;
-      } else {
-        var toVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.associated_version);
-        upgradeVersion = toVersion && toVersion.get('displayName');
-      }
-      lastUpgradeData.versions
+      var version = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.associated_version);
+      var upgradeVersion = version && version.get('displayName');
       self.setDBProperty('upgradeVersion', upgradeVersion);
       self.set('upgradeVersion', upgradeVersion);
     });
