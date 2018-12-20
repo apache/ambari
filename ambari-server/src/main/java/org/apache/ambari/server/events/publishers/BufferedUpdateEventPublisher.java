@@ -20,21 +20,28 @@ package org.apache.ambari.server.events.publishers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.eventbus.EventBus;
-import com.google.inject.Singleton;
+import org.apache.ambari.server.events.STOMPEvent;
 
-@Singleton
+import com.google.common.eventbus.EventBus;
+
 public abstract class BufferedUpdateEventPublisher<T> {
 
   private static final long TIMEOUT = 1000L;
   private final ConcurrentLinkedQueue<T> buffer = new ConcurrentLinkedQueue<>();
 
+  public abstract STOMPEvent.Type getType();
+
   private ScheduledExecutorService scheduledExecutorService;
+
+  public BufferedUpdateEventPublisher(STOMPUpdatePublisher stompUpdatePublisher) {
+    stompUpdatePublisher.registerPublisher(this);
+  }
 
   public void publish(T event, EventBus m_eventBus) {
     if (scheduledExecutorService == null) {
@@ -76,5 +83,18 @@ public abstract class BufferedUpdateEventPublisher<T> {
       }
       mergeBufferAndPost(events, m_eventBus);
     }
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    BufferedUpdateEventPublisher<?> that = (BufferedUpdateEventPublisher<?>) o;
+    return Objects.equals(getType(), that.getType());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getType());
   }
 }

@@ -21,14 +21,26 @@ package org.apache.ambari.server.events.publishers;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.HostComponentUpdate;
 import org.apache.ambari.server.events.HostComponentsUpdateEvent;
+import org.apache.ambari.server.events.STOMPEvent;
 
 import com.google.common.eventbus.EventBus;
-import com.google.inject.Singleton;
+import com.google.inject.Inject;
 
-@Singleton
+@EagerSingleton
 public class HostComponentUpdateEventPublisher extends BufferedUpdateEventPublisher<HostComponentsUpdateEvent> {
+
+  @Inject
+  public HostComponentUpdateEventPublisher(STOMPUpdatePublisher stompUpdatePublisher) {
+    super(stompUpdatePublisher);
+  }
+
+  @Override
+  public STOMPEvent.Type getType() {
+    return STOMPEvent.Type.HOSTCOMPONENT;
+  }
 
   @Override
   public void mergeBufferAndPost(List<HostComponentsUpdateEvent> events, EventBus m_eventBus) {
