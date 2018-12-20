@@ -29,6 +29,7 @@ public class LdapBatchDto {
   private final Set<LdapGroupDto> groupsToBeRemoved = new HashSet<>();
   private final Set<LdapGroupDto> groupsProcessedInternal = new HashSet<>();
   private final Set<LdapUserDto> usersSkipped = new HashSet<>();
+  private final Set<LdapUserDto> usersIgnored = new HashSet<>();
   private final Set<LdapUserDto> usersToBecomeLdap = new HashSet<>();
   private final Set<LdapUserDto> usersToBeCreated = new HashSet<>();
   private final Set<LdapUserDto> usersToBeRemoved = new HashSet<>();
@@ -37,6 +38,10 @@ public class LdapBatchDto {
 
   public Set<LdapUserDto> getUsersSkipped() {
     return usersSkipped;
+  }
+
+  public Set<LdapUserDto> getUsersIgnored() {
+    return usersIgnored;
   }
 
   public Set<LdapGroupDto> getGroupsToBecomeLdap() {

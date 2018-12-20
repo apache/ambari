@@ -184,6 +184,7 @@ import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
+import org.apache.ambari.server.security.ldap.LdapUserDto;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
 import org.apache.ambari.server.stack.ExtensionHelper;
@@ -5145,35 +5146,69 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     try {
 
       final LdapBatchDto batchInfo = new LdapBatchDto();
+      boolean postProcessExistingUsers = false;
+      boolean postProcessExistingUsersInGroups = false;
 
       if (userRequest != null) {
+        postProcessExistingUsers = userRequest.getPostProcessExistingUsers();
+
+        if(postProcessExistingUsers && !configs.isUserHookEnabled()) {
+          LOG.info("Post processing existing users is requested while processing users; however, the user post creation hook is turned off.");
+          postProcessExistingUsers = false;
+        }
+
         switch (userRequest.getType()) {
           case ALL:
-            ldapDataPopulator.synchronizeAllLdapUsers(batchInfo);
+            ldapDataPopulator.synchronizeAllLdapUsers(batchInfo, postProcessExistingUsers);
             break;
           case EXISTING:
-            ldapDataPopulator.synchronizeExistingLdapUsers(batchInfo);
+            ldapDataPopulator.synchronizeExistingLdapUsers(batchInfo, postProcessExistingUsers);
             break;
           case SPECIFIC:
-            ldapDataPopulator.synchronizeLdapUsers(userRequest.getPrincipalNames(), batchInfo);
+            ldapDataPopulator.synchronizeLdapUsers(userRequest.getPrincipalNames(), batchInfo, postProcessExistingUsers);
             break;
         }
       }
       if (groupRequest != null) {
+        postProcessExistingUsersInGroups = groupRequest.getPostProcessExistingUsers();
+
+        if(postProcessExistingUsersInGroups && !configs.isUserHookEnabled()) {
+          LOG.info("Post processing existing users is requested while processing groups; however, the user post creation hook is turned off.");
+          postProcessExistingUsersInGroups = false;
+        }
+
         switch (groupRequest.getType()) {
           case ALL:
-            ldapDataPopulator.synchronizeAllLdapGroups(batchInfo);
+            ldapDataPopulator.synchronizeAllLdapGroups(batchInfo, postProcessExistingUsersInGroups);
             break;
           case EXISTING:
-            ldapDataPopulator.synchronizeExistingLdapGroups(batchInfo);
+            ldapDataPopulator.synchronizeExistingLdapGroups(batchInfo, postProcessExistingUsersInGroups);
             break;
           case SPECIFIC:
-            ldapDataPopulator.synchronizeLdapGroups(groupRequest.getPrincipalNames(), batchInfo);
+            ldapDataPopulator.synchronizeLdapGroups(groupRequest.getPrincipalNames(), batchInfo, postProcessExistingUsersInGroups);
             break;
         }
       }
 
       users.processLdapSync(batchInfo);
+
+      if (postProcessExistingUsers || postProcessExistingUsersInGroups) {
+        // Execute post user creation hook on ignored users. These users were previously synced with
+        // Ambari but the post user creation script may not have been run on them due to various
+        // reasons
+        Set<LdapUserDto> ignoredUsers = batchInfo.getUsersIgnored();
+        if(CollectionUtils.isNotEmpty(ignoredUsers)) {
+          Map<String, Set<String>> userGroupsMap = new HashMap<>();
+          for (LdapUserDto ignoredUser : ignoredUsers) {
+            // The set of groups is empty here since the groups are not used in the script and the
+            // existing usage of the post user creation hook does not supply a set of groups either.
+            userGroupsMap.put(ignoredUser.getUserName(), Collections.emptySet());
+          }
+
+          users.executeUserHook(userGroupsMap);
+        }
+      }
+
       return batchInfo;
     } finally {
       ldapSyncInProgress = false;

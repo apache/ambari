@@ -38,18 +38,26 @@ public class LdapSyncRequest {
    */
   private final LdapSyncSpecEntity.SyncType type;
 
+  /**
+   * A Boolean value indicating whether to execute the post user creation hook on previously
+   * existing users (if the post user creation hook feature has been enabled)
+   */
+  private final boolean postProcessExistingUsers;
+
 
   // ----- Constructors ------------------------------------------------------
 
   /**
    * Construct an LdapSyncRequest.
    *
-   * @param type            the request type
-   * @param principalNames  the principal names
+   * @param type                     the request type
+   * @param principalNames           the principal names
+   * @param postProcessExistingUsers true, to process existing users; false, otherwise
    */
-  public LdapSyncRequest(LdapSyncSpecEntity.SyncType type, Set<String> principalNames) {
-    this.type  = type;
+  public LdapSyncRequest(LdapSyncSpecEntity.SyncType type, Set<String> principalNames, boolean postProcessExistingUsers) {
+    this.type = type;
     this.principalNames = principalNames == null ? new HashSet<>() : principalNames;
+    this.postProcessExistingUsers = postProcessExistingUsers;
   }
 
   /**
@@ -57,9 +65,8 @@ public class LdapSyncRequest {
    *
    * @param type  the request type
    */
-  public LdapSyncRequest(LdapSyncSpecEntity.SyncType type) {
-    this.principalNames = new HashSet<>();
-    this.type  = type;
+  public LdapSyncRequest(LdapSyncSpecEntity.SyncType type, boolean postProcessExistingUsers) {
+    this(type, null, postProcessExistingUsers);
   }
 
 
@@ -90,5 +97,15 @@ public class LdapSyncRequest {
    */
   public LdapSyncSpecEntity.SyncType getType() {
     return type;
+  }
+
+  /**
+   * Gets whether to (re)exectue the post user creation hook on previously existing users
+   * (if the post user creation hook feature has been enabled), on not.
+   *
+   * @return true, to process existing users; false, otherwise
+   */
+  public boolean getPostProcessExistingUsers() {
+    return postProcessExistingUsers;
   }
 }

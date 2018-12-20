@@ -190,9 +190,11 @@ public class AmbariLdapDataPopulator {
   /**
    * Performs synchronization of all groups.
    *
+   * @param collectIgnoredUsers true, to collect the set of existing users that would normally be ignored;
+   *                            false, to continue to ignore them
    * @throws AmbariException if synchronization failed for any reason
    */
-  public LdapBatchDto synchronizeAllLdapGroups(LdapBatchDto batchInfo) throws AmbariException {
+  public LdapBatchDto synchronizeAllLdapGroups(LdapBatchDto batchInfo, boolean collectIgnoredUsers) throws AmbariException {
     LOG.trace("Synchronize All LDAP groups...");
     Set<LdapGroupDto> externalLdapGroupInfo = getExternalLdapGroupInfo();
 
@@ -201,7 +203,7 @@ public class AmbariLdapDataPopulator {
 
     for (LdapGroupDto groupDto : externalLdapGroupInfo) {
       addLdapGroup(batchInfo, internalGroupsMap, groupDto);
-      refreshGroupMembers(batchInfo, groupDto, internalUsersMap, internalGroupsMap, null, false);
+      refreshGroupMembers(batchInfo, groupDto, internalUsersMap, internalGroupsMap, null, false, collectIgnoredUsers);
     }
     for (Entry<String, Group> internalGroup : internalGroupsMap.entrySet()) {
       if (internalGroup.getValue().isLdapGroup()) {
@@ -217,9 +219,11 @@ public class AmbariLdapDataPopulator {
   /**
    * Performs synchronization of given sets of all users.
    *
+   * @param collectIgnoredUsers true, to collect the set of existing users that would normally be ignored;
+   *                            false, to continue to ignore them
    * @throws AmbariException if synchronization failed for any reason
    */
-  public LdapBatchDto synchronizeAllLdapUsers(LdapBatchDto batchInfo) throws AmbariException {
+  public LdapBatchDto synchronizeAllLdapUsers(LdapBatchDto batchInfo, boolean collectIgnoredUsers) throws AmbariException {
     LOG.trace("Synchronize All LDAP users...");
     Set<LdapUserDto> externalLdapUserInfo = getExternalLdapUserInfo();
     Map<String, User> internalUsersMap = getInternalUsers();
@@ -236,6 +240,8 @@ public class AmbariLdapDataPopulator {
             batchInfo.getUsersToBecomeLdap().add(userDto);
             LOG.trace("Convert user '{}' to LDAP user.", userName);
           }
+        } else if (collectIgnoredUsers) {
+          batchInfo.getUsersIgnored().add(userDto);
         }
         internalUsersMap.remove(userName);
       } else {
@@ -257,10 +263,12 @@ public class AmbariLdapDataPopulator {
   /**
    * Performs synchronization of given set of groupnames.
    *
-   * @param groups set of groups to synchronize
+   * @param groups              set of groups to synchronize
+   * @param collectIgnoredUsers true, to collect the set of existing users that would normally be ignored;
+   *                            false, to continue to ignore them
    * @throws AmbariException if synchronization failed for any reason
    */
-  public LdapBatchDto synchronizeLdapGroups(Set<String> groups, LdapBatchDto batchInfo) throws AmbariException {
+  public LdapBatchDto synchronizeLdapGroups(Set<String> groups, LdapBatchDto batchInfo, boolean collectIgnoredUsers) throws AmbariException {
     LOG.trace("Synchronize LDAP groups...");
     final Set<LdapGroupDto> specifiedGroups = new HashSet<>();
     for (String group : groups) {
@@ -277,7 +285,7 @@ public class AmbariLdapDataPopulator {
 
     for (LdapGroupDto groupDto : specifiedGroups) {
       addLdapGroup(batchInfo, internalGroupsMap, groupDto);
-      refreshGroupMembers(batchInfo, groupDto, internalUsersMap, internalGroupsMap, null, true);
+      refreshGroupMembers(batchInfo, groupDto, internalUsersMap, internalGroupsMap, null, true, collectIgnoredUsers);
     }
 
     return batchInfo;
@@ -286,10 +294,12 @@ public class AmbariLdapDataPopulator {
   /**
    * Performs synchronization of given set of user names.
    *
-   * @param users set of users to synchronize
+   * @param users               set of users to synchronize
+   * @param collectIgnoredUsers true, to collect the set of existing users that would normally be ignored;
+   *                            false, to continue to ignore them
    * @throws AmbariException if synchronization failed for any reason
    */
-  public LdapBatchDto synchronizeLdapUsers(Set<String> users, LdapBatchDto batchInfo) throws AmbariException {
+  public LdapBatchDto synchronizeLdapUsers(Set<String> users, LdapBatchDto batchInfo, boolean collectIgnoredUsers) throws AmbariException {
     LOG.trace("Synchronize LDAP users...");
     final Set<LdapUserDto> specifiedUsers = new HashSet<>();
 
@@ -314,6 +324,8 @@ public class AmbariLdapDataPopulator {
           } else {
             batchInfo.getUsersToBecomeLdap().add(userDto);
           }
+        } else if (collectIgnoredUsers) {
+          batchInfo.getUsersIgnored().add(userDto);
         }
         internalUsersMap.remove(userName);
       } else {
@@ -327,9 +339,11 @@ public class AmbariLdapDataPopulator {
   /**
    * Performs synchronization of existent users and groups.
    *
+   * @param collectIgnoredUsers true, to collect the set of existing users that would normally be ignored;
+   *                            false, to continue to ignore them
    * @throws AmbariException if synchronization failed for any reason
    */
-  public LdapBatchDto synchronizeExistingLdapGroups(LdapBatchDto batchInfo) throws AmbariException {
+  public LdapBatchDto synchronizeExistingLdapGroups(LdapBatchDto batchInfo, boolean collectIgnoredUsers) throws AmbariException {
     LOG.trace("Synchronize Existing LDAP groups...");
     final Map<String, Group> internalGroupsMap = getInternalGroups();
     final Map<String, User> internalUsersMap = getInternalUsers();
@@ -345,7 +359,7 @@ public class AmbariLdapDataPopulator {
           batchInfo.getGroupsToBeRemoved().add(groupDto);
         } else {
           LdapGroupDto groupDto = groupDtos.iterator().next();
-          refreshGroupMembers(batchInfo, groupDto, internalUsersMap, internalGroupsMap, null, true);
+          refreshGroupMembers(batchInfo, groupDto, internalUsersMap, internalGroupsMap, null, true, collectIgnoredUsers);
         }
       }
     }
@@ -356,9 +370,11 @@ public class AmbariLdapDataPopulator {
   /**
    * Performs synchronization of existent users and groups.
    *
+   * @param collectIgnoredUsers true, to collect the set of existing users that would normally be ignored;
+   *                            false, to continue to ignore them
    * @throws AmbariException if synchronization failed for any reason
    */
-  public LdapBatchDto synchronizeExistingLdapUsers(LdapBatchDto batchInfo) throws AmbariException {
+  public LdapBatchDto synchronizeExistingLdapUsers(LdapBatchDto batchInfo, boolean collectIgnoredUsers) throws AmbariException {
     LOG.trace("Synchronize Existing LDAP users...");
     final Map<String, User> internalUsersMap = getInternalUsers();
 
@@ -370,6 +386,10 @@ public class AmbariLdapDataPopulator {
           userDto.setUserName(user.getUserName());
           userDto.setDn(null);  // Setting to null since we do not know what the DN for this user was.
           batchInfo.getUsersToBeRemoved().add(userDto);
+        } else if (collectIgnoredUsers) {
+          LdapUserDto userDto = new LdapUserDto();
+          userDto.setUserName(user.getUserName());
+          batchInfo.getUsersIgnored().add(userDto);
         }
       }
     }
@@ -385,10 +405,13 @@ public class AmbariLdapDataPopulator {
    * @param internalUsers         map of internal users
    * @param groupMemberAttributes set of group member attributes that have already been refreshed
    * @param recursive             if disabled, it won't refresh members recursively (its not needed in case of all groups are processed)
+   * @param collectIgnoredUsers   true, to collect the set of existing users that would normally be ignored;
+   *                              false, to continue to ignore them
    * @throws AmbariException if group refresh failed
    */
   protected void refreshGroupMembers(LdapBatchDto batchInfo, LdapGroupDto group, Map<String, User> internalUsers,
-                                     Map<String, Group> internalGroupsMap, Set<String> groupMemberAttributes, boolean recursive)
+                                     Map<String, Group> internalGroupsMap, Set<String> groupMemberAttributes, boolean recursive,
+                                     boolean collectIgnoredUsers)
       throws AmbariException {
     Set<LdapUserDto> externalMembers = new HashSet<>();
 
@@ -408,7 +431,7 @@ public class AmbariLdapDataPopulator {
           if (subGroup != null) {
             groupMemberAttributes.add(memberAttributeValue);
             addLdapGroup(batchInfo, internalGroupsMap, subGroup);
-            refreshGroupMembers(batchInfo, subGroup, internalUsers, internalGroupsMap, groupMemberAttributes, true);
+            refreshGroupMembers(batchInfo, subGroup, internalUsers, internalGroupsMap, groupMemberAttributes, true, collectIgnoredUsers);
           }
         }
       }
@@ -435,6 +458,8 @@ public class AmbariLdapDataPopulator {
           } else {
             batchInfo.getUsersToBecomeLdap().add(externalMember);
           }
+        } else if (collectIgnoredUsers) {
+          batchInfo.getUsersIgnored().add(externalMember);
         }
         if (!internalMembers.containsKey(userName)) {
           batchInfo.getMembershipToAdd().add(new LdapUserGroupMemberDto(groupName, externalMember.getUserName()));

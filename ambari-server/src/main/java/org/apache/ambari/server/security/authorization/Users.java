@@ -310,11 +310,28 @@ public class Users {
     userDAO.create(userEntity);
 
     // execute user initialization hook if required ()
-    hookServiceProvider.get().execute(hookContextFactory.createUserHookContext(validatedUserName));
+    executeUserHook(validatedUserName);
 
     return userEntity;
   }
 
+  /**
+   * Triggers the post user creation hook, if enabled
+   *
+   * @param username the username of the user to process
+   */
+  public void executeUserHook(String username) {
+    hookServiceProvider.get().execute(hookContextFactory.createUserHookContext(username));
+  }
+
+  /**
+   * Triggers the post user creation hook, if enabled
+   *
+   * @param userGroupsMap a map of user names to relevant groups
+   */
+  public void executeUserHook(Map<String, Set<String>> userGroupsMap) {
+    hookServiceProvider.get().execute(hookContextFactory.createBatchUserHookContext(userGroupsMap));
+  }
 
   /**
    * Removes a user from the Ambari database.
