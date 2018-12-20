@@ -86,7 +86,7 @@ public class VersionMismatchCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        null, null);
+        null, null, null);
 
     UpgradeCheckResult check = versionMismatchCheck.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.WARNING, check.getStatus());
@@ -98,7 +98,7 @@ public class VersionMismatchCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        null, null);
+        null, null, null);
 
     UpgradeCheckResult check = versionMismatchCheck.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());

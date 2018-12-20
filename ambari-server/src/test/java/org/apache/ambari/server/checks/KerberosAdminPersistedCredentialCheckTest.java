@@ -159,7 +159,7 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
 
     ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        repositoryVersion, checkProperties);
+        repositoryVersion, checkProperties, null);
 
     expect(upgradeHelper.suggestUpgradePack(eq(clusterName), anyObject(), anyObject(), eq(Direction.UPGRADE), eq(UpgradeType.ROLLING), anyObject()))
       .andReturn(upgradePackWithRegenKeytab()).anyTimes();

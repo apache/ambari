@@ -17,11 +17,13 @@
  */
 package org.apache.ambari.spi.upgrade;
 
+import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.spi.ClusterInformation;
 import org.apache.ambari.spi.RepositoryVersion;
+import org.apache.ambari.spi.net.HttpURLConnectionProvider;
 
 /**
  * Represents a request to run the upgrade checks before an upgrade begins.
@@ -32,6 +34,7 @@ public class UpgradeCheckRequest {
   private boolean m_revert = false;
   private final RepositoryVersion m_targetRepositoryVersion;
   private final Map<String,String> m_checkConfigurations;
+  private final HttpURLConnectionProvider m_httpURLConnectionProvider;
 
   /**
    * Used for tracking results during a check request.
@@ -51,13 +54,19 @@ public class UpgradeCheckRequest {
    * @param checkConfigurations
    *          any configurations specified in the upgrade pack which can be used
    *          to when
+   * @param httpURLConnectionProvider
+   *          provides a mechanism for an {@link UpgradeCheck} to make URL
+   *          requests while using Ambari's truststore and configured stream
+   *          timeout settings.
    */
   public UpgradeCheckRequest(ClusterInformation clusterInformation, UpgradeType upgradeType,
-      RepositoryVersion targetRepositoryVersion, Map<String,String> checkConfigurations) {
+      RepositoryVersion targetRepositoryVersion, Map<String, String> checkConfigurations,
+      HttpURLConnectionProvider httpURLConnectionProvider) {
     m_clusterInformation = clusterInformation;
     m_upgradeType = upgradeType;
     m_targetRepositoryVersion = targetRepositoryVersion;
     m_checkConfigurations = checkConfigurations;
+    m_httpURLConnectionProvider = httpURLConnectionProvider;
   }
 
   /**
@@ -132,5 +141,15 @@ public class UpgradeCheckRequest {
    */
   public UpgradeCheckStatus getResult(UpgradeCheckDescription description) {
     return m_results.get(description);
+  }
+
+  /**
+   * Gets a class which can construct {@link HttpURLConnection} instances which
+   * are backed by Ambari's cookie store, truststore, and timeout settings.
+   *
+   * @return the httpURLConnectionProvider an instance of the provider.
+   */
+  public HttpURLConnectionProvider getHttpURLConnectionProvider() {
+    return m_httpURLConnectionProvider;
   }
 }

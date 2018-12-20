@@ -78,7 +78,7 @@ public class ServicePresenceCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties);
+        m_repositoryVersion, checkProperties, null);
 
     UpgradeCheckResult result = m_check.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.PASS, result.getStatus());
@@ -99,7 +99,7 @@ public class ServicePresenceCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties);
+        m_repositoryVersion, checkProperties, null);
 
     UpgradeCheckResult result = m_check.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
@@ -122,7 +122,7 @@ public class ServicePresenceCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties);
+        m_repositoryVersion, checkProperties, null);
 
     UpgradeCheckResult result = m_check.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
@@ -144,7 +144,7 @@ public class ServicePresenceCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties);
+        m_repositoryVersion, checkProperties, null);
 
     UpgradeCheckResult result = m_check.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
@@ -169,7 +169,7 @@ public class ServicePresenceCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties);
+        m_repositoryVersion, checkProperties, null);
 
     UpgradeCheckResult result = m_check.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
@@ -192,7 +192,7 @@ public class ServicePresenceCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties);
+        m_repositoryVersion, checkProperties, null);
 
     UpgradeCheckResult result = m_check.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
@@ -218,7 +218,7 @@ public class ServicePresenceCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties);
+        m_repositoryVersion, checkProperties, null);
 
     UpgradeCheckResult result = m_check.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());

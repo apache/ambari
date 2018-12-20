@@ -159,7 +159,7 @@ public class HostsRepositoryVersionCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, null);
+        m_repositoryVersion, null, null);
 
     UpgradeCheckResult check = hostsRepositoryVersionCheck.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.FAIL, check.getStatus());
@@ -247,7 +247,7 @@ public class HostsRepositoryVersionCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, null);
+        m_repositoryVersion, null, null);
 
     UpgradeCheckResult check = hostsRepositoryVersionCheck.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
@@ -309,7 +309,7 @@ public class HostsRepositoryVersionCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, null);
+        m_repositoryVersion, null, null);
 
     UpgradeCheckResult check = hostsRepositoryVersionCheck.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());

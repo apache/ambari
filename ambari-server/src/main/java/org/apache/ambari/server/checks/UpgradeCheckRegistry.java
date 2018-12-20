@@ -17,10 +17,13 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +44,10 @@ import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
 import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.scanners.TypeAnnotationsScanner;
+import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -171,7 +178,18 @@ public class UpgradeCheckRegistry {
 
   /**
    * Uses the library classloader from the the target stack in order to find any
-   * plugin-in {@link UpgradeCheck}s which are declared in the upgrade pack.
+   * plugin-in {@link UpgradeCheck}s which are declared in the upgrade pack as
+   * well as any upgrade checks which are found in the classloader and marked as
+   * {@link UpgradeCheckInfo#required()} for this {@link UpgradeType}.
+   * <p/>
+   * This method uses a {@link Reflections} instance which has been created
+   * using only the {@link URL}s which the stack library is comprised of. This
+   * means that scanning the path for {@link UpgradeCheck} instances is quick.
+   * However, this also means that the {@link ClassLoader} is unable to load
+   * classes which are defined in the stack but ship with Ambari's
+   * {@link ClassLoader}. For this reason, we must use a different
+   * {@link ClassLoader} for loading explicitly defined classes versus those
+   * which are discovered by {@link Reflections}.
    *
    * @param upgradePack
    *          the upgrade pack which defines the upgrade check classes.
@@ -180,15 +198,19 @@ public class UpgradeCheckRegistry {
    */
   private void loadPluginUpgradeChecksFromStack(UpgradePack upgradePack,
       PluginUpgradeChecks pluginChecks) throws AmbariException {
-    List<String> pluginCheckClassNames = upgradePack.getPrerequisiteChecks();
+    Set<String> pluginCheckClassNames = new HashSet<>(upgradePack.getPrerequisiteChecks());
     StackId ownerStackId = upgradePack.getOwnerStackId();
     StackInfo stackInfo = metainfoProvider.get().getStack(ownerStackId);
 
-    ClassLoader classLoader = stackInfo.getLibraryClassLoader();
+    URLClassLoader classLoader = stackInfo.getLibraryClassLoader();
     if (null != classLoader) {
+
+      // first find all of the plugins which are explicitely defined in the
+      // upgrade pack and attempt to load and register them
       for (String pluginCheckClassName : pluginCheckClassNames) {
         try {
-          UpgradeCheck upgradeCheck = stackInfo.getLibraryInstance(m_injector, pluginCheckClassName);
+          UpgradeCheck upgradeCheck = stackInfo.getLibraryInstance(m_injector,
+              pluginCheckClassName);
 
           pluginChecks.m_loadedChecks.add(upgradeCheck);
 
@@ -200,10 +222,47 @@ public class UpgradeCheckRegistry {
           pluginChecks.m_failedChecks.add(pluginCheckClassName);
         }
       }
+
+      // next find all plugin checks which are required for this upgrade type by
+      // scanning just the classes shipped with the stack's library JAR
+      Reflections reflections = new Reflections(
+          new ConfigurationBuilder()
+            .addClassLoader(classLoader)
+            .addUrls(classLoader.getURLs())
+            .setScanners(new SubTypesScanner(),new TypeAnnotationsScanner()));
+
+      Set<Class<? extends UpgradeCheck>> upgradeChecksFromLoader = reflections.getSubTypesOf(
+          UpgradeCheck.class);
+
+      if(null != upgradeChecksFromLoader && !upgradeChecksFromLoader.isEmpty()) {
+        for (Class<? extends UpgradeCheck> clazz : upgradeChecksFromLoader) {
+          // first check to make sure we didn't already try to load this one if it
+          // was explicitely defined in the upgrade pack (from above)
+          if (pluginCheckClassNames.contains(clazz.getName())) {
+            continue;
+          }
+
+          // see if this check required by inspecting the annotation
+          UpgradeCheckInfo upgradeCheckInfo = clazz.getAnnotation(UpgradeCheckInfo.class);
+          if (null != upgradeCheckInfo && ArrayUtils.contains(upgradeCheckInfo.required(), upgradePack.getType())) {
+            // if the annotation says the check is required, then load it
+            try {
+              pluginChecks.m_loadedChecks.add(clazz.newInstance());
+
+              LOG.info("Registered pre-upgrade check {} for stack {}", clazz, ownerStackId);
+            } catch (Exception exception) {
+              LOG.error("Unable to load the upgrade check {}", clazz, exception);
+
+              // keep track of the failed check
+              pluginChecks.m_failedChecks.add(clazz.getName());
+            }
+          }
+        }
+      }
     } else {
       LOG.error(
           "Unable to perform the following upgrade checks because no libraries could be loaded for the {} stack: {}",
-          ownerStackId, StringUtils.join(pluginCheckClassNames, ","));
+          ownerStackId, StringUtils.join(pluginCheckClassNames, ", "));
 
       pluginChecks.m_failedChecks.addAll(pluginCheckClassNames);
     }

@@ -311,7 +311,7 @@ public class ComponentsInstallationCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, null);
+        m_repositoryVersion, null, null);
 
     Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALLED);
 

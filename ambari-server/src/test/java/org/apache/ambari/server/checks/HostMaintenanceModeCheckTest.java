@@ -77,7 +77,7 @@ public class HostMaintenanceModeCheckTest {
     Mockito.when(cluster.getHosts()).thenReturn(hosts);
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null, null);
 
     UpgradeCheckResult check = hostMaintenanceModeCheck.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
@@ -123,7 +123,7 @@ public class HostMaintenanceModeCheckTest {
     Mockito.when(cluster.getHosts()).thenReturn(hosts);
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null, null);
 
     UpgradeCheckResult check = hostMaintenanceModeCheck.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
@@ -132,7 +132,7 @@ public class HostMaintenanceModeCheckTest {
     // put a host into MM in order to trigger the warning
     Mockito.when(host3.getMaintenanceState(1L)).thenReturn(MaintenanceState.ON);
 
-    request = new UpgradeCheckRequest(clusterInformation, UpgradeType.HOST_ORDERED, null, null);
+    request = new UpgradeCheckRequest(clusterInformation, UpgradeType.HOST_ORDERED, null, null, null);
     check = hostMaintenanceModeCheck.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.FAIL, check.getStatus());
     Assert.assertFalse(check.getFailedDetail().isEmpty());
