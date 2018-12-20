@@ -64,21 +64,14 @@ angular.module('ambariAdminConsole', [
   }]);
 
   $httpProvider.interceptors.push(['$rootScope', '$q', function (scope, $q) {
-    function success(response) {
-      return response;
-    }
-
-    function error(response) {
-      if (response.status == 403) {
-        window.location = Settings.siteRoot;
-        return;
+    return {
+      responseError: function (response) {
+        if (response.status === 403) {
+          window.location = Settings.siteRoot;
+        }
+        return $q.reject(response);
       }
-      return $q.reject(response);
-    }
-
-    return function (promise) {
-      return promise.then(success, error);
-    }
+    };
   }]);
 
   $provide.factory('TimestampHttpInterceptor', [function($q) {

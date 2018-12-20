@@ -100,14 +100,13 @@ angular.module('ambariAdminConsole')
       var deferred = $q.defer();
       var url = '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/user.inactivity.timeout.default';
       $http.get(Settings.baseUrl + url)
-      .then(function(data) {
-        var properties = data.data.RootServiceComponents.properties;
-        var timeout = properties? properties['user.inactivity.timeout.default'] : 0;
-        deferred.resolve(timeout);
-      })
-      .catch(function(data) {
-        deferred.reject(data);
-      });
+        .then(function(data) {
+          var properties = data.data.RootServiceComponents.properties;
+          var timeout = properties ? properties['user.inactivity.timeout.default'] : 0;
+          deferred.resolve(timeout);
+        }, function (data) {
+          deferred.reject(data);
+        });
 
       return deferred.promise;
     },
