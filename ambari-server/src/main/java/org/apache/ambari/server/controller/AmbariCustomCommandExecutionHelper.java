@@ -66,6 +66,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
+import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -450,8 +451,8 @@ public class AmbariCustomCommandExecutionHelper {
         commandTimeout = Math.max(60, commandTimeout);
       }
 
-      if (requestParams != null && requestParams.containsKey("context")) {
-        String requestContext = requestParams.get("context");
+      if (requestParams != null && requestParams.containsKey(RequestResourceProvider.CONTEXT)) {
+        String requestContext = requestParams.get(RequestResourceProvider.CONTEXT);
         if (StringUtils.isNotEmpty(requestContext) && requestContext.toLowerCase().contains("rolling-restart")) {
           Config clusterEnvConfig = cluster.getDesiredConfigByType("cluster-env");
           if (clusterEnvConfig != null) {

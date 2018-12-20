@@ -23,6 +23,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.utils.Assertions.assertThrows;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -33,12 +34,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.RequestFactory;
-import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -225,6 +227,43 @@ public class RequestValidatorTest extends EasyMockSupport {
       "KAFKA", ImmutableMap.of("KAFKA_BROKER", ImmutableSet.of("c7401.ambari.apache.org"))
     );
     assertEquals(expectedNewServices, validator.getState().getNewServices());
+  }
+
+  @Test
+  public void handlesMultipleComponentInstances() {
+    expect(request.getComponents()).andReturn(
+      Stream.of("c7401", "c7402")
+        .map(hostname -> Component.of("KAFKA_BROKER", hostname))
+        .collect(toSet()));
+    validator.setState(RequestValidator.State.INITIAL.with(simpleMockStack()));
+    replayAll();
+
+    validator.validateServicesAndComponents();
+
+    Map<String, Map<String, Set<String>>> expectedNewServices = ImmutableMap.of(
+      "KAFKA", ImmutableMap.of("KAFKA_BROKER", ImmutableSet.of("c7401", "c7402"))
+    );
+    assertEquals(expectedNewServices, validator.getState().getNewServices());
+  }
+
+  @Test
+  public void rejectsMultipleOccurrencesOfSameHostForSameComponent() {
+    Set<String> duplicateHosts = ImmutableSet.of("c7402", "c7403");
+    Set<String> uniqueHosts = ImmutableSet.of("c7401", "c7404");
+    expect(request.getComponents()).andReturn(
+      ImmutableSet.of(
+        Component.of("KAFKA_BROKER", ProvisionAction.INSTALL_AND_START, "c7401", "c7402", "c7403"),
+        Component.of("KAFKA_BROKER", ProvisionAction.INSTALL_ONLY, "c7402", "c7403", "c7404")
+      )
+    );
+    validator.setState(RequestValidator.State.INITIAL.with(simpleMockStack()));
+    replayAll();
+
+    IllegalArgumentException e = assertThrows(IllegalArgumentException.class, validator::validateServicesAndComponents);
+    assertTrue(e.getMessage().contains("hosts appear multiple"));
+    duplicateHosts.forEach(host -> assertTrue(e.getMessage().contains(host)));
+    uniqueHosts.forEach(host -> assertFalse(e.getMessage().contains(host)));
+    assertNull(validator.getState().getNewServices());
   }
 
   @Test
@@ -525,7 +564,7 @@ public class RequestValidatorTest extends EasyMockSupport {
     Exception e = assertThrows(IllegalArgumentException.class, validation);
     if (expectedMessage != null) {
       assertTrue(e.getMessage().contains(expectedMessage));
-    };
+    }
 
     resetAll();
     setUp();
@@ -585,7 +624,7 @@ public class RequestValidatorTest extends EasyMockSupport {
   private void requestServices(boolean validated, String... services) {
     expect(request.getServices()).andReturn(
       Arrays.stream(services)
-        .map(AddServiceRequest.Service::of)
+        .map(org.apache.ambari.server.topology.addservice.Service::of)
         .collect(toSet())
     ).anyTimes();
     if (validated) {
@@ -607,7 +646,7 @@ public class RequestValidatorTest extends EasyMockSupport {
   private void requestComponents(String... components) {
     expect(request.getComponents()).andReturn(
       Arrays.stream(components)
-        .map(componentName -> AddServiceRequest.Component.of(componentName, "c7401.ambari.apache.org"))
+        .map(componentName -> Component.of(componentName, "c7401.ambari.apache.org"))
         .collect(toSet())
     );
   }

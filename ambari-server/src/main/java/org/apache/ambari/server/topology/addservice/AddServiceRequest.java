@@ -16,11 +16,10 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller;
+package org.apache.ambari.server.topology.addservice;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.controller.internal.BaseClusterRequest.PROVISION_ACTION_PROPERTY;
 import static org.apache.ambari.server.controller.internal.ClusterResourceProvider.CREDENTIALS;
 import static org.apache.ambari.server.controller.internal.ClusterResourceProvider.SECURITY;
@@ -30,9 +29,7 @@ import static org.apache.ambari.server.topology.Configurable.CONFIGURATIONS;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -104,25 +101,6 @@ public class AddServiceRequest {
     @JsonProperty(CREDENTIALS) Set<Credential> credentials,
     @JsonProperty(CONFIGURATIONS) Collection<? extends Map<String, ?>> configs
   ) {
-    this(operationType, recommendationStrategy, provisionAction, validationType, stackName, stackVersion, services, components,
-      security, credentials,
-      ConfigurableHelper.parseConfigs(configs)
-    );
-  }
-
-  private AddServiceRequest(
-    OperationType operationType,
-    ConfigRecommendationStrategy recommendationStrategy,
-    ProvisionAction provisionAction,
-    ValidationType validationType,
-    String stackName,
-    String stackVersion,
-    Set<Service> services,
-    Set<Component> components,
-    SecurityConfiguration security,
-    Set<Credential> credentials,
-    Configuration configuration
-  ) {
     this.operationType = null != operationType ? operationType : OperationType.ADD_SERVICE;
     this.recommendationStrategy = null != recommendationStrategy ? recommendationStrategy : ConfigRecommendationStrategy.defaultForAddService();
     this.provisionAction = null != provisionAction ? provisionAction : ProvisionAction.INSTALL_AND_START;
@@ -132,7 +110,7 @@ public class AddServiceRequest {
     this.services = null != services ? services : emptySet();
     this.components = null != components ? components : emptySet();
     this.security = security;
-    this.configuration = null != configuration ? configuration : new Configuration(new HashMap<>(), new HashMap<>());
+    this.configuration = null != configs ? ConfigurableHelper.parseConfigs(configs) : Configuration.newEmpty();
     this.credentials = null != credentials
       ? credentials.stream().collect(toMap(Credential::getAlias, Function.identity()))
       : ImmutableMap.of();
@@ -312,143 +290,4 @@ public class AddServiceRequest {
     public abstract boolean strictValidation();
   }
 
-  public static final class Component {
-
-    static final String COMPONENT_NAME = "name";
-    static final String HOSTS = "hosts";
-
-    private final String name;
-    private final Set<Host> hosts;
-
-    @JsonCreator
-    public Component(@JsonProperty(COMPONENT_NAME) String name, @JsonProperty(HOSTS) Set<Host> hosts) {
-      this.name = name;
-      this.hosts = hosts != null ? ImmutableSet.copyOf(hosts) : ImmutableSet.of();
-    }
-
-    public static Component of(String name, String... hosts) {
-      return new Component(name, Arrays.stream(hosts).map(Host::new).collect(toSet()));
-    }
-
-    @JsonProperty(COMPONENT_NAME)
-    @ApiModelProperty(name = COMPONENT_NAME)
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(HOSTS)
-    @ApiModelProperty(name = HOSTS)
-    public Set<Host> getHosts() {
-      return hosts;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      Component other = (Component) o;
-
-      return Objects.equals(name, other.name) &&
-        Objects.equals(hosts, other.hosts);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(name, hosts);
-    }
-
-    @Override
-    public String toString() {
-      return name;
-    }
-  }
-
-  public static final class Host {
-
-    static final String FQDN = "fqdn";
-
-    private final String fqdn;
-
-    @JsonCreator
-    public Host(@JsonProperty(FQDN) String fqdn) {
-      this.fqdn = fqdn;
-    }
-
-    @JsonProperty(FQDN)
-    @ApiModelProperty(name = FQDN)
-    public String getFqdn() {
-      return fqdn;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      Host other = (Host) o;
-
-      return Objects.equals(fqdn, other.fqdn);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(fqdn);
-    }
-
-    @Override
-    public String toString() {
-      return "host: " + fqdn;
-    }
-
-  }
-
-  @ApiModel
-  public static final class Service {
-
-    static final String NAME = "name";
-
-    private final String name;
-
-    @JsonCreator
-    public Service(@JsonProperty(NAME) String name) {
-      this.name = name;
-    }
-
-    public static Service of(String name) {
-      return new Service(name);
-    }
-
-    @JsonProperty(NAME)
-    @ApiModelProperty(name = NAME)
-    public String getName() {
-      return name;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      Service service = (Service) o;
-      return Objects.equals(name, service.name);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(name);
-    }
-
-    @Override
-    public String toString() {
-      return name;
-    }
-  }
 }

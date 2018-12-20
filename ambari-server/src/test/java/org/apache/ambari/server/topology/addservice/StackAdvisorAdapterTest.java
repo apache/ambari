@@ -42,7 +42,6 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
-import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.Cluster;
@@ -178,8 +177,8 @@ public class StackAdvisorAdapterTest {
         "OOZIE_SERVER", ImmutableSet.of("c7401"),
         "OOZIE_CLIENT", ImmutableSet.of("c7403", "c7404")));
 
-    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ALWAYS_APPLY), "c1", stack , Configuration.newEmpty(),
-      null, null, newServices, null); // No LayoutReommendationInfo -> needs to be calculated
+    AddServiceRequest request = request(ConfigRecommendationStrategy.ALWAYS_APPLY);
+    AddServiceInfo info = new AddServiceInfo(request, "c1", null, stack, Configuration.newEmpty(), newServices); // No LayoutReommendationInfo -> needs to be calculated
 
     LayoutRecommendationInfo layoutRecommendationInfo = adapter.getLayoutRecommendationInfo(info);
     layoutRecommendationInfo.getAllServiceLayouts();
@@ -361,7 +360,7 @@ public class StackAdvisorAdapterTest {
       "KAFKA",
       ImmutableMap.of("KAFKA_BROKER", emptySet()));
 
-    AddServiceInfo info = new AddServiceInfo(null, "c1", stack, org.apache.ambari.server.topology.Configuration.newEmpty(), null, null, newServices, null);
+    AddServiceInfo info = new AddServiceInfo(null, "c1", null, stack, org.apache.ambari.server.topology.Configuration.newEmpty(), newServices);
     AddServiceInfo infoWithRecommendations = adapter.recommendLayout(info);
 
     Map<String, Map<String, Set<String>>> expectedNewLayout = ImmutableMap.of(
@@ -392,8 +391,8 @@ public class StackAdvisorAdapterTest {
     userConfig.setParentConfiguration(clusterConfig);
     clusterConfig.setParentConfiguration(stackConfig);
 
-    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ALWAYS_APPLY), "c1", stack , userConfig,
-      null, null, newServices, null); // No LayoutRecommendationInfo
+    AddServiceRequest request = request(ConfigRecommendationStrategy.ALWAYS_APPLY);
+    AddServiceInfo info = new AddServiceInfo(request, "c1", null, stack, userConfig, newServices); // No LayoutRecommendationInfo
     AddServiceInfo infoWithConfig = adapter.recommendConfigurations(info);
 
     Configuration recommendedConfig = infoWithConfig.getConfig();
@@ -442,8 +441,9 @@ public class StackAdvisorAdapterTest {
     clusterConfig.setParentConfiguration(stackConfig);
 
     LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
-    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ALWAYS_APPLY), "c1", stack , userConfig,
-      null, null, newServices, layoutRecommendationInfo);
+    AddServiceRequest request = request(ConfigRecommendationStrategy.ALWAYS_APPLY);
+    AddServiceInfo info = new AddServiceInfo(request, "c1", null, stack, userConfig, newServices)
+      .withLayoutRecommendation(newServices, layoutRecommendationInfo);
     AddServiceInfo infoWithConfig = adapter.recommendConfigurations(info);
 
     Configuration recommendedConfig = infoWithConfig.getConfig();
@@ -492,8 +492,9 @@ public class StackAdvisorAdapterTest {
     clusterConfig.setParentConfiguration(stackConfig);
 
     LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
-    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES), "c1", stack , userConfig,
-      null, null, newServices, layoutRecommendationInfo);
+    AddServiceRequest request = request(ConfigRecommendationStrategy.ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES);
+    AddServiceInfo info = new AddServiceInfo(request, "c1", null, stack, userConfig, newServices)
+      .withLayoutRecommendation(newServices, layoutRecommendationInfo);
     AddServiceInfo infoWithConfig = adapter.recommendConfigurations(info);
 
     assertSame(userConfig, infoWithConfig.getConfig()); // user config stays top priority
@@ -547,8 +548,9 @@ public class StackAdvisorAdapterTest {
     clusterConfig.setParentConfiguration(stackConfig);
 
     LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
-    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.NEVER_APPLY), "c1", stack , userConfig,
-      null, null, newServices, layoutRecommendationInfo);
+    AddServiceRequest request = request(ConfigRecommendationStrategy.NEVER_APPLY);
+    AddServiceInfo info = new AddServiceInfo(request, "c1", null, stack, userConfig, newServices)
+      .withLayoutRecommendation(newServices, layoutRecommendationInfo);
     AddServiceInfo infoWithConfig = adapter.recommendConfigurations(info);
 
     // No recommended config, no stack config
@@ -588,8 +590,9 @@ public class StackAdvisorAdapterTest {
     clusterConfig.setParentConfiguration(stackConfig);
 
     LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
-    AddServiceInfo info = new AddServiceInfo(request(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY), "c1", stack , userConfig,
-      null, null, newServices, layoutRecommendationInfo);
+    AddServiceRequest request = request(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
+    AddServiceInfo info = new AddServiceInfo(request, "c1", null, stack, userConfig, newServices)
+      .withLayoutRecommendation(newServices, layoutRecommendationInfo);
     AddServiceInfo infoWithConfig = adapter.recommendConfigurations(info);
     Configuration recommendedConfig = infoWithConfig.getConfig().getParentConfiguration();
 
@@ -656,7 +659,7 @@ public class StackAdvisorAdapterTest {
     assertEquals(recommendedConfigsForStackDefaults, recommendedConfigs);
   }
 
-  private AddServiceRequest request(ConfigRecommendationStrategy strategy) {
+  private static AddServiceRequest request(ConfigRecommendationStrategy strategy) {
     return new AddServiceRequest(null, strategy, null, null, null, null, null, null, null, null, null);
   }
 
