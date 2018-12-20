@@ -226,7 +226,7 @@ The following arguments must be supplied when **enabling** LDAP:
   --ldap-enabled-ambari=<true|false>
                         Whether to enable/disable LDAP authentication
                         for Ambari, itself
-  --ldap-manage-servic=<true|false>
+  --ldap-manage-services=<true|false>
                         Whether Ambari should manage the LDAP configurations
                         for specified services
   --ldap-enabled-services=<*|service names>
