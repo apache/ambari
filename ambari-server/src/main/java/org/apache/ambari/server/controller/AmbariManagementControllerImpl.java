@@ -5153,7 +5153,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         postProcessExistingUsers = userRequest.getPostProcessExistingUsers();
 
         if(postProcessExistingUsers && !configs.isUserHookEnabled()) {
-          LOG.info("Post processing existing users is requested while processing users; however, the user post creation hook is turned off.");
+          LOG.warn("Post processing existing users is requested while processing users; however, the user post creation hook is turned off.");
           postProcessExistingUsers = false;
         }
 
@@ -5173,7 +5173,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         postProcessExistingUsersInGroups = groupRequest.getPostProcessExistingUsers();
 
         if(postProcessExistingUsersInGroups && !configs.isUserHookEnabled()) {
-          LOG.info("Post processing existing users is requested while processing groups; however, the user post creation hook is turned off.");
+          LOG.warn("Post processing existing users is requested while processing groups; however, the user post creation hook is turned off.");
           postProcessExistingUsersInGroups = false;
         }
 
