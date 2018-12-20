@@ -112,6 +112,7 @@ import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.reflections.Configuration;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -129,7 +130,8 @@ import com.google.inject.name.Names;
  * PreUpgradeCheckResourceProvider tests.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ UpgradeCheckRegistry.class, Reflections.class })
+@PrepareForTest({ UpgradeCheckRegistry.class, Reflections.class, Configuration.class,
+    ConfigurationBuilder.class })
 public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
 
   private static final String TEST_SERVICE_CHECK_CLASS_NAME = "org.apache.ambari.server.sample.checks.SampleServiceCheck";
@@ -236,7 +238,9 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
 
     // mock out plugin check loading
     Reflections reflectionsMock = createNiceMock(Reflections.class);
-    PowerMock.expectNew(Reflections.class, EasyMock.anyObject(ConfigurationBuilder.class)).andReturn(reflectionsMock).once();
+    Configuration configurationBuilder = EasyMock.anyObject(Configuration.class);
+    PowerMock.expectNew(Reflections.class, configurationBuilder).andReturn(reflectionsMock).once();
+
     PowerMock.replay(Reflections.class);
 
     // replay
