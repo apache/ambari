@@ -43,6 +43,7 @@ public class DefaultMessageEmitter extends MessageEmitter {
         put(STOMPEvent.Type.AGENT_CONFIGS, "/configs");
         put(STOMPEvent.Type.CONFIGS, "/events/configs");
         put(STOMPEvent.Type.HOSTCOMPONENT, "/events/hostcomponents");
+        put(STOMPEvent.Type.NAMEDTASK, "/events/tasks");
         put(STOMPEvent.Type.REQUEST, "/events/requests");
         put(STOMPEvent.Type.SERVICE, "/events/services");
         put(STOMPEvent.Type.HOST, "/events/hosts");
@@ -72,6 +73,7 @@ public class DefaultMessageEmitter extends MessageEmitter {
         STOMPEvent.Type.UI_TOPOLOGY,
         STOMPEvent.Type.CONFIGS,
         STOMPEvent.Type.HOSTCOMPONENT,
+        STOMPEvent.Type.NAMEDTASK,
         STOMPEvent.Type.REQUEST,
         STOMPEvent.Type.SERVICE,
         STOMPEvent.Type.HOST,
@@ -103,6 +105,6 @@ public class DefaultMessageEmitter extends MessageEmitter {
 
   @Override
   protected String getDestination(STOMPEvent stompEvent) {
-    return DEFAULT_DESTINATIONS.get(stompEvent.getType());
+    return stompEvent.completeDestination(DEFAULT_DESTINATIONS.get(stompEvent.getType()));
   }
 }

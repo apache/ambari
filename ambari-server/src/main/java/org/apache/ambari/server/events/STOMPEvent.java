@@ -54,6 +54,7 @@ public abstract class STOMPEvent {
     CONFIGS("events.configs"),
     HOSTCOMPONENT("events.hostcomponents"),
     NAMEDHOSTCOMPONENT("events.hostrolecommands.named"),
+    NAMEDTASK("events.tasks.named"),
     REQUEST("events.requests"),
     SERVICE("events.services"),
     HOST("events.hosts"),
@@ -76,5 +77,9 @@ public abstract class STOMPEvent {
     public String getMetricName() {
       return metricName;
     }
+  }
+
+  public String completeDestination(String destination) {
+    return destination;
   }
 }
