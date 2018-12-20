@@ -109,7 +109,9 @@ import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.powermock.api.easymock.PowerMock;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.reflections.Configuration;
@@ -130,8 +132,7 @@ import com.google.inject.name.Names;
  * PreUpgradeCheckResourceProvider tests.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ UpgradeCheckRegistry.class, Reflections.class, Configuration.class,
-    ConfigurationBuilder.class })
+@PrepareForTest({ UpgradeCheckRegistry.class })
 public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
 
   private static final String TEST_SERVICE_CHECK_CLASS_NAME = "org.apache.ambari.server.sample.checks.SampleServiceCheck";
@@ -238,8 +239,10 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
 
     // mock out plugin check loading
     Reflections reflectionsMock = createNiceMock(Reflections.class);
-    Configuration configurationBuilder = EasyMock.anyObject(Configuration.class);
-    PowerMock.expectNew(Reflections.class, configurationBuilder).andReturn(reflectionsMock).once();
+
+    PowerMockito.whenNew(Reflections.class).withParameterTypes(
+        Configuration.class).withArguments(Matchers.any(ConfigurationBuilder.class)).thenReturn(
+            reflectionsMock);
 
     PowerMock.replay(Reflections.class);
 
