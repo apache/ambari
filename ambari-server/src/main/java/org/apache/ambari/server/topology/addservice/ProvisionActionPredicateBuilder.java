@@ -115,7 +115,7 @@ public class ProvisionActionPredicateBuilder {
   private void createGlobalPredicates() {
     Preconditions.checkState(servicePredicatesByStep != null);
 
-    Function<Predicate, Predicate> andClusterNameMatches = and(new EqualsPredicate<>(CLUSTER_NAME, request.clusterName()));
+    Function<Predicate, Predicate> andClusterNameMatches = and(clusterNameIs(request.clusterName()));
     for (Map.Entry<ProvisionStep, List<Predicate>> entry : servicePredicatesByStep.entrySet()) {
       ProvisionStep step = entry.getKey();
       List<Predicate> servicePredicates = entry.getValue();
@@ -132,14 +132,15 @@ public class ProvisionActionPredicateBuilder {
     Preconditions.checkState(customServiceActions != null);
     Preconditions.checkState(customComponentActions != null);
 
+    ProvisionAction requestAction = request.getRequest().getProvisionAction();
     Map<ProvisionStep, List<Predicate>> servicePredicatesByStep = new EnumMap<>(ProvisionStep.class);
 
     for (Map.Entry<String, Map<String, Set<String>>> serviceEntry : request.newServices().entrySet()) {
       String serviceName = serviceEntry.getKey();
       Map<String, Set<String>> hostsByComponent = serviceEntry.getValue();
 
-      ProvisionAction serviceAction = customServiceActions.getOrDefault(serviceName, request.getRequest().getProvisionAction());
-      Predicate serviceNamePredicate = new EqualsPredicate<>(SERVICE_NAME, serviceName);
+      ProvisionAction serviceAction = customServiceActions.getOrDefault(serviceName, requestAction);
+      Predicate serviceNamePredicate = serviceNameIs(serviceName);
 
       Map<String, Map<ProvisionAction, Set<String>>> customActionByComponent = customComponentActions.get(serviceName);
       if (customActionByComponent == null) {
@@ -218,7 +219,7 @@ public class ProvisionActionPredicateBuilder {
           classifyItem(serviceAction, componentPredicate, componentPredicatesByStep);
         }
       } else {
-        Predicate componentPredicate = predicateForComponent(componentName);
+        Predicate componentPredicate = componentNameIs(componentName);
         classifyItem(serviceAction, componentPredicate, componentPredicatesByStep);
       }
     }
@@ -308,15 +309,23 @@ public class ProvisionActionPredicateBuilder {
   private static Predicate predicateForComponentHosts(String componentName, Set<String> hosts) {
     Preconditions.checkNotNull(hosts);
     Preconditions.checkArgument(!hosts.isEmpty());
-    Set<Predicate> hostPredicates = hosts.stream().map(ProvisionActionPredicateBuilder::predicateForHostname).collect(toSet());
-    return anyOf(hostPredicates).map(and(predicateForComponent(componentName))).get();
+    Set<Predicate> hostPredicates = hosts.stream().map(ProvisionActionPredicateBuilder::hostnameIs).collect(toSet());
+    return anyOf(hostPredicates).map(and(componentNameIs(componentName))).get();
   }
 
-  private static Predicate predicateForComponent(String componentName) {
+  private static Predicate clusterNameIs(String clusterName) {
+    return new EqualsPredicate<>(CLUSTER_NAME, clusterName);
+  }
+
+  private static Predicate serviceNameIs(String serviceName) {
+    return new EqualsPredicate<>(SERVICE_NAME, serviceName);
+  }
+
+  private static Predicate componentNameIs(String componentName) {
     return new EqualsPredicate<>(COMPONENT_NAME, componentName);
   }
 
-  private static Predicate predicateForHostname(String hostname) {
+  private static Predicate hostnameIs(String hostname) {
     return new EqualsPredicate<>(HOST_NAME, hostname);
   }
 }
