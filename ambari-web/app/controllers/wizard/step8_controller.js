@@ -503,8 +503,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       }
       else {
         var componentName = component.get('isClient') ? Em.I18n.t('common.client').toUpperCase() : component.get('componentName');
-        var hostsLength = this.get('content.slaveComponentHosts')
-          .findProperty('componentName', componentName).hosts.length;
+        var component = this.get('content.slaveComponentHosts').findProperty('componentName', componentName);
+        var hostsLength = component ? component.hosts.length : 0;
         componentValue = hostsLength + Em.I18n.t('installer.step8.host' + (hostsLength > 1 ? 's' : ''));
       }
     }
