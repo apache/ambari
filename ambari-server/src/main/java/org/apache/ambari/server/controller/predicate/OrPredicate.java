@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -40,6 +42,10 @@ public class OrPredicate extends ArrayPredicate {
   }
 
   public static Predicate instance(Predicate... predicates) {
+    return of(Arrays.asList(predicates));
+  }
+
+  public static Predicate of(@Nonnull Iterable<? extends Predicate> predicates) {
     List<Predicate> predicateList = new LinkedList<>();
 
     // Simplify the predicate array

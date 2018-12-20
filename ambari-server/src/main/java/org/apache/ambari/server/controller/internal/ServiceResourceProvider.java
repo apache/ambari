@@ -39,8 +39,6 @@ import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.AddServiceRequest;
-import org.apache.ambari.server.controller.AddServiceRequest.OperationType;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
@@ -80,6 +78,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.apache.ambari.server.topology.addservice.AddServiceOrchestrator;
+import org.apache.ambari.server.topology.addservice.AddServiceRequest;
 import org.apache.ambari.server.utils.LoggingPreconditions;
 import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.collections.CollectionUtils;
@@ -1235,7 +1234,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private static boolean isAddServiceRequest(Map<String, Object> properties) {
-    return OperationType.ADD_SERVICE.name().equals(properties.get(OPERATION_TYPE));
+    return AddServiceRequest.OperationType.ADD_SERVICE.name().equals(properties.get(OPERATION_TYPE));
   }
 
   private RequestStatusResponse processAddServiceRequest(Map<String, Object> requestProperties, Map<String, String> requestInfoProperties) throws NoSuchParentResourceException {
