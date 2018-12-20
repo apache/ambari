@@ -54,8 +54,8 @@ import com.google.common.collect.Sets;
  * HostComponentResourceProvider, not here).  This can be customized at the request-, service-, and component levels in
  * the Add Service request.  Actions are inherited at the lower levels, so the request-level action applies to all
  * services that have no custom action given, and the effective service-level action applies to all components of the
- * given service with similar restriction.  The request and each service can specify exactly one {@code
- * ProvisionAction}, but at the component level the same component may have different action for groups of hosts.
+ * given service with similar restriction.  The request and each service can specify exactly one {@code ProvisionAction},
+ * but at the component level the same component may have different action for groups of hosts.
  *
  * The predicates need to filter by service name (to avoid affecting existing services), and apply any component-level
  * overrides by further checking for component name and host name.
@@ -95,21 +95,9 @@ public class ProvisionActionPredicateBuilder {
   public ProvisionActionPredicateBuilder(AddServiceInfo request) {
     this.request = request;
 
-    ProvisionAction requestAction = request.getRequest().getProvisionAction();
-    Map<String, Map<String, Set<String>>> newServices = request.newServices();
-
-    Map<String, String> serviceByComponent =
-      mapServicesByComponent(newServices);
-
-    Map<String, ProvisionAction> customServiceActions =
-      findServicesWithCustomAction(requestAction, request.getRequest().getServices());
-
-    Map<String, Map<String, Map<ProvisionAction, Set<String>>>> customComponentActions =
-      findComponentsWithCustomAction(requestAction, request.getRequest().getComponents(), serviceByComponent, customServiceActions);
-
-    Map<ProvisionStep, List<Predicate>> servicePredicatesByStep =
-      createServicePredicates(requestAction, newServices, customServiceActions, customComponentActions);
-
+    Map<String, ProvisionAction> customServiceActions = findServicesWithCustomAction();
+    Map<String, Map<String, Map<ProvisionAction, Set<String>>>> customComponentActions = findComponentsWithCustomAction(customServiceActions);
+    Map<ProvisionStep, List<Predicate>> servicePredicatesByStep = createServicePredicates(customServiceActions, customComponentActions);
     createGlobalPredicates(servicePredicatesByStep);
   }
 
@@ -135,26 +123,22 @@ public class ProvisionActionPredicateBuilder {
   /**
    * Creates predicates for each service for each {@link ProvisionStep} as necessary.
    *
-   * @param requestAction default provision action of the request
-   * @param newServices service -> component -> hosts map
    * @param customServiceActions service -> action map, only contains custom provision actions, which do not match the request's action
    * @param customComponentActions service -> component -> action -> hosts mapping;
    *   only contains components whose action does not match the upper-level (service or request) action
    * @return step -> service predicates map
    */
-  private static Map<ProvisionStep, List<Predicate>> createServicePredicates(
-    ProvisionAction requestAction,
-    Map<String, Map<String, Set<String>>> newServices,
+  private Map<ProvisionStep, List<Predicate>> createServicePredicates(
     Map<String, ProvisionAction> customServiceActions,
     Map<String, Map<String, Map<ProvisionAction, Set<String>>>> customComponentActions
   ) {
     Map<ProvisionStep, List<Predicate>> servicePredicatesByStep = new EnumMap<>(ProvisionStep.class);
 
-    for (Map.Entry<String, Map<String, Set<String>>> serviceEntry : newServices.entrySet()) {
+    for (Map.Entry<String, Map<String, Set<String>>> serviceEntry : request.newServices().entrySet()) {
       String serviceName = serviceEntry.getKey();
       Map<String, Set<String>> hostsByComponent = serviceEntry.getValue();
 
-      ProvisionAction serviceAction = customServiceActions.getOrDefault(serviceName, requestAction);
+      ProvisionAction serviceAction = customServiceActions.getOrDefault(serviceName, request.getRequest().getProvisionAction());
       Predicate serviceNamePredicate = new EqualsPredicate<>(SERVICE_NAME, serviceName);
 
       Map<String, Map<ProvisionAction, Set<String>>> customActionByComponent = customComponentActions.get(serviceName);
@@ -220,11 +204,14 @@ public class ProvisionActionPredicateBuilder {
         for (Map.Entry<ProvisionAction, Set<String>> e : hostsByAction.entrySet()) {
           ProvisionAction componentAction = e.getKey();
           Set<String> hosts = e.getValue();
+
           Predicate componentPredicate = predicateForComponentHosts(componentName, hosts);
           classifyItem(componentAction, componentPredicate, componentPredicatesByStep);
+
           customActionHosts.addAll(hosts);
         }
 
+        // apply service-level action to any hosts for which no explicit action was specified
         Set<String> leftoverHosts = ImmutableSet.copyOf(Sets.difference(allHosts, customActionHosts));
         if (!leftoverHosts.isEmpty()) {
           Predicate componentPredicate = predicateForComponentHosts(componentName, leftoverHosts);
@@ -239,12 +226,13 @@ public class ProvisionActionPredicateBuilder {
   }
 
   /**
-   * @param newServices service -> component -> hosts map
+   * Maps services in the request by component.
+   *
    * @return component -> service map
    */
-  private static Map<String, String> mapServicesByComponent(Map<String, Map<String, Set<String>>> newServices) {
+  private Map<String, String> mapServicesByComponent() {
     Map<String, String> serviceByComponent = new HashMap<>();
-    for (Map.Entry<String, Map<String, Set<String>>> e : newServices.entrySet()) {
+    for (Map.Entry<String, Map<String, Set<String>>> e : request.newServices().entrySet()) {
       String service = e.getKey();
       for (String component : e.getValue().keySet()) {
         serviceByComponent.put(component, service);
@@ -254,36 +242,33 @@ public class ProvisionActionPredicateBuilder {
   }
 
   /**
-   * @param requestAction default provision action of the request
-   * @param services set of services explicitly listed in the request
+   * Finds all services for which custom provision action was specified in the request.
+   *
    * @return service -> action map; only contains services whose action does not match the request-level action
    */
-  private static Map<String, ProvisionAction> findServicesWithCustomAction(ProvisionAction requestAction, Set<Service> services) {
-    return services.stream()
+  private Map<String, ProvisionAction> findServicesWithCustomAction() {
+    ProvisionAction requestAction = request.getRequest().getProvisionAction();
+    return request.getRequest().getServices().stream()
       .filter(service -> service.getProvisionAction().isPresent())
       .filter(service -> !Objects.equals(requestAction, service.getProvisionAction().get()))
       .collect(toMap(Service::getName, service -> service.getProvisionAction().get()));
   }
 
   /**
-   * @param requestAction default provision action of the request
-   * @param components set of components explicitly listed in the request
-   * @param serviceByComponent component -> service map
+   * Finds all host components for which custom provision action was specified in the request.
+   *
    * @param actionByService service -> action map, only contains custom provision actions, which do not match the request's action
    * @return service -> component -> action -> hosts mapping; only contains components whose action does not match the upper-level (service or request) action
    */
-  private static Map<String, Map<String, Map<ProvisionAction, Set<String>>>> findComponentsWithCustomAction(
-    ProvisionAction requestAction,
-    Set<Component> components,
-    Map<String, String> serviceByComponent,
-    Map<String, ProvisionAction> actionByService
-  ) {
+  private Map<String, Map<String, Map<ProvisionAction, Set<String>>>> findComponentsWithCustomAction(Map<String, ProvisionAction> actionByService) {
+    Map<String, String> serviceByComponent = mapServicesByComponent();
+
     Map<String, Map<String, Map<ProvisionAction, Set<String>>>> result = new HashMap<>();
-    for (Component component : components) {
+    for (Component component : request.getRequest().getComponents()) {
       component.getProvisionAction().ifPresent(componentAction -> {
         String componentName = component.getName();
         String serviceName = serviceByComponent.get(componentName);
-        ProvisionAction serviceAction = actionByService.getOrDefault(serviceName, requestAction);
+        ProvisionAction serviceAction = actionByService.getOrDefault(serviceName, request.getRequest().getProvisionAction());
         if (!Objects.equals(serviceAction, componentAction)) {
           result
             .computeIfAbsent(serviceName, __ -> new HashMap<>())
@@ -312,6 +297,13 @@ public class ProvisionActionPredicateBuilder {
     }
   }
 
+  /**
+   * Creates a predicate in the form of:
+   * <pre>component_name=... AND (host_name=... OR host_name=... OR ...)</pre>
+   *
+   * @param componentName component name
+   * @param hosts set of host names
+   */
   private static Predicate predicateForComponentHosts(String componentName, Set<String> hosts) {
     Preconditions.checkNotNull(hosts);
     Preconditions.checkArgument(!hosts.isEmpty());
