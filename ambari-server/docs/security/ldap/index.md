@@ -226,7 +226,7 @@ The following arguments must be supplied when **enabling** LDAP:
   --ldap-enabled-ambari=<true|false>
                         Whether to enable/disable LDAP authentication
                         for Ambari, itself
-  --ldap-manage-servic=<true|false>
+  --ldap-manage-services=<true|false>
                         Whether Ambari should manage the LDAP configurations
                         for specified services
   --ldap-enabled-services=<*|service names>
@@ -558,4 +558,4 @@ to take. This is because even though Ambari is managing the LDAP configuration f
 <a name="sync-using-cli"></a>
 ## Synching LDAP users with Ambari Using the CLI
 
-After setting up your LDAP integration, you must synchronize LDAP users and groups with Ambari, using the .`ambari-server sync-ldap [option]` utility. Please read [this guide](https://docs.hortonworks.com/HDPDocuments/HDP3/HDP-3.0.1/ambari-authentication-ldap-ad/content/authe_ldapad_synchronizing_ldap_users_and_groups.html) carefully for further information.
+After setting up your LDAP integration, you must synchronize LDAP users and groups with Ambari, using the `ambari-server sync-ldap [option]` utility. Please read [this guide](https://docs.hortonworks.com/HDPDocuments/HDP3/HDP-3.0.1/ambari-authentication-ldap-ad/content/authe_ldapad_synchronizing_ldap_users_and_groups.html) carefully for further information.
