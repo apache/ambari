@@ -17,6 +17,10 @@ package org.apache.ambari.server.configuration;
 import static org.apache.ambari.server.configuration.ConfigurationPropertyType.PASSWORD;
 import static org.apache.ambari.server.configuration.ConfigurationPropertyType.PLAINTEXT;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -161,5 +165,9 @@ public enum AmbariServerConfigurationKey {
     String categoryName = (category == null) ? "null" : category.getCategoryName();
     LOG.warn("Invalid Ambari server configuration key: {}:{}", categoryName, keyName);
     return null;
+  }
+  
+  public static Set<String> findPasswordConfigurations() {
+      return Stream.of(AmbariServerConfigurationKey.values()).filter(k -> PASSWORD == k.getConfigurationPropertyType()).map(f -> f.propertyName).collect(Collectors.toSet());
   }
 }

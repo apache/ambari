@@ -24,7 +24,6 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
@@ -43,8 +42,8 @@ public class AmbariServerSSOConfigurationHandler extends AmbariServerStackAdviso
 
   @Inject
   public AmbariServerSSOConfigurationHandler(Clusters clusters, ConfigHelper configHelper, AmbariManagementController managementController,
-      StackAdvisorHelper stackAdvisorHelper, AmbariConfigurationDAO ambariConfigurationDAO, AmbariEventPublisher publisher, Configuration ambariConfiguration) {
-    super(ambariConfigurationDAO, publisher, ambariConfiguration, clusters, configHelper, managementController, stackAdvisorHelper);
+      StackAdvisorHelper stackAdvisorHelper, AmbariConfigurationDAO ambariConfigurationDAO, AmbariEventPublisher publisher) {
+    super(ambariConfigurationDAO, publisher, clusters, configHelper, managementController, stackAdvisorHelper);
   }
 
   @Override
