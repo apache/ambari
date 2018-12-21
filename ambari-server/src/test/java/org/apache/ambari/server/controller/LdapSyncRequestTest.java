@@ -34,7 +34,7 @@ public class LdapSyncRequestTest {
     Set<String> names = new HashSet<>();
     names.add("name1");
 
-    LdapSyncRequest request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC,names);
+    LdapSyncRequest request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC,names, false);
 
     names = new HashSet<>();
     names.add("name2");
@@ -56,7 +56,7 @@ public class LdapSyncRequestTest {
     names.add("name2");
     names.add("name3");
 
-    LdapSyncRequest request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC,names);
+    LdapSyncRequest request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC,names, false);
 
     Set<String> principalNames = request.getPrincipalNames();
     Assert.assertEquals(3, principalNames.size());
@@ -69,16 +69,46 @@ public class LdapSyncRequestTest {
   public void testGetType() throws Exception {
     Set<String> names = new HashSet<>();
 
-    LdapSyncRequest request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, names);
+    LdapSyncRequest request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, names, false);
 
     Assert.assertEquals(LdapSyncSpecEntity.SyncType.SPECIFIC, request.getType());
 
-    request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL);
+    request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL, false);
 
     Assert.assertEquals(LdapSyncSpecEntity.SyncType.ALL, request.getType());
 
-    request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING);
+    request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING, false);
 
     Assert.assertEquals(LdapSyncSpecEntity.SyncType.EXISTING, request.getType());
   }
-}
+
+  @Test
+  public void testGetPostProcessExistingUsers() throws Exception {
+    Set<String> names = new HashSet<>();
+
+    LdapSyncRequest request;
+
+    request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, names, false);
+
+    Assert.assertFalse(request.getPostProcessExistingUsers());
+
+    request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, names, true);
+
+    Assert.assertTrue(request.getPostProcessExistingUsers());
+
+    request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL, false);
+
+    Assert.assertFalse(request.getPostProcessExistingUsers());
+
+    request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL, true);
+
+    Assert.assertTrue(request.getPostProcessExistingUsers());
+
+    request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING, false);
+
+    Assert.assertFalse(request.getPostProcessExistingUsers());
+
+    request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING, true);
+
+    Assert.assertTrue(request.getPostProcessExistingUsers());
+  }}

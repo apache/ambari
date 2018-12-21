@@ -291,6 +291,11 @@ class LdapSyncOptions:
     except AttributeError:
       self.ldap_sync_admin_password = None
 
+    try:
+      self.ldap_sync_post_process_existing_users = options.ldap_sync_post_process_existing_users
+    except AttributeError:
+      self.ldap_sync_post_process_existing_users = False
+
   def no_ldap_sync_options_set(self):
     return not self.ldap_sync_all and not self.ldap_sync_existing and self.ldap_sync_users is None and self.ldap_sync_groups is None
 
@@ -416,6 +421,10 @@ def sync_ldap(options):
     if ldap_sync_options.ldap_sync_groups is not None:
       new_specs = [{"principal_type":"groups","sync_type":"specific","names":""}]
       get_ldap_event_spec_names(ldap_sync_options.ldap_sync_groups, specs, new_specs)
+
+  if ldap_sync_options.ldap_sync_post_process_existing_users:
+    for spec in bodies[0]["Event"]["specs"]:
+      spec["post_process_existing_users"] = "true"
 
   if get_verbose():
     sys.stdout.write('\nCalling API ' + url + ' : ' + str(bodies) + '\n')
