@@ -6751,7 +6751,6 @@ class TestAmbariServer(TestCase):
     p = Properties()
     FAKE_PWD_STRING = "fakepasswd"
     p.process_pair(JDBC_PASSWORD_PROPERTY, FAKE_PWD_STRING)
-    p.process_pair(LDAP_MGR_PASSWORD_PROPERTY, FAKE_PWD_STRING)
     p.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, FAKE_PWD_STRING)
     p.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, FAKE_PWD_STRING)
     get_ambari_properties_method.return_value = p
@@ -6773,15 +6772,13 @@ class TestAmbariServer(TestCase):
     self.assertTrue(update_properties_method.called)
     self.assertFalse(save_master_key_method.called)
     self.assertTrue(save_passwd_for_alias_method.called)
-    self.assertEquals(3, save_passwd_for_alias_method.call_count)
+    self.assertEquals(2, save_passwd_for_alias_method.call_count)
     self.assertTrue(remove_password_file_method.called)
 
     result_expected = {JDBC_PASSWORD_PROPERTY:
                          get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
                        JDBC_RCA_PASSWORD_FILE_PROPERTY:
                          get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       LDAP_MGR_PASSWORD_PROPERTY:
-                         get_alias_string(LDAP_MGR_PASSWORD_ALIAS),
                        SSL_TRUSTSTORE_PASSWORD_PROPERTY:
                          get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
                        SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
@@ -6882,7 +6879,6 @@ class TestAmbariServer(TestCase):
     p = Properties()
     FAKE_PWD_STRING = '${alias=fakealias}'
     p.process_pair(JDBC_PASSWORD_PROPERTY, FAKE_PWD_STRING)
-    p.process_pair(LDAP_MGR_PASSWORD_PROPERTY, FAKE_PWD_STRING)
     p.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, FAKE_PWD_STRING)
     p.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, FAKE_PWD_STRING)
     get_ambari_properties_method.return_value = p
@@ -6902,15 +6898,13 @@ class TestAmbariServer(TestCase):
     self.assertTrue(read_master_key_method.called)
     self.assertTrue(update_properties_method.called)
     self.assertTrue(read_passwd_for_alias_method.called)
-    self.assertTrue(3, read_passwd_for_alias_method.call_count)
-    self.assertTrue(3, save_passwd_for_alias_method.call_count)
+    self.assertTrue(2, read_passwd_for_alias_method.call_count)
+    self.assertTrue(2, save_passwd_for_alias_method.call_count)
 
     result_expected = {JDBC_PASSWORD_PROPERTY:
                          get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
                        JDBC_RCA_PASSWORD_FILE_PROPERTY:
                          get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       LDAP_MGR_PASSWORD_PROPERTY:
-                         get_alias_string(LDAP_MGR_PASSWORD_ALIAS),
                        SSL_TRUSTSTORE_PASSWORD_PROPERTY:
                          get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
                        SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
@@ -6991,7 +6985,6 @@ class TestAmbariServer(TestCase):
     p = Properties()
     FAKE_PWD_STRING = '${alias=fakealias}'
     p.process_pair(JDBC_PASSWORD_PROPERTY, FAKE_PWD_STRING)
-    p.process_pair(LDAP_MGR_PASSWORD_PROPERTY, FAKE_PWD_STRING)
     p.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, FAKE_PWD_STRING)
     p.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, FAKE_PWD_STRING)
     get_ambari_properties_method.return_value = p
@@ -7012,16 +7005,14 @@ class TestAmbariServer(TestCase):
     self.assertTrue(get_validated_string_input_method.called)
     self.assertTrue(update_properties_method.called)
     self.assertTrue(read_passwd_for_alias_method.called)
-    self.assertTrue(3, read_passwd_for_alias_method.call_count)
-    self.assertTrue(3, save_passwd_for_alias_method.call_count)
+    self.assertTrue(2, read_passwd_for_alias_method.call_count)
+    self.assertTrue(2, save_passwd_for_alias_method.call_count)
     self.assertFalse(save_master_key_method.called)
 
     result_expected = {JDBC_PASSWORD_PROPERTY:
                          get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
                        JDBC_RCA_PASSWORD_FILE_PROPERTY:
                          get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       LDAP_MGR_PASSWORD_PROPERTY:
-                         get_alias_string(LDAP_MGR_PASSWORD_ALIAS),
                        SSL_TRUSTSTORE_PASSWORD_PROPERTY:
                          get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
                        SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
@@ -7261,7 +7252,7 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.connectivity.bind_dn": "test",
         "ambari.ldap.advanced.referrals": "test",
         "client.security": "ldap",
-        LDAP_MGR_PASSWORD_PROPERTY: "ldap-password.dat",
+        LDAP_MGR_PASSWORD_PROPERTY: "dummyPassword",
         "ambari.ldap.authentication.enabled": "true"
       }
     return ldap_properties_map
@@ -7290,7 +7281,7 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.attributes.group.name_attr": "test",
         "ambari.ldap.attributes.dn_attr": "test",
         "ambari.ldap.advanced.referrals": "test",
-        LDAP_MGR_PASSWORD_PROPERTY: "ldap-password.dat",
+        LDAP_MGR_PASSWORD_PROPERTY: "dummyPassword",
         "ambari.ldap.authentication.enabled": "true",
         "ambari.ldap.manage_services": "true",
         "ambari.ldap.enabled_services":"ZOOKEEPER",
@@ -7343,7 +7334,7 @@ class TestAmbariServer(TestCase):
     properties.process_pair(CLIENT_API_PORT_PROPERTY, '8080')
 
     get_ambari_properties_method.return_value = properties
-    configure_ldap_password_method.return_value = "password"
+    configure_ldap_password_method.return_value = "dummyPassword"
     save_passwd_for_alias_method.return_value = 0
     encrypt_password_method.return_value = get_alias_string(LDAP_MGR_PASSWORD_ALIAS)
 

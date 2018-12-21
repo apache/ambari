@@ -38,7 +38,9 @@ public class AmbariServerConfigurationEncryptor implements Encryptor<AmbariServe
 
   @Override
   public void encryptSensitiveData(AmbariServerConfiguration encryptible) {
-    encryptible.toMap().entrySet().stream().filter(f -> shouldEncrypt(f)).forEach(entry -> encryptible.setValueFor(entry.getKey(), encryptAndDecorateConfigValue(entry.getValue())));
+    encryptible.toMap().entrySet().stream()
+        .filter(f -> shouldEncrypt(f))
+        .forEach(entry -> encryptible.setValueFor(entry.getKey(), encryptAndDecorateConfigValue(entry.getValue())));
   }
 
   private boolean shouldEncrypt(Map.Entry<String, String> config) {
@@ -52,7 +54,9 @@ public class AmbariServerConfigurationEncryptor implements Encryptor<AmbariServe
 
   @Override
   public void decryptSensitiveData(AmbariServerConfiguration decryptible) {
-    decryptible.toMap().entrySet().stream().filter(f -> passwordConfigurations.contains(f.getKey())).filter(f -> isEncryptedPassword(f.getValue()))
+    decryptible.toMap().entrySet().stream()
+        .filter(f -> passwordConfigurations.contains(f.getKey()))
+        .filter(f -> isEncryptedPassword(f.getValue()))
         .forEach(entry -> decryptible.setValueFor(entry.getKey(), decryptConfig(entry.getValue())));
   }
 
@@ -68,7 +72,7 @@ public class AmbariServerConfigurationEncryptor implements Encryptor<AmbariServe
 
   @Override
   public String getEncryptionKey() {
-    return null;
+    return encryptionService.getAmbariMasterKey();
   }
 
 }

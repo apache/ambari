@@ -75,16 +75,23 @@ public abstract class AmbariServerConfiguration {
   }
   
   /**
-   * @return
+   * @return this configuration represented as a map
    */
   public Map<String, String> toMap() {
     return new HashMap<>(configurationMap);
   }
-  
+
   /**
+   * Sets the given value for the given configuration
    * 
    * @param configName
+   *          the name of the configuration to set the value for
    * @param value
+   *          the new value
+   *
+   * @throws IllegalArgumentException
+   *           in case the supplied configuration does not belong to the
+   *           configuration category of this instance
    */
   public void setValueFor(String configName, String value) {
     AmbariServerConfigurationKey ambariServerConfigurationKey = AmbariServerConfigurationKey.translate(getCategory(), configName);
@@ -94,9 +101,16 @@ public abstract class AmbariServerConfiguration {
   }
 
   /**
+   * Sets the given value for the given configuration
    * 
    * @param ambariServerConfigurationKey
+   *          the configuration key to set the value for
    * @param value
+   *          the new value
+   *
+   * @throws IllegalArgumentException
+   *           in case the supplied configuration does not belong to the
+   *           configuration category of this instance
    */
   public void setValueFor(AmbariServerConfigurationKey ambariServerConfigurationKey, String value) {
     if (ambariServerConfigurationKey.getConfigurationCategory() != getCategory()) {
