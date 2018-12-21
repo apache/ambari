@@ -27,10 +27,10 @@ angular.module('ambariAdminConsole')
       var deferred = $q.defer();
 
       $http.put(Settings.baseUrl + '/remoteclusters/' + payload.ClusterInfo.name , payload, config)
-        .success(function (data) {
-          deferred.resolve(data)
+        .then(function (data) {
+          deferred.resolve(data.data)
         })
-        .error(function (data) {
+        .catch(function (data) {
           deferred.reject(data);
         });
       return deferred.promise;
@@ -41,10 +41,10 @@ angular.module('ambariAdminConsole')
       var deferred = $q.defer();
 
       $http.get( Settings.baseUrl  + '/remoteclusters/' + clusterName)
-        .success(function(response) {
-          deferred.resolve(response);
+        .then(function(response) {
+          deferred.resolve(response.data);
         })
-        .error(function(data) {
+        .catch(function(data) {
           deferred.reject(data);
         });
 
@@ -56,10 +56,10 @@ angular.module('ambariAdminConsole')
       var deferred = $q.defer();
 
       $http.delete( Settings.baseUrl  + '/remoteclusters/' + clusterName)
-        .success(function(response) {
-          deferred.resolve(response);
+        .then(function(response) {
+          deferred.resolve(response.data);
         })
-        .error(function(data) {
+        .catch(function(data) {
           deferred.reject(data);
         });
 
@@ -71,10 +71,10 @@ angular.module('ambariAdminConsole')
       var deferred = $q.defer();
 
       $http.post(Settings.baseUrl + '/remoteclusters/' + payload.ClusterInfo.name , payload, config)
-        .success(function (data) {
-          deferred.resolve(data)
+        .then(function (data) {
+          deferred.resolve(data.data)
         })
-        .error(function (data) {
+        .catch(function (data) {
           deferred.reject(data);
         });
         return deferred.promise;
@@ -84,10 +84,10 @@ angular.module('ambariAdminConsole')
       var deferred = $q.defer();
 
       $http.get(Settings.baseUrl + "/remoteclusters")
-        .success(function(response) {
-          deferred.resolve(response);
+        .then(function(response) {
+          deferred.resolve(response.data);
         })
-        .error(function(data) {
+        .catch(function(data) {
           deferred.reject(data);
         });
       return deferred.promise;
@@ -100,10 +100,10 @@ angular.module('ambariAdminConsole')
           + 'fields=versions%2Finstances/ViewInstanceInfo/cluster_handle,versions%2Finstances/ViewInstanceInfo/cluster_type&versions%2FViewVersionInfo%2Fsystem=false&versions%2Finstances/ViewInstanceInfo/cluster_type=REMOTE_AMBARI&versions%2Finstances/ViewInstanceInfo/cluster_handle=' + clustername
 
         )
-        .success(function(response) {
-          deferred.resolve(response);
+        .then(function(response) {
+          deferred.resolve(response.data);
         })
-        .error(function(data) {
+        .catch(function(data) {
           deferred.reject(data);
         });
       return deferred.promise;
@@ -114,10 +114,10 @@ angular.module('ambariAdminConsole')
 
       /* TODO :: Add params like RemoteCluster.matches and &from , &page_size */
       $http.get(Settings.baseUrl + "/remoteclusters?fields=ClusterInfo/services,ClusterInfo/cluster_id")
-        .success(function(response) {
-          deferred.resolve(response.items);
+        .then(function(response) {
+          deferred.resolve(response.data.items);
         })
-        .error(function(data) {
+        .catch(function(data) {
           deferred.reject(data);
         });
       return deferred.promise;

@@ -494,7 +494,7 @@ describe('App.mainAdminStackVersionsView', function () {
       popup.onPrimary();
       var args = testHelpers.findAjaxRequest('name', 'ambari.service.load_server_version');
       expect(args[0]).exists;
-      expect(window.location.replace.calledWith('/views/ADMIN_VIEW/2.1.0/INSTANCE/#/stackVersions')).to.be.true;
+      expect(window.location.replace.calledWith('/views/ADMIN_VIEW/2.1.0/INSTANCE/#!/stackVersions')).to.be.true;
     });
   });
 
@@ -538,7 +538,7 @@ describe('App.mainAdminStackVersionsView', function () {
       popup.onPrimary();
       var args = testHelpers.findAjaxRequest('name', 'ambari.service.load_server_version');
       expect(args[0]).exists;
-      expect(window.location.replace.calledWith('/views/ADMIN_VIEW/2.1.0/INSTANCE/#/stackVersions')).to.be.true;
+      expect(window.location.replace.calledWith('/views/ADMIN_VIEW/2.1.0/INSTANCE/#!/stackVersions')).to.be.true;
     });
   });
 

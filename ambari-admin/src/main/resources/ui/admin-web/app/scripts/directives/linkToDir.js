@@ -28,7 +28,7 @@ angular.module('ambariAdminConsole')
       id: '@'
     },
 
-    template: '<a href="#{{href}}" ng-transclude></a>',
+    template: '<a href="#!{{href}}" ng-transclude></a>',
     controller: ['$scope', 'ROUTES', function($scope, ROUTES) {
       var route = ROUTES;
       angular.forEach($scope.route.split('.'), function(routeObj) {
