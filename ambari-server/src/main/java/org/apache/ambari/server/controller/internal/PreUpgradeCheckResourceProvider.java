@@ -28,6 +28,7 @@ import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.internal.URLStreamProvider.AmbariHttpUrlConnectionProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -215,7 +216,8 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
 
       final UpgradeCheckRequest upgradeCheckRequest = new UpgradeCheckRequest(clusterInformation,
           upgradeType, targetRepositoryVersion,
-          upgradePack.getPrerequisiteCheckConfig().getAllProperties());
+          upgradePack.getPrerequisiteCheckConfig().getAllProperties(),
+          new AmbariHttpUrlConnectionProvider());
 
       if (propertyMap.containsKey(UPGRADE_CHECK_FOR_REVERT_PROPERTY_ID)) {
         Boolean forRevert = BooleanUtils.toBooleanObject(propertyMap.get(UPGRADE_CHECK_FOR_REVERT_PROPERTY_ID).toString());

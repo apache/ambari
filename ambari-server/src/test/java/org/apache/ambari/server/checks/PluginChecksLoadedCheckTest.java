@@ -69,7 +69,7 @@ public class PluginChecksLoadedCheckTest extends EasyMockSupport {
 
     replayAll();
 
-    UpgradeCheckRequest request = new UpgradeCheckRequest(null, UpgradeType.ROLLING, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(null, UpgradeType.ROLLING, null, null, null);
     UpgradeCheckResult check = m_check.perform(request);
 
     Assert.assertEquals(UpgradeCheckStatus.WARNING, check.getStatus());
@@ -90,7 +90,7 @@ public class PluginChecksLoadedCheckTest extends EasyMockSupport {
         new HashSet<>()).atLeastOnce();
     replayAll();
 
-    UpgradeCheckRequest request = new UpgradeCheckRequest(null, UpgradeType.ROLLING, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(null, UpgradeType.ROLLING, null, null, null);
     UpgradeCheckResult check = m_check.perform(request);
 
     Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());

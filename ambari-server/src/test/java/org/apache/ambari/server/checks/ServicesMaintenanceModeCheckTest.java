@@ -138,7 +138,7 @@ public class ServicesMaintenanceModeCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, null);
+        m_repositoryVersion, null, null);
 
     UpgradeCheckResult check = servicesMaintenanceModeCheck.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());

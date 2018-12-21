@@ -22,7 +22,7 @@ import java.util.List;
 import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * The {@link HostOrderItem} class represents the orchestration order of hosts
@@ -96,7 +96,7 @@ public class HostOrderItem {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("type", m_type).add("items",
+    return MoreObjects.toStringHelper(this).add("type", m_type).add("items",
         StringUtils.join(m_actionItems, ", ")).omitNullValues().toString();
   }
 }

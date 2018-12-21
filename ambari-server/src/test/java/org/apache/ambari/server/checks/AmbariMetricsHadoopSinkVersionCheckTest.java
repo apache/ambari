@@ -206,7 +206,7 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("c1", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties);
+        m_repositoryVersion, checkProperties, null);
 
     UpgradeCheckResult check = m_check.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
@@ -265,7 +265,7 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("c1", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties);
+        m_repositoryVersion, checkProperties, null);
 
     UpgradeCheckResult check = m_check.perform(request);
 

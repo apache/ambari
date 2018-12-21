@@ -121,7 +121,7 @@ public class CheckHelperTest {
     updateChecksRegistry.add(m_mockCheck);
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null, null);
 
     helper.performChecks(request, updateChecksRegistry, configuration);
 
@@ -154,13 +154,13 @@ public class CheckHelperTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation,
-        UpgradeType.NON_ROLLING, m_repositoryVersion, null);
+        UpgradeType.NON_ROLLING, m_repositoryVersion, null, null);
 
     helper.performChecks(request, updateChecksRegistry, configuration);
 
     Assert.assertEquals(null, request.getResult(m_mockUpgradeCheckDescription));
 
-    request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null);
+    request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null, null);
   }
 
   /**
@@ -183,7 +183,7 @@ public class CheckHelperTest {
     Mockito.when(m_mockPerform.toString()).thenThrow(new RuntimeException());
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null, null);
 
     helper.performChecks(request, updateChecksRegistry, configuration);
 
@@ -210,7 +210,7 @@ public class CheckHelperTest {
     Mockito.when(m_mockPerform.toString()).thenThrow(new RuntimeException());
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null, null);
 
     helper.performChecks(request, updateChecksRegistry, configuration);
 
@@ -253,7 +253,7 @@ public class CheckHelperTest {
     Mockito.when(m_mockPerform.toString()).thenThrow(new RuntimeException());
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, m_repositoryVersion, null, null);
 
     helper.performChecks(request, updateChecksRegistry, configuration);
 

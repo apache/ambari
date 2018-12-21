@@ -303,7 +303,7 @@ public class StackDirectory extends StackDefinitionDirectory {
    * @return the class loader for 3rd party JARs supplied by the stack or
    *         {@code null} if there are no libraries for this stack.
    */
-  public @Nullable ClassLoader getLibraryClassLoader() {
+  public @Nullable URLClassLoader getLibraryClassLoader() {
     return libraryClassLoader;
   }
 

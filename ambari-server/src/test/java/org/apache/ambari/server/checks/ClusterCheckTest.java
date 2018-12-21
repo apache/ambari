@@ -172,7 +172,7 @@ public class ClusterCheckTest extends EasyMockSupport {
 
     ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        repositoryVersion, null);
+        repositoryVersion, null, null);
 
     // case, where we need at least one service to be present
     check.setApplicableServices(oneServiceList);
@@ -249,7 +249,7 @@ public class ClusterCheckTest extends EasyMockSupport {
 
     ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        repositoryVersion, null);
+        repositoryVersion, null, null);
 
     // since the check is for SERVICE2, it should not match even though its
     // installed since the repository is only for SERVICE1
