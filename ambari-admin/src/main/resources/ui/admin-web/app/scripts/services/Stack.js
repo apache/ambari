@@ -61,9 +61,9 @@ angular.module('ambariAdminConsole')
       var deferred = $q.defer();
       var sortFunction = this.sortByIdAsVersion;
       $http.get(url, {mock: 'stack/allStackVersions.json'})
-      .success(function (data) {
+      .then(function (data) {
         var allStackVersions = [];
-        angular.forEach(data.items, function (stack) {
+        angular.forEach(data.data.items, function (stack) {
           angular.forEach(stack.versions, function (version) {
             var stack_name = version.Versions.stack_name;
             var stack_version = version.Versions.stack_version;
@@ -81,7 +81,7 @@ angular.module('ambariAdminConsole')
         });
         deferred.resolve(allStackVersions.sort(sortFunction));
       })
-      .error(function (data) {
+      .catch(function (data) {
         deferred.reject(data);
       });
       return deferred.promise;
@@ -108,9 +108,9 @@ angular.module('ambariAdminConsole')
         'VersionDefinition/stack_services,VersionDefinition/repository_version&VersionDefinition/show_available=true';
       var deferred = $q.defer();
       $http.get(Settings.baseUrl + url, {mock: 'version/versions.json'})
-        .success(function (data) {
+        .then(function (data) {
           var versions = [];
-          angular.forEach(data.items, function(version) {
+          angular.forEach(data.data.items, function(version) {
             var versionObj = {
               id: version.VersionDefinition.id,
               stackName: version.VersionDefinition.stack_name,
@@ -155,7 +155,7 @@ angular.module('ambariAdminConsole')
           });
           deferred.resolve(versions)
         })
-        .error(function (data) {
+        .catch(function (data) {
           deferred.reject(data);
         });
       return deferred.promise;
@@ -194,9 +194,9 @@ angular.module('ambariAdminConsole')
       var url = '/stacks?fields=versions/repository_versions/RepositoryVersions';
       var deferred = $q.defer();
       $http.get(Settings.baseUrl + url, {mock: 'version/versions.json'})
-      .success(function (data) {
+      .then(function (data) {
         var repos = [];
-        angular.forEach(data.items, function(stack) {
+        angular.forEach(data.data.items, function(stack) {
           angular.forEach(stack.versions, function (version) {
             var repoVersions = version.repository_versions;
             if (repoVersions.length > 0) {
@@ -215,7 +215,7 @@ angular.module('ambariAdminConsole')
         response.itemTotal = repos.length;
         deferred.resolve(response);
       })
-      .error(function (data) {
+      .catch(function (data) {
         deferred.reject(data);
       });
       return deferred.promise;
@@ -269,8 +269,8 @@ angular.module('ambariAdminConsole')
       }
       var deferred = $q.defer();
       $http.get(url, {mock: 'version/version.json'})
-      .success(function (data) {
-        data = data.items[0];
+      .then(function (data) {
+        data = data.data.items[0];
         var response = {
           id : data.repository_versions[0].RepositoryVersions.id,
           stackVersion : data.Versions.stack_version,
@@ -300,7 +300,7 @@ angular.module('ambariAdminConsole')
         response.services = services.sort(function(a, b){return a.name.localeCompare(b.name)});
         deferred.resolve(response);
       })
-      .error(function (data) {
+      .catch(function (data) {
         deferred.reject(data);
       });
       return deferred.promise;
@@ -312,12 +312,12 @@ angular.module('ambariAdminConsole')
         configs = isXMLdata? { headers: {'Content-Type': 'text/xml'}} : null;
 
       $http.post(url, data, configs)
-        .success(function (response) {
-          if (response.resources.length && response.resources[0].VersionDefinition) {
-            deferred.resolve(response);
+        .then(function (response) {
+          if (response.data.resources.length && response.data.resources[0].VersionDefinition) {
+            deferred.resolve(response.data);
           }
         })
-        .error(function (data) {
+        .catch(function (data) {
           deferred.reject(data);
         });
       return deferred.promise;
@@ -327,10 +327,10 @@ angular.module('ambariAdminConsole')
       var url = Settings.baseUrl + '/stacks/' + stackName + '/versions/' + stackVersion + '/repository_versions/' + id;
       var deferred = $q.defer();
       $http.put(url, payload)
-      .success(function (data) {
-        deferred.resolve(data)
+      .then(function (data) {
+        deferred.resolve(data.data)
       })
-      .error(function (data) {
+      .catch(function (data) {
         deferred.reject(data);
       });
       return deferred.promise;
@@ -340,10 +340,10 @@ angular.module('ambariAdminConsole')
       var url = Settings.baseUrl + '/stacks/' + stackName + '/versions/' + stackVersion + '/repository_versions/' + id;
       var deferred = $q.defer();
       $http.delete(url)
-      .success(function (data) {
-        deferred.resolve(data)
+      .then(function (data) {
+        deferred.resolve(data.data)
       })
-      .error(function (data) {
+      .catch(function (data) {
         deferred.reject(data);
       });
       return deferred.promise;
@@ -353,10 +353,10 @@ angular.module('ambariAdminConsole')
       var url = Settings.baseUrl + '/stacks/' + stackName + '/versions/' + stackVersion + '?fields=operating_systems/repositories/Repositories';
       var deferred = $q.defer();
       $http.get(url, {mock: 'stack/operatingSystems.json'})
-      .success(function (data) {
-        deferred.resolve(data);
+      .then(function (data) {
+        deferred.resolve(data.data);
       })
-      .error(function (data) {
+      .catch(function (data) {
         deferred.reject(data);
       });
       return deferred.promise;
@@ -386,11 +386,11 @@ angular.module('ambariAdminConsole')
                   repo: repo
                 }
               )
-                .success(function () {
+                .then(function () {
                   totalCalls--;
                   if (totalCalls === 0) deferred.resolve(invalidUrls);
                 })
-                .error(function (response, status, callback, params) {
+                .catch(function (response, status, callback, params) {
                   invalidUrls.push(params.repo);
                   totalCalls--;
                   if (totalCalls === 0) deferred.resolve(invalidUrls);

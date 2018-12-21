@@ -56,10 +56,10 @@ angular.module('ambariAdminConsole')
   Group.prototype.destroy = function() {
     var deferred = $q.defer();
     $http.delete(Settings.baseUrl + '/groups/' +this.group_name)
-    .success(function() {
+    .then(function() {
       deferred.resolve();
     })
-    .error(function(data) {
+    .catch(function(data) {
       deferred.reject(data);
     });
 
@@ -83,10 +83,10 @@ angular.module('ambariAdminConsole')
       url: Settings.baseUrl + '/groups/' + this.group_name + '/members',
       data: members
     })
-    .success(function(data) {
-      deferred.resolve(data);
+    .then(function(data) {
+      deferred.resolve(data.data);
     })
-    .error(function(data) {
+    .catch(function(data) {
       deferred.reject(data);
     });
     return deferred.promise;
@@ -104,10 +104,10 @@ angular.module('ambariAdminConsole')
     var deferred = $q.defer();
 
     $http.get(Settings.baseUrl + '/groups?fields=*')
-    .success(function(data) {
-      deferred.resolve(data.items);
+    .then(function(data) {
+      deferred.resolve(data.data.items);
     })
-    .error(function(data) {
+    .catch(function(data) {
       deferred.reject(data);
     });
 
@@ -134,8 +134,8 @@ angular.module('ambariAdminConsole')
       method: 'GET',
       url: Settings.baseUrl + '/groups/' + group_name +
       '?fields=Groups,privileges/PrivilegeInfo/*,members/MemberInfo'
-    }).success(function (data) {
-      deferred.resolve(Group.makeGroup(data));
+    }).then(function (data) {
+      deferred.resolve(Group.makeGroup(data.data));
     });
 
     return deferred.promise;
