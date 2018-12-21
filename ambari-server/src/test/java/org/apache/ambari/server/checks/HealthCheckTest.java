@@ -82,7 +82,7 @@ public class HealthCheckTest {
     when(alertsDAO.findCurrentByCluster(eq(CLUSTER_ID))).thenReturn(Collections.emptyList());
 
     ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null, null);
 
     UpgradeCheckResult result = healthCheck.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.PASS, result.getStatus());
@@ -115,7 +115,7 @@ public class HealthCheckTest {
     when(alertsDAO.findCurrentByCluster(eq(CLUSTER_ID))).thenReturn(asList(alertCurrentEntity));
 
     ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null);
+    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null, null);
 
     UpgradeCheckResult result = healthCheck.perform(request);
 

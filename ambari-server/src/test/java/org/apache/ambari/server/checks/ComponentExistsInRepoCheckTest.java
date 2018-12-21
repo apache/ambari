@@ -76,7 +76,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     expect(cluster.getCurrentStackVersion()).andReturn(sourceStackId).anyTimes();
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
-    request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, repoVersion(), null);
+    request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, repoVersion(), null, null);
   }
 
   @Test

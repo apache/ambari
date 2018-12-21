@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state;
 
 import java.io.File;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -91,7 +92,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
    * A {@link ClassLoader} for any JARs discovered in the stack's library
    * folder.
    */
-  private ClassLoader libraryClassLoader = null;
+  private URLClassLoader libraryClassLoader = null;
 
   /**
    * List of services removed from current stack
@@ -673,7 +674,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
    * @return the class loader for 3rd party JARs supplied by the stack or
    *         {@code null} if there are no libraries for this stack.
    */
-  public @Nullable ClassLoader getLibraryClassLoader() {
+  public @Nullable URLClassLoader getLibraryClassLoader() {
     return libraryClassLoader;
   }
 
@@ -684,7 +685,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
    * @param libraryClassLoader
    *          the class loader.
    */
-  public void setLibraryClassLoader(ClassLoader libraryClassLoader) {
+  public void setLibraryClassLoader(URLClassLoader libraryClassLoader) {
     this.libraryClassLoader = libraryClassLoader;
   }
 

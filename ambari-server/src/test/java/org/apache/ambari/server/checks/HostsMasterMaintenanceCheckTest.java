@@ -127,7 +127,7 @@ public class HostsMasterMaintenanceCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
     UpgradeCheckRequest checkRequest = new UpgradeCheckRequest(clusterInformation,
-        UpgradeType.ROLLING, m_repositoryVersion, null);
+        UpgradeType.ROLLING, m_repositoryVersion, null, null);
 
     UpgradeCheckResult result = hostsMasterMaintenanceCheck.perform(checkRequest);
     Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());

@@ -74,7 +74,7 @@ public class PreviousUpgradeCompletedTest {
 
     ClusterInformation clusterInformation = new ClusterInformation(clusterName, false, null, null, null);
     checkRequest = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        null, null);
+        null, null, null);
 
     puc.clustersProvider = new Provider<Clusters>() {
       @Override

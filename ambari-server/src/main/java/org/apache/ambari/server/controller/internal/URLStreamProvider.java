@@ -37,6 +37,8 @@ import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.apache.ambari.server.proxy.ProxyService;
+import org.apache.ambari.spi.net.HttpURLConnectionProvider;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
@@ -93,20 +95,20 @@ public class URLStreamProvider implements StreamProvider {
   public URLStreamProvider(int connectionTimeout, int readTimeout, String trustStorePath,
                            String trustStorePassword, String trustStoreType) {
 
-    this.connTimeout        = connectionTimeout;
+    connTimeout        = connectionTimeout;
     this.readTimeout        = readTimeout;
     this.trustStorePath     = trustStorePath;
     this.trustStorePassword = trustStorePassword;
     this.trustStoreType     = trustStoreType;
-    this.setupTruststoreForHttps = true;
+    setupTruststoreForHttps = true;
   }
 
   public void setSetupTruststoreForHttps(boolean setupTruststoreForHttps) {
     this.setupTruststoreForHttps = setupTruststoreForHttps;
   }
-  
+
   public boolean getSetupTruststoreForHttps() {
-    return this.setupTruststoreForHttps;
+    return setupTruststoreForHttps;
   }
 
   // ----- StreamProvider ----------------------------------------------------
@@ -178,7 +180,7 @@ public class URLStreamProvider implements StreamProvider {
       LOG.debug("readFrom spec:{}", spec);
     }
 
-    HttpURLConnection connection = (spec.startsWith("https") && this.setupTruststoreForHttps) ?
+    HttpURLConnection connection = (spec.startsWith("https") && setupTruststoreForHttps) ?
             getSSLConnection(spec) : getConnection(spec);
 
     AppCookieManager appCookieManager = getAppCookieManager();
@@ -323,7 +325,39 @@ public class URLStreamProvider implements StreamProvider {
         .openConnection());
 
     connection.setSSLSocketFactory(sslSocketFactory);
- 
+
     return connection;
+  }
+
+  /**
+   * A default implementation of {@link HttpURLConnectionProvider}, this class
+   * will use the {@link URLStreamProvider} in order to provide an
+   * {@link HttpURLConnection} which is able to use Ambari's cookie store,
+   * truststore, and timeout values.
+   */
+  public static final class AmbariHttpUrlConnectionProvider implements HttpURLConnectionProvider {
+
+    /**
+     * The stream provider.
+     */
+    private final URLStreamProvider m_streamProvider;
+
+    /**
+     * Constructor.
+     *
+     */
+    public AmbariHttpUrlConnectionProvider() {
+      m_streamProvider = new URLStreamProvider(ProxyService.URL_CONNECT_TIMEOUT,
+          ProxyService.URL_READ_TIMEOUT, ComponentSSLConfiguration.instance());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public HttpURLConnection getConnection(String url, Map<String, List<String>> headers)
+        throws IOException {
+      return m_streamProvider.processURL(url, "GET", (InputStream) null, headers);
+    }
   }
 }

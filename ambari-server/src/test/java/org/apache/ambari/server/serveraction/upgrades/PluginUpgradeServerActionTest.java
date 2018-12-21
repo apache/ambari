@@ -21,6 +21,7 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -82,7 +83,7 @@ public class PluginUpgradeServerActionTest extends EasyMockSupport {
 
   private final UpgradeContext m_mockUpgradeContext = createNiceMock(UpgradeContext.class);
   private final UpgradePack m_mockUpgradePack = createNiceMock(UpgradePack.class);
-  private final ClassLoader m_mockClassLoader = createNiceMock(ClassLoader.class);
+  private final URLClassLoader m_mockClassLoader = createNiceMock(URLClassLoader.class);
   private final AmbariMetaInfo m_mockMetaInfo = createNiceMock(AmbariMetaInfo.class);
   private final AmbariManagementController m_mockController = createNiceMock(AmbariManagementController.class);
 
