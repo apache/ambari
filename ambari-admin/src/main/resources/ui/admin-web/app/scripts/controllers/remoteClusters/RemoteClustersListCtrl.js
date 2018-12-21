@@ -82,7 +82,7 @@ function ($scope, $routeParams, $translate, RemoteCluster, Settings, Pagination,
       Filters.initFilterOptions($scope.filters, $scope.remoteClusters);
     })
       .catch(function (data) {
-        console.error($t('remoteClusters.alerts.fetchError'), data);
+        console.warn($t('remoteClusters.alerts.fetchError'), data);
       });
   }
 

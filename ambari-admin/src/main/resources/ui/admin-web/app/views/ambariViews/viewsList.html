@@ -64,7 +64,7 @@
             </td>
             <td>
                 <a target="_blank"
-                   href="{{fromSiteRoot('/#/main/view/' + instance.view_name + '/' + instance.short_url)}}">/main/view/{{instance.view_name}}/{{instance.short_url}}
+                   href="{{fromSiteRoot('/#!/main/view/' + instance.view_name + '/' + instance.short_url)}}">/main/view/{{instance.view_name}}/{{instance.short_url}}
                     &nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>
             </td>
             <td>
@@ -88,7 +88,7 @@
                 </span>
 
                 <span ng-switch-when="DEPLOYED">
-                    <a  href="#/views/{{instance.view_name}}/versions/{{instance.version}}/instances/{{instance.instance_name}}/edit">
+                    <a  href="#!/views/{{instance.view_name}}/versions/{{instance.version}}/instances/{{instance.instance_name}}/edit">
                         <i class="fa fa-pencil"></i>
                     </a>
                     <a href ng-click="cloneInstance(instance);">

@@ -17,10 +17,10 @@
 -->
 <div class="clearfix">
   <ol class="breadcrumb pull-left">
-    <li><a href="#/views">{{'common.views' | translate}}</a></li>
+    <li><a href="#!/views">{{'common.views' | translate}}</a></li>
     <li class="active">{{instance.ViewInstanceInfo.label}}
       <a class="gotoinstance" ng-show="instance.ViewInstanceInfo.visible"
-         href="{{fromSiteRoot('/#/main/views/' + viewUrl)}}" target="_blank">
+         href="{{fromSiteRoot('/#!/main/views/' + viewUrl)}}" target="_blank">
         {{'views.goToInstance' | translate}}
       </a>
     </li>
@@ -88,16 +88,16 @@
 
           <div class="col-sm-9">
             <div ng-if="settings.shortUrl">
-            <p class="form-control-static"><a target="_blank" href="{{fromSiteRoot('/#/main/view/' + instance.ViewInstanceInfo.view_name + '/' + settings.shortUrl)}}" ng-if="settings.shortUrl">/main/view/{{instance.ViewInstanceInfo.view_name}}/{{settings.shortUrl}}&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>
+            <p class="form-control-static"><a target="_blank" href="{{fromSiteRoot('/#!/main/view/' + instance.ViewInstanceInfo.view_name + '/' + settings.shortUrl)}}" ng-if="settings.shortUrl">/main/view/{{instance.ViewInstanceInfo.view_name}}/{{settings.shortUrl}}&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>
              &nbsp;<a ng-hide="editDetailsSettingsDisabled" href="javascript:void(0)" ng-click="deleteShortURL(settings.shortUrlName)" class="alert-link">{{'common.delete' | translate }}</a>
              </p>
           </div>
             <div ng-if="!settings.shortUrl">
               <p ng-hide="!editDetailsSettingsDisabled" class="form-control-static">
-                <a href="#/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}">{{'urls.createNewUrl' | translate}}</a>
+                <a href="#!/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}">{{'urls.createNewUrl' | translate}}</a>
               </p>
               <p class="form-control-static" ng-hide="editDetailsSettingsDisabled">
-                <a href="#/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}">{{'urls.createNewUrl' | translate}}</a>
+                <a href="#!/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}">{{'urls.createNewUrl' | translate}}</a>
               </p>
             </div>
           </div>

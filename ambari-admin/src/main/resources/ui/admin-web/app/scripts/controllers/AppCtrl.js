@@ -44,6 +44,8 @@ angular.module('ambariAdminConsole')
 
   Utility.getUserPref('user-pref-' + Auth.getCurrentUser() + '-supports').then(function (data) {
     $rootScope.supports = data.data ? data.data : {};
+  }).catch(function() {
+    console.warn('user-pref-' + Auth.getCurrentUser() + '-supports is missing');
   });
 
   $http.get(Settings.baseUrl + '/users/' + Auth.getCurrentUser() + '/authorizations?fields=*')
