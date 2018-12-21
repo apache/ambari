@@ -2228,7 +2228,27 @@ public class AmbariManagementControllerImplTest {
   }
 
   @Test
-  public void testSynchronizeLdapUsersAndGroups() throws Exception {
+  public void testSynchronizeLdapUsersAndGroupsHookDisabled() throws Exception {
+    testSynchronizeLdapUsersAndGroups(false, false);
+  }
+
+  @Test
+  public void testSynchronizeLdapUsersAndGroupsHookEnabled() throws Exception {
+    testSynchronizeLdapUsersAndGroups(false, true);
+  }
+
+  @Test
+  public void testSynchronizeLdapUsersAndGroupsPostProcessExistingUsersHookDisabled() throws Exception {
+    testSynchronizeLdapUsersAndGroups(true, false);
+  }
+
+  @Test
+  public void testSynchronizeLdapUsersAndGroupsPostProcessExistingUsersHookEnabled() throws Exception {
+    testSynchronizeLdapUsersAndGroups(true, true);
+  }
+
+  private void testSynchronizeLdapUsersAndGroups(boolean postProcessExistingUsers, boolean postUserCreationHookEnabled) throws Exception {
+    boolean collectIgnoredUsers = postProcessExistingUsers && postUserCreationHookEnabled;
 
     Set<String> userSet = new HashSet<>();
     userSet.add("user1");
@@ -2246,14 +2266,14 @@ public class AmbariManagementControllerImplTest {
     Capture<LdapBatchDto> ldapBatchDtoCapture = EasyMock.newCapture();
 
     // set expectations
-    expect(ldapDataPopulator.synchronizeAllLdapUsers(capture(ldapBatchDtoCapture))).andReturn(ldapBatchDto);
-    expect(ldapDataPopulator.synchronizeAllLdapGroups(capture(ldapBatchDtoCapture))).andReturn(ldapBatchDto);
+    expect(ldapDataPopulator.synchronizeAllLdapUsers(capture(ldapBatchDtoCapture), eq(collectIgnoredUsers))).andReturn(ldapBatchDto);
+    expect(ldapDataPopulator.synchronizeAllLdapGroups(capture(ldapBatchDtoCapture), eq(collectIgnoredUsers))).andReturn(ldapBatchDto);
 
-    expect(ldapDataPopulator.synchronizeExistingLdapUsers(capture(ldapBatchDtoCapture))).andReturn(ldapBatchDto);
-    expect(ldapDataPopulator.synchronizeExistingLdapGroups(capture(ldapBatchDtoCapture))).andReturn(ldapBatchDto);
+    expect(ldapDataPopulator.synchronizeExistingLdapUsers(capture(ldapBatchDtoCapture), eq(collectIgnoredUsers))).andReturn(ldapBatchDto);
+    expect(ldapDataPopulator.synchronizeExistingLdapGroups(capture(ldapBatchDtoCapture), eq(collectIgnoredUsers))).andReturn(ldapBatchDto);
 
-    expect(ldapDataPopulator.synchronizeLdapUsers(eq(userSet), capture(ldapBatchDtoCapture))).andReturn(ldapBatchDto);
-    expect(ldapDataPopulator.synchronizeLdapGroups(eq(groupSet), capture(ldapBatchDtoCapture))).andReturn(ldapBatchDto);
+    expect(ldapDataPopulator.synchronizeLdapUsers(eq(userSet), capture(ldapBatchDtoCapture), eq(collectIgnoredUsers))).andReturn(ldapBatchDto);
+    expect(ldapDataPopulator.synchronizeLdapGroups(eq(groupSet), capture(ldapBatchDtoCapture), eq(collectIgnoredUsers))).andReturn(ldapBatchDto);
 
     users.processLdapSync(capture(ldapBatchDtoCapture));
     expectLastCall().anyTimes();
@@ -2261,20 +2281,23 @@ public class AmbariManagementControllerImplTest {
     //replay
     replay(ldapDataPopulator, clusters, actionDBAccessor, ambariMetaInfo, users, ldapBatchDto);
 
+    Configuration configs = injector.getInstance(Configuration.class);
+    configs.setProperty(Configuration.POST_USER_CREATION_HOOK_ENABLED.getKey(), String.valueOf(postUserCreationHookEnabled));
+
     AmbariManagementControllerImpl controller = injector.getInstance(AmbariManagementControllerImpl.class);
 
-    LdapSyncRequest userRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL);
-    LdapSyncRequest groupRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL);
+    LdapSyncRequest userRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL, postProcessExistingUsers);
+    LdapSyncRequest groupRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL, postProcessExistingUsers);
 
     controller.synchronizeLdapUsersAndGroups(userRequest, groupRequest);
 
-    userRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING);
-    groupRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING);
+    userRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING, postProcessExistingUsers);
+    groupRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING, postProcessExistingUsers);
 
     controller.synchronizeLdapUsersAndGroups(userRequest, groupRequest);
 
-    userRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, userSet);
-    groupRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, groupSet);
+    userRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, userSet, postProcessExistingUsers);
+    groupRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, groupSet, postProcessExistingUsers);
 
     controller.synchronizeLdapUsersAndGroups(userRequest, groupRequest);
 

@@ -7769,6 +7769,7 @@ class TestAmbariServer(TestCase):
     options = self._create_empty_options_mock()
     options.ldap_sync_all = True
     options.ldap_sync_existing = False
+    options.ldap_sync_post_process_existing_users = False
 
     sync_ldap(options)
 
@@ -7777,6 +7778,49 @@ class TestAmbariServer(TestCase):
 
     self.assertEquals(url, str(request.get_full_url()))
     self.assertEquals('[{"Event": {"specs": [{"principal_type": "users", "sync_type": "all"}, {"principal_type": "groups", "sync_type": "all"}]}}]', request.data)
+
+    self.assertTrue(response.getcode.called)
+    self.assertTrue(response.read.called)
+    pass
+
+  @patch("urllib2.urlopen")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_ldap_enabled")
+  @patch("ambari_server.setupSecurity.is_server_runing")
+  @patch("ambari_server.setupSecurity.is_root")
+  @patch("ambari_server.setupSecurity.logger")
+  def test_ldap_sync_all_post_process_existing_users(self, logger_mock, is_root_method, is_server_runing_mock, is_ldap_enabled_mock, get_ambari_properties_mock,
+      get_validated_string_input_mock, urlopen_mock):
+
+    is_root_method.return_value = True
+    is_server_runing_mock.return_value = (True, 0)
+    is_ldap_enabled_mock.return_value = 'true'
+    properties = Properties()
+    properties.process_pair(CLIENT_API_PORT_PROPERTY, '8080')
+    get_ambari_properties_mock.return_value = properties
+    get_validated_string_input_mock.side_effect = ['admin', 'admin']
+
+    response = MagicMock()
+    response.getcode.side_effect = [201, 200, 200]
+    response.read.side_effect = ['{"resources" : [{"href" : "http://c6401.ambari.apache.org:8080/api/v1/ldap_sync_events/16","Event" : {"id" : 16}}]}',
+                          '{"Event":{"status" : "RUNNING","summary" : {"groups" : {"created" : 0,"removed" : 0,"updated" : 0},"memberships" : {"created" : 0,"removed" : 0},"users" : {"created" : 0,"removed" : 0,"updated" : 0}}}}',
+                          '{"Event":{"status" : "COMPLETE","summary" : {"groups" : {"created" : 1,"removed" : 0,"updated" : 0},"memberships" : {"created" : 5,"removed" : 0},"users" : {"created" : 5,"removed" : 0,"updated" : 0}}}}']
+
+    urlopen_mock.return_value = response
+
+    options = self._create_empty_options_mock()
+    options.ldap_sync_all = True
+    options.ldap_sync_existing = False
+    options.ldap_sync_post_process_existing_users = True
+
+    sync_ldap(options)
+
+    url = '{0}://{1}:{2!s}{3}'.format('http', '127.0.0.1', '8080', '/api/v1/ldap_sync_events')
+    request = urlopen_mock.call_args_list[0][0][0]
+
+    self.assertEquals(url, str(request.get_full_url()))
+    self.assertEquals('[{"Event": {"specs": [{"post_process_existing_users": "true", "principal_type": "users", "sync_type": "all"}, {"post_process_existing_users": "true", "principal_type": "groups", "sync_type": "all"}]}}]', request.data)
 
     self.assertTrue(response.getcode.called)
     self.assertTrue(response.read.called)
@@ -7817,12 +7861,60 @@ class TestAmbariServer(TestCase):
     options.ldap_sync_existing = False
     options.ldap_sync_users = 'users.txt'
     options.ldap_sync_groups = None
+    options.ldap_sync_post_process_existing_users = False
 
     sync_ldap(options)
 
     request = urlopen_mock.call_args_list[0][0][0]
 
     self.assertEquals('[{"Event": {"specs": [{"principal_type": "users", "sync_type": "specific", "names": "bob, tom"}]}}]', request.data)
+
+    self.assertTrue(response.getcode.called)
+    self.assertTrue(response.read.called)
+    pass
+
+  @patch("__builtin__.open")
+  @patch("os.path.exists")
+  @patch("urllib2.urlopen")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_ldap_enabled")
+  @patch("ambari_server.setupSecurity.is_server_runing")
+  @patch("ambari_server.setupSecurity.is_root")
+  @patch("ambari_server.setupSecurity.logger")
+  def test_ldap_sync_users_post_process_existing_users(self, logger_mock, is_root_method, is_server_runing_mock, is_ldap_enabled_mock, get_ambari_properties_mock,
+                         get_validated_string_input_mock, urlopen_mock, os_path_exists_mock, open_mock):
+
+    os_path_exists_mock.return_value = 1
+    f = MagicMock()
+    f.__enter__().read.return_value = "bob, tom"
+
+    open_mock.return_value = f
+    is_root_method.return_value = True
+    is_server_runing_mock.return_value = (True, 0)
+    is_ldap_enabled_mock.return_value = 'true'
+    get_validated_string_input_mock.side_effect = ['admin', 'admin']
+
+    response = MagicMock()
+    response.getcode.side_effect = [201, 200, 200]
+    response.read.side_effect = ['{"resources" : [{"href" : "http://c6401.ambari.apache.org:8080/api/v1/ldap_sync_events/16","Event" : {"id" : 16}}]}',
+                                 '{"Event":{"status" : "RUNNING","summary" : {"groups" : {"created" : 0,"removed" : 0,"updated" : 0},"memberships" : {"created" : 0,"removed" : 0},"users" : {"created" : 0,"removed" : 0,"updated" : 0}}}}',
+                                 '{"Event":{"status" : "COMPLETE","summary" : {"groups" : {"created" : 1,"removed" : 0,"updated" : 0},"memberships" : {"created" : 5,"removed" : 0},"users" : {"created" : 5,"removed" : 0,"updated" : 0}}}}']
+
+    urlopen_mock.return_value = response
+
+    options = self._create_empty_options_mock()
+    options.ldap_sync_all = False
+    options.ldap_sync_existing = False
+    options.ldap_sync_users = 'users.txt'
+    options.ldap_sync_groups = None
+    options.ldap_sync_post_process_existing_users = True
+
+    sync_ldap(options)
+
+    request = urlopen_mock.call_args_list[0][0][0]
+
+    self.assertEquals('[{"Event": {"specs": [{"post_process_existing_users": "true", "principal_type": "users", "sync_type": "specific", "names": "bob, tom"}]}}]', request.data)
 
     self.assertTrue(response.getcode.called)
     self.assertTrue(response.read.called)
@@ -7863,12 +7955,60 @@ class TestAmbariServer(TestCase):
     options.ldap_sync_existing = False
     options.ldap_sync_users = None
     options.ldap_sync_groups = 'groups.txt'
+    options.ldap_sync_post_process_existing_users = False
 
     sync_ldap(options)
 
     request = urlopen_mock.call_args_list[0][0][0]
 
     self.assertEquals('[{"Event": {"specs": [{"principal_type": "groups", "sync_type": "specific", "names": "group1, group2"}]}}]', request.data)
+
+    self.assertTrue(response.getcode.called)
+    self.assertTrue(response.read.called)
+    pass
+
+  @patch("__builtin__.open")
+  @patch("os.path.exists")
+  @patch("urllib2.urlopen")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_ldap_enabled")
+  @patch("ambari_server.setupSecurity.is_server_runing")
+  @patch("ambari_server.setupSecurity.is_root")
+  @patch("ambari_server.setupSecurity.logger")
+  def test_ldap_sync_groups_post_process_existing_users(self, logger_mock, is_root_method, is_server_runing_mock, is_ldap_enabled_mock, get_ambari_properties_mock,
+                           get_validated_string_input_mock, urlopen_mock, os_path_exists_mock, open_mock):
+
+    os_path_exists_mock.return_value = 1
+    f = MagicMock()
+    f.__enter__().read.return_value = "group1, group2"
+
+    open_mock.return_value = f
+    is_root_method.return_value = True
+    is_server_runing_mock.return_value = (True, 0)
+    is_ldap_enabled_mock.return_value = 'true'
+    get_validated_string_input_mock.side_effect = ['admin', 'admin']
+
+    response = MagicMock()
+    response.getcode.side_effect = [201, 200, 200]
+    response.read.side_effect = ['{"resources" : [{"href" : "http://c6401.ambari.apache.org:8080/api/v1/ldap_sync_events/16","Event" : {"id" : 16}}]}',
+                                 '{"Event":{"status" : "RUNNING","summary" : {"groups" : {"created" : 0,"removed" : 0,"updated" : 0},"memberships" : {"created" : 0,"removed" : 0},"users" : {"created" : 0,"removed" : 0,"updated" : 0}}}}',
+                                 '{"Event":{"status" : "COMPLETE","summary" : {"groups" : {"created" : 1,"removed" : 0,"updated" : 0},"memberships" : {"created" : 5,"removed" : 0},"users" : {"created" : 5,"removed" : 0,"updated" : 0}}}}']
+
+    urlopen_mock.return_value = response
+
+    options = self._create_empty_options_mock()
+    options.ldap_sync_all = False
+    options.ldap_sync_existing = False
+    options.ldap_sync_users = None
+    options.ldap_sync_groups = 'groups.txt'
+    options.ldap_sync_post_process_existing_users = True
+
+    sync_ldap(options)
+
+    request = urlopen_mock.call_args_list[0][0][0]
+
+    self.assertEquals('[{"Event": {"specs": [{"post_process_existing_users": "true", "principal_type": "groups", "sync_type": "specific", "names": "group1, group2"}]}}]', request.data)
 
     self.assertTrue(response.getcode.called)
     self.assertTrue(response.read.called)
@@ -7948,8 +8088,54 @@ class TestAmbariServer(TestCase):
     options.ldap_sync_existing = True
     options.ldap_sync_users = None
     options.ldap_sync_groups = None
+    options.ldap_sync_post_process_existing_users = False
 
     sync_ldap(options)
+
+    request = urlopen_mock.call_args_list[0][0][0]
+
+    self.assertEquals('[{"Event": {"specs": [{"principal_type": "users", "sync_type": "existing"}, {"principal_type": "groups", "sync_type": "existing"}]}}]', request.data)
+
+    self.assertTrue(response.getcode.called)
+    self.assertTrue(response.read.called)
+    pass
+
+  @patch("urllib2.urlopen")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_ldap_enabled")
+  @patch("ambari_server.setupSecurity.is_server_runing")
+  @patch("ambari_server.setupSecurity.is_root")
+  @patch("ambari_server.setupSecurity.logger")
+  def test_ldap_sync_existing_post_process_existing_users(self, logger_mock, is_root_method, is_server_runing_mock, is_ldap_enabled_mock, get_ambari_properties_mock,
+                         get_validated_string_input_mock, urlopen_mock):
+
+    is_root_method.return_value = True
+    is_server_runing_mock.return_value = (True, 0)
+    is_ldap_enabled_mock.return_value = 'true'
+    get_ambari_properties_mock.return_value = Properties()
+    get_validated_string_input_mock.side_effect = ['admin', 'admin']
+
+    response = MagicMock()
+    response.getcode.side_effect = [201, 200, 200]
+    response.read.side_effect = ['{"resources" : [{"href" : "http://c6401.ambari.apache.org:8080/api/v1/ldap_sync_events/16","Event" : {"id" : 16}}]}',
+                                 '{"Event":{"status" : "RUNNING","summary" : {"groups" : {"created" : 0,"removed" : 0,"updated" : 0},"memberships" : {"created" : 0,"removed" : 0},"users" : {"created" : 0,"removed" : 0,"updated" : 0}}}}',
+                                 '{"Event":{"status" : "COMPLETE","summary" : {"groups" : {"created" : 1,"removed" : 0,"updated" : 0},"memberships" : {"created" : 5,"removed" : 0},"users" : {"created" : 5,"removed" : 0,"updated" : 0}}}}']
+
+    urlopen_mock.return_value = response
+
+    options = self._create_empty_options_mock()
+    options.ldap_sync_all = False
+    options.ldap_sync_existing = True
+    options.ldap_sync_users = None
+    options.ldap_sync_groups = None
+    options.ldap_sync_post_process_existing_users = True
+
+    sync_ldap(options)
+
+    request = urlopen_mock.call_args_list[0][0][0]
+
+    self.assertEquals('[{"Event": {"specs": [{"post_process_existing_users": "true", "principal_type": "users", "sync_type": "existing"}, {"post_process_existing_users": "true", "principal_type": "groups", "sync_type": "existing"}]}}]', request.data)
 
     self.assertTrue(response.getcode.called)
     self.assertTrue(response.read.called)

@@ -129,6 +129,7 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
    */
   private static final String PRINCIPAL_TYPE_SPEC_KEY = "principal_type";
   private static final String SYNC_TYPE_SPEC_KEY      = "sync_type";
+  private static final String POST_PROCESS_EXISTING_USERS_SPEC_KEY = "post_process_existing_users";
   private static final String NAMES_SPEC_KEY          = "names";
 
   /**
@@ -318,6 +319,7 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
 
       LdapSyncSpecEntity.SyncType      syncType      = null;
       LdapSyncSpecEntity.PrincipalType principalType = null;
+      boolean postProcessExistingUsers = false;
 
       List<String> principalNames = Collections.emptyList();
 
@@ -332,6 +334,10 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
         } else if (key.equalsIgnoreCase(NAMES_SPEC_KEY)) {
           String names = entry.getValue();
           principalNames = Arrays.asList(names.split("\\s*,\\s*"));
+
+        } else if (key.equalsIgnoreCase(POST_PROCESS_EXISTING_USERS_SPEC_KEY)) {
+          postProcessExistingUsers = "true".equalsIgnoreCase(entry.getValue());
+
         } else {
           throw new IllegalArgumentException("Unknown spec key " + key + ".");
         }
@@ -341,7 +347,7 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
         throw new IllegalArgumentException("LDAP event spec must include both sync-type and principal-type.");
       }
 
-      LdapSyncSpecEntity spec = new LdapSyncSpecEntity(principalType, syncType, principalNames);
+      LdapSyncSpecEntity spec = new LdapSyncSpecEntity(principalType, syncType, principalNames, postProcessExistingUsers);
       specList.add(spec);
     }
     entity.setSpecs(specList);
@@ -502,13 +508,13 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
 
     switch (spec.getSyncType()) {
       case ALL:
-        return new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL);
+        return new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL, spec.getPostProcessExistingUsers());
       case EXISTING:
-        return new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING);
+        return new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING, spec.getPostProcessExistingUsers());
       case SPECIFIC:
         Set<String> principalNames = new HashSet<>(spec.getPrincipalNames());
         if (request == null ) {
-          request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, principalNames);
+          request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, principalNames, spec.getPostProcessExistingUsers());
         } else {
           request.addPrincipalNames(principalNames);
         }

@@ -32,22 +32,22 @@ public class LdapSyncSpecEntityTest {
   @Test
   public void testGetPrincipalType() throws Exception {
     LdapSyncSpecEntity entity = new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.USERS,
-        LdapSyncSpecEntity.SyncType.ALL, Collections.emptyList());
+        LdapSyncSpecEntity.SyncType.ALL, Collections.emptyList(), false);
     Assert.assertEquals(LdapSyncSpecEntity.PrincipalType.USERS, entity.getPrincipalType());
 
     entity = new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.GROUPS,
-        LdapSyncSpecEntity.SyncType.ALL, Collections.emptyList());
+        LdapSyncSpecEntity.SyncType.ALL, Collections.emptyList(), false);
     Assert.assertEquals(LdapSyncSpecEntity.PrincipalType.GROUPS, entity.getPrincipalType());
   }
 
   @Test
   public void testGetSyncType() throws Exception {
     LdapSyncSpecEntity entity = new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.USERS,
-        LdapSyncSpecEntity.SyncType.ALL, Collections.emptyList());
+        LdapSyncSpecEntity.SyncType.ALL, Collections.emptyList(), false);
     Assert.assertEquals(LdapSyncSpecEntity.SyncType.ALL, entity.getSyncType());
 
     entity = new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.USERS,
-        LdapSyncSpecEntity.SyncType.EXISTING, Collections.emptyList());
+        LdapSyncSpecEntity.SyncType.EXISTING, Collections.emptyList(), false);
     Assert.assertEquals(LdapSyncSpecEntity.SyncType.EXISTING, entity.getSyncType());
   }
 
@@ -58,7 +58,7 @@ public class LdapSyncSpecEntityTest {
     names.add("fred");
 
     LdapSyncSpecEntity entity = new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.USERS,
-        LdapSyncSpecEntity.SyncType.SPECIFIC, names);
+        LdapSyncSpecEntity.SyncType.SPECIFIC, names, false);
     Assert.assertEquals(names, entity.getPrincipalNames());
   }
 
@@ -66,7 +66,7 @@ public class LdapSyncSpecEntityTest {
   public void testIllegalConstruction() throws Exception {
     try {
       new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.USERS,
-          LdapSyncSpecEntity.SyncType.SPECIFIC, Collections.emptyList());
+          LdapSyncSpecEntity.SyncType.SPECIFIC, Collections.emptyList(), false);
       Assert.fail("expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // expected
@@ -78,7 +78,7 @@ public class LdapSyncSpecEntityTest {
 
     try {
       new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.USERS,
-          LdapSyncSpecEntity.SyncType.ALL, names);
+          LdapSyncSpecEntity.SyncType.ALL, names, false);
       Assert.fail("expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // expected
@@ -86,7 +86,7 @@ public class LdapSyncSpecEntityTest {
 
     try {
       new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.USERS,
-          LdapSyncSpecEntity.SyncType.EXISTING, names);
+          LdapSyncSpecEntity.SyncType.EXISTING, names, false);
       Assert.fail("expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // expected
