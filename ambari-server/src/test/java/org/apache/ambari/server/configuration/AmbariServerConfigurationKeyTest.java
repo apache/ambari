@@ -14,6 +14,8 @@
 
 package org.apache.ambari.server.configuration;
 
+import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -55,6 +57,14 @@ public class AmbariServerConfigurationKeyTest {
     Assert.assertNotSame(keyWithRegex, translatedKey);
 
     Assert.assertNull(AmbariServerConfigurationKey.translate(keyWithRegex.getConfigurationCategory(), "ambari.tproxy.proxyuser.not.knox.invalid"));
+  }
+
+  @Test
+  public void testFindPasswordConfigurations() throws Exception {
+    final Set<String> passwordConfigurations = AmbariServerConfigurationKey.findPasswordConfigurations();
+    Assert.assertEquals(2, passwordConfigurations.size());
+    Assert.assertTrue(passwordConfigurations.contains(AmbariServerConfigurationKey.BIND_PASSWORD.key()));
+    Assert.assertTrue(passwordConfigurations.contains(AmbariServerConfigurationKey.TRUST_STORE_PASSWORD.key()));
   }
 
 }

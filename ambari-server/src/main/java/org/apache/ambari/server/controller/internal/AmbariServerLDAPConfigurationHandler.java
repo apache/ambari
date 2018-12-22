@@ -30,8 +30,8 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
+import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -39,6 +39,7 @@ import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.ldap.service.AmbariLdapException;
 import org.apache.ambari.server.ldap.service.LdapFacade;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
+import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.commons.lang.StringUtils;
@@ -47,6 +48,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
 /**
  * AmbariServerLDAPConfigurationHandler handles Ambari server LDAP-specific configuration properties.
@@ -56,19 +58,22 @@ public class AmbariServerLDAPConfigurationHandler extends AmbariServerStackAdvis
   private static final Logger LOGGER = LoggerFactory.getLogger(AmbariServerLDAPConfigurationHandler.class);
 
   private final LdapFacade ldapFacade;
+  private final Encryptor<AmbariServerConfiguration> encryptor;
 
   @Inject
   AmbariServerLDAPConfigurationHandler(Clusters clusters, ConfigHelper configHelper, AmbariManagementController managementController,
-      StackAdvisorHelper stackAdvisorHelper, AmbariConfigurationDAO ambariConfigurationDAO, AmbariEventPublisher publisher, Configuration ambariConfiguration,
-      LdapFacade ldapFacade) {
-    super(ambariConfigurationDAO, publisher, ambariConfiguration, clusters, configHelper, managementController, stackAdvisorHelper);
+      StackAdvisorHelper stackAdvisorHelper, AmbariConfigurationDAO ambariConfigurationDAO, AmbariEventPublisher publisher,
+      LdapFacade ldapFacade, @Named("AmbariServerConfigurationEncryptor") Encryptor<AmbariServerConfiguration> encryptor) {
+    super(ambariConfigurationDAO, publisher, clusters, configHelper, managementController, stackAdvisorHelper);
     this.ldapFacade = ldapFacade;
+    this.encryptor = encryptor;
   }
   
   @Override
   public void updateComponentCategory(String categoryName, Map<String, String> properties, boolean removePropertiesIfNotSpecified) throws AmbariException {
-    super.updateComponentCategory(categoryName, properties, removePropertiesIfNotSpecified);
-    final AmbariLdapConfiguration ldapConfiguration = new AmbariLdapConfiguration(getConfigurationProperties(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName()));
+    final AmbariLdapConfiguration ldapConfiguration = new AmbariLdapConfiguration(properties);
+    encryptor.encryptSensitiveData(ldapConfiguration);
+    super.updateComponentCategory(categoryName, ldapConfiguration.toMap(), removePropertiesIfNotSpecified);
     if (ldapConfiguration.isAmbariManagesLdapConfiguration()) {
       processClusters(LDAP_CONFIGURATIONS);
     }

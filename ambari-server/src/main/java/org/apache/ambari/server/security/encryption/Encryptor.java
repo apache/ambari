@@ -22,6 +22,9 @@ package org.apache.ambari.server.security.encryption;
  */
 public interface Encryptor<T> {
 
+  static final String ENCRYPTED_PROPERTY_PREFIX = "${enc=aes256_hex, value=";
+  static final String ENCRYPTED_PROPERTY_SCHEME = ENCRYPTED_PROPERTY_PREFIX + "%s}";
+
   /**
    * Encrypts the given encryptible object
    * 
@@ -43,7 +46,7 @@ public interface Encryptor<T> {
    */
   String getEncryptionKey();
 
-  Encryptor NONE = new Encryptor() {
+  Encryptor NONE = new Encryptor<Object>() {
     @Override
     public void encryptSensitiveData(Object data) { }
     @Override

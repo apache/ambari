@@ -39,7 +39,6 @@ import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
@@ -81,9 +80,8 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
     expect(ambariConfigurationDAO.findByCategory("invalid category")).andReturn(null).once();
 
     AmbariEventPublisher publisher = createMock(AmbariEventPublisher.class);
-    Configuration configuration = createMock(Configuration.class);
 
-    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
+    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher);
 
     replayAll();
 
@@ -121,9 +119,7 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
     publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
     expectLastCall().once();
 
-    Configuration configuration = createMock(Configuration.class);
-
-    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
+    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher);
 
     replayAll();
 
@@ -149,9 +145,7 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
     publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
     expectLastCall().times(2);
 
-    Configuration configuration = createMock(Configuration.class);
-
-    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
+    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher);
 
     replayAll();
 
@@ -183,9 +177,8 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
     expect(ambariConfigurationDAO.findAll()).andReturn(allEntities).once();
 
     AmbariEventPublisher publisher = createMock(AmbariEventPublisher.class);
-    Configuration configuration = createMock(Configuration.class);
 
-    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
+    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher);
 
     replayAll();
 
@@ -212,9 +205,8 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
     expect(ambariConfigurationDAO.findByCategory("invalid category")).andReturn(null).once();
 
     AmbariEventPublisher publisher = createMock(AmbariEventPublisher.class);
-    Configuration configuration = createMock(Configuration.class);
 
-    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
+    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher);
 
     replayAll();
 

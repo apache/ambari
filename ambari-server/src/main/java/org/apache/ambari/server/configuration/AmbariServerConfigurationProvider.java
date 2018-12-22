@@ -28,12 +28,14 @@ import org.apache.ambari.server.events.JpaInitializedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
+import org.apache.ambari.server.security.encryption.Encryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.name.Named;
 import com.google.inject.persist.jpa.AmbariJpaPersistService;
 
 /**
@@ -53,6 +55,9 @@ public abstract class AmbariServerConfigurationProvider<T extends AmbariServerCo
 
   @Inject
   private Provider<AmbariConfigurationDAO> ambariConfigurationDAOProvider;
+
+  @Inject @Named("AmbariServerConfigurationEncryptor")
+  private Encryptor<AmbariServerConfiguration> encryptor;
 
   private final AtomicBoolean jpaStarted = new AtomicBoolean(false);
 
@@ -84,6 +89,7 @@ public abstract class AmbariServerConfigurationProvider<T extends AmbariServerCo
     if (configurationCategory.getCategoryName().equalsIgnoreCase(event.getCategoryName())) {
       LOGGER.info("Ambari configuration changed event received: {}", event);
       instance = loadInstance();
+
     }
   }
 
@@ -120,7 +126,9 @@ public abstract class AmbariServerConfigurationProvider<T extends AmbariServerCo
   private T loadInstance() {
     if (jpaStarted.get()) {
       LOGGER.info("Loading {} configuration data", configurationCategory.getCategoryName());
-      return loadInstance(ambariConfigurationDAOProvider.get().findByCategory(configurationCategory.getCategoryName()));
+      T instance = loadInstance(ambariConfigurationDAOProvider.get().findByCategory(configurationCategory.getCategoryName()));
+      encryptor.decryptSensitiveData(instance);
+      return instance;
     } else {
       LOGGER.info("Cannot load {} configuration data since JPA is not initialized", configurationCategory.getCategoryName());
       if (instance == null) {

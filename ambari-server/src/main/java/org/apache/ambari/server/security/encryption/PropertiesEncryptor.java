@@ -36,8 +36,6 @@ import org.apache.commons.collections.CollectionUtils;
  * A common base class for various encryptor implementations
  */
 public class PropertiesEncryptor {
-  private static final String ENCRYPTED_PROPERTY_PREFIX = "${enc=aes256_hex, value=";
-  private static final String ENCRYPTED_PROPERTY_SCHEME = ENCRYPTED_PROPERTY_PREFIX + "%s}";
   private final Map<Long, Map<StackId, Map<String, Set<String>>>> clusterPasswordProperties = new ConcurrentHashMap<>(); //Map<clusterId, <Map<stackId, Map<configType, Set<passwordPropertyKeys>>>>;
   protected final EncryptionService encryptionService;
 
@@ -69,7 +67,7 @@ public class PropertiesEncryptor {
   }
 
   private boolean isEncryptedPassword(String password) {
-    return password != null && password.startsWith(ENCRYPTED_PROPERTY_PREFIX); // assuming previous encryption by this class
+    return password != null && password.startsWith(Encryptor.ENCRYPTED_PROPERTY_PREFIX); // assuming previous encryption by this class
   }
 
   private Set<String> getPasswordProperties(Cluster cluster, String configType) {
@@ -91,12 +89,12 @@ public class PropertiesEncryptor {
 
   private String encryptAndDecoratePropertyValue(String propertyValue) {
     final String encrypted = encryptionService.encrypt(propertyValue, TextEncoding.BIN_HEX);
-    return String.format(ENCRYPTED_PROPERTY_SCHEME, encrypted);
+    return String.format(Encryptor.ENCRYPTED_PROPERTY_SCHEME, encrypted);
   }
 
   private String encryptAndDecoratePropertyValue(String propertyValue, String encryptionKey) {
     final String encrypted = encryptionService.encrypt(propertyValue, encryptionKey, TextEncoding.BIN_HEX);
-    return String.format(ENCRYPTED_PROPERTY_SCHEME, encrypted);
+    return String.format(Encryptor.ENCRYPTED_PROPERTY_SCHEME, encrypted);
   }
 
   protected void decrypt(Map<String, String> configProperties) {
@@ -109,7 +107,7 @@ public class PropertiesEncryptor {
 
   private String decryptProperty(String property) {
     // sample value: ${enc=aes256_hex, value=5248...303d}
-    final String encrypted = property.substring(ENCRYPTED_PROPERTY_PREFIX.length(), property.indexOf('}'));
+    final String encrypted = property.substring(Encryptor.ENCRYPTED_PROPERTY_PREFIX.length(), property.indexOf('}'));
     return encryptionService.decrypt(encrypted, TextEncoding.BIN_HEX);
   }
 }

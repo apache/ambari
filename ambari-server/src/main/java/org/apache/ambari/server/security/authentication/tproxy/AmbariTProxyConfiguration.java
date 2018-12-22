@@ -20,6 +20,7 @@ package org.apache.ambari.server.security.authentication.tproxy;
 import java.util.Map;
 
 import org.apache.ambari.server.configuration.AmbariServerConfiguration;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
@@ -36,8 +37,6 @@ public class AmbariTProxyConfiguration extends AmbariServerConfiguration {
   private static final String TEMPLATE_PROXY_USER_ALLOWED_USERS = "ambari.tproxy.proxyuser.%s.users";
   private static final String TEMPLATE_PROXY_USER_ALLOWED_GROUPS = "ambari.tproxy.proxyuser.%s.groups";
 
-  private final ImmutableMap<String, String> configurationMap;
-
   /**
    * Constructor
    * <p>
@@ -47,28 +46,18 @@ public class AmbariTProxyConfiguration extends AmbariServerConfiguration {
    * @param configurationMap a map of property names to values
    */
   AmbariTProxyConfiguration(Map<String, String> configurationMap) {
-    ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+    super(configurationMap);
+  }
 
-    if (configurationMap != null) {
-      builder.putAll(configurationMap);
-    }
-
-    this.configurationMap = builder.build();
+  @Override
+  protected AmbariServerConfigurationCategory getCategory() {
+    return AmbariServerConfigurationCategory.TPROXY_CONFIGURATION;
   }
 
   /**
-   * Returns an immutable map of the contained properties
+   * Determines of trusted proxy support is enabled based on the configuration data.
    *
-   * @return an immutable map property names to values
-   */
-  public Map<String, String> toMap() {
-    return configurationMap;
-  }
-
-  /**
-   * Determines of tristed proxy support is enabled based on the configuration data.
-   *
-   * @return <code>true</code> if trusted proxy support is enabed; <code>false</code> otherwise
+   * @return <code>true</code> if trusted proxy support is enabled; <code>false</code> otherwise
    * @see AmbariServerConfigurationKey#TPROXY_AUTHENTICATION_ENABLED
    */
   public boolean isEnabled() {
@@ -95,14 +84,6 @@ public class AmbariTProxyConfiguration extends AmbariServerConfiguration {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
     return new EqualsBuilder()
         .append(configurationMap, ((AmbariTProxyConfiguration) o).configurationMap)
         .isEquals();

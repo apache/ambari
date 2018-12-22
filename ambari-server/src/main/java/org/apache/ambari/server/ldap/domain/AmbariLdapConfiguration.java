@@ -24,7 +24,6 @@ import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.configuration.LdapUsernameCollisionHandlingBehavior;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
-import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
@@ -38,23 +37,17 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
  */
 public class AmbariLdapConfiguration extends AmbariServerConfiguration {
 
-  private final Map<String, String> configurationMap = new HashMap<>();
-
-  public void setValueFor(AmbariServerConfigurationKey ambariServerConfigurationKey, String value) {
-    if (ambariServerConfigurationKey.getConfigurationCategory() != AmbariServerConfigurationCategory.LDAP_CONFIGURATION) {
-      throw new IllegalArgumentException(ambariServerConfigurationKey.name() + " is not an LDAP configuration");
-    }
-    configurationMap.put(ambariServerConfigurationKey.key(), value);
-  }
-
   public AmbariLdapConfiguration() {
     this(null);
   }
 
   public AmbariLdapConfiguration(Map<String, String> configurationMap) {
-    if (configurationMap != null) {
-      this.configurationMap.putAll(configurationMap);
-    }
+    super(configurationMap);
+  }
+
+  @Override
+  protected AmbariServerConfigurationCategory getCategory() {
+    return AmbariServerConfigurationCategory.LDAP_CONFIGURATION;
   }
 
   public boolean isAmbariManagesLdapConfiguration() {
@@ -249,7 +242,7 @@ public class AmbariLdapConfiguration extends AmbariServerConfiguration {
     ldapServerProperties.setUseSsl(parseBoolean(configValue(AmbariServerConfigurationKey.USE_SSL)));
     ldapServerProperties.setAnonymousBind(parseBoolean(configValue(AmbariServerConfigurationKey.ANONYMOUS_BIND)));
     ldapServerProperties.setManagerDn(configValue(AmbariServerConfigurationKey.BIND_DN));
-    ldapServerProperties.setManagerPassword(PasswordUtils.getInstance().readPassword(configValue(AmbariServerConfigurationKey.BIND_PASSWORD), AmbariServerConfigurationKey.BIND_PASSWORD.getDefaultValue()));
+    ldapServerProperties.setManagerPassword(configValue(AmbariServerConfigurationKey.BIND_PASSWORD));
     ldapServerProperties.setBaseDN(configValue(AmbariServerConfigurationKey.USER_SEARCH_BASE));
     ldapServerProperties.setUsernameAttribute(configValue(AmbariServerConfigurationKey.USER_NAME_ATTRIBUTE));
     ldapServerProperties.setForceUsernameToLowercase(parseBoolean(configValue(AmbariServerConfigurationKey.FORCE_LOWERCASE_USERNAMES)));

@@ -26,6 +26,7 @@ import java.util.Properties;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
@@ -42,6 +43,7 @@ import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.UserName;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
 import org.junit.Before;
@@ -58,6 +60,8 @@ import org.springframework.security.crypto.password.StandardPasswordEncoder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.TypeLiteral;
+import com.google.inject.name.Names;
 
 import junit.framework.Assert;
 
@@ -100,6 +104,7 @@ public class AmbariPamAuthenticationProviderTest extends EasyMockSupport {
         bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
         bind(Users.class).toInstance(users);
         bind(Configuration.class).toInstance(configuration);
+        bind(new TypeLiteral<Encryptor<AmbariServerConfiguration>>() {}).annotatedWith(Names.named("AmbariServerConfigurationEncryptor")).toInstance(Encryptor.NONE);
         bind(AmbariLdapConfigurationProvider.class).toInstance(createMock(AmbariLdapConfigurationProvider.class));
       }
     });
