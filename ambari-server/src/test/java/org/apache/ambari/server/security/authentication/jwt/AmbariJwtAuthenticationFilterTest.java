@@ -38,13 +38,16 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.FilterChain;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
@@ -55,6 +58,7 @@ import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilt
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.commons.lang.StringUtils;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMockSupport;
@@ -100,11 +104,12 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
   }
 
   private JwtAuthenticationProperties createTestProperties(List<String> audiences) {
-    JwtAuthenticationProperties properties = new JwtAuthenticationProperties(Collections.emptyMap());
-    properties.setCookieName("non-default");
+    final Map<String, String> configurationMap = new HashMap<>();
+    configurationMap.put(AmbariServerConfigurationKey.SSO_JWT_COOKIE_NAME.key(), "non-default");
+    configurationMap.put(AmbariServerConfigurationKey.SSO_JWT_AUDIENCES.key(), audiences == null || audiences.isEmpty() ? "" : StringUtils.join(audiences, ","));
+    configurationMap.put(AmbariServerConfigurationKey.SSO_AUTHENTICATION_ENABLED.key(), "true");
+    JwtAuthenticationProperties properties = new JwtAuthenticationProperties(configurationMap);
     properties.setPublicKey(publicKey);
-    properties.setAudiences(audiences);
-    properties.setEnabledForAmbari(true);
 
     return properties;
   }

@@ -514,13 +514,6 @@ def setup_master_key(options):
     with open(db_password, 'r') as passwdfile:
       db_password = passwdfile.read()
 
-  ldap_password = properties.get_property(LDAP_MGR_PASSWORD_PROPERTY)
-  if ldap_password:
-    # Read clear text LDAP password from file
-    if not is_alias_string(ldap_password) and os.path.isfile(ldap_password):
-      with open(ldap_password, 'r') as passwdfile:
-        ldap_password = passwdfile.read()
-
   ts_password = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
   resetKey = False
   masterKey = None
@@ -550,8 +543,6 @@ def setup_master_key(options):
               " password and call 'encrypt-passwords' again."
         if db_sql_auth and db_password and is_alias_string(db_password):
           print err.format('- Database password', "'" + SETUP_ACTION + "'")
-        if ldap_password and is_alias_string(ldap_password):
-          print err.format('- LDAP manager password', "'" + LDAP_SETUP_ACTION + "'")
         if ts_password and is_alias_string(ts_password):
           print err.format('TrustStore password', "'" + LDAP_SETUP_ACTION + "'")
 
@@ -563,8 +554,6 @@ def setup_master_key(options):
   # Read back any encrypted passwords
   if db_sql_auth  and db_password and is_alias_string(db_password):
     db_password = read_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS, masterKey)
-  if ldap_password and is_alias_string(ldap_password):
-    ldap_password = read_passwd_for_alias(LDAP_MGR_PASSWORD_ALIAS, masterKey)
   if ts_password and is_alias_string(ts_password):
     ts_password = read_passwd_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS, masterKey)
   # Read master key, if non-secure or reset is true
@@ -608,15 +597,6 @@ def setup_master_key(options):
       remove_password_file(JDBC_PASSWORD_FILENAME)
       if properties.get_property(JDBC_RCA_PASSWORD_FILE_PROPERTY):
         propertyMap[JDBC_RCA_PASSWORD_FILE_PROPERTY] = get_alias_string(JDBC_RCA_PASSWORD_ALIAS)
-  pass
-
-  if ldap_password and not is_alias_string(ldap_password):
-    retCode = save_passwd_for_alias(LDAP_MGR_PASSWORD_ALIAS, ldap_password, masterKey)
-    if retCode != 0:
-      print 'Failed to save secure LDAP password.'
-    else:
-      propertyMap[LDAP_MGR_PASSWORD_PROPERTY] = get_alias_string(LDAP_MGR_PASSWORD_ALIAS)
-      remove_password_file(LDAP_MGR_PASSWORD_FILENAME)
   pass
 
   if ts_password and not is_alias_string(ts_password):
@@ -948,21 +928,10 @@ def setup_ldap(options):
 
   if save_settings:
     if isSecure:
-      if mgr_password:
-        encrypted_passwd = encrypt_password(LDAP_MGR_PASSWORD_ALIAS, mgr_password, options)
-        if mgr_password != encrypted_passwd:
-          ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = encrypted_passwd
-      pass
       if ts_password:
         encrypted_passwd = encrypt_password(SSL_TRUSTSTORE_PASSWORD_ALIAS, ts_password, options)
         if ts_password != encrypted_passwd:
           ldap_property_values_in_ambari_properties[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = encrypted_passwd
-      pass
-    pass
-
-    # Persisting values
-    if mgr_password:
-      ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = store_password_file(mgr_password, LDAP_MGR_PASSWORD_FILENAME)
 
     print 'Saving LDAP properties...'
 

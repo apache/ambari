@@ -32,7 +32,6 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
@@ -58,9 +57,9 @@ class AmbariServerStackAdvisorAwareConfigurationHandler extends AmbariServerConf
   private final AmbariManagementController managementController;
   private final StackAdvisorHelper stackAdvisorHelper;
 
-  AmbariServerStackAdvisorAwareConfigurationHandler(AmbariConfigurationDAO ambariConfigurationDAO, AmbariEventPublisher publisher, Configuration ambariConfiguration,
+  AmbariServerStackAdvisorAwareConfigurationHandler(AmbariConfigurationDAO ambariConfigurationDAO, AmbariEventPublisher publisher,
       Clusters clusters, ConfigHelper configHelper, AmbariManagementController managementController, StackAdvisorHelper stackAdvisorHelper) {
-    super(ambariConfigurationDAO, publisher, ambariConfiguration);
+    super(ambariConfigurationDAO, publisher);
     this.clusters = clusters;
     this.configHelper = configHelper;
     this.managementController = managementController;

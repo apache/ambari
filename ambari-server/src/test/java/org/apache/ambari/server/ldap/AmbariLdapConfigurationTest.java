@@ -20,19 +20,13 @@ package org.apache.ambari.server.ldap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
-import java.io.File;
-import java.nio.charset.Charset;
 
 import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
-import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 public class AmbariLdapConfigurationTest {
 
@@ -85,20 +79,8 @@ public class AmbariLdapConfigurationTest {
   }
 
   @Test
-  public void testGetLdapServerProperties_WrongManagerPassword() throws Exception {
-    configuration.setValueFor(AmbariServerConfigurationKey.BIND_PASSWORD, "somePassword");
-    // if it's not a store alias and is not a file, the default manager PW should be returned (which is null)
-    assertNull(configuration.getLdapServerProperties().getManagerPassword());
-  }
-
-  @Test
   public void testGetLdapServerProperties() throws Exception {
     final String managerPw = "ambariTest";
-    final TemporaryFolder tempFolder = new TemporaryFolder();
-    tempFolder.create();
-    final File passwordFile = tempFolder.newFile();
-    passwordFile.deleteOnExit();
-    FileUtils.writeStringToFile(passwordFile, managerPw, Charset.defaultCharset());
 
     configuration.setValueFor(AmbariServerConfigurationKey.SERVER_HOST, "host");
     configuration.setValueFor(AmbariServerConfigurationKey.SERVER_PORT, "1");
@@ -107,7 +89,7 @@ public class AmbariLdapConfigurationTest {
     configuration.setValueFor(AmbariServerConfigurationKey.USE_SSL, "true");
     configuration.setValueFor(AmbariServerConfigurationKey.ANONYMOUS_BIND, "true");
     configuration.setValueFor(AmbariServerConfigurationKey.BIND_DN, "5");
-    configuration.setValueFor(AmbariServerConfigurationKey.BIND_PASSWORD, passwordFile.getAbsolutePath());
+    configuration.setValueFor(AmbariServerConfigurationKey.BIND_PASSWORD, managerPw);
     configuration.setValueFor(AmbariServerConfigurationKey.USER_SEARCH_BASE, "7");
     configuration.setValueFor(AmbariServerConfigurationKey.USER_NAME_ATTRIBUTE, "8");
     configuration.setValueFor(AmbariServerConfigurationKey.USER_BASE, "9");
@@ -137,7 +119,6 @@ public class AmbariLdapConfigurationTest {
     assertEquals("14", ldapProperties.getGroupNamingAttr());
     assertEquals("15", ldapProperties.getAdminGroupMappingRules());
     assertEquals("16", ldapProperties.getGroupSearchFilter());
-    tempFolder.delete();
   }
 
 }
