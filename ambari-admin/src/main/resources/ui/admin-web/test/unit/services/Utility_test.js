@@ -24,7 +24,7 @@ describe('Utility Service', function () {
     };
 
   beforeEach(function () {
-    module('ambariAdminConsole', function ($provide) {
+    module('ambariAdminConsole', function ($provide, $routeProvider) {
       $provide.value('$window', {
         localStorage: {
           getItem: function() {return '{}';},
@@ -32,6 +32,7 @@ describe('Utility Service', function () {
         },
         location: {}
       });
+      $routeProvider.otherwise(function(){return false;});
     });
     inject(function (_Utility_, _$httpBackend_, $rootScope, $controller, _Cluster_, _$q_) {
       Utility = _Utility_;
