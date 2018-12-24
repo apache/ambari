@@ -22,9 +22,9 @@ describe('#comboSearch', function () {
   beforeEach(module('ambariAdminConsole'));
   beforeEach(module('views/directives/comboSearch.html'));
 
-  beforeEach(inject(function($rootScope, $compile) {
+  beforeEach(inject(function($rootScope, $compile, _$httpBackend_) {
     scope = $rootScope.$new();
-
+    _$httpBackend_.expectGET('views/clusters/clusterInformation.html').respond(200);
     var preCompiledElement = '<combo-search suggestions="filters" filter-change="filterItems" placeholder="Search"></combo-search>';
 
     scope.filters = [

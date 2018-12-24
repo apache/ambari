@@ -21,8 +21,9 @@ describe('ClusterInformationCtrl', function() {
 
   var ctrl, $scope, Cluster, deferred, ConfirmationModal;
 
-  beforeEach(inject(function($controller, $rootScope, _Cluster_, _$q_, _ConfirmationModal_){
+  beforeEach(inject(function($controller, $rootScope, _Cluster_, _$q_, _ConfirmationModal_, _$httpBackend_){
     // The injector unwraps the underscores (_) from around the parameter names when matching
+    _$httpBackend_.expectGET('views/clusters/clusterInformation.html').respond(200);
     Cluster = _Cluster_;
     ConfirmationModal = _ConfirmationModal_;
     deferred = _$q_.defer();
