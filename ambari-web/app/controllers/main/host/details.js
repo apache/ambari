@@ -1731,7 +1731,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var urlParams = [];
     var services = App.Service.find();
     if (App.get('isHaEnabled')) {
-      urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
+      var zooKeeperRelatedServices = this.get('zooKeeperRelatedServices');
+      zooKeeperRelatedServices.push({
+        serviceName: 'HDFS',
+        typesToLoad: ['core-site'],
+        typesToSave: ['core-site']
+      });
     }
     this.get('zooKeeperRelatedServices').forEach(function (service) {
       if (services.someProperty('serviceName', service.serviceName)) {
@@ -1775,16 +1780,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         groups.push(group);
       }
     });
-    if (App.get('isHaEnabled') && installedServiceNames.contains('HDFS')) {
-      var group = {
-          properties: {},
-          properties_attributes: {}
-        };
-      var type= 'core-site';
-      group.properties[type] = configs[type];
-      group.properties_attributes[type] = attributes[type];
-      groups.push(group);
-    }
     this.setConfigsChanges(groups);
   },
 
