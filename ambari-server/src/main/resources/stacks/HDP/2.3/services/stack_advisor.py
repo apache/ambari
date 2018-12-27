@@ -26,6 +26,11 @@ import socket
 
 # Local Imports
 
+try:
+  from stack_advisor_hdp22 import *
+except ImportError:
+  #Ignore ImportError
+  print("stack_advisor_hdp22 not found")
 
 DB_TYPE_DEFAULT_PORT_MAP = {"MYSQL":"3306", "ORACLE":"1521", "POSTGRES":"5432", "MSSQL":"1433", "SQLA":"2638"}
 

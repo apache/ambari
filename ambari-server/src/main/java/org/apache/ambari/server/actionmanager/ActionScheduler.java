@@ -895,6 +895,9 @@ class ActionScheduler implements Runnable {
         }
 
         updateRoleStats(status, roleStats.get(roleStr));
+        if (status == HostRoleStatus.FAILED) {
+          LOG.info("Role {} on host {} was failed", roleStr, host);
+        }
 
       }
     }

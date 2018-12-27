@@ -83,7 +83,8 @@ public class LogLevelFilterManagerZK implements LogLevelFilterManager {
     for (Map.Entry<String, LogLevelFilter> e : filters.getFilter().entrySet()) {
       String nodePath = String.format("/%s/loglevelfilter/%s", clusterName, e.getKey());
       String logLevelFilterJson = gson.toJson(e.getValue());
-      String currentLogLevelFilterJson = new String(serverCache.getCurrentData(nodePath).getData());
+      ChildData childData = serverCache.getCurrentData(nodePath);
+      String currentLogLevelFilterJson = childData != null ? new String(childData.getData()) : null;
       if (!logLevelFilterJson.equals(currentLogLevelFilterJson)) {
         client.setData().forPath(nodePath, logLevelFilterJson.getBytes());
         LOG.info("Set log level filter for the log " + e.getKey() + " for cluster " + clusterName);

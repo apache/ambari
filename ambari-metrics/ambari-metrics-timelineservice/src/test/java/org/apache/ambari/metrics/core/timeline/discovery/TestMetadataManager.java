@@ -184,6 +184,7 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
   public void testWildcardSanitization() throws IOException, SQLException, URISyntaxException {
     // Initialize new manager
     metadataManager = new TimelineMetricMetadataManager(new Configuration(), hdb);
+    hdb.setMetadataInstance(metadataManager);
     final long now = System.currentTimeMillis();
 
     TimelineMetrics timelineMetrics = new TimelineMetrics();

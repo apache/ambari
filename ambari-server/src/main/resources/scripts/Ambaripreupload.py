@@ -7,35 +7,40 @@ regarding copyright ownership.  The ASF licenses this file
 to you under the Apache License, Version 2.0 (the
 "License"); you may not use this file except in compliance
 with the License.  You may obtain a copy of the License at
- 
+
     http://www.apache.org/licenses/LICENSE-2.0
- 
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- 
+
 """
+import functools
+import glob
 import os
+import re
 import sys
 import tarfile
+import tempfile
+import time
+
 from contextlib import closing
 from optparse import OptionParser
+from xml.dom import minidom
+
 os.environ["PATH"] += os.pathsep + "/var/lib/ambari-agent"
 sys.path.append("/usr/lib/ambari-server/lib")
 
-import glob
-import re
-import tempfile
-import time
-import functools
-from xml.dom import minidom
+from ambari_server.serverClassPath import JDBC_DRIVER_PATH_PROPERTY
+from ambari_server.serverConfiguration import get_value_from_properties, get_ambari_properties
 
 from resource_management.core import File
 from resource_management.core import shell
 from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import Execute
 from resource_management.core.source import StaticFile
 from resource_management.libraries import ConfigDictionary
@@ -43,18 +48,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.oozie_prepare_war import prepare_war
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
-
-SQL_DRIVER_PATH = "/var/lib/ambari-server/resources/sqljdbc41.jar"
- 
-"""
-This file provides helper methods needed for the versioning of RPMs. Specifically, it does dynamic variable
-interpretation to replace strings like {{ stack_version_formatted }}  where the value of the
-variables cannot be determined ahead of time, but rather, depends on what files are found.
- 
-It assumes that {{ stack_version_formatted }} is constructed as ${major.minor.patch.rev}-${build_number}
-E.g., 998.2.2.1.0-998
-Please note that "-${build_number}" is optional.
-"""
+DEFAULT_SQL_DRIVER_PATH = "/var/lib/ambari-server/resources/sqljdbc41.jar"
 
 with Environment() as env:
   def get_stack_version():
@@ -71,34 +65,49 @@ with Environment() as env:
         Logger.warning("Could not verify HDP version by calling '%s'. Return Code: %s, Output: %s." %
                        (get_stack_version_cmd, str(code), str(out)))
         return 1
-     
+
       matches = re.findall(r"([\d\.]+\-\d+)", out)
       stack_version = matches[0] if matches and len(matches) > 0 else None
-     
+
       if not stack_version:
         Logger.error("Could not parse HDP version from output of hdp-select: %s" % str(out))
         return 1
     else:
       stack_version = options.hdp_version
-      
+
     return stack_version
-  
+
   parser = OptionParser()
+  parser.add_option("-d", "--database-driver", dest="sql_driver_path",
+                    default=get_value_from_properties(get_ambari_properties(), JDBC_DRIVER_PATH_PROPERTY, DEFAULT_SQL_DRIVER_PATH),
+                    help="Path to JDBC driver")
+  parser.add_option("-f", "--fs-type", dest="fs_type", default="wasb",
+                    help="Expected protocol of fs.defaultFS")
   parser.add_option("-v", "--hdp-version", dest="hdp_version", default="",
                     help="hdp-version used in path of tarballs")
   parser.add_option("-u", "--upgrade", dest="upgrade", action="store_true",
-                    help="flag to indicate script is being run for upgrade", default=False)  
+                    help="flag to indicate script is being run for upgrade", default=False)
   (options, args) = parser.parse_args()
 
-  
+  if not os.path.exists(options.sql_driver_path):
+    Logger.error("SQL driver file {} does not exist".format(options.sql_driver_path))
+    if os.path.exists(DEFAULT_SQL_DRIVER_PATH):
+      Logger.warning("Fallback to SQL driver {}".format(DEFAULT_SQL_DRIVER_PATH))
+      options.sql_driver_path = DEFAULT_SQL_DRIVER_PATH
+    else:
+      sys.exit(1)
+
+  Logger.info("Using SQL driver from {}".format(options.sql_driver_path))
+  sql_driver_filename = os.path.basename(options.sql_driver_path)
+
   # See if hdfs path prefix is provided on the command line. If yes, use that value, if no
   # use empty string as default.
   hdfs_path_prefix = ""
   if len(args) > 0:
     hdfs_path_prefix = args[0]
-  
+
   stack_version = get_stack_version()
-  
+
   def getPropertyValueFromConfigXMLFile(xmlfile, name, defaultValue=None):
     xmldoc = minidom.parse(xmlfile)
     propNodes = [node.parentNode for node in xmldoc.getElementsByTagName("name") if node.childNodes[0].nodeValue == name]
@@ -110,27 +119,27 @@ with Environment() as env:
           else:
             return defaultValue
     return defaultValue
-  
+
   def get_fs_root(fsdefaultName=None):
     fsdefaultName = "fake"
-     
+    expected_fs_protocol = options.fs_type + '://'
+
     while True:
       fsdefaultName =  getPropertyValueFromConfigXMLFile("/etc/hadoop/conf/core-site.xml", "fs.defaultFS")
-  
-      if fsdefaultName and fsdefaultName.startswith("wasb://"):
+
+      if fsdefaultName and fsdefaultName.startswith(expected_fs_protocol):
         break
-        
-      print "Waiting to read appropriate value of fs.defaultFS from /etc/hadoop/conf/core-site.xml ..."
+
+      Logger.info("Waiting to read appropriate value of fs.defaultFS from /etc/hadoop/conf/core-site.xml ...")
       time.sleep(10)
-      pass
-  
-    print "Returning fs.defaultFS -> " + fsdefaultName
+
+    Logger.info("Returning fs.defaultFS -> " + fsdefaultName)
     return fsdefaultName
-   
+
   # These values must be the suffix of the properties in cluster-env.xml
   TAR_SOURCE_SUFFIX = "_tar_source"
   TAR_DESTINATION_FOLDER_SUFFIX = "_tar_destination_folder"
-  
+
   class params:
     hdfs_path_prefix = hdfs_path_prefix
     hdfs_user = "hdfs"
@@ -144,7 +153,7 @@ with Environment() as env:
     ambari_libs_dir = "/var/lib/ambari-agent/lib"
     hdfs_site = ConfigDictionary({'dfs.webhdfs.enabled':False,})
     fs_default = get_fs_root()
-    dfs_type = "WASB"
+    dfs_type = options.fs_type.upper()
     yarn_home_dir = '/usr/hdp/' + stack_version + '/hadoop-yarn'
     yarn_lib_dir = yarn_home_dir + '/lib'
     yarn_service_tarball = yarn_lib_dir + '/service-dep.tar.gz'
@@ -163,7 +172,7 @@ with Environment() as env:
     oozie_env_sh_template = \
   '''
   #!/bin/bash
-  
+
   export OOZIE_CONFIG=${{OOZIE_CONFIG:-/usr/hdp/{0}/oozie/conf}}
   export OOZIE_DATA=${{OOZIE_DATA:-/var/lib/oozie/data}}
   export OOZIE_LOG=${{OOZIE_LOG:-/var/log/oozie}}
@@ -172,7 +181,7 @@ with Environment() as env:
   export CATALINA_PID=${{CATALINA_PID:-/var/run/oozie/oozie.pid}}
   export OOZIE_CATALINA_HOME=/usr/lib/bigtop-tomcat
   '''.format(stack_version)
-    
+
     HdfsResource = functools.partial(
       HdfsResource,
       user=hdfs_user,
@@ -187,7 +196,7 @@ with Environment() as env:
       hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
       dfs_type = dfs_type
     )
-   
+
   def _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed):
     """
     :param source_and_dest_pairs: List of tuples (x, y), where x is the source file in the local file system,
@@ -196,10 +205,10 @@ with Environment() as env:
     :param group_owner: Owning group to set for the file copied to HDFS (typically hadoop group)
     :param kinit_if_needed: kinit command if it is needed, otherwise an empty string
     :return: Returns 0 if at least one file was copied and no exceptions occurred, and 1 otherwise.
-   
+
     Must kinit before calling this function.
     """
-   
+
     for (source, destination) in source_and_dest_pairs:
       params.HdfsResource(destination,
                     action="create_on_execute",
@@ -249,7 +258,7 @@ with Environment() as env:
     return _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
 
   def createHdfsResources():
-    print "Creating hdfs directories..."
+    Logger.info("Creating hdfs directories...")
     params.HdfsResource(format('{hdfs_path_prefix}/atshistory'), user='hdfs', change_permissions_for_parents=True, owner='yarn', group='hadoop', type='directory', action= ['create_on_execute'], mode=0755)
     params.HdfsResource(format('{hdfs_path_prefix}/user/hcat'), owner='hcat', type='directory', action=['create_on_execute'], mode=0755)
     params.HdfsResource(format('{hdfs_path_prefix}/hive/warehouse'), owner='hive', type='directory', action=['create_on_execute'], mode=0777)
@@ -305,8 +314,8 @@ with Environment() as env:
       fp.write(file_content)
 
   def putSQLDriverToOozieShared():
-    params.HdfsResource(hdfs_path_prefix + '/user/oozie/share/lib/sqoop/{0}'.format(os.path.basename(SQL_DRIVER_PATH)),
-                        owner='hdfs', type='file', action=['create_on_execute'], mode=0644, source=SQL_DRIVER_PATH)
+    params.HdfsResource(hdfs_path_prefix + '/user/oozie/share/lib/sqoop/{0}'.format(sql_driver_filename),
+                        owner='hdfs', type='file', action=['create_on_execute'], mode=0644, source=options.sql_driver_path)
 
   def create_yarn_service_tarball():
     """
@@ -320,17 +329,55 @@ with Environment() as env:
     with closing(tarfile.open(params.yarn_service_tarball, "w:gz")) as tar:
       for folder in folders:
         for filepath in glob.glob(format("{folder}/*.jar")):
-          tar.add(os.path.realpath(filepath), arcname=os.path.basename(filepath))
+          if os.path.exists(filepath):
+            Logger.debug(format("Adding {filepath}"))
+            tar.add(os.path.realpath(filepath), arcname=os.path.basename(filepath))
+          else:
+            Logger.warning(format("Skipping broken link {filepath}"))
+    Execute(("chmod", "0644", params.yarn_service_tarball))
 
   env.set_params(params)
   hadoop_conf_dir = params.hadoop_conf_dir
 
+  Directory('/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir',
+            owner=params.hdfs_user,
+            group=params.user_group,
+            mode=01777
+  )
+  Directory('/var/log/hadoop',
+            create_parents = True,
+            owner='root',
+            group=params.user_group,
+            mode=0775,
+            cd_access='a',
+  )
+  Directory('/var/run/hadoop',
+            create_parents = True,
+            owner='root',
+            group='root',
+            cd_access='a',
+  )
+  Directory('/var/run/hadoop/hdfs',
+            owner=params.hdfs_user,
+            cd_access='a',
+  )
+  Directory('/tmp/hadoop-hdfs',
+            create_parents = True,
+            owner=params.hdfs_user,
+            cd_access='a',
+  )
+  Directory('/tmp/hbase-hbase',
+            owner='hbase',
+            mode=0775,
+            create_parents = True,
+            cd_access="a",
+  )
+
   oozie_libext_dir = params.oozie_libext_dir
-  sql_driver_filename = os.path.basename(SQL_DRIVER_PATH)
   oozie_home=params.oozie_home
   configure_cmds = []
   configure_cmds.append(('tar','-xvf', oozie_home + '/oozie-sharelib.tar.gz','-C', oozie_home))
-  configure_cmds.append(('cp', "/usr/share/HDP-oozie/ext-2.2.zip", SQL_DRIVER_PATH, oozie_libext_dir))
+  configure_cmds.append(('cp', "/usr/share/HDP-oozie/ext-2.2.zip", options.sql_driver_path, oozie_libext_dir))
   configure_cmds.append(('chown', 'oozie:hadoop', oozie_libext_dir + "/ext-2.2.zip", oozie_libext_dir + "/" + sql_driver_filename))
 
   no_op_test = "ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1"
@@ -394,7 +441,7 @@ with Environment() as env:
         try:
           Execute(format("rm -f {oozie_shared_lib}/lib/spark/spark-examples*.jar"))
         except:
-          print "No spark-examples jar files found in Spark client lib."
+          Logger.warning("No spark-examples jar files found in Spark client lib.")
 
         # Copy /usr/hdp/{stack_version}/spark-client/python/lib/*.zip & *.jar to /usr/hdp/{stack_version}/oozie/share/lib/spark
         Execute(format("cp -f {spark_client_dir}/python/lib/*.zip {oozie_shared_lib}/lib/spark"))
@@ -402,7 +449,7 @@ with Environment() as env:
         try:
           Execute(format("cp -f {spark_client_dir}/python/lib/*.jar {oozie_shared_lib}/lib/spark"))
         except:
-          print "No jar files found in Spark client python lib."
+          Logger.warning("No jar files found in Spark client python lib.")
 
         Execute(("chmod", "-R", "0755", format('{oozie_shared_lib}/lib/spark')),
                 sudo=True)
@@ -415,7 +462,7 @@ with Environment() as env:
         #          format("{oozie_shared_lib}/lib_{millis}")),
         #         sudo=True)
       except Exception, e:
-        print 'Exception occurred while preparing oozie share lib: '+ repr(e)
+        Logger.warning('Exception occurred while preparing oozie share lib: '+ repr(e))
 
     params.HdfsResource(format("{oozie_hdfs_user_dir}/share"),
       action="create_on_execute",
@@ -426,7 +473,7 @@ with Environment() as env:
       source = oozie_shared_lib
     )
 
-  print "Copying tarballs..."
+  Logger.info("Copying tarballs...")
   # TODO, these shouldn't hardcode the stack root or destination stack name.
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/hadoop/mapreduce.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/mapreduce/", params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/tez/lib/tez.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/tez/", params.mapred_user, params.hdfs_user, params.user_group)
@@ -438,7 +485,7 @@ with Environment() as env:
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/pig/pig.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/pig/", params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/hadoop-mapreduce/hadoop-streaming.jar"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/mapreduce/", params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/sqoop/sqoop.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/sqoop/", params.mapred_user, params.hdfs_user, params.user_group)
-  copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/hadoop-yarn/lib/service-dep.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/yarn/", params.hdfs_user, params.hdfs_user, params.user_group)
+  copy_tarballs_to_hdfs(params.yarn_service_tarball, hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/yarn/", params.hdfs_user, params.hdfs_user, params.user_group)
 
   createHdfsResources()
   copy_zeppelin_dependencies_to_hdfs(format("/usr/hdp/{stack_version}/zeppelin/interpreter/spark/dep/zeppelin-spark-dependencies*.jar"))
@@ -460,13 +507,13 @@ with Environment() as env:
   except:
     os.remove("/var/lib/ambari-agent/data/.hdfs_resource_ignore")
     raise
-  print "Completed tarball copy."
+  Logger.info("Completed tarball copy.")
 
   if not options.upgrade:
-    print "Executing stack-selector-tool for stack {0} ...".format(stack_version)
+    Logger.info("Executing stack-selector-tool for stack {0} ...".format(stack_version))
     Execute(
       ('/usr/bin/hdp-select', 'set', 'all', stack_version),
       sudo = True
     )
 
-  print "Ambari preupload script completed."
+  Logger.info("Ambari preupload script completed.")

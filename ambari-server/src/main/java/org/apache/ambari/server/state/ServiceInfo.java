@@ -59,7 +59,7 @@ import com.google.common.collect.Multimaps;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonFilter("propertiesfilter")
-public class ServiceInfo implements Validable {
+public class ServiceInfo implements Validable, Cloneable {
 
   public static final AbstractMap.SimpleEntry<String, String> DEFAULT_SERVICE_INSTALLABLE_PROPERTY = new AbstractMap.SimpleEntry<>("installable", "true");
   public static final AbstractMap.SimpleEntry<String, String> DEFAULT_SERVICE_MANAGED_PROPERTY = new AbstractMap.SimpleEntry<>("managed", "true");
@@ -195,6 +195,7 @@ public class ServiceInfo implements Validable {
   @XmlTransient
   private File widgetsDescriptorFile = null;
 
+  @XmlTransient
   private StackRoleCommandOrder roleCommandOrder;
 
   @XmlTransient
@@ -282,6 +283,7 @@ public class ServiceInfo implements Validable {
    * at getter.
    * Added at schema ver 2
    */
+  @XmlTransient
   private volatile Map<String, ServiceOsSpecific> serviceOsSpecificsMap;
 
   /**
@@ -467,6 +469,56 @@ public class ServiceInfo implements Validable {
 
   public void setProperties(List<PropertyInfo> properties) {
     this.properties = properties;
+  }
+
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+    ServiceInfo clone = (ServiceInfo) super.clone();
+    clone.setSchemaVersion(schemaVersion);
+    clone.setName(name);
+    clone.setDisplayName(displayName);
+    clone.setVersion(version);
+    clone.setComment(comment);
+    clone.setServiceType(serviceType);
+    clone.setSelection(selection);
+    clone.components = components;
+    clone.setDeleted(isDeleted);
+    clone.setConfigDependencies(configDependencies);
+    clone.setExcludedConfigTypes(excludedConfigTypes);
+    clone.setMonitoringService(monitoringService);
+    clone.setRestartRequiredAfterChange(restartRequiredAfterChange);
+    clone.setRestartRequiredAfterRackChange(restartRequiredAfterRackChange);
+    clone.setParent(parent);
+    if(metricsFile != null) {
+      clone.metricsFileName = metricsFile.getName();
+    }
+    if(widgetsDescriptorFile != null) {
+      clone.widgetsFileName = widgetsDescriptorFile.getName();
+    }
+    clone.setCredentialStoreInfo(credentialStoreInfo);
+    clone.setServicePropertyList(servicePropertyList);
+    clone.configDir = configDir;
+
+    clone.themesDir = themesDir;
+    clone.setThemesMap(themesMap);
+    if(this.themesMap != null) {
+      clone.themes = new ArrayList(this.themesMap.values());
+    }
+
+    clone.quickLinksConfigurationsDir = quickLinksConfigurationsDir;
+    clone.setQuickLinksConfigurationsMap(quickLinksConfigurationsMap);
+    if(this.quickLinksConfigurationsMap != null) {
+      clone.quickLinksConfigurations = new ArrayList(this.quickLinksConfigurationsMap.values());
+    }
+
+    clone.serviceOsSpecificsMap =  serviceOsSpecificsMap;
+    if(this.serviceOsSpecificsMap != null) {
+      clone.serviceOsSpecifics = new ArrayList<>(serviceOsSpecificsMap.values());
+    }
+
+    clone.setCommandScript(commandScript);
+    clone.setRequiredServices(requiredServices);
+    return clone;
   }
 
   public List<ComponentInfo> getComponents() {

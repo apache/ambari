@@ -22,6 +22,11 @@ import socket
 
 # Local Imports
 
+try:
+  from stack_advisor_hdp206 import *
+except ImportError:
+  #Ignore ImportError
+  print("stack_advisor_hdp206 not found")
 
 class HDP21StackAdvisor(HDP206StackAdvisor):
 

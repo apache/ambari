@@ -24,6 +24,7 @@ __all__ = ["Script"]
 import re
 import os
 import sys
+import ssl
 import logging
 import platform
 import inspect
@@ -129,7 +130,7 @@ class Script(object):
 
   # Class variable
   tmp_dir = ""
-  force_https_protocol = "PROTOCOL_TLSv1_2"
+  force_https_protocol = "PROTOCOL_TLSv1_2" if hasattr(ssl, "PROTOCOL_TLSv1_2") else "PROTOCOL_TLSv1"
   ca_cert_file_path = None
 
   def load_structured_out(self):
@@ -357,8 +358,11 @@ class Script(object):
       ex.pre_raise()
       raise
     finally:
-      if self.should_expose_component_version(self.command_name):
-        self.save_component_version_to_structured_out(self.command_name)
+      try:
+        if self.should_expose_component_version(self.command_name):
+          self.save_component_version_to_structured_out(self.command_name)
+      except:
+        Logger.exception("Reporting component version failed")
 
   def get_version(self, env):
     pass
@@ -622,7 +626,6 @@ class Script(object):
 
     :return: protocol value
     """
-    import ssl
     return getattr(ssl, Script.get_force_https_protocol_name())
 
   @staticmethod

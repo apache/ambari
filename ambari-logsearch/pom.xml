@@ -19,7 +19,7 @@
   <groupId>org.apache.ambari</groupId>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-logsearch</artifactId>
-  <version>2.7.1.0.0</version>
+  <version>2.7.3.0.0</version>
   <packaging>pom</packaging>
 
   <url>http://maven.apache.org</url>
@@ -45,7 +45,7 @@
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>${deb.python.ver}</deb.dependency.list>
-    <solr.version>7.4.0</solr.version>
+    <solr.version>7.5.0</solr.version>
     <hadoop.version>3.0.0</hadoop.version>
     <common.io.version>2.5</common.io.version>
     <zookeeper.version>3.4.6.2.3.0.0-2557</zookeeper.version>
@@ -327,17 +327,17 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>2.9.4</version>
+        <version>2.9.5</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-annotations</artifactId>
-        <version>2.9.4</version>
+        <version>2.9.5</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.dataformat</groupId>
         <artifactId>jackson-dataformat-xml</artifactId>
-        <version>2.9.4</version>
+        <version>2.9.5</version>
         <exclusions>
           <exclusion>
             <groupId>com.fasterxml.woodstox</groupId>

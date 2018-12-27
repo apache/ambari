@@ -85,9 +85,13 @@ def metadata(type='server'):
                 group=params.user_group,
                 create_parents = True
       )
-      File(format("{expanded_war_dir}/atlas.war"),
-           content = StaticFile(format('{metadata_home}/server/webapp/atlas.war'))
-      )
+
+      war_source = format('{metadata_home}/server/webapp/atlas.war')
+      war_target = format("{expanded_war_dir}/atlas.war")
+      Execute(('cp', war_source, war_target),
+              sudo = True,
+              not_if = war_source == war_target)
+
       File(format("{conf_dir}/atlas-log4j.xml"),
            mode=0644,
            owner=params.metadata_user,
@@ -114,7 +118,7 @@ def metadata(type='server'):
           Execute(('chown', format('{metadata_user}:{user_group}'), file),
                   sudo=True
                   )
-          Execute(('chmod', '644', file),
+          Execute(('chmod', '640', file),
                   sudo=True
                   )
 

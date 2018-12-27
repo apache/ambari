@@ -563,7 +563,7 @@ public class StackManager {
   private Map<String, ServiceModule> parseCommonServicesDirectory(File commonServicesRoot) throws AmbariException {
     Map<String, ServiceModule> commonServiceModules = new HashMap<>();
 
-    if(commonServicesRoot != null) {
+    if(commonServicesRoot != null && commonServicesRoot.exists()) {
       File[] commonServiceFiles = commonServicesRoot.listFiles(StackDirectory.FILENAME_FILTER);
       for (File commonService : commonServiceFiles) {
         if (commonService.isFile()) {

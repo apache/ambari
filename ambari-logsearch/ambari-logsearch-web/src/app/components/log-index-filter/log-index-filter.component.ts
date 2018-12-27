@@ -192,7 +192,7 @@ export class LogIndexFilterComponent implements OnInit, OnDestroy, OnChanges, Co
 
   writeValue(filters: HomogeneousObject<LogIndexFilterComponentConfig[]>): void {
     this.configs = filters;
-    this.updateValue();
+    this.setCurrentConfig();
   }
 
   registerOnChange(callback: any): void {

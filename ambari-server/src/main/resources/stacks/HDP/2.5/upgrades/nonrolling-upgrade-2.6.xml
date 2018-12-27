@@ -300,6 +300,10 @@
         <task xsi:type="configure" id="hdfs_user_agent" />
       </execute-stage>
 
+      <execute-stage service="HDFS" component="HDFS_CLIENT" title="Set properties for GCS">
+        <task xsi:type="configure" id="gcs_properties" />
+      </execute-stage>
+
       <!--YARN-->
       <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">

@@ -93,19 +93,25 @@ class HivePreUpgrade(Script):
     source_version = upgrade_summary.get_source_version(service_name = "HIVE")
     target_version = upgrade_summary.get_target_version(service_name = "HIVE")
     
-    source_dir = format("/usr/hdp/{source_version}");
-    target_dir = format("/usr/hdp/{target_version}")
+    source_dir = format("{stack_root}/{source_version}")
+    target_dir = format("{stack_root}/{target_version}")
     
     if params.security_enabled:
       hive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
       Execute(hive_kinit_cmd, user = params.hive_user)
     
-    classpath = format("{source_dir}/hive2/lib/*:{source_dir}/hadoop/*:{source_dir}/hadoop/lib/*:{source_dir}/hadoop-mapreduce/*:{source_dir}/hadoop-mapreduce/lib/*:{source_dir}/hadoop-hdfs/*:{source_dir}/hadoop-hdfs/lib/*:{source_dir}/hadoop/etc/hadoop/:{target_dir}/hive/lib/hive-pre-upgrade.jar:{source_dir}/hive/conf/conf.server")
+    # in the M10 release PreUpgradeTool was fixed to use Hive1 instead of Hive2 
+    if target_version >= "3.1":
+      hive_lib_dir = format("{source_dir}/hive/lib")
+    else:
+      hive_lib_dir = format("{source_dir}/hive2/lib")
+    
+    classpath = format("{hive_lib_dir}/*:{source_dir}/hadoop/*:{source_dir}/hadoop/lib/*:{source_dir}/hadoop-mapreduce/*:{source_dir}/hadoop-mapreduce/lib/*:{source_dir}/hadoop-hdfs/*:{source_dir}/hadoop-hdfs/lib/*:{source_dir}/hadoop/etc/hadoop/:{target_dir}/hive/lib/hive-pre-upgrade.jar:{source_dir}/hive/conf/conf.server")
     # hack to avoid derby cp issue we want derby-10.10.2.0.jar to appear first in cp, if its available, note other derby jars are derbyclient-10.11.1.1.jar  derbynet-10.11.1.1.jar
-    derby_jars = glob.glob(source_dir+"/hive2/lib/*derby-*.jar")
+    derby_jars = glob.glob(source_dir + "/hive2/lib/*derby-*.jar")
     if len(derby_jars) == 1:
       classpath = derby_jars[0] + ":" + classpath
-    cmd = format("{java64_home}/bin/java -Djavax.security.auth.useSubjectCredsOnly=false -cp {classpath} org.apache.hadoop.hive.upgrade.acid.PreUpgradeTool -execute")
+    cmd = format("{java64_home}/bin/java -Djavax.security.auth.useSubjectCredsOnly=false -cp {classpath} org.apache.hadoop.hive.upgrade.acid.PreUpgradeTool -execute &> {hive_log_dir}/pre_upgrade_{target_version}.log")
     Execute(cmd, user = params.hive_user)
 
 if __name__ == "__main__":

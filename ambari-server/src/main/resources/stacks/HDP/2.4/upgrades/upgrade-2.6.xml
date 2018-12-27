@@ -704,6 +704,7 @@
       <component name="HDFS_CLIENT">
         <pre-upgrade>
           <task xsi:type="configure" id="hdfs_user_agent" />
+          <task xsi:type="configure" id="gcs_properties" />
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>

@@ -342,7 +342,7 @@ describe('App.ConfigsLoader', function() {
         data: {
           serviceName: 'S1',
           serviceConfigVersions: ['v1'],
-          additionalParams: '|service_name.in(S2)&is_current=true'
+          additionalParams: '|(service_name.in(S2)&is_current=true)'
         },
         success: 'loadSelectedVersionsSuccess'
       });
