@@ -20,7 +20,6 @@ package org.apache.ambari.server.configuration.spring;
 import javax.servlet.ServletContext;
 
 import org.apache.ambari.server.agent.stomp.HeartbeatController;
-import org.apache.ambari.server.api.stomp.TestController;
 import org.apache.ambari.server.events.DefaultMessageEmitter;
 import org.apache.ambari.server.events.listeners.requests.STOMPUpdateListener;
 import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
@@ -41,7 +40,7 @@ import com.google.inject.Injector;
 
 @Configuration
 @EnableWebSocketMessageBroker
-@ComponentScan(basePackageClasses = {TestController.class, HeartbeatController.class})
+@ComponentScan(basePackageClasses = {HeartbeatController.class})
 @Import({RootStompConfig.class,GuiceBeansConfig.class})
 public class AgentStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   private org.apache.ambari.server.configuration.Configuration configuration;
