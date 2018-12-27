@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.configuration.spring;
 
+import org.apache.ambari.server.api.stomp.NamedTasksSubscriptions;
 import org.apache.ambari.server.api.stomp.TestController;
 import org.apache.ambari.server.events.DefaultMessageEmitter;
 import org.apache.ambari.server.events.listeners.requests.STOMPUpdateListener;
@@ -48,6 +49,11 @@ public class ApiStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   @Bean
   public STOMPUpdateListener requestSTOMPListener(Injector injector) {
     return new STOMPUpdateListener(injector, DefaultMessageEmitter.DEFAULT_API_EVENT_TYPES);
+  }
+
+  @Bean
+  public NamedTasksSubscriptions namedTasksSubscribtions(Injector injector) {
+    return injector.getInstance(NamedTasksSubscriptions.class);
   }
 
   @Override
