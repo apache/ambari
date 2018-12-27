@@ -70,7 +70,7 @@ public class ApiStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
     taskScheduler.setThreadNamePrefix(HEARTBEAT_THREAD_NAME);
     taskScheduler.initialize();
 
-    registry.enableSimpleBroker("/").setTaskScheduler(taskScheduler)
+    registry.setPreservePublishOrder(true).enableSimpleBroker("/").setTaskScheduler(taskScheduler)
         .setHeartbeatValue(new long[]{configuration.getAPIHeartbeatInterval(), configuration.getAPIHeartbeatInterval()});
   }
 }
