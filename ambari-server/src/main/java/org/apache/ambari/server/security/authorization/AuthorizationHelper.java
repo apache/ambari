@@ -29,14 +29,15 @@ import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
+import org.apache.ambari.server.security.authentication.AmbariProxiedUserDetailsImpl;
 import org.apache.ambari.server.security.authentication.AmbariUserDetails;
-import org.apache.ambari.server.security.authentication.tproxy.TrustedProxyAuthenticationDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.kerberos.authentication.KerberosServiceRequestToken;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -69,10 +70,10 @@ public class AuthorizationHelper {
     if (authentication==null){
       return null;
     }
-    Object requestDetails = authentication.getDetails();
-    if (requestDetails instanceof TrustedProxyAuthenticationDetails) {
-      TrustedProxyAuthenticationDetails trustedProxyAuthenticationDetails = (TrustedProxyAuthenticationDetails) requestDetails;
-      return  trustedProxyAuthenticationDetails.getDoAs();
+    Object userDetails = authentication.getPrincipal();
+    if (userDetails instanceof AmbariProxiedUserDetailsImpl) {
+      AmbariProxiedUserDetailsImpl ambariProxiedUserDetails = (AmbariProxiedUserDetailsImpl) userDetails;
+      return ambariProxiedUserDetails.getProxyUserDetails().getUsername();
     }
     return null;
   }

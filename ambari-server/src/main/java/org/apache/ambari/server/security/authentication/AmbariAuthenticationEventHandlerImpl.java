@@ -97,18 +97,15 @@ public class AmbariAuthenticationEventHandlerImpl implements AmbariAuthenticatio
     String username;
     String message;
     String logMessage;
-    String proxyUser;
     Integer consecutiveFailures = null;
     boolean incrementFailureCount;
 
     if (cause == null) {
       username = null;
       message = "Unknown cause";
-      proxyUser = null;
       incrementFailureCount = false;
     } else {
       username = cause.getUsername();
-      proxyUser = cause.getProxyUserName();
       message = cause.getLocalizedMessage();
       incrementFailureCount = cause.isCredentialFailure();
     }
@@ -148,7 +145,7 @@ public class AmbariAuthenticationEventHandlerImpl implements AmbariAuthenticatio
           .withReasonOfFailure(message)
           .withConsecutiveFailures(consecutiveFailures)
           .withUserName(username)
-          .withProxyUserName(proxyUser)
+          .withProxyUserName(null)
           .build();
       auditLogger.log(loginFailedAuditEvent);
     }

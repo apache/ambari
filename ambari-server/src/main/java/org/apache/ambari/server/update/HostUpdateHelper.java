@@ -89,6 +89,7 @@ public class HostUpdateHelper {
   private static final Logger LOG = LoggerFactory.getLogger
           (HostUpdateHelper.class);
 
+  private static final String AUTHENTICATED_USER_NAME = "ambari-host-update";
   public static final String TMP_PREFIX = "tmpvalue";
 
 

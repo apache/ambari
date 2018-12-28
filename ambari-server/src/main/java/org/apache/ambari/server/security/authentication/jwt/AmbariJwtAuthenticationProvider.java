@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.security.authentication.jwt;
 
-import static org.apache.ambari.server.security.authentication.AmbariAuthenticationException.AmbariAuthenticationExceptionBuilder.anAmbariAuthenticationException;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
@@ -31,7 +29,6 @@ import org.apache.ambari.server.security.authentication.AmbariUserDetails;
 import org.apache.ambari.server.security.authentication.AmbariUserDetailsImpl;
 import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
 import org.apache.ambari.server.security.authentication.UserNotFoundException;
-import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.slf4j.Logger;
@@ -70,16 +67,10 @@ public class AmbariJwtAuthenticationProvider extends AmbariAuthenticationProvide
     }
 
     String userName = authentication.getName().trim();
-    String proxyUserName = AuthorizationHelper.getProxyUserName(authentication);
 
     if (authentication.getCredentials() == null) {
       LOG.info("Authentication failed: no credentials provided: {}", userName);
-      throw anAmbariAuthenticationException()
-          .withUsername(userName)
-          .withProxyUserName(proxyUserName)
-          .withMessage("Unexpected error due to missing JWT token")
-          .withCredentialFailure(false)
-          .build();
+      throw new AmbariAuthenticationException(userName, "Unexpected error due to missing JWT token", false);
     }
 
     Users users = getUsers();
@@ -107,13 +98,7 @@ public class AmbariJwtAuthenticationProvider extends AmbariAuthenticationProvide
           authOK = true;
         } catch (AmbariException e) {
           LOG.error(String.format("Failed to add the JWT authentication method for %s: %s", userName, e.getLocalizedMessage()), e);
-          throw anAmbariAuthenticationException()
-              .withUsername(userName)
-              .withProxyUserName(proxyUserName)
-              .withMessage("Unexpected error has occurred")
-              .withCredentialFailure(false)
-              .withTrowable(e)
-              .build();
+          throw new AmbariAuthenticationException(userName, "Unexpected error has occurred", false, e);
         }
       }
     }
@@ -130,12 +115,7 @@ public class AmbariJwtAuthenticationProvider extends AmbariAuthenticationProvide
           throw e;
         } else {
           // Do not give away information about the existence or status of a user
-          throw anAmbariAuthenticationException()
-              .withUsername(userName)
-              .withProxyUserName(proxyUserName)
-              .withMessage("Unexpected error due to missing JWT token")
-              .withCredentialFailure(false)
-              .build();
+          throw new AmbariAuthenticationException(userName, "Unexpected error due to missing JWT token", false);
         }
       }
 

@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.security.authentication.kerberos;
 
-import static org.apache.ambari.server.security.authentication.AmbariAuthenticationException.AmbariAuthenticationExceptionBuilder.anAmbariAuthenticationException;
-
 import java.io.IOException;
 
 import javax.servlet.FilterChain;
@@ -109,11 +107,7 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
           if (e instanceof AmbariAuthenticationException) {
             cause = (AmbariAuthenticationException) e;
           } else {
-            cause = anAmbariAuthenticationException()
-                .withMessage(e.getLocalizedMessage())
-                .withCredentialFailure(false)
-                .withTrowable(e)
-                .build();
+            cause = new AmbariAuthenticationException(null, e.getLocalizedMessage(), false, e);
           }
           eventHandler.onUnsuccessfulAuthentication(AmbariKerberosAuthenticationFilter.this, httpServletRequest, httpServletResponse, cause);
         }
