@@ -37,6 +37,7 @@ The following are the properties which can be used to configure Ambari.
 | Property Name | Description | Default |
 | --- | --- | --- |
 | active.instance | Indicates whether the current ambari server instance is active or not. |`true` | 
+| addservice.hostgroup.strategy | Fully qualified class name of the strategy used to form host groups for add service request layout recommendation. |`org.apache.ambari.server.topology.addservice.GroupByComponentsStrategy` | 
 | agent.api.acceptor.count | Count of acceptors to configure for the jetty connector used for Ambari agent. | | 
 | agent.api.gzip.compression.enabled | Determiens whether communication with the Ambari Agents should have the JSON payloads compressed with GZIP. |`true` | 
 | agent.auto.cache.update | Determines whether the agents will automatically attempt to download updates to stack resources from the Ambari Server. |`true` | 
@@ -139,6 +140,7 @@ The following are the properties which can be used to configure Ambari.
 | metrics.retrieval-service.cache.timeout | The amount of time, in minutes, that JMX and REST metrics retrieved directly can remain in the cache. |`30` | 
 | metrics.retrieval-service.request.ttl | The number of seconds to wait between issuing JMX or REST metric requests to the same endpoint. This property is used to throttle requests to the same URL being made too close together<br/><br/> This property is related to `metrics.retrieval-service.request.ttl.enabled`. |`5` | 
 | metrics.retrieval-service.request.ttl.enabled | Enables throttling requests to the same endpoint within a fixed amount of time. This property will prevent Ambari from making new metric requests to update the cache for URLs which have been recently retrieved.<br/><br/> This property is related to `metrics.retrieval-service.request.ttl`. |`true` | 
+| mpacks-v2.staging.path | The Ambari Management Pack version-2 staging directory on the Ambari Server.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/mpacks-v2`</ul> | | 
 | mpacks.staging.path | The Ambari Management Pack staging directory on the Ambari Server.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/mpacks`</ul> | | 
 | notification.dispatch.alert.script.directory | The directory for scripts which are used by the alert notification dispatcher. |`/var/lib/ambari-server/resources/scripts` | 
 | packages.pre.installed | Determines whether Ambari Agent instances have already have the necessary stack software installed |`false` | 
@@ -173,6 +175,7 @@ The following are the properties which can be used to configure Ambari.
 | security.server.csr_name | The name of the certificate request file used when generating certificates. |`ca.csr` | 
 | security.server.disabled.ciphers | A list of cipher suites which are not strong enough to use and will be excluded when creating SSL connections.<br/><br/>The following are examples of valid values:<ul><li>`SSL_RSA_WITH_RC4_128_MD5\|SSL_RSA_WITH_RC4_12‌​8_MD5`</ul> | | 
 | security.server.disabled.protocols | The list of protocols which should not be used when creating SSL connections.<br/><br/>The following are examples of valid values:<ul><li>`TLSv1.1\|TLSv1.2`</ul> | | 
+| security.server.encrypt_sensitive_data | Whether to encrypt sensitive data (at rest) on service level configuration. |`false` | 
 | security.server.key_name | The name of the private key used to sign requests. |`ca.key` | 
 | security.server.keys_dir | The directory on the Ambari Server where keystores are kept. |`.` | 
 | security.server.keystore_name | The name of the keystore file, located in `security.server.keys_dir` |`keystore.p12` | 
@@ -259,6 +262,7 @@ The following are the properties which can be used to configure Ambari.
 | server.timeline.metrics.https.enabled | Determines whether to use to SSL to connect to Ambari Metrics when retrieving metric data. |`false` | 
 | server.tmp.dir | The location on the Ambari Server where temporary artifacts can be created. |`/var/lib/ambari-server/tmp` | 
 | server.version.file | The full path to the file which contains the Ambari Server version. This is used to ensure that there is not a version mismatch between Ambari Agents and Ambari Server.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/version`</ul> | | 
+| server.version_definition.allow_from_filesystem | Controls whether VDF can be read from the filesystem. |`false` | 
 | server.version_definition.connect.timeout.millis | The time, in milliseconds, that requests to connect to a URL to retrieve Version Definition Files (VDF) will wait before being terminated. |`5000` | 
 | server.version_definition.read.timeout.millis | The time, in milliseconds, that requests to read from a connected URL to retrieve Version Definition Files (VDF) will wait before being terminated. |`5000` | 
 | shared.resources.dir | The location on the Ambari Server where resources are stored. This is exposed via HTTP in order for Ambari Agents to access them. |`/usr/lib/ambari-server/lib/ambari_commons/resources` | 

@@ -146,7 +146,7 @@ public class MissingOsInRepoVersionCheckTest extends EasyMockSupport {
 
     ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        repositoryVersion, null);
+        repositoryVersion, null, null);
 
     return request;
   }

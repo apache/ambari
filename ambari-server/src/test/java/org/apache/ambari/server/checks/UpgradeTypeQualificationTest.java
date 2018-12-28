@@ -44,8 +44,8 @@ public class UpgradeTypeQualificationTest {
    */
   @Test
   public void testRequired() throws Exception {
-    UpgradeCheckRequest rolling = new UpgradeCheckRequest(null, UpgradeType.ROLLING, null, null);
-    UpgradeCheckRequest express = new UpgradeCheckRequest(null, UpgradeType.NON_ROLLING, null, null);
+    UpgradeCheckRequest rolling = new UpgradeCheckRequest(null, UpgradeType.ROLLING, null, null, null);
+    UpgradeCheckRequest express = new UpgradeCheckRequest(null, UpgradeType.NON_ROLLING, null, null, null);
 
     UpgradeTypeQualification rollingQualification = new UpgradeTypeQualification(RollingTestCheckImpl.class);
 

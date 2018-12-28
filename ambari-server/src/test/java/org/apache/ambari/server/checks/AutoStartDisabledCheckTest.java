@@ -98,7 +98,7 @@ public class AutoStartDisabledCheckTest {
   @Test
   public void testIsApplicable() throws Exception {
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        repositoryVersion, m_configMap);
+        repositoryVersion, m_configMap, null);
 
     CheckHelper checkHelper = new CheckHelper();
     List<UpgradeCheck> applicableChecks = checkHelper.getApplicableChecks(request,
@@ -110,7 +110,7 @@ public class AutoStartDisabledCheckTest {
   @Test
   public void testNoAutoStart() throws Exception {
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        repositoryVersion, null);
+        repositoryVersion, null, null);
 
     UpgradeCheckResult check = m_check.perform(request);
 
@@ -121,7 +121,7 @@ public class AutoStartDisabledCheckTest {
   @Test
   public void testAutoStartFalse() throws Exception {
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        repositoryVersion, null);
+        repositoryVersion, null, null);
 
     m_configMap.put(AutoStartDisabledCheck.RECOVERY_ENABLED_KEY, "false");
 
@@ -134,7 +134,7 @@ public class AutoStartDisabledCheckTest {
   @Test
   public void testAutoStartTrue() throws Exception {
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        repositoryVersion, null);
+        repositoryVersion, null, null);
 
     m_configMap.put(AutoStartDisabledCheck.RECOVERY_ENABLED_KEY, "true");
     m_configMap.put(AutoStartDisabledCheck.RECOVERY_TYPE_KEY, AutoStartDisabledCheck.RECOVERY_AUTO_START);

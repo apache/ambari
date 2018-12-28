@@ -539,6 +539,8 @@ def init_ldap_sync_parser_options(parser):
                     dest="ldap_sync_users")
   parser.add_option('--groups', default=None, help="LDAP sync groups option.  Specifies the path to a CSV file of group names to be synchronized.",
                     dest="ldap_sync_groups")
+  parser.add_option('--post-process-existing-users', action="store_true", default=False, help="While performing an LDAP sync, reprocess existing users by executing the post creation hook on them, if the feature is enabled",
+                    dest="ldap_sync_post_process_existing_users")
   parser.add_option('--ldap-sync-admin-name', default=None, help="Username for LDAP sync", dest="ldap_sync_admin_name")
   parser.add_option('--ldap-sync-admin-password', default=None, help="Password for LDAP sync", dest="ldap_sync_admin_password")
 

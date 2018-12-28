@@ -22,8 +22,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.events.RequestUpdateEvent;
+import org.apache.ambari.server.events.STOMPEvent;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
@@ -32,9 +34,8 @@ import org.apache.ambari.server.topology.TopologyManager;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
 
-@Singleton
+@EagerSingleton
 public class RequestUpdateEventPublisher extends BufferedUpdateEventPublisher<RequestUpdateEvent> {
 
   @Inject
@@ -48,6 +49,16 @@ public class RequestUpdateEventPublisher extends BufferedUpdateEventPublisher<Re
 
   @Inject
   private ClusterDAO clusterDAO;
+
+  @Inject
+  public RequestUpdateEventPublisher(STOMPUpdatePublisher stompUpdatePublisher) {
+    super(stompUpdatePublisher);
+  }
+
+  @Override
+  public STOMPEvent.Type getType() {
+    return STOMPEvent.Type.REQUEST;
+  }
 
   @Override
   public void mergeBufferAndPost(List<RequestUpdateEvent> events, EventBus m_eventBus) {

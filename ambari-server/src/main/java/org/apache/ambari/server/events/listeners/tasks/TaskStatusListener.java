@@ -34,7 +34,9 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.api.stomp.NamedTasksSubscriptions;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
+import org.apache.ambari.server.events.NamedTaskUpdateEvent;
 import org.apache.ambari.server.events.RequestUpdateEvent;
 import org.apache.ambari.server.events.TaskCreateEvent;
 import org.apache.ambari.server.events.TaskUpdateEvent;
@@ -95,12 +97,15 @@ public class TaskStatusListener {
 
   private STOMPUpdatePublisher STOMPUpdatePublisher;
 
+  private NamedTasksSubscriptions namedTasksSubscriptions;
+
   @Inject
   public TaskStatusListener(TaskEventPublisher taskEventPublisher, StageDAO stageDAO, RequestDAO requestDAO,
-                            STOMPUpdatePublisher STOMPUpdatePublisher) {
+                            STOMPUpdatePublisher STOMPUpdatePublisher, NamedTasksSubscriptions namedTasksSubscriptions) {
     this.stageDAO = stageDAO;
     this.requestDAO = requestDAO;
     this.STOMPUpdatePublisher = STOMPUpdatePublisher;
+    this.namedTasksSubscriptions = namedTasksSubscriptions;
     taskEventPublisher.register(this);
   }
 
@@ -129,6 +134,7 @@ public class TaskStatusListener {
     Set<StageEntityPK> stagesWithReceivedTaskStatus = new HashSet<>();
     Set<Long> requestIdsWithReceivedTaskStatus =  new HashSet<>();
     Set<RequestUpdateEvent> requestsToPublish = new HashSet<>();
+    Set<NamedTaskUpdateEvent> namedTasksToPublish = new HashSet<>();
 
     for (HostRoleCommand hostRoleCommand : hostRoleCommandListAll) {
       Long reportedTaskId = hostRoleCommand.getTaskId();
@@ -142,6 +148,17 @@ public class TaskStatusListener {
         stageEntityPK.setStageId(hostRoleCommand.getStageId());
         stagesWithReceivedTaskStatus.add(stageEntityPK);
         requestIdsWithReceivedTaskStatus.add(hostRoleCommand.getRequestId());
+
+        NamedTaskUpdateEvent namedTaskUpdateEvent = new NamedTaskUpdateEvent(hostRoleCommand);
+        if (namedTasksSubscriptions.checkTaskId(reportedTaskId)
+            && !namedTaskUpdateEvent.equals(new NamedTaskUpdateEvent(activeTasksMap.get(reportedTaskId)))) {
+          namedTasksToPublish.add(namedTaskUpdateEvent);
+        }
+
+        // unsubscribe on complete (no any update will be sent anyway)
+        if (hostRoleCommand.getStatus().equals(HostRoleStatus.COMPLETED)) {
+          namedTasksSubscriptions.removeTaskId(reportedTaskId);
+        }
 
         if (!activeTasksMap.get(reportedTaskId).getStatus().equals(hostRoleCommand.getStatus())) {
           // Ignore requests not related to any cluster. "requests" topic is used for cluster requests only.
@@ -177,6 +194,10 @@ public class TaskStatusListener {
     }
     for (RequestUpdateEvent requestToPublish : requestsToPublish) {
       STOMPUpdatePublisher.publish(requestToPublish);
+    }
+    for (NamedTaskUpdateEvent namedTaskUpdateEvent : namedTasksToPublish) {
+      LOG.info(String.format("NamedTaskUpdateEvent with id %s will be send", namedTaskUpdateEvent.getId()));
+      STOMPUpdatePublisher.publish(namedTaskUpdateEvent);
     }
   }
 

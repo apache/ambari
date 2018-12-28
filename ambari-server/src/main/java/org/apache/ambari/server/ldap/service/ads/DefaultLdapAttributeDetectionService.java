@@ -14,13 +14,14 @@
 
 package org.apache.ambari.server.ldap.service.ads;
 
+import static org.apache.ambari.server.configuration.AmbariServerConfigurationCategory.LDAP_CONFIGURATION;
+
 import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.ldap.service.AmbariLdapException;
@@ -155,7 +156,7 @@ public class DefaultLdapAttributeDetectionService implements LdapAttributeDetect
 
     for (Map.Entry<String, String> detecteMapEntry : detectedAttributes.entrySet()) {
       LOG.info("Setting detected configuration value: [{}] - > [{}]", detecteMapEntry.getKey(), detecteMapEntry.getValue());
-      AmbariServerConfigurationKey key = AmbariServerConfigurationKey.translate(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, detecteMapEntry.getKey());
+      AmbariServerConfigurationKey key = AmbariServerConfigurationKey.translate(LDAP_CONFIGURATION, detecteMapEntry.getKey());
       if(key != null) {
         ambariLdapConfiguration.setValueFor(key, detecteMapEntry.getValue());
       }

@@ -35,6 +35,7 @@ import org.apache.ambari.server.events.JpaInitializedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
+import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
@@ -43,6 +44,8 @@ import org.junit.Test;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.TypeLiteral;
+import com.google.inject.name.Names;
 import com.google.inject.persist.jpa.AmbariJpaPersistService;
 
 public class AmbariServerConfigurationProviderTest extends EasyMockSupport {
@@ -164,6 +167,7 @@ public class AmbariServerConfigurationProviderTest extends EasyMockSupport {
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(AmbariJpaPersistService.class).toInstance(persistService);
         bind(AmbariConfigurationDAO.class).toInstance(createNiceMock(AmbariConfigurationDAO.class));
+        bind(new TypeLiteral<Encryptor<AmbariServerConfiguration>>() {}).annotatedWith(Names.named("AmbariServerConfigurationEncryptor")).toInstance(Encryptor.NONE);
       }
     });
   }

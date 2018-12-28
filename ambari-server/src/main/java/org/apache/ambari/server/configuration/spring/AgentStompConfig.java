@@ -20,7 +20,6 @@ package org.apache.ambari.server.configuration.spring;
 import javax.servlet.ServletContext;
 
 import org.apache.ambari.server.agent.stomp.HeartbeatController;
-import org.apache.ambari.server.api.stomp.TestController;
 import org.apache.ambari.server.events.DefaultMessageEmitter;
 import org.apache.ambari.server.events.listeners.requests.STOMPUpdateListener;
 import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
@@ -30,6 +29,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.messaging.simp.config.ChannelRegistration;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -41,7 +41,7 @@ import com.google.inject.Injector;
 
 @Configuration
 @EnableWebSocketMessageBroker
-@ComponentScan(basePackageClasses = {TestController.class, HeartbeatController.class})
+@ComponentScan(basePackageClasses = {HeartbeatController.class})
 @Import({RootStompConfig.class,GuiceBeansConfig.class})
 public class AgentStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   private org.apache.ambari.server.configuration.Configuration configuration;
@@ -91,5 +91,10 @@ public class AgentStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
     registration.setMessageSizeLimit(configuration.getStompMaxIncomingMessageSize());
     registration.setSendBufferSizeLimit(configuration.getStompMaxBufferMessageSize());
+  }
+
+  @Override
+  public void configureMessageBroker(MessageBrokerRegistry registry) {
+    registry.setPreservePublishOrder(true);
   }
 }

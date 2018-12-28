@@ -122,7 +122,7 @@ public class RequiredServicesInRepositoryCheckTest {
   public void testNoMissingServices() throws Exception {
     ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, null);
+        m_repositoryVersion, null, null);
 
     UpgradeCheckResult check = m_requiredServicesCheck.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
@@ -140,7 +140,7 @@ public class RequiredServicesInRepositoryCheckTest {
 
     ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
     UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, null);
+        m_repositoryVersion, null, null);
 
     UpgradeCheckResult check = m_requiredServicesCheck.perform(request);
     Assert.assertEquals(UpgradeCheckStatus.FAIL, check.getStatus());

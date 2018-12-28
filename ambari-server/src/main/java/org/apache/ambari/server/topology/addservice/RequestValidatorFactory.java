@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.topology.addservice;
 
-import org.apache.ambari.server.controller.AddServiceRequest;
 import org.apache.ambari.server.state.Cluster;
 
 /**

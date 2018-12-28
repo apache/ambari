@@ -16,16 +16,15 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller;
+package org.apache.ambari.server.topology.addservice;
 
-import static org.apache.ambari.server.controller.AddServiceRequest.Component;
-import static org.apache.ambari.server.controller.AddServiceRequest.OperationType.ADD_SERVICE;
-import static org.apache.ambari.server.controller.AddServiceRequest.Service;
-import static org.apache.ambari.server.controller.AddServiceRequest.ValidationType.PERMISSIVE;
-import static org.apache.ambari.server.controller.AddServiceRequest.ValidationType.STRICT;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
+import static org.apache.ambari.server.controller.internal.ProvisionAction.START_ONLY;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.ALWAYS_APPLY;
+import static org.apache.ambari.server.topology.addservice.AddServiceRequest.OperationType.ADD_SERVICE;
+import static org.apache.ambari.server.topology.addservice.AddServiceRequest.ValidationType.PERMISSIVE;
+import static org.apache.ambari.server.topology.addservice.AddServiceRequest.ValidationType.STRICT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -101,11 +100,14 @@ public class AddServiceRequestTest {
       configuration.getProperties());
 
     assertEquals(
-      ImmutableSet.of(Component.of("NIMBUS", "c7401.ambari.apache.org", "c7402.ambari.apache.org"), Component.of("BEACON_SERVER", "c7402.ambari.apache.org", "c7403.ambari.apache.org")),
+      ImmutableSet.of(
+        Component.of("NIMBUS", START_ONLY, "c7401.ambari.apache.org", "c7402.ambari.apache.org"),
+        Component.of("BEACON_SERVER", "c7402.ambari.apache.org", "c7403.ambari.apache.org")
+      ),
       request.getComponents());
 
     assertEquals(
-      ImmutableSet.of(Service.of("STORM"), Service.of("BEACON")),
+      ImmutableSet.of(Service.of("STORM", INSTALL_AND_START), Service.of("BEACON")),
       request.getServices());
 
     assertEquals(

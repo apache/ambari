@@ -107,12 +107,13 @@ App.StackServiceComponent = DS.Model.extend({
       return !installedComponents.some(function(each) {
         return each.compatibleWith(App.StackServiceComponent.find(dependency.componentName));
       });
-    }).mapProperty('componentName');
-    return missingComponents.map(function (missingComponentName) {
+    });
+    return missingComponents.map(function (missingComponent) {
       return ComponentDependency.create({
-        'componentName': missingComponentName,
+        'componentName': missingComponent.componentName,
+        'type': missingComponent.type,
         'compatibleComponents': App.StackServiceComponent.find().filter(function (each) {
-          return each.compatibleWith(App.StackServiceComponent.find(missingComponentName));
+          return each.compatibleWith(App.StackServiceComponent.find(missingComponent.componentName));
         })
       });
     });

@@ -29,7 +29,7 @@ describe('#Editablelist directive', function () {
       $location = _$location_;
       $modal = _$modal_;
       $httpBackend = _$httpBackend_;
-
+      $httpBackend.expectGET('views/clusters/clusterInformation.html').respond(200);
       $httpBackend.whenGET(/\/api\/v1\/users\?Users\/user_name\.matches\(\.\*\.\*\)&from=0&page_size=20&_=\d+/).respond(200, {
         items: [
           {

@@ -42,10 +42,10 @@ angular.module('ambariAdminConsole')
         'fields': fields.join(',')
       }
     })
-    .success(function(data) {
-      deferred.resolve(new ViewInstance(data));
+    .then(function(data) {
+      deferred.resolve(new ViewInstance(data.data));
     })
-    .error(function(data) {
+    .catch(function(data) {
       deferred.reject(data);
     });
 
@@ -70,10 +70,10 @@ angular.module('ambariAdminConsole')
       url: Settings.baseUrl + '/view/urls/'+payload.ViewUrlInfo.url_name,
       data:payload
     })
-        .success(function(data) {
-          deferred.resolve(new URLStatus(data));
+        .then(function(data) {
+          deferred.resolve(new URLStatus(data.data));
         })
-        .error(function(data) {
+        .catch(function(data) {
           deferred.reject(data);
         });
 
@@ -88,10 +88,10 @@ angular.module('ambariAdminConsole')
       dataType: "json",
       url: Settings.baseUrl + '/view/urls/'+ urlName,
     })
-        .success(function(data) {
-          deferred.resolve(new URLStatus(data));
+        .then(function(data) {
+          deferred.resolve(new URLStatus(data.data));
         })
-        .error(function(data) {
+        .catch(function(data) {
           deferred.reject(data);
         });
 
@@ -108,10 +108,10 @@ angular.module('ambariAdminConsole')
       url: Settings.baseUrl + '/view/urls/'+payload.ViewUrlInfo.url_name,
       data:payload
     })
-        .success(function(data) {
-          deferred.resolve(new URLStatus(data));
+        .then(function(data) {
+          deferred.resolve(new URLStatus(data.data));
         })
-        .error(function(data) {
+        .catch(function(data) {
           deferred.reject(data);
         });
 
@@ -129,10 +129,10 @@ angular.module('ambariAdminConsole')
       url: Settings.baseUrl + '/view/urls/'+urlName,
 
     })
-        .success(function(data) {
-          deferred.resolve(new ViewUrl(data));
+        .then(function(data) {
+          deferred.resolve(new ViewUrl(data.data));
         })
-        .error(function(data) {
+        .catch(function(data) {
           deferred.reject(data);
         });
 
@@ -222,8 +222,8 @@ angular.module('ambariAdminConsole')
       params: {
         'fields': fields.join(',')
       }
-    }).success(function(data) {
-      deferred.resolve(data.permissions);
+    }).then(function(data) {
+      deferred.resolve(data.data.permissions);
     })
     .catch(function(data) {
       deferred.reject(data);
@@ -242,8 +242,8 @@ angular.module('ambariAdminConsole')
         fields: 'privileges/PrivilegeInfo'
       }
     })
-    .success(function(data) {
-      deferred.resolve(data.privileges);
+    .then(function(data) {
+      deferred.resolve(data.data.privileges);
     })
     .catch(function(data) {
       deferred.reject(data);
@@ -260,9 +260,9 @@ angular.module('ambariAdminConsole')
     $http({
       method: 'GET',
       url: Settings.baseUrl + '/views/'+viewName + '?versions/ViewVersionInfo/status=DEPLOYED'
-    }).success(function(data) {
+    }).then(function(data) {
       var versions = [];
-      angular.forEach(data.versions, function(version) {
+      angular.forEach(data.data.versions, function(version) {
         versions.push(version.ViewVersionInfo.version);
       });
 
@@ -311,10 +311,10 @@ angular.module('ambariAdminConsole')
         'ViewInstanceInfo' : data
       }
     })
-    .success(function(data) {
-      deferred.resolve(data);
+    .then(function(data) {
+      deferred.resolve(data.data);
     })
-    .error(function(data) {
+    .catch(function(data) {
       deferred.reject(data);
     });
 
@@ -420,14 +420,14 @@ angular.module('ambariAdminConsole')
         'fields': fields.join(','),
         'versions/ViewVersionInfo/system' : false
       }
-    }).success(function(data) {
+    }).then(function(data) {
       var views = [];
-      angular.forEach(data.items, function(item) {
+      angular.forEach(data.data.items, function(item) {
         views.push(new View(item));
       });
       deferred.resolve(views);
     })
-    .error(function(data) {
+    .catch(function(data) {
       deferred.reject(data);
     });
 

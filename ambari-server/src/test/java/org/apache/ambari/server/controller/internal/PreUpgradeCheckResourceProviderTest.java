@@ -23,6 +23,8 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,6 +45,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
 import org.apache.ambari.server.checks.UpgradeCheckRegistryProvider;
+import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
@@ -106,6 +109,15 @@ import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.reflections.Configuration;
+import org.reflections.Reflections;
+import org.reflections.util.ConfigurationBuilder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.common.collect.Lists;
@@ -120,6 +132,8 @@ import com.google.inject.name.Names;
 /**
  * PreUpgradeCheckResourceProvider tests.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ UpgradeCheckRegistry.class })
 public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
 
   private static final String TEST_SERVICE_CHECK_CLASS_NAME = "org.apache.ambari.server.sample.checks.SampleServiceCheck";
@@ -214,12 +228,24 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
     String checks = ClassLoader.getSystemClassLoader().getResource("checks").getPath();
     expect(serviceInfo.getChecksFolder()).andReturn(new File(checks));
 
-    ClassLoader classLoader = createNiceMock(ClassLoader.class);
+    URL url = new URL("file://foo");
+    URLClassLoader classLoader = createNiceMock(URLClassLoader.class);
+    expect(classLoader.getURLs()).andReturn(new URL[] { url }).once();
+
     StackInfo stackInfo = createNiceMock(StackInfo.class);
     expect(ambariMetaInfo.getStack(targetStackId)).andReturn(stackInfo).atLeastOnce();
     expect(stackInfo.getLibraryClassLoader()).andReturn(classLoader).atLeastOnce();
     expect(stackInfo.getLibraryInstance(EasyMock.anyObject(), EasyMock.eq(TEST_SERVICE_CHECK_CLASS_NAME)))
       .andReturn(new SampleServiceCheck()).atLeastOnce();
+
+    // mock out plugin check loading
+    Reflections reflectionsMock = createNiceMock(Reflections.class);
+
+    PowerMockito.whenNew(Reflections.class).withParameterTypes(
+        Configuration.class).withArguments(Matchers.any(ConfigurationBuilder.class)).thenReturn(
+            reflectionsMock);
+
+    PowerMock.replay(Reflections.class);
 
     // replay
     replayAll();
@@ -267,6 +293,8 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
     Assert.assertEquals(CLUSTER_NAME, clusterName);
     UpgradeType upgradeType = (UpgradeType) customUpgradeCheck.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID);
     Assert.assertEquals(UpgradeType.NON_ROLLING, upgradeType);
+
+    PowerMock.verifyAll();
   }
 
   /**
@@ -335,6 +363,7 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
         Provider<EntityManager> entityManagerProvider = createNiceMock(Provider.class);
         bind(EntityManager.class).toProvider(entityManagerProvider);
         bind(new TypeLiteral<Encryptor<AgentConfigsUpdateEvent>>() {}).annotatedWith(Names.named("AgentConfigEncryptor")).toInstance(Encryptor.NONE);
+        bind(new TypeLiteral<Encryptor<AmbariServerConfiguration>>() {}).annotatedWith(Names.named("AmbariServerConfigurationEncryptor")).toInstance(Encryptor.NONE);
         bind(AmbariLdapConfigurationProvider.class).toInstance(createMock(AmbariLdapConfigurationProvider.class));
 
         requestStaticInjection(PreUpgradeCheckResourceProvider.class);
