@@ -20,14 +20,14 @@ package org.apache.ambari.server.api.stomp;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.ambari.server.events.listeners.tasks.TaskStatusListener;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +40,7 @@ public class NamedTasksSubscriptions {
   private static Logger LOG = LoggerFactory.getLogger(NamedTasksSubscriptions.class);
 
   private ConcurrentHashMap<String, List<SubscriptionId>> taskIds = new ConcurrentHashMap<>();
-  private final Pattern pattern = Pattern.compile("^/events/tasks/(\\d*)$");
+  private final String subscriptionPrefix = "/events/tasks/";
   private final Lock taskIdsLock = new ReentrantLock();
 
   private Provider<TaskStatusListener> taskStatusListenerProvider;
@@ -116,22 +116,22 @@ public class NamedTasksSubscriptions {
       taskIds.remove(sessionId);
       LOG.info(String.format("Task subscriptions were removed for sessionId = %s", sessionId));
     } finally {
-       taskIdsLock.unlock();
+      taskIdsLock.unlock();
     }
   }
 
-  public Long matchDestination(String destination) {
-    Matcher m = pattern.matcher(destination);
-    if (m.matches()) {
-      return Long.parseLong(m.group(1));
-    }
-    return null;
+  public Optional<Long> matchDestination(String destination) {
+    Optional<Long> taskIdOpt = Optional.of(StringUtils.substringAfter(destination, subscriptionPrefix))
+        .filter(StringUtils::isNotEmpty)
+        .filter(StringUtils::isNumeric)
+        .map(Long::parseLong);
+    return taskIdOpt;
   }
 
   public void addDestination(String sessionId, String destination, String id) {
-    Long taskId = matchDestination(destination);
-    if (taskId != null) {
-      addTaskId(sessionId, taskId, id);
+    Optional<Long> taskIdOpt = matchDestination(destination);
+    if (taskIdOpt.isPresent()) {
+      addTaskId(sessionId, taskIdOpt.get(), id);
     }
   }
 
