@@ -22,11 +22,11 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -74,8 +74,10 @@ public class NamedTasksSubscriptionsTest {
 
   @Test
   public void testMatching() {
-    assertEquals(1L, tasksSubscriptions.matchDestination("/events/tasks/1").longValue());
-    assertNull(tasksSubscriptions.matchDestination("/events/topologies"));
+    Optional<Long> taskIdOpt = tasksSubscriptions.matchDestination("/events/tasks/1");
+    assertTrue(taskIdOpt.isPresent());
+    assertEquals(1L, taskIdOpt.get().longValue());
+    assertFalse(tasksSubscriptions.matchDestination("/events/topologies").isPresent());
   }
 
   @Test
