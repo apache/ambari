@@ -164,11 +164,9 @@
   </build>  
   
   <dependencies>
-    <!-- not exposed for SPI consumers -->
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
-      <scope>provided</scope>
     </dependency>
     
     <dependency>
