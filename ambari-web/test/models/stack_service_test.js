@@ -98,6 +98,9 @@ describe('App.StackService', function () {
       expect(ss.get('displayNameOnSelectServicePage')).to.equal('HDFS');
     });
     it('Present coSelectedServices', function () {
+      ss.reopen({
+        coSelectedServices: ['MAPREDUCE2']
+      });
       ss.set('serviceName', 'YARN');
       ss.set('displayName', 'YARN');
       ss.propertyDidChange('displayNameOnSelectServicePage');
@@ -111,11 +114,6 @@ describe('App.StackService', function () {
         serviceName: 'HDFS',
         isInstallable: true,
         result: false
-      },
-      {
-        serviceName: 'MAPREDUCE2',
-        isInstallable: true,
-        result: true
       },
       {
         serviceName: 'KERBEROS',

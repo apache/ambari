@@ -25,10 +25,7 @@ App.ServiceSimple = DS.Model.extend({
   latestVersion: DS.attr('string'),
   isAvailable: DS.attr('boolean'),
   isUpgradable: DS.attr('boolean'),
-  isHidden: function () {
-    var hiddenServices = ['MAPREDUCE2'];
-    return hiddenServices.contains(this.get('name')) || this.get('doNotShowAndInstall');
-  }.property('name'),
+  isHidden: Em.computed.alias('doNotShowAndInstall'),
 
   doNotShowAndInstall: function () {
     var skipServices = ['KERBEROS'];
