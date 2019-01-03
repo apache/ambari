@@ -182,5 +182,78 @@ describe('App.AddHawqStandbyWizardStep3Controller', function () {
       expect(configs.configs.findProperty('name', 'hawq_standby_address_host').get('recommendedValue')).to.equal('h1');
     });
   });
-
+  
+  describe('#loadStep', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'renderConfigs');
+    });
+    afterEach(function() {
+      controller.renderConfigs.restore();
+    });
+    
+    it('renderConfigs should be called', function() {
+      controller.loadStep();
+      expect(controller.renderConfigs.calledOnce).to.be.true;
+    });
+  });
+  
+  describe('#renderConfigs', function() {
+    beforeEach(function() {
+      sinon.stub(App.Service, 'find').returns([{
+        serviceName: 'HAWQ'
+      }]);
+      sinon.stub(controller, 'renderConfigProperties');
+      controller.renderConfigs();
+    });
+    afterEach(function() {
+      App.Service.find.restore();
+      controller.renderConfigProperties.restore();
+    });
+    
+    it('Request should be sent', function() {
+      var request = testHelpers.findAjaxRequest('name', 'config.tags');
+      expect(request[0]).to.exist;
+    });
+  
+    it('renderConfigProperties should be called', function() {
+      expect(controller.renderConfigProperties.calledOnce).to.be.true;
+    });
+  });
+  
+  describe('#renderConfigProperties', function() {
+    
+    it('should move component configs', function() {
+      var _componentConfig = {configs: [{isReconfigurable: true}]};
+      var componentConfig = {configs: []};
+      controller.renderConfigProperties(_componentConfig, componentConfig);
+      expect(componentConfig.configs).to.not.be.empty;
+      expect(componentConfig.configs[0].get('isEditable')).to.be.true;
+    });
+  });
+  
+  describe('#submit', function() {
+    beforeEach(function() {
+      sinon.stub(App, 'showConfirmationPopup', Em.clb);
+      sinon.stub(App, 'get').returns({getKDCSessionState: Em.clb});
+      sinon.stub(App.router, 'send');
+      controller.set('isLoaded', true);
+      controller.set('hawqProps', {items: [{properties: {'hawq_master_directory': 'dir'}}]});
+      controller.submit();
+    });
+    afterEach(function() {
+      App.showConfirmationPopup.restore();
+      App.get.restore();
+      App.router.send.restore();
+    });
+    
+    it('App.showConfirmationPopup should be called', function() {
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+    });
+  
+    it('App.router.send should be called', function() {
+      expect(App.router.send.calledWith('next')).to.be.true;
+    });
+  });
+  
+  
 });
