@@ -22,6 +22,7 @@ import static java.util.Arrays.asList;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -491,6 +492,8 @@ public class ServiceConfigDAOTest {
     List<ClusterConfigEntity> entities = clusterDAO.getLatestConfigurationsWithTypes(clusterEntity.getClusterId(), HDP_01, asList("oozie-site"));
     Assert.assertEquals(1, entities.size());
     entities = clusterDAO.getLatestConfigurationsWithTypes(clusterEntity.getClusterId(), HDP_01, asList("no-such-type"));
+    Assert.assertTrue(entities.isEmpty());
+    entities = clusterDAO.getLatestConfigurationsWithTypes(clusterEntity.getClusterId(), HDP_01, Collections.emptyList());
     Assert.assertTrue(entities.isEmpty());
   }
 
