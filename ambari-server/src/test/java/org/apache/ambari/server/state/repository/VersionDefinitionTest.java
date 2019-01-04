@@ -17,9 +17,7 @@
  */
 package org.apache.ambari.server.state.repository;
 
-import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -49,6 +47,7 @@ import org.apache.ambari.server.state.stack.RepositoryXml.Repo;
 import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.io.FileUtils;
 import org.easymock.EasyMock;
+import org.easymock.EasyMockSupport;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
@@ -58,7 +57,7 @@ import com.google.common.collect.Sets;
 /**
  * Tests for repository definitions.
  */
-public class VersionDefinitionTest {
+public class VersionDefinitionTest extends EasyMockSupport {
 
   private static File file = new File("src/test/resources/version_definition_test.xml");
 
@@ -455,7 +454,7 @@ public class VersionDefinitionTest {
         .put("AMBARI_METRICS", serviceAMS).build()).atLeastOnce();
 
 
-    replay(cluster, repositoryVersion, serviceHdfs, serviceHBase, stackInfo, ami);
+    replayAll();
 
     File f = new File("src/test/resources/version_definition_test_all_services.xml");
     VersionDefinitionXml xml = VersionDefinitionXml.load(f.toURI().toURL());
@@ -511,7 +510,7 @@ public class VersionDefinitionTest {
         .put("HBASE", serviceHBase)
         .put("AMBARI_METRICS", serviceAMS).build()).atLeastOnce();
 
-    replay(cluster, repositoryVersion, serviceHdfs, serviceHBase, stackInfo, ami);
+    replayAll();
 
     File f = new File("src/test/resources/version_definition_test_maint_partial.xml");
     VersionDefinitionXml xml = VersionDefinitionXml.load(f.toURI().toURL());
@@ -572,6 +571,56 @@ public class VersionDefinitionTest {
     assertTrue(results.contains("C"));
     assertTrue(results.contains("D"));
     assertTrue(results.contains("E"));
+  }
+
+  /**
+   * Tests that a VDF can be built from the cluster services correctly, taking
+   * into account things like whether a service has components which advertise a
+   * version. The first part of this will test that services which do not
+   * advertise a version are not returned when building a VDF from cluster
+   * services. The 2nd part will test to make sure that when combining a VDF
+   * with the stack, all services are returned regardless of whether they
+   * advertise a version.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testBuild() throws Exception {
+    ServiceInfo serviceWithVersionAdvertised = createNiceMock(ServiceInfo.class);
+    ServiceInfo serviceWithoutVersionAdvertised = createNiceMock(ServiceInfo.class);
+
+    List<ServiceInfo> stackServices = Lists.newArrayList(serviceWithVersionAdvertised,
+        serviceWithoutVersionAdvertised);
+
+    expect(serviceWithVersionAdvertised.isVersionAdvertised()).andReturn(true).atLeastOnce();
+    expect(serviceWithVersionAdvertised.getName()).andReturn("BAR").atLeastOnce();
+    expect(serviceWithVersionAdvertised.getVersion()).andReturn("1.5.0").atLeastOnce();
+
+    expect(serviceWithoutVersionAdvertised.isVersionAdvertised()).andReturn(false).atLeastOnce();
+    expect(serviceWithoutVersionAdvertised.getName()).andReturn("BAZ").atLeastOnce();
+    expect(serviceWithoutVersionAdvertised.getVersion()).andReturn("2.0.0").atLeastOnce();
+
+    File f = new File("src/test/resources/version_definition_test_all_services.xml");
+    VersionDefinitionXml xml1 = VersionDefinitionXml.load(f.toURI().toURL());
+
+    RepositoryXml repositoryXml = createNiceMock(RepositoryXml.class);
+    expect(repositoryXml.getOses()).andReturn(xml1.repositoryInfo.getOses()).atLeastOnce();
+
+    StackInfo stackInfo = createNiceMock(StackInfo.class);
+    expect(stackInfo.getName()).andReturn("FOO").anyTimes();
+    expect(stackInfo.getVersion()).andReturn("1.0.0").anyTimes();
+    expect(stackInfo.getServices()).andReturn(stackServices).atLeastOnce();
+    expect(stackInfo.getRepositoryXml()).andReturn(repositoryXml).atLeastOnce();
+
+    replayAll();
+
+    VersionDefinitionXml vdf = VersionDefinitionXml.build(stackInfo);
+    assertEquals(1, vdf.manifestServices.size());
+
+    List<ManifestServiceInfo> manifestServices = vdf.getStackServices(stackInfo);
+    assertEquals(2, manifestServices.size());
+
+    verifyAll();
   }
 
   private static ServiceInfo makeService(final String name) {

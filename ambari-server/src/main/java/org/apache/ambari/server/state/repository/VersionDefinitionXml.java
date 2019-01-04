@@ -200,9 +200,14 @@ public class VersionDefinitionXml {
   }
 
   /**
-   * Gets the list of stack services, applying information from the version definition.
-   * @param stack the stack for which to get the information
-   * @return the list of {@code ManifestServiceInfo} instances for each service in the stack
+   * Gets the list of stack services, applying information from the version
+   * definition. This will include both services which advertise a version and
+   * those which do not.
+   * 
+   * @param stack
+   *          the stack for which to get the information
+   * @return the list of {@code ManifestServiceInfo} instances for each service
+   *         in the stack
    */
   public synchronized List<ManifestServiceInfo> getStackServices(StackInfo stack) {
 
@@ -610,7 +615,12 @@ public class VersionDefinitionXml {
   }
 
   /**
-   * Builds a Version Definition that is the default for the stack
+   * Builds a Version Definition that is the default for the stack.
+   * <p>
+   * This will use all of the services defined on the stack, excluding those
+   * which do not advertise a version. If a service doesn't advertise a version,
+   * we cannot include it in a generated VDF.
+   *
    * @return the version definition
    */
   public static VersionDefinitionXml build(StackInfo stackInfo) {
@@ -630,6 +640,13 @@ public class VersionDefinitionXml {
     xml.release.display = stackId.toString();
 
     for (ServiceInfo si : stackInfo.getServices()) {
+      // do NOT build a manifest entry for services on the stack which cannot be
+      // a part of an upgrade - this is to prevent services like KERBEROS from
+      // preventing an upgrade if it's in Maintenance Mode
+      if (!si.isVersionAdvertised()) {
+        continue;
+      }
+
       ManifestService ms = new ManifestService();
       ms.serviceName = si.getName();
       ms.version = StringUtils.trimToEmpty(si.getVersion());
