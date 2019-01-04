@@ -245,7 +245,7 @@ public class ServiceInfo implements Validable {
 
   @Override
   public void addErrors(Collection<String> errors) {
-    this.errorSet.addAll(errors);
+    errorSet.addAll(errors);
   }
 
   /**
@@ -363,11 +363,11 @@ public class ServiceInfo implements Validable {
     }
     // If set to null and has a parent, then the value would have already been resolved and set.
     // Otherwise, return the default value (true).
-    return this.supportDeleteViaUIInternal;
+    return supportDeleteViaUIInternal;
   }
 
   public void setSupportDeleteViaUI(boolean supportDeleteViaUI) {
-    this.supportDeleteViaUIInternal = supportDeleteViaUI;
+    supportDeleteViaUIInternal = supportDeleteViaUI;
   }
 
   public String getName() {
@@ -395,7 +395,7 @@ public class ServiceInfo implements Validable {
   }
 
   public void setServiceAdvisorType(ServiceAdvisorType type) {
-    this.serviceAdvisorType = type;
+    serviceAdvisorType = type;
   }
 
   public ServiceAdvisorType getServiceAdvisorType() {
@@ -711,6 +711,7 @@ public class ServiceInfo implements Validable {
   /**
    * @deprecated Use {@link #getSingleSignOnEnabledTest()} instead
    */
+  @Deprecated
   public String getSingleSignOnEnabledConfiguration() {
     return singleSignOnInfo != null ? singleSignOnInfo.getEnabledConfiguration() : null;
   }
@@ -812,7 +813,7 @@ public class ServiceInfo implements Validable {
    * @param typeAttributes attributes associated with the type
    */
   public synchronized void setTypeAttributes(String type, Map<String, Map<String, String>> typeAttributes) {
-    if (this.configTypes == null) {
+    if (configTypes == null) {
       configTypes = new HashMap<>();
     }
     configTypes.put(type, typeAttributes);
@@ -1375,6 +1376,27 @@ public class ServiceInfo implements Validable {
       setValid(false);
       addError("LDAP support is indicated for service " + getName() + " but no test configuration has been set by ldapEnabledTest.");
     }
+  }
+
+  /**
+   * Gets whether this service advertises a version based on whether at least
+   * one of its components advertises a version.
+   *
+   * @return {@code true} if at least 1 component of this service advertises a
+   *         version, {@code false} otherwise.
+   */
+  public boolean isVersionAdvertised() {
+    if (null == components) {
+      return false;
+    }
+
+    for (ComponentInfo componentInfo : components) {
+      if (componentInfo.isVersionAdvertised()) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   public enum Selection {
