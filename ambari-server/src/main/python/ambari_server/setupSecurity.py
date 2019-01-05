@@ -47,8 +47,8 @@ from ambari_server.serverConfiguration import configDefaults, parse_properties_f
   BLIND_PASSWORD, BOOTSTRAP_DIR_PROPERTY, JDBC_PASSWORD_FILENAME, JDBC_PASSWORD_PROPERTY, \
   JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_USE_INTEGRATED_AUTH_PROPERTY, \
   LDAP_MGR_PASSWORD_ALIAS, LDAP_MGR_PASSWORD_PROPERTY, CLIENT_SECURITY, \
-  SECURITY_IS_ENCRYPTION_ENABLED, SECURITY_KEY_ENV_VAR_NAME, SECURITY_KERBEROS_JASS_FILENAME, \
-  SECURITY_PROVIDER_KEY_CMD, SECURITY_MASTER_KEY_FILENAME, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
+  SECURITY_IS_ENCRYPTION_ENABLED, SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED, SECURITY_KEY_ENV_VAR_NAME, SECURITY_KERBEROS_JASS_FILENAME, \
+  SECURITY_PROVIDER_KEY_CMD, SECURITY_SENSITIVE_DATA_ENCRYPTON_CMD, SECURITY_MASTER_KEY_FILENAME, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
   SSL_TRUSTSTORE_PASSWORD_PROPERTY, SSL_TRUSTSTORE_PATH_PROPERTY, SSL_TRUSTSTORE_TYPE_PROPERTY, \
   JDK_NAME_PROPERTY, JCE_NAME_PROPERTY, JAVA_HOME_PROPERTY, \
   get_resources_location, SECURITY_MASTER_KEY_LOCATION, SETUP_OR_UPGRADE_MSG, \
@@ -487,6 +487,18 @@ def sync_ldap(options):
   sys.stdout.write('\n')
   sys.stdout.flush()
 
+def sensitive_data_encryption(options, direction):
+  jdk_path = find_jdk()
+  if jdk_path is None:
+    print_error_msg("No JDK found, please run the \"setup\" "
+                    "command to install a JDK automatically or install any "
+                    "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
+    return 1
+  serverClassPath = ServerClassPath(get_ambari_properties(), options)
+  command = SECURITY_SENSITIVE_DATA_ENCRYPTON_CMD.format(get_java_exe_path(), serverClassPath.get_full_ambari_classpath_escaped_for_shell(), direction)
+  (retcode, stdout, stderr) = run_os_command(command)
+  pass
+
 def setup_master_key(options):
   if not is_root():
     warn = 'ambari-server setup-https is run as ' \
@@ -536,6 +548,7 @@ def setup_master_key(options):
       masterKey = get_original_master_key(properties, options)
       # Unable get the right master key or skipped question <enter>
       if not masterKey:
+        # todo sensitive_data_encryption support for not persisted masterkey
         print "To disable encryption, do the following:"
         print "- Edit " + find_properties_file() + \
               " and set " + SECURITY_IS_ENCRYPTION_ENABLED + " = " + "false."
@@ -549,6 +562,11 @@ def setup_master_key(options):
         return 1
       pass
     pass
+  pass
+
+  # decrypt sensitive data if resetKey
+  if resetKey:
+    sensitive_data_encryption(options, "decryption")
   pass
 
   # Read back any encrypted passwords
@@ -606,6 +624,9 @@ def setup_master_key(options):
     else:
       propertyMap[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS)
   pass
+
+  propertyMap[SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED] = 'true'
+  sensitive_data_encryption(options, "encryption")
 
   update_properties_2(properties, propertyMap)
 

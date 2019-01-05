@@ -608,6 +608,7 @@ SECURITY_KEY_IS_PERSISTED = "security.master.key.ispersisted"
 SECURITY_KEY_ENV_VAR_NAME = "AMBARI_SECURITY_MASTER_KEY"
 SECURITY_MASTER_KEY_FILENAME = "master"
 SECURITY_IS_ENCRYPTION_ENABLED = "security.passwords.encryption.enabled"
+SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED = "security.server.encrypt_sensitive_data"
 SECURITY_KERBEROS_JASS_FILENAME = "krb5JAASLogin.conf"
 
 SECURITY_PROVIDER_GET_CMD = "{0} -cp {1} " + \
@@ -623,6 +624,11 @@ SECURITY_PROVIDER_PUT_CMD = "{0} -cp {1} " + \
 SECURITY_PROVIDER_KEY_CMD = "{0} -cp {1} " + \
                             "org.apache.ambari.server.security.encryption" + \
                             ".MasterKeyServiceImpl {2} {3} {4} " + \
+                            "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
+
+SECURITY_SENSITIVE_DATA_ENCRYPTON_CMD = "{0} -cp {1} " + \
+                            "org.apache.ambari.server.security.encryption.SensitiveDataEncryption" + \
+                            " {2} " + \
                             "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
 
