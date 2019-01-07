@@ -42,18 +42,7 @@ public final class AddServiceInfo {
   private final Configuration config;
   private final LayoutRecommendationInfo recommendationInfo;
 
-  public AddServiceInfo(
-    AddServiceRequest request,
-    String clusterName,
-    RequestStageContainer stages,
-    Stack stack,
-    Configuration config,
-    Map<String, Map<String, Set<String>>> newServices
-  ) {
-    this(request, clusterName, stages, stack, config, newServices, null, null);
-  }
-
-  AddServiceInfo(
+  private AddServiceInfo(
     AddServiceRequest request,
     String clusterName,
     RequestStageContainer stages,
@@ -73,13 +62,26 @@ public final class AddServiceInfo {
     this.recommendationInfo = recommendationInfo;
   }
 
+  public Builder toBuilder() {
+    return new Builder()
+      .setRequest(request)
+      .setClusterName(clusterName)
+      .setStack(stack)
+      .setKerberosDescriptor(kerberosDescriptor)
+      .setNewServices(newServices)
+      .setStages(stages)
+      .setConfig(config)
+      .setRecommendationInfo(recommendationInfo)
+      ;
+  }
+
   public AddServiceInfo withLayoutRecommendation(Map<String, Map<String, Set<String>>> services,
                                                  LayoutRecommendationInfo recommendation) {
-    return new AddServiceInfo(request, clusterName, stages, stack, config, services, kerberosDescriptor, recommendation);
+    return toBuilder().setNewServices(services).setRecommendationInfo(recommendation).build();
   }
 
   public AddServiceInfo withConfig(Configuration newConfig) {
-    return new AddServiceInfo(request, clusterName, stages, stack, newConfig, newServices, kerberosDescriptor, recommendationInfo);
+    return toBuilder().setConfig(newConfig).build();
   }
 
   @Override
@@ -139,6 +141,63 @@ public final class AddServiceInfo {
 
   public boolean requiresLayoutRecommendation() {
     return !request.getServices().isEmpty();
+  }
+
+  public static class Builder {
+
+    private AddServiceRequest request;
+    private String clusterName;
+    private Stack stack;
+    private KerberosDescriptor kerberosDescriptor;
+    private Map<String, Map<String, Set<String>>> newServices;
+    private RequestStageContainer stages;
+    private Configuration config;
+    private LayoutRecommendationInfo recommendationInfo;
+
+    public AddServiceInfo build() {
+      return new AddServiceInfo(request, clusterName, stages, stack, config, newServices, kerberosDescriptor, recommendationInfo);
+    }
+
+    public Builder setRequest(AddServiceRequest request) {
+      this.request = request;
+      return this;
+    }
+
+    public Builder setClusterName(String clusterName) {
+      this.clusterName = clusterName;
+      return this;
+    }
+
+    public Builder setStages(RequestStageContainer stages) {
+      this.stages = stages;
+      return this;
+    }
+
+    public Builder setStack(Stack stack) {
+      this.stack = stack;
+      return this;
+    }
+
+    public Builder setConfig(Configuration config) {
+      this.config = config;
+      return this;
+    }
+
+    public Builder setNewServices(Map<String, Map<String, Set<String>>> newServices) {
+      this.newServices = newServices;
+      return this;
+    }
+
+    public Builder setKerberosDescriptor(KerberosDescriptor kerberosDescriptor) {
+      this.kerberosDescriptor = kerberosDescriptor;
+      return this;
+    }
+
+    public Builder setRecommendationInfo(LayoutRecommendationInfo recommendationInfo) {
+      this.recommendationInfo = recommendationInfo;
+      return this;
+    }
+
   }
 
 }
