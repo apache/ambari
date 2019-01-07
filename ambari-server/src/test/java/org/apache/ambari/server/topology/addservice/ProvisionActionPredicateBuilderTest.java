@@ -57,11 +57,13 @@ public class ProvisionActionPredicateBuilderTest {
     )
   );
   private static final RequestStageContainer STAGES = new RequestStageContainer(42L, null, null, null, null);
+  private static final AddServiceInfo.Builder ADD_SERVICE_INFO_BUILDER = new AddServiceInfo.Builder()
+    .setClusterName(CLUSTER_NAME).setStages(STAGES).setNewServices(NEW_SERVICES);
 
   @Test
   public void noCustomProvisionAction() {
     AddServiceRequest request = createRequest(null, null, null);
-    AddServiceInfo info = new AddServiceInfo(request, CLUSTER_NAME, STAGES, null, null, NEW_SERVICES);
+    AddServiceInfo info = ADD_SERVICE_INFO_BUILDER.setRequest(request).build();
     ProvisionActionPredicateBuilder builder = new ProvisionActionPredicateBuilder(info);
 
     assertTrue(builder.getPredicate(ProvisionStep.INSTALL).isPresent());
@@ -81,7 +83,7 @@ public class ProvisionActionPredicateBuilderTest {
   @Test
   public void requestLevelStartOnly() {
     AddServiceRequest request = createRequest(ProvisionAction.START_ONLY, null, null);
-    AddServiceInfo info = new AddServiceInfo(request, CLUSTER_NAME, STAGES, null, null, NEW_SERVICES);
+    AddServiceInfo info = ADD_SERVICE_INFO_BUILDER.setRequest(request).build();
     ProvisionActionPredicateBuilder builder = new ProvisionActionPredicateBuilder(info);
 
     assertEquals(Optional.empty(), builder.getPredicate(ProvisionStep.INSTALL));
@@ -115,7 +117,7 @@ public class ProvisionActionPredicateBuilderTest {
         Component.of("METRICS_MONITOR", ProvisionAction.INSTALL_ONLY, "c7404", "c7405") // overrides service-level
       )
     );
-    AddServiceInfo info = new AddServiceInfo(request, CLUSTER_NAME, STAGES, null, null, NEW_SERVICES);
+    AddServiceInfo info = ADD_SERVICE_INFO_BUILDER.setRequest(request).build();
     ProvisionActionPredicateBuilder builder = new ProvisionActionPredicateBuilder(info);
 
     assertTrue(builder.getPredicate(ProvisionStep.INSTALL).isPresent());
