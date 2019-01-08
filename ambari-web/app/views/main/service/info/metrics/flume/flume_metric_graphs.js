@@ -23,12 +23,11 @@ App.MainServiceInfoFlumeGraphsView = App.MainServiceInfoSummaryMetricGraphsView.
   serviceMetricGraphs: [],
 
   loadMetrics: function () {
-    var graphRows = [];
     var viewData = this.get('viewData');
     if (viewData != null) {
       var metricType = viewData.metricType;
       var hostName = viewData.agent.get('hostName');
-      App.ajax.send({
+      return App.ajax.send({
         'name': 'host.host_component.flume.metrics',
         'sender': this,
         'success': 'onLoadMetricsSuccess',
@@ -37,8 +36,9 @@ App.MainServiceInfoFlumeGraphsView = App.MainServiceInfoSummaryMetricGraphsView.
           flumeComponent: metricType
         }
       });
+    } else {
+      return $.Deferred().reject().promise();
     }
-    return graphRows;
   }.observes('viewData', 'metricType'),
 
   onLoadMetricsSuccess: function (data) {
