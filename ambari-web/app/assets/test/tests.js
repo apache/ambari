@@ -388,6 +388,8 @@ var files = [
   'test/views/main/service/info/component_list_view_test',
   'test/views/main/service/info/metrics/ambari_metrics/regionserver_base_test',
   'test/views/main/service/info/metrics/flume/flume_agent_metrics_section_test',
+  'test/views/main/service/info/metrics/flume/flume_metric_graph_test',
+  'test/views/main/service/info/metrics/flume/flume_metric_graphs_test',
   'test/views/main/service/info/summary/hdfs/slaves_test',
   'test/views/main/service/services/hdfs_test',
   'test/views/main/service/services/hbase_test',
