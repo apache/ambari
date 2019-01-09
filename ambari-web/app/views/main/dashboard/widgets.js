@@ -539,7 +539,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
   },
 
   /**
-   * check if stack has upgraded from HDP 1.0 to 2.0 OR add/delete services.
+   * Check if any services with widgets were added or deleted.
    * Update the value on server if true.
    */
   checkServicesChange: function () {
@@ -558,6 +558,12 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
         if (!userPreferences.visible.contains(id) && !userPreferences.hidden.contains(id)) {
           isChanged = true;
           newValue[state].push(id);
+        }
+      });
+      userPreferences[state].forEach(id => {
+        if (!defaultPreferences.visible.contains(id) && !defaultPreferences.hidden.contains(id)) {
+          isChanged = true;
+          newValue[state] = newValue[state].without(id);
         }
       });
       Object.keys(defaultPreferences.groups).forEach(groupName => {
