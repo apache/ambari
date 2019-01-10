@@ -475,22 +475,23 @@ def get_vms_list(args):
 
 def __get_vms_list_from_name(args, cluster_name):
   """
-  Method to parse "gce fqdn {cluster-name}" command output and get hosts and ips pairs for every host in cluster
+  Method to parse "gce info {cluster-name}" command output and get hosts and ips pairs for every host in cluster
   :param args: Command line args
   :return: Mapping of VM host name to ip.
   """
-  gce_fqdb_cmd = '/opt/gce-utils/gce fqdn {0}'.format(cluster_name)
+  gce_fqdb_cmd = '/opt/gce-utils/gce info {0}'.format(cluster_name)
   out = execute_command(args, args.controller, gce_fqdb_cmd, "Failed to get VMs list!", "-tt")
   lines = out.split('\n')
   #print "LINES=" + str(lines)
   if lines[0].startswith("Using profile") and not lines[1].strip():
     result = {}
-    for s in lines[2:]:  # Ignore non-meaningful lines
+    for s in lines[4:]:  # Ignore non-meaningful lines
       if not s:
         continue
-      match = re.match(r'^([\d\.]*)\s+([\w\.-]*)\s+([\w\.-]*)\s+$', s, re.M)
+
+      match = re.match(r'^ [^ ]+ ([\w\.-]*)\s+([\d\.]*).*$', s, re.M)
       if match:
-        result[match.group(2)] = match.group(1)
+        result[match.group(1)] = match.group(2)
       else:
         raise Exception('Cannot parse "{0}"'.format(s))
     return result
