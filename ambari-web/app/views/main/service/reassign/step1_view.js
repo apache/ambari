@@ -21,40 +21,35 @@ var App = require('app');
 var stringUtils = require('utils/string_utils');
 
 App.ReassignMasterWizardStep1View = Em.View.extend({
-
+  
+  templateName: require('templates/main/service/reassign/step1'),
+  
   message: function () {
     var componentName = this.get('controller.content.reassign.component_name');
     var listOfServices;
     var installedServices = App.Service.find().mapProperty('serviceName');
-
-    if(this.get('controller.content.componentsToStopAllServices').contains(componentName)) {
+    
+    if (this.get('controller.content.componentsToStopAllServices').contains(componentName)) {
       listOfServices = installedServices;
     } else {
       listOfServices = this.get('controller.target.reassignMasterController.relatedServicesMap')[componentName];
-      if(!listOfServices || !listOfServices.length) {
-        listOfServices = installedServices.filter(function (service) {
-          return service != 'HDFS';
-        });
+      if (!listOfServices || !listOfServices.length) {
+        listOfServices = installedServices.reject(service => service === 'HDFS');
       } else {  //not display any service which is not installed
-        var installedServicesToStop = listOfServices.filter(function (service) {
-          return installedServices.contains(service);
-        });
-        listOfServices = installedServicesToStop;
+        listOfServices = listOfServices.filter(service => installedServices.contains(service));
       }
     }
-
+    
     var messages = [
       Em.I18n.t('services.reassign.step1.message1').format(this.get('controller.content.reassign.display_name')),
       Em.I18n.t('services.reassign.step1.message3').format(stringUtils.getFormattedStringFromArray(listOfServices),
         this.get('controller.content.reassign.display_name'))
     ];
     if (this.get('controller.content.hasManualSteps')) {
-      messages.splice(1,0, Em.I18n.t('services.reassign.step1.message2').format(this.get('controller.content.reassign.display_name')));
+      messages.splice(1, 0, Em.I18n.t('services.reassign.step1.message2').format(this.get('controller.content.reassign.display_name')));
     }
-
+    
     return messages;
-  }.property('controller.content.reassign.display_name','controller.content.hasManualSteps'),
-
-  templateName: require('templates/main/service/reassign/step1')
-
+  }.property('controller.content.reassign.display_name', 'controller.content.hasManualSteps')
+  
 });
