@@ -30,16 +30,16 @@ App.ReassignMasterWizardStep3View = Em.View.extend({
   didInsertElement: function () {
     this.get('controller').loadStep();
   },
-
-  jdbcSetupMessage: function() {
-    if(['HIVE_SERVER', 'HIVE_METASTORE', 'OOZIE_SERVER'].contains(this.get('controller.content.reassign.component_name'))) {
-      if(this.get('controller.content.reassign.component_name') === 'OOZIE_SERVER' && this.get('controller.content.databaseType') === 'derby') {
-        return false;
+  
+  jdbcSetupMessage: function () {
+    if (['HIVE_SERVER', 'HIVE_METASTORE', 'OOZIE_SERVER'].contains(this.get('controller.content.reassign.component_name'))) {
+      if (this.get('controller.content.reassign.component_name') === 'OOZIE_SERVER' && this.get('controller.content.databaseType') === 'derby') {
+        return '';
       }
-
+      
       return Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(this.get('controller.content.databaseType'), this.get('controller.content.databaseType'));
     }
-
-    return false;
+    
+    return '';
   }.property('controller.content.reassign.display_name', 'controller.content.databaseType')
 });
