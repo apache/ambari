@@ -391,6 +391,7 @@ var files = [
   'test/views/main/service/info/metrics/flume/flume_metric_graph_test',
   'test/views/main/service/info/metrics/flume/flume_metric_graphs_test',
   'test/views/main/service/info/summary/hdfs/slaves_test',
+  'test/views/main/service/info/summary/hdfs/widgets_test',
   'test/views/main/service/services/hdfs_test',
   'test/views/main/service/services/hbase_test',
   'test/views/main/service/services/ranger_test',
