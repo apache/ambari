@@ -108,7 +108,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                   SSL_DATE_FORMAT, import_cert_and_key, is_valid_cert_host, setup_truststore, \
                   SRVR_ONE_WAY_SSL_PORT_PROPERTY, SRVR_TWO_WAY_SSL_PORT_PROPERTY
                 from ambari_server.setupSecurity import adjust_directory_permissions, get_alias_string, get_ldap_event_spec_names, sync_ldap, \
-                  configure_ldap_password, setup_ldap, REGEX_HOSTNAME_PORT, REGEX_TRUE_FALSE, REGEX_ANYTHING, setup_master_key, \
+                  configure_ldap_password, setup_ldap, REGEX_HOSTNAME_PORT, REGEX_TRUE_FALSE, REGEX_ANYTHING, setup_sensitive_data_encryption, \
                   setup_ambari_krb5_jaas, LDAP_GENERIC, should_query_ldap_type, LdapPropTemplate, LdapDefault, LdapDefaultMap
                 from ambari_server.userInput import get_YN_input, get_choice_string_input, get_validated_string_input, \
                   read_password
@@ -6764,7 +6764,7 @@ class TestAmbariServer(TestCase):
     exists_mock.return_value = False
 
     options = self._create_empty_options_mock()
-    setup_master_key(options)
+    setup_sensitive_data_encryption(options)
 
     self.assertTrue(get_YN_input_method.called)
     self.assertTrue(read_master_key_method.called)
@@ -6828,7 +6828,7 @@ class TestAmbariServer(TestCase):
     save_passwd_for_alias_method.return_value = 0
 
     options = self._create_empty_options_mock()
-    setup_master_key(options)
+    setup_sensitive_data_encryption(options)
 
     self.assertTrue(get_YN_input_method.called)
     self.assertTrue(read_master_key_method.called)
@@ -6891,7 +6891,7 @@ class TestAmbariServer(TestCase):
 
 
     options = self._create_empty_options_mock()
-    setup_master_key(options)
+    setup_sensitive_data_encryption(options)
 
     self.assertTrue(save_master_key_method.called)
     self.assertTrue(get_YN_input_method.called)
@@ -6998,7 +6998,7 @@ class TestAmbariServer(TestCase):
     get_is_persisted_method.return_value = (True, "filePath")
 
     options = self._create_empty_options_mock()
-    setup_master_key(options)
+    setup_sensitive_data_encryption(options)
 
     self.assertFalse(save_master_key_method.called)
     self.assertTrue(get_YN_input_method.called)

@@ -487,7 +487,10 @@ def sync_ldap(options):
   sys.stdout.write('\n')
   sys.stdout.flush()
 
-def sensitive_data_encryption(options, direction):
+def sensitive_data_encryption(options, direction, masterKey=None):
+  environ = os.environ.copy()
+  if masterKey:
+    environ[SECURITY_KEY_ENV_VAR_NAME] = masterKey
   jdk_path = find_jdk()
   if jdk_path is None:
     print_error_msg("No JDK found, please run the \"setup\" "
@@ -496,12 +499,12 @@ def sensitive_data_encryption(options, direction):
     return 1
   serverClassPath = ServerClassPath(get_ambari_properties(), options)
   command = SECURITY_SENSITIVE_DATA_ENCRYPTON_CMD.format(get_java_exe_path(), serverClassPath.get_full_ambari_classpath_escaped_for_shell(), direction)
-  (retcode, stdout, stderr) = run_os_command(command)
+  (retcode, stdout, stderr) = run_os_command(command, environ)
   pass
 
-def setup_master_key(options):
+def setup_sensitive_data_encryption(options):
   if not is_root():
-    warn = 'ambari-server setup-https is run as ' \
+    warn = 'ambari-server encrypt-passwords is run as ' \
           'non-root user, some sudo privileges might be required'
     print warn
 
@@ -528,82 +531,66 @@ def setup_master_key(options):
 
   ts_password = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
   resetKey = False
+  decrypt = False
   masterKey = None
 
   if isSecure:
     print "Password encryption is enabled."
-    resetKey = True if options.security_option is not None else get_YN_input("Do you want to reset Master Key? [y/n] (n): ", False)
-
-  # For encrypting of only unencrypted passwords without resetting the key ask
-  # for master key if not persisted.
-  if isSecure and not isPersisted and not resetKey:
-    print "Master Key not persisted."
-    masterKey = get_original_master_key(properties, options)
-  pass
+    decrypt = get_YN_input("Do you want to decrypt passwords managed by Ambari? [y/n] (n): ", False)
+    resetKey = get_YN_input("Do you want to reset Master Key? [y/n] (n): ", False)
 
   # Make sure both passwords are clear-text if master key is lost
-  if resetKey:
-    if not isPersisted:
+  if resetKey or decrypt:
+    if isPersisted:
+      sensitive_data_encryption(options, "decryption")
+    else:
       print "Master Key not persisted."
       masterKey = get_original_master_key(properties, options)
       # Unable get the right master key or skipped question <enter>
       if not masterKey:
-        # todo sensitive_data_encryption support for not persisted masterkey
-        print "To disable encryption, do the following:"
-        print "- Edit " + find_properties_file() + \
-              " and set " + SECURITY_IS_ENCRYPTION_ENABLED + " = " + "false."
-        err = "{0} is already encrypted. Please call {1} to store unencrypted" \
-              " password and call 'encrypt-passwords' again."
-        if db_sql_auth and db_password and is_alias_string(db_password):
-          print err.format('- Database password', "'" + SETUP_ACTION + "'")
-        if ts_password and is_alias_string(ts_password):
-          print err.format('TrustStore password', "'" + LDAP_SETUP_ACTION + "'")
-
+        # todo fix unreachable code
+        printManualDecryptionWarning(db_password, db_sql_auth, ts_password)
         return 1
-      pass
-    pass
-  pass
-
-  # decrypt sensitive data if resetKey
-  if resetKey:
-    sensitive_data_encryption(options, "decryption")
-  pass
+      sensitive_data_encryption(options, "decryption", masterKey)
 
   # Read back any encrypted passwords
-  if db_sql_auth  and db_password and is_alias_string(db_password):
-    db_password = read_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS, masterKey)
-  if ts_password and is_alias_string(ts_password):
-    ts_password = read_passwd_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS, masterKey)
-  # Read master key, if non-secure or reset is true
-  if resetKey or not isSecure:
-    masterKey = read_master_key(resetKey, options)
-    persist = get_YN_input("Do you want to persist master key. If you choose " \
-                           "not to persist, you need to provide the Master " \
-                           "Key while starting the ambari server as an env " \
-                           "variable named " + SECURITY_KEY_ENV_VAR_NAME + \
-                           " or the start will prompt for the master key."
-                           " Persist [y/n] (y)? ", True, options.master_key_persist)
-    if persist:
-      save_master_key(options, masterKey, get_master_key_location(properties) + os.sep +
-                      SECURITY_MASTER_KEY_FILENAME, persist)
-    elif not persist and masterKeyFile:
-      try:
-        os.remove(masterKeyFile)
-        print_info_msg("Deleting master key file at location: " + str(
-          masterKeyFile))
-      except Exception, e:
-        print 'ERROR: Could not remove master key file. %s' % e
-    # Blow up the credential store made with previous key, if any
-    store_file = get_credential_store_location(properties)
-    if os.path.exists(store_file):
-      try:
-        os.remove(store_file)
-      except:
-        print_warning_msg("Failed to remove credential store file.")
-      pass
-    pass
-  pass
+  db_password, ts_password = deryptPasswordsConfigs(db_password, db_sql_auth, masterKey, ts_password)
+  save_decrypted_ambari_properties(db_password, properties, ts_password)
 
+
+  if not decrypt:
+    if resetKey or not isSecure:
+      # Read master key and encrypt sensitive data, if non-secure or reset is true
+      masterKey, persist = setup_master_key(masterKeyFile, options, properties, resetKey)
+    else:
+      if not isPersisted:
+        # For encrypting of only unencrypted passwords without resetting the key ask
+        # for master key if not persisted.
+        print "Master Key not persisted."
+        masterKey = get_original_master_key(properties, options)
+    encrypt_sensitive_data(db_password, masterKey, options, persist, properties, ts_password)
+
+  # Since files for store and master are created we need to ensure correct
+  # permissions
+  ambari_user = read_ambari_user()
+  if ambari_user:
+    adjust_directory_permissions(ambari_user)
+  return 0
+
+
+def save_decrypted_ambari_properties(db_password, properties, ts_password):
+  propertyMap = {SECURITY_IS_ENCRYPTION_ENABLED: 'false'}
+  propertyMap[SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED] = 'false'
+  if db_password:
+    propertyMap[JDBC_PASSWORD_PROPERTY] = db_password
+    if properties.get_property(JDBC_RCA_PASSWORD_FILE_PROPERTY):
+      propertyMap[JDBC_RCA_PASSWORD_FILE_PROPERTY] = db_password
+  if ts_password:
+    propertyMap[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = ts_password
+  update_properties_2(properties, propertyMap)
+
+
+def encrypt_sensitive_data(db_password, masterKey, options, persist, properties, ts_password):
   propertyMap = {SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
   # Encrypt only un-encrypted passwords
   if db_password and not is_alias_string(db_password):
@@ -615,7 +602,6 @@ def setup_master_key(options):
       remove_password_file(JDBC_PASSWORD_FILENAME)
       if properties.get_property(JDBC_RCA_PASSWORD_FILE_PROPERTY):
         propertyMap[JDBC_RCA_PASSWORD_FILE_PROPERTY] = get_alias_string(JDBC_RCA_PASSWORD_ALIAS)
-  pass
 
   if ts_password and not is_alias_string(ts_password):
     retCode = save_passwd_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS, ts_password, masterKey)
@@ -623,20 +609,64 @@ def setup_master_key(options):
       print 'Failed to save secure TrustStore password.'
     else:
       propertyMap[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS)
-  pass
 
   propertyMap[SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED] = 'true'
-  sensitive_data_encryption(options, "encryption")
-
+  if persist:
+    sensitive_data_encryption(options, "encryption")
+  else:
+    sensitive_data_encryption(options, "encryption", masterKey)
   update_properties_2(properties, propertyMap)
 
-  # Since files for store and master are created we need to ensure correct
-  # permissions
-  ambari_user = read_ambari_user()
-  if ambari_user:
-    adjust_directory_permissions(ambari_user)
 
-  return 0
+def setup_master_key(masterKeyFile, options, properties, resetKey):
+  masterKey = read_master_key(resetKey, options)
+  persist = get_YN_input("Do you want to persist master key. If you choose " \
+                         "not to persist, you need to provide the Master " \
+                         "Key while starting the ambari server as an env " \
+                         "variable named " + SECURITY_KEY_ENV_VAR_NAME + \
+                         " or the start will prompt for the master key."
+                         " Persist [y/n] (y)? ", True, options.master_key_persist)
+  if persist:
+    save_master_key(options, masterKey, get_master_key_location(properties) + os.sep +
+                    SECURITY_MASTER_KEY_FILENAME, persist)
+  elif not persist and masterKeyFile:
+    try:
+      os.remove(masterKeyFile)
+      print_info_msg("Deleting master key file at location: " + str(
+        masterKeyFile))
+    except Exception, e:
+      print 'ERROR: Could not remove master key file. %s' % e
+  # Blow up the credential store made with previous key, if any
+  store_file = get_credential_store_location(properties)
+  if os.path.exists(store_file):
+    try:
+      os.remove(store_file)
+    except:
+      print_warning_msg("Failed to remove credential store file.")
+  return masterKey, persist
+
+
+def deryptPasswordsConfigs(db_password, db_sql_auth, masterKey, ts_password):
+  if db_sql_auth and db_password and is_alias_string(db_password):
+    db_password = read_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS, masterKey)
+  if ts_password and is_alias_string(ts_password):
+    ts_password = read_passwd_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS, masterKey)
+  return db_password, ts_password
+
+
+def printManualDecryptionWarning(db_password, db_sql_auth, ts_password):
+  print "To disable encryption, do the following:"
+  print "- Edit " + find_properties_file() + \
+        " and set " + SECURITY_IS_ENCRYPTION_ENABLED + " = " + "false." + \
+        " and set " + SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED + " = " + "false." + \
+        " and set all passwords and sensitive data in service configs to right value."
+  err = "{0} is already encrypted. Please call {1} to store unencrypted" \
+        " password and call 'encrypt-passwords' again."
+  if db_sql_auth and db_password and is_alias_string(db_password):
+    print err.format('- Database password', "'" + SETUP_ACTION + "'")
+  if ts_password and is_alias_string(ts_password):
+    print err.format('TrustStore password', "'" + LDAP_SETUP_ACTION + "'")
+
 
 def setup_ambari_krb5_jaas(options):
   jaas_conf_file = search_file(SECURITY_KERBEROS_JASS_FILENAME, get_conf_dir())

@@ -54,7 +54,7 @@ from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SY
 from ambari_server.setupHttps import setup_https, setup_truststore
 from ambari_server.setupMpacks import install_mpack, uninstall_mpack, upgrade_mpack, STACK_DEFINITIONS_RESOURCE_NAME, \
   SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME
-from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas, setup_pam, \
+from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_sensitive_data_encryption, setup_ambari_krb5_jaas, setup_pam, \
   migrate_ldap_pam, LDAP_TYPES
 from ambari_server.setupSso import setup_sso
 from ambari_server.setupTrustedProxy import setup_trusted_proxy
@@ -253,7 +253,7 @@ def refresh_stack_hash_action():
 def create_setup_security_actions(args):
   action_list = [
       ['setup-https', 'Enable HTTPS for Ambari server.', UserActionRestart(setup_https, args)],
-      ['encrypt-passwords', 'Encrypt passwords managed by Ambari.', UserAction(setup_master_key, args)],
+      ['encrypt-passwords', 'Encrypt passwords managed by Ambari.', UserAction(setup_sensitive_data_encryption, args)],
       ['setup-kerberos-jaas', 'Setup Ambari kerberos JAAS configuration.', UserAction(setup_ambari_krb5_jaas, args)],
       ['setup-truststore', 'Setup truststore.', UserActionRestart(setup_truststore, args)],
       ['import-certificate', 'Import certificate to truststore.', UserActionRestart(setup_truststore, True, args)],
@@ -264,7 +264,7 @@ def create_setup_security_actions(args):
 def create_setup_security_actions(args):
   action_list = [
       ['setup-https', 'Enable HTTPS for Ambari server.', UserActionRestart(setup_https, args)],
-      ['encrypt-passwords', 'Encrypt passwords managed by Ambari.', UserAction(setup_master_key, args)],
+      ['encrypt-passwords', 'Encrypt passwords managed by Ambari.', UserAction(setup_sensitive_data_encryption, args)],
       ['setup-kerberos-jaas', 'Setup Ambari kerberos JAAS configuration.', UserAction(setup_ambari_krb5_jaas, args)],
       ['setup-truststore', 'Setup truststore.', UserActionRestart(setup_truststore, args)],
       ['import-certificate', 'Import certificate to truststore.', UserActionRestart(setup_truststore, args, True)],
