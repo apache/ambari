@@ -112,11 +112,14 @@ public class SecretReference {
     }
     final Map<String, String> maskedMap = new HashMap<>();
     for (Map.Entry<String, String> property : propertyMap.entrySet()) {
-      String value = property.getKey().toLowerCase().contains(PASSWORD_TEXT) || property.getKey().toLowerCase().contains(PASSWD_TEXT) ? secretPrefix
-          : property.getValue();
+      String value = isPassword(property.getKey()) ? secretPrefix : property.getValue();
       maskedMap.put(property.getKey(), value);
     }
     return maskedMap;
+  }
+
+  private final static boolean isPassword(String propertyName) {
+    return propertyName.toLowerCase().contains(PASSWORD_TEXT) || propertyName.toLowerCase().contains(PASSWD_TEXT);
   }
 
   /**
