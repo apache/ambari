@@ -25,5 +25,17 @@
       {{view view.slaveComponentsView slaveComponentsViewBinding="view.slaveComponentsView" summaryViewBinding="view"
         showTitle=true}}
     {{/if}}
+    {{#unless view.parentView.service.hasMasterOrSlaveComponent}}
+      <div class="col-md-12">
+        <div class="col-md-2">
+          {{#if view.parentView.hasComponents}}
+            {{t dashboard.services.hdfs.summary.components}}
+          {{/if}}
+        </div>
+        <div class="col-md-10">
+          {{view App.SummaryClientComponentsView clientsObjBinding="view.parentView.clientObj"}}
+        </div>
+      </div>
+    {{/unless}}
   </div>
 </div>

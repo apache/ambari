@@ -159,6 +159,8 @@ App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrappe
 
   hasMultipleMasterGroups: Em.computed.gt('parentView.mastersObj.length', 1),
 
+  showComponentsTitleForNonMasters: Em.computed.or('!masters.length', 'hasMultipleMasterGroups'),
+
   /**
    * Check if service component is created
    * @param componentName
