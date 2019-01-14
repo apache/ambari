@@ -40,6 +40,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.utils.SecretReference;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -210,7 +211,7 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
     setResourceProperty(resource, CONFIGURATION_SERVICE_NAME_PROPERTY_ID, serviceName, requestedIds);
     setResourceProperty(resource, CONFIGURATION_COMPONENT_NAME_PROPERTY_ID, componentName, requestedIds);
     setResourceProperty(resource, CONFIGURATION_CATEGORY_PROPERTY_ID, categoryName, requestedIds);
-    setResourceProperty(resource, CONFIGURATION_PROPERTIES_PROPERTY_ID, properties, requestedIds);
+    setResourceProperty(resource, CONFIGURATION_PROPERTIES_PROPERTY_ID, SecretReference.maskPasswordInPropertyMap(properties), requestedIds);
     setResourceProperty(resource, CONFIGURATION_PROPERTY_TYPES_PROPERTY_ID, propertyTypes, requestedIds);
     return resource;
   }
