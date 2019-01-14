@@ -139,6 +139,10 @@ App.db.get = function (namespace, key) {
   App.db.data = localStorage.getObject('ambari');
   Em.assert('`namespace` should be defined', !!namespace);
   checkNamespace(namespace);
+  if (key.contains('user-pref')) {
+    // username may contain "." which is the part of "user-pref-*" key so Em.set should be avoided
+    return Em.get(App.db.data, namespace)[key];
+  }
   return Em.get(Em.get(App.db.data, namespace), key);
 };
 
@@ -165,7 +169,12 @@ App.db.set = function (namespace, key, value) {
   App.db.data = localStorage.getObject('ambari');
   Em.assert('`namespace` should be defined', !!namespace);
   checkNamespace(namespace);
-  Em.set(Em.get(App.db.data, namespace), key, value);
+  if (key.contains('user-pref')) {
+    // username may contain "." which is the part of "user-pref-*" key so Em.set should be avoided
+    Em.get(App.db.data, namespace)[key] = value;
+  } else {
+    Em.set(Em.get(App.db.data, namespace), key, value);
+  }
   localStorage.setObject('ambari', App.db.data);
 };
 
