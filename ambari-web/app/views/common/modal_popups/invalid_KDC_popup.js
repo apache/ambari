@@ -83,16 +83,13 @@ App.showInvalidKDCPopup = function (ajaxOpt, message) {
     },
 
     onSecondary: function() {
-      this.hide();
-      if (ajaxOpt.kdcCancelHandler) {
-        ajaxOpt.kdcCancelHandler();
-      }
+      this.onClose();
     },
-
+  
     onPrimary: function () {
       this.hide();
-        var resource = credentialsUtils.createCredentialResource(this.get('principal'), this.get('password'), this.get('storageType'));
-        App.get('router.clusterController').createKerberosAdminSession(resource, ajaxOpt);
+      var resource = credentialsUtils.createCredentialResource(this.get('principal'), this.get('password'), this.get('storageType'));
+      App.get('router.clusterController').createKerberosAdminSession(resource, ajaxOpt);
     }
   });
 };

@@ -35,72 +35,91 @@ App.showSelectGroupsPopup = function (selectedServiceName, selectedConfigGroup, 
     selectedConfigGroup: selectedConfigGroup,
     dependentStepConfigs: dependentStepConfigs,
     selectedGroups: {},
-    didInsertElement: function() {
+    didInsertElement: function () {
       this._super();
-      this.set('selectedGroups', $.extend({},selectedConfigGroup.get('dependentConfigGroups')));
+      this.set('selectedGroups', $.extend({}, selectedConfigGroup.get('dependentConfigGroups')));
     },
     bodyClass: Em.CollectionView.extend({
       content: dependentStepConfigs,
       itemViewClass: Em.View.extend({
         templateName: require('templates/common/modal_popups/select_groups_popup'),
-        didInsertElement: function() {
+        didInsertElement: function () {
           this.set('selectedGroup', this.get('parentView.parentView.selectedConfigGroup.dependentConfigGroups')[this.get('serviceName')]);
         },
         hasGroups: Em.computed.bool('groups.length'),
         serviceName: Em.computed.alias('content.serviceName'),
         selectedGroup: null,
-        updateGroup: function() {
-          var dependentGroups = $.extend({},this.get('parentView.parentView.selectedConfigGroup.dependentConfigGroups'));
+        updateGroup: function () {
+          var dependentGroups = $.extend({}, this.get('parentView.parentView.selectedConfigGroup.dependentConfigGroups'));
           dependentGroups[this.get('serviceName')] = this.get('selectedGroup');
           this.set('parentView.parentView.selectedConfigGroup.dependentConfigGroups', dependentGroups);
         }.observes('selectedGroup'),
-        groups: function() {
+        groups: function () {
           return this.get('content').get('configGroups').filterProperty('isDefault', false).mapProperty('name');
         }.property('content')
       })
     }),
     onPrimary: function () {
       this._super();
-      Object.keys(this.get('selectedConfigGroup.dependentConfigGroups')).forEach(function(serviceName) {
+      Object.keys(this.get('selectedConfigGroup.dependentConfigGroups')).forEach(function (serviceName) {
         var selectedGroupName = this.get('selectedConfigGroup.dependentConfigGroups')[serviceName];
         var currentGroupName = this.get('selectedGroups')[serviceName] || "";
         var configGroup = this.get('dependentStepConfigs').findProperty('serviceName', serviceName).get('configGroups').findProperty('name', selectedGroupName);
         if (!configGroup) return; //There can be no dependent config group.
-        if (selectedGroupName != currentGroupName) {
+        if (selectedGroupName !== currentGroupName) {
           /** changing config group for recommendations **/
           configs.filterProperty('serviceName', serviceName).filterProperty('configGroup', selectedGroupName).forEach(function (c) {
-            if (configs.filterProperty('serviceName', serviceName).filterProperty('configGroup', currentGroupName)) {
-              configs.removeObject(c);
-            }
+            configs.removeObject(c);
           });
           configs.filterProperty('serviceName', serviceName).filterProperty('configGroup', currentGroupName).setEach('configGroup', selectedGroupName);
           /** danger part!!!! changing config group ***/
-          this.get('dependentStepConfigs').findProperty('serviceName', serviceName).get('configs').forEach(function(cp) {
-            var dependentConfig = configs.filterProperty('propertyName', cp.get('name')).filterProperty('fileName', App.config.getConfigTagFromFileName(cp.get('filename'))).findProperty('configGroup', selectedGroupName);
-            var recommendedValue = dependentConfig && Em.get(dependentConfig, 'recommendedValue');
-            if (cp.get('overrides')) {
-              var currentGroupOverride = cp.get('overrides').findProperty('group.name', currentGroupName);
-              if (currentGroupOverride && currentGroupOverride.get('initialValue') != currentGroupOverride.get('recommendedValue')) {
-                currentGroupOverride.set('group', configGroup);
-                currentGroupOverride.set('recommendedValue', recommendedValue);
-                currentGroupOverride.set('value', recommendedValue);
-              } else {
-                var selectedGroupOverride = cp.get('overrides').findProperty('group.name', configGroup.get('name'));
-                if (selectedGroupOverride) {
-                  selectedGroupOverride.set('recommendedValue', recommendedValue);
-                  selectedGroupOverride.set('value', recommendedValue);
-                } else {
-                  App.config.createOverride(cp, {"value": recommendedValue, "recommendedValue": recommendedValue,"isEditable": true}, configGroup);
-                }
-              }
-            } else {
-              App.config.createOverride(cp, {"value": recommendedValue, "recommendedValue": recommendedValue,"isEditable": true}, configGroup);
-            }
-          }, this)
+          this.applyOverridesToConfigGroups(serviceName, configGroup, currentGroupName, selectedGroupName);
         }
       }, this);
     },
-    onSecondary: function() {
+    
+    /**
+     *
+     * @param serviceName
+     * @param configGroup
+     * @param currentGroupName
+     * @param selectedGroupName
+     */
+    applyOverridesToConfigGroups: function(serviceName, configGroup, currentGroupName, selectedGroupName) {
+      this.get('dependentStepConfigs').findProperty('serviceName', serviceName).get('configs').forEach(function (cp) {
+        var dependentConfig = configs.filterProperty('propertyName', cp.get('name'))
+        .filterProperty('fileName', App.config.getConfigTagFromFileName(cp.get('filename')))
+        .findProperty('configGroup', selectedGroupName);
+        var recommendedValue = dependentConfig && Em.get(dependentConfig, 'recommendedValue');
+        if (cp.get('overrides')) {
+          var currentGroupOverride = cp.get('overrides').findProperty('group.name', currentGroupName);
+          if (currentGroupOverride && currentGroupOverride.get('initialValue') !== currentGroupOverride.get('recommendedValue')) {
+            currentGroupOverride.set('group', configGroup);
+            currentGroupOverride.set('recommendedValue', recommendedValue);
+            currentGroupOverride.set('value', recommendedValue);
+          } else {
+            var selectedGroupOverride = cp.get('overrides').findProperty('group.name', configGroup.get('name'));
+            if (selectedGroupOverride) {
+              selectedGroupOverride.set('recommendedValue', recommendedValue);
+              selectedGroupOverride.set('value', recommendedValue);
+            } else {
+              App.config.createOverride(cp, {
+                "value": recommendedValue,
+                "recommendedValue": recommendedValue,
+                "isEditable": true
+              }, configGroup);
+            }
+          }
+        } else {
+          App.config.createOverride(cp, {
+            "value": recommendedValue,
+            "recommendedValue": recommendedValue,
+            "isEditable": true
+          }, configGroup);
+        }
+      }, this)
+    },
+    onSecondary: function () {
       this._super();
       this.get('selectedConfigGroup').set('dependentConfigGroups', this.get('selectedGroups'));
     }
