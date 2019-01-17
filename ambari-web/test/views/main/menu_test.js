@@ -27,22 +27,6 @@ describe('App.MainMenuView', function () {
     view = App.MainSideMenuView.create();
   });
 
-  describe("#views", function () {
-
-    beforeEach(function() {
-      sinon.stub(App.router, 'get').withArgs('mainViewsController.ambariViews').returns([{}]);
-    });
-
-    afterEach(function() {
-      App.router.get.restore();
-    });
-
-    it("should return views", function() {
-      view.propertyDidChange('views');
-      expect(view.get('views')).to.be.eql([{}]);
-    });
-  });
-
   describe("#itemViewClass", function () {
     var itemViewClass;
 
