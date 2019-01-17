@@ -404,6 +404,7 @@ var files = [
   'test/views/main/service/services/yarn_test',
   'test/views/main/service/services/hive_test',
   'test/views/main/service/services/mapreduce2_test',
+  'test/views/main/service/services/onefs_test',
   'test/views/main/service/services/zookeeper_test',
   'test/views/main/service/services/flume_test',
   'test/views/main/service/widgets/create/expression_view_test',
