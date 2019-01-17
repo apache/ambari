@@ -110,6 +110,8 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
     DEFAULT_JMX_PORTS.put("NODEMANAGER",         "8042");
     DEFAULT_JMX_PORTS.put("JOURNALNODE",         "8480");
     DEFAULT_JMX_PORTS.put("STORM_REST_API",      "8745");
+    DEFAULT_JMX_PORTS.put("OZONE_MANAGER",       "9874");
+    DEFAULT_JMX_PORTS.put("STORAGE_CONTAINER_MANAGER", "9876");
 
     AD_HOC_PROPERTIES.put("NAMENODE",
         Collections.singletonMap("metrics/dfs/FSNamesystem/HAState",
