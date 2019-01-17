@@ -22,9 +22,7 @@ App.MainSideMenuView = Em.CollectionView.extend({
   tagName: 'ul',
   classNames: ['nav', 'side-nav-menu', 'nav-pills', 'nav-stacked'],
 
-  views: function () {
-    return App.router.get('mainViewsController.ambariViews');
-  }.property('App.router.mainViewsController.ambariViews'),
+  views: Em.computed.alias('App.router.mainViewsController.ambariViews'),
 
   didInsertElement: function() {
     $('[data-toggle="collapse-side-nav"]').on('click', () => {

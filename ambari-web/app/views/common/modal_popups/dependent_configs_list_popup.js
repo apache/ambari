@@ -26,9 +26,7 @@ App.DependentConfigsTableView = Em.View.extend({
   elementsWithPopover: function () {
     return this.$('td.config-dependency-name');
   }.property(),
-  hideMessage: function () {
-    return this.get('controller.isInstallWizard');
-  }.property('controller.isInstallWizard'),
+  hideMessage: Em.computed.alias('controller.isInstallWizard'),
   updateRecommendedDefault: function () {
     if (this.get('controller.isInstallWizard')) {
       var applyRecommendations = this.get('recommendations').filterProperty('saveRecommended');
@@ -97,7 +95,7 @@ App.DependentConfigsListView = Em.View.extend({
   }),
   setAllConfigsWithErrors: function () {
     if (this.get('state') === 'inBuffer' || Em.isNone(this.get('controller.stepConfigs'))) {
-      return;
+      return false;
     }
     this.set('allConfigsWithErrors', this.get('controller.stepConfigs').reduce(function (result, stepConfig) {
       if (stepConfig.get('configsWithErrors.length')) {
