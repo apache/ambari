@@ -1051,7 +1051,7 @@ def get_original_master_key(properties, options = None):
           masterKey = options.master_key
         if not masterKey:
           masterKey = get_validated_string_input('Enter current Master Key: ',
-                                                 "", ".*", "", True, False)
+                                                 "", ".*", "", True, True)
           if options is not None:
             options.master_key = masterKey
       except KeyboardInterrupt:

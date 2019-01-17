@@ -537,7 +537,8 @@ def setup_sensitive_data_encryption(options):
   if isSecure:
     print "Password encryption is enabled."
     decrypt = get_YN_input("Do you want to decrypt passwords managed by Ambari? [y/n] (n): ", False)
-    resetKey = get_YN_input("Do you want to reset Master Key? [y/n] (n): ", False)
+    if not decrypt:
+      resetKey = get_YN_input("Do you want to reset Master Key? [y/n] (n): ", False)
 
   # Make sure both passwords are clear-text if master key is lost
   if resetKey or decrypt:
@@ -561,14 +562,14 @@ def setup_sensitive_data_encryption(options):
   if not decrypt:
     if resetKey or not isSecure:
       # Read master key and encrypt sensitive data, if non-secure or reset is true
-      masterKey, persist = setup_master_key(masterKeyFile, options, properties, resetKey)
+      masterKey, isPersisted = setup_master_key(masterKeyFile, options, properties, resetKey)
     else:
       if not isPersisted:
         # For encrypting of only unencrypted passwords without resetting the key ask
         # for master key if not persisted.
         print "Master Key not persisted."
         masterKey = get_original_master_key(properties, options)
-    encrypt_sensitive_data(db_password, masterKey, options, persist, properties, ts_password)
+    encrypt_sensitive_data(db_password, masterKey, options, isPersisted, properties, ts_password)
 
   # Since files for store and master are created we need to ensure correct
   # permissions

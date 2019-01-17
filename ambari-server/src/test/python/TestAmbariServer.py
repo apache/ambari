@@ -92,7 +92,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                   RESOURCES_DIR_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_SCHEMA_PROPERTY, \
                   SSL_API, SSL_API_PORT, CLIENT_API_PORT_PROPERTY,\
                   JDBC_CONNECTION_POOL_TYPE, LDAP_MGR_PASSWORD_PROPERTY, LDAP_MGR_PASSWORD_ALIAS, JDBC_PASSWORD_FILENAME, NR_USER_PROPERTY, SECURITY_KEY_IS_PERSISTED, \
-                  SSL_TRUSTSTORE_PASSWORD_PROPERTY, SECURITY_IS_ENCRYPTION_ENABLED, PID_DIR_PROPERTY, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
+                  SECURITY_IS_ENCRYPTION_ENABLED, PID_DIR_PROPERTY, \
                   SECURITY_MASTER_KEY_LOCATION, SECURITY_KEYS_DIR, store_password_file, \
                   get_pass_file_path, GET_FQDN_SERVICE_URL, SECURITY_KEY_ENV_VAR_NAME, \
                   JAVA_HOME_PROPERTY, JDK_NAME_PROPERTY, JCE_NAME_PROPERTY, STACK_LOCATION_KEY, SERVER_VERSION_FILE_PATH, \
@@ -108,7 +108,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                   SSL_DATE_FORMAT, import_cert_and_key, is_valid_cert_host, setup_truststore, \
                   SRVR_ONE_WAY_SSL_PORT_PROPERTY, SRVR_TWO_WAY_SSL_PORT_PROPERTY
                 from ambari_server.setupSecurity import adjust_directory_permissions, get_alias_string, get_ldap_event_spec_names, sync_ldap, \
-                  configure_ldap_password, setup_ldap, REGEX_HOSTNAME_PORT, REGEX_TRUE_FALSE, REGEX_ANYTHING, setup_sensitive_data_encryption, \
+                  configure_ldap_password, setup_ldap, REGEX_HOSTNAME_PORT, REGEX_TRUE_FALSE, REGEX_ANYTHING,\
                   setup_ambari_krb5_jaas, LDAP_GENERIC, should_query_ldap_type, LdapPropTemplate, LdapDefault, LdapDefaultMap
                 from ambari_server.userInput import get_YN_input, get_choice_string_input, get_validated_string_input, \
                   read_password
@@ -313,13 +313,13 @@ class TestAmbariServer(TestCase):
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup_ambari_krb5_jaas")
-  @patch.object(_ambari_server_, "setup_master_key")
+  @patch.object(_ambari_server_, "setup_sensitive_data_encryption")
   @patch.object(_ambari_server_, "setup_truststore")
   @patch.object(_ambari_server_, "setup_https")
   @patch.object(_ambari_server_, "get_validated_string_input")
   @patch.object(_ambari_server_, "logger")
   def test_setup_security(self, logger_mock, get_validated_string_input_mock, setup_https_mock,
-                          setup_truststore_mock, setup_master_key_mock,
+                          setup_truststore_mock, setup_sensitive_data_encryption_mock,
                           setup_ambari_krb5_jaas_mock):
 
     args = self._create_empty_options_mock()
@@ -329,7 +329,7 @@ class TestAmbariServer(TestCase):
 
     get_validated_string_input_mock.return_value = '2'
     _ambari_server_.setup_security(args)
-    self.assertTrue(setup_master_key_mock.called)
+    self.assertTrue(setup_sensitive_data_encryption_mock.called)
 
     get_validated_string_input_mock.return_value = '3'
     _ambari_server_.setup_security(args)
@@ -6724,197 +6724,6 @@ class TestAmbariServer(TestCase):
     sys.stdout = sys.__stdout__
     pass
 
-  @patch("os.path.exists")
-  @patch("ambari_server.setupSecurity.get_is_secure")
-  @patch("ambari_server.setupSecurity.get_is_persisted")
-  @patch("ambari_server.setupSecurity.remove_password_file")
-  @patch("ambari_server.setupSecurity.save_passwd_for_alias")
-  @patch("ambari_server.setupSecurity.read_master_key")
-  @patch("ambari_server.setupSecurity.read_ambari_user")
-  @patch("ambari_server.setupSecurity.get_master_key_location")
-  @patch("ambari_server.setupSecurity.update_properties_2")
-  @patch("ambari_server.setupSecurity.save_master_key")
-  @patch("ambari_server.setupSecurity.get_YN_input")
-  @patch("ambari_server.setupSecurity.search_file")
-  @patch("ambari_server.setupSecurity.get_ambari_properties")
-  @patch("ambari_server.setupSecurity.is_root")
-  def test_setup_master_key_not_persist(self, is_root_method,
-                                        get_ambari_properties_method, search_file_message,
-                                        get_YN_input_method, save_master_key_method,
-                                        update_properties_method, get_master_key_location_method,
-                                        read_ambari_user_method, read_master_key_method,
-                                        save_passwd_for_alias_method, remove_password_file_method,
-                                        get_is_persisted_method, get_is_secure_method, exists_mock):
-
-    is_root_method.return_value = True
-
-    p = Properties()
-    FAKE_PWD_STRING = "fakepasswd"
-    p.process_pair(JDBC_PASSWORD_PROPERTY, FAKE_PWD_STRING)
-    p.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, FAKE_PWD_STRING)
-    p.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, FAKE_PWD_STRING)
-    get_ambari_properties_method.return_value = p
-
-    read_master_key_method.return_value = "aaa"
-    get_YN_input_method.return_value = False
-    read_ambari_user_method.return_value = None
-    save_passwd_for_alias_method.return_value = 0
-    get_is_persisted_method.return_value = (True, "filepath")
-    get_is_secure_method.return_value = False
-    exists_mock.return_value = False
-
-    options = self._create_empty_options_mock()
-    setup_sensitive_data_encryption(options)
-
-    self.assertTrue(get_YN_input_method.called)
-    self.assertTrue(read_master_key_method.called)
-    self.assertTrue(read_ambari_user_method.called)
-    self.assertTrue(update_properties_method.called)
-    self.assertFalse(save_master_key_method.called)
-    self.assertTrue(save_passwd_for_alias_method.called)
-    self.assertEquals(2, save_passwd_for_alias_method.call_count)
-    self.assertTrue(remove_password_file_method.called)
-
-    result_expected = {JDBC_PASSWORD_PROPERTY:
-                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       JDBC_RCA_PASSWORD_FILE_PROPERTY:
-                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       SSL_TRUSTSTORE_PASSWORD_PROPERTY:
-                         get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
-                       SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
-
-    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
-                      key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
-    pass
-
-
-  @patch("ambari_server.setupSecurity.save_passwd_for_alias")
-  @patch("os.path.exists")
-  @patch("ambari_server.setupSecurity.get_is_secure")
-  @patch("ambari_server.setupSecurity.get_is_persisted")
-  @patch("ambari_server.setupSecurity.read_master_key")
-  @patch("ambari_server.setupSecurity.read_ambari_user")
-  @patch("ambari_server.setupSecurity.get_master_key_location")
-  @patch("ambari_server.setupSecurity.update_properties_2")
-  @patch("ambari_server.setupSecurity.save_master_key")
-  @patch("ambari_server.setupSecurity.get_YN_input")
-  @patch("ambari_server.serverConfiguration.search_file")
-  @patch("ambari_server.setupSecurity.get_ambari_properties")
-  @patch("ambari_server.setupSecurity.is_root")
-  def test_setup_master_key_persist(self, is_root_method,
-                                    get_ambari_properties_method, search_file_message,
-                                    get_YN_input_method, save_master_key_method,
-                                    update_properties_method, get_master_key_location_method,
-                                    read_ambari_user_method, read_master_key_method,
-                                    get_is_persisted_method, get_is_secure_method, exists_mock,
-                                    save_passwd_for_alias_method):
-    is_root_method.return_value = True
-
-    p = Properties()
-    FAKE_PWD_STRING = "fakepasswd"
-    p.process_pair(JDBC_PASSWORD_PROPERTY, FAKE_PWD_STRING)
-    get_ambari_properties_method.return_value = p
-
-    search_file_message.return_value = "propertiesfile"
-
-    read_master_key_method.return_value = "aaa"
-    get_YN_input_method.side_effect = [True, False]
-    read_ambari_user_method.return_value = None
-    get_is_persisted_method.return_value = (True, "filepath")
-    get_is_secure_method.return_value = False
-    exists_mock.return_value = False
-    save_passwd_for_alias_method.return_value = 0
-
-    options = self._create_empty_options_mock()
-    setup_sensitive_data_encryption(options)
-
-    self.assertTrue(get_YN_input_method.called)
-    self.assertTrue(read_master_key_method.called)
-    self.assertTrue(read_ambari_user_method.called)
-    self.assertTrue(update_properties_method.called)
-    self.assertTrue(save_master_key_method.called)
-
-    result_expected = {JDBC_PASSWORD_PROPERTY:
-                        get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                        SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
-
-    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
-                      key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
-    pass
-
-
-  @patch("ambari_server.setupSecurity.read_master_key")
-  @patch("ambari_server.setupSecurity.remove_password_file")
-  @patch("os.path.exists")
-  @patch("ambari_server.setupSecurity.read_ambari_user")
-  @patch("ambari_server.setupSecurity.get_master_key_location")
-  @patch("ambari_server.setupSecurity.save_passwd_for_alias")
-  @patch("ambari_server.setupSecurity.read_passwd_for_alias")
-  @patch("ambari_server.setupSecurity.update_properties_2")
-  @patch("ambari_server.setupSecurity.save_master_key")
-  @patch("ambari_server.setupSecurity.get_validated_string_input")
-  @patch("ambari_server.setupSecurity.get_YN_input")
-  @patch("ambari_server.setupSecurity.search_file")
-  @patch("ambari_server.setupSecurity.get_ambari_properties")
-  @patch("ambari_server.setupSecurity.is_root")
-  def test_reset_master_key_persisted(self, is_root_method,
-                                      get_ambari_properties_method, search_file_message,
-                                      get_YN_input_method, get_validated_string_input_method,
-                                      save_master_key_method, update_properties_method,
-                                      read_passwd_for_alias_method, save_passwd_for_alias_method,
-                                      get_master_key_location_method,
-                                      read_ambari_user_method, exists_mock,
-                                      remove_password_file_method, read_master_key_method):
-
-    # Testing call under root
-    is_root_method.return_value = True
-
-    search_file_message.return_value = "filepath"
-    read_ambari_user_method.return_value = None
-
-    p = Properties()
-    FAKE_PWD_STRING = '${alias=fakealias}'
-    p.process_pair(JDBC_PASSWORD_PROPERTY, FAKE_PWD_STRING)
-    p.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, FAKE_PWD_STRING)
-    p.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, FAKE_PWD_STRING)
-    get_ambari_properties_method.return_value = p
-
-    get_YN_input_method.side_effect = [True, True]
-    read_master_key_method.return_value = "aaa"
-    read_passwd_for_alias_method.return_value = "fakepassword"
-    save_passwd_for_alias_method.return_value = 0
-    exists_mock.return_value = False
-
-
-    options = self._create_empty_options_mock()
-    setup_sensitive_data_encryption(options)
-
-    self.assertTrue(save_master_key_method.called)
-    self.assertTrue(get_YN_input_method.called)
-    self.assertTrue(read_master_key_method.called)
-    self.assertTrue(update_properties_method.called)
-    self.assertTrue(read_passwd_for_alias_method.called)
-    self.assertTrue(2, read_passwd_for_alias_method.call_count)
-    self.assertTrue(2, save_passwd_for_alias_method.call_count)
-
-    result_expected = {JDBC_PASSWORD_PROPERTY:
-                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       JDBC_RCA_PASSWORD_FILE_PROPERTY:
-                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       SSL_TRUSTSTORE_PASSWORD_PROPERTY:
-                         get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
-                       SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
-
-    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
-                      key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
-    pass
-
   @patch("os.path.isdir", new = MagicMock(return_value=True))
   @patch("os.access", new = MagicMock(return_value=True))
   @patch.object(ServerClassPath, "get_full_ambari_classpath_escaped_for_shell", new = MagicMock(return_value = 'test' + os.pathsep + 'path12'))
@@ -6952,77 +6761,6 @@ class TestAmbariServer(TestCase):
     self.assertEquals(runOSCommandMock.call_args[0][0], '/path/to/java -cp test:path12 org.apache.ambari.server.checks.DatabaseConsistencyChecker')
 
     pass
-
-  @patch("ambari_server.setupSecurity.get_is_persisted")
-  @patch("ambari_server.setupSecurity.get_is_secure")
-  @patch("ambari_server.setupSecurity.remove_password_file")
-  @patch("os.path.exists")
-  @patch("ambari_server.setupSecurity.read_ambari_user")
-  @patch("ambari_server.setupSecurity.get_master_key_location")
-  @patch("ambari_server.setupSecurity.save_passwd_for_alias")
-  @patch("ambari_server.setupSecurity.read_passwd_for_alias")
-  @patch("ambari_server.setupSecurity.update_properties_2")
-  @patch("ambari_server.setupSecurity.save_master_key")
-  @patch("ambari_server.setupSecurity.get_validated_string_input")
-  @patch("ambari_server.setupSecurity.get_YN_input")
-  @patch("ambari_server.setupSecurity.search_file")
-  @patch("ambari_server.setupSecurity.get_ambari_properties")
-  @patch("ambari_server.setupSecurity.is_root")
-  def test_reset_master_key_not_persisted(self, is_root_method,
-                                          get_ambari_properties_method,
-                                          search_file_message, get_YN_input_method,
-                                          get_validated_string_input_method, save_master_key_method,
-                                          update_properties_method, read_passwd_for_alias_method,
-                                          save_passwd_for_alias_method,
-                                          get_master_key_location_method, read_ambari_user_method,
-                                          exists_mock, remove_password_file_method, get_is_secure_method,
-                                          get_is_persisted_method):
-
-    is_root_method.return_value = True
-    search_file_message.return_value = False
-    read_ambari_user_method.return_value = None
-
-    p = Properties()
-    FAKE_PWD_STRING = '${alias=fakealias}'
-    p.process_pair(JDBC_PASSWORD_PROPERTY, FAKE_PWD_STRING)
-    p.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, FAKE_PWD_STRING)
-    p.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, FAKE_PWD_STRING)
-    get_ambari_properties_method.return_value = p
-
-    get_YN_input_method.side_effect = [True, False]
-    get_validated_string_input_method.return_value = "aaa"
-    read_passwd_for_alias_method.return_value = "fakepassword"
-    save_passwd_for_alias_method.return_value = 0
-    exists_mock.return_value = False
-    get_is_secure_method.return_value = True
-    get_is_persisted_method.return_value = (True, "filePath")
-
-    options = self._create_empty_options_mock()
-    setup_sensitive_data_encryption(options)
-
-    self.assertFalse(save_master_key_method.called)
-    self.assertTrue(get_YN_input_method.called)
-    self.assertTrue(get_validated_string_input_method.called)
-    self.assertTrue(update_properties_method.called)
-    self.assertTrue(read_passwd_for_alias_method.called)
-    self.assertTrue(2, read_passwd_for_alias_method.call_count)
-    self.assertTrue(2, save_passwd_for_alias_method.call_count)
-    self.assertFalse(save_master_key_method.called)
-
-    result_expected = {JDBC_PASSWORD_PROPERTY:
-                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       JDBC_RCA_PASSWORD_FILE_PROPERTY:
-                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       SSL_TRUSTSTORE_PASSWORD_PROPERTY:
-                         get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
-                       SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
-
-    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
-                      key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
-    pass
-
 
   @staticmethod
   @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
