@@ -19,107 +19,109 @@
 var App = require('app');
 require('utils/errors/definitions');
 
-describe('#App.NotNullTypeError', function () {
-  var cases = [
-    {
-      input: null,
-      result: 'Not null expected. ',
-      title: 'default message'
-    },
-    {
-      input: 'Error',
-      result: 'Not null expected. Error',
-      title: 'custom message'
-    }
-  ];
-  cases.forEach(function (test) {
-    it(test.title, function () {
-      var errorObject = new App.NotNullTypeError(test.input);
-      expect(errorObject.message).to.equal(test.result);
+describe('Error definitions', function () {
+  describe('#App.NotNullTypeError', function () {
+    var cases = [
+      {
+        input: null,
+        result: 'Not null expected. ',
+        title: 'default message'
+      },
+      {
+        input: 'Error',
+        result: 'Not null expected. Error',
+        title: 'custom message'
+      }
+    ];
+    cases.forEach(function (test) {
+      it(test.title, function () {
+        var errorObject = new App.NotNullTypeError(test.input);
+        expect(errorObject.message).to.equal(test.result);
+      });
     });
   });
-});
 
-describe('#App.ObjectTypeError', function () {
-  var cases = [
-    {
-      input: null,
-      result: 'Object expected. ',
-      title: 'default message'
-    },
-    {
-      input: 'Error',
-      result: 'Object expected. Error',
-      title: 'custom message'
-    }
-  ];
-  cases.forEach(function (test) {
-    it(test.title, function () {
-      var errorObject = new App.ObjectTypeError(test.input);
-      expect(errorObject.message).to.equal(test.result);
+  describe('#App.ObjectTypeError', function () {
+    var cases = [
+      {
+        input: null,
+        result: 'Object expected. ',
+        title: 'default message'
+      },
+      {
+        input: 'Error',
+        result: 'Object expected. Error',
+        title: 'custom message'
+      }
+    ];
+    cases.forEach(function (test) {
+      it(test.title, function () {
+        var errorObject = new App.ObjectTypeError(test.input);
+        expect(errorObject.message).to.equal(test.result);
+      });
     });
   });
-});
 
-describe('#App.ArrayTypeError', function () {
-  var cases = [
-    {
-      input: null,
-      result: 'Array expected. ',
-      title: 'default message'
-    },
-    {
-      input: 'Error',
-      result: 'Array expected. Error',
-      title: 'custom message'
-    }
-  ];
-  cases.forEach(function (test) {
-    it(test.title, function () {
-      var errorObject = new App.ArrayTypeError(test.input);
-      expect(errorObject.message).to.equal(test.result);
+  describe('#App.ArrayTypeError', function () {
+    var cases = [
+      {
+        input: null,
+        result: 'Array expected. ',
+        title: 'default message'
+      },
+      {
+        input: 'Error',
+        result: 'Array expected. Error',
+        title: 'custom message'
+      }
+    ];
+    cases.forEach(function (test) {
+      it(test.title, function () {
+        var errorObject = new App.ArrayTypeError(test.input);
+        expect(errorObject.message).to.equal(test.result);
+      });
     });
   });
-});
 
-describe('#App.FunctionTypeError', function () {
-  var cases = [
-    {
-      input: null,
-      result: 'Function expected. ',
-      title: 'default message'
-    },
-    {
-      input: 'Error',
-      result: 'Function expected. Error',
-      title: 'custom message'
-    }
-  ];
-  cases.forEach(function (test) {
-    it(test.title, function () {
-      var errorObject = new App.FunctionTypeError(test.input);
-      expect(errorObject.message).to.equal(test.result);
+  describe('#App.FunctionTypeError', function () {
+    var cases = [
+      {
+        input: null,
+        result: 'Function expected. ',
+        title: 'default message'
+      },
+      {
+        input: 'Error',
+        result: 'Function expected. Error',
+        title: 'custom message'
+      }
+    ];
+    cases.forEach(function (test) {
+      it(test.title, function () {
+        var errorObject = new App.FunctionTypeError(test.input);
+        expect(errorObject.message).to.equal(test.result);
+      });
     });
   });
-});
 
-describe('#App.EmberObjectTypeError', function () {
-  var cases = [
-    {
-      input: null,
-      result: 'Ember object expected. ',
-      title: 'default message'
-    },
-    {
-      input: 'Error',
-      result: 'Ember object expected. Error',
-      title: 'custom message'
-    }
-  ];
-  cases.forEach(function (test) {
-    it(test.title, function () {
-      var errorObject = new App.EmberObjectTypeError(test.input);
-      expect(errorObject.message).to.equal(test.result);
+  describe('#App.EmberObjectTypeError', function () {
+    var cases = [
+      {
+        input: null,
+        result: 'Ember object expected. ',
+        title: 'default message'
+      },
+      {
+        input: 'Error',
+        result: 'Ember object expected. Error',
+        title: 'custom message'
+      }
+    ];
+    cases.forEach(function (test) {
+      it(test.title, function () {
+        var errorObject = new App.EmberObjectTypeError(test.input);
+        expect(errorObject.message).to.equal(test.result);
+      });
     });
   });
 });
