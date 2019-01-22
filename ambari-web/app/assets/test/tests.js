@@ -233,6 +233,8 @@ var files = [
   'test/utils/db_test',
   'test/utils/ember_computed_test',
   'test/utils/ember_reopen_test',
+  'test/utils/errors/assertions_test',
+  'test/utils/errors/definitions_test',
   'test/utils/form_field_test',
   'test/utils/file_utils_test',
   'test/utils/handlebars_helpers_test',
