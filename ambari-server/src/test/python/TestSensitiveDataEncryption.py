@@ -488,7 +488,8 @@ class TestSensitiveDataEncryption(TestCase):
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.sensitive_data_encryption")
   @patch("ambari_server.setupSecurity.get_is_secure")
-  def test_reset_master_key_persisted(self, get_is_secure_method, sensitive_data_encryption_metod, is_root_method,
+  @patch("ambari_server.setupSecurity.get_is_persisted")
+  def test_reset_master_key_persisted(self, get_is_persisted_method, get_is_secure_method, sensitive_data_encryption_metod, is_root_method,
                                       get_ambari_properties_method, search_file_message,
                                       get_YN_input_method,
                                       save_master_key_method, update_properties_method,
@@ -511,13 +512,13 @@ class TestSensitiveDataEncryption(TestCase):
 
     master_key = "aaa"
 
+    get_is_persisted_method.return_value = (True, "filepath")
     get_is_secure_method.return_value = True
     get_YN_input_method.side_effect = [False, True, True]
     read_master_key_method.return_value = master_key
     read_passwd_for_alias_method.return_value = "fakepassword"
     save_passwd_for_alias_method.return_value = 0
     exists_mock.return_value = False
-
 
     options = self._create_empty_options_mock()
     setup_sensitive_data_encryption(options)
@@ -547,7 +548,6 @@ class TestSensitiveDataEncryption(TestCase):
     self.assertEquals(sorted_x, sorted_y)
     pass
 
-  @patch("ambari_server.setupSecurity.read_master_key")
   @patch("os.path.exists")
   @patch("ambari_server.setupSecurity.read_ambari_user")
   @patch("ambari_server.setupSecurity.save_passwd_for_alias")
@@ -559,13 +559,13 @@ class TestSensitiveDataEncryption(TestCase):
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.sensitive_data_encryption")
   @patch("ambari_server.setupSecurity.get_is_secure")
-  def test_decrypt_sensitive_data(self, get_is_secure_method, sensitive_data_encryption_metod, is_root_method,
+  @patch("ambari_server.setupSecurity.get_is_persisted")
+  def test_decrypt_sensitive_data_persister(self, get_is_persisted_method, get_is_secure_method, sensitive_data_encryption_metod, is_root_method,
                                   get_ambari_properties_method, search_file_message,
                                   get_YN_input_method,
                                   update_properties_method,
                                   read_passwd_for_alias_method, save_passwd_for_alias_method,
-                                  read_ambari_user_method, exists_mock,
-                                  read_master_key_method):
+                                  read_ambari_user_method, exists_mock):
 
     # Testing call under root
     is_root_method.return_value = True
@@ -580,14 +580,12 @@ class TestSensitiveDataEncryption(TestCase):
     p.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, FAKE_PWD_STRING)
     get_ambari_properties_method.return_value = p
 
-    master_key = "aaa"
+    get_is_persisted_method.return_value = (True, "filepath")
     get_is_secure_method.return_value = True
     get_YN_input_method.side_effect = [True, False]
-    read_master_key_method.return_value = master_key
     read_passwd_for_alias_method.return_value = "fakepassword"
     save_passwd_for_alias_method.return_value = 0
     exists_mock.return_value = False
-
 
     options = self._create_empty_options_mock()
     setup_sensitive_data_encryption(options)
