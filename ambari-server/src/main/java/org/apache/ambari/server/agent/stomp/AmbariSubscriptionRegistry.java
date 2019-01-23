@@ -263,16 +263,16 @@ public class AmbariSubscriptionRegistry extends AbstractSubscriptionRegistry {
       this.accessCache.compute(destination, (key, value) -> {
         if (value == null) {
           LinkedMultiValueMap<String, String> result = new LinkedMultiValueMap<>();
-          for (SessionSubscriptionInfo info : subscriptionRegistry.getAllSubscriptions()) {
-            for (String destinationPattern : info.getDestinations()) {
+          subscriptionRegistry.getAllSubscriptions().forEach((info) -> {
+            info.getDestinations().forEach((destinationPattern) -> {
               //TODO temporary changed to more fast-acting check without regex, need move investigation
               if (destinationPattern.equals(destination)) {
                 for (Subscription subscription : info.getSubscriptions(destinationPattern)) {
                   result.add(info.sessionId, subscription.getId());
                 }
               }
-            }
-          }
+            });
+          });
           if (!result.isEmpty()) {
             copiedSubscriptions.addAll(result.deepCopy());
             return result;
