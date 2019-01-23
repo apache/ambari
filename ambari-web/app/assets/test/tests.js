@@ -437,6 +437,7 @@ var files = [
   'test/views/common/configs/service_configs_by_category_view_test',
   'test/views/common/configs/custom_category_views/notification_configs_view_test',
   'test/views/common/controls_view_test',
+  'test/views/common/editable_list_test',
   'test/views/common/configs/widgets/time_interval_spinner_view_test',
   'test/views/common/form/spinner_input_view_test',
   'test/views/common/form/datepicker_view_test',
