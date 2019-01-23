@@ -203,19 +203,19 @@ public class AmbariSubscriptionRegistry extends AbstractSubscriptionRegistry {
     }
     MultiValueMap<String, String> result = new LinkedMultiValueMap<>(allMatches.size());
     allMatches.forEach((sessionId, subIds) -> {
-      for (String subId : subIds) {
+      subIds.forEach(subId -> {
         SessionSubscriptionInfo info = this.subscriptionRegistry.getSubscriptions(sessionId);
         if (info == null) {
-          continue;
+          return;
         }
         Subscription sub = info.getSubscription(subId);
         if (sub == null) {
-          continue;
+          return;
         }
         Expression expression = sub.getSelectorExpression();
         if (expression == null) {
           result.add(sessionId, subId);
-          continue;
+          return;
         }
         try {
           if (Boolean.TRUE.equals(expression.getValue(messageEvalContext, message, Boolean.class))) {
@@ -230,7 +230,7 @@ public class AmbariSubscriptionRegistry extends AbstractSubscriptionRegistry {
         catch (Throwable ex) {
           logger.debug("Failed to evaluate selector", ex);
         }
-      }
+      });
     });
     return result;
   }
@@ -267,9 +267,9 @@ public class AmbariSubscriptionRegistry extends AbstractSubscriptionRegistry {
             info.getDestinations().forEach((destinationPattern) -> {
               //TODO temporary changed to more fast-acting check without regex, need move investigation
               if (destinationPattern.equals(destination)) {
-                for (Subscription subscription : info.getSubscriptions(destinationPattern)) {
+                info.getSubscriptions(destinationPattern).forEach((subscription) -> {
                   result.add(info.sessionId, subscription.getId());
-                }
+                });
               }
             });
           });
