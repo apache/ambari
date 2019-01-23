@@ -336,12 +336,10 @@ describe('App.UserSettingsController', function () {
   describe('#_showSettingsPopup()', function() {
 
     beforeEach(function() {
-      sinon.stub(App.ModalPopup, 'show');
       sinon.stub(App, 'showAlertPopup');
     });
 
     afterEach(function() {
-      App.ModalPopup.show.restore();
       App.showAlertPopup.restore();
     });
 

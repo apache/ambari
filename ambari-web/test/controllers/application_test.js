@@ -40,12 +40,10 @@ describe('App.ApplicationController', function () {
   describe('#showAboutPopup', function() {
     var dataToShowRes = {};
     beforeEach(function () {
+      App.ModalPopup.show.restore();
       sinon.stub(App.ModalPopup, 'show', function(dataToShow){
         dataToShowRes = dataToShow;
       });
-    });
-    afterEach(function () {
-      App.ModalPopup.show.restore();
     });
     it ('Should send correct data to popup', function() {
       applicationController.showAboutPopup();

@@ -1722,11 +1722,6 @@ describe('App.InstallerStep7Controller', function () {
 
     beforeEach(function() {
       controller = App.WizardStep7Controller.create({});
-      sinon.stub(App.ModalPopup, 'show', Em.K);
-    });
-
-    afterEach(function() {
-      App.ModalPopup.show.restore();
     });
 
     Em.A([
@@ -1826,14 +1821,11 @@ describe('App.InstallerStep7Controller', function () {
       sinon.stub(installerStep7Controller, 'checkMySQLHost', function () {
         return $.Deferred().resolve();
       });
-      sinon.spy(App.ModalPopup, 'show');
     });
 
     afterEach(function () {
       installerStep7Controller.moveNext.restore();
       installerStep7Controller.checkMySQLHost.restore();
-
-      App.ModalPopup.show.restore();
     });
 
     it('no HIVE service', function () {
@@ -1855,13 +1847,11 @@ describe('App.InstallerStep7Controller', function () {
 
     beforeEach(function () {
       installerStep7Controller.set('mySQLServerConflict', true);
-      sinon.spy(App.ModalPopup, 'show');
       sinon.stub(App.router, 'get').returns({gotoStep: Em.K});
       sinon.stub(App.router.get(), 'gotoStep', Em.K);
     });
 
     afterEach(function () {
-      App.ModalPopup.show.restore();
       App.router.get().gotoStep.restore();
       App.router.get.restore();
     });

@@ -1487,7 +1487,6 @@ describe('App.MainServiceItemController', function () {
       this.mockService = sinon.stub(App.Service, 'find');
       this.mockRangerPluginEnabled = sinon.stub(mainServiceItemController, 'isRangerPluginEnabled');
       sinon.stub(App, 'showConfirmationPopup');
-      sinon.stub(App.ModalPopup, 'show');
       sinon.stub(App.format, 'role', function(name) {return name});
       sinon.stub(mainServiceItemController, 'kerberosDeleteWarning');
       sinon.stub(mainServiceItemController, 'showLastWarning');
@@ -1503,7 +1502,6 @@ describe('App.MainServiceItemController', function () {
       this.mockService.restore();
       mainServiceItemController.dependentServicesWarning.restore();
       App.showConfirmationPopup.restore();
-      App.ModalPopup.show.restore();
       App.format.role.restore();
       mainServiceItemController.kerberosDeleteWarning.restore();
       this.mockRangerPluginEnabled.restore();
@@ -1579,12 +1577,10 @@ describe('App.MainServiceItemController', function () {
 
     beforeEach(function() {
       mainServiceItemController = App.MainServiceItemController.create({});
-      sinon.spy(App.ModalPopup, 'show');
       sinon.stub(App.router, 'transitionTo');
     });
 
     afterEach(function() {
-      App.ModalPopup.show.restore();
       App.router.transitionTo.restore();
     });
 
@@ -1601,11 +1597,9 @@ describe('App.MainServiceItemController', function () {
 
     beforeEach(function() {
       mainServiceItemController = App.MainServiceItemController.create({});
-      sinon.stub(App.ModalPopup, 'show');
       sinon.stub(App.format, 'role', function(name) {return name});
     });
     afterEach(function() {
-      App.ModalPopup.show.restore();
       App.format.role.restore();
     });
 
@@ -1619,11 +1613,8 @@ describe('App.MainServiceItemController', function () {
     var mainServiceItemController;
 
     beforeEach(function () {
-      mainServiceItemController = App.MainServiceItemController.create();
-    });
-
-    afterEach(function () {
       App.ModalPopup.show.restore();
+      mainServiceItemController = App.MainServiceItemController.create();
     });
 
     describe('confirmation popup', function () {
