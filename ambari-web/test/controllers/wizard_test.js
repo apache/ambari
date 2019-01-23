@@ -264,7 +264,7 @@ describe('App.WizardController', function () {
   });
 
   describe('#showLaunchBootstrapPopup', function () {
-    afterEach(function(){
+    beforeEach(function(){
       App.ModalPopup.show.restore();
     });
 
@@ -583,12 +583,10 @@ describe('App.WizardController', function () {
 
   describe('#gotoStep', function () {
     beforeEach(function(){
-      sinon.stub(App.ModalPopup,'show', Em.K);
-      sinon.stub(App.clusterStatus,'setClusterStatus', Em.K);  
+      sinon.stub(App.clusterStatus,'setClusterStatus', Em.K);
       sinon.stub(App.router,'send', Em.K);  
     });
     afterEach(function(){
-      App.ModalPopup.show.restore();
       App.clusterStatus.setClusterStatus.restore();
       App.router.send.restore();
     });

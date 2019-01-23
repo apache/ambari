@@ -131,12 +131,10 @@ describe('App.MainAdminKerberosController', function() {
   describe('#regenerateKeytabs()', function () {
 
     beforeEach(function () {
-      sinon.spy(App.ModalPopup, "show");
       sinon.spy(controller, 'restartServicesAfterRegenerate');
       sinon.spy(controller, 'restartAllServices');
     });
     afterEach(function () {
-      App.ModalPopup.show.restore();
       controller.restartServicesAfterRegenerate.restore();
       controller.restartAllServices.restore();
     });

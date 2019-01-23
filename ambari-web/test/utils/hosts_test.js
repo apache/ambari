@@ -30,14 +30,6 @@ describe('hosts utils', function () {
         callback: Em.K
       };
 
-    beforeEach(function () {
-      sinon.stub(App.ModalPopup, 'show', Em.K);
-    });
-
-    afterEach(function () {
-      App.ModalPopup.show.restore();
-    });
-
     describe('popup header and message', function () {
 
       var cases = [
@@ -3270,13 +3262,10 @@ describe('hosts utils', function () {
   describe('#setRackInfo', function () {
 
     beforeEach(function () {
+      App.ModalPopup.show.restore();
       sinon.stub(App.ModalPopup, 'show', function (obj) {
         return Em.Object.create(obj);
       });
-    });
-
-    afterEach(function () {
-      App.ModalPopup.show.restore();
     });
 
     describe('#bodyClass', function () {

@@ -983,7 +983,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   describe("#upgradeOptions()", function() {
     var version = Em.Object.create({displayName: 'HDP-2.2'});
     beforeEach(function () {
-      sinon.spy(App.ModalPopup, 'show');
       sinon.spy(App, 'showConfirmationFeedBackPopup');
       sinon.stub(controller, 'getSupportedUpgradeTypes').returns({
         done: function (callback) {
@@ -1006,7 +1005,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
 
     afterEach(function () {
-      App.ModalPopup.show.restore();
       App.showConfirmationFeedBackPopup.restore();
       controller.runPreUpgradeCheck.restore();
       controller.getSupportedUpgradeTypes.restore();
@@ -3629,12 +3627,10 @@ describe('App.MainAdminStackAndUpgradeController', function() {
    describe('#confirmRevertPatchUpgrade', function() {
     beforeEach(function() {
       sinon.stub(App.RepositoryVersion, 'find').returns(Em.Object.create());
-      sinon.stub(App.ModalPopup, 'show');
       sinon.stub(controller, 'getServicesToBeReverted');
     });
     afterEach(function() {
       App.RepositoryVersion.find.restore();
-      App.ModalPopup.show.restore();
       controller.getServicesToBeReverted.restore();
     });
 
