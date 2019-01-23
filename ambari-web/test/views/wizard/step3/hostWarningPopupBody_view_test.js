@@ -53,15 +53,6 @@ describe('App.WizardStep3HostWarningPopupBody', function() {
   });
 
   describe('#showHostsPopup', function() {
-
-    beforeEach(function () {
-      sinon.stub(App.ModalPopup, 'show', Em.K);
-    });
-
-    afterEach(function () {
-      App.ModalPopup.show.restore();
-    });
-
     it('should call App.ModalPopup.show', function() {
       view.showHostsPopup({context: []});
       expect(App.ModalPopup.show.calledOnce).to.equal(true);

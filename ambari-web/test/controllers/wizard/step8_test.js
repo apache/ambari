@@ -1932,12 +1932,7 @@ describe('App.WizardStep8Controller', function () {
         isSubmitDisabled: true,
         isBackBtnDisabled: true
       });
-      sinon.stub(App.ModalPopup, 'show', Em.K);
       installerStep8Controller.showDeleteClustersErrorPopup();
-    });
-
-    afterEach(function () {
-      App.ModalPopup.show.restore();
     });
 
     it('should show error popup and unlock navigation', function () {
@@ -2282,13 +2277,6 @@ describe('App.WizardStep8Controller', function () {
 
   describe('#showLoadingIndicator', function() {
 
-    beforeEach(function () {
-      sinon.spy(App.ModalPopup, 'show');
-    });
-
-    afterEach(function () {
-      App.ModalPopup.show.restore();
-    });
 
     it('if popup doesn\'t exist should create another', function() {
       installerStep8Controller.set('isSubmitDisabled', true);

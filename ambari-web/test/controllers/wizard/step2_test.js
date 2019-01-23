@@ -505,11 +505,9 @@ describe('App.WizardStep2Controller', function () {
 
   describe('#installedHostsPopup', function() {
     beforeEach(function() {
-      sinon.spy(App.ModalPopup, 'show');
       sinon.stub(c, 'proceedNext', Em.K);
     });
     afterEach(function() {
-      App.ModalPopup.show.restore();
       c.proceedNext.restore();
     });
     it('should call App.ModalPopup.show', function() {
@@ -524,11 +522,9 @@ describe('App.WizardStep2Controller', function () {
 
   describe('#warningPopup', function() {
     beforeEach(function() {
-      sinon.spy(App.ModalPopup, 'show');
       sinon.stub(c, 'proceedNext', Em.K);
     });
     afterEach(function() {
-      App.ModalPopup.show.restore();
       c.proceedNext.restore();
 
     });
@@ -544,11 +540,9 @@ describe('App.WizardStep2Controller', function () {
 
   describe('#hostNamePatternPopup', function() {
     beforeEach(function() {
-      sinon.spy(App.ModalPopup, 'show');
       sinon.stub(c, 'proceedNext', Em.K);
     });
     afterEach(function() {
-      App.ModalPopup.show.restore();
       c.proceedNext.restore();
     });
     it('should call App.ModalPopup.show', function() {
@@ -563,12 +557,10 @@ describe('App.WizardStep2Controller', function () {
 
   describe('#manualInstallPopup', function() {
     beforeEach(function() {
-      sinon.spy(App.ModalPopup, 'show');
       sinon.stub(App.router, 'send', Em.K);
       sinon.stub(c, 'saveHosts', Em.K);
     });
     afterEach(function() {
-      App.ModalPopup.show.restore();
       App.router.send.restore();
       c.saveHosts.restore();
     });
@@ -584,12 +576,6 @@ describe('App.WizardStep2Controller', function () {
   });
 
   describe('#manualInstallWarningPopup', function() {
-    beforeEach(function() {
-      sinon.spy(App.ModalPopup, 'show');
-    });
-    afterEach(function() {
-      App.ModalPopup.show.restore();
-    });
     it('should call App.ModalPopup.show if content.installOptions.useSsh is false', function() {
       var controller = App.WizardStep2Controller.create({content: {installOptions: {useSsh: false}}});
       controller.manualInstallWarningPopup();

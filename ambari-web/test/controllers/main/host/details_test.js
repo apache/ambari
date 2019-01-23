@@ -889,14 +889,6 @@ describe('App.MainHostDetailsController', function () {
 
   describe('#showAddComponentPopup()', function () {
 
-    beforeEach(function () {
-      sinon.stub(App.ModalPopup, 'show');
-    });
-
-    afterEach(function () {
-      App.ModalPopup.show.restore();
-    });
-
     it('should display add component confirmation', function () {
       controller.showAddComponentPopup(Em.Object.create());
       expect(App.ModalPopup.show.calledOnce).to.be.true;
@@ -1547,14 +1539,6 @@ describe('App.MainHostDetailsController', function () {
 
   describe('#installComponent()', function () {
 
-    beforeEach(function () {
-      sinon.spy(App.ModalPopup, "show");
-    });
-
-    afterEach(function () {
-      App.ModalPopup.show.restore();
-    });
-
     it('popup should be displayed', function () {
       var event = {context: Em.Object.create()};
       var popup = controller.installComponent(event);
@@ -1802,12 +1786,6 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#showRegionServerWarning()', function () {
-    beforeEach(function () {
-      sinon.stub(App.ModalPopup, 'show', Em.K);
-    });
-    afterEach(function () {
-      App.ModalPopup.show.restore();
-    });
     it('modal popup is shown', function () {
       controller.showRegionServerWarning();
       expect(App.ModalPopup.show.calledOnce).to.be.true;
@@ -2406,14 +2384,6 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#raiseDeleteComponentsError()', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ModalPopup, "show", Em.K);
-    });
-    afterEach(function () {
-      App.ModalPopup.show.restore();
-    });
-
     it('Popup should be displayed', function () {
       controller.raiseDeleteComponentsError([], '');
       expect(App.ModalPopup.show.calledOnce).to.be.true;
@@ -2423,12 +2393,10 @@ describe('App.MainHostDetailsController', function () {
   describe('#confirmDeleteHost()', function () {
 
     beforeEach(function () {
-      sinon.spy(App.ModalPopup, "show");
       sinon.stub(controller, 'doDeleteHost');
     });
 
     afterEach(function () {
-      App.ModalPopup.show.restore();
       controller.doDeleteHost.restore();
     });
 
@@ -2805,15 +2773,6 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#showHbaseActiveWarning()', function () {
-
-    beforeEach(function () {
-      sinon.spy(App.ModalPopup, "show");
-    });
-
-    afterEach(function () {
-      App.ModalPopup.show.restore();
-    });
-
     it('popup should be displayed', function () {
       controller.showHbaseActiveWarning(Em.Object.create({service: {}}));
       expect(App.ModalPopup.show.calledOnce).to.be.true;

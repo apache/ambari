@@ -912,14 +912,6 @@ describe('App.ManageAlertNotificationsController', function () {
 
   describe("#showCreateEditPopup()", function () {
 
-    beforeEach(function () {
-      sinon.spy(App.ModalPopup, 'show');
-    });
-
-    afterEach(function () {
-      App.ModalPopup.show.restore();
-    });
-
     it("should open popup and set popup object to createEditPopup", function () {
 
       controller.showCreateEditPopup();

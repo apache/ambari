@@ -562,6 +562,9 @@ describe('Ambari Web Unit tests', function() {
     });
     sinon.stub(App.updater, 'run', Em.K);
     sinon.stub(App.updater, 'immediateRun', Em.K);
+    sinon.stub(App.ModalPopup, 'show', function (options) {
+      return this.create(options);
+    });
   });
 
   afterEach(function () {
@@ -569,6 +572,7 @@ describe('Ambari Web Unit tests', function() {
     $.ajax.restore();
     App.updater.run.restore();
     App.updater.immediateRun.restore();
+    App.ModalPopup.show.restore();
   });
 
   files.forEach(function (file) {

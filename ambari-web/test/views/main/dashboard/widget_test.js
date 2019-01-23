@@ -167,15 +167,6 @@ describe('App.DashboardWidgetView', function () {
   });
 
   describe('#editWidget()', function() {
-
-    beforeEach(function() {
-      sinon.stub(App.ModalPopup, 'show');
-    });
-
-    afterEach(function() {
-      App.ModalPopup.show.restore();
-    });
-
     it('App.ModalPopup.show should be called', function() {
       view.editWidget();
       expect(App.ModalPopup.show).to.be.calledOnce;

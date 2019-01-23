@@ -269,11 +269,9 @@ describe('App.UpgradeVersionBoxView', function () {
         sinon.stub(App.RepositoryVersion, 'find').returns(Em.Object.create({
           operatingSystems: []
         }));
-        sinon.stub(App.ModalPopup, 'show', Em.K);
       });
       afterEach(function () {
         App.RepositoryVersion.find.restore();
-        App.ModalPopup.show.restore();
       });
       cases.forEach(function (item) {
         it(item.title, function () {
@@ -327,6 +325,7 @@ describe('App.UpgradeVersionBoxView', function () {
             })
           ]
         }));
+        App.ModalPopup.show.restore();
         sinon.stub(App.ModalPopup, 'show', function (popupOptions) {
           var body = popupOptions.bodyClass.create();
           return body.get('skipCheckBox').create({
@@ -340,7 +339,6 @@ describe('App.UpgradeVersionBoxView', function () {
       });
       afterEach(function () {
         App.RepositoryVersion.find.restore();
-        App.ModalPopup.show.restore();
       });
       cases.forEach(function (item) {
         it(item.title, function () {
@@ -360,11 +358,9 @@ describe('App.UpgradeVersionBoxView', function () {
     beforeEach(function () {
       view.set('content.stackVersion', Em.Object.create({supportsRevert: false}));
       view.set('content.stackServices', [Em.Object.create({isUpgradable: true})])
-      sinon.spy(App.ModalPopup, 'show');
       sinon.stub(view, 'filterHostsByStack', Em.K);
     });
     afterEach(function () {
-      App.ModalPopup.show.restore();
       view.filterHostsByStack.restore();
     });
     it("no hosts", function () {
