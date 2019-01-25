@@ -18,10 +18,17 @@
 
 package org.apache.ambari.server.state;
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,8 +41,11 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.commons.collections.MapUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,6 +65,7 @@ public class ServiceTest {
   private ServiceComponentFactory serviceComponentFactory;
   private ServiceComponentHostFactory serviceComponentHostFactory;
   private OrmTestHelper ormTestHelper;
+  private ConfigFactory configFactory;
 
   private final String STACK_VERSION = "0.1";
   private final String REPO_VERSION = "0.1-1234";
@@ -69,6 +80,7 @@ public class ServiceTest {
     serviceFactory = injector.getInstance(ServiceFactory.class);
     serviceComponentFactory = injector.getInstance(ServiceComponentFactory.class);
     serviceComponentHostFactory = injector.getInstance(ServiceComponentHostFactory.class);
+    configFactory = injector.getInstance(ConfigFactory.class);
 
     ormTestHelper = injector.getInstance(OrmTestHelper.class);
     repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(STACK_ID, REPO_VERSION);
@@ -345,6 +357,71 @@ public class ServiceTest {
     map.put("hdfs-site", Collections.singletonMap("hadoop.security.authentication", "kerberos"));
     Assert.assertTrue(service.isKerberosEnabled(map));
 
+  }
+
+  @Test
+  public void testClusterConfigsUnmappingOnDeleteAllServiceConfigs() throws AmbariException {
+    String serviceName = "HDFS";
+    Service s = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+    cluster.addService(s);
+
+    Service service = cluster.getService(serviceName);
+
+    // add some cluster and service configs
+    Config config1 = configFactory.createNew(cluster, "hdfs-site", "version1",
+        new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<>());
+    cluster.addDesiredConfig("admin", Collections.singleton(config1));
+
+    Config config2 = configFactory.createNew(cluster, "hdfs-site", "version2",
+        new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<>());
+    cluster.addDesiredConfig("admin", Collections.singleton(config2));
+
+
+    // check all cluster configs are mapped
+    Collection<ClusterConfigEntity> clusterConfigEntities = cluster.getClusterEntity().getClusterConfigEntities();
+    for (ClusterConfigEntity clusterConfigEntity : clusterConfigEntities) {
+      assertFalse(clusterConfigEntity.isUnmapped());
+    }
+
+    ((ServiceImpl)service).deleteAllServiceConfigs();
+
+    // check all cluster configs are unmapped
+    clusterConfigEntities = cluster.getClusterEntity().getClusterConfigEntities();
+    for (ClusterConfigEntity clusterConfigEntity : clusterConfigEntities) {
+      assertTrue(clusterConfigEntity.isUnmapped());
+    }
+  }
+
+  @Test
+  public void testDeleteAllServiceConfigGroups() throws AmbariException {
+    String serviceName = "HDFS";
+    Service s = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+    cluster.addService(s);
+
+    Service service = cluster.getService(serviceName);
+
+    ConfigGroup configGroup1 = createNiceMock(ConfigGroup.class);
+    ConfigGroup configGroup2 = createNiceMock(ConfigGroup.class);
+
+    expect(configGroup1.getId()).andReturn(1L).anyTimes();
+    expect(configGroup2.getId()).andReturn(2L).anyTimes();
+
+    expect(configGroup1.getServiceName()).andReturn(serviceName).anyTimes();
+    expect(configGroup2.getServiceName()).andReturn(serviceName).anyTimes();
+
+    expect(configGroup1.getClusterName()).andReturn(cluster.getClusterName()).anyTimes();
+    expect(configGroup2.getClusterName()).andReturn(cluster.getClusterName()).anyTimes();
+
+    replay(configGroup1, configGroup2);
+
+    cluster.addConfigGroup(configGroup1);
+    cluster.addConfigGroup(configGroup2);
+
+    ((ServiceImpl)service).deleteAllServiceConfigGroups();
+
+    assertTrue(MapUtils.isEmpty(cluster.getConfigGroupsByServiceName(serviceName)));
+
+    verify(configGroup1, configGroup2);
   }
 
   private void addHostToCluster(String hostname,
