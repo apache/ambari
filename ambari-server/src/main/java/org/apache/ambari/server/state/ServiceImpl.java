@@ -593,7 +593,7 @@ public class ServiceImpl implements Service {
     // de-select every configuration from the service
     if (lastServiceConfigEntity != null) {
       for (ClusterConfigEntity serviceConfigEntity : lastServiceConfigEntity.getClusterConfigEntities()) {
-        LOG.info("Disabling configuration {}", serviceConfigEntity);
+        LOG.info("Disabling and unmapping configuration {}", serviceConfigEntity);
         serviceConfigEntity.setSelected(false);
         serviceConfigEntity.setUnmapped(true);
         clusterDAO.merge(serviceConfigEntity);
@@ -606,9 +606,23 @@ public class ServiceImpl implements Service {
         serviceConfigDAO.findByService(cluster.getClusterId(), getName());
 
     for (ServiceConfigEntity serviceConfigEntity : serviceConfigEntities) {
+      // unmapping all service configs
+      for (ClusterConfigEntity clusterConfigEntity : serviceConfigEntity.getClusterConfigEntities()) {
+        if (!clusterConfigEntity.isUnmapped()) {
+          LOG.info("Unmapping configuration {}", clusterConfigEntity);
+          clusterConfigEntity.setUnmapped(true);
+          clusterDAO.merge(clusterConfigEntity);
+        }
+      }
       // Only delete the historical version information and not original
       // config data
       serviceConfigDAO.remove(serviceConfigEntity);
+    }
+  }
+
+  void deleteAllServiceConfigGroups() throws AmbariException {
+    for (Long configGroupId : cluster.getConfigGroupsByServiceName(serviceName).keySet()) {
+      cluster.deleteConfigGroup(configGroupId);
     }
   }
 
@@ -682,6 +696,7 @@ public class ServiceImpl implements Service {
     StackId stackId = getDesiredStackId();
     try {
       deleteAllServiceConfigs();
+      deleteAllServiceConfigGroups();
 
       removeEntities();
     } catch (AmbariException e) {
