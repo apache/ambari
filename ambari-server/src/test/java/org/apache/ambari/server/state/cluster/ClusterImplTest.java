@@ -20,6 +20,7 @@ package org.apache.ambari.server.state.cluster;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -50,6 +51,8 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.commons.collections.MapUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -337,5 +340,45 @@ public class ClusterImplTest {
     // Then
     assertEquals(2, clusterSize);
 
+  }
+
+  @Test
+  public void testGetConfigGroupsByServiceName() throws AmbariException {
+    // Given
+    String clusterName = "TEST_CONFIG_GROUPS";
+    String hostName1 = "HOSTNAME1", hostName2 = "HOSTNAME2";
+    String hostToDelete = hostName2;
+    StackId stackId = new StackId("HDP-2.1.1");
+
+    String serviceToCheckName = "serviceName1";
+    String serviceNotToCheckName = "serviceName2";
+
+    ormTestHelper.createStack(stackId);
+    clusters.addCluster(clusterName, stackId);
+
+    Cluster cluster = clusters.getCluster(clusterName);
+
+    ConfigGroup serviceConfigGroup1 = createNiceMock(ConfigGroup.class);
+    ConfigGroup serviceConfigGroup2 = createNiceMock(ConfigGroup.class);
+
+    expect(serviceConfigGroup1.getId()).andReturn(1L).anyTimes();
+    expect(serviceConfigGroup2.getId()).andReturn(2L).anyTimes();
+
+    expect(serviceConfigGroup1.getServiceName()).andReturn(serviceToCheckName).anyTimes();
+    expect(serviceConfigGroup2.getServiceName()).andReturn(serviceNotToCheckName).anyTimes();
+
+    replay(serviceConfigGroup1, serviceConfigGroup2);
+
+    cluster.addConfigGroup(serviceConfigGroup1);
+    cluster.addConfigGroup(serviceConfigGroup2);
+
+    Map<Long, ConfigGroup> configGroupsToCheck = cluster.getConfigGroupsByServiceName(serviceToCheckName);
+
+    assertFalse(MapUtils.isEmpty(configGroupsToCheck));
+    assertEquals(1L, configGroupsToCheck.size());
+    assertTrue(configGroupsToCheck.keySet().contains(1L));
+    assertEquals(serviceToCheckName, configGroupsToCheck.get(1L).getServiceName());
+
+    verify(serviceConfigGroup1, serviceConfigGroup2);
   }
 }

@@ -59,7 +59,6 @@ import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
-import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.ClientConfigFileDefinition;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -589,7 +588,7 @@ public class DatabaseConsistencyCheckHelper {
     List<ClusterConfigEntity> notMappedClusterConfigs = getNotMappedClusterConfigsToService();
 
     for (ClusterConfigEntity clusterConfigEntity : notMappedClusterConfigs){
-      if (!clusterConfigEntity.isUnmapped()){
+      if (clusterConfigEntity.isUnmapped()){
         continue; // skip clusterConfigs that did not leave after service deletion
       }
       List<String> types = new ArrayList<>();
@@ -1339,8 +1338,6 @@ public class DatabaseConsistencyCheckHelper {
           try {
             Cluster cluster = clusters.getCluster(configGroup.getClusterName());
             cluster.deleteConfigGroup(id);
-          } catch (AuthorizationException e) {
-            // This call does not thrown Authorization Exception
           } catch (AmbariException e) {
             // Ignore if cluster not found
           }

@@ -519,8 +519,6 @@ public class ConfigGroupResourceProvider extends
         cluster.getClusterName(), getManagementController().getAuthName(), configGroup.getName(), request.getId());
 
     cluster.deleteConfigGroup(request.getId());
-
-    m_configHelper.get().updateAgentConfigs(Collections.singleton(request.getClusterName()));
   }
 
   private void validateRequest(ConfigGroupRequest request) {
