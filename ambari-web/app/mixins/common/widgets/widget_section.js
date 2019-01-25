@@ -19,6 +19,16 @@
 var App = require('app');
 
 App.WidgetSectionMixin = Ember.Mixin.create({
+  
+  /**
+   *  @Type {App.WidgetLayout}
+   */
+  activeWidgetLayout: {},
+  
+  activeNSWidgetLayouts: [],
+  
+  selectedNSWidgetLayout: {},
+  
   /**
    * UI default layout name
    */
@@ -74,7 +84,7 @@ App.WidgetSectionMixin = Ember.Mixin.create({
     var isServiceWithWidgetdescriptor;
     var serviceName = this.get('content.serviceName');
     if (serviceName) {
-      isServiceWithWidgetdescriptor = App.StackService.find().findProperty('serviceName', serviceName).get('isServiceWithWidgets');
+      isServiceWithWidgetdescriptor = App.StackService.find(serviceName).get('isServiceWithWidgets');
     } else if (this.get('sectionName') === 'SYSTEM_HEATMAPS') {
       isServiceWithWidgetdescriptor = true;
     }
@@ -86,11 +96,6 @@ App.WidgetSectionMixin = Ember.Mixin.create({
   }.property('content.serviceName', 'sectionNameSuffix', 'App.hasNameNodeFederation'),
 
   /**
-   *  @Type {App.WidgetLayout}
-   */
-  activeWidgetLayout: {},
-
-  /**
    * @type {Em.A}
    */
   widgets: function () {
@@ -99,10 +104,6 @@ App.WidgetSectionMixin = Ember.Mixin.create({
     }
     return [];
   }.property('isWidgetsLoaded', 'activeWidgetLayout.widgets'),
-
-  activeNSWidgetLayouts: [],
-
-  selectedNSWidgetLayout: {},
 
   isAmbariMetricsInstalled: function () {
     return App.Service.find().someProperty('serviceName', 'AMBARI_METRICS');
@@ -144,43 +145,53 @@ App.WidgetSectionMixin = Ember.Mixin.create({
    * @param {object|null} data
    */
   getActiveWidgetLayoutSuccessCallback: function (data) {
-    var self = this;
     if (this.get('isHDFSFederatedSummary')) {
-      this.getNameNodeWidgets().done(function (widgets) {
+      this.getNameNodeWidgets().done((widgets) => {
         widgets = widgets.items;
         var widgetsNamespaces = widgets.mapProperty('WidgetInfo.tag').uniq().without(null);
-        var namespaces = App.HDFSService.find().objectAt(0).get('masterComponentGroups').mapProperty('name');
+        var namespaces = App.HDFSService.find('HDFS').get('masterComponentGroups').mapProperty('name');
         var defaultNNWidgets = widgets.filterProperty('WidgetInfo.tag', null);
         var widgetsToCreateCount;
         if (namespaces.length > widgetsNamespaces.length) {
           widgetsToCreateCount = (namespaces.length - widgetsNamespaces.length) * defaultNNWidgets.length;
-          namespaces.forEach(function (namespace) {
+          namespaces.forEach((namespace) => {
             if (!widgetsNamespaces.contains(namespace)) {
-              defaultNNWidgets.forEach(function (widget) {
-                if (widget.href) {
-                  delete widget.href;
-                  delete widget.WidgetInfo.id;
-                  delete widget.WidgetInfo.cluster_name;
-                  delete widget.WidgetInfo.author;
-                  widget.WidgetInfo.metrics = JSON.parse(widget.WidgetInfo.metrics);
-                  widget.WidgetInfo.values = JSON.parse(widget.WidgetInfo.values);
-                }
-                widget.WidgetInfo.tag = namespace;
-                self.postWidget(widget).done(function () {
-                  if (!--widgetsToCreateCount) {
-                    self.createLayouts(data);
-                  }
-                });
+              defaultNNWidgets.forEach((widget) => {
+                this.postNNWidgets(widget, widgetsToCreateCount, data, namespace);
               });
             }
           });
         } else {
-          self.createLayouts(data);
+          this.createLayouts(data);
         }
       })
     } else {
       this.createLayouts(data);
     }
+  },
+  
+  /**
+   *
+   * @param widget
+   * @param widgetsToCreateCount
+   * @param data
+   * @param namespace
+   */
+  postNNWidgets: function(widget, widgetsToCreateCount, data, namespace) {
+    if (widget.href) {
+      delete widget.href;
+      delete widget.WidgetInfo.id;
+      delete widget.WidgetInfo.cluster_name;
+      delete widget.WidgetInfo.author;
+      widget.WidgetInfo.metrics = JSON.parse(widget.WidgetInfo.metrics);
+      widget.WidgetInfo.values = JSON.parse(widget.WidgetInfo.values);
+    }
+    widget.WidgetInfo.tag = namespace;
+    this.postWidget(widget).done(() => {
+      if (!--widgetsToCreateCount) {
+        this.createLayouts(data);
+      }
+    });
   },
 
   getNameNodeWidgets: function () {
@@ -206,38 +217,47 @@ App.WidgetSectionMixin = Ember.Mixin.create({
   createLayouts: function (data) {
     var self = this;
     if (data.items[0]) {
-      var hdfs = App.HDFSService.find().objectAt(0);
-      if (hdfs && this.get('isHDFSFederatedSummary') && hdfs.get('masterComponentGroups').length + 2 !== data.items.length) {
+      var hdfs = App.HDFSService.find('HDFS');
+      if (hdfs.get('isLoaded') && this.get('isHDFSFederatedSummary') && hdfs.get('masterComponentGroups').length + 2 !== data.items.length) {
         this.createFederationWidgetLayouts(data);
       } else {
-        self.getWidgetLayoutSuccessCallback(data);
+        this.getWidgetLayoutSuccessCallback(data);
       }
     } else {
-      self.getAllActiveWidgetLayouts().done(function (activeWidgetLayoutsData) {
+      this.getAllActiveWidgetLayouts().done(function (activeWidgetLayoutsData) {
         self.getDefaultWidgetLayoutByName(self.get('defaultLayoutName')).done(function (defaultWidgetLayoutData) {
           defaultWidgetLayoutData = defaultWidgetLayoutData.items[0].WidgetLayoutInfo;
           defaultWidgetLayoutData.layout_name = self.get('userLayoutName');
           self.createUserWidgetLayout(defaultWidgetLayoutData).done(function (userLayoutIdData) {
-            var activeWidgetLayouts;
-            var widgetLayouts = [];
-            if (!!activeWidgetLayoutsData.items.length) {
-              widgetLayouts = activeWidgetLayoutsData.items.map(function (item) {
-                return {
-                  "id": item.WidgetLayoutInfo.id
-                }
-              });
-            }
-            widgetLayouts.push({id: userLayoutIdData.resources[0].WidgetLayoutInfo.id});
-            activeWidgetLayouts = {
-              "WidgetLayouts": widgetLayouts
-            };
-            self.saveActiveWidgetLayouts(activeWidgetLayouts).done(function () {
-              self.getActiveWidgetLayout();
-            });
+            self.createUserWidgetLayoutCallback(userLayoutIdData, activeWidgetLayoutsData);
           });
         });
       });
     }
+  },
+  
+  /**
+   *
+   * @param userLayoutIdData
+   * @param activeWidgetLayoutsData
+   */
+  createUserWidgetLayoutCallback: function(userLayoutIdData, activeWidgetLayoutsData) {
+    var activeWidgetLayouts;
+    var widgetLayouts = [];
+    if (!!activeWidgetLayoutsData.items.length) {
+      widgetLayouts = activeWidgetLayoutsData.items.map(function (item) {
+        return {
+          "id": item.WidgetLayoutInfo.id
+        }
+      });
+    }
+    widgetLayouts.push({id: userLayoutIdData.resources[0].WidgetLayoutInfo.id});
+    activeWidgetLayouts = {
+      "WidgetLayouts": widgetLayouts
+    };
+    this.saveActiveWidgetLayouts(activeWidgetLayouts).done(() => {
+      this.getActiveWidgetLayout();
+    });
   },
 
   getAllActiveWidgetLayouts: function () {
@@ -385,20 +405,14 @@ App.WidgetSectionMixin = Ember.Mixin.create({
   },
 
   createFederationWidgetLayouts: function (data) {
-    var self = this;
     var currentLayouts = data.items;
-    self.getDefaultWidgetLayoutByName(self.get('defaultLayoutName')).done(function (defaultWidgetLayoutData) {
-      self.getNameNodeWidgets().done(function (widgets) {
-        var newNameServices = [];
-        var newWidgets = [];
-        var currentLayoutsNames = [];
+    
+    this.getDefaultWidgetLayoutByName(this.get('defaultLayoutName')).done((defaultWidgetLayoutData) => {
+      this.getNameNodeWidgets().done((widgets) => {
         var newLayout = defaultWidgetLayoutData.items[0].WidgetLayoutInfo;
-        var newLayoutsIds = [];
         var nameServiceToWidgetMap = {all: []};
-        var namespaces = App.HDFSService.find().objectAt(0).get('masterComponentGroups').mapProperty('name');
         var nonNameServiceSpecific = newLayout.widgets.slice();
-        var userLayoutName = self.get('userLayoutName');
-        widgets.items.forEach(function (widget) {
+        widgets.items.forEach((widget) => {
           var tag = widget.WidgetInfo.tag;
           nonNameServiceSpecific = nonNameServiceSpecific.without(nonNameServiceSpecific.findProperty('WidgetInfo.id', widget.WidgetInfo.id));
           if (tag) {
@@ -410,61 +424,90 @@ App.WidgetSectionMixin = Ember.Mixin.create({
           }
         });
         if (currentLayouts.length === 1) {
-          self.removeWidgetLayout(currentLayouts[0].WidgetLayoutInfo.id).done(function () {
-            newLayout.layout_name = userLayoutName;
-            newLayout.widgets = nonNameServiceSpecific;
-            self.createUserWidgetLayout(newLayout).done(function (data) {
-              newLayoutsIds.push(data.resources[0].WidgetLayoutInfo.id);
-              Em.keys(nameServiceToWidgetMap).forEach(function (nameService) {
-                newLayout.layout_name = userLayoutName + '_nameservice_' + nameService;
-                newLayout.display_name = nameService === 'all' ? 'All' : nameService;
-                newLayout.widgets = nameServiceToWidgetMap[nameService];
-                self.createUserWidgetLayout(newLayout).done(function (data) {
-                  newLayoutsIds.push(data.resources[0].WidgetLayoutInfo.id);
-                  if (newLayoutsIds.length >= Em.keys(nameServiceToWidgetMap).length + 1) {
-                    self.saveActiveWidgetLayouts({
-                      "WidgetLayouts": newLayoutsIds.map(function (layout) {
-                        return {id: layout};
-                      })
-                    }).done(function () {
-                      self.getActiveWidgetLayout();
-                    });
-                  }
-                });
-              })
-            });
-          });
+          this.createSingleLayout(currentLayouts, newLayout, nonNameServiceSpecific, nameServiceToWidgetMap);
         } else {
-          currentLayoutsNames = currentLayouts.map(function (l) {
-            return l.WidgetLayoutInfo.layout_name.split('_nameservice_')[1];
-          }).without(undefined).without('all');
-          namespaces.forEach(function (n) {
-            if (!currentLayoutsNames.contains(n)) {
-              newNameServices.push(n);
+          this.createMultipleLayouts(currentLayouts, newLayout, nameServiceToWidgetMap);
+        }
+      });
+    });
+  },
+  
+  /**
+   *
+   * @param currentLayouts
+   * @param newLayout
+   * @param nonNameServiceSpecific
+   * @param nameServiceToWidgetMap
+   */
+  createSingleLayout: function(currentLayouts, newLayout, nonNameServiceSpecific, nameServiceToWidgetMap) {
+    const userLayoutName = this.get('userLayoutName');
+    const newLayoutsIds = [];
+  
+    this.removeWidgetLayout(currentLayouts[0].WidgetLayoutInfo.id).done(() => {
+      newLayout.layout_name = userLayoutName;
+      newLayout.widgets = nonNameServiceSpecific;
+      this.createUserWidgetLayout(newLayout).done((data) => {
+        newLayoutsIds.push(data.resources[0].WidgetLayoutInfo.id);
+        Em.keys(nameServiceToWidgetMap).forEach((nameService) => {
+          newLayout.layout_name = userLayoutName + '_nameservice_' + nameService;
+          newLayout.display_name = nameService === 'all' ? 'All' : nameService;
+          newLayout.widgets = nameServiceToWidgetMap[nameService];
+          this.createUserWidgetLayout(newLayout).done((data) => {
+            newLayoutsIds.push(data.resources[0].WidgetLayoutInfo.id);
+            if (newLayoutsIds.length >= Em.keys(nameServiceToWidgetMap).length + 1) {
+              this.saveActiveWidgetLayouts({
+                "WidgetLayouts": newLayoutsIds.map(function (layout) {
+                  return {id: layout};
+                })
+              }).done(() => {
+                this.getActiveWidgetLayout();
+              });
             }
           });
-          newNameServices.forEach(function (nameService) {
-            newLayout.layout_name = userLayoutName + '_nameservice_' + nameService;
-            newLayout.display_name = nameService;
-            newLayout.widgets = nameServiceToWidgetMap[nameService];
-            newWidgets = newWidgets.concat(nameServiceToWidgetMap[nameService]);
-            self.createUserWidgetLayout(newLayout).done(function (data) {
-              newLayoutsIds.push(data.resources[0].WidgetLayoutInfo.id);
-              if (newLayoutsIds.length >= newNameServices.length) {
-                self.saveActiveWidgetLayouts({
-                  "WidgetLayouts": newLayoutsIds.concat(currentLayouts.mapProperty('WidgetLayoutInfo.id')).map(function (layout) {
-                    return {id: layout};
-                  })
-                }).done(function () {
-                  var allNSLayout = currentLayouts.findProperty('WidgetLayoutInfo.display_name', 'All').WidgetLayoutInfo;
-                  allNSLayout.widgets = allNSLayout.widgets.concat(newWidgets);
-                  self.updateUserWidgetLayout(allNSLayout).done(function() {
-                    self.getActiveWidgetLayout();
-                  });
-                });
-              }
+        })
+      });
+    });
+  },
+  
+  /**
+   *
+   * @param currentLayouts
+   * @param newLayout
+   * @param nameServiceToWidgetMap
+   */
+  createMultipleLayouts: function(currentLayouts, newLayout, nameServiceToWidgetMap) {
+    const newNameServices = [];
+    const newLayoutsIds = [];
+    let newWidgets = [];
+    const userLayoutName = this.get('userLayoutName');
+    const namespaces = App.HDFSService.find('HDFS').get('masterComponentGroups').mapProperty('name');
+    const currentLayoutsNames = currentLayouts.map((l) => {
+      return l.WidgetLayoutInfo.layout_name.split('_nameservice_')[1];
+    }).without(undefined).without('all');
+    namespaces.forEach(function (n) {
+      if (!currentLayoutsNames.contains(n)) {
+        newNameServices.push(n);
+      }
+    });
+    newNameServices.forEach((nameService) => {
+      newLayout.layout_name = userLayoutName + '_nameservice_' + nameService;
+      newLayout.display_name = nameService;
+      newLayout.widgets = nameServiceToWidgetMap[nameService];
+      newWidgets = newWidgets.concat(nameServiceToWidgetMap[nameService]);
+      this.createUserWidgetLayout(newLayout).done((data) => {
+        newLayoutsIds.push(data.resources[0].WidgetLayoutInfo.id);
+        if (newLayoutsIds.length >= newNameServices.length) {
+          this.saveActiveWidgetLayouts({
+            "WidgetLayouts": newLayoutsIds.concat(currentLayouts.mapProperty('WidgetLayoutInfo.id')).map(function (layout) {
+              return {id: layout};
+            })
+          }).done(() => {
+            var allNSLayout = currentLayouts.findProperty('WidgetLayoutInfo.display_name', 'All').WidgetLayoutInfo;
+            allNSLayout.widgets = allNSLayout.widgets.concat(newWidgets);
+            this.updateUserWidgetLayout(allNSLayout).done(() => {
+              this.getActiveWidgetLayout();
             });
-          })
+          });
         }
       });
     });
