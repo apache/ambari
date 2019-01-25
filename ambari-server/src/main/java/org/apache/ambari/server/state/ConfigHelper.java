@@ -1531,7 +1531,8 @@ public class ConfigHelper {
           currentConfigEvents.put(host.getHostId(), m_agentConfigsHolder.get().getCurrentData(hostId));
         }
         if (!previousConfigEvents.containsKey(host.getHostId())) {
-          previousConfigEvents.put(host.getHostId(), m_agentConfigsHolder.get().getData(hostId));
+          previousConfigEvents.put(host.getHostId(),
+              m_agentConfigsHolder.get().initializeDataIfNeeded(hostId, true));
         }
       }
     }
