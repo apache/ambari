@@ -133,7 +133,7 @@ describe('App.showSelectGroupsPopup', function () {
     });
    
     it('App.config.createOverride should be called when no overrides', function () {
-      view = App.showSelectGroupsPopup('', {}, dependentStepConfigs, configs);
+      view = App.showSelectGroupsPopup('', Em.Object.create(), dependentStepConfigs, configs);
       view.applyOverridesToConfigGroups('S1', {}, 'g2', 'g1');
       expect(App.config.createOverride.calledWith(
         Em.Object.create({
@@ -157,7 +157,7 @@ describe('App.showSelectGroupsPopup', function () {
         recommendedValue: 'val1'
       });
       dependentStepConfigs[0].get('configs')[0].set('overrides', [override]);
-      view = App.showSelectGroupsPopup('', {}, dependentStepConfigs, configs);
+      view = App.showSelectGroupsPopup('', Em.Object.create(), dependentStepConfigs, configs);
       view.applyOverridesToConfigGroups('S1', {}, 'g2', 'g1');
       expect(override.get('value')).to.be.equal('val1');
     });
@@ -171,7 +171,7 @@ describe('App.showSelectGroupsPopup', function () {
         recommendedValue: 'val1'
       });
       dependentStepConfigs[0].get('configs')[0].set('overrides', [override]);
-      view = App.showSelectGroupsPopup('', {}, dependentStepConfigs, configs);
+      view = App.showSelectGroupsPopup('', Em.Object.create(), dependentStepConfigs, configs);
       view.applyOverridesToConfigGroups('S1', Em.Object.create({name: 'g1'}), 'g2', 'g1');
       expect(App.config.createOverride.calledWith(
         Em.Object.create({
@@ -196,7 +196,7 @@ describe('App.showSelectGroupsPopup', function () {
         recommendedValue: 'val1'
       });
       dependentStepConfigs[0].get('configs')[0].set('overrides', [override]);
-      view = App.showSelectGroupsPopup('', {}, dependentStepConfigs, configs);
+      view = App.showSelectGroupsPopup('', Em.Object.create(), dependentStepConfigs, configs);
       view.applyOverridesToConfigGroups('S1', Em.Object.create({name: 'g2'}), 'g2', 'g1');
       expect(override.get('value')).to.be.equal('val1');
     });
