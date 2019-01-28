@@ -31,10 +31,6 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
  */
 public class ExtensionLinkResourceDefinition extends BaseResourceDefinition {
 
-  public ExtensionLinkResourceDefinition(Type resourceType) {
-    super(Resource.Type.ExtensionLink);
-  }
-
   public ExtensionLinkResourceDefinition() {
     super(Resource.Type.ExtensionLink);
   }

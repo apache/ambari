@@ -751,7 +751,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
 
                 // Get the keytab file 'config name'.
                 String[] splits = keytabDescriptor.getConfiguration().split("/");
-                if (splits != null && splits.length == 2) {
+                if (splits.length == 2) {
                   updateYarnKerberosDescUpdatedList(splits[1]);
                   LOG.info("    Updated 'yarnKerberosDescUpdatedList' = " + getYarnKerberosDescUpdatedList());
                 }

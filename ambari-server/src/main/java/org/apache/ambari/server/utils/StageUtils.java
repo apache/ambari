@@ -343,18 +343,16 @@ public class StageUtils {
 
         for (String hostName : serviceComponent.getServiceComponentHosts().keySet()) {
 
-          if (roleName != null) {
-            SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
+          SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
 
-            if (hostsForComponentsHost == null) {
-              hostsForComponentsHost = new TreeSet<>();
-              hostRolesInfo.put(roleName, hostsForComponentsHost);
-            }
-
-            int hostIndex = hostsList.indexOf(hostName);
-            //Add index of host to current host role
-            hostsForComponentsHost.add(hostIndex);
+          if (hostsForComponentsHost == null) {
+            hostsForComponentsHost = new TreeSet<>();
+            hostRolesInfo.put(roleName, hostsForComponentsHost);
           }
+
+          int hostIndex = hostsList.indexOf(hostName);
+          //Add index of host to current host role
+          hostsForComponentsHost.add(hostIndex);
         }
       }
     }

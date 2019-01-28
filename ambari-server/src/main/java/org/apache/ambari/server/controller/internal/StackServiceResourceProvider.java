@@ -277,9 +277,7 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
     return new StackServiceRequest(
         (String) properties.get(STACK_NAME_PROPERTY_ID),
         (String) properties.get(STACK_VERSION_PROPERTY_ID),
-        (String) properties.get(SERVICE_NAME_PROPERTY_ID),
-        (String) properties.get(CREDENTIAL_STORE_SUPPORTED),
-        (String) properties.get(CREDENTIAL_STORE_ENABLED));
+        (String) properties.get(SERVICE_NAME_PROPERTY_ID));
   }
 
   @Override

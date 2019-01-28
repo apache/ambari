@@ -26,10 +26,6 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 
 public class StackResourceDefinition extends BaseResourceDefinition {
 
-  public StackResourceDefinition(Type resourceType) {
-    super(Resource.Type.Stack);
-  }
-
   public StackResourceDefinition() {
     super(Resource.Type.Stack);
   }

@@ -40,10 +40,6 @@ public class MpackResourceDefinition extends BaseResourceDefinition {
   private final static Logger LOG =
           LoggerFactory.getLogger(MpackResourceDefinition.class);
 
-  public MpackResourceDefinition(Type resourceType) {
-    super(Resource.Type.Mpack);
-  }
-
   public MpackResourceDefinition() {
     super(Resource.Type.Mpack);
   }

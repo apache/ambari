@@ -47,7 +47,7 @@ public class UpgradeUpdateListener {
   private RequestDAO requestDAO;
 
   @Inject
-  public UpgradeUpdateListener(STOMPUpdatePublisher STOMPUpdatePublisher, AmbariEventPublisher ambariEventPublisher) {
+  public UpgradeUpdateListener(STOMPUpdatePublisher STOMPUpdatePublisher) {
     STOMPUpdatePublisher.registerAPI(this);
 
     this.STOMPUpdatePublisher = STOMPUpdatePublisher;

@@ -414,9 +414,7 @@ public class AlertScriptDispatcher implements NotificationDispatcher {
         try {
           return process.exitValue();
         } catch (IllegalThreadStateException ex) {
-          if (timeRemaining > 0) {
-            Thread.sleep(Math.min(timeRemaining, 500));
-          }
+          Thread.sleep(Math.min(timeRemaining, 500));
         }
 
         long timeElapsed = System.currentTimeMillis() - startTime;

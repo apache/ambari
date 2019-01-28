@@ -213,7 +213,7 @@ public class PersistenceManagerImplTest {
     mapResourceProps1.put(PropertyHelper.getPropertyId("foo", "bar"), "value");
 
     Map<String, Object> mapResourceProps2 = new HashMap<>();
-    mapResourceProps1.put("componentId", "id2");
+    mapResourceProps2.put("componentId", "id2");
     mapResourceProps2.put(PropertyHelper.getPropertyId("foo", "bar2"), "value2");
 
     NamedPropertySet namedPropSet1 = new NamedPropertySet("", mapResourceProps1);

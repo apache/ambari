@@ -196,8 +196,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    * @param managementController the management controller
    */
   @AssistedInject
-  public HostComponentResourceProvider(@Assisted AmbariManagementController managementController,
-                                       Injector injector) {
+  public HostComponentResourceProvider(@Assisted AmbariManagementController managementController) {
     super(Resource.Type.HostComponent, propertyIds, keyPropertyIds, managementController);
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES,RoleAuthorization.HOST_ADD_DELETE_COMPONENTS));

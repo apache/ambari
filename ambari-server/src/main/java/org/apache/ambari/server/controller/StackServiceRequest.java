@@ -25,13 +25,7 @@ public class StackServiceRequest extends StackVersionRequest {
   private String credentialStoreSupported;
   private String credentialStoreEnabled;
 
-  public StackServiceRequest(String stackName, String stackVersion,
-      String serviceName) {
-    this(stackName, stackVersion, serviceName, null, null);
-  }
-
-  public StackServiceRequest(String stackName, String stackVersion,
-      String serviceName, String credentialStoreSupported, String credentialStoreEnabled) {
+  public StackServiceRequest(String stackName, String stackVersion, String serviceName) {
     super(stackName, stackVersion);
 
     this.setServiceName(serviceName);

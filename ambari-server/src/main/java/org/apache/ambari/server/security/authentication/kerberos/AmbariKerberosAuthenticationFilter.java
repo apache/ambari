@@ -102,15 +102,13 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
     setFailureHandler(new AuthenticationFailureHandler() {
       @Override
       public void onAuthenticationFailure(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationException e) throws IOException, ServletException {
-        if (eventHandler != null) {
-          AmbariAuthenticationException cause;
-          if (e instanceof AmbariAuthenticationException) {
-            cause = (AmbariAuthenticationException) e;
-          } else {
-            cause = new AmbariAuthenticationException(null, e.getLocalizedMessage(), false, e);
-          }
-          eventHandler.onUnsuccessfulAuthentication(AmbariKerberosAuthenticationFilter.this, httpServletRequest, httpServletResponse, cause);
+        AmbariAuthenticationException cause;
+        if (e instanceof AmbariAuthenticationException) {
+          cause = (AmbariAuthenticationException) e;
+        } else {
+          cause = new AmbariAuthenticationException(null, e.getLocalizedMessage(), false, e);
         }
+        eventHandler.onUnsuccessfulAuthentication(AmbariKerberosAuthenticationFilter.this, httpServletRequest, httpServletResponse, cause);
 
         entryPoint.commence(httpServletRequest, httpServletResponse, e);
       }
@@ -119,9 +117,7 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
     setSuccessHandler(new AuthenticationSuccessHandler() {
       @Override
       public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
-        if (eventHandler != null) {
-          eventHandler.onSuccessfulAuthentication(AmbariKerberosAuthenticationFilter.this, httpServletRequest, httpServletResponse, authentication);
-        }
+        eventHandler.onSuccessfulAuthentication(AmbariKerberosAuthenticationFilter.this, httpServletRequest, httpServletResponse, authentication);
       }
     });
   }

@@ -64,10 +64,8 @@ public class StompEventsMetricsSource extends AbstractMetricsSource {
         @Override
         public void run() {
           List<SingleMetric> events = getEvents();
-          if (!events.isEmpty()) {
-            sink.publish(events);
-            LOG.debug("********* Published stomp events metrics to sink **********");
-          }
+          sink.publish(events);
+          LOG.debug("********* Published stomp events metrics to sink **********");
         }
       }, interval, interval, TimeUnit.SECONDS);
     } catch (Exception e) {

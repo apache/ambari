@@ -274,7 +274,7 @@ public class ConfigHelper {
       Entry<PropertyInfo, String> property = iterator.next();
       PropertyInfo propertyInfo = property.getKey();
       String propertyValue = property.getValue();
-      if (property == null || propertyValue == null || propertyValue.toLowerCase().equals("null") || propertyValue.isEmpty()) {
+      if (propertyValue == null || propertyValue.toLowerCase().equals("null") || propertyValue.isEmpty()) {
         LOG.error(String.format("Excluding property %s from %s, because of invalid or empty value!", propertyInfo.getName(), filteredListName));
         iterator.remove();
       } else {

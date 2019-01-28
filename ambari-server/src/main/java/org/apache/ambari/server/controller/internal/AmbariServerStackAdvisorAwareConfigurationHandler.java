@@ -195,10 +195,6 @@ class AmbariServerStackAdvisorAwareConfigurationHandler extends AmbariServerConf
         String configType = configuration.getKey();
         Map<String, String> configurationProperties = new HashMap<>(configuration.getValue());
 
-        if (configurationProperties == null) {
-          configurationProperties = Collections.emptySortedMap();
-        }
-
         properties.put("properties", configurationProperties);
         requestConfigurations.put(configType, properties);
       }

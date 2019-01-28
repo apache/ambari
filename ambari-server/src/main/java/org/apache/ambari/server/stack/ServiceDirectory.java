@@ -446,7 +446,7 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
 
       roleCommandOrder = new StackRoleCommandOrder(result);
 
-      if (LOG.isDebugEnabled() && rcoFile != null) {
+      if (LOG.isDebugEnabled()) {
         LOG.debug("Role Command Order for {}", rcoFile.getAbsolutePath());
         roleCommandOrder.printRoleCommandOrder(LOG);
       }
