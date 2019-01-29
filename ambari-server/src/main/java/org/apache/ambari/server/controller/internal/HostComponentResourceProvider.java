@@ -390,6 +390,9 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       (skipInstallForComponents, ";"));
     requestInfo.put(AmbariManagementControllerImpl.DONT_SKIP_INSTALL_FOR_COMPONENTS, StringUtils.join
       (dontSkipInstallForComponents, ";"));
+    // although the operation is really for a specific host, the level needs to be set to HostComponent
+    // to make sure that any service in maintenance mode does not prevent install/start on the new host during scale-up
+    requestInfo.putAll(RequestOperationLevel.propertiesFor(Resource.Type.HostComponent, cluster));
 
     Request installRequest = PropertyHelper.getUpdateRequest(installProperties, requestInfo);
 
@@ -437,6 +440,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Map<String, String> requestInfo = new HashMap<>();
     requestInfo.put("context", String.format("Start components on host %s", hostName));
     requestInfo.put("phase", "INITIAL_START");
+    // see rationale for marking the operation as HostComponent-level at "Install components on host"
+    requestInfo.putAll(RequestOperationLevel.propertiesFor(Resource.Type.HostComponent, cluster));
     requestInfo.put(Setting.SETTING_NAME_SKIP_FAILURE, Boolean.toString(skipFailure));
 
     Predicate clusterPredicate = new EqualsPredicate<>(CLUSTER_NAME, cluster);
@@ -499,7 +504,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     return requestStages.getRequestStatusResponse();
   }
-
 
   /**
    * Update the host component identified by the given request object with the
