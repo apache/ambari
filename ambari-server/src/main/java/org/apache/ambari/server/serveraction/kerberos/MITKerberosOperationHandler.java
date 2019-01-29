@@ -19,12 +19,15 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
+import org.apache.ambari.server.state.kerberos.VariableReplacementHelper;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -47,6 +50,9 @@ public class MITKerberosOperationHandler extends KDCKerberosOperationHandler {
 
   @Inject
   private Configuration configuration;
+
+  @Inject
+  private VariableReplacementHelper variableReplacementHelper;
 
   /**
    * A String containing user-specified attributes used when creating principals
@@ -333,16 +339,27 @@ public class MITKerberosOperationHandler extends KDCKerberosOperationHandler {
   }
 
   @Override
-  protected String[] getKinitCommand(String executableKinit, PrincipalKeyCredential credentials, String credentialsCache) {
+  protected String[] getKinitCommand(String executableKinit, PrincipalKeyCredential credentials, String credentialsCache, Map<String, String> kerberosConfiguration) throws KerberosOperationException {
     // kinit -c <path> -S kadmin/`hostname -f` <principal>
-    return new String[]{
-        executableKinit,
-        "-c",
-        credentialsCache,
-        "-S",
-        String.format("kadmin/%s", getAdminServerHost(false)),
-        credentials.getPrincipal()
-    };
+    try {
+      final String kadminPrincipalName = variableReplacementHelper.replaceVariables(kerberosConfiguration.get(KERBEROS_ENV_KADMIN_PRINCIPAL_NAME), buildReplacementsMap(kerberosConfiguration));
+      return new String[]{
+          executableKinit,
+          "-c",
+          credentialsCache,
+          "-S",
+          kadminPrincipalName,
+          credentials.getPrincipal()
+      };
+    } catch (AmbariException e) {
+      throw new KerberosOperationException("Error while getting 'kinit' command", e);
+    }
+  }
+
+  private Map<String, Map<String, String>> buildReplacementsMap(Map<String, String> kerberosConfiguration) {
+    final Map<String, Map<String, String>> replacementsMap = new HashMap<>();
+    replacementsMap.put("", kerberosConfiguration);
+    return replacementsMap;
   }
 
   @Override

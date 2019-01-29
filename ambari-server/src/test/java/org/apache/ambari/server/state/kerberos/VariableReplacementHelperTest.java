@@ -196,6 +196,8 @@ public class VariableReplacementHelperTest {
         put("", new HashMap<String, String>() {{
           put("delimited.data", "one,two,three,four");
           put("realm", "UNIT.TEST");
+          put("admin_server_host", "c7401.ambari.apache.org");
+          put("admin_server_host_port", "c7401.ambari.apache.org:8080");
         }});
 
         put("kafka-broker", new HashMap<String, String>() {{
@@ -259,6 +261,9 @@ public class VariableReplacementHelperTest {
     assertEquals("test=unit.test", helper.replaceVariables("test=${realm|toLower()}", configurations));
 
     assertEquals("PLAINTEXTSASL://localhost:6667", helper.replaceVariables("${kafka-broker/listeners|replace(\\bPLAINTEXT\\b,PLAINTEXTSASL)}", configurations));
+
+    assertEquals("kadmin/c7401.ambari.apache.org", helper.replaceVariables("kadmin/${admin_server_host|stripPort()}", configurations));
+    assertEquals("kadmin/c7401.ambari.apache.org", helper.replaceVariables("kadmin/${admin_server_host_port|stripPort()}", configurations));
   }
 
   @Test
