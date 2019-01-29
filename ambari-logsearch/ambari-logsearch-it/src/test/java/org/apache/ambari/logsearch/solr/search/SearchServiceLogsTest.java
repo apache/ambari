@@ -166,18 +166,21 @@ public class SearchServiceLogsTest {
   @Test
   public void testIncludeMultipleTermsDelimitedByDash() throws Exception {
     solr.addDoc("0", "Unhandled exception");
-    solr.addDoc("1", "At line 112 an unhandled-exception occurred when");
-    solr.addDoc("2", "exception occurred");
-    solr.addDoc("3", "exception");
-    solr.addDoc("4", "Unhandled error");
-    solr.addDoc("5", "Error occurred");
+    solr.addDoc("1", "Unhandled+exception");
+    solr.addDoc("2", "At line 112 an unhandled-exception occurred when");
+    solr.addDoc("3", "exception occurred");
+    solr.addDoc("4", "exception");
+    solr.addDoc("5", "Unhandled error");
+    solr.addDoc("6", "Error occurred");
 
     BaseServiceLogRequest request = new BaseServiceLogQueryRequest();
     request.setIncludeQuery("[{\"log_message\":\"\\\"Unhandled-exception\\\"\"}]");
     SolrDocumentList found = executeQuery(request);
 
-    assertThat(found, hasSize(1));
+    assertThat(found, hasSize(3));
+    assertThat(found, hasItem(solrDoc("0")));
     assertThat(found, hasItem(solrDoc("1")));
+    assertThat(found, hasItem(solrDoc("2")));
   }
 
   @Test
@@ -194,8 +197,10 @@ public class SearchServiceLogsTest {
     request.setIncludeQuery("[{\"log_message\":\"\\\"Unhandled+exception\\\"\"}]");
     SolrDocumentList found = executeQuery(request);
 
-    assertThat(found, hasSize(1));
+    assertThat(found, hasSize(3));
+    assertThat(found, hasItem(solrDoc("0")));
     assertThat(found, hasItem(solrDoc("1")));
+    assertThat(found, hasItem(solrDoc("2")));
   }
 
   @Test
@@ -232,30 +237,21 @@ public class SearchServiceLogsTest {
   @Test
   public void testIncludeEMailAddress() throws Exception {
     solr.addDoc("0", "Email address: john@hortonworks.com");
-    solr.addDoc("1", "Another document");
-
+    solr.addDoc("1", "Another document doe@hortonworks.com");
+    solr.addDoc("2", "Another document without email address");
+    solr.addDoc("3", "Just a name and a domain name: john hortonworks.com");
+    solr.addDoc("4", "Hi name is John Domain name: hortonworks.com");
     BaseServiceLogRequest request = new BaseServiceLogQueryRequest();
-    request.setIncludeQuery("[{\"log_message\":\"john@hortonworks.com\"}]");
+    request.setIncludeQuery("[{\"log_message\":\"\\\"john@hortonworks.com\\\"\"}]");
     SolrDocumentList found = executeQuery(request);
 
-    assertThat(found, hasSize(1));
+    assertThat(found, hasSize(2));
     assertThat(found, hasItem(solrDoc("0")));
+    assertThat(found, hasItem(solrDoc("3")));
   }
 
 
   private final ServiceLogLevelDateRangeRequestQueryConverter dateRangeRequestQueryConverter = new ServiceLogLevelDateRangeRequestQueryConverter();
-
-  @Test
-  public void testDateRangeRequestIncludeEMailAddress() throws Exception {
-    solr.addDoc("0", "Email address: john@hortonworks.com");
-    solr.addDoc("1", "Another document doe@hortonworks.com");
-
-    ServiceGraphRequest request = serviceGraphRequest("[{\"log_message\":\"john@hortonworks.com\"}]");
-    NamedList<List<PivotField>> found = executeQuery(request);
-
-    assertThat(found.size(), is(1));
-    assertThat(found.get("level").get(0).getCount(), is(1));
-  }
 
   private ServiceGraphRequest serviceGraphRequest(String includeQuery) {
     ServiceGraphRequest request = new ServiceGraphQueryRequest();
@@ -327,7 +323,7 @@ public class SearchServiceLogsTest {
     NamedList<List<PivotField>> found = executeQuery(request);
 
     assertThat(found.size(), is(1));
-    assertThat(found.get("level").get(0).getCount(), is(1));
+    assertThat(found.get("level").get(0).getCount(), is(2));
   }
 
   @Test
@@ -344,7 +340,7 @@ public class SearchServiceLogsTest {
     NamedList<List<PivotField>> found = executeQuery(request);
 
     assertThat(found.size(), is(1));
-    assertThat(found.get("level").get(0).getCount(), is(1));
+    assertThat(found.get("level").get(0).getCount(), is(3));
   }
 
   @Test
@@ -372,5 +368,32 @@ public class SearchServiceLogsTest {
 
     assertThat(found.size(), is(1));
     assertThat(found.get("level").get(0).getCount(), is(3));
+  }
+
+  @Test
+  public void testSearchTermEndsWithDot() throws Exception {
+    solr.addDoc("0", "Caught exception checkIn.");
+    solr.addDoc("1", "Caught exception checkIn");
+    solr.addDoc("2", "Caught exception other");
+
+    BaseServiceLogRequest request = new BaseServiceLogQueryRequest();
+    request.setIncludeQuery("[{\"log_message\":\"\\\"checkIn\\\"\"}]");
+    SolrDocumentList found = executeQuery(request);
+
+    assertThat(found, hasSize(2));
+    assertThat(found, hasItem(solrDoc("0")));
+    assertThat(found, hasItem(solrDoc("1")));
+  }
+
+  @Test
+  public void testSearchPhraseContainsStar() throws Exception {
+    solr.addDoc("0", "Caught exception- checkIn");
+
+    BaseServiceLogRequest request = new BaseServiceLogQueryRequest();
+    request.setIncludeQuery("[{\"log_message\":\"\\\"Caught exception*\\\"\"}]");
+    SolrDocumentList found = executeQuery(request);
+
+    assertThat(found, hasSize(1));
+    assertThat(found, hasItem(solrDoc("0")));
   }
 }
