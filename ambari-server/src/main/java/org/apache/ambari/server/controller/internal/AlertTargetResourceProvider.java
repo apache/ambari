@@ -422,9 +422,14 @@ public class AlertTargetResourceProvider extends
       entity.setNotificationType(notificationType);
     }
 
-    String properties = s_gson.toJson(extractProperties(requestMap));
-    if (!StringUtils.isEmpty(properties)) {
-      entity.setProperties(properties);
+    Map<String, Object> propertiesMap = extractProperties(requestMap);
+
+    if (propertiesMap != null) {
+      String properties = s_gson.toJson(propertiesMap);
+      if (!StringUtils.isEmpty(properties)) {
+        LOG.debug("Updating Alert Target properties map to: " + properties);
+        entity.setProperties(properties);
+      }
     }
 
     // a null alert state implies that the key was not set and no update
@@ -533,15 +538,21 @@ public class AlertTargetResourceProvider extends
   private Map<String, Object> extractProperties(Map<String, Object> requestMap) {
     Map<String, Object> normalizedMap = new HashMap<>(
       requestMap.size());
+    boolean has_properties = false;
 
     for (Entry<String, Object> entry : requestMap.entrySet()) {
       String key = entry.getKey();
       String propCat = PropertyHelper.getPropertyCategory(key);
 
       if (propCat.equals(ALERT_TARGET_PROPERTIES)) {
+        has_properties = true;
         String propKey = PropertyHelper.getPropertyName(key);
         normalizedMap.put(propKey, entry.getValue());
       }
+    }
+
+    if (!has_properties) {
+      normalizedMap = null;
     }
 
     return normalizedMap;
