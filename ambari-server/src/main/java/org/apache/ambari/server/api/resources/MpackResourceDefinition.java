@@ -27,7 +27,6 @@ import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
