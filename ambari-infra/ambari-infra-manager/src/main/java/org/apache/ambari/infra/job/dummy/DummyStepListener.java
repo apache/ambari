@@ -18,24 +18,24 @@
  */
 package org.apache.ambari.infra.job.dummy;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 
 public class DummyStepListener implements StepExecutionListener {
 
-  private static final Logger LOG = LoggerFactory.getLogger(DummyStepListener.class);
+  private static final Logger logger = LogManager.getLogger(DummyStepListener.class);
 
   @Override
   public void beforeStep(StepExecution stepExecution) {
-    LOG.info("Dummy step - before step execution");
+    logger.info("Dummy step - before step execution");
   }
 
   @Override
   public ExitStatus afterStep(StepExecution stepExecution) {
-    LOG.info("Dummy step - after step execution");
+    logger.info("Dummy step - after step execution");
     return stepExecution.getExitStatus();
   }
 }

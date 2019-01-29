@@ -19,9 +19,17 @@
 package org.apache.ambari.infra.rest;
 
 
-import com.google.common.collect.Maps;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Map;
+
+import javax.batch.operations.JobExecutionAlreadyCompleteException;
+import javax.inject.Named;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.batch.admin.service.NoSuchStepExecutionException;
 import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.launch.JobExecutionNotFailedException;
@@ -38,19 +46,13 @@ import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.batch.core.step.NoSuchStepException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import javax.batch.operations.JobExecutionAlreadyCompleteException;
-import javax.inject.Named;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
-import java.util.Map;
+import com.google.common.collect.Maps;
 
 @Named
 @Provider
 public class JobExceptionMapper implements ExceptionMapper<Throwable> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(JobExceptionMapper.class);
+  private static final Logger logger = LogManager.getLogger(JobExceptionMapper.class);
 
   private static final Map<Class, Response.Status> exceptionStatusCodeMap = Maps.newHashMap();
 
@@ -75,13 +77,13 @@ public class JobExceptionMapper implements ExceptionMapper<Throwable> {
 
   @Override
   public Response toResponse(Throwable throwable) {
-    LOG.error("REST Exception occurred:", throwable);
+    logger.error("REST Exception occurred:", throwable);
     Response.Status status = Response.Status.INTERNAL_SERVER_ERROR;
 
     for (Map.Entry<Class, Response.Status> entry : exceptionStatusCodeMap.entrySet()) {
       if (throwable.getClass().isAssignableFrom(entry.getKey())) {
         status = entry.getValue();
-        LOG.info("Exception mapped to: {} with status code: {}", entry.getKey().getCanonicalName(), entry.getValue().getStatusCode());
+        logger.info("Exception mapped to: {} with status code: {}", entry.getKey().getCanonicalName(), entry.getValue().getStatusCode());
         break;
       }
     }

@@ -18,17 +18,22 @@
  */
 package org.apache.ambari.infra.job.archive;
 
-import org.apache.solr.client.solrj.SolrQuery;
-import org.junit.Test;
-
-import java.util.HashMap;
-
+import static org.apache.ambari.infra.job.archive.SolrQueryBuilder.computeEnd;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
+import java.time.Duration;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.HashMap;
+
+import org.apache.solr.client.solrj.SolrQuery;
+import org.hamcrest.core.Is;
+import org.junit.Test;
+
 public class SolrQueryBuilderTest {
-  private static final Document DOCUMENT = new Document(new HashMap<String, String>() {{
+  private static final Document DOCUMENT = new Document(new HashMap<String, Object>() {{
     put("logtime", "2017-10-02'T'10:00:11.634Z");
     put("id", "1");
   }});
@@ -102,5 +107,28 @@ public class SolrQueryBuilderTest {
   public void test_start_and_end_values_are_null() throws Exception {
     SolrQuery solrQuery = new SolrQueryBuilder().setQueryText("id:[${start} TO ${end}]").build();
     assertThat(solrQuery.getQuery(), is("id:[* TO *]"));
+  }
+
+  @Test
+  public void testComputeEndReturnsNullIsNoEndAndNoTTLWasGiven() {
+    assertThat(computeEnd(null, OffsetDateTime.now(), null), Is.is(nullValue()));
+  }
+
+  @Test
+  public void testComputeEndReturnsEndIfOnlyEndWasGiven() {
+    String end = "2018-10-09T10:11:12.000Z";
+    assertThat(computeEnd(end, OffsetDateTime.now(), null), Is.is(end));
+  }
+
+  @Test
+  public void testComputeEndReturnsNowMinusTtlIfOnlyTtlWasGiven() {
+    OffsetDateTime now = OffsetDateTime.of(2018, 10, 9, 10, 11, 12, 0, ZoneOffset.UTC);
+    assertThat(computeEnd(null, now, Duration.ofDays(5)), Is.is("2018-10-04T10:11:12.000Z"));
+  }
+
+  @Test
+  public void testComputeEndReturnsEndIfBothWasGiven() {
+    String end = "2018-10-09T10:11:12.000Z";
+    assertThat(computeEnd(end, OffsetDateTime.now(), Duration.ofDays(5)), Is.is(end));
   }
 }

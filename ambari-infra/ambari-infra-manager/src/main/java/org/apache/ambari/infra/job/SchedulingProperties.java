@@ -21,7 +21,6 @@ package org.apache.ambari.infra.job;
 public class SchedulingProperties {
   private boolean enabled = false;
   private String cron;
-  private String intervalEndDelta;
 
   public boolean isEnabled() {
     return enabled;
@@ -37,13 +36,5 @@ public class SchedulingProperties {
 
   public void setCron(String cron) {
     this.cron = cron;
-  }
-
-  public String getIntervalEndDelta() {
-    return intervalEndDelta;
-  }
-
-  public void setIntervalEndDelta(String intervalEndDelta) {
-    this.intervalEndDelta = intervalEndDelta;
   }
 }

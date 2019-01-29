@@ -24,7 +24,7 @@
       <Layout type="PatternLayout" pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36}:%L - %msg%n" />
     </Appender>
     <RollingFile name="File" fileName="${logging.file}" filePattern="${logging.file}-%i-%d{yyyy-MM-dd}">
-      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36}:%L - %msg%n" />
+      <PatternLayout pattern="%d{ISO8601} [%t] %-5p %C{6} (%F:%L) - %m%n" />
       <Policies>
         <TimeBasedTriggeringPolicy />
         <SizeBasedTriggeringPolicy size="10 MB"/>

@@ -1,11 +1,11 @@
 package org.apache.ambari.infra.job.archive;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.util.HashMap;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -42,17 +42,17 @@ public class FileNameSuffixFormatterTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testFormatWhenSpecifiedColumnContainsBlankValueThrowingException() throws Exception {
-    formatter.format(new Document(new HashMap<String, String>() {{ put("logtime", "  "); }}));
+    formatter.format(new Document(new HashMap<String, Object>() {{ put("logtime", "  "); }}));
   }
 
   @Test
   public void testFormatWhenNoDateFormatSpecifiedRawColumnValueReturned() throws Exception {
     FileNameSuffixFormatter formatter = new FileNameSuffixFormatter("logtime", null);
-    assertThat(formatter.format(new Document(new HashMap<String, String>() {{ put("logtime", "Monday"); }})), is("Monday"));
+    assertThat(formatter.format(new Document(new HashMap<String, Object>() {{ put("logtime", "Monday"); }})), is("Monday"));
   }
 
   @Test
   public void testFormatWhenDateFormatIsSpecifiedAFormattedValueReturned() throws Exception {
-    assertThat(formatter.format(new Document(new HashMap<String, String>() {{ put("logtime", "2017-12-15T10:12:33.453Z"); }})), is("2017-12-15T10-12-33-453Z"));
+    assertThat(formatter.format(new Document(new HashMap<String, Object>() {{ put("logtime", "2017-12-15T10:12:33.453Z"); }})), is("2017-12-15T10-12-33-453Z"));
   }
 }

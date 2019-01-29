@@ -72,7 +72,13 @@ else
   INFRA_MANAGER_GC_LOGFILE="$LOG_PATH_WITHOUT_SLASH/$INFRA_MANAGER_GC_LOGFILE"
 fi
 
-INFRA_MANAGER_GC_OPTS="-XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$INFRA_MANAGER_GC_LOGFILE"
+java_version=$($JVM -version 2>&1 | grep 'version' | cut -d'"' -f2 | cut -d'.' -f2)
+if [ $java_version == "8" ]; then
+  INFRA_MANAGER_GC_OPTS="-XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$INFRA_MANAGER_GC_LOGFILE"
+else
+  INFRA_MANAGER_GC_OPTS="-Xlog:gc*:file=$INFRA_MANAGER_GC_LOGFILE:time"
+fi
+
 
 function print_usage() {
   cat << EOF
@@ -138,7 +144,12 @@ function start() {
   INFRA_MANAGER_DEBUG_PORT=${INFRA_MANAGER_DEBUG_PORT:-"5005"}
 
   if [ "$INFRA_MANAGER_DEBUG" = "true" ]; then
-    INFRA_MANAGER_JAVA_OPTS="$INFRA_MANAGER_JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$INFRA_MANAGER_DEBUG_PORT,server=y,suspend=$INFRA_MANAGER_DEBUG_SUSPEND "
+    if [ $java_version == "8" ]; then
+      INFRA_MANAGER_DEBUG_ADDRESS=$INFRA_MANAGER_DEBUG_PORT
+    else
+      INFRA_MANAGER_DEBUG_ADDRESS="*:$INFRA_MANAGER_DEBUG_PORT"
+    fi
+    INFRA_MANAGER_JAVA_OPTS="$INFRA_MANAGER_JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$INFRA_MANAGER_DEBUG_ADDRESS,server=y,suspend=$INFRA_MANAGER_DEBUG_SUSPEND "
   fi
 
   if [ "$INFRA_MANAGER_SSL" = "true" ]; then

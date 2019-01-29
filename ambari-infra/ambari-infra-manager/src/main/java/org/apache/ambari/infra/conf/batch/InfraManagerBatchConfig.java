@@ -18,6 +18,9 @@
  */
 package org.apache.ambari.infra.conf.batch;
 
+import javax.inject.Inject;
+import javax.sql.DataSource;
+
 import org.springframework.batch.admin.service.JdbcSearchableJobExecutionDao;
 import org.springframework.batch.admin.service.JdbcSearchableJobInstanceDao;
 import org.springframework.batch.admin.service.JdbcSearchableStepExecutionDao;
@@ -30,33 +33,24 @@ import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.batch.core.explore.JobExplorer;
-import org.springframework.batch.core.explore.support.JobExplorerFactoryBean;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.JobOperator;
-import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobOperator;
 import org.springframework.batch.core.repository.ExecutionContextSerializer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.dao.ExecutionContextDao;
 import org.springframework.batch.core.repository.dao.Jackson2ExecutionContextStringSerializer;
 import org.springframework.batch.core.repository.dao.JdbcExecutionContextDao;
-import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
-import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.transaction.PlatformTransactionManager;
-
-import javax.inject.Inject;
-import javax.sql.DataSource;
 
 @Configuration
 @EnableBatchProcessing
@@ -84,6 +78,12 @@ public class InfraManagerBatchConfig {
 
   @Inject
   private JobRegistry jobRegistry;
+  @Inject
+  private JobExplorer getJobExplorer;
+  @Inject
+  private JobLauncher getJobLauncher;
+  @Inject
+  private JobRepository getJobRepository;
 
   @Bean
   public DataSource dataSource() {
@@ -118,46 +118,13 @@ public class InfraManagerBatchConfig {
   }
 
   @Bean
-  public JobRepository jobRepository() throws Exception {
-    JobRepositoryFactoryBean factory = new JobRepositoryFactoryBean();
-    factory.setDataSource(dataSource());
-    factory.setTransactionManager(transactionManager());
-    factory.setSerializer(executionContextSerializer());
-    factory.afterPropertiesSet();
-    return factory.getObject();
-  }
-
-  @Bean
-  public PlatformTransactionManager transactionManager() {
-    return new ResourcelessTransactionManager();
-  }
-
-  @Bean(name = "jobLauncher")
-  public JobLauncher jobLauncher() throws Exception {
-    SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
-    jobLauncher.setJobRepository(jobRepository());
-    jobLauncher.setTaskExecutor(new SimpleAsyncTaskExecutor());
-    jobLauncher.afterPropertiesSet();
-    return jobLauncher;
-  }
-
-  @Bean
-  public JobOperator jobOperator() throws Exception {
+  public JobOperator jobOperator() {
     SimpleJobOperator jobOperator = new SimpleJobOperator();
-    jobOperator.setJobExplorer(jobExplorer());
-    jobOperator.setJobLauncher(jobLauncher());
+    jobOperator.setJobExplorer(getJobExplorer);
+    jobOperator.setJobLauncher(getJobLauncher);
     jobOperator.setJobRegistry(jobRegistry);
-    jobOperator.setJobRepository(jobRepository());
+    jobOperator.setJobRepository(getJobRepository);
     return jobOperator;
-  }
-
-  @Bean
-  public JobExplorer jobExplorer() throws Exception {
-    JobExplorerFactoryBean factoryBean = new JobExplorerFactoryBean();
-    factoryBean.setSerializer(executionContextSerializer());
-    factoryBean.setDataSource(dataSource());
-    factoryBean.afterPropertiesSet();
-    return factoryBean.getObject();
   }
 
   @Bean
@@ -204,9 +171,9 @@ public class InfraManagerBatchConfig {
   }
 
   @Bean
-  public JobService jobService() throws Exception {
+  public JobService jobService() {
     return new
       SimpleJobService(searchableJobInstanceDao(), searchableJobExecutionDao(), searchableStepExecutionDao(),
-      jobRepository(), jobLauncher(), jobRegistry, executionContextDao());
+      getJobRepository, getJobLauncher, jobRegistry, executionContextDao());
   }
 }

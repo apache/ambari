@@ -18,23 +18,22 @@
  */
 package org.apache.ambari.infra.model;
 
+import static java.util.Collections.unmodifiableMap;
+
 import java.util.Map;
 
 public class StepExecutionContextResponse {
 
-  private Map<String, Object> executionContextMap;
+  private final Map<String, Object> executionContextMap;
 
-  private Long jobExecutionId;
+  private final Long jobExecutionId;
 
-  private Long stepExecutionId;
+  private final Long stepExecutionId;
 
-  private String stepName;
-
-  public StepExecutionContextResponse() {
-  }
+  private final String stepName;
 
   public StepExecutionContextResponse(Map<String, Object> executionContextMap, Long jobExecutionId, Long stepExecutionId, String stepName) {
-    this.executionContextMap = executionContextMap;
+    this.executionContextMap = unmodifiableMap(executionContextMap);
     this.jobExecutionId = jobExecutionId;
     this.stepExecutionId = stepExecutionId;
     this.stepName = stepName;

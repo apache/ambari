@@ -18,9 +18,21 @@
  */
 package org.apache.ambari.infra.manager;
 
-import com.google.common.collect.Lists;
+import static java.util.Collections.unmodifiableList;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.apache.ambari.infra.model.ExecutionContextResponse;
-import org.apache.ambari.infra.model.JobDetailsResponse;
 import org.apache.ambari.infra.model.JobExecutionDetailsResponse;
 import org.apache.ambari.infra.model.JobExecutionInfoResponse;
 import org.apache.ambari.infra.model.JobInstanceDetailsResponse;
@@ -28,8 +40,8 @@ import org.apache.ambari.infra.model.JobOperationParams;
 import org.apache.ambari.infra.model.StepExecutionContextResponse;
 import org.apache.ambari.infra.model.StepExecutionInfoResponse;
 import org.apache.ambari.infra.model.StepExecutionProgressResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.batch.admin.history.StepExecutionHistory;
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.service.NoSuchStepExecutionException;
@@ -50,22 +62,12 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TimeZone;
+import com.google.common.collect.Lists;
 
 @Named
 public class JobManager implements Jobs {
 
-  private static final Logger LOG = LoggerFactory.getLogger(JobManager.class);
+  private static final Logger logger = LogManager.getLogger(JobManager.class);
 
   @Inject
   private JobService jobService;
@@ -75,8 +77,6 @@ public class JobManager implements Jobs {
 
   @Inject
   private JobExplorer jobExplorer;
-
-  private TimeZone timeZone = TimeZone.getDefault();
 
   public Set<String> getAllJobNames() {
     return jobOperator.getJobNames();
@@ -95,7 +95,7 @@ public class JobManager implements Jobs {
     if (!running.isEmpty())
       throw new JobExecutionAlreadyRunningException("An instance of this job is already active: "+jobName);
 
-    return new JobExecutionInfoResponse(jobService.launch(jobName, jobParameters), timeZone);
+    return new JobExecutionInfoResponse(jobService.launch(jobName, jobParameters));
   }
 
   @Override
@@ -108,6 +108,16 @@ public class JobManager implements Jobs {
   @Override
   public Optional<JobExecution> lastRun(String jobName) throws NoSuchJobException {
     return jobService.listJobExecutionsForJob(jobName, 0, 1).stream().findFirst();
+  }
+
+  @Override
+  public void stopAndAbandon(Long jobExecutionId) throws NoSuchJobExecutionException, JobExecutionAlreadyRunningException {
+    try {
+      jobService.stop(jobExecutionId);
+    } catch (JobExecutionNotRunningException e) {
+      logger.warn(String.format("Job is not running jobExecutionId=%d", jobExecutionId), e.getMessage());
+    }
+    jobService.abandon(jobExecutionId);
   }
 
   /**
@@ -131,10 +141,10 @@ public class JobManager implements Jobs {
     JobExecution jobExecution = jobService.getJobExecution(jobExecutionId);
     List<StepExecutionInfoResponse> stepExecutionInfoList = new ArrayList<>();
     for (StepExecution stepExecution : jobExecution.getStepExecutions()) {
-      stepExecutionInfoList.add(new StepExecutionInfoResponse(stepExecution, timeZone));
+      stepExecutionInfoList.add(new StepExecutionInfoResponse(stepExecution));
     }
-    stepExecutionInfoList.sort(Comparator.comparing(StepExecutionInfoResponse::getId));
-    return new JobExecutionDetailsResponse(new JobExecutionInfoResponse(jobExecution, timeZone), stepExecutionInfoList);
+    stepExecutionInfoList.sort(Comparator.comparing(StepExecutionInfoResponse::getStepExecutionId));
+    return new JobExecutionDetailsResponse(new JobExecutionInfoResponse(jobExecution), stepExecutionInfoList);
   }
 
   /**
@@ -150,8 +160,8 @@ public class JobManager implements Jobs {
     } else {
       throw new UnsupportedOperationException("Unsupported operaration");
     }
-    LOG.info("Job {} was marked {}", jobExecution.getJobInstance().getJobName(), operation.name());
-    return new JobExecutionInfoResponse(jobExecution, timeZone);
+    logger.info("Job {} was marked {}", jobExecution.getJobInstance().getJobName(), operation.name());
+    return new JobExecutionInfoResponse(jobExecution);
   }
 
   /**
@@ -176,7 +186,7 @@ public class JobManager implements Jobs {
       Collection<JobExecution> jobExecutions = jobService.getJobExecutionsForJobInstance(jobName, jobInstanceId);
       JobExecution jobExecution = jobExecutions.iterator().next();
       Long jobExecutionId = jobExecution.getId();
-      return new JobExecutionInfoResponse(jobService.restart(jobExecutionId), timeZone);
+      return new JobExecutionInfoResponse(jobService.restart(jobExecutionId));
     } else {
       throw new UnsupportedOperationException("Unsupported operation (try: RESTART)");
     }
@@ -211,7 +221,7 @@ public class JobManager implements Jobs {
     JobInstance jobInstance = jobService.getJobInstance(jobInstanceId);
     Collection<JobExecution> jobExecutions = jobService.getJobExecutionsForJobInstance(jobName, jobInstance.getInstanceId());
     for (JobExecution jobExecution : jobExecutions) {
-      result.add(new JobExecutionInfoResponse(jobExecution, timeZone));
+      result.add(new JobExecutionInfoResponse(jobExecution));
     }
     return result;
   }
@@ -219,25 +229,26 @@ public class JobManager implements Jobs {
   /**
    * Get job details for a specific job. (paged)
    */
-  public JobDetailsResponse getJobDetails(String jobName, int page, int size) throws NoSuchJobException {
+  public List<JobInstanceDetailsResponse> getJobDetails(String jobName, int page, int size) throws NoSuchJobException {
     List<JobInstanceDetailsResponse> jobInstanceResponses = Lists.newArrayList();
     Collection<JobInstance> jobInstances = jobService.listJobInstances(jobName, page, size);
 
-    int count = jobService.countJobExecutionsForJob(jobName);
     boolean launchable = jobService.isLaunchable(jobName);
-    boolean isIncrementable = jobService.isIncrementable(jobName);
+    boolean incrementable = jobService.isIncrementable(jobName);
 
     for (JobInstance jobInstance: jobInstances) {
-      List<JobExecutionInfoResponse> executionInfos = Lists.newArrayList();
+      List<JobExecutionInfoResponse> executionInfoResponses = Lists.newArrayList();
       Collection<JobExecution> jobExecutions = jobService.getJobExecutionsForJobInstance(jobName, jobInstance.getId());
       if (jobExecutions != null) {
         for (JobExecution jobExecution : jobExecutions) {
-          executionInfos.add(new JobExecutionInfoResponse(jobExecution, timeZone));
+          executionInfoResponses.add(new JobExecutionInfoResponse(jobExecution));
         }
       }
-      jobInstanceResponses.add(new JobInstanceDetailsResponse(jobInstance, executionInfos));
+      jobInstanceResponses.add(new JobInstanceDetailsResponse(
+              new JobInfo(jobName, executionInfoResponses.size(), jobInstance.getInstanceId(), launchable, incrementable),
+              executionInfoResponses));
     }
-    return new JobDetailsResponse(new JobInfo(jobName, count, launchable, isIncrementable), jobInstanceResponses);
+    return unmodifiableList(jobInstanceResponses);
   }
 
   /**
@@ -245,7 +256,7 @@ public class JobManager implements Jobs {
    */
   public StepExecutionInfoResponse getStepExecution(Long jobExecutionId, Long stepExecutionId) throws NoSuchStepExecutionException, NoSuchJobExecutionException {
     StepExecution stepExecution = jobService.getStepExecution(jobExecutionId, stepExecutionId);
-    return new StepExecutionInfoResponse(stepExecution, timeZone);
+    return new StepExecutionInfoResponse(stepExecution);
   }
 
   /**
@@ -265,7 +276,7 @@ public class JobManager implements Jobs {
    */
   public StepExecutionProgressResponse getStepExecutionProgress(Long jobExecutionId, Long stepExecutionId) throws NoSuchStepExecutionException, NoSuchJobExecutionException {
     StepExecution stepExecution = jobService.getStepExecution(jobExecutionId, stepExecutionId);
-    StepExecutionInfoResponse stepExecutionInfoResponse = new StepExecutionInfoResponse(stepExecution, timeZone);
+    StepExecutionInfoResponse stepExecutionInfoResponse = new StepExecutionInfoResponse(stepExecution);
     String stepName = stepExecution.getStepName();
     if (stepName.contains(":partition")) {
       stepName = stepName.replaceAll("(:partition).*", "$1*");

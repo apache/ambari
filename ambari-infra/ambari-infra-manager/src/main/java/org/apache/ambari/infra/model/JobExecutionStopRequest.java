@@ -22,6 +22,8 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
+import io.swagger.annotations.ApiParam;
+
 public class JobExecutionStopRequest {
 
   @PathParam("jobExecutionId")
@@ -30,6 +32,7 @@ public class JobExecutionStopRequest {
 
   @QueryParam("operation")
   @NotNull
+  @ApiParam(required = true)
   private JobOperationParams.JobStopOrAbandonOperationParam operation;
 
   public Long getJobExecutionId() {
