@@ -280,6 +280,7 @@ var files = [
   'test/views/common/assign_master_components_view_test',
   'test/views/common/filter_combo_cleanable_test',
   'test/views/common/filter_view_test',
+  'test/views/common/metric_test',
   'test/views/common/pagination_view_test',
   'test/views/common/table_view_test',
   'test/views/common/quick_link_view_test',
