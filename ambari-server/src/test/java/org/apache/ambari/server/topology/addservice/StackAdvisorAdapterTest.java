@@ -117,7 +117,7 @@ public class StackAdvisorAdapterTest {
     .put("c7406", ImmutableSet.of("DATANODE", "HDFS_CLIENT", "ZOOKEEPER_CLIENT"))
     .build();
 
-  private static final AddServiceInfo.Builder ADD_SERVICE_INFO_BUILDER = new AddServiceInfo.Builder()
+  private final AddServiceInfo.Builder addServiceInfoBuilder = new AddServiceInfo.Builder()
     .setClusterName("c1");
 
   @Test
@@ -166,58 +166,6 @@ public class StackAdvisorAdapterTest {
     Map<String, String> map1 = ImmutableMap.of("key1", "value1", "key2", "value2");
     Map<String, String> map2 = ImmutableMap.of("key2", "value2", "key3", "value3");
     StackAdvisorAdapter.mergeDisjunctMaps(map1, map2);
-  }
-
-  @Test
-  public void getLayoutRecommendationInfo() {
-    Map<String, Map<String, Set<String>>> newServices = ImmutableMap.of(
-      "KAFKA", ImmutableMap.of(
-        "KAFKA_BROKER", ImmutableSet.of("c7401")),
-      "SPARK2", ImmutableMap.of(
-        "SPARK2_JOBHISTORYSERVER", ImmutableSet.of("c7402"),
-        "SPARK2_CLIENT", ImmutableSet.of("c7403", "c7404")),
-      "OOZIE", ImmutableMap.of(
-        "OOZIE_SERVER", ImmutableSet.of("c7401"),
-        "OOZIE_CLIENT", ImmutableSet.of("c7403", "c7404")));
-
-    AddServiceRequest request = request(ConfigRecommendationStrategy.ALWAYS_APPLY);
-    AddServiceInfo info = ADD_SERVICE_INFO_BUILDER
-      .setRequest(request)
-      .setStack(stack)
-      .setConfig(Configuration.newEmpty())
-      .setNewServices(newServices)
-      .build(); // No LayoutReommendationInfo -> needs to be calculated
-
-    LayoutRecommendationInfo layoutRecommendationInfo = adapter.getLayoutRecommendationInfo(info);
-    layoutRecommendationInfo.getAllServiceLayouts();
-
-    assertEquals(
-      ImmutableMap.of(
-        "host_group_1", ImmutableSet.of("c7401"),
-        "host_group_2", ImmutableSet.of("c7402"),
-        "host_group_3", ImmutableSet.of("c7403", "c7404")),
-      layoutRecommendationInfo.getHostGroups());
-
-    assertEquals(
-      ImmutableMap.<String, Map<String, Set<String>>>builder()
-        .put("KAFKA", ImmutableMap.of(
-          "KAFKA_BROKER", ImmutableSet.of("c7401")))
-        .put("SPARK2", ImmutableMap.of(
-          "SPARK2_JOBHISTORYSERVER", ImmutableSet.of("c7402"),
-          "SPARK2_CLIENT", ImmutableSet.of("c7403", "c7404")))
-        .put("OOZIE", ImmutableMap.of(
-          "OOZIE_SERVER", ImmutableSet.of("c7401"),
-          "OOZIE_CLIENT", ImmutableSet.of("c7403", "c7404")))
-        .put("HDFS", ImmutableMap.of(
-          "NAMENODE", ImmutableSet.of("c7401"),
-          "HDFS_CLIENT", ImmutableSet.of("c7401", "c7402")))
-        .put("ZOOKEEPER", ImmutableMap.of(
-          "ZOOKEEPER_SERVER", ImmutableSet.of("c7401"),
-          "ZOOKEEPER_CLIENT", ImmutableSet.of("c7401", "c7402")))
-        .put("MAPREDUCE2", ImmutableMap.of(
-          "HISTORYSERVER", ImmutableSet.of("c7401")))
-        .build(),
-      layoutRecommendationInfo.getAllServiceLayouts());
   }
 
   @Test
@@ -368,7 +316,7 @@ public class StackAdvisorAdapterTest {
       "KAFKA",
       ImmutableMap.of("KAFKA_BROKER", emptySet()));
 
-    AddServiceInfo info = ADD_SERVICE_INFO_BUILDER
+    AddServiceInfo info = addServiceInfoBuilder
       .setStack(stack)
       .setConfig(Configuration.newEmpty())
       .setNewServices(newServices)
@@ -404,7 +352,7 @@ public class StackAdvisorAdapterTest {
     clusterConfig.setParentConfiguration(stackConfig);
 
     AddServiceRequest request = request(ConfigRecommendationStrategy.ALWAYS_APPLY);
-    AddServiceInfo info = ADD_SERVICE_INFO_BUILDER
+    AddServiceInfo info = addServiceInfoBuilder
       .setRequest(request)
       .setStack(stack)
       .setConfig(userConfig)
@@ -459,7 +407,7 @@ public class StackAdvisorAdapterTest {
 
     LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
     AddServiceRequest request = request(ConfigRecommendationStrategy.ALWAYS_APPLY);
-    AddServiceInfo info = ADD_SERVICE_INFO_BUILDER
+    AddServiceInfo info = addServiceInfoBuilder
       .setRequest(request)
       .setStack(stack)
       .setConfig(userConfig)
@@ -515,7 +463,7 @@ public class StackAdvisorAdapterTest {
 
     LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
     AddServiceRequest request = request(ConfigRecommendationStrategy.ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES);
-    AddServiceInfo info = ADD_SERVICE_INFO_BUILDER
+    AddServiceInfo info = addServiceInfoBuilder
       .setRequest(request)
       .setStack(stack)
       .setConfig(userConfig)
@@ -576,7 +524,7 @@ public class StackAdvisorAdapterTest {
 
     LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
     AddServiceRequest request = request(ConfigRecommendationStrategy.NEVER_APPLY);
-    AddServiceInfo info = ADD_SERVICE_INFO_BUILDER
+    AddServiceInfo info = addServiceInfoBuilder
       .setRequest(request)
       .setStack(stack)
       .setConfig(userConfig)
@@ -623,7 +571,7 @@ public class StackAdvisorAdapterTest {
 
     LayoutRecommendationInfo layoutRecommendationInfo = new LayoutRecommendationInfo(new HashMap<>(), new HashMap<>()); // contents doesn't matter for the test
     AddServiceRequest request = request(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
-    AddServiceInfo info = ADD_SERVICE_INFO_BUILDER
+    AddServiceInfo info = addServiceInfoBuilder
       .setRequest(request)
       .setStack(stack)
       .setConfig(userConfig)
@@ -694,6 +642,58 @@ public class StackAdvisorAdapterTest {
     StackAdvisorAdapter.removeNonStackConfigRecommendations(stackConfig, recommendedConfigs);
 
     assertEquals(recommendedConfigsForStackDefaults, recommendedConfigs);
+  }
+
+  @Test
+  public void getLayoutRecommendationInfo() {
+    Map<String, Map<String, Set<String>>> newServices = ImmutableMap.of(
+      "KAFKA", ImmutableMap.of(
+        "KAFKA_BROKER", ImmutableSet.of("c7401")),
+      "SPARK2", ImmutableMap.of(
+        "SPARK2_JOBHISTORYSERVER", ImmutableSet.of("c7402"),
+        "SPARK2_CLIENT", ImmutableSet.of("c7403", "c7404")),
+      "OOZIE", ImmutableMap.of(
+        "OOZIE_SERVER", ImmutableSet.of("c7401"),
+        "OOZIE_CLIENT", ImmutableSet.of("c7403", "c7404")));
+
+    AddServiceRequest request = request(ConfigRecommendationStrategy.ALWAYS_APPLY);
+    AddServiceInfo info = addServiceInfoBuilder
+      .setRequest(request)
+      .setStack(stack)
+      .setConfig(Configuration.newEmpty())
+      .setNewServices(newServices)
+      .build(); // No LayoutReommendationInfo -> needs to be calculated
+
+    LayoutRecommendationInfo layoutRecommendationInfo = adapter.getLayoutRecommendationInfo(info);
+    layoutRecommendationInfo.getAllServiceLayouts();
+
+    assertEquals(
+      ImmutableMap.of(
+        "host_group_1", ImmutableSet.of("c7401"),
+        "host_group_2", ImmutableSet.of("c7402"),
+        "host_group_3", ImmutableSet.of("c7403", "c7404")),
+      layoutRecommendationInfo.getHostGroups());
+
+    assertEquals(
+      ImmutableMap.<String, Map<String, Set<String>>>builder()
+        .put("KAFKA", ImmutableMap.of(
+          "KAFKA_BROKER", ImmutableSet.of("c7401")))
+        .put("SPARK2", ImmutableMap.of(
+          "SPARK2_JOBHISTORYSERVER", ImmutableSet.of("c7402"),
+          "SPARK2_CLIENT", ImmutableSet.of("c7403", "c7404")))
+        .put("OOZIE", ImmutableMap.of(
+          "OOZIE_SERVER", ImmutableSet.of("c7401"),
+          "OOZIE_CLIENT", ImmutableSet.of("c7403", "c7404")))
+        .put("HDFS", ImmutableMap.of(
+          "NAMENODE", ImmutableSet.of("c7401"),
+          "HDFS_CLIENT", ImmutableSet.of("c7401", "c7402")))
+        .put("ZOOKEEPER", ImmutableMap.of(
+          "ZOOKEEPER_SERVER", ImmutableSet.of("c7401"),
+          "ZOOKEEPER_CLIENT", ImmutableSet.of("c7401", "c7402")))
+        .put("MAPREDUCE2", ImmutableMap.of(
+          "HISTORYSERVER", ImmutableSet.of("c7401")))
+        .build(),
+      layoutRecommendationInfo.getAllServiceLayouts());
   }
 
   private static AddServiceRequest request(ConfigRecommendationStrategy strategy) {
