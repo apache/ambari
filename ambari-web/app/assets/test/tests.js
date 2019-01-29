@@ -277,6 +277,7 @@ var files = [
   'test/views/common/helpers/status_icon_view_test',
   'test/views/common/helpers/pluralize_view_test',
   'test/views/common/ajax_default_error_popup_body_test',
+  'test/views/common/assign_master_components_view_test',
   'test/views/common/filter_combo_cleanable_test',
   'test/views/common/filter_view_test',
   'test/views/common/pagination_view_test',
