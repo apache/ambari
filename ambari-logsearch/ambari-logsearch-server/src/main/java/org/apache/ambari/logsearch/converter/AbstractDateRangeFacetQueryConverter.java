@@ -18,13 +18,13 @@
  */
 package org.apache.ambari.logsearch.converter;
 
+import java.util.Locale;
+
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.model.request.DateRangeParamDefinition;
 import org.apache.ambari.logsearch.model.request.UnitParamDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
-
-import java.util.Locale;
 
 public abstract class AbstractDateRangeFacetQueryConverter<SOURCE extends DateRangeParamDefinition & UnitParamDefinition>
   extends AbstractOperationHolderConverter<SOURCE , SolrQuery> {
@@ -40,9 +40,9 @@ public abstract class AbstractDateRangeFacetQueryConverter<SOURCE extends DateRa
     solrQuery.setFacetLimit(-1);
     solrQuery.setFacetSort(LogSearchConstants.FACET_INDEX);
     solrQuery.add("facet.range", "{!tag=r1}" + getDateFieldName());
-    solrQuery.add(String.format(Locale.ROOT, "f.%s.%s", new Object[]{getDateFieldName(), "facet.range.start"}), request.getFrom());
-    solrQuery.add(String.format(Locale.ROOT, "f.%s.%s", new Object[]{getDateFieldName(), "facet.range.end"}), request.getTo());
-    solrQuery.add(String.format(Locale.ROOT, "f.%s.%s", new Object[]{getDateFieldName(), "facet.range.gap"}), unit);
+    solrQuery.add(String.format(Locale.ROOT, "f.%s.%s", getDateFieldName(), "facet.range.start"), request.getFrom());
+    solrQuery.add(String.format(Locale.ROOT, "f.%s.%s", getDateFieldName(), "facet.range.end"), request.getTo());
+    solrQuery.add(String.format(Locale.ROOT, "f.%s.%s", getDateFieldName(), "facet.range.gap"), unit);
     solrQuery.remove("sort");
     solrQuery.setRows(0);
     solrQuery.setStart(0);
