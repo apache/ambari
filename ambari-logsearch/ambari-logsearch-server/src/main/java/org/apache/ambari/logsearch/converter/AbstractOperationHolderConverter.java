@@ -18,28 +18,30 @@
  */
 package org.apache.ambari.logsearch.converter;
 
-import com.google.common.base.Splitter;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import static java.util.Collections.singletonList;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LOG_MESSAGE;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
 import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.text.StrTokenizer;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.springframework.data.solr.core.query.Criteria;
 import org.springframework.data.solr.core.query.Query;
 import org.springframework.data.solr.core.query.SimpleFilterQuery;
 import org.springframework.data.solr.core.query.SimpleStringCriteria;
 
-import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LOG_MESSAGE;
+import com.google.common.base.Splitter;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE>
   extends AbstractConverterAware<REQUEST_TYPE, QUERY_TYPE> {
@@ -79,7 +81,7 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
 
   public Query addInFiltersIfNotNullAndEnabled(Query query, String value, String field, boolean condition) {
     if (value != null && condition) {
-      List<String> values = value.length() == 0 ? Arrays.asList("-1") : splitValueAsList(value, ",");
+      List<String> values = value.length() == 0 ? singletonList("-1") : splitValueAsList(value, ",");
       addInFilterQuery(query, field, values);
     }
     return query;
@@ -87,7 +89,7 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
 
   public SolrQuery addInFiltersIfNotNullAndEnabled(SolrQuery query, String value, String field, boolean condition) {
     if (condition) {
-      List<String> valuesList = value.length() == 0 ? Arrays.asList("\\-1") : splitValueAsList(value, ",");
+      List<String> valuesList = value.length() == 0 ? singletonList("\\-1") : splitValueAsList(value, ",");
       if (valuesList.size() > 1) {
         query.addFilterQuery(String.format("%s:(%s)", field, StringUtils.join(valuesList, " OR ")));
       } else {
@@ -198,41 +200,25 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
   public abstract LogType getLogType();
 
   private void addLogMessageFilter(Query query, String value, boolean negate) {
-    StrTokenizer tokenizer = new StrTokenizer(value, ' ', '"');
-    for (String token : tokenizer.getTokenArray()) {
-      token = token.trim();
-      if (token.contains(" ") || !token.startsWith("*") && !token.endsWith("*")) {
-        addFilterQuery(query, new Criteria(LOG_MESSAGE).is(SolrUtil.escapeQueryChars(token)), negate);
-      } else if (token.startsWith("*") && token.endsWith("*")) {
-        String plainToken = StringUtils.substring(token, 1, -1);
-        addFilterQuery(query, new Criteria(LOG_MESSAGE).contains(SolrUtil.escapeQueryChars(plainToken)), negate);
-      } else if (token.startsWith("*") && !token.endsWith("*")) {
-        String plainToken = StringUtils.substring(token, 1);
-        addFilterQuery(query, new Criteria(LOG_MESSAGE).endsWith(SolrUtil.escapeQueryChars(plainToken)), negate);
-      } else if (!token.startsWith("*") && token.endsWith("*")) {
-        String plainToken = StringUtils.substring(token, 0, -1);
-        addFilterQuery(query, new Criteria(LOG_MESSAGE).startsWith(SolrUtil.escapeQueryChars(plainToken)), negate);
-      }
+    value = value.trim();
+    if (StringUtils.startsWith(value, "\"") && StringUtils.endsWith(value,"\"")) {
+      value = String.format("\"%s\"", SolrUtil.escapeQueryChars(StringUtils.substring(value, 1, -1)));
+      addFilterQuery(query, new Criteria(LOG_MESSAGE).expression(value), negate);
+    }
+    else if (isNotBlank(value)){
+      addFilterQuery(query, new Criteria(LOG_MESSAGE).expression(SolrUtil.escapeQueryChars(value)), negate);
     }
   }
 
   private void addLogMessageFilter(SolrQuery query, String value, boolean negate) {
-    StrTokenizer tokenizer = new StrTokenizer(value, ' ', '"');
     String negateToken = negate ? "-" : "";
-    for (String token : tokenizer.getTokenArray()) {
-      token = token.trim();
-      if (token.contains(" ") || !token.startsWith("*") && !token.endsWith("*")) {
-        query.addFilterQuery(String.format("%s%s:%s", negateToken, LOG_MESSAGE, SolrUtil.escapeQueryChars(token)));
-      } else if (token.startsWith("*") && token.endsWith("*")) {
-        String plainToken = StringUtils.substring(token, 1, -1);
-        query.addFilterQuery(String.format("%s%s:%s", negateToken, LOG_MESSAGE, SolrUtil.escapeQueryChars(plainToken)));
-      } else if (token.startsWith("*") && !token.endsWith("*")) {
-        String plainToken = StringUtils.substring(token, 1);
-        query.addFilterQuery(String.format("%s%s:%s", negateToken, LOG_MESSAGE, SolrUtil.escapeQueryChars(plainToken)));
-      } else if (!token.startsWith("*") && token.endsWith("*")) {
-        String plainToken = StringUtils.substring(token, 0, -1);
-        query.addFilterQuery(String.format("%s%s:%s", negateToken, LOG_MESSAGE, SolrUtil.escapeQueryChars(plainToken)));
-      }
+    value = value.trim();
+    if (StringUtils.startsWith(value, "\"") && StringUtils.endsWith(value,"\"")) {
+      value = String.format("\"%s\"", SolrUtil.escapeQueryChars(StringUtils.substring(value, 1, -1)));
+      query.addFilterQuery(String.format("%s%s:%s", negateToken, LOG_MESSAGE, value));
+    }
+    else {
+      query.addFilterQuery(String.format("%s%s:%s", negateToken, LOG_MESSAGE, SolrUtil.escapeQueryChars(value)));
     }
   }
 
