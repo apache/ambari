@@ -49,13 +49,14 @@ from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SY
   SETUP_ACTION, SETUP_SECURITY_ACTION, RESTART_ACTION, START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, \
   SETUP_JCE_ACTION, SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION, \
   DB_PURGE_ACTION, INSTALL_MPACK_ACTION, UNINSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION, PAM_SETUP_ACTION, \
-  MIGRATE_LDAP_PAM_ACTION, KERBEROS_SETUP_ACTION
+  MIGRATE_LDAP_PAM_ACTION, KERBEROS_SETUP_ACTION, SETUP_TPROXY_ACTION
 from ambari_server.setupHttps import setup_https, setup_truststore
 from ambari_server.setupMpacks import install_mpack, uninstall_mpack, upgrade_mpack, STACK_DEFINITIONS_RESOURCE_NAME, \
   SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME
 from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas, setup_pam, \
   migrate_ldap_pam, LDAP_TYPES
 from ambari_server.setupSso import setup_sso
+from ambari_server.setupTrustedProxy import setup_trusted_proxy
 from ambari_server.userInput import get_validated_string_input
 from ambari_server_main import server_process_main
 
@@ -588,10 +589,24 @@ def init_setup_sso_options(parser):
   parser.add_option('--ambari-admin-username', default=None, help="Ambari administrator username for accessing Ambari's REST API", dest="ambari_admin_username")
   parser.add_option('--ambari-admin-password', default=None, help="Ambari administrator password for accessing Ambari's REST API", dest="ambari_admin_password")
 
+
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_pam_setup_parser_options(parser):
   parser.add_option('--pam-config-file', default=None, help="Path to the PAM configuration file", dest="pam_config_file")
   parser.add_option('--pam-auto-create-groups', default=None, help="Automatically create groups for authenticated users [true/false]", dest="pam_auto_create_groups")
+
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_tproxy_setup_parser_options(parser):
+  parser.add_option('--ambari-admin-username', default=None, help="Ambari administrator username for accessing Ambari's REST API", dest="ambari_admin_username")
+  parser.add_option('--ambari-admin-password', default=None, help="Ambari administrator password for accessing Ambari's REST API", dest="ambari_admin_password")
+  parser.add_option('--tproxy-enabled', default=None, help="Indicates whether to enable/disable Trusted Proxy Support", dest="tproxy_enabled")
+  parser.add_option('--tproxy-configuration-file-path', default=None,
+                    help="The path where the Trusted Proxy configuration is located. The content is expected to be in JSON format." \
+                    "Sample configuration:[{\"proxyuser\": \"knox\", \"hosts\": \"host1\", \"users\": \"user1, user2\", \"groups\": \"group1\"}]",
+                    dest="tproxy_configuration_file_path"
+                    )
+
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_set_current_parser_options(parser):
@@ -806,7 +821,8 @@ def create_user_action_map(args, options):
     SETUP_SSO_ACTION: UserActionRestart(setup_sso, options),
     INSTALL_MPACK_ACTION: UserAction(install_mpack, options),
     UNINSTALL_MPACK_ACTION: UserAction(uninstall_mpack, options),
-    UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options)
+    UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options),
+    SETUP_TPROXY_ACTION: UserAction(setup_trusted_proxy, options)
   }
   return action_map
 
@@ -838,7 +854,8 @@ def create_user_action_map(args, options):
         UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options),
         PAM_SETUP_ACTION: UserAction(setup_pam, options),
         MIGRATE_LDAP_PAM_ACTION: UserAction(migrate_ldap_pam, options),
-        KERBEROS_SETUP_ACTION: UserAction(setup_kerberos, options)
+        KERBEROS_SETUP_ACTION: UserAction(setup_kerberos, options),
+        SETUP_TPROXY_ACTION: UserAction(setup_trusted_proxy, options)
       }
   return action_map
 
@@ -870,6 +887,7 @@ def init_action_parser(action, parser):
     UPGRADE_MPACK_ACTION: init_upgrade_mpack_parser_options,
     PAM_SETUP_ACTION: init_pam_setup_parser_options,
     KERBEROS_SETUP_ACTION: init_kerberos_setup_parser_options,
+    SETUP_TPROXY_ACTION: init_tproxy_setup_parser_options
   }
   parser.add_option("-v", "--verbose",
                     action="store_true", dest="verbose", default=False,
