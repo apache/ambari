@@ -26,7 +26,8 @@ from ambari_commons.logging_utils import get_silent, print_info_msg
 
 from ambari_server.serverConfiguration import get_ambari_properties
 from ambari_server.serverUtils import is_server_runing, get_ambari_admin_username_password_pair, \
-  get_cluster_name, perform_changes_via_rest_api, get_json_via_rest_api
+  get_cluster_name, perform_changes_via_rest_api, get_json_via_rest_api, \
+  get_value_from_dictionary, get_boolean_from_dictionary
 from ambari_server.setupSecurity import REGEX_TRUE_FALSE
 from ambari_server.userInput import get_validated_string_input, get_YN_input, get_multi_line_input
 
@@ -319,10 +320,4 @@ def ensure_complete_cert(cert_string):
 
   return cert_string
 
-def get_value_from_dictionary(properties, key, default_value=None):
-  return properties[key] if properties and key in properties else default_value
-
-def get_boolean_from_dictionary(properties, key, default_value=False):
-  value = get_value_from_dictionary(properties, key, None)
-  return 'true' == value.lower() if value else default_value
 
