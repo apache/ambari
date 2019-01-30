@@ -275,18 +275,16 @@ public class ColocatedGrouping extends Grouping {
         }
 
         if (!proxy.restart) {
-          if (null == wrapper) {
-            TaskWrapper[] tasks = proxy.getTasksArray(predicate);
+          TaskWrapper[] tasks = proxy.getTasksArray(predicate);
 
-            if (LOG.isDebugEnabled()) {
-              for (TaskWrapper tw : tasks) {
-                LOG.debug("{}", tw);
-              }
+          if (LOG.isDebugEnabled()) {
+            for (TaskWrapper tw : tasks) {
+              LOG.debug("{}", tw);
             }
+          }
 
-            if (ArrayUtils.isNotEmpty(tasks)) {
-              wrapper = new StageWrapper(proxy.type, proxy.message, tasks);
-            }
+          if (ArrayUtils.isNotEmpty(tasks)) {
+            wrapper = new StageWrapper(proxy.type, proxy.message, tasks);
           }
         } else {
           TaskWrapper[] tasks = proxy.getTasksArray(null);

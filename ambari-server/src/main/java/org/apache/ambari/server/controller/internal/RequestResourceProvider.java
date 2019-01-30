@@ -711,9 +711,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
         // !!! this call will result in mixed results of cluster and non-cluster.  this
         // will get fixed in a future iteration, as the host_role_command table does not
         // currently have direct cluster affinity, and changing that is a tad destructive.
-        requestIds = actionManager.getRequestsByStatus(status,
-          maxResults != null ? maxResults : BaseRequest.DEFAULT_PAGE_SIZE,
-                ascOrder != null ? ascOrder : false);
+        requestIds = actionManager.getRequestsByStatus(status, maxResults, ascOrder);
       }
 
       LOG.debug("List<Long> requestIds = actionManager.getRequestsByStatus = {}", requestIds.size());

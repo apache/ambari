@@ -22,13 +22,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 
 public class StackResourceDefinition extends BaseResourceDefinition {
-
-  public StackResourceDefinition(Type resourceType) {
-    super(Resource.Type.Stack);
-  }
 
   public StackResourceDefinition() {
     super(Resource.Type.Stack);

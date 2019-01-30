@@ -2956,17 +2956,15 @@ public class KerberosHelperImpl implements KerberosHelper {
     if (configurations.get(CLUSTER_HOST_INFO) == null) {
       Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
 
-      if (clusterHostInfo != null) {
-        Map<String, String> componentHosts = new HashMap<>();
+      Map<String, String> componentHosts = new HashMap<>();
 
-        clusterHostInfo = StageUtils.substituteHostIndexes(clusterHostInfo);
+      clusterHostInfo = StageUtils.substituteHostIndexes(clusterHostInfo);
 
-        for (Map.Entry<String, Set<String>> entry : clusterHostInfo.entrySet()) {
-          componentHosts.put(entry.getKey(), StringUtils.join(entry.getValue(), ","));
-        }
-
-        configurations.put(CLUSTER_HOST_INFO, componentHosts);
+      for (Map.Entry<String, Set<String>> entry : clusterHostInfo.entrySet()) {
+        componentHosts.put(entry.getKey(), StringUtils.join(entry.getValue(), ","));
       }
+
+      configurations.put(CLUSTER_HOST_INFO, componentHosts);
     }
     configurations.put("principals", principalNames(cluster, configurations));
     return configurations;

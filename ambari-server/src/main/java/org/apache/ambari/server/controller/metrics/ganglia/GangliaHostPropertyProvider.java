@@ -45,7 +45,6 @@ public class GangliaHostPropertyProvider extends GangliaPropertyProvider {
     GANGLIA_CLUSTER_NAMES.add("HDPResourceManager");
     GANGLIA_CLUSTER_NAMES.add("HDPHBaseMaster");
     GANGLIA_CLUSTER_NAMES.add("HDPHistoryServer");
-    GANGLIA_CLUSTER_NAMES.add("HDPNameNode");
     GANGLIA_CLUSTER_NAMES.add("HDPTaskTracker");
     GANGLIA_CLUSTER_NAMES.add("HDPHBaseRegionServer");
     GANGLIA_CLUSTER_NAMES.add("HDPFlumeServer");

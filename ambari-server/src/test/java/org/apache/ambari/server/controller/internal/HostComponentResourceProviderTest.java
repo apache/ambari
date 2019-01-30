@@ -113,7 +113,7 @@ public class HostComponentResourceProviderTest {
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
     Injector injector = createNiceMock(Injector.class);
     HostComponentResourceProvider hostComponentResourceProvider =
-        new HostComponentResourceProvider(managementController, injector);
+        new HostComponentResourceProvider(managementController);
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
@@ -450,7 +450,7 @@ public class HostComponentResourceProviderTest {
     Injector injector = createNiceMock(Injector.class);
 
     HostComponentResourceProvider provider =
-        new HostComponentResourceProvider(managementController, injector);
+        new HostComponentResourceProvider(managementController);
 
     // set expectations
     expect(managementController.deleteHostComponents(
@@ -489,7 +489,7 @@ public class HostComponentResourceProviderTest {
     Injector injector = createNiceMock(Injector.class);
 
     HostComponentResourceProvider provider =
-        new HostComponentResourceProvider(managementController, injector);
+        new HostComponentResourceProvider(managementController);
 
     Set<String> unsupported = provider.checkPropertyIds(Collections.singleton(PropertyHelper.getPropertyId("HostRoles", "cluster_name")));
     Assert.assertTrue(unsupported.isEmpty());
@@ -717,7 +717,7 @@ public class HostComponentResourceProviderTest {
      */
     public TestHostComponentResourceProvider(Set<String> propertyIds, Map<Resource.Type, String> keyPropertyIds,
                                              AmbariManagementController managementController, Injector injector) throws Exception {
-      super(managementController, injector);
+      super(managementController);
     }
 
     public void setFieldValue(String fieldName, Object fieldValue) throws Exception {

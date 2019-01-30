@@ -20,7 +20,6 @@ package org.apache.ambari.server.events.listeners.upgrade;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.RequestUpdateEvent;
 import org.apache.ambari.server.events.UpgradeUpdateEvent;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
@@ -47,7 +46,7 @@ public class UpgradeUpdateListener {
   private RequestDAO requestDAO;
 
   @Inject
-  public UpgradeUpdateListener(STOMPUpdatePublisher STOMPUpdatePublisher, AmbariEventPublisher ambariEventPublisher) {
+  public UpgradeUpdateListener(STOMPUpdatePublisher STOMPUpdatePublisher) {
     STOMPUpdatePublisher.registerAPI(this);
 
     this.STOMPUpdatePublisher = STOMPUpdatePublisher;

@@ -152,15 +152,13 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
         LOG.debug("Handled {} of alerts for {} cluster(s) on host with id {}, changed = {}", update.getEventType(), updateClusters.size(), hostId, changed);
         break;
       case CREATE:
-        if (!updateClusters.isEmpty()) {
-          if (!Sets.intersection(existingClusters.keySet(), updateClusters.keySet()).isEmpty()) {
-            throw new AmbariException("Existing clusters in create");
-          }
-          mergedClusters.putAll(existingClusters);
-          mergedClusters.putAll(updateClusters);
-          LOG.debug("Handled {} of alerts for {} cluster(s)", update.getEventType(), updateClusters.size());
-          changed = true;
+        if (!Sets.intersection(existingClusters.keySet(), updateClusters.keySet()).isEmpty()) {
+          throw new AmbariException("Existing clusters in create");
         }
+        mergedClusters.putAll(existingClusters);
+        mergedClusters.putAll(updateClusters);
+        LOG.debug("Handled {} of alerts for {} cluster(s)", update.getEventType(), updateClusters.size());
+        changed = true;
         break;
       default:
         LOG.warn("Unhandled event type {}", update.getEventType());

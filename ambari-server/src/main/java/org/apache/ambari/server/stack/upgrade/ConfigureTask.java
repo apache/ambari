@@ -235,7 +235,7 @@ public class ConfigureTask extends ServerSideActionTask {
     //Fetch the replacements that used regex to find a string
     replacements.addAll(definition.getRegexReplacements(cluster));
 
-    if( null != replacements && !replacements.isEmpty() ){
+    if( !replacements.isEmpty() ){
       List<Replace> allowedReplacements = getValidReplacements(cluster, definition.getConfigType(), replacements);
       configParameters.put(ConfigureTask.PARAMETER_REPLACEMENTS, m_gson.toJson(allowedReplacements));
     }

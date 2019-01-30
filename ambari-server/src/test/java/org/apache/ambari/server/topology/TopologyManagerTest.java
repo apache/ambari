@@ -244,8 +244,7 @@ public class TopologyManagerTest {
 
     group1ServiceComponents.put("service1", Arrays.asList("component1", "component3"));
     group1ServiceComponents.put("service2", Collections.singleton("component2"));
-    group2ServiceComponents.put("service2", Collections.singleton("component3"));
-    group2ServiceComponents.put("service2", Collections.singleton("component4"));
+    group2ServiceComponents.put("service2",  Arrays.asList("component3", "component4"));
 
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();

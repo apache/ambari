@@ -1110,28 +1110,25 @@ public class UpgradeHelper {
         }
       }
 
-      if (null != newServiceDefaultConfigsByType) {
-
-        for (String clusterConfigType : clusterConfigTypes) {
-          if (processedClusterConfigTypes.contains(clusterConfigType)) {
-            newServiceDefaultConfigsByType.remove(clusterConfigType);
-          } else {
-            processedClusterConfigTypes.add(clusterConfigType);
-          }
-
+      for (String clusterConfigType : clusterConfigTypes) {
+        if (processedClusterConfigTypes.contains(clusterConfigType)) {
+          newServiceDefaultConfigsByType.remove(clusterConfigType);
+        } else {
+          processedClusterConfigTypes.add(clusterConfigType);
         }
 
-        Set<String> configTypes = newServiceDefaultConfigsByType.keySet();
-        LOG.warn("The upgrade will create the following configurations for stack {}: {}",
-            targetStackId, StringUtils.join(configTypes, ','));
-
-        String serviceVersionNote = String.format("%s %s %s", direction.getText(true),
-            direction.getPreposition(), upgradeContext.getRepositoryVersion().getVersion());
-
-        configHelper.createConfigTypes(cluster, targetStackId, controller,
-            newServiceDefaultConfigsByType, userName, serviceVersionNote);
-        configsChanged = true;
       }
+
+      Set<String> configTypes = newServiceDefaultConfigsByType.keySet();
+      LOG.warn("The upgrade will create the following configurations for stack {}: {}",
+          targetStackId, StringUtils.join(configTypes, ','));
+
+      String serviceVersionNote = String.format("%s %s %s", direction.getText(true),
+          direction.getPreposition(), upgradeContext.getRepositoryVersion().getVersion());
+
+      configHelper.createConfigTypes(cluster, targetStackId, controller,
+          newServiceDefaultConfigsByType, userName, serviceVersionNote);
+      configsChanged = true;
     }
     if (configsChanged) {
       m_configHelperProvider.get().updateAgentConfigs(Collections.singleton(cluster.getClusterName()));

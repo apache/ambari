@@ -512,12 +512,10 @@ public class HostUpdateHelper {
                 Collection<TopologyHostInfoEntity> topologyHostInfoEntities = topologyHostGroupEntity.getTopologyHostInfoEntities();
                 boolean updatesAvailable = false;
 
-                if (topologyHostGroupEntities != null) {
-                  for (TopologyHostInfoEntity topologyHostInfoEntity : topologyHostInfoEntities) {
-                    if (currentHostNames.contains(topologyHostInfoEntity.getFqdn())) {
-                      topologyHostInfoEntity.setFqdn(hostMapping.get(topologyHostInfoEntity.getFqdn()));
-                      updatesAvailable = true;
-                    }
+                for (TopologyHostInfoEntity topologyHostInfoEntity : topologyHostInfoEntities) {
+                  if (currentHostNames.contains(topologyHostInfoEntity.getFqdn())) {
+                    topologyHostInfoEntity.setFqdn(hostMapping.get(topologyHostInfoEntity.getFqdn()));
+                    updatesAvailable = true;
                   }
                 }
                 if (updatesAvailable) {

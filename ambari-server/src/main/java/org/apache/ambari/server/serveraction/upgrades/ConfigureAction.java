@@ -416,7 +416,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     }
 
     // set all key/value pairs
-    if (null != keyValuePairs && !keyValuePairs.isEmpty()) {
+    if (!keyValuePairs.isEmpty()) {
       for (ConfigurationKeyValue keyValuePair : keyValuePairs) {
         String key = keyValuePair.key;
         String value = keyValuePair.value;

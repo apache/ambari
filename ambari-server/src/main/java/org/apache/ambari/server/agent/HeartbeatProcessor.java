@@ -274,10 +274,10 @@ public class HeartbeatProcessor extends AbstractService{
       Long clusterId = null;
       if (CollectionUtils.isNotEmpty(componentStatuses)) {
         calculateHostStatus = true;
-        for (ComponentStatus componentStatus : componentStatuses) {
-          clusterId = componentStatus.getClusterId();
-          break;
-        }
+        clusterId = componentStatuses.stream()
+            .findFirst()
+            .map(ComponentStatus::getClusterId)
+            .orElse(null);
       }
 
       if (!calculateHostStatus && CollectionUtils.isNotEmpty(reports)) {
@@ -391,15 +391,13 @@ public class HeartbeatProcessor extends AbstractService{
           }
 
           if (writeKeytabsStructuredOut != null) {
-            if (SET_KEYTAB.equalsIgnoreCase(customCommand)) {
-              Map<String, String> keytabs = writeKeytabsStructuredOut.getKeytabs();
-              if (keytabs != null) {
-                for (Map.Entry<String, String> entry : keytabs.entrySet()) {
-                  String keytabPath = entry.getValue();
-                  for (KerberosKeytabPrincipalEntity kkpe: kerberosKeytabPrincipalDAO.findByHostAndKeytab(host.getHostId(), keytabPath)) {
-                    kkpe.setDistributed(true);
-                    kerberosKeytabPrincipalDAO.merge(kkpe);
-                  }
+            Map<String, String> keytabs = writeKeytabsStructuredOut.getKeytabs();
+            if (keytabs != null) {
+              for (Map.Entry<String, String> entry : keytabs.entrySet()) {
+                String keytabPath = entry.getValue();
+                for (KerberosKeytabPrincipalEntity kkpe : kerberosKeytabPrincipalDAO.findByHostAndKeytab(host.getHostId(), keytabPath)) {
+                  kkpe.setDistributed(true);
+                  kerberosKeytabPrincipalDAO.merge(kkpe);
                 }
               }
             }

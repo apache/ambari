@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 
 /**
  * An extension version is like a stack version but it contains custom services.  Linking an extension
@@ -30,10 +29,6 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
  * the extension version.
  */
 public class ExtensionLinkResourceDefinition extends BaseResourceDefinition {
-
-  public ExtensionLinkResourceDefinition(Type resourceType) {
-    super(Resource.Type.ExtensionLink);
-  }
 
   public ExtensionLinkResourceDefinition() {
     super(Resource.Type.ExtensionLink);

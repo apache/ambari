@@ -354,7 +354,6 @@ public class AmbariAuthorizationFilter implements Filter {
         requestURI.matches(API_CLUSTER_CONFIG_GROUPS_ALL_PATTERN) ||
         requestURI.matches(API_HOSTS_ALL_PATTERN) ||
         requestURI.matches(API_ALERT_TARGETS_ALL_PATTERN) ||
-        requestURI.matches(API_PRIVILEGES_ALL_PATTERN) ||
         requestURI.matches(API_PERSIST_ALL_PATTERN) ||
         requestURI.matches(API_CLUSTERS_UPGRADES_PATTERN);
   }

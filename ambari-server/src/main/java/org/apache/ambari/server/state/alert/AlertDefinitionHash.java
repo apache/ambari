@@ -556,7 +556,7 @@ public class AlertDefinitionHash {
         hostName);
 
     // no definitions found for this host, don't bother hashing
-    if( null == definitions || definitions.size() == 0 ) {
+    if(definitions.isEmpty()) {
       return NULL_MD5_HASH;
     }
 

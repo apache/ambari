@@ -292,8 +292,6 @@ public class BlueprintConfigurationProcessor {
       oozieEnvUpdaters.put("oozie_existing_mysql_host", new SingleHostTopologyUpdater("OOZIE_SERVER"));
       oozieEnvUpdaters.put("oozie_existing_oracle_host", new SingleHostTopologyUpdater("OOZIE_SERVER"));
       oozieEnvUpdaters.put("oozie_existing_postgresql_host", new SingleHostTopologyUpdater("OOZIE_SERVER"));
-      oozieEnvUpdaters.put("oozie_existing_oracle_host", new SingleHostTopologyUpdater("OOZIE_SERVER"));
-      oozieEnvUpdaters.put("oozie_existing_postgresql_host", new SingleHostTopologyUpdater("OOZIE_SERVER"));
       oozieSiteUpdaters.put("oozie.service.JPAService.jdbc.url",  new SingleHostTopologyUpdater("OOZIE_SERVER"));
 
       singleHostTopologyUpdaters.put("oozie-env", oozieEnvUpdaters);
@@ -303,8 +301,6 @@ public class BlueprintConfigurationProcessor {
       Map<String, PropertyUpdater> oozieSiteOriginalValueMap = new HashMap<>();
       // register updaters for Oozie properties that may point to an external DB
       oozieEnvOriginalValueMap.put("oozie_existing_mysql_host", new OriginalValuePropertyUpdater());
-      oozieEnvOriginalValueMap.put("oozie_existing_oracle_host", new OriginalValuePropertyUpdater());
-      oozieEnvOriginalValueMap.put("oozie_existing_postgresql_host", new OriginalValuePropertyUpdater());
       oozieEnvOriginalValueMap.put("oozie_existing_oracle_host", new OriginalValuePropertyUpdater());
       oozieEnvOriginalValueMap.put("oozie_existing_postgresql_host", new OriginalValuePropertyUpdater());
       oozieSiteOriginalValueMap.put("oozie.service.JPAService.jdbc.url", new OriginalValuePropertyUpdater());

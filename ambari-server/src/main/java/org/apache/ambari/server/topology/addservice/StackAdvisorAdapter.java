@@ -190,9 +190,7 @@ public class StackAdvisorAdapter {
       if (info.getRequest().getRecommendationStrategy().shouldOverrideCustomValues()) {
         config = recommendedConfig;
         config.setParentConfiguration(userConfig);
-      }
-      else {
-        config = userConfig;
+      } else {
         config.setParentConfiguration(recommendedConfig);
         recommendedConfig.setParentConfiguration(clusterAndStackConfig);
       }

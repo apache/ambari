@@ -106,65 +106,63 @@ public class ClusterGrouping extends Grouping {
 
       List<StageWrapper> results = new ArrayList<>(stageWrappers);
 
-      if (executionStages != null) {
-        for (ExecuteStage execution : executionStages) {
-          if (null != execution.intendedDirection
-              && execution.intendedDirection != upgradeContext.getDirection()) {
+      for (ExecuteStage execution : executionStages) {
+        if (null != execution.intendedDirection
+            && execution.intendedDirection != upgradeContext.getDirection()) {
+          continue;
+        }
+
+        // if there is a condition on the group, evaluate it and skip scheduling
+        // of this group if the condition has not been satisfied
+        if (null != execution.condition && !execution.condition.isSatisfied(upgradeContext)) {
+          LOG.info("Skipping {} while building upgrade orchestration due to {}", execution,
+              execution.condition);
+
+          continue;
+        }
+
+        // only schedule this stage if its service is part of the upgrade
+        if (StringUtils.isNotBlank(execution.service)) {
+          if (!upgradeContext.isServiceSupported(execution.service)) {
             continue;
           }
+        }
 
-          // if there is a condition on the group, evaluate it and skip scheduling
-          // of this group if the condition has not been satisfied
-          if (null != execution.condition && !execution.condition.isSatisfied(upgradeContext)) {
-            LOG.info("Skipping {} while building upgrade orchestration due to {}", execution,
-                execution.condition);
+        // tasks can have their own condition, so check that too
+        if (null != execution.task.condition
+            && !execution.task.condition.isSatisfied(upgradeContext)) {
+          LOG.info("Skipping {} while building upgrade orchestration due to {}", execution,
+              execution.task.condition);
 
-            continue;
-          }
+          continue;
+        }
 
-          // only schedule this stage if its service is part of the upgrade
-          if (StringUtils.isNotBlank(execution.service)) {
-            if (!upgradeContext.isServiceSupported(execution.service)) {
-              continue;
-            }
-          }
+        Task task = execution.task;
 
-          // tasks can have their own condition, so check that too
-          if (null != execution.task.condition
-              && !execution.task.condition.isSatisfied(upgradeContext)) {
-            LOG.info("Skipping {} while building upgrade orchestration due to {}", execution,
-                execution.task.condition);
+        StageWrapper wrapper = null;
 
-            continue;
-          }
+        switch (task.getType()) {
+          case MANUAL:
+          case SERVER_ACTION:
+          case CONFIGURE:
+          case ADD_COMPONENT:
+            wrapper = getServerActionStageWrapper(upgradeContext, execution);
+            break;
 
-          Task task = execution.task;
+          case EXECUTE:
+            wrapper = getExecuteStageWrapper(upgradeContext, execution);
+            break;
 
-          StageWrapper wrapper = null;
+          case REGENERATE_KEYTABS:
+            wrapper = getRegenerateKeytabsWrapper(upgradeContext, execution);
+            break;
 
-          switch (task.getType()) {
-            case MANUAL:
-            case SERVER_ACTION:
-            case CONFIGURE:
-            case ADD_COMPONENT:
-              wrapper = getServerActionStageWrapper(upgradeContext, execution);
-              break;
+          default:
+            break;
+        }
 
-            case EXECUTE:
-              wrapper = getExecuteStageWrapper(upgradeContext, execution);
-              break;
-
-            case REGENERATE_KEYTABS:
-              wrapper = getRegenerateKeytabsWrapper(upgradeContext, execution);
-              break;
-
-            default:
-              break;
-          }
-
-          if (null != wrapper) {
-            results.add(wrapper);
-          }
+        if (null != wrapper) {
+          results.add(wrapper);
         }
       }
 
