@@ -84,16 +84,13 @@ public class PluginChecksLoadedCheck extends ClusterCheck {
         .map(FailedPluginClassDetail::new)
         .collect(Collectors.toSet());
 
-    // check for failure
-    if (failedPluginClasses.size() > 0) {
-      result.setStatus(UpgradeCheckStatus.WARNING);
-      result.getFailedDetail().addAll(failedPluginSimpleClasses);
-      result.setFailReason(getFailReason(result, request));
+    result.setStatus(UpgradeCheckStatus.WARNING);
+    result.getFailedDetail().addAll(failedPluginSimpleClasses);
+    result.setFailReason(getFailReason(result, request));
 
-      result.getFailedOn().addAll(failedPluginSimpleClasses.stream()
-          .map(detail -> detail.toSimpleString())
-          .collect(Collectors.toSet()));
-    }
+    result.getFailedOn().addAll(failedPluginSimpleClasses.stream()
+        .map(detail -> detail.toSimpleString())
+        .collect(Collectors.toSet()));
 
     return result;
   }

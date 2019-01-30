@@ -177,7 +177,6 @@ public class NameNodeHaValidatorTest {
     List<String> nameNodeHosts = ImmutableList.copyOf(hosts).subList(0, 2);
     nameNodes.addAll(nameNodeHosts);
 
-    hadoopEnv.put("dfs_ha_initial_namenode_active", nameNodeHosts.get(0));
     hadoopEnv.put("dfs_ha_initial_namenode_active", nameNodeHosts.get(1));
 
     validator.validate(clusterTopology);

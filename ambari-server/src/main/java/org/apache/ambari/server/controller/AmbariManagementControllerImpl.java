@@ -3384,11 +3384,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     hostParamsCmd.putAll(ec.getHostLevelParams());
     ec.getHostLevelParams().putAll(hostParamsCmd);
 
-    if (null != cluster) {
-      // Generate localComponents
-      for (ServiceComponentHost sch : cluster.getServiceComponentHosts(scHost.getHostName())) {
-        ec.getLocalComponents().add(sch.getServiceComponentName());
-      }
+    // Generate localComponents
+    for (ServiceComponentHost sch : cluster.getServiceComponentHosts(scHost.getHostName())) {
+      ec.getLocalComponents().add(sch.getServiceComponentName());
     }
 
     return ec;

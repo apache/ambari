@@ -124,8 +124,8 @@ public class ExtensionHelper {
   private static void validateServiceDuplication(StackManager stackManager, StackInfo stack, ExtensionInfo extension, Collection<ServiceInfo> services) throws AmbariException {
     LOG.debug("Looking for duplicate services");
     for (ServiceInfo service : services) {
-      LOG.debug("Looking for duplicate service " + service.getName());
       if (service != null) {
+        LOG.debug("Looking for duplicate service " + service.getName());
         ServiceInfo stackService = null;
         try {
           stackService = stack.getService(service.getName());

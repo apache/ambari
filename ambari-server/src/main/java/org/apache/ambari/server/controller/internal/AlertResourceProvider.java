@@ -198,7 +198,7 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
       } else {
         // Verify authorization to retrieve the requested data
         try {
-          Long clusterId = (StringUtils.isEmpty(clusterName)) ? null : getClusterId(clusterName);
+          Long clusterId = getClusterId(clusterName);
           String definitionName = (String) propertyMap.get(ALERT_DEFINITION_NAME);
           String definitionId = (String) propertyMap.get(ALERT_DEFINITION_ID);
 

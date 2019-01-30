@@ -76,7 +76,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
@@ -196,8 +195,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    * @param managementController the management controller
    */
   @AssistedInject
-  public HostComponentResourceProvider(@Assisted AmbariManagementController managementController,
-                                       Injector injector) {
+  public HostComponentResourceProvider(@Assisted AmbariManagementController managementController) {
     super(Resource.Type.HostComponent, propertyIds, keyPropertyIds, managementController);
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES,RoleAuthorization.HOST_ADD_DELETE_COMPONENTS));

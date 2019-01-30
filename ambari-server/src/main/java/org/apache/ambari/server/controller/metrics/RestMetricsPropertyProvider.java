@@ -303,15 +303,15 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
       portPropertyName = metricsProperties.get(portPropertyNameInMetricsProperties);
     }
     String portStr = getPropertyValueByNameAndConfigType(portPropertyName, portConfigType, cluster, hostname);
-    if (portStr == null && metricsProperties.containsKey(DEFAULT_PORT_PROPERTY)) {
+    if (portStr == null) {
       if (metricsProperties.containsKey(DEFAULT_PORT_PROPERTY)) {
         portStr = metricsProperties.get(DEFAULT_PORT_PROPERTY);
       } else {
         String message = String.format("Can not determine REST port for " +
-            "component %s. " +
-            "Default REST port property %s is not defined at metrics.json " +
-            "file for service, and there is no any other available ways " +
-            "to determine port information.",
+                "component %s. " +
+                "Default REST port property %s is not defined at metrics.json " +
+                "file for service, and there is no any other available ways " +
+                "to determine port information.",
             componentName, DEFAULT_PORT_PROPERTY);
         throw new AmbariException(message);
       }

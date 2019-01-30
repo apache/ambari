@@ -618,12 +618,7 @@ public class UpgradeActionTest {
     // repo 2110 - CURRENT
     // repo 2111 - CURRENT (PATCH)
     for (HostVersionEntity hostVersion : hostVersions) {
-      RepositoryVersionEntity hostRepoVersion = hostVersion.getRepositoryVersion();
-      if (repositoryVersion2110.equals(hostRepoVersion)) {
-        hostVersion.setState(RepositoryVersionState.CURRENT);
-      } else {
-        hostVersion.setState(RepositoryVersionState.CURRENT);
-      }
+      hostVersion.setState(RepositoryVersionState.CURRENT);
 
       hostVersionDAO.merge(hostVersion);
     }

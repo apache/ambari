@@ -3942,7 +3942,7 @@ public class Configuration {
 
     if (dbpasswd != null) {
       return dbpasswd;
-    } else if (dbpasswd == null && isPasswordAlias) {
+    } else if (isPasswordAlias) {
       LOG.error("Can't read db password from keystore. Please, check master key was set correctly.");
       throw new RuntimeException("Can't read db password from keystore. Please, check master key was set correctly.");
     } else {

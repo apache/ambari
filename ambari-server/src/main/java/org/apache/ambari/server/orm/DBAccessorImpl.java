@@ -1063,9 +1063,7 @@ public class DBAccessorImpl implements DBAccessor {
       ScriptRunner scriptRunner = new ScriptRunner(getConnection(), false, false);
       scriptRunner.runScript(br);
     } finally {
-      if (br != null) {
-        br.close();
-      }
+      br.close();
     }
   }
 

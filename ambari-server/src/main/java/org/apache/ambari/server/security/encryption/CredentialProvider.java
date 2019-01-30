@@ -147,8 +147,7 @@ public class CredentialProvider {
         if (args.length > 2 && !args[2].isEmpty()) {
           password = args[2];
         }
-        if (alias != null && !alias.isEmpty()
-            && password != null && !password.isEmpty()) {
+        if (password != null && !password.isEmpty()) {
           try {
             credentialProvider.addAliasToCredentialStore(alias, password);
           } catch (AmbariException e) {
@@ -163,8 +162,7 @@ public class CredentialProvider {
         if (args.length > 2 && !args[2].isEmpty()) {
           writeFilePath = args[2];
         }
-        if (alias != null && !alias.isEmpty() && writeFilePath != null &&
-            !writeFilePath.isEmpty()) {
+        if (writeFilePath != null && !writeFilePath.isEmpty()) {
           String passwd = "";
           try {
             char[] retPasswd = credentialProvider.getPasswordForAlias(alias);

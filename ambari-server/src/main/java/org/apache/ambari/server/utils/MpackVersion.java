@@ -83,9 +83,6 @@ public class MpackVersion implements Comparable<MpackVersion> {
       mpackVersion = format(mpackVersion);
     }
     Matcher versionMatcher = validateMpackVersion(mpackVersion);
-    if(versionMatcher == null) {
-      throw new IllegalArgumentException("Wrong format for mpack version");
-    }
     if (versionMatcher.pattern().pattern().equals(VERSION_WITH_BUILD_PATTERN)) {
       return new MpackVersion(Integer.parseInt(versionMatcher.group(1)), Integer.parseInt(versionMatcher.group(2)),
               Integer.parseInt(versionMatcher.group(3)), 0, Integer.parseInt(versionMatcher.group(4)));
@@ -138,9 +135,6 @@ public class MpackVersion implements Comparable<MpackVersion> {
    * */
   public static MpackVersion parseStackVersion(String stackVersion) {
     Matcher versionMatcher = validateStackVersion(stackVersion);
-    if(versionMatcher == null) {
-      throw new IllegalArgumentException("Wrong format for mpack version");
-    }
 
     if(versionMatcher.pattern().pattern().equals(LEGACY_STACK_VERSION_PATTERN)) {
       return new MpackVersion(Integer.parseInt(versionMatcher.group(1)),

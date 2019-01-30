@@ -89,7 +89,7 @@ public class ActionDefinitionManager {
         || !customActionDefinitionRoot.exists()
         || !customActionDefinitionRoot.canRead()) {
       LOG.warn("Cannot read custom action definitions. " +
-          customActionDefinitionRoot == null ? "" : "Check path " + customActionDefinitionRoot.getAbsolutePath());
+          (customActionDefinitionRoot == null ? "" : ("Check path " + customActionDefinitionRoot.getAbsolutePath())));
     }
 
     File[] customActionDefinitionFiles

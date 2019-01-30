@@ -396,10 +396,10 @@ public class ConfigImpl implements Config {
   @Transactional
   public void save() {
     ClusterConfigEntity entity = clusterDAO.findConfig(configId);
-    ClusterEntity clusterEntity = clusterDAO.findById(entity.getClusterId());
 
     // if the configuration was found, then update it
     if (null != entity) {
+      ClusterEntity clusterEntity = clusterDAO.findById(entity.getClusterId());
       LOG.debug("Updating {} version {} with new configurations; a new version will not be created",
           getType(), getVersion());
 

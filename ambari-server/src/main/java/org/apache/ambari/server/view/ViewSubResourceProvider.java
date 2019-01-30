@@ -272,8 +272,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
 
   // get the resource type associated with the given UnsupportedPropertyException
   private Resource.Type getResourceType(org.apache.ambari.view.UnsupportedPropertyException e) {
-    Resource.Type type = Resource.Type.valueOf(e.getType());
-    return type == null ? this.type : type;
+    return Resource.Type.valueOf(e.getType());
   }
 
   // discover the property ids for the given bean class

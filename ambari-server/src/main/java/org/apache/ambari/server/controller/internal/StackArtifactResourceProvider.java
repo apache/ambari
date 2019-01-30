@@ -496,12 +496,8 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
 
     Collection<KerberosServiceDescriptor> serviceDescriptors = getServiceDescriptors(stackInfo);
 
-    if (serviceDescriptors != null) {
-      serviceDescriptors.forEach(kerberosDescriptor::putService);
-      return kerberosDescriptor.toMap();
-    } else {
-      return null;
-    }
+    serviceDescriptors.forEach(kerberosDescriptor::putService);
+    return kerberosDescriptor.toMap();
   }
 
   /**

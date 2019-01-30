@@ -3399,7 +3399,6 @@ public class AmbariManagementControllerTest {
     Set<ServiceRequest> reqs = new HashSet<>();
     ServiceRequest req1, req2;
     try {
-      reqs.clear();
       req1 = new ServiceRequest(cluster1, serviceName1, repositoryVersion02.getId(),
           State.STARTED.toString(), null);
       reqs.add(req1);

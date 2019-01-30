@@ -101,9 +101,6 @@ public class AmbariServerLDAPConfigurationHandler extends AmbariServerStackAdvis
     OperationType operationType;
     try {
       operationType = OperationType.translate(operation);
-      if (operationType == null) {
-        throw new SystemException(String.format("The requested operation is not supported for this category: %s", categoryName));
-      }
     } catch (IllegalArgumentException e) {
       throw new SystemException(String.format("The requested operation is not supported for this category: %s", categoryName), e);
     }
