@@ -96,7 +96,7 @@
   <field name="ip" type="string" multiValued="false"/>
   <field name="level" type="lowercase" multiValued="false"/>
   <field name="line_number" type="tint" omitNorms="false"/>
-  <field name="log_message" type="text_ws" multiValued="false" omitNorms="false"/>
+  <field name="log_message" type="text_general" multiValued="false" omitNorms="false"/>
   <field name="logfile_line_number" type="tint" omitNorms="false"/>
   <field name="logger_name" type="string" multiValued="false"/>
   <field name="logtime" type="tdate" multiValued="false"  docValues="true"/>
