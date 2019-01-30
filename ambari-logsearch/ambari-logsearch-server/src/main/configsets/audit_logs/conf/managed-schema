@@ -91,7 +91,7 @@
   <field name="ip" type="key_lower_case"/>
   <field name="level" type="key_lower_case"/>
   <field name="logType" type="key_lower_case" multiValued="false"/>
-  <field name="log_message" type="text_ws" multiValued="false" omitNorms="false"/>
+  <field name="log_message" type="text_std_token_lower_case" multiValued="false" omitNorms="false"/>
   <field name="logfile_line_number" type="tint" omitNorms="false"/>
   <field name="logger_name" type="key_lower_case"/>
   <field name="message_md5" type="string" multiValued="false"/>
