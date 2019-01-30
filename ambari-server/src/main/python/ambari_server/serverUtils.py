@@ -295,3 +295,12 @@ def is_api_ssl_enabled(properties):
     ssl_enabled = api_ssl_prop.lower() == "true"
 
   return ssl_enabled
+
+
+def get_value_from_dictionary(properties, key, default_value=None):
+  return properties[key] if properties and key in properties else default_value
+
+
+def get_boolean_from_dictionary(properties, key, default_value=False):
+  value = get_value_from_dictionary(properties, key, None)
+  return 'true' == value.lower() if value else default_value
