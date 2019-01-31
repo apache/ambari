@@ -180,6 +180,8 @@ public class ScaleClusterRequest extends BaseClusterRequest {
     String rackInfo = null;
     if (properties.containsKey(HostResourceProvider.HOST_RACK_INFO_PROPERTY_ID)) {
       rackInfo = (String) properties.get(HostResourceProvider.HOST_RACK_INFO_PROPERTY_ID);
+    } else if (properties.containsKey(HostResourceProvider.RACK_INFO_PROPERTY_ID)) {
+      rackInfo = (String) properties.get(HostResourceProvider.RACK_INFO_PROPERTY_ID);
     } else {
       LOGGER.debug("No rack info provided");
     }
