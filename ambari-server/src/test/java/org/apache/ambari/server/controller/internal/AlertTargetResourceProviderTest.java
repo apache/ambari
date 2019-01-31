@@ -1007,6 +1007,53 @@ public class AlertTargetResourceProviderTest {
     verify(m_amc, m_dao);
   }
 
+  @Test
+  public void testEnable() throws Exception {
+    Capture<AlertTargetEntity> entityCapture = EasyMock.newCapture();
+    m_dao.create(capture(entityCapture));
+    expectLastCall().times(1);
+
+    AlertTargetEntity target = new AlertTargetEntity();
+    target.setEnabled(false);
+    target.setProperties("{prop1=val1}");
+    expect(m_dao.findTargetById(ALERT_TARGET_ID)).andReturn(target).times(1);
+
+    expect(m_dao.merge(capture(entityCapture))).andReturn(target).once();
+
+    replay(m_amc, m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    AlertTargetResourceProvider provider = createProvider(m_amc);
+    Map<String, Object> requestProps = getCreationProperties();
+    Request request = PropertyHelper.getCreateRequest(
+      Collections.singleton(requestProps), null);
+    provider.createResources(request);
+
+    // create new properties, and include the ID since we're not going through
+    // a service layer which would add it for us automatically
+    requestProps = new HashMap<>();
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_ID,
+      ALERT_TARGET_ID.toString());
+
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_ENABLED,
+      "true");
+
+    Predicate predicate = new PredicateBuilder().property(
+      AlertTargetResourceProvider.ALERT_TARGET_ID).equals(
+      ALERT_TARGET_ID.toString()).toPredicate();
+
+    request = PropertyHelper.getUpdateRequest(requestProps, null);
+    provider.updateResources(request, predicate);
+
+    assertTrue(entityCapture.hasCaptured());
+
+    AlertTargetEntity entity = entityCapture.getValue();
+    assertTrue("{prop1=val1}".equals(entity.getProperties()));
+    assertTrue(entity.isEnabled());
+    verify(m_amc, m_dao);
+  }
+
   /**
    * @param amc
    * @return
