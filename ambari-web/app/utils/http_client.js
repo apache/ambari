@@ -68,7 +68,7 @@ App.HttpClient = Em.Object.create({
     xhr.open(method, url + (url.indexOf('?') >= 0 ? '&_=' : '?_=') + curTime, true);
     if (isGetAsPost) {
       xhr.setRequestHeader("X-Http-Method-Override", "GET");
-      xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+      xhr.setRequestHeader("Content-type", "text/plain");
     }
     xhr.send(params);
 
