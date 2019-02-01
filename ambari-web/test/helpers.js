@@ -37,11 +37,14 @@ module.exports = {
   nestedExpect: function (expected, actual) {
     expected.forEach(function (group, i) {
       Em.keys(group).forEach(function (key) {
-        if (Em.isArray(actual[i][key])) {
-          expect(group[key]).to.eql(actual[i][key].toArray());
-        }
-        else {
-          expect(group[key]).to.equal(actual[i][key]);
+        var expectedValue = Em.get(group, key),
+          actualValue = Em.get(actual[i], key);
+        if (Em.isArray(actualValue)) {
+          expect(expectedValue).to.eql(actualValue.toArray());
+        } else if (Em.typeOf(actualValue) === 'object') {
+          expect(expectedValue).to.eql(actualValue);
+        } else {
+          expect(expectedValue).to.equal(actualValue);
         }
       });
     });

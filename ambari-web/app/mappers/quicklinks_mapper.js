@@ -29,21 +29,5 @@ App.quicklinksMapper = App.QuickDataMapper.create({
     "name" : "QuickLinkInfo.quicklink_data.QuickLinksConfiguration.name",
     "protocol" : "QuickLinkInfo.quicklink_data.QuickLinksConfiguration.configuration.protocol",
     "links" : "QuickLinkInfo.quicklink_data.QuickLinksConfiguration.configuration.links"
-  },
-
-  map: function(json){
-    console.time('App.quicklinksMapper execution time');
-
-    var result = [];
-    var linkResult = [];
-
-    json.items.forEach(function(item) {
-      var parseResult = this.parseIt(item, this.get('config'));
-      console.log("parseResult", parseResult);
-      result.push(parseResult);
-    }, this);
-
-    App.store.safeLoadMany(this.get('model'), result);
-    console.timeEnd('App.quicklinksMapper execution time');
   }
 });
