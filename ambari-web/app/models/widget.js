@@ -45,10 +45,13 @@ App.Widget = DS.Model.extend({
   tag: DS.attr('string'),
   isVisible: DS.attr('boolean', {defaultValue: true}),
   /**
+   * This field is not derived from API but needs to be filled in the mapper on the client side
    * @type {number}
    * @default 0
    */
-  defaultOrder: 0, // This field is not derived from API but needs to be filled in the mapper on the client side
+  defaultOrder: DS.attr('number', {
+    defaultValue: 0
+  }),
 
   /**
    * @type Em.View
