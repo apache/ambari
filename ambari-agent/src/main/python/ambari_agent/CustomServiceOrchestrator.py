@@ -347,6 +347,7 @@ class CustomServiceOrchestrator(object):
 
         # forces a hash challenge on the directories to keep them updated, even
         # if the return type is not used
+        self.file_cache.get_host_scripts_base_dir(command)
         base_dir = self.file_cache.get_service_base_dir(command)
         script_path = self.resolve_script_path(base_dir, script)
         script_tuple = (script_path, base_dir)
