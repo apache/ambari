@@ -347,11 +347,12 @@ def validate_purge(options, purge_list, mpack_dir, mpack_metadata, replay_mode=F
 
   if not replay_mode:
     purge_resources = set((v) for k, v in RESOURCE_FRIENDLY_NAMES.iteritems() if k in purge_list)
+    answer = 'yes' if options.silent else 'no'
     warn_msg = "CAUTION: You have specified the --purge option with --purge-list={0}. " \
                "This will replace all existing {1} currently installed.\n" \
-               "Are you absolutely sure you want to perform the purge [yes/no]? (no)".format(
-        purge_list, ", ".join(purge_resources))
-    okToPurge = get_YN_input(warn_msg, False)
+               "Are you absolutely sure you want to perform the purge [yes/no]? ({2})".format(
+        purge_list, ", ".join(purge_resources), answer)
+    okToPurge = get_YN_input(warn_msg, options.silent, answer)
     if not okToPurge:
       err = "Management pack installation cancelled by user"
       raise FatalException(1, err)
