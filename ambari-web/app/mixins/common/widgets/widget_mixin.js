@@ -263,7 +263,7 @@ App.WidgetMixin = Ember.Mixin.create({
     };
 
     if (request.tag) {
-      data.selectedHostsParam = '&HostRoles/host_name.in(' + App.HDFSService.find().objectAt(0).get('masterComponentGroups').findProperty('name', request.tag).hosts.join(',') + ')';
+      data.selectedHostsParam = '&HostRoles/host_name.in(' + App.HDFSService.find('HDFS').get('masterComponentGroups').findProperty('name', request.tag).hosts.join(',') + ')';
     }
 
     if (metricPaths.length) {
@@ -293,30 +293,15 @@ App.WidgetMixin = Ember.Mixin.create({
    * @param data
    */
   getMetricsSuccessCallback: function (data) {
-    var metrics = [];
     var atLeastOneMetricPresent = false;
 
     if (this.get('content.metrics')) {
       this.get('content.metrics').forEach(function (_metric) {
-        var metric_path = _metric.metric_path;
-        var isAggregatorFunc = false;
-        var metric_data = Em.get(data, metric_path.replace(/\//g, '.'));
+        var metricPath = _metric.metric_path;
+
+        var metric_data = Em.get(data, metricPath.replace(/\//g, '.'));
         if (Em.isNone(metric_data)) {
-          this.aggregatorFunc.forEach(function (_item) {
-            if (metric_path.endsWith(_item) && !isAggregatorFunc) {
-              isAggregatorFunc = true;
-              var metricBeanProperty = metric_path.split("/").pop();
-              var metricBean;
-              metric_path = metric_path.substring(0, metric_path.indexOf(metricBeanProperty));
-              if (metric_path.endsWith("/")) {
-                metric_path = metric_path.slice(0, -1);
-              }
-              metricBean = Em.get(data, metric_path.replace(/\//g, '.'));
-              if (!Em.isNone(metricBean)) {
-                metric_data = metricBean[metricBeanProperty];
-              }
-            }
-          }, this);
+          metric_data = this.parseMetricsWithAggregatorFunc(data, metricPath);
         }
         if (!Em.isNone(metric_data)) {
           atLeastOneMetricPresent = true;
@@ -329,6 +314,28 @@ App.WidgetMixin = Ember.Mixin.create({
         this.disableGraph();
       }
     }
+  },
+
+  parseMetricsWithAggregatorFunc: function(data, metric_path) {
+    let isAggregatorFunc = false;
+    let metric = null;
+    this.aggregatorFunc.forEach(function (_item) {
+      if (metric_path.endsWith(_item) && !isAggregatorFunc) {
+        isAggregatorFunc = true;
+        var metricBeanProperty = metric_path.split("/").pop();
+        var metricBean;
+        metric_path = metric_path.substring(0, metric_path.indexOf(metricBeanProperty));
+
+        if (metric_path.endsWith("/")) {
+          metric_path = metric_path.slice(0, -1);
+        }
+        metricBean = Em.get(data, metric_path.replace(/\//g, '.'));
+        if (!Em.isNone(metricBean)) {
+          metric = metricBean[metricBeanProperty];
+        }
+      }
+    }, this);
+    return metric;
   },
 
   /**
@@ -377,8 +384,8 @@ App.WidgetMixin = Ember.Mixin.create({
    * @return {$.ajax}
    */
   getHostComponentsMetrics: function (request) {
-    request.metric_paths.forEach(function (_metric, index) {
-      request.metric_paths[index] = "host_components/" + _metric.metric_path;
+    request.metric_paths  = request.metric_paths.map((_metric) => {
+      return "host_components/" + _metric.metric_path;
     });
     return App.ajax.send({
       name: 'widgets.serviceComponent.metrics.get',
@@ -422,7 +429,7 @@ App.WidgetMixin = Ember.Mixin.create({
   getHostsMetricsSuccessCallback: function (data) {
     var metrics = this.get('content.metrics');
     data.items.forEach(function (item) {
-      metrics.forEach(function (_metric, index) {
+      metrics.forEach(function (_metric) {
         const metric = $.extend({}, _metric, true);
         metric.hostName = item.Hosts.host_name;
         if (!Em.isNone(Em.get(item, _metric.metric_path.replace(/\//g, '.')))) {
@@ -574,7 +581,7 @@ App.WidgetMixin = Ember.Mixin.create({
   /*
    * make call when clicking on "clone icon" on widget
    */
-  cloneWidget: function (event) {
+  cloneWidget: function () {
     var self = this;
     return App.showConfirmationPopup(
       function () {
@@ -666,8 +673,7 @@ App.WidgetMixin = Ember.Mixin.create({
     var mainServiceInfoMetricsController =  App.router.get('mainServiceInfoMetricsController');
     mainServiceInfoMetricsController.saveWidgetLayout(widgets).done(function() {
       mainServiceInfoMetricsController.getActiveWidgetLayout().done(function() {
-        var newWidget = App.Widget.find().findProperty('id', id);
-        controller.editWidget(newWidget);
+        controller.editWidget(App.Widget.find(id));
       });
     });
   },
@@ -675,7 +681,7 @@ App.WidgetMixin = Ember.Mixin.create({
   /*
    * make call when clicking on "edit icon" on widget
    */
-  editWidget: function (event) {
+  editWidget: function () {
     var self = this;
     var isShared = this.get('content.scope') === 'CLUSTER';
     if (!isShared) {
