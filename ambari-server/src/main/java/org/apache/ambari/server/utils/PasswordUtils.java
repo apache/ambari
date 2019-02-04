@@ -82,7 +82,8 @@ public class PasswordUtils {
       if (CredentialProvider.isAliasString(passwordProperty)) {
         return readPasswordFromStore(passwordProperty);
       } else {
-        return readPasswordFromFile(passwordProperty, defaultPassword);
+        final String pw = readPasswordFromFile(passwordProperty, defaultPassword);
+        return CredentialProvider.isAliasString(pw) ? readPasswordFromStore(pw) : pw;
       }
     }
     return defaultPassword;
