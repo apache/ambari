@@ -918,19 +918,15 @@ def setup_ldap(options):
     if isSecure:
       if mgr_password:
         encrypted_passwd = encrypt_password(LDAP_MGR_PASSWORD_ALIAS, mgr_password, options)
-        if mgr_password != encrypted_passwd:
-          ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = encrypted_passwd
-      pass
+        ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = store_password_file(encrypted_passwd, LDAP_MGR_PASSWORD_FILENAME)
+
       if ts_password:
         encrypted_passwd = encrypt_password(SSL_TRUSTSTORE_PASSWORD_ALIAS, ts_password, options)
         if ts_password != encrypted_passwd:
           ldap_property_values_in_ambari_properties[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = encrypted_passwd
-      pass
-    pass
-
-    # Persisting values
-    if mgr_password:
-      ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = store_password_file(mgr_password, LDAP_MGR_PASSWORD_FILENAME)
+    else: #not secure
+      if mgr_password:
+        ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = store_password_file(mgr_password, LDAP_MGR_PASSWORD_FILENAME)
 
     print 'Saving LDAP properties...'
 
