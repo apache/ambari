@@ -24,7 +24,13 @@ describe('App.WidgetMixin', function () {
   var mixinObject;
 
   beforeEach(function () {
-    mixinObject = mixinClass.create();
+    mixinObject = mixinClass.create({
+      content: Em.Object.create(),
+      controller: Em.Object.create({
+        hideWidget: sinon.spy(),
+        editWidget: sinon.spy()
+      })
+    });
   });
 
   afterEach(function () {
@@ -81,10 +87,20 @@ describe('App.WidgetMixin', function () {
     beforeEach(function () {
       this.mock = sinon.stub(mixinObject, 'getRequestData');
       sinon.stub(App.WidgetLoadAggregator, 'add');
+      sinon.stub(mixinObject, 'getHostsMetrics').returns({
+        complete: Em.clb
+      });
+      sinon.stub(mixinObject, 'getHostComponentsMetrics').returns({
+        complete: Em.clb
+      });
+      sinon.stub(mixinObject, 'onMetricsLoaded');
     });
     afterEach(function () {
       this.mock.restore();
       App.WidgetLoadAggregator.add.restore();
+      mixinObject.getHostsMetrics.restore();
+      mixinObject.getHostComponentsMetrics.restore();
+      mixinObject.onMetricsLoaded.restore();
     });
     it('has host_component_criteria', function () {
       this.mock.returns({'key1': {host_component_criteria: 'criteria'}});
@@ -99,6 +115,30 @@ describe('App.WidgetMixin', function () {
       mixinObject.loadMetrics();
 
       expect(App.WidgetLoadAggregator.add.calledOnce).to.be.true;
+    });
+  
+    it('getHostsMetrics should be called', function () {
+      this.mock.returns({'key1': {
+          host_component_criteria: 'criteria',
+          service_name: 'STACK'
+        }});
+      mixinObject.set('content.widgetType', 'HEATMAP');
+      mixinObject.loadMetrics();
+    
+      expect(mixinObject.getHostsMetrics.calledOnce).to.be.true;
+      expect(mixinObject.onMetricsLoaded.calledOnce).to.be.true;
+    });
+  
+    it('getHostComponentsMetrics should be called', function () {
+      this.mock.returns({'key1': {
+          host_component_criteria: 'criteria',
+          service_name: 'S1'
+        }});
+      mixinObject.set('content.widgetType', 'HEATMAP');
+      mixinObject.loadMetrics();
+    
+      expect(mixinObject.getHostComponentsMetrics.calledOnce).to.be.true;
+      expect(mixinObject.onMetricsLoaded.calledOnce).to.be.true;
     });
   });
 
@@ -264,10 +304,37 @@ describe('App.WidgetMixin', function () {
       });
     });
   });
+  
+  describe('#getHostComponentMetricsSuccessCallback', function() {
+    beforeEach(function() {
+      sinon.stub(mixinObject, 'getMetricsSuccessCallback');
+    });
+    afterEach(function() {
+      mixinObject.getMetricsSuccessCallback.restore();
+    });
+    
+    it('getMetricsSuccessCallback should be called', function() {
+      mixinObject.getHostComponentMetricsSuccessCallback({items: [{}]});
+      expect(mixinObject.getMetricsSuccessCallback.calledWith({})).to.be.true;
+    });
+  });
 
   describe("#getMetricsSuccessCallback()", function () {
+  
+    beforeEach(function() {
+      sinon.stub(mixinObject, 'parseMetricsWithAggregatorFunc').returns(1);
+    });
+    afterEach(function() {
+      mixinObject.parseMetricsWithAggregatorFunc.restore();
+    });
+  
     it("metric is mapped from provided path", function () {
-      var data = {
+      mixinObject.set('content.metrics', [
+        {
+          metric_path: 'metrics/hbase/ipc/IPC/numOpenConnections'
+        }
+      ]);
+      mixinObject.getMetricsSuccessCallback({
         metrics: {
           "hbase": {
             "ipc": {
@@ -277,14 +344,25 @@ describe('App.WidgetMixin', function () {
             }
           }
         }
-      };
+      });
+      expect(mixinObject.get('metrics').findProperty('metric_path', 'metrics/hbase/ipc/IPC/numOpenConnections').data).to.equal(11.5);
+    });
+  
+    it("parseMetricsWithAggregatorFunc should be called", function () {
       mixinObject.set('content.metrics', [
         {
           metric_path: 'metrics/hbase/ipc/IPC/numOpenConnections'
         }
       ]);
-      mixinObject.getMetricsSuccessCallback(data);
-      expect(mixinObject.get('metrics').findProperty('metric_path', 'metrics/hbase/ipc/IPC/numOpenConnections').data).to.equal(11.5);
+      mixinObject.getMetricsSuccessCallback({});
+      expect(mixinObject.parseMetricsWithAggregatorFunc.calledWith({}, 'metrics/hbase/ipc/IPC/numOpenConnections')).to.be.true;
+    });
+  });
+  
+  describe('#parseMetricsWithAggregatorFunc', function() {
+    
+    it('should return metric value', function() {
+      expect(mixinObject.parseMetricsWithAggregatorFunc({path: {foo: {'._sum': 1}}}, 'path/foo/._sum')).to.equal(1);
     });
   });
 
@@ -377,10 +455,19 @@ describe('App.WidgetMixin', function () {
 
   describe("#getHostComponentMetrics()", function () {
     beforeEach(function () {
-      sinon.stub(mixinObject, 'computeHostComponentCriteria').returns('criteria')
+      sinon.stub(mixinObject, 'computeHostComponentCriteria').returns('criteria');
+      sinon.stub(App.HDFSService, 'find').returns(Em.Object.create({
+        masterComponentGroups: [
+          {
+            name: 'tag1',
+            hosts: ['host1', 'host2']
+          }
+        ]
+      }));
     });
     afterEach(function () {
       mixinObject.computeHostComponentCriteria.restore();
+      App.HDFSService.find.restore();
     });
     it("valid request is sent", function () {
       var request = {
@@ -399,7 +486,8 @@ describe('App.WidgetMixin', function () {
             "context": {}
           }
         ],
-        host_component_criteria: 'c1'
+        host_component_criteria: 'c1',
+        tag: 'tag1'
       };
       mixinObject.getHostComponentMetrics(request);
       var args = testHelpers.findAjaxRequest('name', 'widgets.hostComponent.metrics.get');
@@ -408,7 +496,8 @@ describe('App.WidgetMixin', function () {
       expect(args[0].data).to.be.eql({
         componentName: 'C1',
         metricPaths: 'w1,w2',
-        hostComponentCriteria: 'criteria'
+        hostComponentCriteria: 'criteria',
+        selectedHostsParam: '&HostRoles/host_name.in(host1,host2)'
       });
     });
   });
@@ -501,19 +590,73 @@ describe('App.WidgetMixin', function () {
 
   describe("#postWidgetDefinition()", function () {
     beforeEach(function () {
-      sinon.stub(mixinObject, 'collectWidgetData').returns({});
+      sinon.stub(mixinObject, 'collectWidgetData').returns({
+        WidgetInfo: {
+          widget_name: 'widget1'
+        }
+      });
     });
     afterEach(function () {
       mixinObject.collectWidgetData.restore();
     });
-    it("valid request is sent", function () {
-      mixinObject.postWidgetDefinition();
-      var args = testHelpers.findAjaxRequest('name', 'widgets.wizard.add');
-      expect(args[0]).exists;
-      expect(args[0].sender).to.be.eql(mixinObject);
-      expect(args[0].data).to.be.eql({
-        data: {}
+    it("Request for clone widget should be sent", function () {
+      mixinObject.postWidgetDefinition(true, true);
+      expect(testHelpers.findAjaxRequest('name', 'widgets.wizard.add')[0]).to.be.eql({
+        name: 'widgets.wizard.add',
+        sender: mixinObject,
+        data: {
+          data: {
+            WidgetInfo: {
+              widget_name: 'widget1(Copy)',
+              scope: 'USER'
+            }
+          }
+        },
+        success: 'editNewClonedWidget'
       });
+    });
+  
+    it("Request for new widget should be sent", function () {
+      mixinObject.postWidgetDefinition(false, false);
+      expect(testHelpers.findAjaxRequest('name', 'widgets.wizard.add')[0]).to.be.eql({
+        name: 'widgets.wizard.add',
+        sender: mixinObject,
+        data: {
+          data: {
+            WidgetInfo: {
+              widget_name: 'widget1'
+            }
+          }
+        },
+        success: 'postWidgetDefinitionSuccessCallback'
+      });
+    });
+  });
+  
+  describe('#postWidgetDefinitionSuccessCallback', function() {
+    var mock = {
+      saveWidgetLayout: sinon.stub().returns({done: Em.clb}),
+      updateActiveLayout: sinon.spy()
+    };
+    beforeEach(function() {
+      sinon.stub(App.router, 'get').returns(mock);
+      mixinObject.set('content.layout', {widgets: []});
+      mixinObject.postWidgetDefinitionSuccessCallback({resources: [{WidgetInfo: {id: 1}}]});
+    });
+    afterEach(function() {
+      App.router.get.restore();
+    });
+    
+    it('saveWidgetLayout should be called', function() {
+      expect(mock.saveWidgetLayout.calledWith([
+        Em.Object.create({
+          id: 1
+        })
+      ])).to.be.true;
+    });
+  
+    it('updateActiveLayout should be called', function() {
+      expect(mock.updateActiveLayout.called).to.be.true;
     });
   });
 
@@ -673,6 +816,312 @@ describe('App.WidgetMixin', function () {
 
     });
 
+  });
+  
+  describe('#beforeRender', function() {
+    beforeEach(function() {
+      sinon.stub(mixinObject, 'loadMetrics');
+    });
+    afterEach(function() {
+      mixinObject.loadMetrics.restore();
+    });
+    
+    it('loadMetrics should be called', function() {
+      mixinObject.beforeRender();
+      expect(mixinObject.loadMetrics.calledOnce).to.be.true
+;    });
+  });
+  
+  describe('#computeHostComponentCriteria', function() {
+
+    it('should return params', function() {
+      var request = {
+        host_component_criteria: 'host_components/param'
+      };
+      expect(mixinObject.computeHostComponentCriteria(request)).to.be.equal('&param');
+    });
+  });
+  
+  describe('#getHostComponentsMetrics', function() {
+   
+    it('App.ajax.send should be called', function() {
+      mixinObject.getHostComponentsMetrics({
+        service_name: 'S1',
+        component_name: 'C1',
+        metric_paths: [{metric_path: 'key1'}, {metric_path: 'key2'}]
+      });
+      expect(testHelpers.findAjaxRequest('name', 'widgets.serviceComponent.metrics.get')[0].data).to.be.eql({
+        serviceName: 'S1',
+        componentName: 'C1',
+        metricPaths: 'host_components/key1,host_components/key2'
+      })
+    });
+  });
+  
+  describe('#getHostComponentsMetricsSuccessCallback', function() {
+    
+    it('should set metrics', function() {
+      var data = {
+        host_components: [
+          {
+            HostRoles: {
+              host_name: 'host1'
+            },
+            path: {
+              foo: 1
+            }
+          }
+        ]
+      };
+      mixinObject.set('content.metrics', [
+        {
+          metric_path: 'path/foo'
+        }
+      ]);
+      mixinObject.set('metrics', []);
+      mixinObject.getHostComponentsMetricsSuccessCallback(data);
+      expect(JSON.stringify(mixinObject.get('metrics'))).to.be.eql(JSON.stringify([
+        {
+          metric_path: 'path/foo',
+          hostName: 'host1',
+          data: 1
+        }
+      ]));
+    });
+  });
+  
+  describe('#getHostsMetrics', function() {
+    
+    it('App.ajax.send should be called', function() {
+      mixinObject.getHostsMetrics({
+        metric_paths: [{metric_path: 'key1'}, {metric_path: 'key2'}]
+      });
+      expect(testHelpers.findAjaxRequest('name', 'widgets.hosts.metrics.get')[0].data).to.be.eql({
+        metricPaths: 'key1,key2'
+      })
+    });
+  });
+  
+  describe('#getHostComponentsMetricsSuccessCallback', function() {
+    
+    it('should set metrics', function() {
+      var data = {
+        items: [
+          {
+            Hosts: {
+              host_name: 'host1'
+            },
+            path: {
+              foo: 1
+            }
+          }
+        ]
+      };
+      mixinObject.set('content.metrics', [
+        {
+          metric_path: 'path/foo'
+        }
+      ]);
+      mixinObject.set('metrics', []);
+      mixinObject.getHostsMetricsSuccessCallback(data);
+      expect(JSON.stringify(mixinObject.get('metrics'))).to.be.eql(JSON.stringify([
+        {
+          metric_path: 'path/foo',
+          hostName: 'host1',
+          data: 1
+        }
+      ]));
+    });
+  });
+  
+  
+  describe('#onMetricsLoaded', function() {
+    beforeEach(function() {
+      sinon.stub(mixinObject, 'drawWidget');
+    });
+    afterEach(function() {
+      mixinObject.drawWidget.restore();
+    });
+    
+    it('drwaWidget should be called', function() {
+      mixinObject.onMetricsLoaded();
+      expect(mixinObject.drawWidget.calledOnce).to.be.true;
+    });
+  
+    it('isLoaded should be true', function() {
+      mixinObject.onMetricsLoaded();
+      expect(mixinObject.get('isLoaded')).to.be.true;
+    });
+  });
+  
+  describe('#drawWidget', function() {
+    beforeEach(function() {
+      sinon.stub(mixinObject, 'calculateValues');
+      mixinObject.set('isLoaded', true);
+      mixinObject.set('content.values', [{computedValue: 1}]);
+      mixinObject.drawWidget();
+    });
+    afterEach(function() {
+      mixinObject.calculateValues.restore();
+    });
+    
+    it('calculateValues should be called', function() {
+      expect(mixinObject.calculateValues.calledOnce).to.be.true;
+    });
+  
+    it('value should be set', function() {
+      expect(mixinObject.get('value')).to.equal(1);
+    });
+  });
+  
+  describe('#hideWidget', function() {
+    
+    it('hideWidget should be called', function() {
+      mixinObject.hideWidget({contexts: [1, 'layout1']});
+      expect(mixinObject.get('controller').hideWidget.calledWith({
+        context: Em.Object.create({
+          id: 1,
+          nsLayout: 'layout1'
+        })
+      })).to.be.true;
+    });
+  });
+  
+  describe('#collectWidgetData', function() {
+    
+    it('should return widget data', function() {
+      mixinObject.set('content', Em.Object.create({
+        widgetName: 'name1',
+        widgetType: 'type1',
+        widgetDescription: 'desc',
+        scope: 'HOST',
+        values: [1],
+        properties: [{}],
+        metrics: [
+          {
+            name: 'metric1',
+            service_name: 'S1',
+            component_name: 'C1',
+            host_component_criteria: 'criteria1',
+            metric_path: 'path/foo',
+            tag: 'tag1'
+          }
+        ]
+      }));
+      expect(mixinObject.collectWidgetData()).to.be.eql({
+        WidgetInfo: {
+          widget_name: 'name1',
+          widget_type: 'type1',
+          description: 'desc',
+          scope: 'HOST',
+          "metrics": [
+            {
+              "name": 'metric1',
+              "service_name": 'S1',
+              "component_name": 'C1',
+              "host_component_criteria":  'criteria1',
+              "metric_path": 'path/foo'
+            }
+          ],
+          values: [1],
+          properties: [{}],
+          tag: 'tag1'
+        }
+      });
+    });
+  });
+  
+  describe('#editNewClonedWidget', function() {
+    var mock = {
+      saveWidgetLayout: sinon.stub().returns({done: Em.clb}),
+      getActiveWidgetLayout: sinon.stub().returns({done: Em.clb})
+    };
+    beforeEach(function() {
+      sinon.stub(App.router, 'get').returns(mock);
+      mixinObject.set('content.layout', {widgets: []});
+      mixinObject.editNewClonedWidget({resources:[{WidgetInfo: {id: 1}}]});
+    });
+    afterEach(function() {
+      App.router.get.restore();
+    });
+    
+    it('saveWidgetLayout should be called', function() {
+      expect(mock.saveWidgetLayout.calledWith([
+        Em.Object.create({
+          id: 1
+        })
+      ])).to.be.true;
+    });
+  
+    it('getActiveWidgetLayout should be called', function() {
+      expect(mock.getActiveWidgetLayout.called).to.be.true;
+    });
+  
+    it('editWidget should be called', function() {
+      expect(mixinObject.get('controller').editWidget.called).to.be.true;
+    });
+  });
+  
+  describe('#editWidget', function() {
+    
+    it('controller.editWidget should be called', function() {
+      mixinObject.set('content', Em.Object.create({
+        scope: 'SERVICE'
+      }));
+      mixinObject.editWidget();
+      expect(mixinObject.get('controller').editWidget.calledWith(Em.Object.create({
+        scope: 'SERVICE'
+      }))).to.be.true;
+    });
+  
+    it('App.ModalPopup.show should be called', function() {
+      mixinObject.set('content', Em.Object.create({
+        scope: 'CLUSTER'
+      }));
+      mixinObject.editWidget();
+      expect(App.ModalPopup.show.called).to.be.true;
+    });
+  });
+});
+
+describe('App.WidgetPreviewMixin', function() {
+  var widgetPreview;
+  
+  beforeEach(function() {
+    widgetPreview = Em.Object.create({
+      drawWidget: sinon.spy(),
+      loadMetrics: Em.K,
+      controller: Em.Object.create(),
+      content: Em.Object.create()
+    }, App.WidgetPreviewMixin);
+  });
+  
+  describe('#loadMetrics', function() {
+   
+    it('widget properties should be set', function() {
+      widgetPreview.get('controller').setProperties({
+        widgetValues: [1],
+        widgetProperties: [{}],
+        widgetName: 'widget1',
+        widgetMetrics: [{}]
+      });
+      widgetPreview.loadMetrics();
+      expect(widgetPreview.get('content')).to.be.eql(Em.Object.create({
+        'id': 1,
+        'values': [1],
+        'properties': [{}],
+        'widgetName': 'widget1',
+        'metrics': [{}]
+      }));
+    });
+  });
+  
+  describe('#onMetricsLoaded', function() {
+    
+    it('drawWidget should be called', function() {
+      widgetPreview.onMetricsLoaded();
+      expect(widgetPreview.drawWidget.calledOnce).to.be.true;
+    });
   });
 });
 
