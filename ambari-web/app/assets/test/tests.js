@@ -93,6 +93,8 @@ var files = [
   'test/controllers/main/admin/highAvailability/hawq/addStandby/step4_controller_test',
   'test/controllers/main/admin/highAvailability/hawq/addStandby/wizard_controller_test',
   'test/controllers/main/admin/highAvailability/hawq/removeStandby/step2_controller_test',
+  'test/controllers/main/admin/highAvailability/hawq/removeStandby/step3_controller_test',
+  'test/controllers/main/admin/highAvailability/hawq/removeStandby/wizard_controller_test',
   'test/controllers/main/admin/highAvailability/hawq/activateStandby/step2_controller_test',
   'test/controllers/main/admin/highAvailability/hawq/activateStandby/step3_controller_test',
   'test/controllers/main/admin/highAvailability/journalNode/progress_controller_test',
