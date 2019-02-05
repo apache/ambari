@@ -184,11 +184,11 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
       if (property && (sort.status === 'sorting_asc' || sort.status === 'sorting_desc')) {
         property.value = sort.status.replace('sorting_', '');
         property.type = 'SORT';
-        if (property.name == 'serviceVersion'){
+        if (property.name === 'serviceVersion') {
           property.key = "service_name." + sort.status.replace('sorting_', '') + ",service_config_version";
           property.value = "desc";
         }
-        if (property.name == 'configGroup'){
+        if (property.name === 'configGroup') {
           property.key = "group_name." + sort.status.replace('sorting_', '') + ",service_config_version";
           property.value = "desc";
         }
