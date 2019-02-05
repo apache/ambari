@@ -158,5 +158,102 @@ describe('MainConfigHistoryController', function () {
       expect(App.StompClient.removeHandler.calledWith('/events/configs', 'history')).to.be.true;
     });
   });
+  
+  describe('#colPropAssoc', function() {
+    
+    it('should return associations', function() {
+      expect(controller.get('colPropAssoc')[1]).to.be.equal('serviceVersion');
+      expect(controller.get('colPropAssoc')[2]).to.be.equal('configGroup');
+      expect(controller.get('colPropAssoc')[3]).to.be.equal('createTime');
+      expect(controller.get('colPropAssoc')[4]).to.be.equal('author');
+      expect(controller.get('colPropAssoc')[5]).to.be.equal('notes');
+    });
+  });
+  
+  describe('#getSortProps', function() {
+    beforeEach(function() {
+      sinon.stub(App.db, 'getSortingStatuses').returns([
+        {
+          name: 'serviceVersion',
+          status: 'sorting_asc'
+        },
+        {
+          name: 'configGroup',
+          status: 'sorting_desc'
+        },
+        {
+          name: 's3',
+          status: 'sorting_asc'
+        }
+      ]);
+    });
+    afterEach(function() {
+      App.db.getSortingStatuses.restore();
+    });
+    
+    it('should return sort properties', function() {
+      controller.set('sortProps', [
+        {
+          name: 'serviceVersion'
+        },
+        {
+          name: 'configGroup'
+        },
+        {
+          name: 's3'
+        }
+      ]);
+      expect(controller.getSortProps()).to.be.eql([
+        {
+          "key": "service_name.asc,service_config_version",
+          "name": "serviceVersion",
+          "type": "SORT",
+          "value": "desc"
+      
+        },
+        {
+          "key": "group_name.desc,service_config_version",
+          "name": "configGroup",
+          "type": "SORT",
+          "value": "desc"
+        },
+        {
+          "name": "s3",
+          "type": "SORT",
+          "value": "asc"
+        }
+      ]);
+    });
+  });
+  
+  describe('#getSearchBoxSuggestions', function() {
+  
+    beforeEach(function() {
+      App.ajax.send.restore();
+      sinon.stub(App.ajax, 'send').returns({
+        done: function(callback) {
+          callback({items: [{'name1': '1'}]});
+          return {
+            fail: Em.clb
+          }
+        }
+      });
+    });
+    
+    it('request should be sent', function() {
+      controller.set('filterProps', [{
+        name: 'name1',
+        key: 'key1'
+      }]);
+      controller.getSearchBoxSuggestions('name1');
+      expect(testHelpers.findAjaxRequest('name', 'service.serviceConfigVersions.get.suggestions')[0]).to.be.eql({
+        name: 'service.serviceConfigVersions.get.suggestions',
+        sender: controller,
+        data: {
+          'key': 'key1'
+        }
+      });
+    });
+  });
 });
 
