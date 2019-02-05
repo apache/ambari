@@ -22,8 +22,6 @@ var modelSetup = require('test/init_model_test');
 require('models/user');
 
 var user,
-  form,
-  userNameField,
   userData = {
     id: 'user'
   };
@@ -61,54 +59,4 @@ describe('App.User', function () {
       expect(user.get('isLdap')).to.be.false;
     });
   });
-});
-
-function getForm() {
-  return App.CreateUserForm.create();
-}
-
-describe('App.CreateUserForm', function () {
-
-  beforeEach(function () {
-    form = getForm();
-  });
-
-  App.TestAliases.testAsComputedAlias(getForm(), 'object', 'App.router.mainAdminUserCreateController.content', 'object');
-
-  describe('#field.userName.toLowerCase', function () {
-    it('should convert userName into lower case', function () {
-      userNameField = form.getField('userName');
-      userNameField.set('value', 'NAME');
-      expect(userNameField.get('value')).to.equal('name');
-    });
-  });
-
-  describe('#isValid', function () {
-    it('should be false as default', function () {
-      expect(form.isValid()).to.be.false;
-    });
-    it('should be true', function () {
-      form.get('fields').forEach(function (item) {
-        if (item.get('isRequired')) {
-          item.set('value', 'value');
-        }
-      });
-      expect(form.isValid()).to.be.true;
-    });
-  });
-
-  describe('#isWarn', function () {
-    it('should be false as default', function () {
-      expect(form.isWarn()).to.be.false;
-    });
-    it('should be true', function () {
-      form.getField('userName').set('value', '1');
-      expect(form.isWarn()).to.be.true;
-    });
-    it('should be false', function () {
-      form.getField('userName').set('value', 'name');
-      expect(form.isWarn()).to.be.false;
-    });
-  });
-
 });
