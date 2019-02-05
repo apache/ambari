@@ -235,11 +235,6 @@ var urls = {
     'mock': '/data/background_operations/host_upgrade_tasks.json'
   },
 
-  'service.ambari': {
-    'real': '/services/AMBARI?fields=components/RootServiceComponents',
-    'mock': '/data/services/ambari.json'
-  },
-
   'ambari.service.load_server_version': {
     'real': '/services/AMBARI?fields=components/RootServiceComponents/component_version&components/RootServiceComponents/component_name=AMBARI_SERVER&minimal_response=true',
     'mock': '/data/services/ambari.json'
