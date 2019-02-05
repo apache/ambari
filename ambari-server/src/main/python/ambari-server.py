@@ -632,7 +632,7 @@ def init_set_current_parser_options(parser):
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_setup_security_parser_options(parser):
   parser.add_option('--security-option', default=None,
-                    help="Setup security option (setup-https|encrypt-password|setup-kerberos-jaas|setup-truststore|import-certificate)",
+                    help="Setup security option (setup-https|encrypt-passwords|setup-kerberos-jaas|setup-truststore|import-certificate)",
                     dest="security_option")
 
   https_group = optparse.OptionGroup(parser, "setup-https options")
