@@ -19,7 +19,6 @@
 
 var App = require('app');
 var controller;
-require('models/rack');
 require('controllers/main/charts/heatmap');
 var testHelpers = require('test/helpers');
 

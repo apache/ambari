@@ -635,15 +635,6 @@ describe('App.clusterController', function () {
     });
   });
 
-  describe('#loadRootService()', function() {
-
-    it('App.ajax.send should be called', function() {
-      controller.loadRootService();
-      var args = testHelpers.findAjaxRequest('name', 'service.ambari');
-      expect(args).to.exist;
-    });
-  });
-
   describe('#requestHosts()', function() {
 
     beforeEach(function() {

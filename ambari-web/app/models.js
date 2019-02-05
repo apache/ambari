@@ -19,8 +19,6 @@
 
 // load all models here
 
-require('models/form'); // should be the 1st
-require('models/authentication');
 require('models/cluster');
 require('models/cluster_states');
 require('models/hosts');
@@ -37,7 +35,6 @@ require('models/stack_service_component');
 require('models/quick_links');
 require('models/quicklinks/quick_links_config');
 require('models/service');
-require('models/service_audit');
 require('models/service/hdfs');
 require('models/service/onefs');
 require('models/service/yarn');
@@ -54,16 +51,12 @@ require('models/alerts/alert_config');
 require('models/alerts/alert_group');
 require('models/user');
 require('models/host');
-require('models/rack');
-require('models/background_operation');
 require('models/client_component');
 require('models/host_component');
 require('models/host_component_log');
-require('models/target_cluster');
 require('models/slave_component');
 require('models/master_component');
 require('models/host_stack_version');
-require('models/root_service');
 require('models/upgrade_entity');
 require('models/finished_upgrade_entity');
 require('models/configs/theme/theme_condition');
