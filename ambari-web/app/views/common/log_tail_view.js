@@ -231,5 +231,4 @@ App.LogTailView = Em.View.extend(App.InfiniteScrollMixin, {
     if (!this.get('pollLogs') || this.get('pollLogTimeoutId') === null) return;
     clearTimeout(this.get('pollLogTimeoutId'));
   }
-
 });
