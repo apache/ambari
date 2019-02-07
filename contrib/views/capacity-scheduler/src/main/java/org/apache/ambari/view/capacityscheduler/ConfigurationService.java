@@ -316,7 +316,7 @@ public class ConfigurationService {
    */
   private boolean isOperator() {
 
-    String url = String.format(AMBARI_OR_CLUSTER_ADMIN_PRIVILEGE_URL, context.getUsername(), context.getCluster().getName());
+    String url = String.format(AMBARI_OR_CLUSTER_ADMIN_PRIVILEGE_URL, context.getLoggedinUser(), context.getCluster().getName());
 
     try {
       String response = ambariApi.readFromAmbari(url, "GET", null, null);
