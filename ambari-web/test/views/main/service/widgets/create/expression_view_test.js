@@ -553,3 +553,386 @@ describe("App.InputCursorTextfieldView", function() {
   });
 
 });
+
+describe('#App.AddMetricExpressionView', function() {
+  var AddMetricExpressionView;
+  
+  beforeEach(function() {
+    AddMetricExpressionView = App.AddMetricExpressionView.create({
+      currentSelectedComponent: Em.Object.create(),
+      controller: Em.Object.create(),
+      parentView: Em.Object.create({
+        AGGREGATE_FUNCTIONS: ['fun1']
+      }),
+      elementId: '1'
+    });
+  });
+  
+  describe('#metricsSelectionObj.onChangeCallback', function() {
+  
+    beforeEach(function() {
+      AddMetricExpressionView.set('controller.filteredMetrics',  [{
+        component_name: 'C1',
+        level: 'l1',
+        name: 'metric1',
+        widget_id: 1
+      }]);
+      AddMetricExpressionView.set('currentSelectedComponent', Em.Object.create({
+        componentName: 'C1',
+        serviceName: 'S1',
+        level: 'l1',
+        hostComponentCriteria: 'criteria1',
+        tag: 'tag1',
+        selectedAggregation: Em.I18n.t('dashboard.widgets.wizard.step2.aggregateFunction.scanOps')
+      }));
+      var metricsSelectionObj = AddMetricExpressionView.get('metricsSelectionObj');
+      metricsSelectionObj.onChangeCallback({}, {selected: 'metric1'});
+    });
+    
+    it('selectedMetric should be set', function() {
+      expect(AddMetricExpressionView.get('currentSelectedComponent.selectedMetric')).to.be.eql(Em.Object.create({
+        name: 'metric1',
+        hostComponentCriteria: 'criteria1',
+        tag: 'tag1',
+        componentName: 'C1',
+        serviceName: 'S1',
+        metricPath: 1,
+        isMetric: true
+      }));
+    });
+  
+    it('selectedAggregation should be set', function() {
+      expect(AddMetricExpressionView.get('currentSelectedComponent.selectedAggregation')).to.be.equal('fun1');
+    });
+  });
+  
+  describe('#aggregateFnSelectionObj.onChangeCallback', function() {
+
+    it('selectedAggregation should be set', function() {
+      AddMetricExpressionView.set('currentSelectedComponent', Em.Object.create({}));
+      var aggregateFnSelectionObj = AddMetricExpressionView.get('aggregateFnSelectionObj');
+      aggregateFnSelectionObj.onChangeCallback({}, {selected: 'name1'});
+      expect(AddMetricExpressionView.get('currentSelectedComponent.selectedAggregation')).to.be.equal('name1');
+    });
+  });
+  
+  describe('#selectComponents', function() {
+    var event = {
+      context: {},
+      stopPropagation: sinon.spy()
+    };
+    beforeEach(function() {
+      AddMetricExpressionView.selectComponents(event);
+    });
+
+    it('currentSelectedComponent should be set', function() {
+      expect(AddMetricExpressionView.get('currentSelectedComponent')).to.be.an.object;
+    });
+  
+    it('stopPropagation should be called', function() {
+      expect(event.stopPropagation.called).to.be.true;
+    });
+  });
+  
+  describe('#addMetric', function() {
+    var event = {
+      context: Em.Object.create({
+        selectedMetric: {
+          metricPath: 'path',
+          name: 'metric1'
+        },
+        selectedAggregation: 'fun1',
+        isAddEnabled: true,
+        showAggregateSelect: true
+      })
+    };
+    var data = [];
+    beforeEach(function() {
+      sinon.stub(AddMetricExpressionView, 'cancel');
+      AddMetricExpressionView.set('parentView.expression', {
+        data: data
+      });
+      AddMetricExpressionView.addMetric(event);
+    });
+    afterEach(function() {
+      AddMetricExpressionView.cancel.restore();
+    });
+    
+    it('metric should be added', function() {
+      expect(data[0]).to.be.eql(Em.Object.create({
+        id: 1,
+        metricPath: 'path._fun1',
+        name: 'metric1._fun1'
+      }));
+    });
+  
+    it('cancel should be called', function() {
+      expect(AddMetricExpressionView.cancel.called).to.be.true;
+    });
+  });
+  
+  describe('#cancel', function() {
+    
+    it('selectedAggregation should be set', function() {
+      AddMetricExpressionView.cancel();
+      expect(AddMetricExpressionView.get('currentSelectedComponent.selectedAggregation')).to.be.equal(
+        Em.I18n.t('dashboard.widgets.wizard.step2.aggregateFunction.scanOps')
+      );
+    });
+  
+    it('selectedMetric should be null', function() {
+      AddMetricExpressionView.cancel();
+      expect(AddMetricExpressionView.get('currentSelectedComponent.selectedMetric')).to.be.null;
+    });
+  });
+  
+  describe('#getNameServiceGroups', function() {
+    beforeEach(function() {
+      sinon.stub(App, 'get').returns(true);
+      sinon.stub(App.HDFSService, 'find').returns(Em.Object.create({
+        masterComponentGroups: [
+          {
+            name: 'g1'
+          }
+        ]
+      }));
+    });
+    afterEach(function() {
+      App.get.restore();
+      App.HDFSService.find.restore();
+    });
+    
+    it('should return service groups', function() {
+      expect(AddMetricExpressionView.getNameServiceGroups()).to.be.eql([{
+        tag: 'g1',
+        displayName: Em.I18n.t('dashboard.widgets.wizard.step2.nameSpaceDropDownItem').format('g1'),
+        component: null
+      }]);
+    });
+  });
+  
+  describe('#getServicesMap', function() {
+    beforeEach(function() {
+      sinon.stub(App, 'get').returns(true);
+      sinon.stub(App.StackServiceComponent, 'find').returns([{
+        isMaster: true,
+        componentName: 'C2'
+      }]);
+    });
+    afterEach(function() {
+      App.get.restore();
+      App.StackServiceComponent.find.restore();
+    });
+  
+    it('should return empty when no metrics', function() {
+      AddMetricExpressionView.set('controller.filteredMetrics', []);
+      expect(AddMetricExpressionView.getServicesMap()).to.be.empty;
+    });
+  
+    it('should return empty when no metrics', function() {
+      AddMetricExpressionView.set('controller.filteredMetrics', [
+        {
+          name: 'metric1',
+          component_name: 'NAMENODE',
+          level: 'COMPONENT',
+          service_name: 'HDFS',
+          host_component_criteria: 'criteria1'
+        },
+        {
+          name: 'metric2',
+          component_name: 'C1',
+          service_name: 'S1',
+          level: 'COMPONENT',
+          host_component_criteria: 'criteria1'
+        },
+        {
+          name: 'metric3',
+          component_name: 'C2',
+          service_name: 'S1',
+          level: 'COMPONENT',
+          host_component_criteria: 'criteria1'
+        }
+      ]);
+      expect(AddMetricExpressionView.getServicesMap()).to.be.eql({
+        "S1": {
+          "components": {
+            "C1": {
+              "component_name": "C1",
+              "count": 1,
+              "hostComponentCriteria": "criteria1",
+              "level": "COMPONENT",
+              "metrics": [
+                "metric2"
+              ]
+            },
+            "C2_COMPONENT": {
+              "component_name": "C2",
+              "count": 1,
+              "hostComponentCriteria": "criteria1",
+              "level": "COMPONENT",
+              "metrics": [
+                "metric3"
+              ]
+            }
+          },
+          "count": 2
+        }
+      });
+    });
+  });
+  
+  describe('#componentMap', function() {
+    var nameServiceGroups = [{}];
+    beforeEach(function() {
+      sinon.stub(App, 'get').returns(true);
+      sinon.stub(AddMetricExpressionView, 'getServicesMap').returns({
+        "S1": {
+          "components": {
+            "C1": {
+              "component_name": "C1",
+              "count": 1,
+              "hostComponentCriteria": "criteria1",
+              "level": "COMPONENT",
+              "metrics": [
+                "metric2"
+              ]
+            }
+          },
+          "count": 1
+        },
+        "HDFS": {
+          "components": {
+            "NAMENODE": {
+              "component_name": "NAMENODE",
+              "count": 1,
+              "hostComponentCriteria": "criteria1",
+              "level": "COMPONENT",
+              "metrics": [
+                "metric3"
+              ]
+            }
+          },
+          "count": 1
+        }
+      });
+      sinon.stub(AddMetricExpressionView, 'getNameServiceGroups').returns(nameServiceGroups);
+      sinon.stub(App.HostComponent, 'getCount').returns(1);
+      sinon.stub(AddMetricExpressionView, 'createComponentItem').returns({});
+      sinon.stub(AddMetricExpressionView, 'putContextServiceOnTop', function(result) {
+        return result;
+      });
+      sinon.stub(App.StackService, 'find').returns(Em.Object.create({displayName: 'foo'}));
+    });
+    afterEach(function() {
+      App.get.restore();
+      AddMetricExpressionView.getServicesMap.restore();
+      App.HostComponent.getCount.restore();
+      AddMetricExpressionView.getNameServiceGroups.restore();
+      AddMetricExpressionView.createComponentItem.restore();
+      AddMetricExpressionView.putContextServiceOnTop.restore();
+      App.StackService.find.restore();
+    });
+    
+    it('should return map of components', function() {
+      AddMetricExpressionView.propertyDidChange('componentMap');
+      expect(AddMetricExpressionView.get('componentMap')).to.be.eql([
+        Em.Object.create({
+          serviceName: 'S1',
+          //in order to support panel lists
+          href: '#S1',
+          displayName: 'foo',
+          count: 1,
+          components: [{}]
+        }),
+        Em.Object.create({
+          serviceName: 'HDFS',
+          //in order to support panel lists
+          href: '#HDFS',
+          displayName: 'foo',
+          count: 1,
+          components: [
+            Em.Object.create({
+              displayName: 'NameNodes',
+              isGroup: true,
+              components: nameServiceGroups
+            })
+          ]
+        })
+      ]);
+    });
+  });
+  
+  describe('#createComponentItem', function() {
+    beforeEach(function() {
+      sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create({
+        isMaster: true,
+        displayName: 'c1'
+      }));
+    });
+    afterEach(function() {
+      App.StackServiceComponent.find.restore();
+    });
+    
+    it('should return component', function() {
+      var service = {
+        "components": {
+          "C1": {
+            "component_name": "C1",
+            "count": 1,
+            "hostComponentCriteria": "criteria1",
+            "level": "HOSTCOMPONENT",
+            "metrics": [
+              "metric2"
+            ]
+          }
+        }
+      };
+      var component = AddMetricExpressionView.createComponentItem(service, 'S1', 'C1', '1', 'tag1');
+      component.reopen({
+        showAggregateSelect: false,
+        isAddEnabled: false
+      });
+      expect(component).to.be.eql(Em.Object.create({
+        componentName: 'C1',
+        isAddEnabled: false,
+        level: 'HOSTCOMPONENT',
+        displayName: Em.I18n.t('widget.create.wizard.step2.activeComponents').format('c1'),
+        tag: 'tag1',
+        count: 1,
+        metrics: ['metric2'],
+        selected: false,
+        id: 'C11tag1',
+        aggregatorId: 'C11_aggregator',
+        serviceName: 'S1',
+        showAggregateSelect: false,
+        selectedMetric: null,
+        selectedAggregation: Em.I18n.t('dashboard.widgets.wizard.step2.aggregateFunction.scanOps'),
+        hostComponentCriteria: 'criteria1'
+      }));
+    });
+  });
+  
+  describe('#putContextServiceOnTop', function() {
+    
+    it('should move service to the top of array', function() {
+      AddMetricExpressionView.set('controller.content', {widgetService: 'S2'});
+      var serviceComponentMap = [
+        {
+          serviceName: 'S1'
+        },
+        {
+          serviceName: 'S2'
+        }
+      ];
+      expect(AddMetricExpressionView.putContextServiceOnTop(serviceComponentMap)).to.be.eql([
+        {
+          serviceName: 'S2'
+        },
+        {
+          serviceName: 'S1'
+        }
+      ]);
+    });
+  });
+ 
+});

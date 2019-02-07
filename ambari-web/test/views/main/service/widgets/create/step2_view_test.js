@@ -130,3 +130,59 @@ describe('App.WidgetWizardStep2View', function () {
     });
   });
 });
+
+describe('#App.WidgetPropertySelectView', function() {
+  var view;
+  
+  beforeEach(function() {
+    view = App.WidgetPropertySelectView.create({
+      property: Em.Object.create({
+        options: [
+          {
+            label: 'l1',
+            value: 'v1'
+          }
+        ]
+      })
+    });
+  });
+  
+  describe('#didInsertElement', function() {
+    beforeEach(function() {
+      sinon.stub(view, 'addObserver');
+      sinon.stub(view, 'setValue');
+      view.set('property.value', 'v1');
+      view.didInsertElement();
+    });
+    afterEach(function() {
+      view.addObserver.restore();
+      view.setValue.restore();
+    });
+    
+    it('should set selection', function() {
+      expect(view.get('selection')).to.be.eql({
+        label: 'l1',
+        value: 'v1'
+      });
+    });
+  
+    it('addObserver should be called', function() {
+      expect(view.addObserver.calledWith('selection.value', view, 'setValue')).to.be.true;
+    });
+  
+    it('setValue should be called', function() {
+      expect(view.setValue.called).to.be.true;
+    });
+  });
+ 
+  describe('#setValue', function() {
+    
+    it('should set value to 1', function() {
+      view.set('selection', {
+        value: 1
+      });
+      view.setValue();
+      expect(view.get('property.value')).to.be.equal(1);
+    });
+  });
+});
