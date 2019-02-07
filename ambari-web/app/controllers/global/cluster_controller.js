@@ -378,13 +378,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     return "ABORTED" === status;
   },
 
-  loadRootService: function () {
-    return App.ajax.send({
-      name: 'service.ambari',
-      sender: this
-    });
-  },
-
   requestHosts: function (realUrl, callback) {
     var testHostUrl = '/data/hosts/HDP2/hosts.json';
     var url = this.getUrl(testHostUrl, realUrl);

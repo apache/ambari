@@ -43,6 +43,12 @@ else:
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg
 
+def current_user():
+  if OSCheck.is_windows_family():
+    return None
+  else:
+    return pwd.getpwuid(os.geteuid())[0]
+
 def get_used_ram():
   """
   Returns resident RAM used by current process in kilobytes

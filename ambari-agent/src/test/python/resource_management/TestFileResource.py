@@ -18,7 +18,7 @@ limitations under the License.
 
 
 from unittest import TestCase
-from mock.mock import patch, MagicMock
+from mock.mock import patch, MagicMock, ANY
 from only_for_platform import get_platform, not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
 from ambari_commons.os_check import OSCheck
@@ -103,10 +103,9 @@ class TestFileResource(TestCase):
            mode=0777,
            content='file-content'
       )
-    
 
-    create_file_mock.assert_called_with('/directory/file', 'file-content', encoding=None)
-    self.assertEqual(create_file_mock.call_count, 1)
+
+    create_file_mock.assert_called_once('/directory/file', 'file-content', encoding=None, on_file_created=ANY)
     ensure_mock.assert_called()
 
 
@@ -130,8 +129,8 @@ class TestFileResource(TestCase):
            content='new-content'
       )
 
-    read_file_mock.assert_called_with('/directory/file', encoding=None)    
-    create_file_mock.assert_called_with('/directory/file', 'new-content', encoding=None)
+    read_file_mock.assert_called_with('/directory/file', encoding=None)
+    create_file_mock.assert_called_with('/directory/file', 'new-content', encoding=None, on_file_created=ANY)
 
 
   @patch("resource_management.core.sudo.unlink")
@@ -276,16 +275,12 @@ class TestFileResource(TestCase):
   @patch("resource_management.core.sudo.chown")
   @patch("resource_management.core.sudo.chmod")
   @patch("resource_management.core.sudo.stat")
-  @patch("resource_management.core.sudo.create_file")
-  @patch("resource_management.core.sudo.path_exists")
-  @patch("resource_management.core.sudo.path_isdir")
-  def test_ensure_metadata(self, isdir_mock, exists_mock, create_file_mock, stat_mock, chmod_mock, chown_mock, getgrnam_mock,
+  def test_ensure_metadata(self, stat_mock, chmod_mock, chown_mock, getgrnam_mock,
                            getpwnam_mock):
     """
     Tests if _ensure_metadata changes owner, usergroup and permissions of file to proper values
     """
-    isdir_mock.side_effect = [False, True, False, True]
-    exists_mock.return_value = False
+    from resource_management.core.providers.system import _ensure_metadata
 
     class stat():
       def __init__(self):
@@ -300,17 +295,8 @@ class TestFileResource(TestCase):
     getgrnam_mock.return_value.gr_gid = 0
 
     with Environment('/') as env:
-      File('/directory/file',
-           action='create',
-           mode=0777,
-           content='file-content',
-           owner='root',
-           group='hdfs'
-      )
-    
+      _ensure_metadata('/directory/file', user='root', group='hdfs', mode=0777)
 
-    create_file_mock.assert_called_with('/directory/file', 'file-content', encoding=None)
-    self.assertEqual(create_file_mock.call_count, 1)
     stat_mock.assert_called_with('/directory/file')
     self.assertEqual(chmod_mock.call_count, 1)
     self.assertEqual(chown_mock.call_count, 1)
@@ -325,14 +311,7 @@ class TestFileResource(TestCase):
     getgrnam_mock.return_value.gr_gid = 1
 
     with Environment('/') as env:
-      File('/directory/file',
-           action='create',
-           mode=0777,
-           content='file-content',
-           owner='root',
-           group='hdfs'
-      )
-    
+      _ensure_metadata('/directory/file', user='root', group='hdfs', mode=0777)
 
     self.assertEqual(chmod_mock.call_count, 1)
     chown_mock.assert_called_with('/directory/file', None, None)
