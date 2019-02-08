@@ -585,7 +585,13 @@ describe('Ambari Web Unit tests', function() {
 
   files.forEach(function (file) {
     describe(file, function() {
-      require(file);
+      try {
+        require(file);
+      } catch (error) {
+        it('Execution of test suite was terminated', function () {
+          throw error;
+        });
+      }
     });
   });
 
