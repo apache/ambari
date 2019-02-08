@@ -39,5 +39,3 @@ RemainAfterExit=yes
 TasksMax=infinity
 ExecStart=/etc/init.d/ambari-agent start
 ExecStop=/etc/init.d/ambari-agent stop
-
-[Install]
