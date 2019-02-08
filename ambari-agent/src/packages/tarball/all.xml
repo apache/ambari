@@ -186,6 +186,11 @@
       <outputDirectory>/etc/ambari-agent/conf</outputDirectory>
     </file>
     <file>
+      <fileMode>644</fileMode>
+      <source>conf/unix/ambari-agent.service</source>
+      <outputDirectory>/usr/lib/systemd/system</outputDirectory>
+    </file>
+    <file>
       <fileMode>755</fileMode>
       <source>${basedir}/target/src/ambari-agent</source>
       <outputDirectory>/var/lib/ambari-agent/bin</outputDirectory>
