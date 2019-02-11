@@ -17,9 +17,7 @@
 
 [Unit]
 Description=Ambari Agent Service for SLES
-Before=runlevel2.target
 Before=runlevel3.target
-Before=runlevel4.target
 Before=runlevel5.target
 Before=shutdown.target
 After=remote-fs.target
