@@ -27,12 +27,13 @@ Conflicts=shutdown.target
 
 [Service]
 Type=forking
+PIDFile=/run/ambari-agent/ambari-agent.pid
 Restart=no
 TimeoutSec=5min
 IgnoreSIGPIPE=no
 KillMode=process
 GuessMainPID=no
-RemainAfterExit=yes
+RemainAfterExit=no
 TasksMax=infinity
 ExecStart=/etc/init.d/ambari-agent start
 ExecStop=/etc/init.d/ambari-agent stop
