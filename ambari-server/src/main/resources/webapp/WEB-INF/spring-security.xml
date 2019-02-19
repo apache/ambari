@@ -35,7 +35,7 @@
     <authentication-provider ref="ambariPamAuthenticationProvider"/>
     <authentication-provider ref="ambariLdapAuthenticationProvider"/>
     <authentication-provider ref="ambariInternalAuthenticationProvider"/>
-    <authentication-provider ref="kerberosServiceAuthenticationProvider"/>
+    <authentication-provider ref="ambariKerberosAuthenticationProvider"/>
   </authentication-manager>
 
   <beans:bean id="ambariEntryPoint" class="org.apache.ambari.server.security.AmbariEntryPoint">
@@ -83,18 +83,23 @@
     <beans:constructor-arg ref="permissionHelper"/>
   </beans:bean>
 
-  <beans:bean id="kerberosServiceAuthenticationProvider" class="org.springframework.security.kerberos.authentication.KerberosServiceAuthenticationProvider">
-    <beans:property name="ticketValidator">
-      <beans:bean class="org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosTicketValidator">
-        <beans:constructor-arg ref="ambariConfiguration"/>
-        <beans:property name="debug" value="false"/>
-      </beans:bean>
-    </beans:property>
-
-    <beans:property name="userDetailsService" ref="authToLocalUserDetailsService"/>
+  <beans:bean id="ambariKerberosAuthenticationProvider" class="org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProvider">
+    <beans:constructor-arg ref="authToLocalUserDetailsService"/>
+    <beans:constructor-arg ref="proxiedUserDetailsService"/>
+    <beans:constructor-arg ref="ticketValidator"/>
   </beans:bean>
 
   <beans:bean id="authToLocalUserDetailsService" class="org.apache.ambari.server.security.authentication.kerberos.AmbariAuthToLocalUserDetailsService">
+    <beans:constructor-arg ref="ambariConfiguration"/>
+    <beans:constructor-arg ref="ambariUsers"/>
+  </beans:bean>
+
+  <beans:bean id="ticketValidator" class="org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosTicketValidator">
+    <beans:constructor-arg ref="ambariConfiguration"/>
+    <beans:property name="debug" value="false"/>
+  </beans:bean>
+
+  <beans:bean id="proxiedUserDetailsService" class="org.apache.ambari.server.security.authentication.kerberos.AmbariProxiedUserDetailsService">
     <beans:constructor-arg ref="ambariConfiguration"/>
     <beans:constructor-arg ref="ambariUsers"/>
   </beans:bean>

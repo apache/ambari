@@ -32,11 +32,13 @@ public class LogoutAuditEventTest {
     // Given
     String testUserName = "USER1";
     String testRemoteIp = "127.0.0.1";
+    String testProxyUserName = "PROXYUSER1";
 
     LogoutAuditEvent evnt = LogoutAuditEvent.builder()
       .withTimestamp(System.currentTimeMillis())
       .withRemoteIp(testRemoteIp)
       .withUserName(testUserName)
+      .withProxyUserName(null)
       .build();
 
     // When
@@ -48,6 +50,21 @@ public class LogoutAuditEventTest {
 
     assertThat(actualAuditMessage, equalTo(expectedAuditMessage));
 
+    evnt = LogoutAuditEvent.builder()
+      .withTimestamp(System.currentTimeMillis())
+      .withRemoteIp(testRemoteIp)
+      .withUserName(testUserName)
+      .withProxyUserName(testProxyUserName)
+      .build();
+
+    // When
+    actualAuditMessage = evnt.getAuditMessage();
+
+    // Then
+    expectedAuditMessage = String.format("User(%s), RemoteIp(%s), ProxyUser(%s), Operation(Logout), Status(Success)",
+      testUserName, testRemoteIp, testProxyUserName);
+
+    assertThat(actualAuditMessage, equalTo(expectedAuditMessage));
   }
 
   @Test

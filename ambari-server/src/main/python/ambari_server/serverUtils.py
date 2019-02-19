@@ -133,3 +133,6 @@ def get_ambari_server_api_base(properties):
     if api_port_prop is not None:
       api_port = api_port_prop
   return '{0}://{1}:{2!s}/api/v1/'.format(api_protocol, SERVER_API_HOST, api_port)
+
+def get_value_from_dictionary(properties, key, default_value=None):
+  return properties[key] if properties and key in properties else default_value

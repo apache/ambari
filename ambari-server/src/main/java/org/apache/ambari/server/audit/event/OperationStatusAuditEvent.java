@@ -25,9 +25,9 @@ import javax.annotation.concurrent.Immutable;
  * Audit event for tracking operations
  */
 @Immutable
-public class OperationStatusAuditEvent extends AbstractAuditEvent {
+public class OperationStatusAuditEvent extends AbstractUserAuditEvent {
 
-  public static class OperationStatusAuditEventBuilder extends AbstractAuditEventBuilder<OperationStatusAuditEvent, OperationStatusAuditEventBuilder> {
+  public static class OperationStatusAuditEventBuilder extends AbstractUserAuditEventBuilder<OperationStatusAuditEvent, OperationStatusAuditEventBuilder> {
 
     /**
      * Request identifier
@@ -44,11 +44,6 @@ public class OperationStatusAuditEvent extends AbstractAuditEvent {
      */
     private String operation;
 
-    /**
-     * Name of the logged in user who sent the request
-     */
-    private String userName;
-
     private OperationStatusAuditEventBuilder() {
     }
 
@@ -64,10 +59,9 @@ public class OperationStatusAuditEvent extends AbstractAuditEvent {
      */
     @Override
     protected void buildAuditMessage(StringBuilder builder) {
+      super.buildAuditMessage(builder);
       builder
-        .append("User(")
-        .append(this.userName)
-        .append("), Operation(")
+        .append(", Operation(")
         .append(this.operation)
         .append("), Status(")
         .append(this.status)
@@ -89,11 +83,6 @@ public class OperationStatusAuditEvent extends AbstractAuditEvent {
 
     public OperationStatusAuditEventBuilder withRequestContext(String operation) {
       this.operation = operation;
-      return this;
-    }
-
-    public OperationStatusAuditEventBuilder withUserName(String userName) {
-      this.userName = userName;
       return this;
     }
   }

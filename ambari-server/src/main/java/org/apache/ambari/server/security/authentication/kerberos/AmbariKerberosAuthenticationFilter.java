@@ -23,9 +23,12 @@ import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.LoginAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
+import org.apache.ambari.server.security.authentication.tproxy.TrustedProxyAuthenticationDetailsSource;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.apache.ambari.server.utils.RequestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -50,6 +53,7 @@ import java.io.IOException;
  */
 public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProcessingFilter implements AmbariAuthenticationFilter {
 
+  private static final Logger LOG = LoggerFactory.getLogger(AmbariKerberosAuthenticationFilter.class);
   /**
    * Audit logger
    */
@@ -82,6 +86,8 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
     this.auditLogger = auditLogger;
 
     setAuthenticationManager(authenticationManager);
+
+    setAuthenticationDetailsSource(new TrustedProxyAuthenticationDetailsSource());
 
     setFailureHandler(new AuthenticationFailureHandler() {
       @Override
@@ -128,6 +134,10 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
    */
   @Override
   public boolean shouldApply(HttpServletRequest httpServletRequest) {
+    if (LOG.isDebugEnabled()) {
+      RequestUtils.logRequestHeadersAndQueryParams(httpServletRequest, LOG);
+    }
+    
     if (kerberosAuthenticationEnabled) {
       String header = httpServletRequest.getHeader("Authorization");
       return (header != null) && (header.startsWith("Negotiate ") || header.startsWith("Kerberos "));

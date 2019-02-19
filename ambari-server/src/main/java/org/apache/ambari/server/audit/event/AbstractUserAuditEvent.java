@@ -19,6 +19,7 @@
 package org.apache.ambari.server.audit.event;
 
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Base class for audit events which are result of user actions. It appends
@@ -39,6 +40,10 @@ public abstract class AbstractUserAuditEvent extends AbstractAuditEvent {
      * Ip of the user who started the operation. Note: remote ip might not be the original ip (proxies, routers can modify it)
      */
     private String remoteIp;
+    /**
+     * Name of the proxy user if proxied
+     */
+    private String proxyUserName = AuthorizationHelper.getProxyUserName();
 
     /**
      * Appends to audit event details the user name and remote ip of the host
@@ -54,6 +59,12 @@ public abstract class AbstractUserAuditEvent extends AbstractAuditEvent {
         .append("), RemoteIp(")
         .append(this.remoteIp)
         .append(")");
+      if (StringUtils.isNotEmpty(this.proxyUserName)){
+        builder
+          .append(", ProxyUser(")
+          .append(this.proxyUserName)
+          .append(")");
+      }
     }
 
     /**
@@ -76,6 +87,18 @@ public abstract class AbstractUserAuditEvent extends AbstractAuditEvent {
      */
     public TBuilder withRemoteIp(String ip) {
       this.remoteIp = ip;
+
+      return (TBuilder) this;
+    }
+
+    /**
+     * Sets the proxy user name.
+     *
+     * @param proxyUserName
+     * @return the builder
+     */
+    public TBuilder withProxyUserName(String proxyUserName) {
+      this.proxyUserName = proxyUserName;
 
       return (TBuilder) this;
     }

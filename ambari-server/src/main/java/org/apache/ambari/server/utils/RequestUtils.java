@@ -17,14 +17,25 @@
  */
 package org.apache.ambari.server.utils;
 
-import com.google.common.collect.ImmutableSet;
+import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.ambari.server.api.services.Request;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.slf4j.Logger;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * The purpose of this helper is to get remote address from an HTTP request
@@ -93,6 +104,112 @@ public class RequestUtils {
     return RequestContextHolder.getRequestAttributes() != null &&
       RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes &&
       ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest() != null;
+  }
+
+  /**
+   * Posts an informational message the the supplied {@link Logger} showing the request headers and
+   * query parameters
+   * <p>
+   * For example:
+   * <pre>
+   * ##### HEADERS ########
+   * X-Requested-By = ambari
+   * ...
+   * Accept-Encoding = gzip, deflate
+   * Accept-Language = en-US,en;q=0.9
+   * ######################
+   * ##### PARAMETERS #####
+   * _ = 1543700737939
+   * ######################
+   * </pre>
+   *
+   * @param request the {@link HttpServletRequest} to log
+   * @param logger  the {@link Logger}
+   */
+  public static void logRequestHeadersAndQueryParams(HttpServletRequest request, Logger logger) {
+    if (logger != null) {
+      StringBuilder builder;
+
+      builder = new StringBuilder();
+      builder.append("\n##### HEADERS #######");
+      Enumeration<String> headerNames = request.getHeaderNames();
+      while (headerNames.hasMoreElements()) {
+        String name = headerNames.nextElement();
+        Enumeration<String> values = request.getHeaders(name);
+        while (values.hasMoreElements()) {
+          String value = values.nextElement();
+          builder.append("\n\t");
+          builder.append(name);
+          builder.append(" = ");
+          builder.append(value);
+        }
+      }
+      builder.append("\n#####################");
+      builder.append("\n##### PARAMETERS ####");
+      MultiValueMap<String, String> queryParams = getQueryStringParameters(request);
+      if (queryParams != null) {
+        for (Map.Entry<String, List<String>> entry : queryParams.entrySet()) {
+          String name = entry.getKey();
+          List<String> values = entry.getValue();
+          for (String value : values) {
+            builder.append("\n\t");
+            builder.append(name);
+            builder.append(" = ");
+            builder.append(value);
+          }
+        }
+      }
+      builder.append("\n#####################");
+
+      logger.info(builder.toString());
+    }
+  }
+
+  /**
+   * Returns a {@link MultiValueMap} of the parameters parsed from the request's query string.  The
+   * returned map will not contain any parameters that may be in the body of the request as form data.
+   * <p>
+   * This implementation manually parses the query string rather than use {@link HttpServletRequest#getParameterValues(String)}
+   * so that the message body remains intact and available.  Calling {@link HttpServletRequest#getParameterValues(String)}
+   * could interfere with processing the body of this request later since the body is parsed to find
+   * any form parameters.
+   *
+   * @param request the {@link HttpServletRequest}
+   * @return a Map of query parameters to values
+   */
+  public static MultiValueMap<String, String> getQueryStringParameters(HttpServletRequest request) {
+    // Manually parse the query string rather than use HttpServletRequest#getParameter so that
+    // the message body remains intact and available.  Calling HttpServletRequest#getParameter
+    // could interfere with processing the body of this request later since the body needs to be
+    // parsed to find any form parameters.
+    String queryString = request.getQueryString();
+    return (StringUtils.isEmpty(queryString)) ? null : parseQueryParameters(queryString);
+  }
+
+  private static MultiValueMap<String, String> parseQueryParameters(String queryString) {
+    LinkedMultiValueMap result = new LinkedMultiValueMap();
+    List<NameValuePair> params = URLEncodedUtils.parse(queryString, Charset.forName("UTF-8"));
+    for (NameValuePair each : params) {
+      result.add(each.getName(), each.getValue());
+    }
+    return result;
+  }
+
+  /**
+   * Returns the value parsed from the request's query string for the given parameter name.
+   * <p>
+   * If more than one value for the given parameter name is found, the first value will be retured.
+   *
+   * @param request the {@link HttpServletRequest}
+   * @return the value for the specified query parameter; or <code>null</code> if the
+   * requested parameter is not present
+   * @see #getQueryStringParameters(HttpServletRequest)
+   */
+  public static String getQueryStringParameterValue(HttpServletRequest request, String parameterName) {
+    MultiValueMap<String, String> valueMap = getQueryStringParameters(request);
+    return ((valueMap == null) || !valueMap.containsKey(parameterName))
+        ? null
+        : valueMap.getFirst(parameterName);
   }
 
 }

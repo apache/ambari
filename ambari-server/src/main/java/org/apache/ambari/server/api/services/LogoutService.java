@@ -29,9 +29,9 @@ import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.event.LogoutAuditEvent;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.utils.RequestUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.inject.Inject;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Service performing logout of current user
@@ -64,6 +64,7 @@ public class LogoutService {
       .withTimestamp(System.currentTimeMillis())
       .withRemoteIp(RequestUtils.getRemoteAddress(servletRequest))
       .withUserName(AuthorizationHelper.getAuthenticatedName())
+      .withProxyUserName(AuthorizationHelper.getProxyUserName())
       .build();
     auditLogger.log(logoutEvent);
   }

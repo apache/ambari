@@ -140,6 +140,10 @@ public class Users {
     return (null == userEntity) ? null : new User(userEntity);
   }
 
+  public UserEntity getUserEntity(String userName) {
+    return (userName == null) ? null : userDAO.findUserByName(userName);
+  }
+
   /**
    * Retrieves User then userName is unique in users DB. Will return null if there no user with provided userName or
    * there are some users with provided userName but with different types.
@@ -947,6 +951,38 @@ public class Users {
    */
   public Collection<AmbariGrantedAuthority> getUserAuthorities(String userName, UserType userType) {
     UserEntity userEntity = userDAO.findUserByNameAndType(userName, userType);
+    if (userEntity == null) {
+      return Collections.emptyList();
+    }
+
+    Collection<PrivilegeEntity> privilegeEntities = getUserPrivileges(userEntity);
+
+    Set<AmbariGrantedAuthority> authorities = new HashSet<>(privilegeEntities.size());
+
+    for (PrivilegeEntity privilegeEntity : privilegeEntities) {
+      authorities.add(new AmbariGrantedAuthority(privilegeEntity));
+    }
+
+    return authorities;
+  }
+
+  /**
+   * Gets the explicit and implicit authorities for the given user.
+   * <p>
+   * The explicit authorities are the authorities that have be explicitly set by assigning roles to
+   * a user.  For example the Cluster Operator role on a given cluster gives that the ability to
+   * start and stop services in that cluster, among other privileges for that particular cluster.
+   * <p>
+   * The implicit authorities are the authorities that have been given to the roles themselves which
+   * in turn are granted to the users that have been assigned those roles. For example if the
+   * Cluster User role for a given cluster has been given View User access on a specified File View
+   * instance, then all users who have the Cluster User role for that cluster will implicitly be
+   * granted View User access on that File View instance.
+   *
+   * @param userEntity the relevant user
+   * @return the users collection of implicit and explicit granted authorities
+   */
+  public Collection<AmbariGrantedAuthority> getUserAuthorities(UserEntity userEntity) {
     if (userEntity == null) {
       return Collections.emptyList();
     }
