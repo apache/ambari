@@ -55,6 +55,9 @@ import com.google.common.base.Objects;
         name = "HostComponentStateEntity.findByHost",
         query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.hostEntity.hostName=:hostName"),
     @NamedQuery(
+        name = "HostComponentStateEntity.findByCluster",
+        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.clusterId=:clusterId"),
+    @NamedQuery(
         name = "HostComponentStateEntity.findByService",
         query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.serviceName=:serviceName"),
     @NamedQuery(
