@@ -273,7 +273,6 @@
           </execution>
         </executions>
         <configuration>
-
           <copyright>2012, Apache Software Foundation</copyright>
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
@@ -303,7 +302,7 @@
 
           <needarch>x86_64</needarch>
           <autoRequires>false</autoRequires>
-          <mappings>
+          <mappings combine.children="append">
             <mapping>
               <directory>/etc</directory>
               <username>root</username>
@@ -701,6 +700,34 @@
       <fileextension.dot.shell-default></fileextension.dot.shell-default>
       <path.python.1>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_jinja2:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari_agent:${project.basedir}/src/main/python/resource_management:${project.basedir}/src/test/python:${project.basedir}/src/test/python/ambari_agent:${project.basedir}/src/test/python/resource_management:${project.basedir}/../ambari-server/src/test/python:${project.basedir}/../ambari-server/src/main/resources/common-services/HDFS/2.1.0.2.0/package/files</path.python.1>
      </properties>
+    </profile>
+    <profile>
+      <id>suse12</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>rpm-maven-plugin</artifactId>
+            <configuration>
+              <group>Development</group>
+              <mappings>
+                <mapping>
+                  <directory>/usr/lib/systemd/system/</directory>
+                  <username>root</username>
+                  <groupname>root</groupname>
+                  <filemode>644</filemode>
+                  <directoryIncluded>false</directoryIncluded>
+                  <sources>
+                    <source>
+                      <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}${dirsep}usr${dirsep}lib${dirsep}systemd${dirsep}system${dirsep}ambari-agent.service</location>
+                    </source>
+                  </sources>
+                </mapping>
+              </mappings>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
     <profile>
       <id>windows-distro</id>
