@@ -23,18 +23,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.controller.utilities.ServiceCalculatedStateFactory;
 import org.apache.ambari.server.controller.utilities.state.ServiceCalculatedState;
+import org.apache.ambari.server.events.STOMPEvent;
 import org.apache.ambari.server.events.ServiceUpdateEvent;
 import org.apache.ambari.server.state.State;
 
 import com.google.common.eventbus.EventBus;
-import com.google.inject.Singleton;
+import com.google.inject.Inject;
 
-@Singleton
+@EagerSingleton
 public class ServiceUpdateEventPublisher extends BufferedUpdateEventPublisher<ServiceUpdateEvent> {
   private Map<String, Map<String, State>> states = new HashMap<>();
 
+  @Inject
+  public ServiceUpdateEventPublisher(STOMPUpdatePublisher stompUpdatePublisher) {
+    super(stompUpdatePublisher);
+  }
+
+
+  @Override
+  public STOMPEvent.Type getType() {
+    return STOMPEvent.Type.SERVICE;
+  }
 
   @Override
   public void mergeBufferAndPost(List<ServiceUpdateEvent> events, EventBus eventBus) {
