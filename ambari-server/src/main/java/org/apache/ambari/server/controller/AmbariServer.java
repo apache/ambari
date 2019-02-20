@@ -134,7 +134,6 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.NCSARequestLog;
-import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SessionIdManager;
@@ -634,7 +633,6 @@ public class AmbariServer {
 
 
       HttpConfiguration https_config = new HttpConfiguration();
-      https_config.addCustomizer(new SecureRequestCustomizer());
       https_config.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
       https_config.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
       https_config.setSendServerVersion(false);
@@ -683,7 +681,6 @@ public class AmbariServer {
       String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS.getKey());
 
       HttpConfiguration https_config = new HttpConfiguration(http_config);
-      https_config.addCustomizer(new SecureRequestCustomizer());
       https_config.setSecurePort(configs.getClientSSLApiPort());
 
       SslContextFactory contextFactoryApi = new SslContextFactory();
