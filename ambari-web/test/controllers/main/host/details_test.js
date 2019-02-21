@@ -2587,16 +2587,16 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('No components', function () {
-      var event = {context: Em.A([])};
+      var event = {context: null};
       controller.refreshConfigs(event);
       expect(App.showConfirmationPopup.called).to.be.false;
     });
     it('Some components present', function () {
-      var event = {context: Em.A([Em.Object.create()])};
+      var event = {context: Em.Object.create({displayName: 'c1'})};
       var popup = controller.refreshConfigs(event);
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(batchUtils.restartHostComponents.calledWith(event.context)).to.be.true;
+      expect(batchUtils.restartHostComponents.calledWith([event.context])).to.be.true;
     });
   });
 
