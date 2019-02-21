@@ -72,6 +72,7 @@ public class AmbariBasicAuthenticationFilterTest extends EasyMockSupport {
     FilterChain filterChain = createMock(FilterChain.class);
     expect(request.getHeader("Authorization")).andReturn("Basic ").andReturn(null);
     expect(request.getHeader("X-Forwarded-For")).andReturn("1.2.3.4").anyTimes();
+    expect(request.getQueryString()).andReturn(null).anyTimes();
     expect(mockedAuditLogger.isEnabled()).andReturn(true).anyTimes();
     mockedAuditLogger.log(anyObject(AuditEvent.class));
     expectLastCall().times(1);

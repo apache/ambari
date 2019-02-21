@@ -17,16 +17,19 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
+import org.apache.ambari.server.security.authentication.AmbariProxiedUserDetailsImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -37,11 +40,10 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
 
 /**
  * Provides utility methods for authentication functionality
@@ -341,4 +343,32 @@ public class AuthorizationHelper {
     return authorizationNames;
   }
 
+  /**
+   * Gets the name of the logged-in proxy user, if any.
+   *
+   * @param authentication
+   * @return the name of the logged-in proxy user
+   */
+  public static String getProxyUserName(Authentication authentication) {
+    if (authentication==null){
+      return null;
+    }
+    Object userDetails = authentication.getPrincipal();
+    if (userDetails instanceof AmbariProxiedUserDetailsImpl) {
+      AmbariProxiedUserDetailsImpl ambariProxiedUserDetails = (AmbariProxiedUserDetailsImpl) userDetails;
+      return ambariProxiedUserDetails.getProxyUserDetails().getUsername();
+    }
+    return null;
+  }
+
+  /**
+   * Gets the name of the logged-in proxy user, if any.
+   *
+   * @return the name of the logged-in proxy user
+   */
+  public static String getProxyUserName() {
+    SecurityContext securityContext = SecurityContextHolder.getContext();
+    Authentication auth = securityContext.getAuthentication();
+    return getProxyUserName(auth);
+  }
 }

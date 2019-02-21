@@ -31,6 +31,7 @@ public class AccessUnauthorizedAuditEventTest {
   public void testAuditMessage() throws Exception {
     // Given
     String testUserName = "USER1";
+    String testProxyUserName = "PROXYUSER1";
     String testRemoteIp = "127.0.0.1";
     String testHttpMethod = "GET";
     String testResourcePath = "/api/v1/hosts";
@@ -39,6 +40,7 @@ public class AccessUnauthorizedAuditEventTest {
       .withTimestamp(System.currentTimeMillis())
       .withRemoteIp(testRemoteIp)
       .withUserName(testUserName)
+      .withProxyUserName(null)
       .withHttpMethodName(testHttpMethod)
       .withResourcePath(testResourcePath)
       .build();
@@ -48,6 +50,23 @@ public class AccessUnauthorizedAuditEventTest {
 
     // Then
     String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Operation(%s), ResourcePath(%s), Status(Failed), Reason(Access not authorized)", testUserName, testRemoteIp, testHttpMethod, testResourcePath);
+
+    assertThat(actualAuditMessage, equalTo(expectedAuditMessage));
+
+    evnt = AccessUnauthorizedAuditEvent.builder()
+      .withTimestamp(System.currentTimeMillis())
+      .withRemoteIp(testRemoteIp)
+      .withUserName(testUserName)
+      .withProxyUserName(testProxyUserName)
+      .withHttpMethodName(testHttpMethod)
+      .withResourcePath(testResourcePath)
+      .build();
+
+    // When
+    actualAuditMessage = evnt.getAuditMessage();
+
+    // Then
+    expectedAuditMessage = String.format("User(%s), RemoteIp(%s), ProxyUser(PROXYUSER1), Operation(%s), ResourcePath(%s), Status(Failed), Reason(Access not authorized)", testUserName, testRemoteIp, testHttpMethod, testResourcePath);
 
     assertThat(actualAuditMessage, equalTo(expectedAuditMessage));
   }

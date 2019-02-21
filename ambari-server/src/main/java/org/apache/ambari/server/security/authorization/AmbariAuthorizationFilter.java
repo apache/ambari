@@ -178,6 +178,7 @@ public class AmbariAuthorizationFilter implements Filter {
         if(auditLogger.isEnabled()) {
           LoginAuditEvent loginAuditEvent = LoginAuditEvent.builder()
             .withUserName(internalAuthenticationToken.getName())
+            .withProxyUserName(AuthorizationHelper.getProxyUserName(internalAuthenticationToken))
             .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
             .withRoles(permissionHelper.getPermissionLabels(authentication))
             .withTimestamp(System.currentTimeMillis()).build();
@@ -260,6 +261,7 @@ public class AmbariAuthorizationFilter implements Filter {
             .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
             .withResourcePath(httpRequest.getRequestURI())
             .withUserName(AuthorizationHelper.getAuthenticatedName())
+            .withProxyUserName(AuthorizationHelper.getProxyUserName())
             .withTimestamp(System.currentTimeMillis())
             .build();
           auditLogger.log(auditEvent);
@@ -279,6 +281,7 @@ public class AmbariAuthorizationFilter implements Filter {
           .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
           .withResourcePath(httpRequest.getRequestURI())
           .withUserName(AuthorizationHelper.getAuthenticatedName())
+          .withProxyUserName(AuthorizationHelper.getProxyUserName())
           .withTimestamp(System.currentTimeMillis())
           .build();
         auditLogger.log(auditEvent);

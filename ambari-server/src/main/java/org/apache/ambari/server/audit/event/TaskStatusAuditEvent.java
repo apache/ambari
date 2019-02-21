@@ -25,9 +25,9 @@ import javax.annotation.concurrent.Immutable;
  * Audit event for tracking task status
  */
 @Immutable
-public class TaskStatusAuditEvent extends AbstractAuditEvent {
+public class TaskStatusAuditEvent extends AbstractUserAuditEvent {
 
-  public static class TaskStatusAuditEventBuilder extends AbstractAuditEventBuilder<TaskStatusAuditEvent, TaskStatusAuditEventBuilder> {
+  public static class TaskStatusAuditEventBuilder extends AbstractUserAuditEventBuilder<TaskStatusAuditEvent, TaskStatusAuditEventBuilder> {
 
     /**
      * Request identifier
@@ -59,11 +59,6 @@ public class TaskStatusAuditEvent extends AbstractAuditEvent {
      */
     private String details;
 
-    /**
-     * User name
-     */
-    private String userName;
-
     private TaskStatusAuditEventBuilder() {
     }
 
@@ -79,14 +74,9 @@ public class TaskStatusAuditEvent extends AbstractAuditEvent {
      */
     @Override
     protected void buildAuditMessage(StringBuilder builder) {
-      builder
-        .append("User(")
-        .append(this.userName)
-        .append("), Operation(")
-        .append(this.operation);
-
+      super.buildAuditMessage(builder);
       if (details != null) {
-        builder.append("), Details(")
+        builder.append(", Details(")
           .append(this.details);
       }
 
@@ -129,10 +119,6 @@ public class TaskStatusAuditEvent extends AbstractAuditEvent {
 
     public TaskStatusAuditEventBuilder withDetails(String details) {
       this.details = details;
-      return this;
-    }
-    public TaskStatusAuditEventBuilder withUserName(String userName) {
-      this.userName = userName;
       return this;
     }
   }
