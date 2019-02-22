@@ -21,6 +21,7 @@ package org.apache.ambari.server.state.quicklinksprofile;
 import static org.apache.ambari.server.state.quicklinksprofile.Filter.VISIBLE;
 import static org.apache.ambari.server.state.quicklinksprofile.LinkAttributeFilter.LINK_ATTRIBUTE;
 import static org.apache.ambari.server.state.quicklinksprofile.LinkNameFilter.LINK_NAME;
+import static org.apache.ambari.server.state.quicklinksprofile.LinkNameFilter.LINK_URL;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,7 +45,7 @@ public class QuickLinksProfileBuilder {
   public static final String COMPONENTS = "components";
   public static final String FILTERS = "filters";
   public static final Set<String> ALLOWED_FILTER_ATTRIBUTES =
-      ImmutableSet.of(VISIBLE, LINK_NAME, LINK_ATTRIBUTE);
+      ImmutableSet.of(VISIBLE, LINK_NAME, LINK_URL, LINK_ATTRIBUTE);
 
   /**
    *
@@ -116,6 +117,7 @@ public class QuickLinksProfileBuilder {
           invalidAttributes);
 
       String linkName = filterAsMap.get(LINK_NAME);
+      String linkUrl = filterAsMap.get(LINK_URL);
       String attributeName = filterAsMap.get(LINK_ATTRIBUTE);
       boolean visible = Boolean.parseBoolean(filterAsMap.get(VISIBLE));
 
@@ -125,8 +127,12 @@ public class QuickLinksProfileBuilder {
           linkName,
           attributeName);
 
+      Preconditions.checkArgument(null == linkUrl || null != linkName,
+        "Invalid filter. Link url can only be applied to link name filters. link_url: %s",
+        linkUrl);
+
       if (null != linkName) {
-        filters.add(Filter.linkNameFilter(linkName, visible));
+        filters.add(Filter.linkNameFilter(linkName, linkUrl, visible));
       }
       else if (null != attributeName) {
         filters.add(Filter.linkAttributeFilter(attributeName, visible));
