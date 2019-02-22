@@ -20,9 +20,9 @@ package org.apache.ambari.server.state.quicklinksprofile;
 
 import static org.junit.Assert.assertEquals;
 
-import org.codehaus.jackson.JsonParseException;
 import org.junit.Test;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.io.Resources;
 
 public class QuickLinksProfileParserTest {
@@ -50,7 +50,7 @@ public class QuickLinksProfileParserTest {
     Component nameNode = hdfs.getComponents().get(0);
     assertEquals(2, nameNode.getFilters().size());
     assertEquals(
-        Filter.linkNameFilter("namenode_ui", false),
+        Filter.linkNameFilter("namenode_ui", "http://customlink.org/namenode", false),
         nameNode.getFilters().get(0));
 
     Component historyServer = profile.getServices().get(1).getComponents().get(0);
@@ -62,18 +62,25 @@ public class QuickLinksProfileParserTest {
     Service yarn = profile.getServices().get(2);
     assertEquals(1, yarn.getFilters().size());
     assertEquals(
-        Filter.linkNameFilter("resourcemanager_ui", true),
+        Filter.linkNameFilter("resourcemanager_ui", "http://customlink.org/resourcemanager", true),
         yarn.getFilters().get(0));
   }
 
-  @Test(expected = JsonParseException.class)
+  @Test(expected = JsonProcessingException.class)
   public void testParseInconsistentProfile_ambigousFilterDefinition() throws Exception {
     String profileName = "inconsistent_quicklinks_profile.json";
     QuickLinksProfileParser parser = new QuickLinksProfileParser();
     parser.parse(Resources.getResource(profileName));
   }
 
-  @Test(expected = JsonParseException.class)
+  @Test(expected = JsonProcessingException.class)
+  public void testParseInconsistentProfile_invalidLinkUrl() throws Exception {
+    String profileName = "inconsistent_quicklinks_profile_4.json";
+    QuickLinksProfileParser parser = new QuickLinksProfileParser();
+    parser.parse(Resources.getResource(profileName));
+  }
+
+  @Test(expected = JsonProcessingException.class)
   public void testParseInconsistentProfile_misspelledFilerDefinition() throws Exception {
     String profileName = "inconsistent_quicklinks_profile_3.json";
     QuickLinksProfileParser parser = new QuickLinksProfileParser();

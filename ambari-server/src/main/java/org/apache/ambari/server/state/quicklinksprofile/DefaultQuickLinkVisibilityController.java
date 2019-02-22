@@ -18,45 +18,97 @@
 
 package org.apache.ambari.server.state.quicklinksprofile;
 
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.apache.ambari.server.state.quicklinks.Link;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 
 /**
  * This class can evaluate whether a quicklink has to be shown or hidden based on the received {@link QuickLinksProfile}.
  */
 public class DefaultQuickLinkVisibilityController implements QuickLinkVisibilityController {
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultQuickLinkVisibilityController.class);
+
   private final FilterEvaluator globalRules;
   private final Map<String, FilterEvaluator> serviceRules = new HashMap<>();
-  private final Map<ServiceComponent, FilterEvaluator> componentRules = new HashMap<>();
+  /**
+   * Map of (service name, component name) -> filter evaluator
+   */
+  private final Map<Pair<String, String>, FilterEvaluator> componentRules = new HashMap<>();
+  /**
+   * Map of (service name, link name) -> url
+   */
+  private final Map<Pair<String, String>, String> urlOverrides = new HashMap<>();
+
 
   public DefaultQuickLinkVisibilityController(QuickLinksProfile profile) throws QuickLinksProfileEvaluationException {
     int filterCount = size(profile.getFilters());
     globalRules = new FilterEvaluator(profile.getFilters());
-    for (Service service: nullToEmptyList(profile.getServices())) {
+    for (Service service: profile.getServices()) {
       filterCount += size(service.getFilters());
       serviceRules.put(service.getName(), new FilterEvaluator(service.getFilters()));
-      for (Component component: nullToEmptyList(service.getComponents())) {
+      for (Component component: service.getComponents()) {
         filterCount += size(component.getFilters());
-        componentRules.put(ServiceComponent.of(service.getName(), component.getName()),
+        componentRules.put(Pair.of(service.getName(), component.getName()),
             new FilterEvaluator(component.getFilters()));
       }
     }
     if (filterCount == 0) {
       throw new QuickLinksProfileEvaluationException("At least one filter must be defined.");
     }
+
+    // compute url overrides
+    String globalOverrides = LinkNameFilter.getLinkNameFilters(profile.getFilters().stream())
+      .filter(f -> f.getLinkUrl() != null)
+      .map(f -> f.getLinkName() + " -> " + f.getLinkUrl())
+      .collect(joining(", "));
+    if (!globalOverrides.isEmpty()) {
+      LOG.warn("Link url overrides only work on service and component levels. The following global overrides will be " +
+        "ignored: {}", globalOverrides);
+    }
+    for (Service service : profile.getServices()) {
+      urlOverrides.putAll(getUrlOverrides(service.getName(), service.getFilters()));
+
+      for (Component component : service.getComponents()) {
+        Map<Pair<String, String>, String> componentUrlOverrides = getUrlOverrides(service.getName(), component.getFilters());
+        Set<Pair<String, String>> duplicateOverrides = Sets.intersection(urlOverrides.keySet(), componentUrlOverrides.keySet());
+        if (!duplicateOverrides.isEmpty()) {
+          LOG.warn("Duplicate url overrides in quick links profile: {}", duplicateOverrides);
+        }
+        urlOverrides.putAll(componentUrlOverrides);
+      }
+    }
+  }
+
+  private Map<Pair<String, String>, String> getUrlOverrides(String serviceName, Collection<Filter> filters) {
+    return filters.stream()
+      .filter( f -> f instanceof LinkNameFilter && null != ((LinkNameFilter)f).getLinkUrl() )
+      .map( f -> {
+        LinkNameFilter lnf = (LinkNameFilter)f;
+        return Pair.of(Pair.of(serviceName, lnf.getLinkName()), lnf.getLinkUrl());
+      })
+      .collect( toMap(Pair::getKey, Pair::getValue) );
+  }
+
+  @Override
+  public Optional<String> getUrlOverride(@Nonnull String service, @Nonnull Link quickLink) {
+    return Optional.ofNullable( urlOverrides.get(Pair.of(service, quickLink.getName())) );
   }
 
   /**
@@ -78,7 +130,7 @@ public class DefaultQuickLinkVisibilityController implements QuickLinkVisibility
     }
 
     // Global rules are evaluated lastly. If no rules apply to the link, it will be hidden.
-    return globalRules.isVisible(quickLink).or(false);
+    return globalRules.isVisible(quickLink).orElse(false);
   }
 
   private int size(@Nullable Collection<?> collection) {
@@ -87,127 +139,22 @@ public class DefaultQuickLinkVisibilityController implements QuickLinkVisibility
 
   private Optional<Boolean> evaluateComponentRules(@Nonnull String service, @Nonnull Link quickLink) {
     if (null == quickLink.getComponentName()) {
-      return Optional.absent();
+      return Optional.empty();
     }
     else {
-      FilterEvaluator componentEvaluator = componentRules.get(ServiceComponent.of(service, quickLink.getComponentName()));
-      return componentEvaluator != null ? componentEvaluator.isVisible(quickLink) : Optional.absent();
+      FilterEvaluator componentEvaluator = componentRules.get(Pair.of(service, quickLink.getComponentName()));
+      return componentEvaluator != null ? componentEvaluator.isVisible(quickLink) : Optional.empty();
     }
   }
 
   private Optional<Boolean> evaluateServiceRules(@Nonnull String service, @Nonnull Link quickLink) {
     return serviceRules.containsKey(service) ?
-        serviceRules.get(service).isVisible(quickLink) : Optional.absent();
+        serviceRules.get(service).isVisible(quickLink) : Optional.empty();
   }
 
   static <T> List<T> nullToEmptyList(@Nullable List<T> items) {
     return items != null ? items : Collections.emptyList();
   }
+
 }
 
-/**
- * Groups quicklink filters that are on the same level (e.g. a global evaluator or an evaluator for the "HDFS" service,
- * etc.). The evaluator pick the most applicable filter for a given quick link. If no applicable filter is found, it
- * returns {@link Optional#absent()}.
- * <p>
- *   Filter evaluation order is the following:
- *   <ol>
- *     <li>First, link name filters are evaluated. These match links by name.</li>
- *     <li>If there is no matching link name filter, link attribute filters are evaluated next. "Hide" type filters
- *     take precedence to "show" type filters.</li>
- *     <li>Finally, the match-all filter is evaluated, provided it exists.</li>
- *   </ol>
- * </p>
- */
-class FilterEvaluator {
-  private final Map<String, Boolean> linkNameFilters = new HashMap<>();
-  private final Set<String> showAttributes = new HashSet<>();
-  private final Set<String> hideAttributes = new HashSet<>();
-  private Optional<Boolean> acceptAllFilter = Optional.absent();
-
-  FilterEvaluator(List<Filter> filters) throws QuickLinksProfileEvaluationException {
-    for (Filter filter: DefaultQuickLinkVisibilityController.nullToEmptyList(filters)) {
-      if (filter instanceof LinkNameFilter) {
-        String linkName = ((LinkNameFilter)filter).getLinkName();
-        if (linkNameFilters.containsKey(linkName) && linkNameFilters.get(linkName) != filter.isVisible()) {
-          throw new QuickLinksProfileEvaluationException("Contradicting filters for link name [" + linkName + "]");
-        }
-        linkNameFilters.put(linkName, filter.isVisible());
-      }
-      else if (filter instanceof LinkAttributeFilter) {
-        String linkAttribute = ((LinkAttributeFilter)filter).getLinkAttribute();
-        if (filter.isVisible()) {
-          showAttributes.add(linkAttribute);
-        }
-        else {
-          hideAttributes.add(linkAttribute);
-        }
-        if (showAttributes.contains(linkAttribute) && hideAttributes.contains(linkAttribute)) {
-          throw new QuickLinksProfileEvaluationException("Contradicting filters for link attribute [" + linkAttribute + "]");
-        }
-      }
-      // If none of the above, it is an accept-all filter. We expect only one of this type for an Evaluator
-      else {
-        if (acceptAllFilter.isPresent() && !acceptAllFilter.get().equals(filter.isVisible())) {
-          throw new QuickLinksProfileEvaluationException("Contradicting accept-all filters.");
-        }
-        acceptAllFilter = Optional.of(filter.isVisible());
-      }
-    }
-  }
-
-  /**
-   * @param quickLink the link to evaluate
-   * @return Three way evaluation result, which can be one of these:
-   *    show: Optional.of(true), hide: Optional.of(false), don't know: absent optional
-   */
-  Optional<Boolean> isVisible(Link quickLink) {
-    // process first priority filters based on link name
-    if (linkNameFilters.containsKey(quickLink.getName())) {
-      return Optional.of(linkNameFilters.get(quickLink.getName()));
-    }
-
-    // process second priority filters based on link attributes
-    // 'hide' rules take precedence over 'show' rules
-    for (String attribute: DefaultQuickLinkVisibilityController.nullToEmptyList(quickLink.getAttributes())) {
-      if (hideAttributes.contains(attribute)) return Optional.of(false);
-    }
-    for (String attribute: DefaultQuickLinkVisibilityController.nullToEmptyList(quickLink.getAttributes())) {
-      if (showAttributes.contains(attribute)) return Optional.of(true);
-    }
-
-    // accept all filter (if exists) is the last priority
-    return acceptAllFilter;
-  }
-}
-
-/**
- * Simple value class encapsulating a link name an component name.
- */
-class ServiceComponent {
-  private final String service;
-  private final String component;
-
-  ServiceComponent(String service, String component) {
-    this.service = service;
-    this.component = component;
-  }
-
-  static ServiceComponent of(String service, String component) {
-    return new ServiceComponent(service, component);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    ServiceComponent that = (ServiceComponent) o;
-    return Objects.equals(service, that.service) &&
-        Objects.equals(component, that.component);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(service, component);
-  }
-}

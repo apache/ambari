@@ -181,7 +181,7 @@ public class QuickLinkArtifactResourceProvider extends AbstractControllerResourc
           }
         }
 
-        setVisibility(serviceInfo.getName(), serviceQuickLinks);
+        setVisibilityAndOverrides(serviceInfo.getName(), serviceQuickLinks);
 
         List<Resource> serviceResources = new ArrayList<>();
         for (QuickLinksConfigurationInfo quickLinksConfigurationInfo : serviceQuickLinks) {
@@ -208,13 +208,14 @@ public class QuickLinkArtifactResourceProvider extends AbstractControllerResourc
    * @param serviceName the name of the service
    * @param serviceQuickLinks the links
    */
-  private void setVisibility(String serviceName, List<QuickLinksConfigurationInfo> serviceQuickLinks) {
+  private void setVisibilityAndOverrides(String serviceName, List<QuickLinksConfigurationInfo> serviceQuickLinks) {
     QuickLinkVisibilityController visibilityController = getManagementController().getQuicklinkVisibilityController();
 
     for(QuickLinksConfigurationInfo configurationInfo: serviceQuickLinks) {
       for (QuickLinks links: configurationInfo.getQuickLinksConfigurationMap().values()) {
         for(Link link: links.getQuickLinksConfiguration().getLinks()) {
           link.setVisible(visibilityController.isVisible(serviceName, link));
+          visibilityController.getUrlOverride(serviceName, link).ifPresent(link::setUrl);
         }
       }
     }

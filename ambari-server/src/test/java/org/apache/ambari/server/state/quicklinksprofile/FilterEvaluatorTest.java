@@ -25,11 +25,11 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.ambari.server.state.quicklinks.Link;
 import org.junit.Test;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
@@ -62,14 +62,14 @@ public class FilterEvaluatorTest {
   @Test
   public void testWithEmptyFilters() throws Exception {
     FilterEvaluator evaluator = new FilterEvaluator(new ArrayList<>());
-    assertEquals(Optional.absent(), evaluator.isVisible(namenodeUi));
+    assertEquals(Optional.empty(), evaluator.isVisible(namenodeUi));
 
     FilterEvaluator evaluator2 = new FilterEvaluator(null);
-    assertEquals(Optional.absent(), evaluator2.isVisible(namenodeUi));
+    assertEquals(Optional.empty(), evaluator2.isVisible(namenodeUi));
   }
 
   /**
-   * FilterEvaluator should return {@link Optional#absent()} when the link doesn't match any filters
+   * FilterEvaluator should return {@link Optional.empty()} when the link doesn't match any filters
    */
   @Test
   public void testNoMatchingFilter() throws Exception {
@@ -77,7 +77,7 @@ public class FilterEvaluatorTest {
         linkNameFilter(NAMENODE_JMX, true),
         linkAttributeFilter(SSO, false));
     FilterEvaluator evaluator = new FilterEvaluator(filters);
-    assertEquals(Optional.absent(), evaluator.isVisible(namenodeUi));
+    assertEquals(Optional.empty(), evaluator.isVisible(namenodeUi));
   }
 
   /**
