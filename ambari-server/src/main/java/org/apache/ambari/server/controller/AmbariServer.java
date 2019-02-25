@@ -134,6 +134,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.NCSARequestLog;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SessionIdManager;
@@ -633,6 +634,7 @@ public class AmbariServer {
 
 
       HttpConfiguration https_config = new HttpConfiguration();
+      https_config.addCustomizer(new SecureRequestCustomizer());
       https_config.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
       https_config.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
       https_config.setSendServerVersion(false);
