@@ -26,11 +26,11 @@ function getView() {
 }
 
 describe('App.ReassignMasterWizardStep2View', function () {
-
+  
   beforeEach(function() {
     view = getView();
   });
-
+  
   describe('#alertMessage', function() {
     beforeEach(function() {
       sinon.stub(App, 'get').returns(true);
@@ -38,7 +38,7 @@ describe('App.ReassignMasterWizardStep2View', function () {
     afterEach(function() {
       App.get.restore();
     });
-
+    
     it('should return NAMENODE alert', function() {
       view.set('controller', Em.Object.create({
         content: {
@@ -53,7 +53,7 @@ describe('App.ReassignMasterWizardStep2View', function () {
         Em.I18n.t('services.reassign.step2.body.namenodeHA').format('Namenode')
       );
     });
-
+  
     it('should return component alert', function() {
       view.set('controller', Em.Object.create({
         content: {
@@ -69,5 +69,6 @@ describe('App.ReassignMasterWizardStep2View', function () {
       );
     });
   });
-
+  
 });
+

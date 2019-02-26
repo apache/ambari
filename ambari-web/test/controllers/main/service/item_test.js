@@ -2081,7 +2081,7 @@ describe('App.MainServiceItemController', function () {
     });
 
   });
-
+  
   describe('#clientComponents', function() {
     beforeEach(function() {
       sinon.stub(App.StackServiceComponent, 'find').returns([
@@ -2096,7 +2096,7 @@ describe('App.MainServiceItemController', function () {
     afterEach(function() {
       App.StackServiceComponent.find.restore();
     });
-
+    
     it('should return list of clients', function() {
       var ctrl = App.MainServiceItemController.create({
         content: {
@@ -2121,7 +2121,7 @@ describe('App.MainServiceItemController', function () {
       ]);
     });
   });
-
+  
   describe('#sitesToLoad', function() {
     beforeEach(function() {
       sinon.stub(App.StackService, 'find').returns([
@@ -2134,7 +2134,7 @@ describe('App.MainServiceItemController', function () {
     afterEach(function() {
       App.StackService.find.restore();
     });
-
+    
     it('should return sites', function() {
       var ctrl = App.MainServiceItemController.create({
         content: {
@@ -2149,7 +2149,7 @@ describe('App.MainServiceItemController', function () {
       expect(ctrl.get('sitesToLoad')).to.be.eql(['type1', 'type2', 'cluster-env']);
     });
   });
-
+  
   describe('#startStopPopupSuccessCallback', function() {
     var ctrl;
     var mock = {
@@ -2169,7 +2169,7 @@ describe('App.MainServiceItemController', function () {
     afterEach(function() {
       App.router.get.restore();
     });
-
+    
     it('showPopup should be called when call successful', function() {
       var params = {query: Em.Object.create()};
       ctrl.startStopPopupSuccessCallback({Requests: []}, {}, params);
@@ -2182,7 +2182,7 @@ describe('App.MainServiceItemController', function () {
       expect(params.query.get('status')).to.be.equal('FAIL');
     });
   });
-
+  
   describe('#checkNnLastCheckpointTime', function() {
     var ctrl;
     var callback = sinon.spy();
@@ -2201,7 +2201,7 @@ describe('App.MainServiceItemController', function () {
       App.showConfirmationFeedBackPopup.restore();
       App.showConfirmationPopup.restore();
     });
-
+    
     it('showConfirmationFeedBackPopup should be called', function() {
       ctrl.set('nameNodesWithOldCheckpoints', [{}]);
       ctrl.checkNnLastCheckpointTime(callback);
@@ -2223,7 +2223,7 @@ describe('App.MainServiceItemController', function () {
       ).to.be.true;
     });
   });
-
+  
   describe('#pullNnCheckPointTime', function() {
     beforeEach(function() {
       sinon.stub(App.HDFSService, 'find').returns([
@@ -2240,7 +2240,7 @@ describe('App.MainServiceItemController', function () {
     afterEach(function() {
       App.HDFSService.find.restore();
     });
-
+    
     it('App.ajax.send should be called', function() {
       var ctrl = App.MainServiceItemController.create();
       ctrl.pullNnCheckPointTime('ha');
@@ -2249,7 +2249,7 @@ describe('App.MainServiceItemController', function () {
       });
     });
   });
-
+  
   describe('#startStopWithMmode', function() {
     var ctrl;
     beforeEach(function() {
@@ -2269,7 +2269,7 @@ describe('App.MainServiceItemController', function () {
       ctrl.startStopPopupPrimary.restore();
       batchUtils.turnOnOffPassiveRequest.restore();
     });
-
+    
     it('turnOnOffPassiveRequest should be called when turning off maintenance', function() {
       ctrl.startStopWithMmode('STARTED', '', true, [], [], '');
       expect(batchUtils.turnOnOffPassiveRequest.calledWith('OFF', Em.I18n.t('passiveState.turnOff'), 'S1')).to.be.true;
@@ -2283,7 +2283,7 @@ describe('App.MainServiceItemController', function () {
       expect(ctrl.startStopPopupPrimary.calledWith('INSTALLED', '', [], [], '')).to.be.true;
     });
   });
-
+  
   describe('#refreshYarnQueues', function() {
     beforeEach(function() {
       sinon.stub(App, 'showConfirmationPopup', Em.clb);
@@ -2295,7 +2295,7 @@ describe('App.MainServiceItemController', function () {
       App.showConfirmationPopup.restore();
       App.MasterComponent.find.restore();
     });
-
+    
     it('App.ajax.send should be called', function() {
       var ctrl = App.MainServiceItemController.create();
       ctrl.refreshYarnQueues();
@@ -2309,7 +2309,7 @@ describe('App.MainServiceItemController', function () {
       });
     });
   });
-
+  
   describe('#refreshYarnQueuesSuccessCallback', function() {
     beforeEach(function() {
       sinon.stub(App.router, 'get').returns({showPopup: sinon.spy()});
@@ -2317,14 +2317,14 @@ describe('App.MainServiceItemController', function () {
     afterEach(function() {
       App.router.get.restore();
     });
-
+    
     it('showPopup should be called', function() {
       var ctrl = App.MainServiceItemController.create();
       ctrl.refreshYarnQueuesSuccessCallback({Requests: {id: 1}});
       expect(App.router.get('backgroundOperationsController').showPopup.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#refreshYarnQueuesErrorCallback', function() {
     beforeEach(function() {
       sinon.stub(App, 'showAlertPopup');
@@ -2332,7 +2332,7 @@ describe('App.MainServiceItemController', function () {
     afterEach(function() {
       App.showAlertPopup.restore();
     });
-
+    
     it('showAlertPopup should be called', function() {
       var ctrl = App.MainServiceItemController.create();
       ctrl.refreshYarnQueuesErrorCallback({
@@ -2346,7 +2346,7 @@ describe('App.MainServiceItemController', function () {
       )).to.be.true;
     });
   });
-
+  
   describe('#startStopLdapKnox', function() {
     beforeEach(function() {
       sinon.stub(App.HostComponent, 'find').returns([
@@ -2361,7 +2361,7 @@ describe('App.MainServiceItemController', function () {
       App.HostComponent.find.restore();
       App.showConfirmationPopup.restore();
     });
-
+    
     it('App.ajax.send should be called after confirmation', function() {
       var ctrl = App.MainServiceItemController.create();
       ctrl.startStopLdapKnox('command1', 'context1');
@@ -2374,7 +2374,7 @@ describe('App.MainServiceItemController', function () {
       });
     });
   });
-
+  
   describe('#startStopLdapKnoxSuccessCallback', function() {
     beforeEach(function() {
       sinon.stub(App.router, 'get').returns({showPopup: sinon.spy()});
@@ -2382,14 +2382,14 @@ describe('App.MainServiceItemController', function () {
     afterEach(function() {
       App.router.get.restore();
     });
-
+    
     it('showPopup should be called', function() {
       var ctrl = App.MainServiceItemController.create();
       ctrl.startStopLdapKnoxSuccessCallback({Requests: {id: 1}});
       expect(App.router.get('backgroundOperationsController').showPopup.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#startStopLdapKnoxErrorCallback', function() {
     beforeEach(function() {
       sinon.stub(App, 'showAlertPopup');
@@ -2397,7 +2397,7 @@ describe('App.MainServiceItemController', function () {
     afterEach(function() {
       App.showAlertPopup.restore();
     });
-
+    
     it('showAlertPopup should be called', function() {
       var ctrl = App.MainServiceItemController.create();
       ctrl.startStopLdapKnoxErrorCallback({
@@ -2411,7 +2411,7 @@ describe('App.MainServiceItemController', function () {
       )).to.be.true;
     });
   });
-
+  
   describe('#restartLLAPRequest', function() {
     beforeEach(function() {
       sinon.stub(App.HostComponent, 'find').returns([
@@ -2424,7 +2424,7 @@ describe('App.MainServiceItemController', function () {
     afterEach(function() {
       App.HostComponent.find.restore();
     });
-
+    
     it('App.ajax.send should be called', function() {
       var ctrl = App.MainServiceItemController.create();
       ctrl.restartLLAPRequest();
@@ -2437,7 +2437,7 @@ describe('App.MainServiceItemController', function () {
       });
     });
   });
-
+  
   describe('#restartLLAPAndRefreshQueueRequest', function() {
     beforeEach(function() {
       sinon.stub(App.MasterComponent, 'find').returns(Em.Object.create({
@@ -2447,7 +2447,7 @@ describe('App.MainServiceItemController', function () {
     afterEach(function() {
       App.MasterComponent.find.restore();
     });
-
+    
     it('App.ajax.send should be called', function() {
       var ctrl = App.MainServiceItemController.create();
       ctrl.restartLLAPAndRefreshQueueRequest();
@@ -2489,7 +2489,7 @@ describe('App.MainServiceItemController', function () {
       });
     });
   });
-
+  
   describe('#requestSuccessCallback', function() {
     var mock = {
       dataLoading: function() {
@@ -2507,14 +2507,14 @@ describe('App.MainServiceItemController', function () {
     afterEach(function() {
       App.router.get.restore();
     });
-
+    
     it('showPopup should be called', function() {
       var ctrl = App.MainServiceItemController.create();
       ctrl.requestSuccessCallback();
       expect(mock.showPopup.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#rebalanceHdfsNodesSuccessCallback', function() {
     var mock = {
       showPopup: sinon.spy()
@@ -2525,14 +2525,14 @@ describe('App.MainServiceItemController', function () {
     afterEach(function() {
       App.router.get.restore();
     });
-
+    
     it('showPopup should be called', function() {
       var ctrl = App.MainServiceItemController.create();
       ctrl.rebalanceHdfsNodesSuccessCallback({Requests: {id: 1}});
       expect(mock.showPopup.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#regenerateKeytabFileOperationsRequestSuccess', function() {
     var mock = {
       showPopup: sinon.spy()
@@ -2543,14 +2543,14 @@ describe('App.MainServiceItemController', function () {
     afterEach(function() {
       App.router.get.restore();
     });
-
+    
     it('showPopup should be called', function() {
       var ctrl = App.MainServiceItemController.create();
       ctrl.regenerateKeytabFileOperationsRequestSuccess();
       expect(mock.showPopup.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#regenerateKeytabFileOperationsRequestError', function() {
     beforeEach(function() {
       sinon.stub(App, 'showAlertPopup');
@@ -2558,7 +2558,7 @@ describe('App.MainServiceItemController', function () {
     afterEach(function() {
       App.showAlertPopup.restore();
     });
-
+    
     it('showAlertPopup should be called', function() {
       var ctrl = App.MainServiceItemController.create({
         content: {
@@ -2571,5 +2571,5 @@ describe('App.MainServiceItemController', function () {
       )).to.be.true;
     });
   });
-
+  
 });

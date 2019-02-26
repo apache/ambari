@@ -29,9 +29,9 @@ describe('App.WidgetEditController', function () {
       content: Em.Object.create()
     });
   });
-
+  
   describe('#putWidgetDefinition', function() {
-
+    
     it('App.ajax.send should be called', function() {
       controller.set('content.widgetId', 1);
       controller.putWidgetDefinition({});
@@ -42,7 +42,7 @@ describe('App.WidgetEditController', function () {
       });
     });
   });
-
+  
   describe('#finish', function() {
     beforeEach(function() {
       sinon.stub(controller, 'setCurrentStep');
@@ -54,23 +54,23 @@ describe('App.WidgetEditController', function () {
       controller.resetDbNamespace.restore();
       controller.save.restore();
     });
-
+    
     it('setCurrentStep should be called', function() {
       controller.finish();
       expect(controller.setCurrentStep.calledWith('1', false, true)).to.be.true;
     });
-
+  
     it('resetDbNamespace should be called', function() {
       controller.finish();
       expect(controller.resetDbNamespace.calledOnce).to.be.true;
     });
-
+  
     it('save should be called', function() {
       controller.finish();
       expect(controller.save.callCount).to.be.equal(13);
     });
   });
-
+  
   describe('#loadMap', function() {
     describe('#step1', function() {
       beforeEach(function() {
@@ -81,38 +81,38 @@ describe('App.WidgetEditController', function () {
         controller.load.restore();
         controller.loadAllMetrics.restore();
       });
-
+      
       it('should load widgetType', function() {
         controller.loadMap['1'][0].callback.apply(controller);
         expect(controller.load.calledWith('widgetType')).to.be.true;
       });
-
+  
       it('should load widgetService', function() {
         controller.loadMap['1'][0].callback.apply(controller);
         expect(controller.load.calledWith('widgetService')).to.be.true;
       });
-
+  
       it('should load widgetProperties', function() {
         controller.loadMap['1'][0].callback.apply(controller);
         expect(controller.load.calledWith('widgetProperties', true)).to.be.true;
       });
-
+  
       it('should load widgetValues', function() {
         controller.loadMap['1'][0].callback.apply(controller);
         expect(controller.load.calledWith('widgetValues', true)).to.be.true;
       });
-
+  
       it('should load widgetMetrics', function() {
         controller.loadMap['1'][0].callback.apply(controller);
         expect(controller.load.calledWith('widgetMetrics', true)).to.be.true;
       });
-
+  
       it('loadAllMetrics should be called', function() {
         controller.loadMap['1'][1].callback.apply(controller);
         expect(controller.loadAllMetrics.calledOnce).to.be.true;
       });
     });
-
+    
     describe('#step2', function() {
       beforeEach(function() {
         sinon.stub(controller, 'load');
@@ -121,20 +121,20 @@ describe('App.WidgetEditController', function () {
       afterEach(function() {
         controller.load.restore();
       });
-
+  
       it('should load widgetName', function() {
         expect(controller.load.calledWith('widgetName')).to.be.true;
       });
-
+  
       it('should load widgetDescription', function() {
         expect(controller.load.calledWith('widgetDescription')).to.be.true;
       });
-
+  
       it('should load widgetAuthor', function() {
         expect(controller.load.calledWith('widgetAuthor')).to.be.true;
       });
     });
   });
-
-
+  
+  
 });

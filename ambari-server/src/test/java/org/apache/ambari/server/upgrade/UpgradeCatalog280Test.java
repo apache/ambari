@@ -69,10 +69,10 @@ public class UpgradeCatalog280Test {
     Capture<DBAccessor.DBColumnInfo> upgradePackStackColumn = newCapture(CaptureType.ALL);
     dbAccessor.addColumn(eq("upgrade"), capture(upgradePackStackColumn));
     expectLastCall().once();
-
+    
     final Capture<DBAccessor.DBColumnInfo> alterPropertyValueColumnCapture = newCapture(CaptureType.ALL);
     dbAccessor.alterColumn(eq(AMBARI_CONFIGURATION_TABLE), capture(alterPropertyValueColumnCapture));
-    expectLastCall().once();
+    expectLastCall().once();  
 
     replay(dbAccessor, injector);
 

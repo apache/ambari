@@ -24,7 +24,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   App.ConfigsComparator, App.ComponentActionsByConfigs, {
 
   name: 'mainServiceInfoConfigsController',
-
+  
   /**
    * Recommendations data will be completed on server side,
    * UI doesn't have to send all cluster data as hosts, configurations, config-groups, etc.

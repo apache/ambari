@@ -67,22 +67,22 @@ describe('App.WidgetSectionMixin', function () {
       });
     });
   });
-
+  
   describe('#defaultLayoutName', function() {
-
+    
     it('should return service layout name', function() {
       mixin.set('content.serviceName', 'S1');
       mixin.propertyDidChange('defaultLayoutName');
       expect(mixin.get('defaultLayoutName')).to.be.equal("default_s1_suffix");
     });
-
+  
     it('should return system layout name', function() {
       mixin.set('content.serviceName', null);
       mixin.propertyDidChange('defaultLayoutName');
       expect(mixin.get('defaultLayoutName')).to.be.equal("default_system_suffix");
     });
   });
-
+  
   describe('#userLayoutName', function() {
     beforeEach(function() {
       sinon.stub(App.router, 'get').returns('admin');
@@ -90,35 +90,35 @@ describe('App.WidgetSectionMixin', function () {
     afterEach(function() {
       App.router.get.restore();
     });
-
+  
     it('should return service layout name', function() {
       mixin.set('content.serviceName', 'S1');
       mixin.propertyDidChange('userLayoutName');
       expect(mixin.get('userLayoutName')).to.be.equal("admin_s1_suffix");
     });
-
+  
     it('should return system layout name', function() {
       mixin.set('content.serviceName', null);
       mixin.propertyDidChange('userLayoutName');
       expect(mixin.get('userLayoutName')).to.be.equal("admin_system_suffix");
     });
   });
-
+  
   describe('#sectionName', function() {
-
+    
     it('should return service layout name', function() {
       mixin.set('content.serviceName', 'S1');
       mixin.propertyDidChange('sectionName');
       expect(mixin.get('sectionName')).to.be.equal("S1_section_suffix");
     });
-
+    
     it('should return system layout name', function() {
       mixin.set('content.serviceName', null);
       mixin.propertyDidChange('sectionName');
       expect(mixin.get('sectionName')).to.be.equal("SYSTEM_section_suffix");
     });
   });
-
+  
   describe('#isServiceWithEnhancedWidgets', function() {
     beforeEach(function() {
       sinon.stub(App.StackService, 'find').returns(Em.Object.create({
@@ -128,13 +128,13 @@ describe('App.WidgetSectionMixin', function () {
     afterEach(function() {
       App.StackService.find.restore();
     });
-
+    
     it('should return false', function() {
       mixin.set('content.serviceName', 'S1');
       mixin.propertyDidChange('isServiceWithEnhancedWidgets');
       expect(mixin.get('isServiceWithEnhancedWidgets')).to.be.false;
     });
-
+  
     it('should return true', function() {
       mixin.reopen({
         sectionName: 'SYSTEM_HEATMAPS'
@@ -143,7 +143,7 @@ describe('App.WidgetSectionMixin', function () {
       expect(mixin.get('isServiceWithEnhancedWidgets')).to.be.true;
     });
   });
-
+  
   describe('#isHDFSFederatedSummary', function() {
     beforeEach(function() {
       sinon.stub(App, 'get').returns(true);
@@ -151,7 +151,7 @@ describe('App.WidgetSectionMixin', function () {
     afterEach(function() {
       App.get.restore();
     });
-
+    
     it('should be true', function() {
       mixin.set('content.serviceName', 'HDFS');
       mixin.set('sectionNameSuffix', '_SUMMARY');
@@ -159,15 +159,15 @@ describe('App.WidgetSectionMixin', function () {
       expect(mixin.get('isHDFSFederatedSummary')).to.be.true;
     });
   });
-
+  
   describe('#widgets', function() {
-
+    
     it('should return no widgets when not loaded', function() {
       mixin.set('isWidgetsLoaded', false);
       mixin.propertyDidChange('widgets');
       expect(mixin.get('widgets')).to.be.empty;
     });
-
+  
     it('should return widgets', function() {
       mixin.set('isWidgetsLoaded', true);
       mixin.set('activeWidgetLayout', {
@@ -177,34 +177,34 @@ describe('App.WidgetSectionMixin', function () {
       expect(mixin.get('widgets')).to.be.eql([{}]);
     });
   });
-
+  
   describe('#switchNameServiceLayout', function() {
-
+    
     it('should set selectedNSWidgetLayout', function() {
       mixin.switchNameServiceLayout({context: {}});
       expect(mixin.get('selectedNSWidgetLayout')).to.be.eql({});
     });
   });
-
+  
   describe('#getActiveWidgetLayout', function() {
-
+  
     beforeEach(function() {
       sinon.stub(App.router, 'get').returns('admin');
     });
     afterEach(function() {
       App.router.get.restore();
     });
-
+    
     it('activeWidgetLayout should be empty', function() {
       mixin.getActiveWidgetLayout();
       expect(mixin.get('activeWidgetLayout')).to.be.empty;
     });
-
+  
     it('activeNSWidgetLayouts should be empty', function() {
       mixin.getActiveWidgetLayout();
       expect(mixin.get('activeNSWidgetLayouts')).to.be.empty;
     });
-
+  
     it('isWidgetsLoaded should be empty', function() {
       mixin.reopen({
         isServiceWithEnhancedWidgets: false
@@ -212,7 +212,7 @@ describe('App.WidgetSectionMixin', function () {
       mixin.getActiveWidgetLayout();
       expect(mixin.get('isWidgetsLoaded')).to.be.true;
     });
-
+  
     it('App.ajax.send should be called', function() {
       mixin.reopen({
         isServiceWithEnhancedWidgets: true,
@@ -226,7 +226,7 @@ describe('App.WidgetSectionMixin', function () {
       });
     });
   });
-
+  
   describe('#getActiveWidgetLayoutSuccessCallback', function() {
     beforeEach(function() {
       sinon.stub(mixin, 'createLayouts');
@@ -266,7 +266,7 @@ describe('App.WidgetSectionMixin', function () {
       App.HDFSService.find.restore();
       mixin.postNNWidgets.restore();
     });
-
+    
     it('createLayouts should be called when isHDFSFederatedSummary=false', function() {
       mixin.reopen({
         isHDFSFederatedSummary: false
@@ -274,7 +274,7 @@ describe('App.WidgetSectionMixin', function () {
       mixin.getActiveWidgetLayoutSuccessCallback({items: []});
       expect(mixin.createLayouts.calledWith({items: []})).to.be.true;
     });
-
+  
     it('postNNWidgets should be called when isHDFSFederatedSummary=true', function() {
       mixin.reopen({
         isHDFSFederatedSummary: true
@@ -287,7 +287,7 @@ describe('App.WidgetSectionMixin', function () {
       }, 1, {items: []})).to.be.true;
     });
   });
-
+  
   describe('#postNNWidgets', function() {
     beforeEach(function() {
       sinon.stub(mixin, 'postWidget').returns({
@@ -299,7 +299,7 @@ describe('App.WidgetSectionMixin', function () {
       mixin.postWidget.restore();
       mixin.createLayouts.restore();
     });
-
+    
     it('createLayouts should be called', function() {
       mixin.postNNWidgets({
         href: '',
@@ -314,9 +314,9 @@ describe('App.WidgetSectionMixin', function () {
       expect(mixin.createLayouts.calledWith({})).to.be.true;
     });
   });
-
+  
   describe('#getNameNodeWidgets', function() {
-
+    
     it('App.ajax.send should be called', function() {
       mixin.getNameNodeWidgets();
       expect(testHelpers.findAjaxRequest('name', 'widgets.get')[0].data).to.be.eql({
@@ -324,9 +324,9 @@ describe('App.WidgetSectionMixin', function () {
       });
     });
   });
-
+  
   describe('#postWidget', function() {
-
+    
     it('App.ajax.send should be called', function() {
       mixin.postWidget({data: []});
       expect(testHelpers.findAjaxRequest('name', 'widgets.wizard.add')[0].data).to.be.eql({
@@ -334,16 +334,16 @@ describe('App.WidgetSectionMixin', function () {
       });
     });
   });
-
+  
   describe('#getAllActiveWidgetLayouts', function() {
-
+  
     beforeEach(function() {
       sinon.stub(App.router, 'get').returns('admin');
     });
     afterEach(function() {
       App.router.get.restore();
     });
-
+    
     it('App.ajax.send should be called', function() {
       mixin.getAllActiveWidgetLayouts();
       expect(testHelpers.findAjaxRequest('name', 'widgets.layouts.all.active.get')[0].data).to.be.eql({
@@ -351,7 +351,7 @@ describe('App.WidgetSectionMixin', function () {
       });
     });
   });
-
+  
   describe('#createLayouts', function() {
     beforeEach(function() {
       sinon.stub(App.HDFSService, 'find').returns(Em.Object.create({
@@ -387,7 +387,7 @@ describe('App.WidgetSectionMixin', function () {
       mixin.getAllActiveWidgetLayouts.restore();
       mixin.createUserWidgetLayout.restore();
     });
-
+    
     it('createFederationWidgetLayouts should be called', function() {
       mixin.reopen({
         isHDFSFederatedSummary: true
@@ -395,7 +395,7 @@ describe('App.WidgetSectionMixin', function () {
       mixin.createLayouts({items: [{}]});
       expect(mixin.createFederationWidgetLayouts.calledWith({items: [{}]})).to.be.true;
     });
-
+  
     it('getWidgetLayoutSuccessCallback should be called', function() {
       mixin.reopen({
         isHDFSFederatedSummary: false
@@ -403,13 +403,13 @@ describe('App.WidgetSectionMixin', function () {
       mixin.createLayouts({items: [{}]});
       expect(mixin.getWidgetLayoutSuccessCallback.calledWith({items: [{}]})).to.be.true;
     });
-
+  
     it('createUserWidgetLayoutCallback should be called', function() {
       mixin.createLayouts({items: []});
       expect(mixin.createUserWidgetLayoutCallback.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#createUserWidgetLayoutCallback', function() {
     beforeEach(function() {
       sinon.stub(mixin, 'saveActiveWidgetLayouts').returns({
@@ -421,7 +421,7 @@ describe('App.WidgetSectionMixin', function () {
       mixin.saveActiveWidgetLayouts.restore();
       mixin.getActiveWidgetLayout.restore();
     });
-
+    
     it('saveActiveWidgetLayouts should be called', function() {
       mixin.createUserWidgetLayoutCallback(
         {resources: [{WidgetLayoutInfo: {id: 1}}]},
@@ -435,7 +435,7 @@ describe('App.WidgetSectionMixin', function () {
         }
       )).to.be.true;
     });
-
+  
     it('getActiveWidgetLayout should be called', function() {
       mixin.createUserWidgetLayoutCallback(
         {resources: [{WidgetLayoutInfo: {id: 1}}]},
@@ -443,7 +443,7 @@ describe('App.WidgetSectionMixin', function () {
       expect(mixin.getActiveWidgetLayout.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#getWidgetLayoutSuccessCallback', function() {
     beforeEach(function() {
       sinon.stub(App.widgetMapper, 'map');
@@ -470,43 +470,43 @@ describe('App.WidgetSectionMixin', function () {
       App.widgetLayoutMapper.map.restore();
       App.WidgetLayout.find.restore();
     });
-
+    
     it('App.widgetMapper.map should be called', function() {
       expect(App.widgetMapper.map.calledWith({id: 1})).to.be.true;
     });
-
+  
     it('App.widgetLayoutMapper.map should be called', function() {
       expect(App.widgetLayoutMapper.map.calledWith({items: [{WidgetLayoutInfo: {id: 1}}]})).to.be.true;
     });
-
+    
     it('activeWidgetLayout should be set', function() {
       expect(mixin.get('activeWidgetLayout')).to.be.eql({
         layoutName: 'layout1',
         sectionName: 'section1'
       });
     });
-
+  
     it('activeNSWidgetLayouts should be set', function() {
       expect(mixin.get('activeNSWidgetLayouts')).to.be.eql([{
         layoutName: 'layout2',
         sectionName: 'section1'
       }]);
     });
-
+  
     it('selectedNSWidgetLayout should be set', function() {
       expect(mixin.get('selectedNSWidgetLayout')).to.be.eql({
         layoutName: 'layout2',
         sectionName: 'section1'
       });
     });
-
+  
     it('isWidgetsLoaded should be true', function() {
       expect(mixin.get('isWidgetsLoaded')).to.be.true;
     });
   });
-
+  
   describe('#getDefaultWidgetLayoutByName', function() {
-
+    
     it('App.ajax.send should be called', function() {
       mixin.getDefaultWidgetLayoutByName('layout1');
       expect(testHelpers.findAjaxRequest('name', 'widget.layout.get')[0].data).to.be.eql({
@@ -514,16 +514,16 @@ describe('App.WidgetSectionMixin', function () {
       });
     });
   });
-
+  
   describe('#createUserWidgetLayout', function() {
-
+  
     beforeEach(function() {
       sinon.stub(App.router, 'get').returns('admin');
     });
     afterEach(function() {
       App.router.get.restore();
     });
-
+    
     it('App.ajax.send should be called', function() {
       mixin.createUserWidgetLayout({
         display_name: 'l1',
@@ -551,16 +551,16 @@ describe('App.WidgetSectionMixin', function () {
       });
     });
   });
-
+  
   describe('#updateUserWidgetLayout', function() {
-
+    
     beforeEach(function() {
       sinon.stub(App.router, 'get').returns('admin');
     });
     afterEach(function() {
       App.router.get.restore();
     });
-
+    
     it('App.ajax.send should be called', function() {
       mixin.updateUserWidgetLayout({
         display_name: 'l1',
@@ -591,17 +591,17 @@ describe('App.WidgetSectionMixin', function () {
       });
     });
   });
-
+  
   describe('#saveActiveWidgetLayouts', function() {
-
+  
     beforeEach(function() {
       sinon.stub(App.router, 'get').returns('admin');
     });
     afterEach(function() {
       App.router.get.restore();
     });
-
-
+  
+  
     it('App.ajax.send should be called', function() {
       mixin.saveActiveWidgetLayouts([]);
       expect(testHelpers.findAjaxRequest('name', 'widget.activelayouts.edit')[0].data).to.be.eql({
@@ -610,9 +610,9 @@ describe('App.WidgetSectionMixin', function () {
       });
     });
   });
-
+  
   describe('#removeWidgetLayout', function() {
-
+   
     it('App.ajax.send should be called', function() {
       mixin.removeWidgetLayout(1);
       expect(testHelpers.findAjaxRequest('name', 'widget.layout.delete')[0].data).to.be.eql({
@@ -620,9 +620,9 @@ describe('App.WidgetSectionMixin', function () {
       });
     });
   });
-
+  
   describe('#saveWidgetLayout', function() {
-
+    
     it('App.ajax.send should be called', function() {
       mixin.saveWidgetLayout(
         [Em.Object.create({id: 1})],
@@ -651,20 +651,20 @@ describe('App.WidgetSectionMixin', function () {
       });
     });
   });
-
+  
   describe('#clearActiveWidgetLayout', function() {
-
+  
     it('activeWidgetLayout should be empty', function() {
       mixin.clearActiveWidgetLayout();
       expect(mixin.get('activeWidgetLayout')).to.be.empty;
     });
-
+  
     it('activeNSWidgetLayouts should be empty', function() {
       mixin.clearActiveWidgetLayout();
       expect(mixin.get('activeNSWidgetLayouts')).to.be.empty;
     });
   });
-
+  
   describe('#createFederationWidgetLayouts', function() {
     var newLayout = {
       widgets: [
@@ -713,7 +713,7 @@ describe('App.WidgetSectionMixin', function () {
       mixin.createSingleLayout.restore();
       mixin.createMultipleLayouts.restore();
     });
-
+    
     it('createSingleLayout should be called', function() {
       mixin.createFederationWidgetLayouts({items: [{}]});
       expect(mixin.createSingleLayout.calledWith(
@@ -742,7 +742,7 @@ describe('App.WidgetSectionMixin', function () {
         }
       )).to.be.true;
     });
-
+  
     it('createMultipleLayouts should be called', function() {
       mixin.createFederationWidgetLayouts({items: [{}, {}]});
       expect(mixin.createMultipleLayouts.calledWith(
@@ -767,7 +767,7 @@ describe('App.WidgetSectionMixin', function () {
       )).to.be.true;
     });
   });
-
+  
   describe('#createSingleLayout', function() {
     beforeEach(function() {
       sinon.stub(mixin, 'removeWidgetLayout').returns({done: Em.clb});
@@ -802,26 +802,26 @@ describe('App.WidgetSectionMixin', function () {
       mixin.saveActiveWidgetLayouts.restore();
       mixin.getActiveWidgetLayout.restore();
     });
-
+    
     it('removeWidgetLayout should be called', function() {
       expect(mixin.removeWidgetLayout.calledWith(1)).to.be.true;
     });
-
+  
     it('createUserWidgetLayout should be called', function() {
       expect(mixin.createUserWidgetLayout.calledTwice).to.be.true;
     });
-
+  
     it('saveActiveWidgetLayouts should be called', function() {
       expect(mixin.saveActiveWidgetLayouts.calledWith({
         "WidgetLayouts": [{id: 1}, {id: 1}]
       })).to.be.true;
     });
-
+  
     it('getActiveWidgetLayout should be called', function() {
       expect(mixin.getActiveWidgetLayout.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#createMultipleLayouts', function() {
     beforeEach(function() {
       sinon.stub(App.HDFSService, 'find').returns(Em.Object.create({
@@ -876,11 +876,11 @@ describe('App.WidgetSectionMixin', function () {
       mixin.updateUserWidgetLayout.restore();
       mixin.getActiveWidgetLayout.restore();
     });
-
+    
     it('createUserWidgetLayout should be called', function() {
       expect(mixin.createUserWidgetLayout.calledOnce).to.be.true;
     });
-
+  
     it('saveActiveWidgetLayouts should be called', function() {
       expect(mixin.saveActiveWidgetLayouts.calledWith({
         "WidgetLayouts": [
@@ -890,14 +890,14 @@ describe('App.WidgetSectionMixin', function () {
         ]
       })).to.be.true;
     });
-
+  
     it('updateUserWidgetLayout should be called', function() {
       expect(mixin.updateUserWidgetLayout.calledOnce).to.be.true;
     });
-
+  
     it('getActiveWidgetLayout should be called', function() {
       expect(mixin.getActiveWidgetLayout.calledOnce).to.be.true;
     });
   });
-
+  
 });

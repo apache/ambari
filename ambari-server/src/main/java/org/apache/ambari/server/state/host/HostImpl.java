@@ -766,7 +766,7 @@ public class HostImpl implements Host {
 
   @Override
   public String getOsFamily(Map<String, String> hostAttributes) {
-          return getOSFamilyFromHostAttributes(hostAttributes);
+	  return getOSFamilyFromHostAttributes(hostAttributes);
   }
 
   @Override

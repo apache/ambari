@@ -89,7 +89,7 @@ public abstract class AmbariServerConfigurationProvider<T extends AmbariServerCo
     if (configurationCategory.getCategoryName().equalsIgnoreCase(event.getCategoryName())) {
       LOGGER.info("Ambari configuration changed event received: {}", event);
       instance = loadInstance();
-
+      
     }
   }
 

@@ -199,7 +199,7 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
         callback: function () {
           var dfd = $.Deferred(),
             self = this;
-
+            
           this.loadHdfsUserFromServer().done(function (data) {
             self.set('content.hdfsUser', Em.get(data, '0.properties.hdfs_user'));
             self.saveHdfsUser();

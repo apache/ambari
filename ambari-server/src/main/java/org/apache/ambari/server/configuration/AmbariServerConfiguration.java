@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 public abstract class AmbariServerConfiguration {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AmbariServerConfiguration.class);
-
+  
   protected final Map<String, String> configurationMap = new HashMap<>();
 
   protected AmbariServerConfiguration(Map<String, String> configurationMap) {
@@ -73,7 +73,7 @@ public abstract class AmbariServerConfiguration {
       return defaultValue;
     }
   }
-
+  
   /**
    * @return this configuration represented as a map
    */
@@ -83,7 +83,7 @@ public abstract class AmbariServerConfiguration {
 
   /**
    * Sets the given value for the given configuration
-   *
+   * 
    * @param configName
    *          the name of the configuration to set the value for
    * @param value
@@ -102,7 +102,7 @@ public abstract class AmbariServerConfiguration {
 
   /**
    * Sets the given value for the given configuration
-   *
+   * 
    * @param ambariServerConfigurationKey
    *          the configuration key to set the value for
    * @param value
@@ -118,7 +118,7 @@ public abstract class AmbariServerConfiguration {
     }
     configurationMap.put(ambariServerConfigurationKey.key(), value);
   }
-
+  
   protected abstract AmbariServerConfigurationCategory getCategory();
 
 }

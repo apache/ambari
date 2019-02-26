@@ -298,7 +298,7 @@ App.WidgetMixin = Ember.Mixin.create({
     if (this.get('content.metrics')) {
       this.get('content.metrics').forEach(function (_metric) {
         var metricPath = _metric.metric_path;
-
+        
         var metric_data = Em.get(data, metricPath.replace(/\//g, '.'));
         if (Em.isNone(metric_data)) {
           metric_data = this.parseMetricsWithAggregatorFunc(data, metricPath);
@@ -315,7 +315,7 @@ App.WidgetMixin = Ember.Mixin.create({
       }
     }
   },
-
+  
   parseMetricsWithAggregatorFunc: function(data, metric_path) {
     let isAggregatorFunc = false;
     let metric = null;
@@ -325,7 +325,7 @@ App.WidgetMixin = Ember.Mixin.create({
         var metricBeanProperty = metric_path.split("/").pop();
         var metricBean;
         metric_path = metric_path.substring(0, metric_path.indexOf(metricBeanProperty));
-
+        
         if (metric_path.endsWith("/")) {
           metric_path = metric_path.slice(0, -1);
         }

@@ -53,7 +53,7 @@ public class JwtAuthenticationProperties extends AmbariServerConfiguration {
   JwtAuthenticationProperties(Map<String, String> configurationMap) {
     super(configurationMap);
   }
-
+  
   @Override
   protected AmbariServerConfigurationCategory getCategory() {
     return AmbariServerConfigurationCategory.SSO_CONFIGURATION;
@@ -90,7 +90,7 @@ public class JwtAuthenticationProperties extends AmbariServerConfiguration {
     } else {
       audiences = null;
     }
-
+    
     return audiences;
   }
 
@@ -139,7 +139,7 @@ public class JwtAuthenticationProperties extends AmbariServerConfiguration {
 
     return publicKey;
   }
-
+  
   @Override
   public Map<String, String> toMap() {
     return configurationMap;

@@ -138,7 +138,7 @@ class TestSetupTrustedProxy(unittest.TestCase):
 
   @patch("ambari_server.setupTrustedProxy.perform_changes_via_rest_api")
   @patch("ambari_server.setupTrustedProxy.get_YN_input")
-  @patch("ambari_server.setupTrustedProxy.get_validated_string_input")
+  @patch("ambari_server.setupTrustedProxy.get_validated_string_input")  
   @patch("ambari_server.setupTrustedProxy.get_ambari_properties")
   @patch("ambari_server.setupTrustedProxy.get_silent")
   @patch("ambari_server.setupTrustedProxy.is_server_runing")
@@ -158,7 +158,7 @@ class TestSetupTrustedProxy(unittest.TestCase):
     hosts1 = 'knox_hosts'
     users1 = 'knox_users'
     groups1 = 'knox_groups'
-
+    
     user_name2 = 'admin'
     hosts2 = 'admin_hosts'
     users2 = 'admin_users'

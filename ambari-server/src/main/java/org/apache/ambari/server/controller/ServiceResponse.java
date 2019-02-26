@@ -283,7 +283,7 @@ public class ServiceResponse {
   public boolean isKerberosEnabled() {
     return kerberosEnabled;
   }
-
+  
   /**
    * Indicates if this service supports LDAP integration.
    */

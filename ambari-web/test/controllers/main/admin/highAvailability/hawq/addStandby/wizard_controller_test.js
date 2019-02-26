@@ -29,7 +29,7 @@ describe('App.AddHawqStandbyWizardController', function () {
   beforeEach(function () {
     controller = getController();
   });
-
+  
   describe('#loadMap', function() {
     describe('#step1', function() {
       var step;
@@ -40,7 +40,7 @@ describe('App.AddHawqStandbyWizardController', function () {
       afterEach(function() {
         controller.load.restore();
       });
-
+      
       it('load should be called', function() {
         step[0].callback.apply(controller);
         expect(controller.load.calledWith('cluster')).to.be.true;
@@ -62,7 +62,7 @@ describe('App.AddHawqStandbyWizardController', function () {
         controller.loadMasterComponentHosts.restore();
         controller.loadConfirmedHosts.restore();
       });
-
+    
       it('loadHawqHosts should be called', function() {
         expect(controller.loadHawqHosts.calledOnce).to.be.true;
       });
@@ -92,7 +92,7 @@ describe('App.AddHawqStandbyWizardController', function () {
         controller.loadRequestIds.restore();
         controller.loadConfigs.restore();
       });
-
+    
       it('loadTasksStatuses should be called', function() {
         expect(controller.loadTasksStatuses.calledOnce).to.be.true;
       });
@@ -107,7 +107,7 @@ describe('App.AddHawqStandbyWizardController', function () {
       });
     });
   });
-
+  
   describe('#setCurrentStep', function() {
     beforeEach(function() {
       sinon.stub(App.clusterStatus, 'setClusterStatus');
@@ -115,13 +115,13 @@ describe('App.AddHawqStandbyWizardController', function () {
     afterEach(function() {
       App.clusterStatus.setClusterStatus.restore();
     });
-
+    
     it('App.clusterStatus.setClusterStatus should be called', function() {
       controller.setCurrentStep();
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#saveHawqHosts', function() {
     beforeEach(function() {
       sinon.stub(controller, 'setDBProperty');
@@ -130,16 +130,16 @@ describe('App.AddHawqStandbyWizardController', function () {
     afterEach(function() {
       controller.setDBProperty.restore();
     });
-
+    
     it('hosts should be set to DB', function() {
       expect(controller.setDBProperty.calledWith('hawqHosts', ['host1'])).to.be.true;
     });
-
+  
     it('hosts should be set to content', function() {
       expect(controller.get('content.hawqHosts')).to.be.eql(['host1']);
     });
   });
-
+  
   describe('#loadHawqHosts', function() {
     beforeEach(function() {
       sinon.stub(controller, 'getDBProperty').returns(['host1']);
@@ -148,12 +148,12 @@ describe('App.AddHawqStandbyWizardController', function () {
     afterEach(function() {
       controller.getDBProperty.restore();
     });
-
+    
     it('hosts should be set to content', function() {
       expect(controller.get('content.hawqHosts')).to.be.eql(['host1']);
     });
   });
-
+  
   describe('#saveConfigs', function() {
     beforeEach(function() {
       sinon.stub(controller, 'setDBProperty');
@@ -162,16 +162,16 @@ describe('App.AddHawqStandbyWizardController', function () {
     afterEach(function() {
       controller.setDBProperty.restore();
     });
-
+    
     it('configs should be set to DB', function() {
       expect(controller.setDBProperty.calledWith('configs', [{}])).to.be.true;
     });
-
+    
     it('configs should be set to content', function() {
       expect(controller.get('content.configs')).to.be.eql([{}]);
     });
   });
-
+  
   describe('#loadConfigs', function() {
     beforeEach(function() {
       sinon.stub(controller, 'getDBProperty').returns([{}]);
@@ -180,12 +180,12 @@ describe('App.AddHawqStandbyWizardController', function () {
     afterEach(function() {
       controller.getDBProperty.restore();
     });
-
+    
     it('configs should be set to content', function() {
       expect(controller.get('content.configs')).to.be.eql([{}]);
     });
   });
-
+  
   describe('#clearAllSteps', function() {
     beforeEach(function() {
       sinon.stub(controller, 'clearInstallOptions');
@@ -196,16 +196,16 @@ describe('App.AddHawqStandbyWizardController', function () {
       controller.clearInstallOptions.restore();
       controller.getCluster.restore();
     });
-
+    
     it('clearInstallOptions should be called', function() {
       expect(controller.clearInstallOptions.calledOnce).to.be.true;
     });
-
+  
     it('cluster should be set', function() {
       expect(controller.get('content.cluster')).to.be.eql({clusterName: 'c1'});
     });
   });
-
+  
   describe('#finish', function() {
     var mock = {updateAll: sinon.spy()};
     beforeEach(function() {
@@ -217,18 +217,18 @@ describe('App.AddHawqStandbyWizardController', function () {
       controller.resetDbNamespace.restore();
       App.router.get.restore();
     });
-
+    
     it('resetDbNamespace should be called', function() {
       expect(controller.resetDbNamespace.calledOnce).to.be.true;
     });
-
+  
     it('updateAll should be called', function() {
       expect(mock.updateAll.called).to.be.true;
     });
-
+  
     it('isFinished should be true', function() {
       expect(controller.get('isFinished')).to.be.true;
     });
   });
-
+  
 });

@@ -27,7 +27,7 @@ describe('App.ManageJournalNodeWizardStep5View', function () {
   beforeEach(function() {
     view = App.ManageJournalNodeWizardStep5View.create();
   });
-
+  
   describe('#step5BodyText', function() {
     beforeEach(function() {
       sinon.stub(App.HDFSService, 'find').returns(Em.Object.create({
@@ -41,7 +41,7 @@ describe('App.ManageJournalNodeWizardStep5View', function () {
     afterEach(function() {
       App.HDFSService.find.restore();
     });
-
+    
     it('should return step5 text', function() {
       view.set('controller', {
         content: {

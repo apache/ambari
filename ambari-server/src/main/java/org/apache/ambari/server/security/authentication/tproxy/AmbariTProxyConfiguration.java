@@ -48,7 +48,7 @@ public class AmbariTProxyConfiguration extends AmbariServerConfiguration {
   AmbariTProxyConfiguration(Map<String, String> configurationMap) {
     super(configurationMap);
   }
-
+  
   @Override
   protected AmbariServerConfigurationCategory getCategory() {
     return AmbariServerConfigurationCategory.TPROXY_CONFIGURATION;

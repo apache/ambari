@@ -44,7 +44,7 @@ public class AmbariLdapConfiguration extends AmbariServerConfiguration {
   public AmbariLdapConfiguration(Map<String, String> configurationMap) {
     super(configurationMap);
   }
-
+  
   @Override
   protected AmbariServerConfigurationCategory getCategory() {
     return AmbariServerConfigurationCategory.LDAP_CONFIGURATION;

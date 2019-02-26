@@ -353,11 +353,11 @@ App.AddMetricExpressionView = Em.View.extend({
 
     return this.putContextServiceOnTop(result);
   }.property('controller.filteredMetrics', 'App.router.clusterController.isComponentsStateLoaded'),
-
+  
   getNameServiceGroups: function() {
     const hasNameNodeFederation = App.get('hasNameNodeFederation');
     const nameServiceGroups = [];
-
+  
     if (hasNameNodeFederation) {
       App.HDFSService.find('HDFS').get('masterComponentGroups').forEach(function(group) {
         nameServiceGroups.push({
@@ -369,17 +369,17 @@ App.AddMetricExpressionView = Em.View.extend({
     }
     return nameServiceGroups;
   },
-
+  
   getServicesMap: function() {
     const servicesMap = {};
     const hasNameNodeFederation = App.get('hasNameNodeFederation');
     const masterNames = App.StackServiceComponent.find().filterProperty('isMaster').mapProperty('componentName');
-
+  
     if (this.get('controller.filteredMetrics')) {
       this.get('controller.filteredMetrics').forEach(function (metric) {
         // ignore NameNode component level metrics on federated cluster
         if (hasNameNodeFederation && metric.component_name === 'NAMENODE' && metric.level === 'COMPONENT') return false;
-
+      
         var service = servicesMap[metric.service_name];
         if (!service) {
           service = {
@@ -388,7 +388,7 @@ App.AddMetricExpressionView = Em.View.extend({
           };
           servicesMap[metric.service_name] = service;
         }
-
+      
         var componentId = masterNames.contains(metric.component_name) ? metric.component_name + '_' + metric.level : metric.component_name;
         service.count++;
         if (service.components[componentId]) {

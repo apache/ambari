@@ -116,7 +116,7 @@ describe('App.WidgetMixin', function () {
 
       expect(App.WidgetLoadAggregator.add.calledOnce).to.be.true;
     });
-
+  
     it('getHostsMetrics should be called', function () {
       this.mock.returns({'key1': {
           host_component_criteria: 'criteria',
@@ -124,11 +124,11 @@ describe('App.WidgetMixin', function () {
         }});
       mixinObject.set('content.widgetType', 'HEATMAP');
       mixinObject.loadMetrics();
-
+    
       expect(mixinObject.getHostsMetrics.calledOnce).to.be.true;
       expect(mixinObject.onMetricsLoaded.calledOnce).to.be.true;
     });
-
+  
     it('getHostComponentsMetrics should be called', function () {
       this.mock.returns({'key1': {
           host_component_criteria: 'criteria',
@@ -136,7 +136,7 @@ describe('App.WidgetMixin', function () {
         }});
       mixinObject.set('content.widgetType', 'HEATMAP');
       mixinObject.loadMetrics();
-
+    
       expect(mixinObject.getHostComponentsMetrics.calledOnce).to.be.true;
       expect(mixinObject.onMetricsLoaded.calledOnce).to.be.true;
     });
@@ -304,7 +304,7 @@ describe('App.WidgetMixin', function () {
       });
     });
   });
-
+  
   describe('#getHostComponentMetricsSuccessCallback', function() {
     beforeEach(function() {
       sinon.stub(mixinObject, 'getMetricsSuccessCallback');
@@ -312,7 +312,7 @@ describe('App.WidgetMixin', function () {
     afterEach(function() {
       mixinObject.getMetricsSuccessCallback.restore();
     });
-
+    
     it('getMetricsSuccessCallback should be called', function() {
       mixinObject.getHostComponentMetricsSuccessCallback({items: [{}]});
       expect(mixinObject.getMetricsSuccessCallback.calledWith({})).to.be.true;
@@ -320,14 +320,14 @@ describe('App.WidgetMixin', function () {
   });
 
   describe("#getMetricsSuccessCallback()", function () {
-
+  
     beforeEach(function() {
       sinon.stub(mixinObject, 'parseMetricsWithAggregatorFunc').returns(1);
     });
     afterEach(function() {
       mixinObject.parseMetricsWithAggregatorFunc.restore();
     });
-
+  
     it("metric is mapped from provided path", function () {
       mixinObject.set('content.metrics', [
         {
@@ -347,7 +347,7 @@ describe('App.WidgetMixin', function () {
       });
       expect(mixinObject.get('metrics').findProperty('metric_path', 'metrics/hbase/ipc/IPC/numOpenConnections').data).to.equal(11.5);
     });
-
+  
     it("parseMetricsWithAggregatorFunc should be called", function () {
       mixinObject.set('content.metrics', [
         {
@@ -358,9 +358,9 @@ describe('App.WidgetMixin', function () {
       expect(mixinObject.parseMetricsWithAggregatorFunc.calledWith({}, 'metrics/hbase/ipc/IPC/numOpenConnections')).to.be.true;
     });
   });
-
+  
   describe('#parseMetricsWithAggregatorFunc', function() {
-
+    
     it('should return metric value', function() {
       expect(mixinObject.parseMetricsWithAggregatorFunc({path: {foo: {'._sum': 1}}}, 'path/foo/._sum')).to.equal(1);
     });
@@ -615,7 +615,7 @@ describe('App.WidgetMixin', function () {
         success: 'editNewClonedWidget'
       });
     });
-
+  
     it("Request for new widget should be sent", function () {
       mixinObject.postWidgetDefinition(false, false);
       expect(testHelpers.findAjaxRequest('name', 'widgets.wizard.add')[0]).to.be.eql({
@@ -632,7 +632,7 @@ describe('App.WidgetMixin', function () {
       });
     });
   });
-
+  
   describe('#postWidgetDefinitionSuccessCallback', function() {
     var mock = {
       saveWidgetLayout: sinon.stub().returns({done: Em.clb}),
@@ -646,7 +646,7 @@ describe('App.WidgetMixin', function () {
     afterEach(function() {
       App.router.get.restore();
     });
-
+    
     it('saveWidgetLayout should be called', function() {
       expect(mock.saveWidgetLayout.calledWith([
         Em.Object.create({
@@ -654,7 +654,7 @@ describe('App.WidgetMixin', function () {
         })
       ])).to.be.true;
     });
-
+  
     it('updateActiveLayout should be called', function() {
       expect(mock.updateActiveLayout.called).to.be.true;
     });
@@ -817,7 +817,7 @@ describe('App.WidgetMixin', function () {
     });
 
   });
-
+  
   describe('#beforeRender', function() {
     beforeEach(function() {
       sinon.stub(mixinObject, 'loadMetrics');
@@ -825,13 +825,13 @@ describe('App.WidgetMixin', function () {
     afterEach(function() {
       mixinObject.loadMetrics.restore();
     });
-
+    
     it('loadMetrics should be called', function() {
       mixinObject.beforeRender();
       expect(mixinObject.loadMetrics.calledOnce).to.be.true
 ;    });
   });
-
+  
   describe('#computeHostComponentCriteria', function() {
 
     it('should return params', function() {
@@ -841,9 +841,9 @@ describe('App.WidgetMixin', function () {
       expect(mixinObject.computeHostComponentCriteria(request)).to.be.equal('&param');
     });
   });
-
+  
   describe('#getHostComponentsMetrics', function() {
-
+   
     it('App.ajax.send should be called', function() {
       mixinObject.getHostComponentsMetrics({
         service_name: 'S1',
@@ -857,9 +857,9 @@ describe('App.WidgetMixin', function () {
       })
     });
   });
-
+  
   describe('#getHostComponentsMetricsSuccessCallback', function() {
-
+    
     it('should set metrics', function() {
       var data = {
         host_components: [
@@ -889,9 +889,9 @@ describe('App.WidgetMixin', function () {
       ]));
     });
   });
-
+  
   describe('#getHostsMetrics', function() {
-
+    
     it('App.ajax.send should be called', function() {
       mixinObject.getHostsMetrics({
         metric_paths: [{metric_path: 'key1'}, {metric_path: 'key2'}]
@@ -901,9 +901,9 @@ describe('App.WidgetMixin', function () {
       })
     });
   });
-
+  
   describe('#getHostComponentsMetricsSuccessCallback', function() {
-
+    
     it('should set metrics', function() {
       var data = {
         items: [
@@ -933,8 +933,8 @@ describe('App.WidgetMixin', function () {
       ]));
     });
   });
-
-
+  
+  
   describe('#onMetricsLoaded', function() {
     beforeEach(function() {
       sinon.stub(mixinObject, 'drawWidget');
@@ -942,18 +942,18 @@ describe('App.WidgetMixin', function () {
     afterEach(function() {
       mixinObject.drawWidget.restore();
     });
-
+    
     it('drwaWidget should be called', function() {
       mixinObject.onMetricsLoaded();
       expect(mixinObject.drawWidget.calledOnce).to.be.true;
     });
-
+  
     it('isLoaded should be true', function() {
       mixinObject.onMetricsLoaded();
       expect(mixinObject.get('isLoaded')).to.be.true;
     });
   });
-
+  
   describe('#drawWidget', function() {
     beforeEach(function() {
       sinon.stub(mixinObject, 'calculateValues');
@@ -964,18 +964,18 @@ describe('App.WidgetMixin', function () {
     afterEach(function() {
       mixinObject.calculateValues.restore();
     });
-
+    
     it('calculateValues should be called', function() {
       expect(mixinObject.calculateValues.calledOnce).to.be.true;
     });
-
+  
     it('value should be set', function() {
       expect(mixinObject.get('value')).to.equal(1);
     });
   });
-
+  
   describe('#hideWidget', function() {
-
+    
     it('hideWidget should be called', function() {
       mixinObject.hideWidget({contexts: [1, 'layout1']});
       expect(mixinObject.get('controller').hideWidget.calledWith({
@@ -986,9 +986,9 @@ describe('App.WidgetMixin', function () {
       })).to.be.true;
     });
   });
-
+  
   describe('#collectWidgetData', function() {
-
+    
     it('should return widget data', function() {
       mixinObject.set('content', Em.Object.create({
         widgetName: 'name1',
@@ -1030,7 +1030,7 @@ describe('App.WidgetMixin', function () {
       });
     });
   });
-
+  
   describe('#editNewClonedWidget', function() {
     var mock = {
       saveWidgetLayout: sinon.stub().returns({done: Em.clb}),
@@ -1044,7 +1044,7 @@ describe('App.WidgetMixin', function () {
     afterEach(function() {
       App.router.get.restore();
     });
-
+    
     it('saveWidgetLayout should be called', function() {
       expect(mock.saveWidgetLayout.calledWith([
         Em.Object.create({
@@ -1052,18 +1052,18 @@ describe('App.WidgetMixin', function () {
         })
       ])).to.be.true;
     });
-
+  
     it('getActiveWidgetLayout should be called', function() {
       expect(mock.getActiveWidgetLayout.called).to.be.true;
     });
-
+  
     it('editWidget should be called', function() {
       expect(mixinObject.get('controller').editWidget.called).to.be.true;
     });
   });
-
+  
   describe('#editWidget', function() {
-
+    
     it('controller.editWidget should be called', function() {
       mixinObject.set('content', Em.Object.create({
         scope: 'SERVICE'
@@ -1073,7 +1073,7 @@ describe('App.WidgetMixin', function () {
         scope: 'SERVICE'
       }))).to.be.true;
     });
-
+  
     it('App.ModalPopup.show should be called', function() {
       mixinObject.set('content', Em.Object.create({
         scope: 'CLUSTER'
@@ -1086,7 +1086,7 @@ describe('App.WidgetMixin', function () {
 
 describe('App.WidgetPreviewMixin', function() {
   var widgetPreview;
-
+  
   beforeEach(function() {
     widgetPreview = Em.Object.create({
       drawWidget: sinon.spy(),
@@ -1095,9 +1095,9 @@ describe('App.WidgetPreviewMixin', function() {
       content: Em.Object.create()
     }, App.WidgetPreviewMixin);
   });
-
+  
   describe('#loadMetrics', function() {
-
+   
     it('widget properties should be set', function() {
       widgetPreview.get('controller').setProperties({
         widgetValues: [1],
@@ -1115,9 +1115,9 @@ describe('App.WidgetPreviewMixin', function() {
       }));
     });
   });
-
+  
   describe('#onMetricsLoaded', function() {
-
+    
     it('drawWidget should be called', function() {
       widgetPreview.onMetricsLoaded();
       expect(widgetPreview.drawWidget.calledOnce).to.be.true;

@@ -768,7 +768,7 @@ describe('App.AddServiceController', function() {
       ])).to.be.true;
     });
   });
-
+  
   describe('#clearAllSteps', function() {
     beforeEach(function() {
       sinon.stub(addServiceController, 'clearInstallOptions');
@@ -778,14 +778,14 @@ describe('App.AddServiceController', function() {
       addServiceController.clearInstallOptions.restore();
       addServiceController.getCluster.restore();
     });
-
+    
     it('clearInstallOptions should be called', function() {
       addServiceController.clearAllSteps();
       expect(addServiceController.clearInstallOptions.calledOnce).to.be.true;
       expect(addServiceController.get('content.cluster')).to.be.eql({});
     });
   });
-
+  
   describe('#finish', function() {
     beforeEach(function() {
       sinon.stub(addServiceController, 'clearAllSteps');
@@ -800,7 +800,7 @@ describe('App.AddServiceController', function() {
       addServiceController.clearServiceConfigProperties.restore();
       addServiceController.resetDbNamespace.restore();
     });
-
+    
     it('clearAllSteps should be called', function() {
       expect(addServiceController.clearAllSteps.calledOnce).to.be.true;
     });
@@ -814,7 +814,7 @@ describe('App.AddServiceController', function() {
       expect(addServiceController.resetDbNamespace.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#installServices', function() {
     beforeEach(function() {
       sinon.stub(addServiceController, 'installAdditionalClients').returns({
@@ -827,7 +827,7 @@ describe('App.AddServiceController', function() {
       addServiceController.installAdditionalClients.restore();
       addServiceController.installSelectedServices.restore();
     });
-
+    
     it('installAdditionalClients should be called', function() {
       expect(addServiceController.installAdditionalClients.calledOnce).to.be.true;
     });
@@ -838,7 +838,7 @@ describe('App.AddServiceController', function() {
       expect(addServiceController.get('content.cluster.oldRequestsId')).to.be.eql([]);
     });
   });
-
+  
   describe('#installSelectedServices', function() {
     beforeEach(function() {
       sinon.stub(addServiceController, 'getServicesBySelectedSlaves').returns([]);
@@ -850,21 +850,21 @@ describe('App.AddServiceController', function() {
       addServiceController.generateDataForInstallServices.restore();
       addServiceController.installServicesRequest.restore();
     });
-
+    
     it('installServicesRequest should be called', function() {
       addServiceController.installSelectedServices(Em.K);
       expect(addServiceController.installServicesRequest.calledWith('common.services.update', [])).to.be.true;
     });
   });
-
+  
   describe('#installServicesRequest', function() {
-
+   
     it('request should be made', function() {
       addServiceController.installServicesRequest('wizard.step3.host_info');
       expect(testHelpers.findAjaxRequest('name', 'wizard.step3.host_info')).to.exist;
     });
   });
-
+  
   describe('#getServicesBySelectedSlaves', function() {
     beforeEach(function() {
       sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create({
@@ -875,7 +875,7 @@ describe('App.AddServiceController', function() {
     afterEach(function() {
       App.StackServiceComponent.find.restore();
     });
-
+    
     it('should return selected services list', function() {
       addServiceController.set('content.slaveComponentHosts', [
         {
@@ -886,14 +886,14 @@ describe('App.AddServiceController', function() {
       expect(addServiceController.getServicesBySelectedSlaves()).to.be.eql(['S1']);
     });
   });
-
+  
   describe('#installAdditionalClients', function() {
     var mock = {
       addRequest: sinon.spy(),
       start: sinon.spy(),
       queue: [{}]
     };
-
+    
     it('addRequest should be called', function() {
       addServiceController.set('content.additionalClients', [
         {
@@ -917,7 +917,7 @@ describe('App.AddServiceController', function() {
       expect(mock.start.called).to.be.true;
     });
   });
-
+  
   describe('#installClientSuccess', function() {
     it('deferred should be resolved', function() {
       var params = {
@@ -931,7 +931,7 @@ describe('App.AddServiceController', function() {
       expect(params.deferred.resolve.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#installClientError', function() {
     it('deferred should be resolved', function() {
       var params = {

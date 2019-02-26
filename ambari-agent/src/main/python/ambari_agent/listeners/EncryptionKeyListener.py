@@ -39,3 +39,5 @@ class EncryptionKeyListener(EventListener):
 
   def get_handled_path(self):
     return Constants.ENCRYPTION_KEY_TOPIC
+
+

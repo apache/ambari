@@ -166,7 +166,7 @@ public enum AmbariServerConfigurationKey {
     LOG.warn("Invalid Ambari server configuration key: {}:{}", categoryName, keyName);
     return null;
   }
-
+  
   public static Set<String> findPasswordConfigurations() {
       return Stream.of(AmbariServerConfigurationKey.values()).filter(k -> PASSWORD == k.getConfigurationPropertyType()).map(f -> f.propertyName).collect(Collectors.toSet());
   }

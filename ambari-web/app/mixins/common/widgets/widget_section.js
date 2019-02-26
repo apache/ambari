@@ -19,16 +19,16 @@
 var App = require('app');
 
 App.WidgetSectionMixin = Ember.Mixin.create({
-
+  
   /**
    *  @Type {App.WidgetLayout}
    */
   activeWidgetLayout: {},
-
+  
   activeNSWidgetLayouts: [],
-
+  
   selectedNSWidgetLayout: {},
-
+  
   /**
    * UI default layout name
    */
@@ -169,7 +169,7 @@ App.WidgetSectionMixin = Ember.Mixin.create({
       this.createLayouts(data);
     }
   },
-
+  
   /**
    *
    * @param widget
@@ -235,7 +235,7 @@ App.WidgetSectionMixin = Ember.Mixin.create({
       });
     }
   },
-
+  
   /**
    *
    * @param userLayoutIdData
@@ -406,7 +406,7 @@ App.WidgetSectionMixin = Ember.Mixin.create({
 
   createFederationWidgetLayouts: function (data) {
     var currentLayouts = data.items;
-
+    
     this.getDefaultWidgetLayoutByName(this.get('defaultLayoutName')).done((defaultWidgetLayoutData) => {
       this.getNameNodeWidgets().done((widgets) => {
         var newLayout = defaultWidgetLayoutData.items[0].WidgetLayoutInfo;
@@ -431,7 +431,7 @@ App.WidgetSectionMixin = Ember.Mixin.create({
       });
     });
   },
-
+  
   /**
    *
    * @param currentLayouts
@@ -442,7 +442,7 @@ App.WidgetSectionMixin = Ember.Mixin.create({
   createSingleLayout: function(currentLayouts, newLayout, nonNameServiceSpecific, nameServiceToWidgetMap) {
     const userLayoutName = this.get('userLayoutName');
     const newLayoutsIds = [];
-
+  
     this.removeWidgetLayout(currentLayouts[0].WidgetLayoutInfo.id).done(() => {
       newLayout.layout_name = userLayoutName;
       newLayout.widgets = nonNameServiceSpecific;
@@ -468,7 +468,7 @@ App.WidgetSectionMixin = Ember.Mixin.create({
       });
     });
   },
-
+  
   /**
    *
    * @param currentLayouts

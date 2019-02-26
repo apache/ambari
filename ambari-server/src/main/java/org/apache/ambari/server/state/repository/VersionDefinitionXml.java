@@ -203,7 +203,7 @@ public class VersionDefinitionXml {
    * Gets the list of stack services, applying information from the version
    * definition. This will include both services which advertise a version and
    * those which do not.
-   *
+   * 
    * @param stack
    *          the stack for which to get the information
    * @return the list of {@code ManifestServiceInfo} instances for each service

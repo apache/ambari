@@ -26,11 +26,11 @@ function getView() {
 }
 
 describe('App.ReassignMasterWizardStep5View', function () {
-
+  
   beforeEach(function() {
     view = getView();
   });
-
+  
   describe('#manualCommands', function() {
     beforeEach(function() {
       sinon.stub(App.StackService, 'find').returns({
@@ -42,7 +42,7 @@ describe('App.ReassignMasterWizardStep5View', function () {
       App.StackService.find.restore();
       App.get.restore();
     });
-
+    
     it('should be empty', function() {
       view.set('controller', {
         content: {
@@ -55,7 +55,7 @@ describe('App.ReassignMasterWizardStep5View', function () {
       view.propertyDidChange('manualCommands');
       expect(view.get('manualCommands')).to.be.empty;
     });
-
+  
     it('NAMENODE component', function() {
       view.set('controller', {
         content: {
@@ -82,7 +82,7 @@ describe('App.ReassignMasterWizardStep5View', function () {
         format('dir', 'host1', 'host2', 'hdfs', 'host3', 'group1', 'dir', undefined, 'timeline-state-store.ldb')
       );
     });
-
+  
     it('APP_TIMELINE_SERVER component', function() {
       view.set('controller', {
         content: {
@@ -114,16 +114,16 @@ describe('App.ReassignMasterWizardStep5View', function () {
       );
     });
   });
-
+  
   describe('#securityNotice', function() {
-
+    
     beforeEach(function() {
       sinon.stub(App, 'get').returns(true);
     });
     afterEach(function() {
       App.get.restore();
     });
-
+    
     it('no secure configs', function() {
       view.set('controller', {
         content: {
@@ -137,7 +137,7 @@ describe('App.ReassignMasterWizardStep5View', function () {
       view.propertyDidChange('securityNotice');
       expect(view.get('securityNotice')).to.be.equal(Em.I18n.t('services.reassign.step5.body.proceedMsg'));
     });
-
+  
     it('has secure configs', function() {
       view.set('controller', {
         content: {
@@ -163,5 +163,5 @@ describe('App.ReassignMasterWizardStep5View', function () {
       );
     });
   });
-
+  
 });

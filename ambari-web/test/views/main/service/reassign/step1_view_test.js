@@ -27,11 +27,11 @@ function getView() {
 }
 
 describe('App.ReassignMasterWizardStep1View', function () {
-
+  
   beforeEach(function() {
     view = getView();
   });
-
+  
   describe('#message', function() {
     beforeEach(function() {
       sinon.stub(App.Service, 'find').returns([{serviceName: 'S1'}, {serviceName: 'HDFS'}]);
@@ -39,7 +39,7 @@ describe('App.ReassignMasterWizardStep1View', function () {
     afterEach(function() {
       App.Service.find.restore();
     });
-
+    
     it('should return message with all installed services', function() {
       view.set('controller', Em.Object.create({
         content: {
@@ -56,7 +56,7 @@ describe('App.ReassignMasterWizardStep1View', function () {
         Em.I18n.t('services.reassign.step1.message3').format(stringUtils.getFormattedStringFromArray(['S1', 'HDFS']), 'c1')
       ]);
     });
-
+  
     it('should return message with all installed services, has manual steps', function() {
       view.set('controller', Em.Object.create({
         content: {
@@ -75,7 +75,7 @@ describe('App.ReassignMasterWizardStep1View', function () {
         Em.I18n.t('services.reassign.step1.message3').format(stringUtils.getFormattedStringFromArray(['S1', 'HDFS']), 'c1')
       ]);
     });
-
+  
     it('should return message with non-HDFS services', function() {
       view.set('controller', Em.Object.create({
         content: {
@@ -97,7 +97,7 @@ describe('App.ReassignMasterWizardStep1View', function () {
         Em.I18n.t('services.reassign.step1.message3').format(stringUtils.getFormattedStringFromArray(['S1']), 'c1')
       ]);
     });
-
+  
     it('should return message with related services', function() {
       view.set('controller', Em.Object.create({
         content: {
@@ -121,7 +121,8 @@ describe('App.ReassignMasterWizardStep1View', function () {
         Em.I18n.t('services.reassign.step1.message3').format(stringUtils.getFormattedStringFromArray(['S1']), 'c1')
       ]);
     });
-
+    
   });
-
+  
 });
+

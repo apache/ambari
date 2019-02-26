@@ -22,9 +22,9 @@ require('views/common/modal_popups/manage_kdc_credentials_popup');
 
 describe('App.showManageCredentialsPopup', function () {
   var view;
-
+  
   describe('#onPrimary', function () {
-
+    
     beforeEach(function () {
       view = App.showManageCredentialsPopup();
     });
@@ -39,29 +39,29 @@ describe('App.showManageCredentialsPopup', function () {
         formView: formView
       });
       sinon.stub(view, 'hide');
-
+      
       view.onPrimary();
       expect(formView.saveKDCCredentials.called).to.be.true;
-
+  
       view.hide.restore();
     });
-
+  
     it('hide should be called', function () {
       sinon.stub(view, 'hide');
-
+    
       view.onPrimary();
       expect(view.hide.calledOnce).to.be.true;
-
+    
       view.hide.restore();
     });
   });
-
+  
   describe('#onThird', function () {
-
+    
     beforeEach(function () {
       view = App.showManageCredentialsPopup();
     });
-
+    
     it('removeKDCCredentials should be called', function () {
       var formView = {
         removeKDCCredentials: sinon.stub().returns({deferred: {
@@ -72,10 +72,10 @@ describe('App.showManageCredentialsPopup', function () {
         formView: formView
       });
       sinon.stub(view, 'hide');
-
+      
       view.onThird();
       expect(formView.removeKDCCredentials.called).to.be.true;
-
+      
       view.hide.restore();
     });
   });

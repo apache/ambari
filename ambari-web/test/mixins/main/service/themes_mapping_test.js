@@ -25,7 +25,7 @@ describe('App.ThemesMappingMixin', function () {
   beforeEach(function () {
     mixin = Em.Object.create(App.ThemesMappingMixin, {});
   });
-
+  
   describe('#loadConfigTheme', function() {
     beforeEach(function() {
       sinon.stub(App.Tab, 'find').returns([{
@@ -37,7 +37,7 @@ describe('App.ThemesMappingMixin', function () {
       App.Tab.find.restore();
       App.get.restore();
     });
-
+    
     it('App.ajax.send should be called', function() {
       mixin.loadConfigTheme('S1');
       expect(testHelpers.findAjaxRequest('name', 'configs.theme')[0].data).to.be.eql({
@@ -46,7 +46,7 @@ describe('App.ThemesMappingMixin', function () {
       });
     });
   });
-
+  
   describe('#_saveThemeToModel', function() {
     beforeEach(function() {
       sinon.stub(App.themesMapper, 'map');
@@ -54,13 +54,13 @@ describe('App.ThemesMappingMixin', function () {
     afterEach(function() {
       App.themesMapper.map.restore();
     });
-
+    
     it('App.themesMapper.map should be called', function() {
       mixin._saveThemeToModel({}, {}, {serviceName: 'S1'});
       expect(App.themesMapper.map.calledWith({}, ['S1'])).to.be.true;
     });
   });
-
+  
   describe('#loadConfigThemeForServices', function() {
     beforeEach(function() {
       sinon.stub(App, 'get').returns('stack1');
@@ -68,7 +68,7 @@ describe('App.ThemesMappingMixin', function () {
     afterEach(function() {
       App.get.restore();
     });
-
+    
     it('App.ajax.send should be called', function() {
       mixin.loadConfigThemeForServices(['S1', 'S2']);
       expect(testHelpers.findAjaxRequest('name', 'configs.theme.services')[0].data).to.be.eql({
@@ -77,7 +77,7 @@ describe('App.ThemesMappingMixin', function () {
       });
     });
   });
-
+  
   describe('#_loadConfigThemeForServicesSuccess', function() {
     beforeEach(function() {
       sinon.stub(App.themesMapper, 'map');
@@ -85,7 +85,7 @@ describe('App.ThemesMappingMixin', function () {
     afterEach(function() {
       App.themesMapper.map.restore();
     });
-
+    
     it('App.themesMapper.map should be called', function() {
       mixin._loadConfigThemeForServicesSuccess(
         {items: [{themes: [[]]}]},

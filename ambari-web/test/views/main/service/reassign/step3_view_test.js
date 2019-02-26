@@ -26,13 +26,13 @@ function getView() {
 }
 
 describe('App.ReassignMasterWizardStep3View', function () {
-
+  
   beforeEach(function() {
     view = getView();
   });
-
+  
   describe('#didInsertElement', function() {
-
+    
     it('loadStep should be called', function() {
       view.set('controller', {
         loadStep: sinon.spy()
@@ -41,14 +41,14 @@ describe('App.ReassignMasterWizardStep3View', function () {
       expect(view.get('controller').loadStep.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#jdbcSetupMessage', function() {
 
     it('should return empty', function() {
       view.propertyDidChange('jdbcSetupMessage');
       expect(view.get('jdbcSetupMessage')).to.be.empty;
     });
-
+  
     it('should return empty for OOZIE SERVER', function() {
       view.set('controller', {
         content: {
@@ -61,7 +61,7 @@ describe('App.ReassignMasterWizardStep3View', function () {
       view.propertyDidChange('jdbcSetupMessage');
       expect(view.get('jdbcSetupMessage')).to.be.empty;
     });
-
+  
     it('should return empty for OOZIE SERVER', function() {
       view.set('controller', {
         content: {
@@ -77,5 +77,5 @@ describe('App.ReassignMasterWizardStep3View', function () {
       );
     });
   });
-
+  
 });

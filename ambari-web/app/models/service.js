@@ -71,7 +71,7 @@ App.Service = DS.Model.extend({
    * @type {bool}
    */
   isInPassive: Em.computed.equal('passiveState', 'ON'),
-
+  
   /**
    * @type {bool}
    */

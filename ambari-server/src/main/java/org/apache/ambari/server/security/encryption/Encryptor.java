@@ -21,7 +21,7 @@ package org.apache.ambari.server.security.encryption;
  * Defines a generic contract on encrypting/decrypting sensitive data
  */
 public interface Encryptor<T> {
-
+  
   static final String ENCRYPTED_PROPERTY_PREFIX = "${enc=aes256_hex, value=";
   static final String ENCRYPTED_PROPERTY_SCHEME = ENCRYPTED_PROPERTY_PREFIX + "%s}";
 

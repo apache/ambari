@@ -25,7 +25,7 @@ describe('App.GroupsMappingMixin', function () {
   beforeEach(function () {
     mixin = Em.Object.create(App.GroupsMappingMixin, {});
   });
-
+  
   describe('#loadConfigGroups', function() {
     beforeEach(function() {
       sinon.stub(mixin, 'trackRequest');
@@ -33,21 +33,21 @@ describe('App.GroupsMappingMixin', function () {
     afterEach(function() {
       mixin.trackRequest.restore();
     });
-
+    
     it('configGroupsAreLoaded should be true', function() {
       mixin.loadConfigGroups([]);
       expect(mixin.get('configGroupsAreLoaded')).to.be.true;
     });
-
+  
     it('App.ajax.send should be called', function() {
       mixin.loadConfigGroups(['S1', 'S2']);
       expect(testHelpers.findAjaxRequest('name', 'configs.config_groups.load.services')[0]).to.exists;
     });
   });
-
+  
   describe('#saveConfigGroupsToModel', function() {
     var dfd = {resolve: sinon.spy()};
-
+    
     beforeEach(function() {
       sinon.stub(App.configGroupsMapper, 'map');
       mixin.saveConfigGroupsToModel({}, {}, {serviceNames: 'S1,S2', dfd: dfd});
@@ -55,15 +55,15 @@ describe('App.GroupsMappingMixin', function () {
     afterEach(function() {
       App.configGroupsMapper.map.restore();
     });
-
+    
     it('App.configGroupsMapper.map should be called', function() {
       expect(App.configGroupsMapper.map.calledWith({}, false, ['S1', 'S2'])).to.be.true;
     });
-
+  
     it('configGroupsAreLoaded should be true', function() {
       expect(mixin.get('configGroupsAreLoaded')).to.be.true;
     });
-
+  
     it('resolve should be called', function() {
       expect(dfd.resolve.called).to.be.true;
     });

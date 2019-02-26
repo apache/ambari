@@ -22,9 +22,9 @@ require('views/common/modal_popups/select_groups_popup');
 
 describe('App.showSelectGroupsPopup', function () {
   var view;
-
+  
   describe('#onSecondary', function () {
-
+  
     beforeEach(function () {
       view = App.showSelectGroupsPopup('', Em.Object.create({
         dependentConfigGroups: {
@@ -41,8 +41,8 @@ describe('App.showSelectGroupsPopup', function () {
       });
     });
   });
-
-
+  
+  
   describe('#onPrimary', function () {
     var configs = [
       {
@@ -73,11 +73,11 @@ describe('App.showSelectGroupsPopup', function () {
         configs);
       sinon.stub(view, 'applyOverridesToConfigGroups');
     });
-
+  
     afterEach(function() {
       view.applyOverridesToConfigGroups.restore();
     });
-
+    
     it('configs should be modified', function () {
       view.set('selectedGroups', {
         S1: 'g2'
@@ -88,7 +88,7 @@ describe('App.showSelectGroupsPopup', function () {
         configGroup: 'g1'
       }]));
     });
-
+  
     it('applyOverridesToConfigGroups should be called', function () {
       view.set('selectedGroups', {
         S1: 'g2'
@@ -97,7 +97,7 @@ describe('App.showSelectGroupsPopup', function () {
       expect(view.applyOverridesToConfigGroups.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#applyOverridesToConfigGroups', function () {
     var configs = [
       {
@@ -127,11 +127,11 @@ describe('App.showSelectGroupsPopup', function () {
     beforeEach(function () {
       sinon.stub(App.config, 'createOverride');
     });
-
+    
     afterEach(function() {
       App.config.createOverride.restore();
     });
-
+   
     it('App.config.createOverride should be called when no overrides', function () {
       view = App.showSelectGroupsPopup('', Em.Object.create(), dependentStepConfigs, configs);
       view.applyOverridesToConfigGroups('S1', {}, 'g2', 'g1');
@@ -147,7 +147,7 @@ describe('App.showSelectGroupsPopup', function () {
         }, {}
       )).to.be.true;
     });
-
+  
     it('should set value of override to recommended', function () {
       var override = Em.Object.create({
         group: {
@@ -161,7 +161,7 @@ describe('App.showSelectGroupsPopup', function () {
       view.applyOverridesToConfigGroups('S1', {}, 'g2', 'g1');
       expect(override.get('value')).to.be.equal('val1');
     });
-
+  
     it('App.config.createOverride should be called when no overrides for selected group', function () {
       var override = Em.Object.create({
         group: {
@@ -186,7 +186,7 @@ describe('App.showSelectGroupsPopup', function () {
         }, Em.Object.create({name: 'g1'})
       )).to.be.true;
     });
-
+  
     it('should set value of override to recommended for selected group', function () {
       var override = Em.Object.create({
         group: {

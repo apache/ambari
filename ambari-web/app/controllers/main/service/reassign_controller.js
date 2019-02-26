@@ -202,7 +202,7 @@ App.ReassignMasterController = App.WizardController.extend({
     var statuses = App.db.getReassignTasksStatuses();
     this.set('content.tasksStatuses', statuses);
   },
-
+  
   /**
    * Update hdfs-user and group with actual value from configs
    */

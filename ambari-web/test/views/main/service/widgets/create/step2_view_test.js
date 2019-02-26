@@ -133,7 +133,7 @@ describe('App.WidgetWizardStep2View', function () {
 
 describe('#App.WidgetPropertySelectView', function() {
   var view;
-
+  
   beforeEach(function() {
     view = App.WidgetPropertySelectView.create({
       property: Em.Object.create({
@@ -146,7 +146,7 @@ describe('#App.WidgetPropertySelectView', function() {
       })
     });
   });
-
+  
   describe('#didInsertElement', function() {
     beforeEach(function() {
       sinon.stub(view, 'addObserver');
@@ -158,25 +158,25 @@ describe('#App.WidgetPropertySelectView', function() {
       view.addObserver.restore();
       view.setValue.restore();
     });
-
+    
     it('should set selection', function() {
       expect(view.get('selection')).to.be.eql({
         label: 'l1',
         value: 'v1'
       });
     });
-
+  
     it('addObserver should be called', function() {
       expect(view.addObserver.calledWith('selection.value', view, 'setValue')).to.be.true;
     });
-
+  
     it('setValue should be called', function() {
       expect(view.setValue.called).to.be.true;
     });
   });
-
+ 
   describe('#setValue', function() {
-
+    
     it('should set value to 1', function() {
       view.set('selection', {
         value: 1

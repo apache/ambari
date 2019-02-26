@@ -347,7 +347,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       setResourceProperty(resource, LDAP_INTEGRATION_SUPPORTED_PROPERTY_ID, response.isLdapIntegrationSupported(), requestedIds);
       setResourceProperty(resource, LDAP_INTEGRATION_ENABLED_PROPERTY_ID, response.isLdapIntegrationEnabled(), requestedIds);
       setResourceProperty(resource, LDAP_INTEGRATION_DESIRED_PROPERTY_ID, response.isLdapIntegrationDesired(), requestedIds);
-
+      
 
       Map<String, Object> serviceSpecificProperties = getServiceSpecificProperties(
           response.getClusterName(), response.getServiceName(), requestedIds);

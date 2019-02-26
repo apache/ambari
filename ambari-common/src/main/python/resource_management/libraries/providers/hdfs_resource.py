@@ -109,11 +109,11 @@ class HdfsResourceJar:
     resource = {}
     env = Environment.get_instance()
     env_dict_key = 'hdfs_files_sudo' if main_resource.create_as_root else 'hdfs_files'
-
+    
     if main_resource.create_as_root:
       Logger.info("Will create {0} as root user".format(main_resource.resource.target))
-
-
+      
+    
     if not env_dict_key in env.config:
       env.config[env_dict_key] = []
 
@@ -139,7 +139,7 @@ class HdfsResourceJar:
 
     if not env_dict_key in env.config or not env.config[env_dict_key]:
       return
-
+    
     # Check required parameters
     if not sudo:
       main_resource.assert_parameter_is_set('user')
@@ -629,7 +629,7 @@ class HdfsResourceProvider(Provider):
     self.has_core_configs = not is_empty(getattr(resource, 'default_fs'))
     self.ignored_resources_list = HdfsResourceProvider.get_ignored_resources_list(self.resource.hdfs_resource_ignore_file)
     self.create_as_root = False
-
+    
     if not self.has_core_configs:
       self.webhdfs_enabled = False
       self.fsType = None
@@ -683,10 +683,10 @@ class HdfsResourceProvider(Provider):
     
   def action_delayed(self, action_name):
     self.assert_parameter_is_set('type')
-
+    
     if self.has_core_configs:
       path_protocol = urlparse(self.resource.target).scheme.lower()
-
+      
       self.create_as_root = path_protocol == 'file' or self.default_protocol == 'file' and not path_protocol
 
       # for protocols which are different that defaultFs webhdfs will not be able to create directories
@@ -722,7 +722,7 @@ class HdfsResourceProvider(Provider):
     HdfsResourceWebHDFS().action_execute(self)
     HdfsResourceJar().action_execute(self, sudo=False)
     HdfsResourceJar().action_execute(self, sudo=True)
-
+    
   def get_hdfs_resource_executor(self):
     if self.can_use_webhdfs and WebHDFSUtil.is_webhdfs_available(self.webhdfs_enabled, self.default_protocol):
       return HdfsResourceWebHDFS()

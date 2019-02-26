@@ -32,7 +32,7 @@ import org.apache.commons.lang.builder.ToStringBuilder;
  * support LDAP integration
  * <p>
  * The data is expected to be like
- *
+ * 
  * <pre>
  *   &lt;ldap&gt;
  *     &lt;supported&gt;true&lt;/supported&gt;

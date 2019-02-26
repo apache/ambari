@@ -112,7 +112,7 @@ public class ViewExtractorTest extends EasyMockSupport {
     }
 
     expect(archiveDir.exists()).andReturn(false);
-
+        
     expect(archiveDir.mkdir()).andReturn(true);
     expect(archiveDir.toURI()).andReturn(new URI("file:./"));
 

@@ -39,7 +39,7 @@ describe('App.ManageJournalNodeWizardStep3View', function () {
       expect(view.get('controller').pullCheckPointsStatuses.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#step3BodyText', function() {
     beforeEach(function() {
       this.mock = sinon.stub(App.HDFSService, 'find');
@@ -47,7 +47,7 @@ describe('App.ManageJournalNodeWizardStep3View', function () {
     afterEach(function() {
       this.mock.restore();
     });
-
+    
     it('1 namespace', function() {
       this.mock.returns(Em.Object.create({
         masterComponentGroups: [
@@ -77,7 +77,7 @@ describe('App.ManageJournalNodeWizardStep3View', function () {
         )
       );
     });
-
+  
     it('2 namespaces', function() {
       this.mock.returns(Em.Object.create({
         masterComponentGroups: [
@@ -115,7 +115,7 @@ describe('App.ManageJournalNodeWizardStep3View', function () {
       );
     });
   });
-
+  
   describe('#nnCheckPointText', function() {
     beforeEach(function() {
       this.mock = sinon.stub(App.HDFSService, 'find');
@@ -123,7 +123,7 @@ describe('App.ManageJournalNodeWizardStep3View', function () {
     afterEach(function() {
       App.HDFSService.find.restore();
     });
-
+    
     it('should be empty when not loaded yet', function() {
       view.set('controller', {
         isHDFSNameSpacesLoaded: false
@@ -131,7 +131,7 @@ describe('App.ManageJournalNodeWizardStep3View', function () {
       view.propertyDidChange('nnCheckPointText');
       expect(view.get('nnCheckPointText')).to.be.empty;
     });
-
+  
     it('1 namespace', function() {
       view.set('controller', {
         isHDFSNameSpacesLoaded: true,
@@ -145,7 +145,7 @@ describe('App.ManageJournalNodeWizardStep3View', function () {
         Em.I18n.t('admin.highAvailability.wizard.step4.ckCreated')
       );
     });
-
+  
     it('2 namespaces', function() {
       view.set('controller', {
         isHDFSNameSpacesLoaded: true,
@@ -160,7 +160,7 @@ describe('App.ManageJournalNodeWizardStep3View', function () {
       );
     });
   });
-
+  
   describe('#errorText', function() {
     beforeEach(function() {
       this.mock = sinon.stub(App.HDFSService, 'find');
@@ -168,7 +168,7 @@ describe('App.ManageJournalNodeWizardStep3View', function () {
     afterEach(function() {
       App.HDFSService.find.restore();
     });
-
+    
     it('should be empty when not loaded yet', function() {
       view.set('controller', {
         isHDFSNameSpacesLoaded: false
@@ -176,7 +176,7 @@ describe('App.ManageJournalNodeWizardStep3View', function () {
       view.propertyDidChange('errorText');
       expect(view.get('errorText')).to.be.empty;
     });
-
+    
     it('1 namespace', function() {
       view.set('controller', {
         isHDFSNameSpacesLoaded: true,
@@ -190,7 +190,7 @@ describe('App.ManageJournalNodeWizardStep3View', function () {
         Em.I18n.t('admin.highAvailability.wizard.step4.error.nameNode')
       );
     });
-
+    
     it('2 namespaces', function() {
       view.set('controller', {
         isHDFSNameSpacesLoaded: true,

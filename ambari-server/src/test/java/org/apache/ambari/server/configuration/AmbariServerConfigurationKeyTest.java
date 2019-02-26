@@ -58,7 +58,7 @@ public class AmbariServerConfigurationKeyTest {
 
     Assert.assertNull(AmbariServerConfigurationKey.translate(keyWithRegex.getConfigurationCategory(), "ambari.tproxy.proxyuser.not.knox.invalid"));
   }
-
+  
   @Test
   public void testFindPasswordConfigurations() throws Exception {
     final Set<String> passwordConfigurations = AmbariServerConfigurationKey.findPasswordConfigurations();

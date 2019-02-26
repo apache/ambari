@@ -158,9 +158,9 @@ describe('MainConfigHistoryController', function () {
       expect(App.StompClient.removeHandler.calledWith('/events/configs', 'history')).to.be.true;
     });
   });
-
+  
   describe('#colPropAssoc', function() {
-
+    
     it('should return associations', function() {
       expect(controller.get('colPropAssoc')[1]).to.be.equal('serviceVersion');
       expect(controller.get('colPropAssoc')[2]).to.be.equal('configGroup');
@@ -169,7 +169,7 @@ describe('MainConfigHistoryController', function () {
       expect(controller.get('colPropAssoc')[5]).to.be.equal('notes');
     });
   });
-
+  
   describe('#getSortProps', function() {
     beforeEach(function() {
       sinon.stub(App.db, 'getSortingStatuses').returns([
@@ -190,7 +190,7 @@ describe('MainConfigHistoryController', function () {
     afterEach(function() {
       App.db.getSortingStatuses.restore();
     });
-
+    
     it('should return sort properties', function() {
       controller.set('sortProps', [
         {
@@ -209,7 +209,7 @@ describe('MainConfigHistoryController', function () {
           "name": "serviceVersion",
           "type": "SORT",
           "value": "desc"
-
+      
         },
         {
           "key": "group_name.desc,service_config_version",
@@ -225,9 +225,9 @@ describe('MainConfigHistoryController', function () {
       ]);
     });
   });
-
+  
   describe('#getSearchBoxSuggestions', function() {
-
+  
     beforeEach(function() {
       App.ajax.send.restore();
       sinon.stub(App.ajax, 'send').returns({
@@ -239,7 +239,7 @@ describe('MainConfigHistoryController', function () {
         }
       });
     });
-
+    
     it('request should be sent', function() {
       controller.set('filterProps', [{
         name: 'name1',

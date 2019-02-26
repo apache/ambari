@@ -77,7 +77,7 @@ App.showSelectGroupsPopup = function (selectedServiceName, selectedConfigGroup, 
         }
       }, this);
     },
-
+    
     /**
      *
      * @param serviceName

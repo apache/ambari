@@ -26,9 +26,9 @@ describe('App.ChartServiceFlumeMetricGraph', function () {
   beforeEach(function () {
     view = App.ChartServiceFlumeMetricGraph.create();
   });
-
+  
   describe('#getDataForAjaxRequest', function() {
-
+   
     it('should return url', function() {
       view.setProperties({
         metricItems: ['metric1'],
@@ -39,15 +39,15 @@ describe('App.ChartServiceFlumeMetricGraph', function () {
         currentTimeIndex: 8,
         hostName: 'host1'
       });
-
+      
       expect(view.getDataForAjaxRequest().url).to.be.equal(
         '/api/v1/clusters/c1/hosts/host1/host_components/FLUME_HANDLER?fields=metrics/flume/flume/type1/metric1/name1[1,10,15]'
       );
     });
   });
-
+  
   describe('#getData', function() {
-
+    
     it('should extract data from json', function() {
       view.setProperties({
         metricType: 'type1',
@@ -66,7 +66,7 @@ describe('App.ChartServiceFlumeMetricGraph', function () {
           }
         }
       };
-
+  
       expect(view.getData(json)).to.be.eql([{
         name: 'C1',
         data: {data: 'data'}

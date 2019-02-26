@@ -39,9 +39,9 @@ describe('App.ManageJournalNodeWizardStep2View', function () {
       expect(view.get('controller').loadStep.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#journalNodesToAdd', function() {
-
+    
     it('should return journalNodes', function() {
       sinon.stub(App.router, 'get').returns({
         getJournalNodesToAdd: function() {
@@ -53,9 +53,9 @@ describe('App.ManageJournalNodeWizardStep2View', function () {
       App.router.get.restore();
     });
   });
-
+  
   describe('#journalNodesToDelete', function() {
-
+    
     it('should return journalNodes', function() {
       sinon.stub(App.router, 'get').returns({
         getJournalNodesToDelete: function() {

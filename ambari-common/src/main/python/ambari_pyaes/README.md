@@ -92,7 +92,7 @@ ciphertext = aes.encrypt(plaintext)
 print repr(ciphertext)
 
 
-# The cipher-block chaining mode of operation maintains state, so
+# The cipher-block chaining mode of operation maintains state, so 
 # decryption requires a new instance be created
 aes = pyaes.AESModeOfOperationCBC(key, iv = iv)
 decrypted = aes.decrypt(ciphertext)
@@ -116,7 +116,7 @@ ciphertext = aes.encrypt(plaintext)
 print repr(ciphertext)
 
 
-# The cipher-block chaining mode of operation maintains state, so
+# The cipher-block chaining mode of operation maintains state, so 
 # decryption requires a new instance be created
 aes = pyaes.AESModeOfOperationCFB(key, iv = iv, segment_size = 8)
 decrypted = aes.decrypt(ciphertext)

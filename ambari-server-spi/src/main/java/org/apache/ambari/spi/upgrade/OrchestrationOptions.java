@@ -26,17 +26,17 @@ public interface OrchestrationOptions {
 
   /**
    * Gets the count of components that may be run in parallel for groupings.
-   *
+   * 
    * @param cluster
    *          the cluster information containing topology and configurations
    * @param service
    *          the name of the service containing the component
    * @param component
    *          the name of the component
-   *
+   *          
    * @return the number of slaves that may be run in parallel.  Returning a
    *          value less than 1 results in non-parallel behavior
    */
   int getConcurrencyCount(ClusterInformation cluster, String service, String component);
-
+  
 }

@@ -22,7 +22,7 @@ require('mappers/components_state_mapper');
 describe('App.componentsStateMapper', function () {
 
   describe('#getComponentConfig', function() {
-
+    
     beforeEach(function() {
       sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create({
         isClient: true

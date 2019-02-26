@@ -26,13 +26,13 @@ function getView() {
 }
 
 describe('App.ReassignMasterWizardStep4View', function () {
-
+  
   beforeEach(function() {
     view = getView();
   });
-
+  
   describe('#noticeCompleted', function() {
-
+    
     it('should return notice for manual steps', function() {
       view.set('controller', {
         content: {
@@ -47,7 +47,7 @@ describe('App.ReassignMasterWizardStep4View', function () {
         Em.I18n.t('services.reassign.step4.status.success.withManualSteps').format('c1')
       );
     });
-
+  
     it('should return notice', function() {
       view.set('controller', {
         content: {

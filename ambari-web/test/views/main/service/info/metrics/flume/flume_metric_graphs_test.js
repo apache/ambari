@@ -27,9 +27,9 @@ describe('App.MainServiceInfoFlumeGraphsView', function () {
   beforeEach(function () {
     view = App.MainServiceInfoFlumeGraphsView.create();
   });
-
+  
   describe('#loadMetrics', function() {
-
+    
     it('App.ajax.send should be called', function() {
       view.set('viewData', {
         metricType: 'type1',
@@ -45,7 +45,7 @@ describe('App.MainServiceInfoFlumeGraphsView', function () {
       });
     });
   });
-
+  
   describe('#didInsertElement', function() {
     beforeEach(function() {
       sinon.stub(view, 'loadMetrics');
@@ -53,13 +53,13 @@ describe('App.MainServiceInfoFlumeGraphsView', function () {
     afterEach(function() {
       view.loadMetrics.restore();
     });
-
+    
     it('loadMetrics should be called', function() {
       view.didInsertElement();
       expect(view.loadMetrics.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#onLoadMetricsSuccess', function() {
     beforeEach(function() {
       sinon.stub(App.ChartServiceFlumeMetricGraph, 'extend', function(object) {
@@ -69,7 +69,7 @@ describe('App.MainServiceInfoFlumeGraphsView', function () {
     afterEach(function() {
       App.ChartServiceFlumeMetricGraph.extend.restore();
     });
-
+    
     it('should add metrics to serviceMetricGraphs', function() {
       view.set('viewData', {
         metricType: 'type1',

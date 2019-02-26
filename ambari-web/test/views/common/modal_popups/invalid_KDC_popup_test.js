@@ -25,77 +25,77 @@ describe('App.showInvalidKDCPopup', function () {
     ajaxOpt = {
         kdcCancelHandler: sinon.spy()
       };
-
+  
   describe('#onClose', function () {
-
+    
     beforeEach(function () {
       view = App.showInvalidKDCPopup(ajaxOpt);
       sinon.stub(view, 'hide');
     });
-
+    
     afterEach(function() {
       view.hide.restore();
     });
-
+  
     it('kdcCancelHandler should be called', function () {
       view.onClose();
       expect(ajaxOpt.kdcCancelHandler.calledOnce).to.be.true;
     });
-
+    
     it('hide should be called', function () {
       view.onClose();
       expect(view.hide.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#onSecondary', function () {
-
+    
     beforeEach(function () {
       view = App.showInvalidKDCPopup(ajaxOpt);
       sinon.stub(view, 'onClose');
     });
-
+    
     afterEach(function() {
       view.onClose.restore();
     });
-
+    
     it('onClose should be called', function () {
       view.onSecondary();
       expect(view.onClose.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#onSecondary', function () {
-
+    
     beforeEach(function () {
       view = App.showInvalidKDCPopup(ajaxOpt);
       sinon.stub(view, 'onClose');
     });
-
+    
     afterEach(function() {
       view.onClose.restore();
     });
-
+    
     it('onClose should be called', function () {
       view.onSecondary();
       expect(view.onClose.calledOnce).to.be.true;
     });
   });
-
+  
   describe('#onPrimary', function () {
     var mock = {
       createKerberosAdminSession: sinon.spy()
     };
-
+    
     beforeEach(function () {
       view = App.showInvalidKDCPopup(ajaxOpt);
       sinon.stub(App, 'get').returns(mock);
     });
-
+    
     afterEach(function() {
       App.get.restore();
     });
-
+    
     it('createKerberosAdminSession should be called', function () {
       view.onPrimary();
       expect(mock.createKerberosAdminSession.calledOnce).to.be.true;

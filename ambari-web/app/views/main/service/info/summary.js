@@ -51,7 +51,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
    */
   clientObj: [],
   clientsLength: 0,
-
+  
   /**
    * @type {boolean}
    */

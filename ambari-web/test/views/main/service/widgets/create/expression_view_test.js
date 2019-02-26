@@ -556,7 +556,7 @@ describe("App.InputCursorTextfieldView", function() {
 
 describe('#App.AddMetricExpressionView', function() {
   var AddMetricExpressionView;
-
+  
   beforeEach(function() {
     AddMetricExpressionView = App.AddMetricExpressionView.create({
       currentSelectedComponent: Em.Object.create(),
@@ -567,9 +567,9 @@ describe('#App.AddMetricExpressionView', function() {
       elementId: '1'
     });
   });
-
+  
   describe('#metricsSelectionObj.onChangeCallback', function() {
-
+  
     beforeEach(function() {
       AddMetricExpressionView.set('controller.filteredMetrics',  [{
         component_name: 'C1',
@@ -588,7 +588,7 @@ describe('#App.AddMetricExpressionView', function() {
       var metricsSelectionObj = AddMetricExpressionView.get('metricsSelectionObj');
       metricsSelectionObj.onChangeCallback({}, {selected: 'metric1'});
     });
-
+    
     it('selectedMetric should be set', function() {
       expect(AddMetricExpressionView.get('currentSelectedComponent.selectedMetric')).to.be.eql(Em.Object.create({
         name: 'metric1',
@@ -600,12 +600,12 @@ describe('#App.AddMetricExpressionView', function() {
         isMetric: true
       }));
     });
-
+  
     it('selectedAggregation should be set', function() {
       expect(AddMetricExpressionView.get('currentSelectedComponent.selectedAggregation')).to.be.equal('fun1');
     });
   });
-
+  
   describe('#aggregateFnSelectionObj.onChangeCallback', function() {
 
     it('selectedAggregation should be set', function() {
@@ -615,7 +615,7 @@ describe('#App.AddMetricExpressionView', function() {
       expect(AddMetricExpressionView.get('currentSelectedComponent.selectedAggregation')).to.be.equal('name1');
     });
   });
-
+  
   describe('#selectComponents', function() {
     var event = {
       context: {},
@@ -628,12 +628,12 @@ describe('#App.AddMetricExpressionView', function() {
     it('currentSelectedComponent should be set', function() {
       expect(AddMetricExpressionView.get('currentSelectedComponent')).to.be.an.object;
     });
-
+  
     it('stopPropagation should be called', function() {
       expect(event.stopPropagation.called).to.be.true;
     });
   });
-
+  
   describe('#addMetric', function() {
     var event = {
       context: Em.Object.create({
@@ -657,7 +657,7 @@ describe('#App.AddMetricExpressionView', function() {
     afterEach(function() {
       AddMetricExpressionView.cancel.restore();
     });
-
+    
     it('metric should be added', function() {
       expect(data[0]).to.be.eql(Em.Object.create({
         id: 1,
@@ -665,27 +665,27 @@ describe('#App.AddMetricExpressionView', function() {
         name: 'metric1._fun1'
       }));
     });
-
+  
     it('cancel should be called', function() {
       expect(AddMetricExpressionView.cancel.called).to.be.true;
     });
   });
-
+  
   describe('#cancel', function() {
-
+    
     it('selectedAggregation should be set', function() {
       AddMetricExpressionView.cancel();
       expect(AddMetricExpressionView.get('currentSelectedComponent.selectedAggregation')).to.be.equal(
         Em.I18n.t('dashboard.widgets.wizard.step2.aggregateFunction.scanOps')
       );
     });
-
+  
     it('selectedMetric should be null', function() {
       AddMetricExpressionView.cancel();
       expect(AddMetricExpressionView.get('currentSelectedComponent.selectedMetric')).to.be.null;
     });
   });
-
+  
   describe('#getNameServiceGroups', function() {
     beforeEach(function() {
       sinon.stub(App, 'get').returns(true);
@@ -701,7 +701,7 @@ describe('#App.AddMetricExpressionView', function() {
       App.get.restore();
       App.HDFSService.find.restore();
     });
-
+    
     it('should return service groups', function() {
       expect(AddMetricExpressionView.getNameServiceGroups()).to.be.eql([{
         tag: 'g1',
@@ -710,7 +710,7 @@ describe('#App.AddMetricExpressionView', function() {
       }]);
     });
   });
-
+  
   describe('#getServicesMap', function() {
     beforeEach(function() {
       sinon.stub(App, 'get').returns(true);
@@ -723,12 +723,12 @@ describe('#App.AddMetricExpressionView', function() {
       App.get.restore();
       App.StackServiceComponent.find.restore();
     });
-
+  
     it('should return empty when no metrics', function() {
       AddMetricExpressionView.set('controller.filteredMetrics', []);
       expect(AddMetricExpressionView.getServicesMap()).to.be.empty;
     });
-
+  
     it('should return empty when no metrics', function() {
       AddMetricExpressionView.set('controller.filteredMetrics', [
         {
@@ -780,7 +780,7 @@ describe('#App.AddMetricExpressionView', function() {
       });
     });
   });
-
+  
   describe('#componentMap', function() {
     var nameServiceGroups = [{}];
     beforeEach(function() {
@@ -832,7 +832,7 @@ describe('#App.AddMetricExpressionView', function() {
       AddMetricExpressionView.putContextServiceOnTop.restore();
       App.StackService.find.restore();
     });
-
+    
     it('should return map of components', function() {
       AddMetricExpressionView.propertyDidChange('componentMap');
       expect(AddMetricExpressionView.get('componentMap')).to.be.eql([
@@ -861,7 +861,7 @@ describe('#App.AddMetricExpressionView', function() {
       ]);
     });
   });
-
+  
   describe('#createComponentItem', function() {
     beforeEach(function() {
       sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create({
@@ -872,7 +872,7 @@ describe('#App.AddMetricExpressionView', function() {
     afterEach(function() {
       App.StackServiceComponent.find.restore();
     });
-
+    
     it('should return component', function() {
       var service = {
         "components": {
@@ -911,9 +911,9 @@ describe('#App.AddMetricExpressionView', function() {
       }));
     });
   });
-
+  
   describe('#putContextServiceOnTop', function() {
-
+    
     it('should move service to the top of array', function() {
       AddMetricExpressionView.set('controller.content', {widgetService: 'S2'});
       var serviceComponentMap = [
@@ -934,5 +934,5 @@ describe('#App.AddMetricExpressionView', function() {
       ]);
     });
   });
-
+ 
 });

@@ -360,7 +360,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       }
     });
   },
-
+  
   /**
    *
    * @param {string} groupName
@@ -684,7 +684,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     var context = Em.I18n.t('services.service.actions.run.stopLdapKnox.context');
     this.startStopLdapKnox('STOPDEMOLDAP',context);
   },
-
+  
   startStopLdapKnox: function (command, context) {
     var controller = this;
     var host = App.HostComponent.find().findProperty('componentName', 'KNOX_GATEWAY').get('hostName');

@@ -247,7 +247,7 @@ public class PartialNiceMockBinder implements Module {
       );
       return this;
     }
-
+    
     public Builder addLdapBindings() {
       configurers.add((Binder binder) -> {
         binder.bind(LdapFacade.class).toInstance(easyMockSupport.createNiceMock(LdapFacade.class));

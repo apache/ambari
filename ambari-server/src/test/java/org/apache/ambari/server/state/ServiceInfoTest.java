@@ -847,7 +847,7 @@ public class ServiceInfoTest {
     service = serviceInfoMap.get("HDFS");
     assertNull(service.getKerberosEnabledTest());
   }
-
+  
   @Test
   public void testLdapIntegrationSupport() throws Exception {
     // Implicit SSO setting
