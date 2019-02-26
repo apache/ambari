@@ -19,24 +19,24 @@ limitations under the License.
 import fnmatch
 import json
 import os
-import params
 import socket
 import time
 import traceback
-
-from resource_management.core.shell import call
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
+from resource_management.core.shell import call
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
+
+import params
 
 index_helper_script = '/usr/lib/ambari-infra-solr-client/solrIndexHelper.sh'
 
 # folder location which contains the snapshot/core folder
 index_location = default("/commandParams/solr_index_location", None)
 
-# index version (available index versions: 6.6.2 and 7.3.1, second one is used by default)
+# index version (available index versions: 6.6.2 and 7.7.0, first one is used by default)
 index_version = default("/commandParams/solr_index_version", '6.6.2')
 
 # if this flag is false, skip upgrade if the version is proper, you can force to re-run the tool with setting the flag to true

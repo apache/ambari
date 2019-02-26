@@ -54,7 +54,7 @@ RUN echo 'X11DisplayOffset 10\n' /etc/ssh/sshd_config
 RUN git config --global url."https://".insteadOf git://
 
 # Install Solr
-ENV SOLR_VERSION 7.5.0
+ENV SOLR_VERSION 7.7.0
 RUN wget --no-check-certificate -O /root/solr-$SOLR_VERSION.tgz http://public-repo-1.hortonworks.com/ARTIFACTS/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz
 RUN cd /root && tar -zxvf /root/solr-$SOLR_VERSION.tgz
 
@@ -62,7 +62,7 @@ RUN cd /root && tar -zxvf /root/solr-$SOLR_VERSION.tgz
 WORKDIR /
 RUN adduser knox
 ENV KNOX_VERSION 1.0.0
-RUN wget -q -O /knox-${KNOX_VERSION}.zip http://download.nextag.com/apache/knox/${KNOX_VERSION}/knox-${KNOX_VERSION}.zip && unzip /knox-${KNOX_VERSION}.zip && rm knox-${KNOX_VERSION}.zip && ln -nsf knox-${KNOX_VERSION} knox && chmod +x /knox/bin/*.sh && chown -R knox /knox/
+RUN wget -q -O /knox-${KNOX_VERSION}.zip http://archive.apache.org/dist/knox/${KNOX_VERSION}/knox-${KNOX_VERSION}.zip && unzip /knox-${KNOX_VERSION}.zip && rm knox-${KNOX_VERSION}.zip && ln -nsf knox-${KNOX_VERSION} knox && chmod +x /knox/bin/*.sh && chown -R knox /knox/
 
 ADD knox/keystores /knox-secrets
 RUN cd /knox-secrets && unzip test-secrets.zip
