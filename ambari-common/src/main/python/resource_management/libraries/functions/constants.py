@@ -125,3 +125,4 @@ class StackFeature:
   MULTIPLE_ENV_SH_FILES_SUPPORT = "multiple_env_sh_files_support"
   AMS_LEGACY_HADOOP_SINK = "ams_legacy_hadoop_sink"
   RANGER_ALL_ADMIN_CHANGE_DEFAULT_PASSWORD = 'ranger_all_admin_change_default_password'
+  KAFKA_ENV_INCLUDE_RANGER_SCRIPT='kafka_env_include_ranger_script'
