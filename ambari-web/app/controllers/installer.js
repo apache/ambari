@@ -848,8 +848,10 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       if (!verifyBaseUrl) {
         dfd.resolve();
       }
+      //for redhat satellite/spacewalk the os urls will be empty
+      var useRedhatSatellite = wizardStep1Controller.get('selectedStack.useRedhatSatellite');
       selectedStack.get('operatingSystems').forEach(function (os) {
-        if (os.get('isSelected') && !os.get('isEmpty')) {
+        if (os.get('isSelected') && (useRedhatSatellite || !os.get('isEmpty'))) {
           os.get('repositories').forEach(function (repo) {
             if (repo.get('showRepo')) {
               repo.setProperties({
