@@ -704,6 +704,16 @@ public interface KerberosHelper {
   Map<String, Map<String, String>> getIdentityConfigurations(List<KerberosIdentityDescriptor> identityDescriptors);
 
   /**
+   * Returns the global active identities for the named cluster.
+   * <p/>
+   * The cluster name is mandatory
+   *
+   * @param clusterName cluster name
+   * @return a Map of configuration types to property name/value pairs (as a Map)
+   */
+  Collection<KerberosIdentityDescriptor> getGlobalActiveIdentities(String clusterName) throws AmbariException;
+
+  /**
    * Returns the active identities for the named cluster.  Results are filtered by host, service,
    * and/or component; and grouped by host.
    * <p/>

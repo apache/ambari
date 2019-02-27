@@ -452,10 +452,13 @@ public abstract class KerberosServerAction extends AbstractServerAction {
         if (serviceComponentFilter != null && pruneServiceFilter()) {
           kerberosKeytabController.adjustServiceComponentFilter(clusters.getCluster(getClusterName()), true, serviceComponentFilter);
         }
-        final Collection<KerberosIdentityDescriptor> serviceIdentities = serviceComponentFilter == null ? null : kerberosKeytabController.getServiceIdentities(getClusterName(), serviceComponentFilter.keySet());
-        for (ResolvedKerberosKeytab rkk : kerberosKeytabController.getFilteredKeytabs(serviceIdentities, getHostFilter(),getIdentityFilter())) {
+        final Collection<KerberosIdentityDescriptor> identities = serviceComponentFilter == null ? null : kerberosKeytabController.getServiceIdentities(getClusterName(), serviceComponentFilter.keySet());
+        if (identities != null && getOperationType(getCommandParameters()) == OperationType.RECREATE_ALL){
+          identities.addAll(kerberosHelper.getGlobalActiveIdentities(getClusterName()));
+        }
+        for (ResolvedKerberosKeytab rkk : kerberosKeytabController.getFilteredKeytabs(identities, getHostFilter(),getIdentityFilter())) {
           for (ResolvedKerberosPrincipal principal : rkk.getPrincipals()) {
-            commandReport = processIdentity(principal, handler, kerberosConfiguration, isRelevantIdentity(serviceIdentities, principal), requestSharedDataContext);
+            commandReport = processIdentity(principal, handler, kerberosConfiguration, isRelevantIdentity(identities, principal), requestSharedDataContext);
             // If the principal processor returns a CommandReport, than it is time to stop
             // since an error condition has probably occurred, else all is assumed to be well.
             if (commandReport != null) {

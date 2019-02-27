@@ -1741,6 +1741,72 @@ public class KerberosHelperImpl implements KerberosHelper {
   }
 
   @Override
+  public Collection<KerberosIdentityDescriptor> getGlobalActiveIdentities(String clusterName) throws AmbariException {
+    Cluster cluster = clusters.getCluster(clusterName);
+    KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster, false);
+    List<KerberosIdentityDescriptor> identities = kerberosDescriptor.getIdentitiesSkipReferences();
+    Map<String, Map<String, String>> configurations = calculateConfigurations(cluster,
+        null,
+        kerberosDescriptor,
+        false,
+        false);
+
+    List<KerberosIdentityDescriptor> globalIdentities = new ArrayList<>();
+    if (!identities.isEmpty()) {
+      for (KerberosIdentityDescriptor identity : identities) {
+        KerberosPrincipalDescriptor principalDescriptor = identity.getPrincipalDescriptor();
+        String principal = null;
+
+        if (principalDescriptor != null) {
+          principal = variableReplacementHelper.replaceVariables(principalDescriptor.getValue(), configurations);
+        }
+
+        if (principal != null) {
+          KerberosKeytabDescriptor keytabDescriptor = identity.getKeytabDescriptor();
+          String keytabFile = null;
+
+          if (keytabDescriptor != null) {
+            keytabFile = variableReplacementHelper.replaceVariables(keytabDescriptor.getFile(), configurations);
+          }
+
+          KerberosPrincipalType principalType = principalDescriptor.getType();
+
+          KerberosPrincipalDescriptor resolvedPrincipalDescriptor =
+              new KerberosPrincipalDescriptor(principal,
+                  principalType,
+                  variableReplacementHelper.replaceVariables(principalDescriptor.getConfiguration(), configurations),
+                  variableReplacementHelper.replaceVariables(principalDescriptor.getLocalUsername(), configurations));
+
+          KerberosKeytabDescriptor resolvedKeytabDescriptor;
+
+          if (keytabFile == null) {
+            resolvedKeytabDescriptor = null;
+          } else {
+            resolvedKeytabDescriptor =
+                new KerberosKeytabDescriptor(
+                    keytabFile,
+                    variableReplacementHelper.replaceVariables(keytabDescriptor.getOwnerName(), configurations),
+                    variableReplacementHelper.replaceVariables(keytabDescriptor.getOwnerAccess(), configurations),
+                    variableReplacementHelper.replaceVariables(keytabDescriptor.getGroupName(), configurations),
+                    variableReplacementHelper.replaceVariables(keytabDescriptor.getGroupAccess(), configurations),
+                    variableReplacementHelper.replaceVariables(keytabDescriptor.getConfiguration(), configurations),
+                    keytabDescriptor.isCachable());
+          }
+
+          globalIdentities.add(new KerberosIdentityDescriptor(
+              identity.getName(),
+              identity.getReference(),
+              resolvedPrincipalDescriptor,
+              resolvedKeytabDescriptor,
+              identity.getWhen()));
+        }
+      }
+    }
+    return globalIdentities;
+
+  }
+
+  @Override
   public Map<String, Collection<KerberosIdentityDescriptor>> getActiveIdentities(String clusterName,
                                                                                  String hostName,
                                                                                  String serviceName,
