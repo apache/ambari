@@ -43,7 +43,7 @@ function print_help() {
      -b, --backup-enabled                    Use indexer tool with backup snapshots. (core filter won't be used)
      -g, --debug                             Enable debug mode, IndexUpgrader output will be verbose.
      -f, --force                             Force to start index upgrade, even is the version is at least 6.
-     -v, --version                           Lucene version to upgrade (default: 6.6.2, available: 6.6.2, 7.5.0)
+     -v, --version                           Lucene version to upgrade (default: 6.6.2, available: 6.6.2, 7.7.0)
 EOF
 }
 
@@ -51,7 +51,7 @@ function upgrade_core() {
   local INDEX_DIR=${1:?"usage: <index_base_dir> e.g.: /opt/ambari_infra_solr/data"}
   local FORCE_UPDATE=${2:?"usage <force_update_flag> e.g.: true"}
   local SOLR_CORE_FILTERS=${3:?"usage: <comma separated core filters> e.g.: hadoop_logs,audit_logs,history"}
-  local LUCENE_VERSION=${4:?"usage <lucene_index_version> e.g.: 7.5.0"}
+  local LUCENE_VERSION=${4:?"usage <lucene_index_version> e.g.: 7.7.0"}
   local BACKUP_MODE=${5:?"usage <backup_mode_enabled> e.g.: true"}
   local DEBUG_MODE=${6:?"usage <debug_mode> e.g.: true"}
   SOLR_CORE_FILTER_ARR=$(echo $SOLR_CORE_FILTERS | sed "s/,/ /g")
@@ -204,12 +204,12 @@ function upgrade_index() {
 
 function upgrade_index_tool() {
   # see: https://cwiki.apache.org/confluence/display/solr/IndexUpgrader+Tool
-  : ${INDEX_VERSION:?"Please set the INDEX_VERSION variable! (6.6.2 or 7.5.0)"}
+  : ${INDEX_VERSION:?"Please set the INDEX_VERSION variable! (6.6.2 or 7.7.0)"}
   PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/migrate/lucene-core-$INDEX_VERSION.jar:$DIR/migrate/lucene-backward-codecs-$INDEX_VERSION.jar" org.apache.lucene.index.IndexUpgrader ${@}
 }
 
 function check_index_tool() {
-  : ${INDEX_VERSION:?"Please set the INDEX_VERSION variable! (6.6.2 or 7.5.0)"}
+  : ${INDEX_VERSION:?"Please set the INDEX_VERSION variable! (6.6.2 or 7.7.0)"}
   PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/migrate/lucene-core-$INDEX_VERSION.jar:$DIR/migrate/lucene-backward-codecs-$INDEX_VERSION.jar" org.apache.lucene.index.CheckIndex ${@}
 }
 
