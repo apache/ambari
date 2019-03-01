@@ -78,7 +78,12 @@ else
   LOGSEARCH_GC_LOGFILE="$LOG_PATH_WITHOUT_SLASH/$LOGSEARCH_GC_LOGFILE"
 fi
 
-LOGSEARCH_GC_OPTS="-XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$LOGSEARCH_GC_LOGFILE"
+java_version=$($JVM -version 2>&1 | grep 'version' | cut -d'"' -f2 | cut -d'.' -f2)
+if [ $java_version == "8" ]; then
+  LOGSEARCH_GC_OPTS="-XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$LOGSEARCH_GC_LOGFILE"
+else
+  LOGSEARCH_GC_OPTS="-Xlog:gc*:file=$LOGSEARCH_GC_LOGFILE:time"
+fi
 
 function print_usage() {
   cat << EOF
@@ -144,7 +149,12 @@ function start() {
   LOGSEARCH_DEBUG_PORT=${LOGSEARCH_DEBUG_PORT:-"5005"}
 
   if [ "$LOGSEARCH_DEBUG" = "true" ]; then
-    LOGSEARCH_JAVA_OPTS="$LOGSEARCH_JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$LOGSEARCH_DEBUG_PORT,server=y,suspend=$LOGSEARCH_DEBUG_SUSPEND "
+    if [ $java_version == "8" ]; then
+      LOGSEARCH_DEBUG_ADDRESS=$LOGSEARCH_DEBUG_PORT
+    else
+      LOGSEARCH_DEBUG_ADDRESS="*:$LOGSEARCH_DEBUG_PORT"
+    fi
+    LOGSEARCH_JAVA_OPTS="$LOGSEARCH_JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$LOGSEARCH_DEBUG_ADDRESS,server=y,suspend=$LOGSEARCH_DEBUG_SUSPEND "
   fi
 
   if [ "$LOGSEARCH_SSL" = "true" ]; then
@@ -199,7 +209,7 @@ function start() {
 }
 
 function stop() {
-  LOGSEARCH_STOP_WAIT=3
+  LOGSEARCH_STOP_WAIT=${LOGSEARCH_STOP_WAIT:-10}
   if [ -f "$LOGSEARCH_PID_FILE" ]; then
     LOGSEARCH_PID=`cat "$LOGSEARCH_PID_FILE"`
   fi

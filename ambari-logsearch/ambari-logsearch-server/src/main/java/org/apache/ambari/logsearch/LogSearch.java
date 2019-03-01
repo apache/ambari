@@ -19,19 +19,22 @@
 package org.apache.ambari.logsearch;
 
 import org.springframework.boot.Banner;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.rest.RepositoryRestMvcAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.solr.SolrRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.system.ApplicationPidFileWriter;
+import org.springframework.boot.context.ApplicationPidFileWriter;
 
 @SpringBootApplication(
   scanBasePackages = {"org.apache.ambari.logsearch"},
   exclude = {
     RepositoryRestMvcAutoConfiguration.class,
     WebMvcAutoConfiguration.class,
-    SolrAutoConfiguration.class
+    SolrAutoConfiguration.class,
+    SolrRepositoriesAutoConfiguration.class
   }
 )
 public class LogSearch {
@@ -42,7 +45,7 @@ public class LogSearch {
     new SpringApplicationBuilder(LogSearch.class)
       .bannerMode(Banner.Mode.OFF)
       .listeners(new ApplicationPidFileWriter(pidFile))
-      .web(true)
+      .web(WebApplicationType.SERVLET)
       .run(args);
   }
 

@@ -27,9 +27,6 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.stereotype.Repository;
-import org.apache.ambari.logsearch.util.CommonUtil;
 import org.apache.ambari.logsearch.util.FileUtil;
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.ambari.logsearch.web.model.Privilege;
@@ -39,6 +36,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public class UserDao {
@@ -51,6 +51,9 @@ public class UserDao {
 
   @Inject
   private AuthPropsConfig authPropsConfig;
+
+  @Inject
+  private PasswordEncoder passwordEncoder;
 
   private ArrayList<HashMap<String, String>> userList = null;
 
@@ -136,7 +139,7 @@ public class UserDao {
       String username = user.get(USER_NAME);
       String password = user.get(PASSWORD);
       if (StringUtils.isNotBlank(password)) {
-        encPassword = CommonUtil.encryptPassword(username, password);
+        encPassword = passwordEncoder.encode(password);
         user.put(PASSWORD, "");
         user.put(ENC_PASSWORD, encPassword);
         isUpdated = true;

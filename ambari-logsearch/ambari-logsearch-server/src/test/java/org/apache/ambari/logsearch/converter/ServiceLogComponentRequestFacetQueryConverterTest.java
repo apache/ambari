@@ -18,14 +18,14 @@
  */
 package org.apache.ambari.logsearch.converter;
 
+import static org.junit.Assert.assertEquals;
+
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogComponentHostRequest;
 import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogComponentHostQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.solr.core.DefaultQueryParser;
-
-import static org.junit.Assert.assertEquals;
 
 public class ServiceLogComponentRequestFacetQueryConverterTest extends AbstractRequestConverterTest {
 
@@ -47,8 +47,8 @@ public class ServiceLogComponentRequestFacetQueryConverterTest extends AbstractR
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN
     assertEquals("?q=*%3A*&rows=0&fq=logtime%3A%5B2016-09-13T22%3A00%3A01.000Z+TO+2016-09-14T22%3A00%3A01.000Z%5D" +
-        "&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage&fq=type%3A%28logsearch_app+OR+secure_log%29" +
-        "&fq=-type%3A%28hst_agent+OR+system_message%29&fq=type%3Amycomponent&fq=level%3A%28WARN+OR+ERROR+OR+FATAL%29" +
+        "&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage&fq=type%3A%28logsearch_app+%22OR%22+secure_log%29" +
+        "&fq=-type%3A%28hst_agent+%22OR%22+system_message%29&fq=type%3Amycomponent&fq=level%3A%28WARN+%22OR%22+ERROR+%22OR%22+FATAL%29" +
         "&fq=cluster%3Acl1&facet=true&facet.mincount=1&facet.limit=-1&facet.sort=index&facet.pivot=type%2Chost%2Clevel&facet.pivot=type%2Clevel",
       query.toQueryString());
   }
@@ -61,7 +61,7 @@ public class ServiceLogComponentRequestFacetQueryConverterTest extends AbstractR
     // WHEN
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN
-    assertEquals("?q=*%3A*&rows=0&fq=logtime%3A%5B*+TO+*%5D&fq=level%3A%28WARN+OR+ERROR+OR+FATAL%29" +
+    assertEquals("?q=*%3A*&rows=0&fq=logtime%3A%5B*+TO+*%5D&fq=level%3A%28WARN+%22OR%22+ERROR+%22OR%22+FATAL%29" +
         "&facet=true&facet.mincount=1&facet.limit=-1&facet.sort=index&facet.pivot=type%2Chost%2Clevel&facet.pivot=type%2Clevel",
       query.toQueryString());
   }
