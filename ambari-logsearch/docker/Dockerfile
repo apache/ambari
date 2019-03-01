@@ -22,10 +22,11 @@ RUN yum -y install glibc-common
 ENV HOME /root
 
 #Install JAVA
-ENV JAVA_VERSION 8u131
-ENV BUILD_VERSION b11
-RUN wget --no-check-certificate --no-cookies --header "Cookie:oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/$JAVA_VERSION-$BUILD_VERSION/d54c1d3a095b4ff2b6607d096fa80163/jdk-$JAVA_VERSION-linux-x64.rpm -O jdk-8-linux-x64.rpm
-RUN rpm -ivh jdk-8-linux-x64.rpm
+ENV JAVA_VERSION 11.0.2
+ENV BUILD_VERSION 9
+
+RUN wget --no-check-certificate --no-cookies --header "Cookie:oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/${JAVA_VERSION}+${BUILD_VERSION}/f51449fcd52f4d52b93a989c5c56ed3c/jdk-${JAVA_VERSION}_linux-x64_bin.rpm -O jdk-11-linux-x64.rpm
+RUN rpm -ivh jdk-11-linux-x64.rpm
 ENV JAVA_HOME /usr/java/default/
 
 #Install Selenium server
