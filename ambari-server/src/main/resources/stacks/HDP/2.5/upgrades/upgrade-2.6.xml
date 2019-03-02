@@ -277,6 +277,7 @@
       <service name="SPARK2">
         <component>SPARK2_JOBHISTORYSERVER</component>
         <component>SPARK2_THRIFTSERVER</component>
+        <component>LIVY2_SERVER</component>
       </service>
     </group>
 
@@ -961,6 +962,15 @@
           <task xsi:type="configure" id="hdp_2_5_0_0_spark2_client_log4j"/>
         </pre-upgrade>
         <pre-downgrade/>
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+      <component name="LIVY2_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_6_0_set_server_access_control"/>
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

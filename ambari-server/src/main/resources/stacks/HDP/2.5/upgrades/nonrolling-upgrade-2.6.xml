@@ -115,6 +115,7 @@
       <service name="SPARK2">
         <component>SPARK2_JOBHISTORYSERVER</component>
         <component>SPARK2_THRIFTSERVER</component>
+        <component>LIVY2_SERVER</component>
       </service>
 
       <service name="ZEPPELIN">
@@ -698,6 +699,10 @@
       <execute-stage service="SPARK2" component="SPARK2_CLIENT" title="Apply config changes for Spark2 Client log4j">
         <task xsi:type="configure" id="hdp_2_5_0_0_spark2_client_log4j"/>
       </execute-stage>
+
+      <execute-stage service="SPARK2" component="LIVY2_SERVER" title="Set config changes for livy2 server">
+        <task xsi:type="configure" id="hdp_2_6_6_0_set_server_access_control"/>
+      </execute-stage>
     </group>
 
     <!--
@@ -969,6 +974,7 @@
       <service name="SPARK2">
         <component>SPARK2_JOBHISTORYSERVER</component>
         <component>SPARK2_THRIFTSERVER</component>
+        <component>LIVY2_SERVER</component>
       </service>
     </group>
 
@@ -1479,6 +1485,11 @@
         </upgrade>
       </component>
       <component name="SPARK2_THRIFTSERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="LIVY2_SERVER">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
