@@ -20,10 +20,8 @@ package org.apache.ambari.logsearch.web.security;
 
 import java.util.Collection;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
+import org.apache.ambari.logsearch.util.CommonUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -34,9 +32,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.google.common.annotations.VisibleForTesting;
+import javax.inject.Inject;
+import javax.inject.Named;
 
 @Named
 public class LogsearchFileAuthenticationProvider extends LogsearchAbstractAuthenticationProvider {
@@ -48,9 +46,6 @@ public class LogsearchFileAuthenticationProvider extends LogsearchAbstractAuthen
 
   @Inject
   private UserDetailsService userDetailsService;
-
-  @Inject
-  private PasswordEncoder passwordEncoder;
 
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -80,19 +75,14 @@ public class LogsearchFileAuthenticationProvider extends LogsearchAbstractAuthen
       logger.error("Password can't be null or empty.");
       throw new BadCredentialsException("Password can't be null or empty.");
     }
-    //String encPassword = passwordEncoder.encode(password);
-    if (!passwordEncoder.matches(password, user.getPassword())) {
+    String encPassword = CommonUtil.encryptPassword(username, password);
+    if (!encPassword.equals(user.getPassword())) {
       logger.error("Wrong password for user=" + username);
       throw new BadCredentialsException("Wrong password.");
     }
     
     Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
-    authentication = new UsernamePasswordAuthenticationToken(username, user.getPassword(), authorities);
+    authentication = new UsernamePasswordAuthenticationToken(username, encPassword, authorities);
     return authentication;
-  }
-
-  @VisibleForTesting
-  public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
-    this.passwordEncoder = passwordEncoder;
   }
 }
