@@ -19,7 +19,6 @@
 package org.apache.ambari.logsearch.web.filters;
 
 import java.io.IOException;
-import java.security.SecureRandom;
 
 import javax.inject.Inject;
 import javax.servlet.FilterChain;
@@ -33,6 +32,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.manager.SessionManager;
+import org.apache.ambari.logsearch.util.CommonUtil;
 import org.apache.ambari.logsearch.web.model.User;
 import org.apache.log4j.Logger;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -46,8 +46,6 @@ public class LogsearchSecurityContextFormationFilter extends GenericFilterBean {
 
   public static final String LOGSEARCH_SC_SESSION_KEY = "LOGSEARCH_SECURITY_CONTEXT";
   public static final String USER_AGENT = "User-Agent";
-
-  private static SecureRandom secureRandom = new SecureRandom();
 
   @Inject
   SessionManager sessionManager;
@@ -82,7 +80,7 @@ public class LogsearchSecurityContextFormationFilter extends GenericFilterBean {
         }
         if (msaCookie == null) {
           HttpServletResponse httpResponse = (HttpServletResponse) response;
-          msaCookie = System.currentTimeMillis() + "_" + secureRandom.nextInt(1000);
+          msaCookie = CommonUtil.genGUI();
           Cookie cookie = new Cookie("msa", msaCookie);
           // TODO: Need to revisit this
           cookie.setMaxAge(Integer.MAX_VALUE);

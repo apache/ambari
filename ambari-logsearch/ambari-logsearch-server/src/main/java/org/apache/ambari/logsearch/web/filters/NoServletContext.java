@@ -28,7 +28,6 @@ import java.util.Set;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterRegistration;
-import javax.servlet.FilterRegistration.Dynamic;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
@@ -36,6 +35,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 import javax.servlet.SessionCookieConfig;
 import javax.servlet.SessionTrackingMode;
+import javax.servlet.FilterRegistration.Dynamic;
 import javax.servlet.descriptor.JspConfigDescriptor;
 
 public class NoServletContext implements ServletContext {
@@ -73,36 +73,6 @@ public class NoServletContext implements ServletContext {
   @Override
   public String getVirtualServerName() {
     return null;
-  }
-
-  @Override
-  public int getSessionTimeout() {
-    return 0;
-  }
-
-  @Override
-  public void setSessionTimeout(int i) {
-
-  }
-
-  @Override
-  public String getRequestCharacterEncoding() {
-    return null;
-  }
-
-  @Override
-  public void setRequestCharacterEncoding(String s) {
-
-  }
-
-  @Override
-  public String getResponseCharacterEncoding() {
-    return null;
-  }
-
-  @Override
-  public void setResponseCharacterEncoding(String s) {
-
   }
 
   @Override
@@ -283,24 +253,19 @@ public class NoServletContext implements ServletContext {
   }
 
   @Override
-  public ServletRegistration.Dynamic addServlet(
+  public javax.servlet.ServletRegistration.Dynamic addServlet(
       String servletName, Class<? extends Servlet> servletClass) {
     return null;
   }
 
   @Override
-  public ServletRegistration.Dynamic addJspFile(String s, String s1) {
-    return null;
-  }
-
-  @Override
-  public ServletRegistration.Dynamic addServlet(
+  public javax.servlet.ServletRegistration.Dynamic addServlet(
       String servletName, Servlet servlet) {
     return null;
   }
 
   @Override
-  public ServletRegistration.Dynamic addServlet(
+  public javax.servlet.ServletRegistration.Dynamic addServlet(
       String servletName, String className) {
     return null;
   }
