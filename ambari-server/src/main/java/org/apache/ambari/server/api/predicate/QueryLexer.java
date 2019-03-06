@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.api.predicate;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -127,6 +129,11 @@ public class QueryLexer {
    * @throws InvalidQueryException if the query is invalid
    */
   public Token[] tokens(String exp, Collection<String> ignoreProperties) throws InvalidQueryException {
+    try {
+      exp = URLDecoder.decode(exp,  "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      throw new InvalidQueryException("Could not decode: " + exp, e);
+    }
     ScanContext ctx = new ScanContext();
     ctx.addPropertiesToIgnore(SET_IGNORE);
     ctx.addPropertiesToIgnore(ignoreProperties);
