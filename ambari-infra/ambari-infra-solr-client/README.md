@@ -472,7 +472,7 @@ If the script finished successfully and everything looks green on Ambari UI as w
 Migration for `ranger_audits` collection (cores):
 
 ```bash
-# by default, you will mirate to Lucene 6.6.2, if you want to migrate again to Solr 7 (not requred), you can use --version 7.5.0 flag
+# by default, you will migrate to Lucene 6.6.2, if you want to migrate again to Solr 7 (not requred), you can use --version 7.7.0 flag
 /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action migrate -s RANGER
 ```
 
@@ -852,7 +852,7 @@ Options:
                         location of the index backups (for ranger). required
                         only if no backup path in the ini file
   --version=INDEX_VERSION
-                        lucene index version for migration (6.6.2 or 7.5.0)
+                        lucene index version for migration (6.6.2 or 7.7.0)
   --solr-async-request-tries=SOLR_ASYNC_REQUEST_TRIES
                         number of max tries for async Solr requests (e.g.:
                         delete operation)

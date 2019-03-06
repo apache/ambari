@@ -426,7 +426,7 @@ public class ProvisionClusterRequestTest {
 
     ProvisionClusterRequest request = new ProvisionClusterRequest(properties, null);
     assertEquals("Quick links profile doesn't match expected",
-        "{\"filters\":[{\"visible\":true}],\"services\":[]}",
+        "{\"filters\":[{\"visible\":true}]}",
         request.getQuickLinksProfileJson());
   }
 
@@ -441,7 +441,7 @@ public class ProvisionClusterRequestTest {
 
     ProvisionClusterRequest request = new ProvisionClusterRequest(properties, null);
     assertEquals("Quick links profile doesn't match expected",
-        "{\"filters\":[],\"services\":[{\"name\":\"HDFS\",\"components\":[],\"filters\":[{\"visible\":true}]}]}",
+        "{\"services\":[{\"name\":\"HDFS\",\"filters\":[{\"visible\":true}]}]}",
         request.getQuickLinksProfileJson());
   }
 
@@ -460,7 +460,7 @@ public class ProvisionClusterRequestTest {
     ProvisionClusterRequest request = new ProvisionClusterRequest(properties, null);
     System.out.println(request.getQuickLinksProfileJson());
     assertEquals("Quick links profile doesn't match expected",
-        "{\"filters\":[{\"visible\":true}],\"services\":[{\"name\":\"HDFS\",\"components\":[],\"filters\":[{\"visible\":true}]}]}",
+        "{\"filters\":[{\"visible\":true}],\"services\":[{\"name\":\"HDFS\",\"filters\":[{\"visible\":true}]}]}",
         request.getQuickLinksProfileJson());
   }
 

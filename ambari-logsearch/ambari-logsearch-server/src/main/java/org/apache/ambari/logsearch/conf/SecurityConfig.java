@@ -18,24 +18,30 @@
  */
 package org.apache.ambari.logsearch.conf;
 
-import com.google.common.collect.Lists;
+import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_SESSION_ID;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.apache.ambari.logsearch.conf.global.LogLevelFilterManagerState;
 import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
-import org.apache.ambari.logsearch.conf.global.LogLevelFilterManagerState;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthFailureHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthSuccessHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchLogoutSuccessHandler;
+import org.apache.ambari.logsearch.web.filters.LogSearchConfigStateFilter;
 import org.apache.ambari.logsearch.web.filters.LogSearchLogLevelFilterManagerFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchAuditLogsStateFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchAuthenticationEntryPoint;
 import org.apache.ambari.logsearch.web.filters.LogsearchCorsFilter;
-import org.apache.ambari.logsearch.web.filters.LogSearchConfigStateFilter;
-import org.apache.ambari.logsearch.web.filters.LogsearchKRBAuthenticationFilter;
+import org.apache.ambari.logsearch.web.filters.LogsearchEventHistoryStateFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchJWTFilter;
+import org.apache.ambari.logsearch.web.filters.LogsearchKRBAuthenticationFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchSecurityContextFormationFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchServiceLogsStateFilter;
-import org.apache.ambari.logsearch.web.filters.LogsearchEventHistoryStateFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchUsernamePasswordAuthenticationFilter;
 import org.apache.ambari.logsearch.web.security.LogsearchAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
@@ -43,18 +49,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_SESSION_ID;
+import com.google.common.collect.Lists;
 
 @Configuration
 @EnableWebSecurity
@@ -169,6 +172,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     filter.setAuthenticationFailureHandler(new LogsearchAuthFailureHandler());
     filter.setAuthenticationManager(authenticationManagerBean());
     return filter;
+  }
+
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
   }
 
   @Bean

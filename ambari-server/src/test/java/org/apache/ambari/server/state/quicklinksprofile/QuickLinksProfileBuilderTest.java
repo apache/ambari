@@ -79,8 +79,13 @@ public class QuickLinksProfileBuilderTest {
   public void testBuildProfileBothGlobalAndServiceFilters() throws Exception {
     Set<Map<String, String>> globalFilters = newHashSet( filter(null, null, false) );
 
-    Map<String, Object> nameNode = component("NAMENODE",
-        newHashSet(filter("namenode_ui", null, false)));
+    Map<String, Object> nameNode = component(
+      "NAMENODE",
+      newHashSet(
+        filter("namenode_ui", null, false),
+        filter("namenode_logs", null, "http://customlink.org/namenode_logs", true)
+      )
+    );
 
     Map<String, Object> hdfs = service("HDFS",
         newHashSet(nameNode),
@@ -94,6 +99,9 @@ public class QuickLinksProfileBuilderTest {
     QuickLinksProfile profile = new QuickLinksProfileParser().parse(profileJson.getBytes());
     assertFilterExists(profile, null, null, Filter.acceptAllFilter(false));
     assertFilterExists(profile, "HDFS", "NAMENODE", Filter.linkNameFilter("namenode_ui", false));
+    assertFilterExists(profile, "HDFS", "NAMENODE", Filter.linkNameFilter("namenode_ui", false));
+    assertFilterExists(profile, "HDFS", "NAMENODE", Filter.linkNameFilter("namenode_logs",
+      "http://customlink.org/namenode_logs", true));
     assertFilterExists(profile, "HDFS", null, Filter.linkAttributeFilter("sso", true));
   }
 
@@ -208,10 +216,22 @@ public class QuickLinksProfileBuilderTest {
     throw new AssertionError("Expected service not found: " + serviceName);
   }
 
-  public static Map<String, String> filter(@Nullable String linkName, @Nullable String attributeName, boolean visible) {
-    Map<String, String> map = new HashMap<>(3);
+  public static Map<String, String> filter(@Nullable String linkName,
+                                           @Nullable String attributeName,
+                                           boolean visible) {
+    return filter(linkName, attributeName, null, visible);
+  }
+
+  public static Map<String, String> filter(@Nullable String linkName,
+                                           @Nullable String attributeName,
+                                           @Nullable String linkUrl,
+                                           boolean visible) {
+    Map<String, String> map = new HashMap<>(4);
     if (null != linkName) {
       map.put(LinkNameFilter.LINK_NAME, linkName);
+    }
+    if (null != linkUrl) {
+      map.put(LinkNameFilter.LINK_URL, linkUrl);
     }
     if (null != attributeName) {
       map.put(LinkAttributeFilter.LINK_ATTRIBUTE, attributeName);

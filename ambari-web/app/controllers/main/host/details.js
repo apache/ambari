@@ -2878,11 +2878,13 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   refreshConfigs: function (event) {
     var self = this;
-    var components = event.context;
-    if (components.get('length') > 0) {
+    var component = event.context;
+    if (!Em.isNone(component)) {
       return App.showConfirmationPopup(function () {
-        batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.allClientsOnSelectedHost').format(self.get('content.hostName')), "HOST");
-      }, Em.I18n.t('question.sure.refresh').format(self.get('content.hostName')) );
+        var message = Em.I18n.t('rollingrestart.context.ClientOnSelectedHost')
+        .format(component.get('displayName'), self.get('content.hostName'));
+        batchUtils.restartHostComponents([component], message, "HOST");
+      }, Em.I18n.t('question.sure.refresh').format(component.get('displayName'), self.get('content.hostName')));
     }
   },
 

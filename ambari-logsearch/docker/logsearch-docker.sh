@@ -109,7 +109,7 @@ AMBARI_LOCATION=$AMBARI_LOCATION
 ZOOKEEPER_VERSION=3.4.10
 ZOOKEEPER_CONNECTION_STRING=zookeeper:2181
 
-SOLR_VERSION=7.5.0
+SOLR_VERSION=7.7.0
 EOF
     echo ".env file has been created. Check it out before starting Log Search. ($sdir/.env)"
     exit

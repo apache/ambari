@@ -17,36 +17,28 @@
  */
 package org.apache.ambari.server.events.publishers;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.events.DefaultMessageEmitter;
-import org.apache.ambari.server.events.HostComponentsUpdateEvent;
-import org.apache.ambari.server.events.RequestUpdateEvent;
 import org.apache.ambari.server.events.STOMPEvent;
-import org.apache.ambari.server.events.ServiceUpdateEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
 public class STOMPUpdatePublisher {
+  private static final Logger LOG = LoggerFactory.getLogger(STOMPUpdatePublisher.class);
 
   private final EventBus agentEventBus;
   private final EventBus apiEventBus;
-
-  @Inject
-  private RequestUpdateEventPublisher requestUpdateEventPublisher;
-
-  @Inject
-  private HostComponentUpdateEventPublisher hostComponentUpdateEventPublisher;
-
-  @Inject
-  private ServiceUpdateEventPublisher serviceUpdateEventPublisher;
 
   private final ExecutorService threadPoolExecutorAgent = Executors.newSingleThreadExecutor(
       new ThreadFactoryBuilder().setNameFormat("stomp-agent-bus-%d").build());
@@ -61,6 +53,16 @@ public class STOMPUpdatePublisher {
         threadPoolExecutorAPI);
   }
 
+  private List<BufferedUpdateEventPublisher> publishers = new ArrayList<>();
+
+  public void registerPublisher(BufferedUpdateEventPublisher publisher) {
+    if (publishers.contains(publisher)) {
+      LOG.error("Publisher for type {} is already in use", publisher.getType());
+    } else {
+      publishers.add(publisher);
+    }
+  }
+
   public void publish(STOMPEvent event) {
     if (DefaultMessageEmitter.DEFAULT_AGENT_EVENT_TYPES.contains(event.getType())) {
       publishAgent(event);
@@ -73,13 +75,14 @@ public class STOMPUpdatePublisher {
   }
 
   private void publishAPI(STOMPEvent event) {
-    if (event.getType().equals(STOMPEvent.Type.REQUEST)) {
-      requestUpdateEventPublisher.publish((RequestUpdateEvent) event, apiEventBus);
-    } else if (event.getType().equals(STOMPEvent.Type.HOSTCOMPONENT)) {
-      hostComponentUpdateEventPublisher.publish((HostComponentsUpdateEvent) event, apiEventBus);
-    } else if (event.getType().equals(STOMPEvent.Type.SERVICE)) {
-      serviceUpdateEventPublisher.publish((ServiceUpdateEvent) event, apiEventBus);
-    } else {
+    boolean published = false;
+    for (BufferedUpdateEventPublisher publisher : publishers) {
+      if (publisher.getType().equals(event.getType())) {
+        publisher.publish(event, apiEventBus);
+        published = true;
+      }
+    }
+    if (!published) {
       apiEventBus.post(event);
     }
   }

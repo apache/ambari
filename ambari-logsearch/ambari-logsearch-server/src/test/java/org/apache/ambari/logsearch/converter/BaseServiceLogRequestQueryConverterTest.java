@@ -18,6 +18,8 @@
  */
 package org.apache.ambari.logsearch.converter;
 
+import static org.junit.Assert.assertEquals;
+
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogRequest;
 import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogQueryRequest;
 import org.apache.ambari.logsearch.util.SolrUtil;
@@ -26,8 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.solr.core.DefaultQueryParser;
 import org.springframework.data.solr.core.query.SimpleQuery;
-
-import static org.junit.Assert.assertEquals;
 
 public class BaseServiceLogRequestQueryConverterTest extends AbstractRequestConverterTest {
 
@@ -53,9 +53,9 @@ public class BaseServiceLogRequestQueryConverterTest extends AbstractRequestConv
     SolrQuery solrQuery = defaultQueryParser.doConstructSolrQuery(query);
     SolrUtil.removeDoubleOrTripleEscapeFromFilters(solrQuery);
     // THEN
-    assertEquals("?q=*%3A*&start=0&rows=25&fq=type%3A%28logsearch_app+OR+secure_log%29&fq=-type%3A%28hst_agent+OR+system_message%29" +
+    assertEquals("?q=*%3A*&start=0&rows=25&fq=type%3A%28logsearch_app+%22OR%22+secure_log%29&fq=-type%3A%28hst_agent+%22OR%22+system_message%29" +
         "&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage&fq=cluster%3Acl1&fq=path%3A%5C%2Fvar%5C%2Flog%5C%2Fmyfile%5C-%5C*%5C-hdfs.log" +
-        "&fq=type%3Acomponent&fq=level%3A%28FATAL+OR+ERROR+OR+WARN+OR+UNKNOWN%29&fq=host%3A%28logsearch1.com+OR+logsearch2.com%29" +
+        "&fq=type%3Acomponent&fq=level%3A%28FATAL+%22OR%22+ERROR+%22OR%22+WARN+%22OR%22+UNKNOWN%29&fq=host%3A%28logsearch1.com+%22OR%22+logsearch2.com%29" +
         "&fq=logtime%3A%5B2016-09-13T22%3A00%3A01.000Z+TO+2016-09-14T22%3A00%3A01.000Z%5D&sort=logtime+desc%2Cseq_num+desc",
       solrQuery.toQueryString());
   }

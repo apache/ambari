@@ -50,6 +50,7 @@ import org.apache.ambari.server.serveraction.kerberos.stageutils.KerberosKeytabC
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -245,8 +246,8 @@ public class AgentCommandsPublisher {
 
       try {
         Map<String, ? extends Collection<String>> serviceComponentFilter = getServiceComponentFilter(kerberosCommandParameters.getServiceComponentFilter());
-
-        Set<ResolvedKerberosKeytab> keytabsToInject = kerberosKeytabController.getFilteredKeytabs(serviceComponentFilter, kerberosCommandParameters.getHostFilter(), kerberosCommandParameters.getIdentityFilter());
+        final Collection<KerberosIdentityDescriptor> serviceIdentities = serviceComponentFilter == null ? null : kerberosKeytabController.getServiceIdentities(executionCommand.getClusterName(), serviceComponentFilter.keySet());
+        final Set<ResolvedKerberosKeytab> keytabsToInject = kerberosKeytabController.getFilteredKeytabs(serviceIdentities, kerberosCommandParameters.getHostFilter(), kerberosCommandParameters.getIdentityFilter());
         for (ResolvedKerberosKeytab resolvedKeytab : keytabsToInject) {
           for (ResolvedKerberosPrincipal resolvedPrincipal : resolvedKeytab.getPrincipals()) {
             String hostName = resolvedPrincipal.getHostName();

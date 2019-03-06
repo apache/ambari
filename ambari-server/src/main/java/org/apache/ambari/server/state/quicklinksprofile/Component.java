@@ -18,18 +18,19 @@
 
 package org.apache.ambari.server.state.quicklinksprofile;
 
+import static java.util.Collections.emptyList;
+
 import java.util.List;
 
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 
 /**
  * Class to represent component-level filter definitions
  */
-@JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Component {
   @JsonProperty("name")
@@ -58,7 +59,7 @@ public class Component {
    * @return the quicklink filters for this component
    */
   public List<Filter> getFilters() {
-    return filters;
+    return null != filters ? filters : emptyList();
   }
 
   public void setFilters(List<Filter> filters) {

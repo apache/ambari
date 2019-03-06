@@ -19,6 +19,8 @@
 package org.apache.ambari.server.state.quicklinksprofile;
 
 
+import java.util.Optional;
+
 import javax.annotation.Nonnull;
 
 import org.apache.ambari.server.state.quicklinks.Link;
@@ -35,4 +37,8 @@ public class ShowAllLinksVisibilityController implements QuickLinkVisibilityCont
     return true;
   }
 
+  @Override
+  public Optional<String> getUrlOverride(@Nonnull String service, @Nonnull Link quickLink) {
+    return Optional.empty();
+  }
 }
