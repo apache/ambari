@@ -22,10 +22,12 @@ package org.apache.ambari.server.controller.internal;
 
 import static org.apache.ambari.server.configuration.AmbariServerConfigurationCategory.LDAP_CONFIGURATION;
 import static org.apache.ambari.server.configuration.AmbariServerConfigurationCategory.SSO_CONFIGURATION;
+import static org.apache.ambari.server.configuration.AmbariServerConfigurationCategory.TPROXY_CONFIGURATION;
 import static org.apache.ambari.server.configuration.AmbariServerConfigurationKey.LDAP_ENABLED;
 import static org.apache.ambari.server.configuration.AmbariServerConfigurationKey.SERVER_HOST;
 import static org.apache.ambari.server.configuration.AmbariServerConfigurationKey.SSO_ENABLED_SERVICES;
 import static org.apache.ambari.server.configuration.AmbariServerConfigurationKey.SSO_MANAGE_SERVICES;
+import static org.apache.ambari.server.configuration.AmbariServerConfigurationKey.TPROXY_AUTHENTICATION_ENABLED;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -58,13 +60,24 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
     ssoEntities.add(createEntity(SSO_CONFIGURATION.getCategoryName(), SSO_MANAGE_SERVICES.key(), "true"));
     ssoEntities.add(createEntity(SSO_CONFIGURATION.getCategoryName(), SSO_ENABLED_SERVICES.key(), "AMBARI,SERVICE1"));
 
-    List<AmbariConfigurationEntity> allEntities = new ArrayList<>(ssoEntities);
-    allEntities.add(createEntity(LDAP_CONFIGURATION.getCategoryName(), LDAP_ENABLED.key(), "true"));
-    allEntities.add(createEntity(LDAP_CONFIGURATION.getCategoryName(), SERVER_HOST.key(), "host1"));
+    List<AmbariConfigurationEntity> ldapEntities = new ArrayList<>();
+    ldapEntities.add(createEntity(LDAP_CONFIGURATION.getCategoryName(), LDAP_ENABLED.key(), "true"));
+    ldapEntities.add(createEntity(LDAP_CONFIGURATION.getCategoryName(), SERVER_HOST.key(), "host1"));
+
+    List<AmbariConfigurationEntity> tproxyEntities = new ArrayList<>();
+    tproxyEntities.add(createEntity(TPROXY_CONFIGURATION.getCategoryName(), TPROXY_AUTHENTICATION_ENABLED.key(), "true"));
+    tproxyEntities.add(createEntity(TPROXY_CONFIGURATION.getCategoryName(), "ambari.tproxy.proxyuser.knox.hosts", "host1"));
+
+    List<AmbariConfigurationEntity> allEntities = new ArrayList<>();
+    allEntities.addAll(ssoEntities);
+    allEntities.addAll(ldapEntities);
+    allEntities.addAll(tproxyEntities);
 
     AmbariConfigurationDAO ambariConfigurationDAO = createMock(AmbariConfigurationDAO.class);
     expect(ambariConfigurationDAO.findAll()).andReturn(allEntities).once();
     expect(ambariConfigurationDAO.findByCategory(SSO_CONFIGURATION.getCategoryName())).andReturn(ssoEntities).once();
+    expect(ambariConfigurationDAO.findByCategory(LDAP_CONFIGURATION.getCategoryName())).andReturn(ldapEntities).once();
+    expect(ambariConfigurationDAO.findByCategory(TPROXY_CONFIGURATION.getCategoryName())).andReturn(tproxyEntities).once();
     expect(ambariConfigurationDAO.findByCategory("invalid category")).andReturn(null).once();
 
     AmbariEventPublisher publisher = createMock(AmbariEventPublisher.class);
@@ -75,13 +88,22 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
     AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
 
     Map<String, RootServiceComponentConfiguration> allConfigurations = handler.getComponentConfigurations(null);
-    Assert.assertEquals(2, allConfigurations.size());
+    Assert.assertEquals(3, allConfigurations.size());
     Assert.assertTrue(allConfigurations.containsKey(SSO_CONFIGURATION.getCategoryName()));
     Assert.assertTrue(allConfigurations.containsKey(LDAP_CONFIGURATION.getCategoryName()));
+    Assert.assertTrue(allConfigurations.containsKey(TPROXY_CONFIGURATION.getCategoryName()));
 
     Map<String, RootServiceComponentConfiguration> ssoConfigurations = handler.getComponentConfigurations(SSO_CONFIGURATION.getCategoryName());
     Assert.assertEquals(1, ssoConfigurations.size());
     Assert.assertTrue(ssoConfigurations.containsKey(SSO_CONFIGURATION.getCategoryName()));
+
+    Map<String, RootServiceComponentConfiguration> ldapConfigurations = handler.getComponentConfigurations(LDAP_CONFIGURATION.getCategoryName());
+    Assert.assertEquals(1, ldapConfigurations.size());
+    Assert.assertTrue(ldapConfigurations.containsKey(LDAP_CONFIGURATION.getCategoryName()));
+
+    Map<String, RootServiceComponentConfiguration> tproxyConfigurations = handler.getComponentConfigurations(TPROXY_CONFIGURATION.getCategoryName());
+    Assert.assertEquals(1, tproxyConfigurations.size());
+    Assert.assertTrue(tproxyConfigurations.containsKey(TPROXY_CONFIGURATION.getCategoryName()));
 
     Map<String, RootServiceComponentConfiguration> invalidConfigurations = handler.getComponentConfigurations("invalid category");
     Assert.assertNull(invalidConfigurations);

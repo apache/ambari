@@ -16,10 +16,10 @@ package org.apache.ambari.server.ldap.domain;
 
 import static java.lang.Boolean.parseBoolean;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.configuration.LdapUsernameCollisionHandlingBehavior;
@@ -28,43 +28,33 @@ import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * This class is an immutable representation of all the LDAP related
- * configurationMap entries.
+ * This class is a representation of all the LDAP related configuration properties.
+ * <p>
+ * <strong>IMPORTANT: </strong>in case you declare any new LDAP related property
+ * please do it in the Python class
+ * <code>stacks.ambari_configuration.AmbariLDAPConfiguration</code> too.
  */
-public class AmbariLdapConfiguration {
+public class AmbariLdapConfiguration extends AmbariServerConfiguration {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AmbariLdapConfiguration.class);
-
-  private final Map<String, String> configurationMap;
-
-  private String configValue(AmbariServerConfigurationKey ambariServerConfigurationKey) {
-    final String value;
-    if (configurationMap.containsKey(ambariServerConfigurationKey.key())) {
-      value = configurationMap.get(ambariServerConfigurationKey.key());
-    } else {
-      LOGGER.debug("Ldap configuration property [{}] hasn't been set; using default value", ambariServerConfigurationKey.key());
-      value = ambariServerConfigurationKey.getDefaultValue();
-    }
-    return value;
-  }
+  private final Map<String, String> configurationMap = new HashMap<>();
 
   public void setValueFor(AmbariServerConfigurationKey ambariServerConfigurationKey, String value) {
-    if(ambariServerConfigurationKey.getConfigurationCategory() != AmbariServerConfigurationCategory.LDAP_CONFIGURATION) {
+    if (ambariServerConfigurationKey.getConfigurationCategory() != AmbariServerConfigurationCategory.LDAP_CONFIGURATION) {
       throw new IllegalArgumentException(ambariServerConfigurationKey.name() + " is not an LDAP configuration");
     }
     configurationMap.put(ambariServerConfigurationKey.key(), value);
   }
-  
+
   public AmbariLdapConfiguration() {
-    this(new HashMap<>());
+    this(null);
   }
 
-  public AmbariLdapConfiguration(Map<String, String> configuration) {
-    this.configurationMap = configuration;
+  public AmbariLdapConfiguration(Map<String, String> configurationMap) {
+    if (configurationMap != null) {
+      this.configurationMap.putAll(configurationMap);
+    }
   }
 
   public boolean ldapEnabled() {
@@ -76,7 +66,7 @@ public class AmbariLdapConfiguration {
   }
 
   public int serverPort() {
-    return Integer.valueOf(configValue(AmbariServerConfigurationKey.SERVER_PORT));
+    return Integer.parseInt(configValue(AmbariServerConfigurationKey.SERVER_PORT));
   }
 
   public String serverUrl() {
@@ -89,7 +79,7 @@ public class AmbariLdapConfiguration {
 
   public int secondaryServerPort() {
     final String secondaryServerPort = configValue(AmbariServerConfigurationKey.SECONDARY_SERVER_PORT);
-    return secondaryServerPort == null ? 0 : Integer.valueOf(secondaryServerPort);
+    return secondaryServerPort == null ? 0 : Integer.parseInt(secondaryServerPort);
   }
 
   public String secondaryServerUrl() {
@@ -209,7 +199,7 @@ public class AmbariLdapConfiguration {
   }
 
   public Map<String, String> toMap() {
-    return (configurationMap == null) ? Collections.emptyMap() : new HashMap<>(configurationMap);
+    return new HashMap<>(configurationMap);
   }
 
   @Override
@@ -297,6 +287,10 @@ public class AmbariLdapConfiguration {
       return LdapUsernameCollisionHandlingBehavior.SKIP;
     }
     return LdapUsernameCollisionHandlingBehavior.CONVERT;
+  }
+
+  private String configValue(AmbariServerConfigurationKey ambariManagesLdapConfiguration) {
+    return getValue(ambariManagesLdapConfiguration, configurationMap);
   }
 
 }
