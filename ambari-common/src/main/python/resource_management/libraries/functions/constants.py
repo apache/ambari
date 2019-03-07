@@ -126,3 +126,4 @@ class StackFeature:
   AMS_LEGACY_HADOOP_SINK = "ams_legacy_hadoop_sink"
   RANGER_ALL_ADMIN_CHANGE_DEFAULT_PASSWORD = 'ranger_all_admin_change_default_password'
   KAFKA_ENV_INCLUDE_RANGER_SCRIPT='kafka_env_include_ranger_script'
+  RANGER_SUPPORT_SECURITY_ZONE_FEATURE = 'ranger_support_security_zone_feature'
