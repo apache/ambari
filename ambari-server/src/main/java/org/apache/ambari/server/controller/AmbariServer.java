@@ -670,6 +670,7 @@ public class AmbariServer {
     ServerConnector apiConnector;
 
     HttpConfiguration http_config = new HttpConfiguration();
+    http_config.addCustomizer(new SecureRequestCustomizer());
     http_config.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
     http_config.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
     http_config.setSendServerVersion(false);
