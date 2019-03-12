@@ -22,7 +22,9 @@ import org.apache.ambari.server.security.authentication.AmbariDelegatingAuthenti
 import org.apache.ambari.server.security.authentication.AmbariLocalAuthenticationProvider;
 import org.apache.ambari.server.security.authentication.jwt.AmbariJwtAuthenticationProvider;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariAuthToLocalUserDetailsService;
+import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProvider;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosTicketValidator;
+import org.apache.ambari.server.security.authentication.kerberos.AmbariProxiedUserDetailsService;
 import org.apache.ambari.server.security.authentication.pam.AmbariPamAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
@@ -37,7 +39,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.kerberos.authentication.KerberosServiceAuthenticationProvider;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -67,15 +68,14 @@ public class ApiSecurityConfig extends WebSecurityConfigurerAdapter{
                                              AmbariLocalAuthenticationProvider ambariLocalAuthenticationProvider,
                                              AmbariLdapAuthenticationProvider ambariLdapAuthenticationProvider,
                                              AmbariInternalAuthenticationProvider ambariInternalAuthenticationProvider,
-                                             KerberosServiceAuthenticationProvider kerberosServiceAuthenticationProvider
+                                             AmbariKerberosAuthenticationProvider ambariKerberosAuthenticationProvider
   ) {
     auth.authenticationProvider(ambariJwtAuthenticationProvider)
         .authenticationProvider(ambariPamAuthenticationProvider)
         .authenticationProvider(ambariLocalAuthenticationProvider)
         .authenticationProvider(ambariLdapAuthenticationProvider)
         .authenticationProvider(ambariInternalAuthenticationProvider)
-        .authenticationProvider(kerberosServiceAuthenticationProvider);
-
+        .authenticationProvider(ambariKerberosAuthenticationProvider);
   }
 
   @Override
@@ -98,17 +98,13 @@ public class ApiSecurityConfig extends WebSecurityConfigurerAdapter{
   }
 
   @Bean
-  public KerberosServiceAuthenticationProvider kerberosServiceAuthenticationProvider(
+  public AmbariKerberosAuthenticationProvider ambariKerberosAuthenticationProvider(
       AmbariKerberosTicketValidator ambariKerberosTicketValidator,
-      AmbariAuthToLocalUserDetailsService userDetailsService) {
+      AmbariAuthToLocalUserDetailsService authToLocalUserDetailsService,
+      AmbariProxiedUserDetailsService proxiedUserDetailsService) {
 
-    KerberosServiceAuthenticationProvider kerberosServiceAuthenticationProvider =
-        new KerberosServiceAuthenticationProvider();
-
-    kerberosServiceAuthenticationProvider.setTicketValidator(ambariKerberosTicketValidator);
-    kerberosServiceAuthenticationProvider.setUserDetailsService(userDetailsService);
-
-    return kerberosServiceAuthenticationProvider;
+    return new AmbariKerberosAuthenticationProvider(authToLocalUserDetailsService,
+        proxiedUserDetailsService,
+        ambariKerberosTicketValidator);
   }
-
 }

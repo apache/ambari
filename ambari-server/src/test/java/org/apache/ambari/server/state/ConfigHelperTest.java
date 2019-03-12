@@ -1153,7 +1153,7 @@ public class ConfigHelperTest {
           final AmbariMetaInfo mockMetaInfo = createNiceMock(AmbariMetaInfo.class);
           final ClusterController clusterController = createStrictMock(ClusterController.class);
 
-          PartialNiceMockBinder.newBuilder().addAmbariMetaInfoBinding().addFactoriesInstallBinding().build().configure(binder());
+          PartialNiceMockBinder.newBuilder().addAmbariMetaInfoBinding().addLdapBindings().addFactoriesInstallBinding().build().configure(binder());
 
           bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
           bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));

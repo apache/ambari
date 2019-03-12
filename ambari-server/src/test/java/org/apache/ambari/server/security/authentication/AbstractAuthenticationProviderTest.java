@@ -29,6 +29,7 @@ import javax.persistence.EntityManager;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authorization.Users;
@@ -196,6 +197,7 @@ abstract class AbstractAuthenticationProviderTest extends EasyMockSupport {
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(HookService.class).toInstance(createMock(HookService.class));
         bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        bind(AmbariLdapConfigurationProvider.class).toInstance(createMock(AmbariLdapConfigurationProvider.class));
 
         bind(Users.class).toInstance(users);
         bind(Configuration.class).toInstance(configuration);

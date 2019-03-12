@@ -28,33 +28,80 @@ import org.apache.ambari.server.configuration.ConfigurationPropertyType;
 public class AmbariServerConfigurationUtils {
 
   /**
+   * Returns the relevant {@link AmbariServerConfigurationKey}
+   *
    * @param category     the name of the category
    * @param propertyName the name of the property
-   * @return the type of the given category/property if such category/property
+   * @return the {@link AmbariServerConfigurationKey representing the given category/property if such category/property
    * exists; {@code null} otherwise
-   * @throws IllegalStateException if there is no property found with the given name
    */
-  public static ConfigurationPropertyType getConfigurationPropertyType(String category, String propertyName) {
-    return getConfigurationPropertyType(AmbariServerConfigurationCategory.translate(category), propertyName);
+  public static AmbariServerConfigurationKey getConfigurationKey(String category, String propertyName) {
+    return getConfigurationKey(AmbariServerConfigurationCategory.translate(category), propertyName);
   }
 
   /**
+   * Returns the relevant {@link AmbariServerConfigurationKey}
+   *
+   * @param category     the {@link AmbariServerConfigurationCategory}
+   * @param propertyName the name of the property
+   * @return the {@link AmbariServerConfigurationKey representing the given category/property if such category/property
+   * exists; {@code null} otherwise
+   */
+  public static AmbariServerConfigurationKey getConfigurationKey(AmbariServerConfigurationCategory category, String propertyName) {
+    return AmbariServerConfigurationKey.translate(category, propertyName);
+  }
+
+  /**
+   * Returns the {@link ConfigurationPropertyType} for the specified Ambari Server configuration property
+   *
+   * @param category     the name of the category
+   * @param propertyName the name of the property
+   * @return the type of the given category/property if such category/property
+   * exists; {@link ConfigurationPropertyType#UNKNOWN} otherwise
+   */
+  public static ConfigurationPropertyType getConfigurationPropertyType(String category, String propertyName) {
+    return getConfigurationPropertyType(getConfigurationKey(category, propertyName));
+  }
+
+  /**
+   * Returns the {@link ConfigurationPropertyType} for the specified Ambari Server configuration property
+   *
    * @param category     the category
    * @param propertyName the name of the property
    * @return the type of the given category/property if such category/property
-   * exists; {@code null} otherwise
-   * @throws IllegalStateException if there is no property found with the given name
+   * exists; {@link ConfigurationPropertyType#UNKNOWN} otherwise
    */
   public static ConfigurationPropertyType getConfigurationPropertyType(AmbariServerConfigurationCategory category, String propertyName) {
-    return AmbariServerConfigurationKey.translate(category, propertyName).getConfigurationPropertyType();
+    return getConfigurationPropertyType(getConfigurationKey(category, propertyName));
+  }
+
+  /**
+   * Returns the {@link ConfigurationPropertyType} for the specified Ambari Server configuration property
+   *
+   * @param configurationKey a {@link AmbariServerConfigurationKey}
+   * @return the type of the given category/property if such category/property
+   * exists; {@link ConfigurationPropertyType#UNKNOWN} otherwise
+   */
+  private static ConfigurationPropertyType getConfigurationPropertyType(AmbariServerConfigurationKey configurationKey) {
+    return (configurationKey == null) ? ConfigurationPropertyType.UNKNOWN : configurationKey.getConfigurationPropertyType();
   }
 
   /**
    * @param category     the name of the category
    * @param propertyName the name of the property
    * @return the String representation of the type if such category/property
-   * exists; {@code null} otherwise * @throws IllegalStateException if
-   * there is no property found with the given name
+   * exists; {@code null} otherwise
+   */
+  public static String getConfigurationPropertyTypeName(AmbariServerConfigurationCategory category, String propertyName) {
+    final ConfigurationPropertyType configurationPropertyType = getConfigurationPropertyType(category, propertyName);
+    return configurationPropertyType == null ? null : configurationPropertyType.name();
+  }
+
+  /**
+   * @param category     the name of the category
+   * @param propertyName the name of the property
+   * @return the String representation of the type if such category/property
+   * exists; {@code null} otherwise
    */
   public static String getConfigurationPropertyTypeName(String category, String propertyName) {
     final ConfigurationPropertyType configurationPropertyType = getConfigurationPropertyType(category, propertyName);
@@ -62,18 +109,37 @@ public class AmbariServerConfigurationUtils {
   }
 
   /**
-   * Indicates whether the given property's type is
-   * <p>
-   * {@link ConfigurationPropertyType#PASSWORD}
+   * Indicates whether the given property's type is a {@link ConfigurationPropertyType#PASSWORD}
    *
    * @param category     the name of the category
    * @param propertyName the name of the property
    * @return {@code true} in case the given property's type is
    * {@link ConfigurationPropertyType#PASSWORD}; {@code false} otherwise
-   * @throws IllegalStateException if there is no property found with the given name
    */
   public static boolean isPassword(String category, String propertyName) {
-    return ConfigurationPropertyType.PASSWORD.equals(getConfigurationPropertyType(category, propertyName));
+    return isPassword(getConfigurationKey(category, propertyName));
   }
 
+  /**
+   * Indicates whether the given property's type is a {@link ConfigurationPropertyType#PASSWORD}
+   *
+   * @param category     the name of the category
+   * @param propertyName the name of the property
+   * @return {@code true} in case the given property's type is
+   * {@link ConfigurationPropertyType#PASSWORD}; {@code false} otherwise
+   */
+  public static boolean isPassword(AmbariServerConfigurationCategory category, String propertyName) {
+    return isPassword(getConfigurationKey(category, propertyName));
+  }
+
+  /**
+   * Indicates whether the given property's type is a {@link ConfigurationPropertyType#PASSWORD}
+   *
+   * @param configurationKey the Ambari Server configiration key
+   * @return {@code true} in case the given property's type is
+   * {@link ConfigurationPropertyType#PASSWORD}; {@code false} otherwise
+   */
+  public static boolean isPassword(AmbariServerConfigurationKey configurationKey) {
+    return ConfigurationPropertyType.PASSWORD.equals(getConfigurationPropertyType(configurationKey));
+  }
 }

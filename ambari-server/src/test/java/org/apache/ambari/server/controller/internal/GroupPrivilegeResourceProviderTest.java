@@ -38,6 +38,7 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
@@ -349,6 +350,7 @@ public class GroupPrivilegeResourceProviderTest extends EasyMockSupport{
                                                        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
                                                        bind(HookService.class).toInstance(createMock(HookService.class));
                                                        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+                                                       bind(AmbariLdapConfigurationProvider.class).toInstance(createMock(AmbariLdapConfigurationProvider.class));
 
                                                        bind(GroupDAO.class).toInstance(groupDAO);
                                                        bind(ClusterDAO.class).toInstance(clusterDAO);

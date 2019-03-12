@@ -46,7 +46,7 @@ import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
-import org.apache.ambari.server.security.authentication.AmbariUserDetails;
+import org.apache.ambari.server.security.authentication.AmbariUserDetailsImpl;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -170,7 +170,7 @@ public class AuthorizationHelperTest  extends EasyMockSupport {
     userEntity.setUserId(1);
     userEntity.setPrincipal(principalEntity);
     User user = new User(userEntity);
-    Authentication auth = new AmbariUserAuthentication(null, new AmbariUserDetails(user, null, null));
+    Authentication auth = new AmbariUserAuthentication(null, new AmbariUserDetailsImpl(user, null, null));
     SecurityContextHolder.getContext().setAuthentication(auth);
 
     userId = AuthorizationHelper.getAuthenticatedId();

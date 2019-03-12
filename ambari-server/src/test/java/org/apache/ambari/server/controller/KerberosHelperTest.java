@@ -155,6 +155,7 @@ import org.springframework.security.crypto.password.StandardPasswordEncoder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 
 @SuppressWarnings("unchecked")
@@ -239,6 +240,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         PartialNiceMockBinder.newBuilder().addActionDBAccessorConfigsBindings().addFactoriesInstallBinding()
             .build().configure(binder());
 
+        bind(PersistService.class).toInstance(createNiceMock(PersistService.class));
         bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
         bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
         bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);

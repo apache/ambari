@@ -76,6 +76,7 @@ public class AmbariAuthenticationEventHandlerImpl implements AmbariAuthenticatio
       AuditEvent loginSucceededAuditEvent = LoginAuditEvent.builder()
           .withRemoteIp(RequestUtils.getRemoteAddress(servletRequest))
           .withUserName(username)
+          .withProxyUserName(AuthorizationHelper.getProxyUserName(result))
           .withTimestamp(System.currentTimeMillis())
           .withRoles(permissionHelper.getPermissionLabels(result))
           .build();
@@ -144,6 +145,7 @@ public class AmbariAuthenticationEventHandlerImpl implements AmbariAuthenticatio
           .withReasonOfFailure(message)
           .withConsecutiveFailures(consecutiveFailures)
           .withUserName(username)
+          .withProxyUserName(null)
           .build();
       auditLogger.log(loginFailedAuditEvent);
     }
@@ -160,6 +162,7 @@ public class AmbariAuthenticationEventHandlerImpl implements AmbariAuthenticatio
           .withTimestamp(System.currentTimeMillis())
           .withReasonOfFailure("Authentication required")
           .withUserName(null)
+          .withProxyUserName(null)
           .build();
       auditLogger.log(loginFailedAuditEvent);
     }

@@ -24,6 +24,7 @@ import org.apache.ambari.server.security.authentication.AmbariLocalAuthenticatio
 import org.apache.ambari.server.security.authentication.jwt.AmbariJwtAuthenticationProvider;
 import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationPropertiesProvider;
 import org.apache.ambari.server.security.authentication.pam.AmbariPamAuthenticationProvider;
+import org.apache.ambari.server.security.authentication.tproxy.AmbariTProxyConfigurationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariUserAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
@@ -116,6 +117,11 @@ public class GuiceBeansConfig {
   @Bean
   public AgentsRegistrationQueue agentsRegistrationQueue() {
     return new AgentsRegistrationQueue(injector);
+  }
+
+  @Bean
+  public AmbariTProxyConfigurationProvider ambariTProxyConfigurationProvider() {
+    return injector.getInstance(AmbariTProxyConfigurationProvider.class);
   }
 
 }

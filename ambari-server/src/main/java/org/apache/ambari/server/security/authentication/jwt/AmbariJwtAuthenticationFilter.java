@@ -127,7 +127,7 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
   public boolean shouldApply(HttpServletRequest httpServletRequest) {
     boolean shouldApply = false;
 
-    JwtAuthenticationProperties jwtProperties = propertiesProvider.getProperties();
+    JwtAuthenticationProperties jwtProperties = propertiesProvider.get();
     if (jwtProperties != null && jwtProperties.isEnabledForAmbari()) {
       String serializedJWT = getJWTFromCookie(httpServletRequest);
       shouldApply = (serializedJWT != null && isAuthenticationRequired(serializedJWT));
@@ -160,7 +160,7 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
 
     eventHandler.beforeAttemptAuthentication(this, servletRequest, servletResponse);
 
-    JwtAuthenticationProperties jwtProperties = propertiesProvider.getProperties();
+    JwtAuthenticationProperties jwtProperties = propertiesProvider.get();
     if (jwtProperties == null || !jwtProperties.isEnabledForAmbari()) {
       //disable filter if not configured
       chain.doFilter(servletRequest, servletResponse);
@@ -254,7 +254,7 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
     String serializedJWT = null;
     Cookie[] cookies = req.getCookies();
     if (cookies != null) {
-      JwtAuthenticationProperties jwtProperties = propertiesProvider.getProperties();
+      JwtAuthenticationProperties jwtProperties = propertiesProvider.get();
       String jwtCookieName = (jwtProperties == null) ? null : jwtProperties.getCookieName();
       if (StringUtils.isEmpty(jwtCookieName)) {
         jwtCookieName = AmbariServerConfigurationKey.SSO_JWT_COOKIE_NAME.getDefaultValue();
@@ -313,7 +313,7 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
       if (jwtToken.getSignature() != null) {
         LOG.debug("JWT token signature is not null");
 
-        JwtAuthenticationProperties jwtProperties = propertiesProvider.getProperties();
+        JwtAuthenticationProperties jwtProperties = propertiesProvider.get();
         RSAPublicKey publicKey = (jwtProperties == null) ? null : jwtProperties.getPublicKey();
         if (publicKey == null) {
           LOG.warn("SSO server public key has not be set, validation of the JWT token cannot be performed.");
@@ -347,7 +347,7 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
     boolean valid = false;
     try {
       List<String> tokenAudienceList = jwtToken.getJWTClaimsSet().getAudience();
-      JwtAuthenticationProperties jwtProperties = propertiesProvider.getProperties();
+      JwtAuthenticationProperties jwtProperties = propertiesProvider.get();
       List<String> audiences = (jwtProperties == null) ? null : jwtProperties.getAudiences();
 
       // if there were no expected audiences configured then just
