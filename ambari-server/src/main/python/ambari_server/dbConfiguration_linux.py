@@ -351,19 +351,42 @@ class PGConfig(LinuxDBMSConfig):
   PG_ERROR_BLOCKED = "is being accessed by other users"
   PG_STATUS_RUNNING = None
   PG_STATUS_STOPPED = "stopped"
-  SERVICE_CMD = "/usr/bin/env service"
   PG_SERVICE_NAME = "postgresql"
   PG_HBA_DIR = None
 
-  PG_ST_CMD = "%s %s status" % (SERVICE_CMD, PG_SERVICE_NAME)
-  if os.path.isfile("/usr/bin/postgresql-setup"):
+  if OSCheck.is_redhat_family() and OSCheck.get_os_major_version() in OSConst.systemd_redhat_os_major_versions:
+    if os.path.isfile("/usr/bin/postgresql-setup"):
       PG_INITDB_CMD = "/usr/bin/postgresql-setup initdb"
-  else:
-      PG_INITDB_CMD = "%s %s initdb" % (SERVICE_CMD, PG_SERVICE_NAME)
+    else:
+      versioned_script_path = glob.glob("/usr/pgsql-*/bin/postgresql*-setup")
+      # versioned version of psql
+      if versioned_script_path:
+        PG_INITDB_CMD = "{0} initdb".format(versioned_script_path[0])
 
-  PG_START_CMD = AMBARI_SUDO_BINARY + " %s %s start" % (SERVICE_CMD, PG_SERVICE_NAME)
-  PG_RESTART_CMD = AMBARI_SUDO_BINARY + " %s %s restart" % (SERVICE_CMD, PG_SERVICE_NAME)
-  PG_HBA_RELOAD_CMD = AMBARI_SUDO_BINARY + " %s %s reload" % (SERVICE_CMD, PG_SERVICE_NAME)
+        psql_service_file = glob.glob("/usr/lib/systemd/system/postgresql-*.service")
+        if psql_service_file:
+          psql_service_file_name = os.path.basename(psql_service_file[0])
+          PG_SERVICE_NAME = psql_service_file_name[:-8] # remove .service
+      else:
+        raise FatalException(1, "Cannot find postgresql-setup script.")
+
+    SERVICE_CMD = "/usr/bin/env systemctl"
+    PG_ST_CMD = "%s status %s" % (SERVICE_CMD, PG_SERVICE_NAME)
+
+    PG_START_CMD = AMBARI_SUDO_BINARY + " %s start %s" % (SERVICE_CMD, PG_SERVICE_NAME)
+    PG_RESTART_CMD = AMBARI_SUDO_BINARY + " %s restart %s" % (SERVICE_CMD, PG_SERVICE_NAME)
+    PG_HBA_RELOAD_CMD = AMBARI_SUDO_BINARY + " %s reload %s" % (SERVICE_CMD, PG_SERVICE_NAME)
+  else:
+    SERVICE_CMD = "/usr/bin/env service"
+    PG_ST_CMD = "%s %s status" % (SERVICE_CMD, PG_SERVICE_NAME)
+    if os.path.isfile("/usr/bin/postgresql-setup"):
+        PG_INITDB_CMD = "/usr/bin/postgresql-setup initdb"
+    else:
+        PG_INITDB_CMD = "%s %s initdb" % (SERVICE_CMD, PG_SERVICE_NAME)
+
+    PG_START_CMD = AMBARI_SUDO_BINARY + " %s %s start" % (SERVICE_CMD, PG_SERVICE_NAME)
+    PG_RESTART_CMD = AMBARI_SUDO_BINARY + " %s %s restart" % (SERVICE_CMD, PG_SERVICE_NAME)
+    PG_HBA_RELOAD_CMD = AMBARI_SUDO_BINARY + " %s %s reload" % (SERVICE_CMD, PG_SERVICE_NAME)
 
   PG_HBA_CONF_FILE = None
   PG_HBA_CONF_FILE_BACKUP = None
@@ -607,7 +630,7 @@ class PGConfig(LinuxDBMSConfig):
     retcode, out, err = run_os_command(PGConfig.PG_ST_CMD)
     # on RHEL and SUSE PG_ST_COMD returns RC 0 for running and 3 for stoppped
     if retcode == 0:
-      if out.strip() == "Running clusters:":
+      if out.strip() == "Running clusters:" or "active: inactive" in out.lower():
         pg_status = PGConfig.PG_STATUS_STOPPED
       else:
         pg_status = PGConfig.PG_STATUS_RUNNING
