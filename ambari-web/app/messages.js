@@ -3292,6 +3292,7 @@ Em.I18n.translations = {
   'widget.create.wizard.step2.body.text':'Define the expression with any metrics and valid operators. </br>Use parentheses when necessary.',
   'widget.create.wizard.step2.body.template':'Define the template with any number of expressions and any string. An expression can be referenced from a template by enclosing its name with double curly braces.',
   'widget.create.wizard.step2.body.warning':'Note: Valid operators are +, -, *, /',
+  'widget.create.wizard.step2.body.invalid.label': 'Invalid name. Only alphanumerics, underscores, hyphens, percentage and spaces are allowed.',
   'widget.create.wizard.step2.body.invalid.expression':'Expression is not complete or is invalid!',
   'widget.create.wizard.step2.body.invalid.expression2':'Invalid expression!',
   'widget.create.wizard.step2.body.invalid.msg2':'Only numbers or operators are allowed in this field.',
