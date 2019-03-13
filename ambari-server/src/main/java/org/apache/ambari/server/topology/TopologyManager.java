@@ -18,25 +18,9 @@
 
 package org.apache.ambari.server.topology;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import javax.inject.Inject;
-
+import com.google.common.eventbus.Subscribe;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -44,27 +28,10 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintP
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
-import org.apache.ambari.server.controller.internal.BaseClusterRequest;
-import org.apache.ambari.server.controller.internal.CalculatedStatus;
-import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
-import org.apache.ambari.server.controller.internal.RequestImpl;
-import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
 import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.events.AmbariEvent;
-import org.apache.ambari.server.events.ClusterConfigFinishedEvent;
-import org.apache.ambari.server.events.ClusterProvisionStartedEvent;
-import org.apache.ambari.server.events.ClusterProvisionedEvent;
-import org.apache.ambari.server.events.HostsRemovedEvent;
-import org.apache.ambari.server.events.RequestFinishedEvent;
+import org.apache.ambari.server.controller.internal.*;
+import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.events.*;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.SettingDAO;
@@ -83,9 +50,9 @@ import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.Subscribe;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import javax.inject.Inject;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Manages all cluster provisioning actions on the cluster topology.
@@ -206,7 +173,18 @@ public class TopologyManager {
           // ensure KERBEROS_CLIENT is present in each hostgroup even if it's not in original BP
           for(ClusterTopology clusterTopology : clusterTopologyMap.values()) {
             if (clusterTopology.isClusterKerberosEnabled()) {
-              addKerberosClient(clusterTopology);
+
+              final org.apache.ambari.server.topology.Configuration topologyConfig = clusterTopology.getBlueprint().getConfiguration();
+              final String kdc_type = topologyConfig.getPropertyValue("kerberos-env", "kdc_type");
+              final String manage_identities = topologyConfig.getPropertyValue("kerberos-env", "manage_identities");
+
+              if (kdc_type != null && !"none".equalsIgnoreCase(kdc_type) || Boolean.parseBoolean(manage_identities)) {
+                /* The Kerberos Client component is unnecessarily installed via Blueprints when kerberos-env/kdc-type is "none".
+                   The Blueprint TopologyManager should only force the Kerberos client to be installed if Kerberos is enabled
+                   and kerberos_env/kdc_type is not "none" or when kerberos_env/manage_identities is true. */
+
+                addKerberosClient(clusterTopology);
+              }
             }
           }
           isInitialized = true;
@@ -291,11 +269,21 @@ public class TopologyManager {
     SecurityConfiguration securityConfiguration = processSecurityConfiguration(request);
 
     if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS) {
-      securityType = SecurityType.KERBEROS;
-      addKerberosClient(topology);
 
+      final org.apache.ambari.server.topology.Configuration topologyConfig = topology.getBlueprint().getConfiguration();
+      final String kdc_type = topologyConfig.getPropertyValue("kerberos-env", "kdc_type");
+      final String manage_identities = topologyConfig.getPropertyValue("kerberos-env", "manage_identities");
+
+      if (kdc_type != null && !"none".equals(kdc_type) || Boolean.parseBoolean(manage_identities)) {
+        /* The Kerberos Client component is unnecessarily installed via Blueprints when kerberos-env/kdc-type is "none".
+           The Blueprint TopologyManager should only force the Kerberos client to be installed if Kerberos is enabled
+           and kerberos_env/kdc_type is not "none" or when kerberos_env/manage_identities is true. */
+        addKerberosClient(topology);
+      }
+
+      securityType = SecurityType.KERBEROS;
       // refresh default stack config after adding KERBEROS_CLIENT component to topology
-      topology.getBlueprint().getConfiguration().setParentConfiguration(stack.getConfiguration(topology.getBlueprint().getServices()));
+      topologyConfig.setParentConfiguration(stack.getConfiguration(topology.getBlueprint().getServices()));
 
       credential = request.getCredentialsMap().get(KDC_ADMIN_CREDENTIAL);
       if (credential == null) {
