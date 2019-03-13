@@ -670,7 +670,6 @@ public class AmbariServer {
     ServerConnector apiConnector;
 
     HttpConfiguration http_config = new HttpConfiguration();
-    http_config.addCustomizer(new SecureRequestCustomizer());
     http_config.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
     http_config.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
     http_config.setSendServerVersion(false);
@@ -684,6 +683,7 @@ public class AmbariServer {
       String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS.getKey());
 
       HttpConfiguration https_config = new HttpConfiguration(http_config);
+      https_config.addCustomizer(new SecureRequestCustomizer());
       https_config.setSecurePort(configs.getClientSSLApiPort());
 
       SslContextFactory contextFactoryApi = new SslContextFactory();
