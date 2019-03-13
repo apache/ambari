@@ -27,6 +27,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.internal.*;
@@ -172,24 +173,12 @@ public class TopologyManager {
           replayRequests(persistedState.getAllRequests());
           // ensure KERBEROS_CLIENT is present in each hostgroup even if it's not in original BP
           for(ClusterTopology clusterTopology : clusterTopologyMap.values()) {
-            if (clusterTopology.isClusterKerberosEnabled()) {
-
-              final org.apache.ambari.server.topology.Configuration topologyConfig = clusterTopology.getBlueprint().getConfiguration();
-              final String kdc_type = topologyConfig.getPropertyValue("kerberos-env", "kdc_type");
-              final String manage_identities = topologyConfig.getPropertyValue("kerberos-env", "manage_identities");
-
-              if (kdc_type != null && !"none".equalsIgnoreCase(kdc_type) || Boolean.parseBoolean(manage_identities)) {
-                /* The Kerberos Client component is unnecessarily installed via Blueprints when kerberos-env/kdc-type is "none".
-                   The Blueprint TopologyManager should only force the Kerberos client to be installed if Kerberos is enabled
-                   and kerberos_env/kdc_type is not "none" or when kerberos_env/manage_identities is true. */
-
+            if (clusterTopology.isClusterKerberosEnabled() && isKerberosClientInstallAllowed(clusterTopology)) {
                 addKerberosClient(clusterTopology);
-              }
             }
           }
           isInitialized = true;
         }
-
       }
     }
   }
@@ -269,21 +258,14 @@ public class TopologyManager {
     SecurityConfiguration securityConfiguration = processSecurityConfiguration(request);
 
     if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS) {
+      securityType = SecurityType.KERBEROS;
 
-      final org.apache.ambari.server.topology.Configuration topologyConfig = topology.getBlueprint().getConfiguration();
-      final String kdc_type = topologyConfig.getPropertyValue("kerberos-env", "kdc_type");
-      final String manage_identities = topologyConfig.getPropertyValue("kerberos-env", "manage_identities");
-
-      if (kdc_type != null && !"none".equals(kdc_type) || Boolean.parseBoolean(manage_identities)) {
-        /* The Kerberos Client component is unnecessarily installed via Blueprints when kerberos-env/kdc-type is "none".
-           The Blueprint TopologyManager should only force the Kerberos client to be installed if Kerberos is enabled
-           and kerberos_env/kdc_type is not "none" or when kerberos_env/manage_identities is true. */
+      if (isKerberosClientInstallAllowed(topology)) {
         addKerberosClient(topology);
       }
 
-      securityType = SecurityType.KERBEROS;
       // refresh default stack config after adding KERBEROS_CLIENT component to topology
-      topologyConfig.setParentConfiguration(stack.getConfiguration(topology.getBlueprint().getServices()));
+      topology.getBlueprint().getConfiguration().setParentConfiguration(stack.getConfiguration(topology.getBlueprint().getServices()));
 
       credential = request.getCredentialsMap().get(KDC_ADMIN_CREDENTIAL);
       if (credential == null) {
@@ -342,6 +324,22 @@ public class TopologyManager {
     clusterProvisionWithBlueprintCreateRequests.put(clusterId, logicalRequest);
     ambariEventPublisher.publish(new ClusterProvisionStartedEvent(clusterId));
     return getRequestStatus(logicalRequest.getRequestId());
+  }
+
+  /**
+   * The Kerberos Client component is unnecessarily installed via Blueprints when kerberos-env/kdc-type is "none".
+   * The Blueprint TopologyManager should only force the Kerberos client to be installed if Kerberos is enabled
+   * and kerberos_env/kdc_type is not "none" or when kerberos_env/manage_identities is true.
+   *
+   * @param topology the Cluster Topology which provides the topology's Configuration object.
+   * @return true if kerberos_env/kdc_type is not "none" or when kerberos_env/manage_identities is true
+   */
+  private boolean isKerberosClientInstallAllowed(final ClusterTopology topology) {
+    final org.apache.ambari.server.topology.Configuration topologyConfig = topology.getBlueprint().getConfiguration();
+    final String kdc_type = topologyConfig.getPropertyValue(KerberosHelper.KERBEROS_ENV, KerberosHelper.KDC_TYPE);
+    final String manage_identities = topologyConfig.getPropertyValue(KerberosHelper.KERBEROS_ENV, KerberosHelper.MANAGE_IDENTITIES);
+
+    return kdc_type != null && !"none".equalsIgnoreCase(kdc_type) || Boolean.parseBoolean(manage_identities);
   }
 
   @Subscribe
