@@ -110,5 +110,13 @@
         </description>
         <on-ambari-upgrade add="false"/>
     </property>
+    <property>
+        <name>livy.server.access-control.enabled</name>
+        <value>true</value>
+        <description>
+            Property to configure Livy user access.
+        </description>
+        <on-ambari-upgrade add="false"/>
+    </property>
 </configuration>
 
