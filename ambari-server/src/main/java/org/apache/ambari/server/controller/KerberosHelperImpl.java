@@ -1769,6 +1769,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     } else {
       Collection<String> hosts;
       String ambariServerHostname = StageUtils.getHostName();
+      boolean ambariServerHostnameIsForced = false;
 
       if (hostName == null) {
         Map<String, Host> hostMap = clusters.getHostsForCluster(clusterName);
@@ -1783,6 +1784,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           extendedHosts.addAll(hosts);
           extendedHosts.add(ambariServerHostname);
           hosts = extendedHosts;
+          ambariServerHostnameIsForced = true;
         }
       } else {
         hosts = Collections.singleton(hostName);
@@ -1794,14 +1796,14 @@ public class KerberosHelperImpl implements KerberosHelper {
         if (kerberosDescriptor != null) {
           Set<String> existingServices = cluster.getServices().keySet();
 
-          for (String hostname : hosts) {
+          for (String host : hosts) {
             // Calculate the current host-specific configurations. These will be used to replace
             // variables within the Kerberos descriptor data
             Map<String, Map<String, String>> configurations = calculateConfigurations(cluster,
-              hostname,
-              kerberosDescriptor,
-              false,
-              false);
+                (ambariServerHostnameIsForced && ambariServerHostname.equals(host)) ? null : host,
+                kerberosDescriptor,
+                false,
+                false);
 
             // Create the context to use for filtering Kerberos Identities based on the state of the cluster
             Map<String, Object> filterContext = new HashMap<>();
@@ -1810,10 +1812,10 @@ public class KerberosHelperImpl implements KerberosHelper {
 
 
             Map<String, KerberosIdentityDescriptor> hostActiveIdentities = new HashMap<>();
-            List<KerberosIdentityDescriptor> identities = getActiveIdentities(cluster, hostname,
+            List<KerberosIdentityDescriptor> identities = getActiveIdentities(cluster, host,
               serviceName, componentName, kerberosDescriptor, filterContext);
 
-            if (hostname.equals(ambariServerHostname)) {
+            if (host.equals(ambariServerHostname)) {
               // Determine if we should _calculate_ the Ambari service identities.
               // If kerberos-env/create_ambari_principal is not set to false the identity should be calculated.
               if (createAmbariIdentities(kerberosEnvConfig.getProperties())) {
@@ -1842,7 +1844,7 @@ public class KerberosHelperImpl implements KerberosHelper {
                   }
 
                   if (replaceHostNames) {
-                    principal = principal.replace("_HOST", hostname);
+                    principal = principal.replace("_HOST", host);
                   }
 
                   String uniqueKey = String.format("%s|%s", principal, (keytabFile == null) ? "" : keytabFile);
@@ -1889,7 +1891,7 @@ public class KerberosHelperImpl implements KerberosHelper {
               }
             }
 
-            activeIdentities.put(hostname, hostActiveIdentities.values());
+            activeIdentities.put(host, hostActiveIdentities.values());
           }
         }
       }
