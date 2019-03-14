@@ -247,6 +247,11 @@ describe('App.WidgetWizardStep2Controller', function () {
           title: 'label is empty'
         },
         {
+          dataSets: [Em.Object.create({label: '<script>alert(\'hello\')</script>'})],
+          isGraphDataComplete: false,
+          title: 'not aalowed symbols'
+        },
+        {
           dataSets: [Em.Object.create({label: 'abc'})],
           isExpressionComplete: false,
           isGraphDataComplete: false,
