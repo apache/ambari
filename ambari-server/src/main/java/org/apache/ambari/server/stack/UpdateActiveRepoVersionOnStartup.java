@@ -89,8 +89,12 @@ public class UpdateActiveRepoVersionOnStartup {
           StackId stackId = repositoryVersion.getStackId();
           StackInfo stack = stackManager.getStack(stackId.getStackName(), stackId.getStackVersion());
 
-          if (updateRepoVersion(stack, repositoryVersion)) {
-            repositoryVersionDao.merge(repositoryVersion);
+          if(stack !=null) {
+            if (updateRepoVersion(stack, repositoryVersion)) {
+              repositoryVersionDao.merge(repositoryVersion);
+            }
+          } else {
+            LOG.error(String.format("Check if Stack %s  version %s is present in file system",  stackId.getStackName(), stackId.getStackVersion()));
           }
         }
       }
