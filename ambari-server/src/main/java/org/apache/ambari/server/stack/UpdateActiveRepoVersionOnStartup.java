@@ -95,6 +95,7 @@ public class UpdateActiveRepoVersionOnStartup {
             }
           } else {
             LOG.error(String.format("Check if Stack %s  version %s is present in file system",  stackId.getStackName(), stackId.getStackVersion()));
+            throw new AmbariException(String.format("Stack %s version %s  was not found in file system",  stackId.getStackName(), stackId.getStackVersion()));
           }
         }
       }
