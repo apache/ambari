@@ -89,13 +89,14 @@ public class UpdateActiveRepoVersionOnStartup {
           StackId stackId = repositoryVersion.getStackId();
           StackInfo stack = stackManager.getStack(stackId.getStackName(), stackId.getStackVersion());
 
-          if(stack !=null) {
+          if (stack !=null) {
             if (updateRepoVersion(stack, repositoryVersion)) {
               repositoryVersionDao.merge(repositoryVersion);
             }
           } else {
             LOG.error(String.format("Check if Stack %s  version %s is present in file system",  stackId.getStackName(), stackId.getStackVersion()));
-            throw new AmbariException(String.format("Stack %s version %s  was not found in file system",  stackId.getStackName(), stackId.getStackVersion()));
+            throw new AmbariException(String.format("Stack %s %s was not found on the file system. In the event that it was removed, " +
+              "please ensure that it exists before starting Ambari Server.",  stackId.getStackName(), stackId.getStackVersion()));
           }
         }
       }
