@@ -31,7 +31,6 @@
   <properties>
     <ambari.version>2.7.3.0.0</ambari.version>
     <ambari.dir>${project.parent.parent.basedir}</ambari.dir>
-    <jetty.version>9.3.19.v20170502</jetty.version>
     <hadoop.version>3.1.0</hadoop.version>
     <views.jars.dir>views-jars</views.jars.dir>
     <views.jars.dir.rel>../target/${views.jars.dir}</views.jars.dir.rel>
@@ -159,69 +158,6 @@
   </profiles>
   <dependencyManagement>
     <dependencies>
-      <!--We had to include the jetty's and other's version specific to the one used in hadoop and override the ambari managed version because the tests were failing. -->
-      <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>javax.servlet-api</artifactId>
-        <version>3.1.0</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-server</artifactId>
-        <version>${jetty.version}</version>
-        <scope>test</scope>
-        <optional>true</optional>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-security</artifactId>
-        <version>${jetty.version}</version>
-        <scope>test</scope>
-        <optional>true</optional>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-servlet</artifactId>
-        <version>${jetty.version}</version>
-        <scope>test</scope>
-        <optional>true</optional>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-servlets</artifactId>
-        <version>${jetty.version}</version>
-        <scope>test</scope>
-        <optional>true</optional>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-webapp</artifactId>
-        <version>${jetty.version}</version>
-        <scope>test</scope>
-        <optional>true</optional>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-util-ajax</artifactId>
-        <version>${jetty.version}</version>
-        <scope>test</scope>
-        <optional>true</optional>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty.websocket</groupId>
-        <artifactId>websocket-servlet</artifactId>
-        <version>${jetty.version}</version>
-        <scope>test</scope>
-        <optional>true</optional>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty.websocket</groupId>
-        <artifactId>websocket-server</artifactId>
-        <version>${jetty.version}</version>
-        <scope>test</scope>
-        <optional>true</optional>
-      </dependency>
-
       <dependency>
         <groupId>commons-collections</groupId>
         <artifactId>commons-collections</artifactId>
