@@ -897,6 +897,10 @@
         </upgrade>
       </component>
       <component name="LIVY2_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_6_0_set_server_access_control"/>
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

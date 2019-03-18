@@ -424,6 +424,10 @@
         <task xsi:type="configure" id="hdp_2_6_0_0_spark2_thriftserver"/>
       </execute-stage>
 
+      <execute-stage service="SPARK2" component="LIVY2_SERVER" title="Set config changes for livy2 server">
+        <task xsi:type="configure" id="hdp_2_6_6_0_set_server_access_control"/>
+      </execute-stage>
+
       <!-- RANGER -->
       <execute-stage service="RANGER" component="RANGER_USERSYNC" title="Enabling Nested Group Sync for Ranger">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerUsersyncConfigCalculation">
