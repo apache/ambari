@@ -279,7 +279,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
             }
           }
           usersCache.get().putAll(userNames);
-          userEntity = usersCache.get().getUnchecked(userName);
+          userEntity = usersCache.get().getIfPresent(userName);
         }
 
         if (userEntity == null) {
@@ -287,7 +287,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
         }
 
         if (userEntity == null) {
-          throw new SystemException("User was not found");
+          throw new NoSuchParentResourceException("User was not found");
         }
 
         final Collection<PrivilegeEntity> privileges = users.getUserPrivileges(userEntity);
