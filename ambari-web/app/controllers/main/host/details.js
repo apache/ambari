@@ -3107,7 +3107,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   
   recoverHost: function() {
     var components = this.get('content.hostComponents');
-    var hostName = this.get('content.publicHostName');
+    var hostName = this.get('content.hostName');
     var self = this;
     var batches = [
       {
