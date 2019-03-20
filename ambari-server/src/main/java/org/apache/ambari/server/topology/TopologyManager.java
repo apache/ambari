@@ -72,6 +72,7 @@ import org.apache.ambari.server.orm.dao.SettingDAO;
 import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.serveraction.kerberos.KDCType;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.host.HostImpl;
@@ -372,7 +373,7 @@ public class TopologyManager {
     final String kdc_type = topologyConfig.getPropertyValue(KerberosHelper.KERBEROS_ENV, KerberosHelper.KDC_TYPE);
     final String manage_identities = topologyConfig.getPropertyValue(KerberosHelper.KERBEROS_ENV, KerberosHelper.MANAGE_IDENTITIES);
 
-    return kdc_type != null && !"none".equalsIgnoreCase(kdc_type) || Boolean.parseBoolean(manage_identities);
+    return KDCType.NONE != KDCType.translate(kdc_type) || Boolean.parseBoolean(manage_identities);
   }
 
   @Subscribe
