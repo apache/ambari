@@ -203,6 +203,7 @@ public class DatabaseConsistencyCheckHelper {
       checkConfigGroupsHasServiceName();
       checkConfigGroupHostMapping(true);
       checkConfigGroupsForDeletedServices(true);
+      checkForStalealertdefs();
       LOG.info("******************************* Check database completed *******************************");
       return checkResult;
     }
@@ -810,6 +811,49 @@ public class DatabaseConsistencyCheckHelper {
     }
   }
 
+  /**
+   * This method checks for stale alert definitions..
+   * */
+  static void checkForStalealertdefs () {
+    Configuration conf = injector.getInstance(Configuration.class);
+
+    LOG.info("Checking to ensure there is no stale alert definitions");
+
+    ensureConnection();
+
+    String STALE_ALERT_DEFINITIONS = "select definition_name, service_name from alert_definition where service_name not in (select service_name from clusterservices) and service_name not in ('AMBARI')";
+
+    ResultSet rs = null;
+    Statement statement;
+
+    try {
+      statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+      rs = statement.executeQuery(STALE_ALERT_DEFINITIONS);
+      if (rs != null) {
+        Map<String, String> alertInfo = new HashMap<>();
+        while (rs.next()) {
+          alertInfo.put(rs.getString("definition_name"),rs.getString("service_name"));
+        }
+        if (!alertInfo.isEmpty()){
+          String alertInfoStr = "";
+          for (Map.Entry<String, String> entry : alertInfo.entrySet()) {
+            alertInfoStr = entry.getKey() + "(" + entry.getValue() + ")" ;
+          }
+          warning("You have Alerts that are not mapped with any services : {}", alertInfoStr);
+        }
+      }
+    } catch (SQLException e) {
+      warning("Exception occurred during checking for stale alert definitions: ", e);
+    } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during  checking for stale alert definitions: ", e);
+        }
+      }
+    }
+  }
   /**
    * Fix inconsistencies found by {@code checkForConfigsSelectedMoreThanOnce}
    * selecting latest one by selectedTimestamp
