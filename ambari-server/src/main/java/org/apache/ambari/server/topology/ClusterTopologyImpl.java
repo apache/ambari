@@ -315,12 +315,9 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   @Override
-  public boolean isComponentHadoopCompatible(String component) {
+  public boolean hasHadoopCompatibleService() {
     return blueprint.getServiceInfos().stream()
-      .filter(service -> service.getComponentByName(component) != null)
-      .findFirst()
-      .map(service -> HADOOP_COMPATIBLE_FS.equals(service.getServiceType()))
-      .orElse(false);
+      .anyMatch(service -> HADOOP_COMPATIBLE_FS.equals(service.getServiceType()));
   }
 
   private void registerHostGroupInfo(Map<String, HostGroupInfo> requestedHostGroupInfoMap) throws InvalidTopologyException {

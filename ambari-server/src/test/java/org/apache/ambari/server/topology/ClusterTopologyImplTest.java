@@ -21,7 +21,6 @@ package org.apache.ambari.server.topology;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.easymock.EasyMock.expect;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.powermock.api.easymock.PowerMock.createNiceMock;
 import static org.powermock.api.easymock.PowerMock.replay;
@@ -232,8 +231,7 @@ public class ClusterTopologyImplTest {
     ).anyTimes();
     replayAll();
     ClusterTopologyImpl topology = new ClusterTopologyImpl(null, new TestTopologyRequest(TopologyRequest.Type.PROVISION));
-    assertTrue(topology.isComponentHadoopCompatible("ONEFS_CLIENT"));
-    assertFalse(topology.isComponentHadoopCompatible("ZOOKEEPER_CLIENT"));
+    assertTrue(topology.hasHadoopCompatibleService());
   }
 
   private ServiceInfo aHCFSWith(ComponentInfo... components) {

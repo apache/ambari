@@ -1950,7 +1950,7 @@ public class BlueprintConfigurationProcessor {
               return origValue;
             }
 
-            if (topology.isComponentHadoopCompatible(component)) {
+            if (isComponentNameNode() && topology.hasHadoopCompatibleService()) { // do not fail, could be a ONEFS installation
               return origValue;
             }
 
