@@ -817,7 +817,8 @@ public class DatabaseConsistencyCheckHelper {
 
     ensureConnection();
 
-    String STALE_ALERT_DEFINITIONS = "select definition_name, service_name from alert_definition where service_name not in (select service_name from clusterservices) and service_name not in ('AMBARI')";
+    String STALE_ALERT_DEFINITIONS = "select definition_name, service_name from alert_definition where service_name not in " +
+            "(select service_name from clusterservices) and service_name not in ('AMBARI')";
 
     ResultSet rs = null;
     Statement statement;
