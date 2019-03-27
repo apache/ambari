@@ -20,6 +20,7 @@ limitations under the License.
 
 import optparse
 from optparse import OptionGroup
+from collections import OrderedDict
 import sys
 import urllib2, ssl
 import time
@@ -134,7 +135,7 @@ def get_current_config(cluster, config_type, accessor):
   config_tag = get_config_tag(cluster, config_type, accessor)
   logger.info("### on (Site:{0}, Tag:{1})".format(config_type, config_tag))
   response = accessor(CONFIGURATION_URL.format(cluster, config_type, config_tag))
-  config_by_tag = json.loads(response)
+  config_by_tag = json.loads(response, object_pairs_hook=OrderedDict)
   current_config = config_by_tag[ITEMS][0]
   return current_config[PROPERTIES], current_config.get(ATTRIBUTES, {})
 
