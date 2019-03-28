@@ -170,6 +170,12 @@ limitations under the License.
       <artifactId>storm-core</artifactId>
       <version>${storm.version}</version>
       <scope>compile</scope>
+        <exclusions>
+            <exclusion>
+                <artifactId>jackson-core</artifactId>
+                <groupId>com.fasterxml.jackson.core</groupId>
+            </exclusion>
+        </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>
