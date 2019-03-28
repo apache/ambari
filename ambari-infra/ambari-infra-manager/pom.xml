@@ -327,6 +327,10 @@
           <groupId>org.eclipse.jetty</groupId>
           <artifactId>jetty-security</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcprov-jdk15on</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -339,6 +343,11 @@
           <artifactId>jackson-annotations</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <version>1.61</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
