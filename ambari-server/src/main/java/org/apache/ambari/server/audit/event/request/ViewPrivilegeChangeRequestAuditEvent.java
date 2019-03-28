@@ -101,6 +101,9 @@ public class ViewPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
       roleSet.addAll(roles.keySet());
 
       builder.append(", Permissions(");
+      if (!users.isEmpty() || !groups.isEmpty() || !roles.isEmpty()) {
+        builder.append(System.lineSeparator());
+      }
 
       List<String> lines = new LinkedList<>();
 
@@ -117,7 +120,7 @@ public class ViewPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
         }
       }
 
-      builder.append(StringUtils.join(lines, " , "));
+      builder.append(StringUtils.join(lines, System.lineSeparator()));
 
       builder.append(")");
     }
