@@ -1413,7 +1413,8 @@
       <artifactId>swagger-core</artifactId>
       <exclusions>
         <exclusion>
-          <groupId></groupId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
