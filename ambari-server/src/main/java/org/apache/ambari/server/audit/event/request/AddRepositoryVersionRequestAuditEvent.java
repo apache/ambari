@@ -88,18 +88,15 @@ public class AddRepositoryVersionRequestAuditEvent extends RequestAuditEvent {
         .append(repoVersion)
         .append("), Repositories(");
 
-      if (!repos.isEmpty()) {
-        builder.append(System.lineSeparator());
-      }
 
       for (Map.Entry<String, List<Map<String, String>>> repo : repos.entrySet()) {
         builder.append("Operating system: ").append(repo.getKey());
-        builder.append(System.lineSeparator());
+        builder.append(" ( ");
         for (Map<String, String> properties : repo.getValue()) {
           builder.append("    Repository ID(").append(properties.get("repo_id"));
           builder.append("), Repository name(").append(properties.get("repo_name"));
           builder.append("), Base url(").append(properties.get("base_url")).append(")");
-          builder.append(System.lineSeparator());
+          builder.append(" ) ");
         }
       }
 
