@@ -55,7 +55,6 @@
       /usr/lib/python2.6/site-packages/resource_monitoring
     </resmonitor.install.dir>
     <powermock.version>1.6.2</powermock.version>
-    <commons.codec.version>1.12</commons.codec.version>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
     <distMgmtSnapshotsName>Apache Development Snapshot Repository</distMgmtSnapshotsName>
     <distMgmtSnapshotsUrl>https://repository.apache.org/content/repositories/snapshots</distMgmtSnapshotsUrl>
@@ -112,6 +111,11 @@
         <artifactId>powermock-module-junit4</artifactId>
         <version>${powermock.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.12</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
