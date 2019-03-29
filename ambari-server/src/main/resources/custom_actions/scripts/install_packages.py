@@ -121,7 +121,6 @@ class InstallPackages(Script):
       # check package manager non-completed transactions
       if self.repo_mgr.check_uncompleted_transactions():
         self.repo_mgr.print_uncompleted_transaction_hint()
-        num_errors += 1
     except Exception as e:  # we need to ignore any exception
       Logger.warning("Failed to check for uncompleted package manager transactions: " + str(e))
 
