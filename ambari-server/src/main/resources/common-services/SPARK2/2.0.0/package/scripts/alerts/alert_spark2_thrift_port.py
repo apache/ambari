@@ -149,7 +149,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
         if security_enabled:
             if spark_ssl_enabled:
-                beeline_url = ['"jdbc:hive2://{host_name}:{port}/default;principal={hive_principal};transportMode={transport_mode;ssl=true;sslTrustStore={spark_truststore_path};trustStorePassword={spark_truststore_pass!p};httpPath=cliservice"']
+                beeline_url = ['"jdbc:hive2://{host_name}:{port}/default;principal={hive_principal};transportMode={transport_mode};ssl=true;sslTrustStore={spark_truststore_path};trustStorePassword={spark_truststore_pass!p};httpPath=cliservice"']
             else:
                 beeline_url = ["jdbc:hive2://{host_name}:{port}/default;principal={hive_principal}","transportMode={transport_mode}"]
         else:
