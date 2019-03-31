@@ -405,7 +405,7 @@ public class MpackManager {
           File mpackDirectory = new File(mpackStaging + File.separator + mpack.getName());
 
           if (!mpackDirectory.exists()) {
-            mpackDirectory.mkdir();
+            mpackDirectory.mkdirs();
           }
           return true;
         } else {
