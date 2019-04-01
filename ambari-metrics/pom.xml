@@ -129,6 +129,7 @@
         <artifactId>bcmail-jdk15on</artifactId>
         <version>1.61</version>
         <scope>test</scope>
+      </dependency>
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
