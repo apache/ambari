@@ -144,11 +144,16 @@ limitations under the License.
       <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
       <scope>compile</scope>
+        <exclusions>
+            <exclusion>
+                <artifactId>jackson-core</artifactId>
+                <groupId>com.fasterxml.jackson.core</groupId>
+            </exclusion>
+        </exclusions>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>1.8</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
