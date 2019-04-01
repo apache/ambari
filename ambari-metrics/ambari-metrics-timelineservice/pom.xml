@@ -330,6 +330,14 @@
           <groupId>net.sourceforge.findbugs</groupId>
           <artifactId>annotations</artifactId>
         </exclusion>
+          <exclusion>
+              <artifactId>jackson-core</artifactId>
+              <groupId>com.fasterxml.jackson.core</groupId>
+          </exclusion>
+        <exclusion>
+          <artifactId>jackson-databind</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -373,6 +381,10 @@
           <groupId>org.mortbay.jetty</groupId>
           <artifactId>jsp-2.1-jetty</artifactId>
         </exclusion>
+        <exclusion>
+          <artifactId>jackson-core</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -400,6 +412,12 @@
       <version>${hadoop.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>jackson-core</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.google.inject.extensions</groupId>
@@ -544,6 +562,18 @@
           <artifactId>commons-httpclient</artifactId>
           <groupId>commons-httpclient</groupId>
         </exclusion>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcmail-jdk15on</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcprov-jdk15on</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcpkix-jdk15on</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -577,6 +607,21 @@
           <groupId>commons-httpclient</groupId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcmail-jdk15on</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpkix-jdk15on</artifactId>
+      <scope>test</scope>
     </dependency>
     <!-- 'mvn dependency:analyze' fails to detect use of this dependency -->
     <dependency>
@@ -647,7 +692,17 @@
       <groupId>org.apache.phoenix</groupId>
       <artifactId>phoenix-core</artifactId>
       <type>test-jar</type>
-      <version>${phoenix.version}</version>
+        <exclusions>
+            <exclusion>
+                <artifactId>jackson-core</artifactId>
+                <groupId>com.fasterxml.jackson.core</groupId>
+            </exclusion>
+          <exclusion>
+            <artifactId>jackson-databind</artifactId>
+            <groupId>com.fasterxml.jackson.core</groupId>
+          </exclusion>
+        </exclusions>
+        <version>${phoenix.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -671,6 +726,14 @@
           <exclusion>
             <artifactId>zookeeper</artifactId>
             <groupId>org.apache.zookeeper</groupId>
+          </exclusion>
+            <exclusion>
+                <artifactId>jackson-core</artifactId>
+                <groupId>com.fasterxml.jackson.core</groupId>
+            </exclusion>
+          <exclusion>
+            <artifactId>jackson-databind</artifactId>
+            <groupId>com.fasterxml.jackson.core</groupId>
           </exclusion>
         </exclusions>
       </dependency>
