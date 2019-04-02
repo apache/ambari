@@ -818,12 +818,13 @@ public class DatabaseConsistencyCheckHelper {
     }
   }
 
-  /**
+
+   /**
    * This method checks for stale alert definitions..
    * */
-  static void checkForStalealertdefs () {
+  static Map<String, String>  checkForStalealertdefs () {
     Configuration conf = injector.getInstance(Configuration.class);
-
+    Map<String, String> alertInfo = new HashMap<>();
     LOG.info("Checking to ensure there is no stale alert definitions");
 
     ensureConnection();
@@ -838,7 +839,6 @@ public class DatabaseConsistencyCheckHelper {
       statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
       rs = statement.executeQuery(STALE_ALERT_DEFINITIONS);
       if (rs != null) {
-        Map<String, String> alertInfo = new HashMap<>();
         while (rs.next()) {
           alertInfo.put(rs.getString("definition_name"),rs.getString("service_name"));
         }
@@ -862,8 +862,10 @@ public class DatabaseConsistencyCheckHelper {
         }
       }
     }
+    return alertInfo;
   }
-  /**
+  
+   /**
    * Fix inconsistencies found by {@code checkForConfigsSelectedMoreThanOnce}
    * selecting latest one by selectedTimestamp
    */
