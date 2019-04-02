@@ -101,7 +101,7 @@ class Master(Script):
               group=params.zeppelin_group,
               cd_access="a",
               create_parents=True,
-              mode=0755
+              mode=0775
               )
 
   def create_zeppelin_hdfs_conf_dir(self, env):
