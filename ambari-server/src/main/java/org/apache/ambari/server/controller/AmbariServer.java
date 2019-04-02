@@ -683,6 +683,7 @@ public class AmbariServer {
       String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS.getKey());
 
       HttpConfiguration https_config = new HttpConfiguration(http_config);
+      https_config.addCustomizer(new SecureRequestCustomizer());
       https_config.setSecurePort(configs.getClientSSLApiPort());
 
       SslContextFactory contextFactoryApi = new SslContextFactory();
@@ -1095,7 +1096,7 @@ public class AmbariServer {
 
       // Start and Initialize JPA
       GuiceJpaInitializer jpaInitializer = injector.getInstance(GuiceJpaInitializer.class);
-      jpaInitializer.setInitialized(); // This must be called to alert Ambari that JPA is initialized.
+      jpaInitializer.setInitialized(injector.getInstance(AmbariEventPublisher.class)); // This must be called to alert Ambari that JPA is initialized.
 
       DatabaseConsistencyCheckHelper.checkDBVersionCompatible();
 

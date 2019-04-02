@@ -75,7 +75,7 @@ public class AmbariErrorHandler extends ErrorHandler {
 
     if ((code == HttpServletResponse.SC_FORBIDDEN) || (code == HttpServletResponse.SC_UNAUTHORIZED)) {
       //if SSO is configured we should provide info about it in case of access error
-      JwtAuthenticationProperties jwtProperties = jwtAuthenticationPropertiesProvider.getProperties();
+      JwtAuthenticationProperties jwtProperties = jwtAuthenticationPropertiesProvider.get();
       if ((jwtProperties != null) && jwtProperties.isEnabledForAmbari()) {
         String providerUrl = jwtProperties.getAuthenticationProviderUrl();
         String originalUrl = jwtProperties.getOriginalUrlQueryParam();

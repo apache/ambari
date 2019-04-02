@@ -325,6 +325,11 @@ module.exports = {
     return widgetDescriptionRegex.test(value);
   },
 
+  isValidChartWidgetDatasetLabel: function (value) {
+    var widgetDescriptionRegex = /^[\s0-9a-z_\-%]+$/i;
+    return widgetDescriptionRegex.test(value);
+  },
+
   /**
    * Validate alert name
    * @param {string} value

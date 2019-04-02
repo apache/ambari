@@ -54,6 +54,7 @@ import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.UpdateConfigurationPolicy;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
@@ -225,6 +226,7 @@ public class AbstractPrepareKerberosServerActionTest extends EasyMockSupport {
         bind(ConfigureClusterTaskFactory.class).toInstance(createNiceMock(ConfigureClusterTaskFactory.class));
         Provider<EntityManager> entityManagerProvider = createNiceMock(Provider.class);
         bind(EntityManager.class).toProvider(entityManagerProvider);
+        bind(AmbariLdapConfigurationProvider.class).toInstance(createMock(AmbariLdapConfigurationProvider.class));
       }
     });
 

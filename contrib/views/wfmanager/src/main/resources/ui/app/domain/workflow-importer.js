@@ -63,6 +63,15 @@ var WorkflowImporter= Ember.Object.extend({
     var nodeMap=this.setupNodeMap(workflowAppJson,workflow,Ember.$(xmlDoc));
     this.setupTransitions(workflowAppJson,nodeMap);
     workflow.set("startNode",nodeMap.get("start").node);
+    let globalProperties = workflowJson["workflow-app"].global.configuration.property;
+    if(workflowJson["workflow-app"].global) {
+      if(Ember.isArray(globalProperties)) {
+        workflow.set("globalSetting", workflowJson["workflow-app"].global);
+      } else  {
+        workflow.set("globalSetting", {configuration : { property:[globalProperties] }} );
+      }
+    }
+
     this.populateKillNodes(workflow,nodeMap);
     return {workflow: workflow, errors: errors};
   },

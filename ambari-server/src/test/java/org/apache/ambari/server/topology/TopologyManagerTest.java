@@ -49,13 +49,16 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ShortTaskStatus;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.events.ClusterProvisionStartedEvent;
@@ -66,6 +69,7 @@ import org.apache.ambari.server.orm.dao.SettingDAO;
 import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
@@ -142,12 +146,16 @@ public class TopologyManagerTest {
   private ExecutorService executor;
   @Mock(type = MockType.NICE)
   private PersistedState persistedState;
-  @Mock(type = MockType.NICE)
+  @Mock(type = MockType.STRICT)
   private HostGroup group1;
-  @Mock(type = MockType.NICE)
+  @Mock(type = MockType.STRICT)
   private HostGroup group2;
   @Mock(type = MockType.STRICT)
   private SecurityConfigurationFactory securityConfigurationFactory;
+  @Mock(type = MockType.NICE)
+  private SecurityConfiguration securityConfiguration;
+  @Mock(type = MockType.NICE)
+  private Credential credential;
   @Mock(type = MockType.STRICT)
   private CredentialStoreService credentialStoreService;
   @Mock(type = MockType.STRICT)
@@ -246,6 +254,10 @@ public class TopologyManagerTest {
     group1ServiceComponents.put("service2", Collections.singleton("component2"));
     group2ServiceComponents.put("service2", Collections.singleton("component3"));
     group2ServiceComponents.put("service2", Collections.singleton("component4"));
+
+    expect(securityConfiguration.getType()).andReturn(SecurityType.KERBEROS).anyTimes();
+
+    expect(credential.getType()).andReturn(CredentialStoreType.TEMPORARY).anyTimes();
 
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
@@ -350,6 +362,8 @@ public class TopologyManagerTest {
 
     expect(clusterController.ensureResourceProvider(anyObject(Resource.Type.class))).andReturn(resourceProvider);
 
+    expect(resourceProvider.createResources(anyObject(Request.class))).andReturn(new RequestStatusImpl(null));
+
     expect(configureClusterTaskFactory.createConfigureClusterTask(anyObject(), anyObject(), anyObject())).andReturn(configureClusterTask);
     expect(configureClusterTask.getTimeout()).andReturn(1000L);
     expect(configureClusterTask.getRepeatDelay()).andReturn(50L);
@@ -373,6 +387,12 @@ public class TopologyManagerTest {
 
     EasyMockSupport.injectMocks(topologyManagerReplay);
 
+    clazz = AmbariContext.class;
+    f = clazz.getDeclaredField("clusterController");
+    f.setAccessible(true);
+    f.set(ambariContext, clusterController);
+
+    EasyMockSupport.injectMocks(ambariContext);
   }
 
   @After
@@ -380,12 +400,14 @@ public class TopologyManagerTest {
     PowerMock.verify(System.class);
     verify(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
-        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO, eventPublisher);
+        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO, eventPublisher,
+        securityConfiguration, credential);
 
     PowerMock.reset(System.class);
     reset(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
-        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO, eventPublisher);
+        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO, eventPublisher,
+        securityConfiguration, credential);
   }
 
   @Test
@@ -429,6 +451,58 @@ public class TopologyManagerTest {
 
     topologyManager.provisionCluster(request);
     //todo: assertions
+  }
+
+  @Test
+  public void testDoNotAddKerberosClientAtTopologyInit_KdcTypeNone() throws Exception {
+    Map<ClusterTopology, List<LogicalRequest>> allRequests = Collections.singletonMap(clusterTopologyMock, Collections.singletonList(logicalRequest));
+
+    expect(logicalRequest.hasPendingHostRequests()).andReturn(false).anyTimes();
+    expect(logicalRequest.isFinished()).andReturn(false).anyTimes();
+    expect(requestStatusResponse.getTasks()).andReturn(Collections.emptyList()).anyTimes();
+
+    expect(clusterTopologyMock.isClusterKerberosEnabled()).andReturn(true);
+    expect(clusterTopologyMock.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
+    expect(clusterTopologyMock.getBlueprint()).andReturn(blueprint).anyTimes();
+
+    expect(persistedState.getAllRequests()).andReturn(allRequests).anyTimes();
+    expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
+    expect(ambariContext.isTopologyResolved(CLUSTER_ID)).andReturn(true).anyTimes();
+
+    expect(blueprint.getSecurity()).andReturn(securityConfiguration).anyTimes();
+    expect(request.getCredentialsMap()).andReturn(Collections.singletonMap(TopologyManager.KDC_ADMIN_CREDENTIAL, credential));
+
+    bpConfiguration.setProperty(KerberosHelper.KERBEROS_ENV, KerberosHelper.KDC_TYPE, "none");
+
+    replayAll();
+
+    topologyManager.provisionCluster(request);
+  }
+
+  @Test
+  public void testDoNotAddKerberosClientAtTopologyInit_ManageIdentity() throws Exception {
+    Map<ClusterTopology, List<LogicalRequest>> allRequests = Collections.singletonMap(clusterTopologyMock, Collections.singletonList(logicalRequest));
+
+    expect(logicalRequest.hasPendingHostRequests()).andReturn(false).anyTimes();
+    expect(logicalRequest.isFinished()).andReturn(false).anyTimes();
+    expect(requestStatusResponse.getTasks()).andReturn(Collections.emptyList()).anyTimes();
+
+    expect(clusterTopologyMock.isClusterKerberosEnabled()).andReturn(true);
+    expect(clusterTopologyMock.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
+    expect(clusterTopologyMock.getBlueprint()).andReturn(blueprint).anyTimes();
+
+    expect(persistedState.getAllRequests()).andReturn(allRequests).anyTimes();
+    expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
+    expect(ambariContext.isTopologyResolved(CLUSTER_ID)).andReturn(true).anyTimes();
+
+    expect(blueprint.getSecurity()).andReturn(securityConfiguration).anyTimes();
+    expect(request.getCredentialsMap()).andReturn(Collections.singletonMap(TopologyManager.KDC_ADMIN_CREDENTIAL, credential));
+
+    bpConfiguration.setProperty(KerberosHelper.KERBEROS_ENV, KerberosHelper.MANAGE_IDENTITIES, "false");
+
+    replayAll();
+
+    topologyManager.provisionCluster(request);
   }
 
   @Test
@@ -555,7 +629,7 @@ public class TopologyManagerTest {
             configurationRequest, configurationRequest2, configurationRequest3, executor,
             persistedState, clusterTopologyMock, securityConfigurationFactory, credentialStoreService,
             clusterController, resourceProvider, mockFuture, requestStatusResponse, logicalRequest, settingDAO,
-            configureClusterTaskFactory, configureClusterTask, eventPublisher);
+            configureClusterTaskFactory, configureClusterTask, eventPublisher, securityConfiguration, credential);
   }
 
   @Test(expected = InvalidTopologyException.class)

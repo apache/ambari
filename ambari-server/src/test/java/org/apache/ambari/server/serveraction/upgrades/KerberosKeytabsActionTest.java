@@ -93,7 +93,7 @@ public class KerberosKeytabsActionTest {
 
       @Override
       protected void configure() {
-        PartialNiceMockBinder.newBuilder().addClustersBinding().build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addClustersBinding().addLdapBindings().build().configure(binder());
 
         bind(Clusters.class).toInstance(m_clusters);
         bind(OsFamily.class).toInstance(EasyMock.createNiceMock(OsFamily.class));

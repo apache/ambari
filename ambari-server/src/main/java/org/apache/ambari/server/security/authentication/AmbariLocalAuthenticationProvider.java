@@ -93,7 +93,7 @@ public class AmbariLocalAuthenticationProvider extends AmbariAuthenticationProvi
           }
         }
 
-        AmbariUserDetails userDetails = new AmbariUserDetails(users.getUser(userEntity), password, users.getUserAuthorities(userEntity));
+        AmbariUserDetails userDetails = new AmbariUserDetailsImpl(users.getUser(userEntity), password, users.getUserAuthorities(userEntity));
         return new AmbariUserAuthentication(password, userDetails, true);
       }
     }

@@ -43,6 +43,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
@@ -71,6 +72,7 @@ import org.apache.ambari.server.orm.dao.SettingDAO;
 import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.serveraction.kerberos.KDCType;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.host.HostImpl;
@@ -205,13 +207,12 @@ public class TopologyManager {
           replayRequests(persistedState.getAllRequests());
           // ensure KERBEROS_CLIENT is present in each hostgroup even if it's not in original BP
           for(ClusterTopology clusterTopology : clusterTopologyMap.values()) {
-            if (clusterTopology.isClusterKerberosEnabled()) {
-              addKerberosClient(clusterTopology);
+            if (clusterTopology.isClusterKerberosEnabled() && isKerberosClientInstallAllowed(clusterTopology)) {
+                addKerberosClient(clusterTopology);
             }
           }
           isInitialized = true;
         }
-
       }
     }
   }
@@ -292,7 +293,10 @@ public class TopologyManager {
 
     if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS) {
       securityType = SecurityType.KERBEROS;
-      addKerberosClient(topology);
+
+      if (isKerberosClientInstallAllowed(topology)) {
+        addKerberosClient(topology);
+      }
 
       // refresh default stack config after adding KERBEROS_CLIENT component to topology
       topology.getBlueprint().getConfiguration().setParentConfiguration(stack.getConfiguration(topology.getBlueprint().getServices()));
@@ -354,6 +358,22 @@ public class TopologyManager {
     clusterProvisionWithBlueprintCreateRequests.put(clusterId, logicalRequest);
     ambariEventPublisher.publish(new ClusterProvisionStartedEvent(clusterId));
     return getRequestStatus(logicalRequest.getRequestId());
+  }
+
+  /**
+   * The Kerberos Client component is unnecessarily installed via Blueprints when kerberos-env/kdc-type is "none".
+   * The Blueprint TopologyManager should only force the Kerberos client to be installed if Kerberos is enabled
+   * and kerberos_env/kdc_type is not "none" or when kerberos_env/manage_identities is true.
+   *
+   * @param topology the Cluster Topology which provides the topology's Configuration object.
+   * @return true if kerberos_env/kdc_type is not "none" or when kerberos_env/manage_identities is true
+   */
+  private boolean isKerberosClientInstallAllowed(final ClusterTopology topology) {
+    final org.apache.ambari.server.topology.Configuration topologyConfig = topology.getBlueprint().getConfiguration();
+    final String kdc_type = topologyConfig.getPropertyValue(KerberosHelper.KERBEROS_ENV, KerberosHelper.KDC_TYPE);
+    final String manage_identities = topologyConfig.getPropertyValue(KerberosHelper.KERBEROS_ENV, KerberosHelper.MANAGE_IDENTITIES);
+
+    return KDCType.NONE != KDCType.translate(kdc_type) || Boolean.parseBoolean(manage_identities);
   }
 
   @Subscribe

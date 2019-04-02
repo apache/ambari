@@ -153,6 +153,20 @@ class AptManager(GenericManager):
   def all_packages(self, pkg_names=None, repo_filter=None):
     return self.available_packages(pkg_names, repo_filter)
 
+  def transform_baseurl_to_repoid(self, base_url):
+    """
+    Transforms the URL looking like proto://localhost/some/long/path to localhost_some_long_path
+
+    :type base_url str
+    :rtype str
+    """
+    url_proto_mask = "://"
+    url_proto_pos = base_url.find(url_proto_mask)
+    if url_proto_pos > 0:
+      base_url = base_url[url_proto_pos+len(url_proto_mask):]
+
+    return base_url.replace("/", "_").replace(" ", "_")
+
   def get_available_packages_in_repos(self, repos):
     """
     Gets all (both installed and available) packages that are available at given repositories.
@@ -165,7 +179,7 @@ class AptManager(GenericManager):
     repo_ids = []
 
     for repo in repos.items:
-      repo_ids.append(repo.base_url.replace("http://", "").replace("/", "_"))
+      repo_ids.append(self.transform_baseurl_to_repoid(repo.base_url))
 
     if repos.feat.scoped:
       Logger.info("Looking for matching packages in the following repositories: {0}".format(", ".join(repo_ids)))

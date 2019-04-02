@@ -443,7 +443,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     public void configure(Binder binder) {
       StageDAO stageDAO = createNiceMock(StageDAO.class);
       PartialNiceMockBinder.newBuilder(StackUpgradeConfigurationMergeTest.this)
-          .addActionDBAccessorConfigsBindings().build().configure(binder);
+          .addActionDBAccessorConfigsBindings().addLdapBindings().build().configure(binder);
 
       binder.bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
       binder.bind(StageDAO.class).toInstance(stageDAO);

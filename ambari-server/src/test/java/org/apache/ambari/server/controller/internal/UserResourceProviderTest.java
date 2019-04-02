@@ -62,6 +62,7 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.hooks.HookContext;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -430,6 +431,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
         bind(PrivilegeDAO.class).toInstance(createMock(PrivilegeDAO.class));
         bind(ResourceDAO.class).toInstance(createMock(ResourceDAO.class));
         bind(PrincipalTypeDAO.class).toInstance(createMock(PrincipalTypeDAO.class));
+        bind(AmbariLdapConfigurationProvider.class).toInstance(createMock(AmbariLdapConfigurationProvider.class));
       }
     });
   }

@@ -39,7 +39,7 @@
     <guice.version>4.1.0</guice.version>
     <spring.version>4.3.18.RELEASE</spring.version>
     <spring.security.version>4.2.7.RELEASE</spring.security.version>
-    <fasterxml.jackson.version>2.9.5</fasterxml.jackson.version>
+    <fasterxml.jackson.version>2.9.8</fasterxml.jackson.version>
     <postgres.version>42.2.2</postgres.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
