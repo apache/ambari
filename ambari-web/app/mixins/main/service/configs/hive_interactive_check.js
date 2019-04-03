@@ -33,6 +33,13 @@ App.HiveInteractiveCheck = Em.Mixin.create({
   },
 
   onLoadHiveConfigs: function (data) {
-    this.set('enableHiveInteractive', data.items[0].configurations.findProperty('type', 'hive-interactive-env').properties['enable_hive_interactive'] === 'true');
+    var enableHiveInteractive = false;
+    data.items.forEach(function(item) {
+        var hiveInteractive = item.configurations.findProperty('type', 'hive-interactive-env');
+        if(hiveInteractive) {
+          enableHiveInteractive = hiveInteractive.properties['enable_hive_interactive'] === 'true';
+        }
+      });
+    this.set('enableHiveInteractive',enableHiveInteractive);
   }
 });
