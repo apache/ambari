@@ -66,6 +66,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
@@ -686,6 +687,54 @@ public class DatabaseConsistencyCheckHelperTest {
     Assert.assertTrue(configGroups.containsKey(1L));
     Assert.assertFalse(configGroups.containsKey(2L));
     Assert.assertTrue(configGroups.containsKey(3L));
+  }
+
+  @Test
+  public void testCheckForStalealertdefs() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AlertDefinition alertDefinition = easyMockSupport.createNiceMock(AlertDefinition.class);
+    final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
+    final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+    final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
+    final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
+    final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AlertDefinition.class).toInstance(alertDefinition);
+        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
+        bind(EntityManager.class).toInstance(mockEntityManager);
+        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(OsFamily.class).toInstance(mockOSFamily);
+      }
+    });
+    final ResultSet staleAlertResultSet = easyMockSupport.createNiceMock(ResultSet.class);
+    expect(staleAlertResultSet.next()).andReturn(true).once();
+    expect(staleAlertResultSet.getString("definition_name")).andReturn("ALERT-NAME").atLeastOnce();
+    expect(staleAlertResultSet.getString("service_name")).andReturn("SERVICE-DELETED").atLeastOnce();
+    final Connection mockConnection = easyMockSupport.createNiceMock(Connection.class);
+    final Statement mockStatement = easyMockSupport.createNiceMock(Statement.class);
+
+    expect(mockDBDbAccessor.getConnection()).andReturn(mockConnection);
+    expect(mockDBDbAccessor.getDbType()).andReturn(DBAccessor.DbType.MYSQL);
+    expect(mockDBDbAccessor.getDbSchema()).andReturn("test_schema");
+
+    expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement).anyTimes();
+    expect(mockStatement.executeQuery("select definition_name, service_name from alert_definition where service_name not in " +
+            "(select service_name from clusterservices) and service_name not in ('AMBARI')")).andReturn(staleAlertResultSet);
+
+    expect(alertDefinition.getDefinitionId()).andReturn(1L);
+    expect(alertDefinition.getName()).andReturn("AlertTest");
+
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+
+    easyMockSupport.replayAll();
+
+    Map<String, String> stalealertdefs1 = DatabaseConsistencyCheckHelper.checkForStalealertdefs();
+
+    Assert.assertEquals(1, stalealertdefs1.size());
   }
 
   @Test
