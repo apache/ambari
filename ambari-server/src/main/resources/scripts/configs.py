@@ -348,7 +348,7 @@ def main():
   accessor = api_accessor(host, user, password, protocol, port, options.unsafe)
   if action == SET_ACTION:
 
-    if not options.file and (not options.key or not options.value):
+    if not options.file and (not options.key or options.value is None):
       parser.error("You should use option (-f) to set file where entire configurations are saved OR (-k) key and (-v) value for one property")
     if options.file:
       action_args = [options.file]
