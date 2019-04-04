@@ -38,6 +38,10 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.Request;
+import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.services.ResultImpl;
+import org.apache.ambari.server.api.services.ResultStatus;
+import org.apache.ambari.server.api.services.serializers.JsonSerializer;
 import org.apache.ambari.server.controller.ViewInstanceResponse;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
@@ -316,17 +320,89 @@ public class ViewInstanceService extends BaseService {
         ViewRegistry.getInstance().getInstanceDefinition(viewName, version, instanceName);
 
     if (instanceDefinition == null) {
-      throw new IllegalArgumentException("A view instance " +
-          viewName + "/" + instanceName + " can not be found.");
+      String msg = "A view instance " +
+          viewName + "/" + instanceName + " can not be found.";
+
+      return new NotFoundResponse(msg);
     }
 
     Object service = instanceDefinition.getService(resources);
 
     if (service == null) {
-      throw new IllegalArgumentException("A resource type " + resources + " for view instance " +
-          viewName + "/" + instanceName + " can not be found.");
+      String msg = "A resource type " + resources + " for view instance " +
+          viewName + "/" + instanceName + " can not be found.";
+      return new NotFoundResponse(msg);
     }
     return service;
+  }
+
+  @Path("/")
+  public class NotFoundResponse {
+
+    String msg;
+
+    NotFoundResponse(String msg){
+      this.msg=msg;
+    }
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response get() {
+      return getResponse();
+    }
+
+    @POST
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response post() {
+      return getResponse();
+    }
+
+    @PUT
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response put() {
+      return getResponse();
+    }
+
+    @DELETE
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response delete() {
+      return getResponse();
+    }
+
+    @GET
+    @Path("{path: .*}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getSub() {
+      return getResponse();
+    }
+
+    @POST
+    @Path("{path: .*}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response postSub() {
+      return getResponse();
+    }
+
+    @PUT
+    @Path("{path: .*}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response putSub() {
+      return getResponse();
+    }
+
+    @DELETE
+    @Path("{path: .*}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response deleteSub() {
+      return getResponse();
+    }
+
+    public Response getResponse() {
+      Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, msg));
+      Response.ResponseBuilder builder = Response.status(result.getStatus().getStatusCode()).entity(new JsonSerializer().serialize(result));
+      return builder.build();
+    }
+
   }
 
   // ----- helper methods ----------------------------------------------------
