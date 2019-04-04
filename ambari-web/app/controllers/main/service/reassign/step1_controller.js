@@ -27,12 +27,12 @@ App.ReassignMasterWizardStep1Controller = Em.Controller.extend({
    */
   dbPropertyMap: {
     'HIVE_SERVER': {
-      type: 'hive-site',
-      name: 'javax.jdo.option.ConnectionDriverName'
+      type: 'hive-env',
+      name: 'hive_database_type'
     },
     'HIVE_METASTORE': {
-      type: 'hive-site',
-      name: 'javax.jdo.option.ConnectionDriverName'
+      type: 'hive-env',
+      name: 'hive_database_type'
     },
     'OOZIE_SERVER': {
       type: 'oozie-site',
