@@ -336,6 +336,10 @@ public class ViewInstanceService extends BaseService {
     return service;
   }
 
+  /**
+   * Stub class for 404 error response
+   *
+   */
   @Path("/")
   public class NotFoundResponse {
 
@@ -345,30 +349,50 @@ public class ViewInstanceService extends BaseService {
       this.msg=msg;
     }
 
+    /**
+     * Handle GET resource
+     * @return 404 response with msg
+     */
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public Response get() {
       return getResponse();
     }
 
+    /**
+     * Handle POST resource
+     * @return 404 response with msg
+     */
     @POST
     @Produces(MediaType.TEXT_PLAIN)
     public Response post() {
       return getResponse();
     }
 
+    /**
+     * Handle PUT resource
+     * @return 404 response with msg
+     */
     @PUT
     @Produces(MediaType.TEXT_PLAIN)
     public Response put() {
       return getResponse();
     }
 
+    /**
+     * Handle DELETE resource
+     * @return 404 response with msg
+     */
     @DELETE
     @Produces(MediaType.TEXT_PLAIN)
     public Response delete() {
       return getResponse();
     }
 
+    /**
+     * Handle GET sub-resource
+     * @return 404 response with msg
+     */
     @GET
     @Path("{path: .*}")
     @Produces(MediaType.TEXT_PLAIN)
@@ -376,6 +400,10 @@ public class ViewInstanceService extends BaseService {
       return getResponse();
     }
 
+    /**
+     * Handle POST sub-resource
+     * @return 404 response with msg
+     */
     @POST
     @Path("{path: .*}")
     @Produces(MediaType.TEXT_PLAIN)
@@ -383,6 +411,10 @@ public class ViewInstanceService extends BaseService {
       return getResponse();
     }
 
+    /**
+     * Handle PUT sub-resource
+     * @return 404 response with msg
+     */
     @PUT
     @Path("{path: .*}")
     @Produces(MediaType.TEXT_PLAIN)
@@ -390,6 +422,10 @@ public class ViewInstanceService extends BaseService {
       return getResponse();
     }
 
+    /**
+     * Handle DELETE sub-resource
+     * @return 404 response with msg
+     */
     @DELETE
     @Path("{path: .*}")
     @Produces(MediaType.TEXT_PLAIN)
@@ -397,6 +433,10 @@ public class ViewInstanceService extends BaseService {
       return getResponse();
     }
 
+    /**
+     * Build 404 response with msg
+     * @return 404 response with msg
+     */
     public Response getResponse() {
       Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, msg));
       Response.ResponseBuilder builder = Response.status(result.getStatus().getStatusCode()).entity(new JsonSerializer().serialize(result));
