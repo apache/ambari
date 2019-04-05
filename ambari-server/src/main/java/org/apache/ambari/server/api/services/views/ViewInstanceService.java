@@ -350,85 +350,101 @@ public class ViewInstanceService extends BaseService {
     }
 
     /**
-     * Handle GET resource
+     * Handles: GET /{resourceName}
+     * Handle GET resource with 404 response
      * @return 404 response with msg
      */
     @GET
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiOperation(value = "Handle GET resource with 404 response")
     public Response get() {
       return getResponse();
     }
 
     /**
-     * Handle POST resource
+     * Handles: POST /{resourceName}
+     * Handle POST resource with 404 response
      * @return 404 response with msg
      */
     @POST
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiOperation(value = "Handle POST resource with 404 response")
     public Response post() {
       return getResponse();
     }
 
     /**
-     * Handle PUT resource
+     * Handles: PUT /{resourceName}
+     * Handle PUT resource with 404 response
      * @return 404 response with msg
      */
     @PUT
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiOperation(value = "Handle PUT resource with 404 response")
     public Response put() {
       return getResponse();
     }
 
     /**
-     * Handle DELETE resource
+     * Handles: DELETE /{resourceName}
+     * Handle DELETE resource with 404 response
      * @return 404 response with msg
      */
     @DELETE
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiOperation(value = "Handle DELETE resource with 404 response")
     public Response delete() {
       return getResponse();
     }
 
     /**
-     * Handle GET sub-resource
+     * Handles: GET /{resourceName}/{.*}
+     * Handle GET sub-resource with 404 response
      * @return 404 response with msg
      */
     @GET
     @Path("{path: .*}")
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiOperation(value = "Handle GET sub-resource with 404 response")
     public Response getSub() {
       return getResponse();
     }
 
     /**
-     * Handle POST sub-resource
+     * Handles: POST /{resourceName}/{.*}
+     * Handle POST sub-resource with 404 response
      * @return 404 response with msg
      */
     @POST
     @Path("{path: .*}")
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiOperation(value = "Handle POST sub-resource with 404 response")
     public Response postSub() {
       return getResponse();
     }
 
     /**
-     * Handle PUT sub-resource
+     * Handles: PUT /{resourceName}/{.*}
+     * Handle PUT sub-resource with 404 response
      * @return 404 response with msg
      */
     @PUT
     @Path("{path: .*}")
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiOperation(value = "Handle PUT sub-resource with 404 response")
     public Response putSub() {
       return getResponse();
     }
 
     /**
-     * Handle DELETE sub-resource
+     * Handles: DELETE /{resourceName}/{.*}
+     * Handle DELETE sub-resource with 404 response
      * @return 404 response with msg
      */
     @DELETE
     @Path("{path: .*}")
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiOperation(value = "Handle DELETE sub-resource with 404 response")
     public Response deleteSub() {
       return getResponse();
     }
