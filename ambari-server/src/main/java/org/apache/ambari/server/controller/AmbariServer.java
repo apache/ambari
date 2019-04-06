@@ -724,7 +724,8 @@ public class AmbariServer {
       }
       catch (Throwable ex) {
         // Writing explicitly to the console is necessary as the python start script expects it.
-        System.out.println("Database consistency check result: " + DatabaseConsistencyCheckResult.DB_CHECK_ERROR);
+        System.out.println("Database consistency check result: " + DatabaseConsistencyCheckResult.DB_CHECK_ERROR +
+                ". Error Message: " + ex.getMessage());
         throw new Exception(ex);
       }
     }
