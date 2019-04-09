@@ -49,7 +49,7 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
   static final String KEY_LIB_NOT_TARGZ = "lib_not_targz";
   static final String KEY_USE_HADOOP_LIBS_FALSE = "tez_use_hadoop_libs_false";
   static final String DFS_PROTOCOLS_REGEX_PROPERTY_NAME = "dfs-protocols-regex";
-  static final String DFS_PROTOCOLS_REGEX_DEFAULT = "^([^:]*dfs|wasb|ecs):.*";
+  static final String DFS_PROTOCOLS_REGEX_DEFAULT = "^([^:]*dfs|wasb|ecs|abfs):.*";
 
   /**
    * {@inheritDoc}

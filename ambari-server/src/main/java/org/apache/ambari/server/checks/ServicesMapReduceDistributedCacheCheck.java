@@ -47,7 +47,7 @@ public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescrip
   static final String KEY_FRAMEWORK_PATH = "framework_path";
   static final String KEY_NOT_DFS = "not_dfs";
   static final String DFS_PROTOCOLS_REGEX_PROPERTY_NAME = "dfs-protocols-regex";
-  static final String DFS_PROTOCOLS_REGEX_DEFAULT = "^([^:]*dfs|wasb|ecs):.*";
+  static final String DFS_PROTOCOLS_REGEX_DEFAULT = "^([^:]*dfs|wasb|ecs|abfs):.*";
 
   /**
    * {@inheritDoc}
