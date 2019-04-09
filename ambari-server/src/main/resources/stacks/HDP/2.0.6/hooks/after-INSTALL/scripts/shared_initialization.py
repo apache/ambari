@@ -109,7 +109,14 @@ def link_configs(struct_out_file):
     Logger.info("Could not load 'version' from {0}".format(struct_out_file))
     return
 
-  # On parallel command execution this should be executed by a single process at a time.
-  with FcntlBasedProcessLock(params.link_configs_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
-    for package_name, directories in conf_select.get_package_dirs().iteritems():
-      conf_select.convert_conf_directories_to_symlinks(package_name, json_version, directories)
+  if not params.sysprep_skip_conf_select or not os.path.exists(params.conf_select_marker_file):
+    # On parallel command execution this should be executed by a single process at a time.
+    with FcntlBasedProcessLock(params.link_configs_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
+      for package_name, directories in conf_select.get_package_dirs().iteritems():
+        conf_select.convert_conf_directories_to_symlinks(package_name, json_version, directories)
+
+    # create a file to mark that conf-selects were already done
+    with open(params.conf_select_marker_file, "wb") as fp:
+      pass
+  else:
+    Logger.info(format("Skipping conf-select stage, since cluster-env/sysprep_skip_conf_select is set and mark file {conf_select_marker_file} exists"))

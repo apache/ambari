@@ -92,3 +92,5 @@ link_configs_lock_file = get_config_lock_file()
 stack_select_lock_file = os.path.join(tmp_dir, "stack_select_lock_file")
 
 upgrade_suspended = default("/roleParams/upgrade_suspended", False)
+sysprep_skip_conf_select = default("/configurations/cluster-env/sysprep_skip_conf_select", False)
+conf_select_marker_file = os.path.join(tmp_dir, "conf_select_done_marker")
