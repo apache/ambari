@@ -108,17 +108,25 @@ def setup_trusted_proxy(options):
   validate_options(options)
   ambari_properties = get_ambari_properties()
 
-  if ambari_properties.get_property(TPROXY_SUPPORT_ENABLED) == 'true':
-    print_info_msg('\nTrusted Proxy support is currently enabled.\n')
-    if not get_YN_input('Do you want to disable Trusted Proxy support [y/n] (n)? ', False):
-      return
-    ambari_properties.process_pair(TPROXY_SUPPORT_ENABLED, 'false')
+  if options.tproxy_enabled is None:
+    if ambari_properties.get_property(TPROXY_SUPPORT_ENABLED) == 'true':
+      print_info_msg('\nTrusted Proxy support is currently enabled.\n')
+      if not get_YN_input('Do you want to disable Trusted Proxy support [y/n] (n)? ', False):
+        return
+      ambari_properties.process_pair(TPROXY_SUPPORT_ENABLED, 'false')
+    else:
+      print_info_msg('\nTrusted Proxy support is currently disabled.\n')
+      if not get_YN_input('Do you want to configure Trusted Proxy Support [y/n] (y)? ', True):
+        return
+      remove_existing_tproxy_properties(ambari_properties)
+      ambari_properties.process_pair(TPROXY_SUPPORT_ENABLED, 'true')
+      update_ambari_properties(ambari_properties, input_tproxy_config(options))
   else:
-    print_info_msg('\nTrusted Proxy support is currently disabled.\n')
-    if not get_YN_input('Do you want to configure Trusted Proxy Support [y/n] (y)? ', True):
-      return
-    remove_existing_tproxy_properties(ambari_properties)
-    ambari_properties.process_pair(TPROXY_SUPPORT_ENABLED, 'true')
-    update_ambari_properties(ambari_properties, input_tproxy_config(options))
-
+    configure_tproxy(ambari_properties, options)
   save_ambari_properties(ambari_properties)
+
+def configure_tproxy(ambari_properties, options):
+  ambari_properties.process_pair(TPROXY_SUPPORT_ENABLED, options.tproxy_enabled)
+  if options.tproxy_enabled == 'true':
+    remove_existing_tproxy_properties(ambari_properties)
+    update_ambari_properties(ambari_properties, input_tproxy_config(options))
