@@ -28,6 +28,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions.version import format_stack_version, get_major_version
+from resource_management.libraries.functions.format import format
 from string import lower
 
 config = Script.get_config()
@@ -120,3 +121,5 @@ link_configs_lock_file = get_config_lock_file()
 stack_select_lock_file = os.path.join(tmp_dir, "stack_select_lock_file")
 
 upgrade_suspended = default("/roleParams/upgrade_suspended", False)
+sysprep_skip_conf_select = default("/configurations/cluster-env/sysprep_skip_conf_select", False)
+conf_select_marker_file = format("{tmp_dir}/conf_select_done_marker")
