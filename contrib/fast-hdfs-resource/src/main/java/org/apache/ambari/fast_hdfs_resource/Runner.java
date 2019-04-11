@@ -31,7 +31,7 @@ import com.google.gson.Gson;
 
 public class Runner {
   public static void main(String[] args)
-      throws IOException, URISyntaxException {
+      throws IOException, URISyntaxException, Exception {
     // 1 - Check arguments
     if (args.length != 1) {
       System.err.println("Incorrect number of arguments. Please provide:\n"
@@ -65,7 +65,7 @@ public class Runner {
       // 4 - Connect to HDFS
       System.out.println("Using filesystem uri: " + FileSystem.getDefaultUri(conf).toString());
       dfs.initialize(FileSystem.getDefaultUri(conf), conf);
-      
+
       for (Resource resource : resources) {
         System.out.println("Creating: " + resource);
 
@@ -104,12 +104,14 @@ public class Runner {
     catch(Exception e) {
        System.out.println("Exception occurred, Reason: " + e.getMessage());
        e.printStackTrace();
+       throw e;
     }
     finally {
-      dfs.close();
+      if (null != dfs) {
+        dfs.close();
+      }
     }
 
     System.out.println("All resources created.");
   }
-
 }
