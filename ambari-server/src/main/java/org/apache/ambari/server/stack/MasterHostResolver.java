@@ -268,6 +268,17 @@ public class MasterHostResolver {
   }
 
   /**
+   * Find Config value for current Cluster using configType and propertyName
+   *
+   * @param configType   Config Type
+   * @param propertyName Property Name
+   * @return Value of property if present else null
+   */
+  public String getValueFromDesiredConfigurations(final String configType, final String propertyName) {
+    return m_configHelper.getValueFromDesiredConfigurations(m_cluster, configType, propertyName);
+  }
+
+  /**
    * Get mapping of the HDFS Namenodes from the state ("active" or "standby") to the hostname.
    * @return Returns a map from the state ("active" or "standby" to the hostname with that state if exactly
    * one active and one standby host were found, otherwise, return null.
