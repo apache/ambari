@@ -41,6 +41,8 @@ import org.apache.commons.lang.StringUtils;
 
 import com.google.common.base.Objects;
 
+import static org.apache.ambari.server.state.ConfigHelper.CLUSTER_ENV;
+
 /**
  *
  */
@@ -228,6 +230,11 @@ public class Grouping {
 
         if (m_grouping.parallelScheduler != null) {
           int taskParallelism = m_grouping.parallelScheduler.maxDegreeOfParallelism;
+          String maxDegreeFromClusterEnv = ctx.getResolver().getValueFromDesiredConfigurations(CLUSTER_ENV,
+                  "max_degree_parallelism");
+          if (StringUtils.isNotEmpty(maxDegreeFromClusterEnv) && StringUtils.isNumeric(maxDegreeFromClusterEnv)) {
+            taskParallelism = Integer.parseInt(maxDegreeFromClusterEnv);
+          }
           if (taskParallelism == Integer.MAX_VALUE) {
             taskParallelism = ctx.getDefaultMaxDegreeOfParallelism();
           }

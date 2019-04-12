@@ -313,6 +313,17 @@ public class MasterHostResolver {
   }
 
   /**
+   * Find Config value for current Cluster using configType and propertyName
+   *
+   * @param configType   Config Type
+   * @param propertyName Property Name
+   * @return Value of property if present else null
+   */
+  public String getValueFromDesiredConfigurations(final String configType, final String propertyName) {
+    return m_configHelper.getValueFromDesiredConfigurations(m_cluster, configType, propertyName);
+  }
+
+  /**
    * Find the master and secondary namenode(s) based on JMX NameNodeStatus.
    */
   private HostsType.HighAvailabilityHosts findMasterAndSecondaries(NameService nameService, Set<String> componentHosts) throws ClassifyNameNodeException {
