@@ -49,6 +49,12 @@ class ServiceCheckDefault(ServiceCheck):
     import params
     env.set_params(params)
 
+    if params.security_enabled:
+        kinit_cmd = format(
+            "{kinit_path_local} -kt {storm_keytab_path} {storm_jaas_principal}; ")
+    else:
+        kinit_cmd = ""
+
     unique = get_unique_id_and_date()
 
     File("/tmp/wordCount.jar",
@@ -63,6 +69,11 @@ class ServiceCheckDefault(ServiceCheck):
       cmd = format("storm jar /tmp/wordCount.jar storm.starter.WordCountTopology WordCount{unique}")
     elif params.nimbus_host is not None:
       cmd = format("storm jar /tmp/wordCount.jar storm.starter.WordCountTopology WordCount{unique} -c nimbus.host={nimbus_host}")
+
+    # use client jaas for service check
+    if params.security_enabled:
+        storm_client_jaas_file = format("{conf_dir}/client_jaas.conf")
+        cmd = format("{kinit_cmd}{cmd} -c java.security.auth.login.config={storm_client_jaas_file}")
 
     Execute(cmd,
             logoutput=True,

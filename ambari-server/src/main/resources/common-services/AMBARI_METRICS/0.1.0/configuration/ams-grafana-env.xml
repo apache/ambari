@@ -99,4 +99,26 @@ export AMS_GRAFANA_PID_DIR={{ams_grafana_pid_dir}}
     </value>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>metrics_grafana_connect_retry_delay</name>
+    <value>20</value>
+    <display-name>Grafana connect retry delay</display-name>
+    <description>The time in seconds after which connection to Grafana is retried in case of failure</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>metrics_grafana_connect_attempts</name>
+    <value>15</value>
+    <display-name>Grafana connect attempts</display-name>
+    <description>The number of attempts for connection to Grafana</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>

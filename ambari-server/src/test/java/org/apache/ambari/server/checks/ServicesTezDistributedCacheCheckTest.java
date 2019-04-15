@@ -207,7 +207,7 @@ public class ServicesTezDistributedCacheCheckTest {
     Mockito.when(config.getProperties()).thenReturn(properties);
 
     Map<String, String> checkProperties = new HashMap<>();
-    checkProperties.put("dfs-protocols-regex","^([^:]*dfs|wasb|ecs):.*");
+    checkProperties.put("dfs-protocols-regex", ServicesTezDistributedCacheCheck.DFS_PROTOCOLS_REGEX_DEFAULT);
     PrerequisiteCheckConfig prerequisiteCheckConfig = Mockito.mock(PrerequisiteCheckConfig.class);
     Mockito.when(prerequisiteCheckConfig.getCheckProperties(
         servicesTezDistributedCacheCheck.getClass().getName())).thenReturn(checkProperties);
@@ -247,6 +247,15 @@ public class ServicesTezDistributedCacheCheckTest {
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
     properties.put("fs.defaultFS", "anything");
+    properties.put("tez.lib.uris", "abfs://some/path/to/archive.tar.gz");
+    properties.put("tez.use.cluster.hadoop-libs", "false");
+    request = new PrereqCheckRequest("cluster");
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
+    check = new PrerequisiteCheck(null, null);
+    servicesTezDistributedCacheCheck.perform(check, request);
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+
+    properties.put("fs.defaultFS", "anything");
     properties.put("tez.lib.uris", "ecs://some/path/to/archive.tar.gz");
     properties.put("tez.use.cluster.hadoop-libs", "false");
     request = new PrereqCheckRequest("cluster");
@@ -274,6 +283,15 @@ public class ServicesTezDistributedCacheCheckTest {
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
     properties.put("fs.defaultFS", "wasb://ha");
+    properties.put("tez.lib.uris", "/some/path/to/archive.tar.gz");
+    properties.put("tez.use.cluster.hadoop-libs", "false");
+    request = new PrereqCheckRequest("cluster");
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
+    check = new PrerequisiteCheck(null, null);
+    servicesTezDistributedCacheCheck.perform(check, request);
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+
+    properties.put("fs.defaultFS", "abfs://ha");
     properties.put("tez.lib.uris", "/some/path/to/archive.tar.gz");
     properties.put("tez.use.cluster.hadoop-libs", "false");
     request = new PrereqCheckRequest("cluster");

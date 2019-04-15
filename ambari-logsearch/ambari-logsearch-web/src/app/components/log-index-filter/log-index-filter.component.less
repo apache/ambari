@@ -17,42 +17,59 @@
  */
 
 @import '../../modules/shared/mixins';
+@import '../../modules/shared/variables';
+:host {
+  div.log-index-filter-content {
+    table {
+      &.table-header {
+        background-color: #fff;
+        margin-bottom: 0;
+        position: sticky;
+        top: -1px;
+        z-index: 10;
+      }
+      .component-column {
+        width: 25%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
-table {
-  display: block;
-  max-height: 70vh;
-  overflow-y: auto;
-  table-layout: fixed;
+      .checkbox-column {
+        width: 7%;
+        padding: 4px 0;
+        /deep/ graph-legend-item {
+          padding-right: 1px;
+          @media (max-width: 1510px) {
+            .item-label {
+              display: block;
+            }
+          }
+        }
+      }
 
-  .component-column {
-    width: auto;
-  }
+      tr.component-default-row {
+        background-color: lighten(@grey-color, 10%);
+      }
 
-  .checkbox-column {
-    width: 100px;
-    padding-left: 0;
-    padding-right: 0;
+      .override-column {
+        width: 26%;
+        padding-right: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
-    /deep/ graph-legend-item {
-      padding-right: 1px;
+      th.override-column {
+        padding-left: 20px;
+      }
+
+      .overrides-toggle {
+        .clickable-item;
+      }
+
+      input[type=checkbox] + label {
+        font-size: @table-font-size;
+        top: 0;
+      }
     }
-  }
-
-  .override-column {
-    width: 32%;
-    padding-right: 0;
-  }
-
-  th.override-column {
-    padding-left: 20px;
-  }
-
-  .overrides-toggle {
-    .clickable-item;
-  }
-
-  input[type=checkbox] + label {
-    font-size: @table-font-size;
-    top: 0;
   }
 }

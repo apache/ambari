@@ -1259,31 +1259,31 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
 
     self.assertResourceCalled('Repository', 'HDP-2.6-repo-1',
-        append_to_file = False,
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-52',
-        action = ['create'],
+        action = ['prepare'],
         components = [u'HDP', 'main'],
         repo_template = UnknownConfigurationMock(),
         repo_file_name = 'ambari-hdp-1',
         mirror_list = None,
     )
     self.assertResourceCalled('Repository', 'HDP-2.6-GPL-repo-1',
-        append_to_file = True,
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-52',
-        action = ['create'],
+        action = ['prepare'],
         components = [u'HDP-GPL', 'main'],
         repo_template = UnknownConfigurationMock(),
         repo_file_name = 'ambari-hdp-1',
         mirror_list = None,
     )
     self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.22-repo-1',
-        append_to_file = True,
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6',
-        action = ['create'],
+        action = ['prepare'],
         components = [u'HDP-UTILS', 'main'],
         repo_template = UnknownConfigurationMock(),
         repo_file_name = 'ambari-hdp-1',
         mirror_list = None,
+    )
+    self.assertResourceCalled('Repository', None,
+        action = ['create'],
     )
     self.assertResourceCalled('Package', ('lzo'), retry_count=5, retry_on_repo_unavailability= False)
     self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4'), retry_count = 5, retry_on_repo_unavailability = False)
@@ -1351,32 +1351,32 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
 
     self.assertResourceCalled('Repository', 'HDP-2.6-repo-1',
-        append_to_file = False,
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-52',
-        action = ['create'],
+        action = ['prepare'],
         components = ['HDP', 'main'],
         repo_template = UnknownConfigurationMock(),
         repo_file_name = 'ambari-hdp-1',
         mirror_list = None,
     )
     self.assertResourceCalled('Repository', 'HDP-2.6-GPL-repo-1',
-        append_to_file = True,
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-52',
-        action = ['create'],
+        action = ['prepare'],
         components = ['HDP-GPL', 'main'],
         repo_template = UnknownConfigurationMock(),
         repo_file_name = 'ambari-hdp-1',
         mirror_list = None,
     )
     self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.22-repo-1',
-        append_to_file = True,
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6',
-        action = ['create'],
+        action = ['prepare'],
         components = ['HDP-UTILS', 'main'],
         repo_template = UnknownConfigurationMock(),
         repo_file_name = 'ambari-hdp-1',
         mirror_list = None,
     )
+    self.assertResourceCalled('Repository', None,
+        action = ['create'],
+    )    
     self.assertResourceCalled('Package', ('lzo'), retry_count=5, retry_on_repo_unavailability= False)
     self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4'), retry_count = 5, retry_on_repo_unavailability = False)
     self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4-native'), retry_count = 5, retry_on_repo_unavailability = False)
@@ -1451,31 +1451,31 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
 
     self.assertResourceCalled('Repository', 'HDP-2.6-repo-1',
-        append_to_file = False,
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-52',
-        action = ['create'],
+        action = ['prepare'],
         components = ['HDP', 'main'],
         repo_template = UnknownConfigurationMock(),
         repo_file_name = 'ambari-hdp-1',
         mirror_list = None,
     )
     self.assertResourceCalled('Repository', 'HDP-2.6-GPL-repo-1',
-        append_to_file = True,
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-52',
-        action = ['create'],
+        action = ['prepare'],
         components = ['HDP-GPL', 'main'],
         repo_template = UnknownConfigurationMock(),
         repo_file_name = 'ambari-hdp-1',
         mirror_list = None,
     )
     self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.22-repo-1',
-        append_to_file = True,
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6',
-        action = ['create'],
+        action = ['prepare'],
         components = ['HDP-UTILS', 'main'],
         repo_template = UnknownConfigurationMock(),
         repo_file_name = 'ambari-hdp-1',
         mirror_list = None,
+    )
+    self.assertResourceCalled('Repository', None,
+        action = ['create'],
     )
     self.assertResourceCalled('Package', ('lzo'), retry_count=5, retry_on_repo_unavailability= False)
     self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4'), retry_count = 5, retry_on_repo_unavailability = False)
@@ -1719,31 +1719,31 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
 
     self.assertResourceCalled('Repository', 'HDP-2.6-repo-1',
-        append_to_file = False,
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-52',
-        action = ['create'],
+        action = ['prepare'],
         components = ['HDP', 'main'],
         repo_template = UnknownConfigurationMock(),
         repo_file_name = 'ambari-hdp-1',
         mirror_list = None,
     )
     self.assertResourceCalled('Repository', 'HDP-2.6-GPL-repo-1',
-        append_to_file = True,
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-52',
-        action = ['create'],
+        action = ['prepare'],
         components = ['HDP-GPL', 'main'],
         repo_template = UnknownConfigurationMock(),
         repo_file_name = 'ambari-hdp-1',
         mirror_list = None,
     )
     self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.22-repo-1',
-        append_to_file = True,
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6',
-        action = ['create'],
+        action = ['prepare'],
         components = ['HDP-UTILS', 'main'],
         repo_template = UnknownConfigurationMock(),
         repo_file_name = 'ambari-hdp-1',
         mirror_list = None,
+    )
+    self.assertResourceCalled('Repository', None,
+        action = ['create'],
     )
     self.assertResourceCalled('Package', ('lzo'), retry_count=5, retry_on_repo_unavailability= False)
     self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4'), retry_count = 5, retry_on_repo_unavailability = False)

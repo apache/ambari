@@ -21,40 +21,34 @@ package org.apache.ambari.server.events.publishers;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.HostComponentUpdate;
 import org.apache.ambari.server.events.HostComponentsUpdateEvent;
+import org.apache.ambari.server.events.STOMPEvent;
 
 import com.google.common.eventbus.EventBus;
-import com.google.inject.Singleton;
+import com.google.inject.Inject;
 
-@Singleton
+@EagerSingleton
 public class HostComponentUpdateEventPublisher extends BufferedUpdateEventPublisher<HostComponentsUpdateEvent> {
 
-  @Override
-  protected Runnable getScheduledPublisher(EventBus m_eventBus) {
-    return new HostComponentsEventRunnable(m_eventBus);
+  @Inject
+  public HostComponentUpdateEventPublisher(STOMPUpdatePublisher stompUpdatePublisher) {
+    super(stompUpdatePublisher);
   }
 
-  private class HostComponentsEventRunnable implements Runnable {
+  @Override
+  public STOMPEvent.Type getType() {
+    return STOMPEvent.Type.HOSTCOMPONENT;
+  }
 
-    private final EventBus eventBus;
+  @Override
+  public void mergeBufferAndPost(List<HostComponentsUpdateEvent> events, EventBus m_eventBus) {
+    List<HostComponentUpdate> hostComponentUpdates = events.stream().flatMap(
+        u -> u.getHostComponentUpdates().stream()).collect(Collectors.toList());
 
-    public HostComponentsEventRunnable(EventBus eventBus) {
-      this.eventBus = eventBus;
-    }
-
-    @Override
-    public void run() {
-      List<HostComponentsUpdateEvent> hostComponentUpdateEvents = retrieveBuffer();
-      if (hostComponentUpdateEvents.isEmpty()) {
-        return;
-      }
-      List<HostComponentUpdate> hostComponentUpdates = hostComponentUpdateEvents.stream().flatMap(
-          u -> u.getHostComponentUpdates().stream()).collect(Collectors.toList());
-
-      HostComponentsUpdateEvent resultEvents = new HostComponentsUpdateEvent(hostComponentUpdates);
-      //TODO add logging and metrics posting
-      eventBus.post(resultEvents);
-    }
+    HostComponentsUpdateEvent resultEvents = new HostComponentsUpdateEvent(hostComponentUpdates);
+    //TODO add logging and metrics posting
+    m_eventBus.post(resultEvents);
   }
 }

@@ -2987,6 +2987,10 @@ class DefaultStackAdvisor(StackAdvisor):
       return None
 
     dir = re.sub("^file://", "", dir, count=1)
+
+    if not dir:
+      return self.getErrorItem("Value has wrong format")
+
     mountPoints = {}
     for mountPoint in hostInfo["disk_info"]:
       mountPoints[mountPoint["mountpoint"]] = self.to_number(mountPoint["available"])
@@ -2994,6 +2998,9 @@ class DefaultStackAdvisor(StackAdvisor):
 
     if not mountPoints:
       return self.getErrorItem("No disk info found on host %s" % hostInfo["host_name"])
+
+    if mountPoint is None:
+      return self.getErrorItem("No mount point in directory %s. Mount points: %s" % (dir, ', '.join(mountPoints.keys())))
 
     if mountPoints[mountPoint] < reqiuredDiskSpace:
       msg = "Ambari Metrics disk space requirements not met. \n" \

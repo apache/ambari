@@ -29,6 +29,7 @@ import org.apache.ambari.server.security.authentication.AccountDisabledException
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationProvider;
 import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authentication.AmbariUserDetails;
+import org.apache.ambari.server.security.authentication.AmbariUserDetailsImpl;
 import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
 import org.apache.commons.collections.CollectionUtils;
@@ -52,7 +53,8 @@ import com.google.inject.Inject;
  * Provides LDAP user authorization logic for Ambari Server
  */
 public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvider {
-  static Logger LOG = LoggerFactory.getLogger(AmbariLdapAuthenticationProvider.class); // exposed and mutable for "test"
+  private static final String SYSTEM_PROPERTY_DISABLE_ENDPOINT_IDENTIFICATION = "com.sun.jndi.ldap.object.disableEndpointIdentification";
+  private static Logger LOG = LoggerFactory.getLogger(AmbariLdapAuthenticationProvider.class);
 
   final AmbariLdapConfigurationProvider ldapConfigurationProvider;
 
@@ -109,7 +111,7 @@ public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvid
             }
           }
 
-          AmbariUserDetails userDetails = new AmbariUserDetails(users.getUser(userEntity), null, users.getUserAuthorities(userEntity));
+          AmbariUserDetails userDetails = new AmbariUserDetailsImpl(users.getUser(userEntity), null, users.getUserAuthorities(userEntity));
           return new AmbariUserAuthentication(null, userDetails, true);
         }
       } catch (AuthenticationException e) {
@@ -169,6 +171,14 @@ public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvid
       if (!ldapServerProperties.get().isAnonymousBind()) {
         springSecurityContextSource.setUserDn(ldapServerProperties.get().getManagerDn());
         springSecurityContextSource.setPassword(ldapServerProperties.get().getManagerPassword());
+      }
+
+      if (ldapServerProperties.get().isUseSsl() && ldapServerProperties.get().isDisableEndpointIdentification()) {
+        System.setProperty(SYSTEM_PROPERTY_DISABLE_ENDPOINT_IDENTIFICATION, "true");
+        LOG.info("Disabled endpoint identification");
+      } else {
+        System.clearProperty(SYSTEM_PROPERTY_DISABLE_ENDPOINT_IDENTIFICATION);
+        LOG.info("Removed endpoint identification disabling");
       }
 
       try {

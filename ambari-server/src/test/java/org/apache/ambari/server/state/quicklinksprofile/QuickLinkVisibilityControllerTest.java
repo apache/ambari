@@ -18,8 +18,12 @@
 
 package org.apache.ambari.server.state.quicklinksprofile;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+import java.util.Optional;
 
 import org.apache.ambari.server.state.quicklinks.Link;
 import org.junit.Test;
@@ -32,16 +36,26 @@ public class QuickLinkVisibilityControllerTest {
   static final String SSO = "sso";
   static final String NAMENODE = "NAMENODE";
   static final String HDFS = "HDFS";
+  public static final String YARN = "YARN";
   static final String NAMENODE_UI = "namenode_ui";
+  static final String NAMENODE_LOGS = "namenode_logs";
+  static final String NAMENODE_JMX = "namenode_jmx";
+  static final String THREAD_STACKS = "Thread Stacks";
+  static final String LINK_URL_1 = "www.overridden.org/1";
+  static final String LINK_URL_2 = "www.overridden.org/2";
+  static final String LINK_URL_3 = "www.overridden.org/3";
 
 
   private Link namenodeUi;
+  private Link namenodeLogs;
+  private Link namenodeJmx;
+  private Link threadStacks;
 
   public QuickLinkVisibilityControllerTest() {
-    namenodeUi = new Link();
-    namenodeUi.setComponentName(NAMENODE);
-    namenodeUi.setName(NAMENODE_UI);
-    namenodeUi.setAttributes(ImmutableList.of(AUTHENTICATED));
+    namenodeUi = link(NAMENODE_UI, NAMENODE, ImmutableList.of(AUTHENTICATED));
+    namenodeLogs = link(NAMENODE_LOGS, NAMENODE, null);
+    namenodeJmx = link(NAMENODE_JMX, NAMENODE, null);
+    threadStacks = link(THREAD_STACKS, NAMENODE, null);
   }
 
   /**
@@ -176,6 +190,67 @@ public class QuickLinkVisibilityControllerTest {
     DefaultQuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);
     assertFalse("No filters should have been applied, so default false should have been returned.",
         evaluator.isVisible(HDFS, namenodeUi));
+  }
+
+  @Test
+  public void testUrlOverride() throws Exception {
+    Component nameNode = Component.create(
+      NAMENODE,
+      ImmutableList.of(
+        Filter.linkNameFilter(NAMENODE_UI, true),
+        Filter.linkNameFilter(NAMENODE_LOGS, LINK_URL_1, true)));
+    Service hdfs = Service.create(
+      HDFS,
+      ImmutableList.of(Filter.linkNameFilter(NAMENODE_JMX, LINK_URL_2, true)),
+      ImmutableList.of(nameNode));
+    QuickLinksProfile profile = QuickLinksProfile.create(
+      ImmutableList.of(Filter.linkNameFilter(THREAD_STACKS, LINK_URL_3, true)),
+      ImmutableList.of(hdfs));
+
+    DefaultQuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);
+    assertEquals(Optional.empty(), evaluator.getUrlOverride(HDFS, namenodeUi));
+    assertEquals(Optional.of(LINK_URL_1), evaluator.getUrlOverride(HDFS, namenodeLogs));
+    assertEquals(Optional.of(LINK_URL_2), evaluator.getUrlOverride(HDFS, namenodeJmx));
+    // component name doesn't matter
+    namenodeLogs.setComponentName(null);
+    assertEquals(Optional.of(LINK_URL_1), evaluator.getUrlOverride(HDFS, namenodeLogs));
+    // no override for links not in the profile
+    assertEquals(Optional.empty(), evaluator.getUrlOverride(YARN, link("resourcemanager_ui", "RESOURCEMANAGER", null)));
+    // url overrides in global filters are ignored
+    assertEquals(Optional.empty(), evaluator.getUrlOverride(HDFS, threadStacks));
+  }
+
+  @Test
+  public void testUrlOverride_duplicateDefinitions() throws Exception {
+    // same link is defined twice for a service
+    Component nameNode = Component.create(
+      NAMENODE,
+      ImmutableList.of(
+        Filter.linkNameFilter(NAMENODE_UI, LINK_URL_1, true))); // this will override service level setting for the same link
+    Service hdfs = Service.create(
+      HDFS,
+      ImmutableList.of(Filter.linkNameFilter(NAMENODE_UI, LINK_URL_2, true)), // same link on service level with different url
+      ImmutableList.of(nameNode));
+    Service yarn = Service.create(
+      YARN,
+      ImmutableList.of(Filter.linkNameFilter(NAMENODE_UI, LINK_URL_3, true)), // this belongs to an other service so doesn't affect outcome
+      ImmutableList.of(nameNode));
+
+    QuickLinksProfile profile = QuickLinksProfile.create(
+      ImmutableList.of(),
+      ImmutableList.of(hdfs));
+
+    DefaultQuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);
+    assertEquals(Optional.of(LINK_URL_1), evaluator.getUrlOverride(HDFS, namenodeUi));
+  }
+
+
+  private static final Link link(String name, String componentName, List<String> attributes) {
+    Link link = new Link();
+    link.setName(name);
+    link.setComponentName(componentName);
+    link.setAttributes(attributes);
+    return link;
   }
 
 }

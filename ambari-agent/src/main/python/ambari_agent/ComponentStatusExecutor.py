@@ -43,6 +43,7 @@ class ComponentStatusExecutor(threading.Thread):
     self.logger = logging.getLogger(__name__)
     self.reports_to_discard = []
     self.reports_to_discard_lock = threading.RLock()
+    self.reported_component_status_lock = threading.RLock()
     threading.Thread.__init__(self)
 
   def run(self):
@@ -178,7 +179,7 @@ class ComponentStatusExecutor(threading.Thread):
       'clusterId': cluster_id,
     }
 
-    if status != self.reported_component_status[cluster_id][component_name][command_name]:
+    if status != self.reported_component_status[cluster_id]["{0}/{1}".format(service_name, component_name)][command_name]:
       logging.info("Status for {0} has changed to {1}".format(component_name, status))
       self.recovery_manager.handle_status_change(component_name, status)
 
@@ -191,6 +192,29 @@ class ComponentStatusExecutor(threading.Thread):
       return result
     return None
 
+  def force_send_component_statuses(self):
+    """
+    Forcefully resends all component statuses which are currently in cache.
+    """
+    cluster_reports = defaultdict(lambda:[])
+
+    with self.reported_component_status_lock:
+      for cluster_id, component_to_command_dict in self.reported_component_status.iteritems():
+        for service_and_component_name, commands_status in component_to_command_dict.iteritems():
+          service_name, component_name = service_and_component_name.split("/")
+          for command_name, status in commands_status.iteritems():
+            report = {
+              'serviceName': service_name,
+              'componentName': component_name,
+              'command': command_name,
+              'status': status,
+              'clusterId': cluster_id,
+            }
+
+            cluster_reports[cluster_id].append(report)
+
+    self.send_updates_to_server(cluster_reports)
+
   def send_updates_to_server(self, cluster_reports):
     if not cluster_reports or not self.initializer_module.is_registered:
       return
@@ -199,18 +223,21 @@ class ComponentStatusExecutor(threading.Thread):
     self.server_responses_listener.listener_functions_on_success[correlation_id] = lambda headers, message: self.save_reported_component_status(cluster_reports)
 
   def save_reported_component_status(self, cluster_reports):
-    for cluster_id, reports in cluster_reports.iteritems():
-      for report in reports:
-        component_name = report['componentName']
-        command = report['command']
-        status = report['status']
+    with self.reported_component_status_lock:
+      for cluster_id, reports in cluster_reports.iteritems():
+        for report in reports:
+          component_name = report['componentName']
+          service_name = report['serviceName']
+          command = report['command']
+          status = report['status']
 
-        self.reported_component_status[cluster_id][component_name][command] = status
+          self.reported_component_status[cluster_id]["{0}/{1}".format(service_name, component_name)][command] = status
 
   def clean_not_existing_clusters_info(self):
     """
     This needs to be done to remove information about clusters which where deleted (e.g. ambari-server reset)
     """
-    for cluster_id in self.reported_component_status.keys():
-      if cluster_id not in self.topology_cache.get_cluster_ids():
-        del self.reported_component_status[cluster_id]
+    with self.reported_component_status_lock:
+      for cluster_id in self.reported_component_status.keys():
+        if cluster_id not in self.topology_cache.get_cluster_ids():
+          del self.reported_component_status[cluster_id]

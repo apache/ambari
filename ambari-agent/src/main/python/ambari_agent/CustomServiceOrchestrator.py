@@ -347,6 +347,7 @@ class CustomServiceOrchestrator(object):
 
         # forces a hash challenge on the directories to keep them updated, even
         # if the return type is not used
+        self.file_cache.get_host_scripts_base_dir(command)
         base_dir = self.file_cache.get_service_base_dir(command)
         script_path = self.resolve_script_path(base_dir, script)
         script_tuple = (script_path, base_dir)
@@ -415,8 +416,10 @@ class CustomServiceOrchestrator(object):
         self.commands_for_component_in_progress[cluster_id][command['role']] += 1
         incremented_commands_for_component = True
 
-        # reset status which was reported, so agent re-reports it after command finished
-        self.initializer_module.component_status_executor.reported_component_status[cluster_id][command['role']]['STATUS'] = None
+        if 'serviceName' in command:
+          service_component_name = command['serviceName'] + "/" + command['role']
+          # reset status which was reported, so agent re-reports it after command finished
+          self.initializer_module.component_status_executor.reported_component_status[cluster_id][service_component_name]['STATUS'] = None
 
       for py_file, current_base_dir in filtered_py_file_list:
         log_info_on_failure = command_name not in self.DONT_DEBUG_FAILURES_FOR_COMMANDS

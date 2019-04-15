@@ -30,7 +30,7 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
-import org.apache.ambari.server.security.authentication.AmbariUserDetails;
+import org.apache.ambari.server.security.authentication.AmbariUserDetailsImpl;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
@@ -427,6 +427,6 @@ public class TestAuthenticationFactory {
     userEntity.setUserName(username);
     userEntity.setPrincipal(principal);
 
-    return new AmbariUserAuthentication(null, new AmbariUserDetails(new User(userEntity), null, authorities), true);
+    return new AmbariUserAuthentication(null, new AmbariUserDetailsImpl(new User(userEntity), null, authorities), true);
   }
 }

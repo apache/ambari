@@ -1451,6 +1451,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           haValue: 'false'
         },
         {
+          name: 'hadoop.kms.authentication.zk-dt-secret-manager.enable',
+          notHaValue: 'false',
+          haValue: 'true'
+        },
+        {
           name: 'hadoop.kms.cache.timeout.ms',
           notHaValue: '600000',
           haValue: '0'
@@ -1574,7 +1579,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   getZookeeperConnectionString: function () {
-    return this.getRangerKMSServerHosts().map(function (host) {
+    var zookeeperHosts = App.MasterComponent.find('ZOOKEEPER_SERVER').get('hostNames');
+    return zookeeperHosts.map(function (host) {
       return host + ':2181';
     }).join(',');
   },
@@ -1729,10 +1735,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   constructZookeeperConfigUrlParams: function (data) {
     var urlParams = [];
     var services = App.Service.find();
+    var zooKeeperRelatedServices = this.get('zooKeeperRelatedServices').slice(0);
     if (App.get('isHaEnabled')) {
-      urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
+      zooKeeperRelatedServices.push({
+        serviceName: 'HDFS',
+        typesToLoad: ['core-site'],
+        typesToSave: ['core-site']
+      });
     }
-    this.get('zooKeeperRelatedServices').forEach(function (service) {
+    zooKeeperRelatedServices.forEach(function (service) {
       if (services.someProperty('serviceName', service.serviceName)) {
         service.typesToLoad.forEach(function (type) {
           if (data.Clusters.desired_configs[type]) {
@@ -1761,7 +1772,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     this.updateZkConfigs(configs);
     var groups = [];
     var installedServiceNames = App.Service.find().mapProperty('serviceName');
-    this.get('zooKeeperRelatedServices').forEach(function (service) {
+    var zooKeeperRelatedServices = this.get('zooKeeperRelatedServices').slice(0);
+    if (App.get('isHaEnabled')) {
+      zooKeeperRelatedServices.push({
+        serviceName: 'HDFS',
+        typesToLoad: ['core-site'],
+        typesToSave: ['core-site']
+      });
+    }
+    zooKeeperRelatedServices.forEach(function (service) {
       if (installedServiceNames.contains(service.serviceName)) {
         var group = {
           properties: {},
@@ -2284,7 +2303,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var message = Em.I18n.t('hosts.host.details.for.postfix').format(context.label);
     var popupInfo = Em.I18n.t('hosts.passiveMode.popup').format(context.active ? 'On' : 'Off', this.get('content.hostName'));
     if (state === 'OFF') {
-      var hostVersion = this.get('content.stackVersions') && this.get('content.stackVersions').findProperty('isCurrent').get('repoVersion'),
+      var currentHostVersion = this.get('content.stackVersions') && this.get('content.stackVersions').findProperty('isCurrent'),
+        hostVersion = currentHostVersion && currentHostVersion.get('repoVersion'),
         currentVersion = App.StackVersion.find().findProperty('isCurrent'),
         clusterVersion = currentVersion && currentVersion.get('repositoryVersion.repositoryVersion');
       if (hostVersion !== clusterVersion) {
@@ -2876,11 +2896,13 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   refreshConfigs: function (event) {
     var self = this;
-    var components = event.context;
-    if (components.get('length') > 0) {
+    var component = event.context;
+    if (!Em.isNone(component)) {
       return App.showConfirmationPopup(function () {
-        batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.allClientsOnSelectedHost').format(self.get('content.hostName')), "HOST");
-      }, Em.I18n.t('question.sure.refresh').format(self.get('content.hostName')) );
+        var message = Em.I18n.t('rollingrestart.context.ClientOnSelectedHost')
+        .format(component.get('displayName'), self.get('content.hostName'));
+        batchUtils.restartHostComponents([component], message, "HOST");
+      }, Em.I18n.t('question.sure.refresh').format(component.get('displayName'), self.get('content.hostName')));
     }
   },
 
@@ -3089,7 +3111,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   
   recoverHost: function() {
     var components = this.get('content.hostComponents');
-    var hostName = this.get('content.publicHostName');
+    var hostName = this.get('content.hostName');
     var self = this;
     var batches = [
       {

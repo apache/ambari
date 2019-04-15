@@ -49,6 +49,13 @@
     </div>
     {{/if}}
     <div class="form-group">
+      <label for="inputEmail" class="control-label col-xs-2">Append master<span class="requiredField">&nbsp;*</span></label>
+      <div class="col-xs-2 spark-namenode">
+          <input type="checkbox" name="master" checked={{appendNameNode}} value="other" onchange={{action "appendNamenode" value="target"}}>
+      </div>
+    </div>
+
+    <div class="form-group">
       <label for="inputEmail" class="control-label col-xs-2">Runs On<span class="requiredField">&nbsp;*</span></label>
       {{#each mastersList as |master|}}
       <div class="col-xs-2">

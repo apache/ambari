@@ -47,7 +47,7 @@ App.ConfigVersionsControlView = Em.View.extend({
     return serviceVersions.sort(function (a, b) {
       return Em.get(b, 'createTime') - Em.get(a, 'createTime');
     });
-  }.property('serviceName', 'controller.selectedConfigGroup.name'),
+  }.property('controller.selectedConfigGroup.name'),
 
   primaryServiceVersionsInCompare: function() {
     return this.get('serviceVersions').filter((sv) => sv.get('version') !== this.get('controller.compareServiceVersion.version'));
@@ -155,9 +155,9 @@ App.ConfigVersionsControlView = Em.View.extend({
   /**
    * revert config values to chosen version and apply reverted configs to server
    */
-  makeCurrent: function (event) {
+  makeCurrent: function () {
     const self = this;
-    const serviceConfigVersion = event.contexts[0];
+    const serviceConfigVersion = this.get('displayedServiceVersion');
     const versionText = serviceConfigVersion.get('versionText');
     return App.ModalPopup.show({
       header: Em.I18n.t('dashboard.configHistory.info-bar.makeCurrent.popup.title'),

@@ -33,6 +33,7 @@ import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authentication.AmbariUserDetails;
+import org.apache.ambari.server.security.authentication.AmbariUserDetailsImpl;
 import org.apache.ambari.server.security.authorization.internal.InternalTokenClientFilter;
 import org.apache.ambari.server.security.authorization.internal.InternalTokenStorage;
 import org.apache.commons.lang.math.NumberUtils;
@@ -83,7 +84,7 @@ public class AmbariUserAuthorizationFilter implements Filter {
             httpResponse.flushBuffer();
             return;
           } else {
-            AmbariUserDetails userDetails = new AmbariUserDetails(users.getUser(userEntity), null, users.getUserAuthorities(userEntity));
+            AmbariUserDetails userDetails = new AmbariUserDetailsImpl(users.getUser(userEntity), null, users.getUserAuthorities(userEntity));
             AmbariUserAuthentication authentication = new AmbariUserAuthentication(token, userDetails, true);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             httpResponse.setHeader("User", AuthorizationHelper.getAuthenticatedName());

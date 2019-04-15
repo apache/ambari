@@ -20,12 +20,12 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-infra</artifactId>
-  <version>2.7.1.0.0</version>
+  <version>2.7.3.0.0</version>
   <packaging>pom</packaging>
 
   <properties>
     <jdk.version>1.8</jdk.version>
-    <solr.version>7.4.0</solr.version>
+    <solr.version>7.7.0</solr.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <python.ver>python &gt;= 2.6</python.ver>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
@@ -342,17 +342,17 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>2.9.4</version>
+        <version>2.9.8</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-annotations</artifactId>
-        <version>2.9.4</version>
+        <version>2.9.8</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.dataformat</groupId>
         <artifactId>jackson-dataformat-xml</artifactId>
-        <version>2.9.4</version>
+        <version>2.9.8</version>
         <exclusions>
           <exclusion>
             <groupId>com.fasterxml.woodstox</groupId>

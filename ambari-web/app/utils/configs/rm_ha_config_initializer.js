@@ -47,6 +47,8 @@ App.RmHaConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedIn
       'yarn.resourcemanager.hostname.rm1': this.getHostWithPortConfig('RESOURCEMANAGER', true, '', '', ''),
       'yarn.resourcemanager.hostname.rm2': this.getHostWithPortConfig('RESOURCEMANAGER', false,'', '', ''),
       'yarn.resourcemanager.zk-address': this.getHostsWithPortConfig('ZOOKEEPER_SERVER', '', '', ',', 'zkClientPort', true),
+      'yarn.resourcemanager.resource-tracker.address.rm1': this.getHostWithPortConfig('RESOURCEMANAGER', true, '', '', 'trackerAddressPort', true),
+      'yarn.resourcemanager.resource-tracker.address.rm2': this.getHostWithPortConfig('RESOURCEMANAGER', false, '', '', 'trackerAddressPort', true),
       'yarn.resourcemanager.webapp.address.rm1': this.getHostWithPortConfig('RESOURCEMANAGER', true, '', '', 'webAddressPort', true),
       'yarn.resourcemanager.webapp.address.rm2': this.getHostWithPortConfig('RESOURCEMANAGER', false, '', '', 'webAddressPort', true),
       'yarn.resourcemanager.webapp.https.address.rm1': this.getHostWithPortConfig('RESOURCEMANAGER', true, '', '', 'httpsWebAddressPort', true),

@@ -66,10 +66,10 @@ public class PasswordUtilsTest extends EasyMockSupport {
     final CredentialProvider credentialProvider = PowerMock.createNiceMock(CredentialProvider.class);
     setupBasicCredentialProviderExpectations(credentialProvider);
     credentialProvider.getPasswordForAlias(CS_ALIAS);
-    PowerMock.expectLastCall().andReturn("testPassword".toCharArray()).once();
+    PowerMock.expectLastCall().andReturn("testPassword".toCharArray()).anyTimes();
     PowerMock.replay(credentialProvider, CredentialProvider.class);
     replayAll();
-    assertEquals("testPassword", passwordUtils.readPassword(CS_ALIAS, "testPassword"));
+    assertEquals("testPassword", passwordUtils.readPassword(CS_ALIAS, "testPasswordDefault"));
     verifyAll();
   }
   
@@ -93,6 +93,20 @@ public class PasswordUtilsTest extends EasyMockSupport {
     final File passwordFile = writeTestPasswordFile(testPassword);
     passwordFile.setReadable(false);
     assertEquals("testPasswordDefault", passwordUtils.readPassword(passwordFile.getAbsolutePath(), "testPasswordDefault"));
+  }
+
+  @Test
+  public void shouldResolveEncryptedPaswordIfWeStoreTheAliasInPasswordFile() throws Exception {
+    final String testPassword = "testPassword";
+    final File passwordFile = writeTestPasswordFile(CS_ALIAS);
+    final CredentialProvider credentialProvider = PowerMock.createNiceMock(CredentialProvider.class);
+    setupBasicCredentialProviderExpectations(credentialProvider);
+    credentialProvider.getPasswordForAlias(CS_ALIAS);
+    PowerMock.expectLastCall().andReturn(testPassword.toCharArray()).anyTimes();
+    PowerMock.replay(credentialProvider, CredentialProvider.class);
+    replayAll();
+    assertEquals(testPassword, passwordUtils.readPassword(passwordFile.getAbsolutePath(), "testPasswordDefault"));
+    verifyAll();
   }
 
   private File writeTestPasswordFile(final String testPassword) throws IOException {

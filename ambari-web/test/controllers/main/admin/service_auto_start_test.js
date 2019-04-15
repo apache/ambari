@@ -80,6 +80,9 @@ describe('App.MainAdminServiceAutoStartController', function() {
           ]);
         }
       });
+      sinon.stub(App.router.get('configurationController'), 'updateConfigTags').returns({
+        always: Em.clb
+      });
       sinon.stub(controller, 'loadComponentsConfigs').returns({
         then: Em.clb
       });
@@ -87,6 +90,7 @@ describe('App.MainAdminServiceAutoStartController', function() {
     });
     afterEach(function() {
       App.router.get('configurationController').getCurrentConfigsBySites.restore();
+      App.router.get('configurationController').updateConfigTags.restore();
       controller.loadComponentsConfigs.restore();
     });
 

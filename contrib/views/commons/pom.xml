@@ -22,20 +22,20 @@
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-views-commons</artifactId>
-  <version>2.7.1.0.0</version>
+  <version>2.7.3.0.0</version>
   <name>Ambari View Commons</name>
 
   <parent>
     <artifactId>ambari-contrib-views</artifactId>
     <groupId>org.apache.ambari.contrib.views</groupId>
-    <version>2.7.1.0.0</version>
+    <version>2.7.3.0.0</version>
   </parent>
 
   <dependencies>
     <dependency>
       <groupId>org.apache.ambari.contrib.views</groupId>
       <artifactId>ambari-views-utils</artifactId>
-      <version>2.7.1.0.0</version>
+      <version>2.7.3.0.0</version>
     </dependency>
 
     <dependency>
@@ -52,6 +52,11 @@
         <exclusion>
           <groupId>tomcat</groupId>
           <artifactId>jasper-runtime</artifactId>
+        </exclusion>
+        <!--removed for security bugs in version : 9.3.19.v20170502-->
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-util</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -70,6 +75,11 @@
         <exclusion>
           <groupId>tomcat</groupId>
           <artifactId>jasper-runtime</artifactId>
+        </exclusion>
+        <!--removed for security bugs in version : 9.3.19.v20170502-->
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-util</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

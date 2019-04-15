@@ -40,6 +40,7 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 import {AuthService} from '@app/services/auth.service';
 
 import {MenuButtonComponent} from './menu-button.component';
+import { UtilsService } from '@app/services/utils.service';
 
 describe('MenuButtonComponent', () => {
   let component: MenuButtonComponent;
@@ -93,7 +94,8 @@ describe('MenuButtonComponent', () => {
           useValue: httpClient
         },
         LogsContainerService,
-        AuthService
+        AuthService,
+        UtilsService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

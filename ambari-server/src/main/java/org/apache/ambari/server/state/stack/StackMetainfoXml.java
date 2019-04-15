@@ -40,8 +40,16 @@ public class StackMetainfoXml implements Validable{
     return minJdk;
   }
 
+  public void setMinJdk(String minJdk) {
+    this.minJdk = minJdk;
+  }
+
   public String getMaxJdk() {
     return maxJdk;
+  }
+
+  public void setMaxJdk(String maxJdk) {
+    this.maxJdk = maxJdk;
   }
 
   @XmlElement(name="minJdk")
@@ -52,6 +60,10 @@ public class StackMetainfoXml implements Validable{
 
   @XmlElement(name="extends")
   private String extendsVersion = null;
+
+  public void setExtendsVersion(String extendsVersion) {
+    this.extendsVersion = extendsVersion;
+  }
   
   @XmlElement(name="versions")
   private Version version = new Version();
@@ -108,10 +120,14 @@ public class StackMetainfoXml implements Validable{
   public Version getVersion() {
     return version;
   }
+
+  public void setVersion(Version version) {
+    this.version = version;
+  }
   
   @XmlAccessorType(XmlAccessType.FIELD)
   public static class Version {
-    private Version() {
+    public Version() {
     }
     private boolean active = false;
     private String upgrade = null;
@@ -122,6 +138,10 @@ public class StackMetainfoXml implements Validable{
     public boolean isActive() {
       return active;
     }
+
+    public void setActive(boolean active) {
+      this.active = active;
+    }
     
     /**
      * @return the upgrade version number, if set
@@ -129,8 +149,13 @@ public class StackMetainfoXml implements Validable{
     public String getUpgrade() {
       return upgrade;
     }
-    
-    
+
+    /**
+     * Sets the upgrade version number
+     */
+    public void setUpgrade(String upgradeVersion) {
+      upgrade = upgradeVersion;
+    }
   }  
   
 }

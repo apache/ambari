@@ -29,7 +29,7 @@ Em.I18n.translations = {
   'app.redirectIssuePopup.header': 'Login Redirect Issue',
   'app.redirectIssuePopup.body': 'For single sign-on, make sure that Knox Gateway and Ambari Server are located on the same host or subdomain.' +
     '<br/>Alternatively login as an Ambari local user using the local login page.<br />' +
-    '<a href="{0}" target="_blank">{0}</a>',
+    '<a rel="noopener noreferrer" href="{0}" target="_blank">{0}</a>',
 
   'app.loadingPlaceholder': 'Loading...',
   'app.versionMismatchAlert.title': 'Ambari Server / Web Client Version Mismatch',
@@ -440,7 +440,7 @@ Em.I18n.translations = {
   'question.sure.start':'Are you sure you want to start {0}?',
   'question.sure.stop':'Are you sure you want to stop {0}?',
   'question.sure.move':'Are you sure you want to move {0}?',
-  'question.sure.refresh':'Are you sure you want to restart all clients on {0}?',
+  'question.sure.refresh':'Are you sure you want to restart {0} on {1}?',
   'question.sure.maintenance':'Are you sure you want to turn on maintenance mode for {0}?',
   'question.sure.upgrade':'Are you sure you want to upgrade {0}?',
   'question.sure.decommission':'Are you sure you want to decommission {0}?',
@@ -2349,7 +2349,7 @@ Em.I18n.translations = {
   'services.service.config.configHistory.makeCurrent.message': 'Created from service config version {0}',
   'services.service.config.configHistory.comparing': 'Comparing Changes in',
   'services.service.config.setRecommendedValue': 'Set Recommended',
-  'services.service.config.database.msg.jdbcSetup.detailed': 'To use {0} with {6}, you must <a href="{3}" target="_blank">' +
+  'services.service.config.database.msg.jdbcSetup.detailed': 'To use {0} with {6}, you must <a rel="noopener noreferrer" href="{3}" target="_blank">' +
     'download the {4} from {0}</a>. Once downloaded to the Ambari Server host, run: <br/>' +
     '<b>ambari-server setup --jdbc-db={1} --jdbc-driver=/path/to/{1}/{2}</b>',
 
@@ -3269,7 +3269,7 @@ Em.I18n.translations = {
   'rollingrestart.context.allOnSelectedHosts':'Restart all components on the selected hosts',
   'rollingrestart.context.allForSelectedService':'Restart all components for {0}',
   'rollingrestart.context.allWithStaleConfigsForSelectedService':'Restart all components with Stale Configs for {0}',
-  'rollingrestart.context.allClientsOnSelectedHost':'Restart all clients on {0}',
+  'rollingrestart.context.ClientOnSelectedHost':'Restart {0} on {1}',
   'rollingrestart.context.allWithStaleConfigsOnSelectedHost':'Restart components with Stale Configs on {0}',
   'rollingrestart.context.allOnSelectedHost':'Restart all components on {0}',
   'rollingrestart.context.selectedComponentOnSelectedHost':'Restart {0}',
@@ -3292,6 +3292,7 @@ Em.I18n.translations = {
   'widget.create.wizard.step2.body.text':'Define the expression with any metrics and valid operators. </br>Use parentheses when necessary.',
   'widget.create.wizard.step2.body.template':'Define the template with any number of expressions and any string. An expression can be referenced from a template by enclosing its name with double curly braces.',
   'widget.create.wizard.step2.body.warning':'Note: Valid operators are +, -, *, /',
+  'widget.create.wizard.step2.body.invalid.label': 'Invalid name. Only alphanumerics, underscores, hyphens, percentage and spaces are allowed.',
   'widget.create.wizard.step2.body.invalid.expression':'Expression is not complete or is invalid!',
   'widget.create.wizard.step2.body.invalid.expression2':'Invalid expression!',
   'widget.create.wizard.step2.body.invalid.msg2':'Only numbers or operators are allowed in this field.',

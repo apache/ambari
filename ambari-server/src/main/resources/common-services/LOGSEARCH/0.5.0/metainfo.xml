@@ -24,13 +24,13 @@
       <comment>Log aggregation, analysis, and visualization for Ambari managed services. This service is &lt;b&gt;Technical Preview&lt;/b&gt;.</comment>
       <version>0.5.0</version>
       <selection>TECH_PREVIEW</selection>
-      
+
       <credential-store>
         <supported>true</supported>
         <enabled>true</enabled>
         <required>true</required>
       </credential-store>
-      
+
       <components>
 
         <component>
@@ -150,7 +150,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian7,debian9,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <osFamily>debian7,debian9,ubuntu12,ubuntu14,ubuntu16,ubuntu18</osFamily>
           <packages>
             <package>
               <name>ambari-logsearch-logfeeder</name>

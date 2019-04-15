@@ -455,7 +455,8 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
           labelFallbackHandler.fallbackIfRequired(
             e.getKey(), uiMappingConfig.getServiceFieldLabels().get(e.getKey()),
             true, false, true,
-            uiMappingConfig.getServiceFieldFallbackPrefixes()),
+            uiMappingConfig.getServiceFieldFallbackPrefixes(),
+            uiMappingConfig.getServiceFieldFallbackSuffixes()),
           !uiMappingConfig.getServiceFieldFilterableExcludesList().contains(e.getKey()),
           uiMappingConfig.getServiceFieldVisibleList().contains(e.getKey())))
       .collect(Collectors.toList());

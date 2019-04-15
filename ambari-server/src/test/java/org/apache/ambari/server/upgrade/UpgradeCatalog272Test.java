@@ -21,6 +21,8 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGUR
 import static org.apache.ambari.server.upgrade.UpgradeCatalog272.BLUEPRINT_PROVISIONING_STATE_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog272.CLUSTERS_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog272.HOST_COMPONENT_DESIRED_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog272.HOST_COMPONENT_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog272.LAST_LIVE_STATE_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog272.RENAME_COLLISION_BEHAVIOR_PROPERTY_SQL;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
@@ -63,6 +65,9 @@ public class UpgradeCatalog272Test {
 
     Capture<DBAccessor.DBColumnInfo> blueprintProvisioningStateColumnCapture = newCapture(CaptureType.ALL);
     dbAccessor.addColumn(eq(HOST_COMPONENT_DESIRED_STATE_TABLE), capture(blueprintProvisioningStateColumnCapture));
+    expectLastCall().once();
+
+    dbAccessor.dropColumn(eq(HOST_COMPONENT_STATE_TABLE), eq(LAST_LIVE_STATE_COLUMN));
     expectLastCall().once();
 
     replay(dbAccessor, injector);

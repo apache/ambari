@@ -92,7 +92,7 @@ class TestUpdateRepo(TestCase):
       updateRepo.actionexecute(None)
 
     self.assertTrue(file_mock.called)
-    self.assertEquals(file_mock.call_args[0][0], "/etc/yum.repos.d/HDP-UTILS.repo")
+    self.assertEquals(file_mock.call_args[0][0], "/etc/yum.repos.d/HDP.repo")
     self.assertEquals(structured_out_mock.call_args[0][0], {'repo_update': {'message': 'Repository files successfully updated!', 'exit_code': 0}})
 
     ###### invalid repo info

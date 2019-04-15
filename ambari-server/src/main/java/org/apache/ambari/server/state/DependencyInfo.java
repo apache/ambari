@@ -58,7 +58,6 @@ public class DependencyInfo {
    * If auto-deployment is enabled for the dependency, the dependency is
    * automatically deployed if it is not specified in the provided topology.
    */
-  @XmlElement(name="auto-deploy")
   private AutoDeployInfo m_autoDeploy;
 
   /**
@@ -124,6 +123,7 @@ public class DependencyInfo {
    *
    * @return auto-deploy information
    */
+  @XmlElement(name="auto-deploy")
   public AutoDeployInfo getAutoDeploy() {
     return m_autoDeploy;
   }

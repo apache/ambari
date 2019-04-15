@@ -20,6 +20,7 @@ limitations under the License.
 import os
 import glob
 
+from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources import File
 from resource_management.core.source import StaticFile

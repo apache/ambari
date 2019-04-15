@@ -177,6 +177,7 @@ zeppelin_group = config['configurations']['zeppelin-env']["zeppelin_group"]
 user_group = config['configurations']['cluster-env']['user_group']
 
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_hosts", [])
+namenode_hosts = default("/clusterHostInfo/namenode_hosts", [])
 hdfs_client_hosts = default("/clusterHostInfo/hdfs_client_hosts", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
@@ -188,7 +189,9 @@ zeppelin_master_hosts = default("/clusterHostInfo/zeppelin_master_hosts", [])
 version_for_stack_feature_checks = get_stack_feature_version(config)
 
 
-has_hdfs_clients = not len(hdfs_client_hosts) == 0
+has_namenode = len(namenode_hosts) > 0
+has_hdfs_clients = len(hdfs_client_hosts) > 0
+has_hdfs = has_hdfs_clients or has_namenode
 has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_tez = 'tez-site' in config['configurations']
 has_hbase_masters = not len(hbase_master_hosts) == 0
@@ -242,7 +245,7 @@ for ns, dfs_ha_namenode_ids in dfs_ha_namenode_ids_all_ns.iteritems():
   if found:
     break
 
-if has_hdfs_clients or dfs_type == 'HCFS':
+if has_hdfs or dfs_type == 'HCFS':
     hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
     hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 

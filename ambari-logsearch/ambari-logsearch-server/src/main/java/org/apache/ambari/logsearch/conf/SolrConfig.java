@@ -20,17 +20,14 @@ package org.apache.ambari.logsearch.conf;
 
 import org.apache.ambari.logsearch.conf.global.SolrAuditLogsState;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
-import org.apache.ambari.logsearch.conf.global.LogLevelFilterManagerState;
-import org.apache.ambari.logsearch.conf.global.SolrServiceLogsState;
 import org.apache.ambari.logsearch.conf.global.SolrEventHistoryState;
+import org.apache.ambari.logsearch.conf.global.SolrServiceLogsState;
 import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.solr.repository.config.EnableSolrRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
-@EnableSolrRepositories
 @EnableScheduling
 public class SolrConfig {
 

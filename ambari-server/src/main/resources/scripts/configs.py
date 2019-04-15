@@ -20,6 +20,7 @@ limitations under the License.
 
 import optparse
 from optparse import OptionGroup
+from collections import OrderedDict
 import sys
 import urllib2, ssl
 import time
@@ -134,7 +135,7 @@ def get_current_config(cluster, config_type, accessor):
   config_tag = get_config_tag(cluster, config_type, accessor)
   logger.info("### on (Site:{0}, Tag:{1})".format(config_type, config_tag))
   response = accessor(CONFIGURATION_URL.format(cluster, config_type, config_tag))
-  config_by_tag = json.loads(response)
+  config_by_tag = json.loads(response, object_pairs_hook=OrderedDict)
   current_config = config_by_tag[ITEMS][0]
   return current_config[PROPERTIES], current_config.get(ATTRIBUTES, {})
 
@@ -348,7 +349,7 @@ def main():
   accessor = api_accessor(host, user, password, protocol, port, options.unsafe)
   if action == SET_ACTION:
 
-    if not options.file and (not options.key or not options.value):
+    if not options.file and (not options.key or options.value is None):
       parser.error("You should use option (-f) to set file where entire configurations are saved OR (-k) key and (-v) value for one property")
     if options.file:
       action_args = [options.file]

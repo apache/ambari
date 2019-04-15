@@ -68,6 +68,7 @@ import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
+import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.apache.ambari.server.security.credential.Credential;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -407,9 +408,6 @@ public class KerberosHelperImpl implements KerberosHelper {
    */
   @Override
   public void deleteIdentities(Cluster cluster, List<Component> components, Set<String> identities) throws AmbariException, KerberosOperationException {
-    if (identities.isEmpty()) {
-      return;
-    }
     LOG.info("Deleting identities: ", identities);
     KerberosDetails kerberosDetails = getKerberosDetails(cluster, null);
     validateKDCCredentials(kerberosDetails, cluster);
@@ -1771,6 +1769,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     } else {
       Collection<String> hosts;
       String ambariServerHostname = StageUtils.getHostName();
+      boolean ambariServerHostnameIsForced = false;
 
       if (hostName == null) {
         Map<String, Host> hostMap = clusters.getHostsForCluster(clusterName);
@@ -1785,6 +1784,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           extendedHosts.addAll(hosts);
           extendedHosts.add(ambariServerHostname);
           hosts = extendedHosts;
+          ambariServerHostnameIsForced = true;
         }
       } else {
         hosts = Collections.singleton(hostName);
@@ -1796,14 +1796,14 @@ public class KerberosHelperImpl implements KerberosHelper {
         if (kerberosDescriptor != null) {
           Set<String> existingServices = cluster.getServices().keySet();
 
-          for (String hostname : hosts) {
+          for (String host : hosts) {
             // Calculate the current host-specific configurations. These will be used to replace
             // variables within the Kerberos descriptor data
             Map<String, Map<String, String>> configurations = calculateConfigurations(cluster,
-              hostname,
-              kerberosDescriptor,
-              false,
-              false);
+                (ambariServerHostnameIsForced && ambariServerHostname.equals(host)) ? null : host,
+                kerberosDescriptor,
+                false,
+                false);
 
             // Create the context to use for filtering Kerberos Identities based on the state of the cluster
             Map<String, Object> filterContext = new HashMap<>();
@@ -1812,10 +1812,10 @@ public class KerberosHelperImpl implements KerberosHelper {
 
 
             Map<String, KerberosIdentityDescriptor> hostActiveIdentities = new HashMap<>();
-            List<KerberosIdentityDescriptor> identities = getActiveIdentities(cluster, hostname,
+            List<KerberosIdentityDescriptor> identities = getActiveIdentities(cluster, host,
               serviceName, componentName, kerberosDescriptor, filterContext);
 
-            if (hostname.equals(ambariServerHostname)) {
+            if (host.equals(ambariServerHostname)) {
               // Determine if we should _calculate_ the Ambari service identities.
               // If kerberos-env/create_ambari_principal is not set to false the identity should be calculated.
               if (createAmbariIdentities(kerberosEnvConfig.getProperties())) {
@@ -1844,7 +1844,7 @@ public class KerberosHelperImpl implements KerberosHelper {
                   }
 
                   if (replaceHostNames) {
-                    principal = principal.replace("_HOST", hostname);
+                    principal = principal.replace("_HOST", host);
                   }
 
                   String uniqueKey = String.format("%s|%s", principal, (keytabFile == null) ? "" : keytabFile);
@@ -1891,7 +1891,7 @@ public class KerberosHelperImpl implements KerberosHelper {
               }
             }
 
-            activeIdentities.put(hostname, hostActiveIdentities.values());
+            activeIdentities.put(host, hostActiveIdentities.values());
           }
         }
       }
@@ -1976,12 +1976,14 @@ public class KerberosHelperImpl implements KerberosHelper {
         String serviceName = mappingEntry.getKey();
         HostEntity hostEntity = principal.getHostId() != null ? hostDAO.findById(principal.getHostId()) : null;
         KerberosKeytabEntity kke = kerberosKeytabDAO.find(resolvedKerberosKeytab.getFile());
+        KerberosPrincipalEntity kpe = kerberosPrincipalDAO.find(principal.getPrincipal());
 
-        KerberosKeytabPrincipalEntity kkp = kerberosKeytabPrincipalDAO.findOrCreate(kke, hostEntity, kerberosPrincipalDAO.find(principal.getPrincipal()));
-        if(kkp.putServiceMapping(serviceName, mappingEntry.getValue())) {
+        KerberosKeytabPrincipalEntity kkp = kerberosKeytabPrincipalDAO.findOrCreate(kke, hostEntity, kpe);
+        if (kkp.putServiceMapping(serviceName, mappingEntry.getValue())) {
           kerberosKeytabPrincipalDAO.merge(kkp);
         }
         kerberosKeytabDAO.merge(kke);
+        kerberosPrincipalDAO.merge(kpe);
       }
     }
   }
@@ -2382,15 +2384,20 @@ public class KerberosHelperImpl implements KerberosHelper {
                 kke.setGroupAccess(keytabFileGroupAccess);
                 kerberosKeytabDAO.create(kke);
               }
+
               // create principals
-              if (!kerberosPrincipalDAO.exists(principal)) {
-                kerberosPrincipalDAO.create(principal, false);
+              KerberosPrincipalEntity kpe = kerberosPrincipalDAO.find(principal);
+              if (kpe == null) {
+                kpe = new KerberosPrincipalEntity(principal, false, null);
+                kerberosPrincipalDAO.create(kpe);
               }
-              KerberosKeytabPrincipalEntity kkp = kerberosKeytabPrincipalDAO.findOrCreate(kke, hostDAO.findById(sch.getHost().getHostId()), kerberosPrincipalDAO.find(principal));
-              if(kkp.putServiceMapping(sch.getServiceName(), sch.getServiceComponentName())) {
+
+              KerberosKeytabPrincipalEntity kkp = kerberosKeytabPrincipalDAO.findOrCreate(kke, hostDAO.findById(sch.getHost().getHostId()), kpe);
+              if (kkp.putServiceMapping(sch.getServiceName(), sch.getServiceComponentName())) {
                 kerberosKeytabPrincipalDAO.merge(kkp);
               }
               kerberosKeytabDAO.merge(kke);
+              kerberosPrincipalDAO.merge(kpe);
               hostsWithValidKerberosClient.add(hostname);
               serviceComponentHostsToProcess.add(sch);
             }
@@ -3992,14 +3999,16 @@ public class KerberosHelperImpl implements KerberosHelper {
         commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
 
         // *****************************************************************
-        // Create stage to remove principals
-        addDestroyPrincipalsStage(cluster, clusterHostInfoJson, hostParamsJson, event, commandParameters,
-          roleCommandOrder, requestStageContainer);
-
-        // *****************************************************************
         // Create stage to delete keytabs
         addDeleteKeytabFilesStage(cluster, serviceComponentHosts, clusterHostInfoJson,
-          hostParamsJson, commandParameters, roleCommandOrder, requestStageContainer, hostsWithValidKerberosClient);
+            hostParamsJson, commandParameters, roleCommandOrder, requestStageContainer, hostsWithValidKerberosClient);
+
+        // *****************************************************************
+        // Create stage to remove principals
+        // - this should be the last operation that deals with principals and keytab files since the
+        //   relevant database records are expected to be removed.
+        addDestroyPrincipalsStage(cluster, clusterHostInfoJson, hostParamsJson, event, commandParameters,
+          roleCommandOrder, requestStageContainer);
       }
 
       // *****************************************************************
@@ -4331,14 +4340,21 @@ public class KerberosHelperImpl implements KerberosHelper {
           commandParameters, roleCommandOrder, requestStageContainer);
 
         // *****************************************************************
+        // Create stage to delete keytabs
+        addDeleteKeytabFilesStage(cluster, serviceComponentHosts, clusterHostInfoJson,
+            hostParamsJson, commandParameters, roleCommandOrder, requestStageContainer, hostsWithValidKerberosClient);
+
+        // *****************************************************************
         // Create stage to delete principals
+        // - this should be the last operation that deals with principals and keytab files since the
+        //   relevant database records are expected to be removed.
         addDestroyPrincipalsStage(cluster, clusterHostInfoJson, hostParamsJson, event,
           commandParameters, roleCommandOrder, requestStageContainer);
 
         // *****************************************************************
-        // Create stage to delete keytabs
-        addDeleteKeytabFilesStage(cluster, serviceComponentHosts, clusterHostInfoJson,
-          hostParamsJson, commandParameters, roleCommandOrder, requestStageContainer, hostsWithValidKerberosClient);
+        // Create stage to perform data cleanup (e.g. kerberos descriptor artifact database leftovers)
+        addCleanupStage(cluster, clusterHostInfoJson, hostParamsJson, event, commandParameters,
+            roleCommandOrder, requestStageContainer);
       }
 
       return requestStageContainer.getLastStageId();

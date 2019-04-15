@@ -97,7 +97,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
    * @type {boolean}
    */
   @Input()
-  updateValueImmediately: boolean = true;
+  updateValueImmediately = true;
 
   @ViewChild('parameterInput')
   parameterInputRef: ElementRef;
@@ -121,26 +121,22 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
    */
   parameters: SearchBoxParameterProcessed[] = [];
 
-  private subscriptions: Subscription[] = [];
+  private onChange;
+
+  private destroyed$ = new Subject();
 
   constructor(private utils: UtilsService) {}
 
   ngOnInit(): void {
     this.parameterInput = this.parameterInputRef.nativeElement;
     this.valueInput = this.valueInputRef.nativeElement;
-    this.subscriptions.push(
-      this.parameterNameChangeSubject.subscribe(this.onParameterNameChange)
-    );
-    this.subscriptions.push(
-      this.parameterAddSubject.subscribe(this.onParameterAdd)
-    );
-    this.subscriptions.push(
-      this.updateValueSubject.subscribe(this.updateValue)
-    );
+    this.parameterNameChangeSubject.takeUntil(this.destroyed$).subscribe(this.onParameterNameChange);
+    this.parameterAddSubject.takeUntil(this.destroyed$).subscribe(this.onParameterAdd);
+    this.updateValueSubject.takeUntil(this.destroyed$).subscribe(this.updateValue);
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
+    this.destroyed$.next(true);
   }
 
   /**
@@ -151,8 +147,6 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     return this.itemsOptions && this.activeItem && this.itemsOptions[this.activeItem.value] ?
       this.itemsOptions[this.activeItem.value] : [];
   }
-
-  private onChange: (fn: any) => void;
 
   @HostListener('click')
   private onRootClick(): void {
@@ -310,7 +304,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   updateValue = (): void => {
     this.currentValue = '';
     if (this.onChange) {
-      this.onChange(this.parameters.slice());
+      this.onChange([...this.parameters]);
     }
   }
 
@@ -331,8 +325,9 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   }
 
   writeValue(parameters: SearchBoxParameterProcessed[] = []): void {
-    this.parameters = parameters.slice();
-    this.updateValueSubject.next();
+    this.currentValue = '';
+    this.parameters = [...parameters];
+    // this.updateValueSubject.next();
   }
 
   registerOnChange(callback: any): void {

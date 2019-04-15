@@ -22,20 +22,22 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.util.Collections;
+
 import org.junit.Test;
 
 public class JwtAuthenticationPropertiesTest {
 
   @Test
   public void testSetNullAudiences() {
-    JwtAuthenticationProperties jwtAuthenticationProperties = new JwtAuthenticationProperties();
+    JwtAuthenticationProperties jwtAuthenticationProperties = new JwtAuthenticationProperties(Collections.emptyMap());
     jwtAuthenticationProperties.setAudiencesString(null);
     assertNull(jwtAuthenticationProperties.getAudiences());
   }
 
   @Test
   public void testSetEmptyAudiences() {
-    JwtAuthenticationProperties jwtAuthenticationProperties = new JwtAuthenticationProperties();
+    JwtAuthenticationProperties jwtAuthenticationProperties = new JwtAuthenticationProperties(Collections.emptyMap());
     jwtAuthenticationProperties.setAudiencesString("");
     assertNull(jwtAuthenticationProperties.getAudiences());
   }
@@ -43,7 +45,7 @@ public class JwtAuthenticationPropertiesTest {
   @Test
   public void testSetValidAudiences() {
     String[] expectedAudiences = {"first", "second", "third"};
-    JwtAuthenticationProperties jwtAuthenticationProperties = new JwtAuthenticationProperties();
+    JwtAuthenticationProperties jwtAuthenticationProperties = new JwtAuthenticationProperties(Collections.emptyMap());
     jwtAuthenticationProperties.setAudiencesString("first,second,third");
     assertNotNull(jwtAuthenticationProperties.getAudiences());
     assertArrayEquals(expectedAudiences, jwtAuthenticationProperties.getAudiences().toArray(new String[]{}));

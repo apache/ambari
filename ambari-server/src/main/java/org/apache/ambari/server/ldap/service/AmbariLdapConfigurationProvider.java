@@ -18,24 +18,16 @@
 
 package org.apache.ambari.server.ldap.service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Collection;
 
 import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
-import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
-import org.apache.ambari.server.events.JpaInitializedEvent;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationProvider;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
-import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 /**
@@ -47,85 +39,19 @@ import com.google.inject.Singleton;
  * <p>
  * The provider receives notifications on CRUD operations related to the persisted resource and reloads the cached
  * configuration instance accordingly.
+ *
+ * @see AmbariServerConfigurationProvider
  */
 @Singleton
-public class AmbariLdapConfigurationProvider implements Provider<AmbariLdapConfiguration> {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(AmbariLdapConfigurationProvider.class);
-  private AmbariLdapConfiguration instance;
+public class AmbariLdapConfigurationProvider extends AmbariServerConfigurationProvider<AmbariLdapConfiguration> {
 
   @Inject
-  private AmbariEventPublisher publisher;
-
-  @Inject
-  private Provider<AmbariConfigurationDAO> ambariConfigurationDAOProvider;
-
-  @Inject
-  public AmbariLdapConfigurationProvider() {
-  }
-  
-  private AtomicBoolean jpaInitialized = new AtomicBoolean(false);
-
-  @Inject
-  void register() {
-    publisher.register(this);
-    LOGGER.info("Registered AmbariLdapConfigurationProvider in event publisher");
+  public AmbariLdapConfigurationProvider(AmbariEventPublisher publisher, GuiceJpaInitializer guiceJpaInitializer) {
+    super(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, publisher, guiceJpaInitializer);
   }
 
   @Override
-  public AmbariLdapConfiguration get() {
-    LOGGER.debug("Getting LDAP configuration...");
-    if (instance == null || instance.toMap().isEmpty()) {
-      loadInstance();
-    }
-    return instance;
-  }
-
-  /**
-   * Loads the AmbariLdapConfiguration from the database.
-   */
-  private void loadInstance() {
-    List<AmbariConfigurationEntity> configEntities = null;
-
-    LOGGER.info("Loading LDAP configuration ...");
-    if (jpaInitialized.get()) {
-      LOGGER.info("Actually loading LDAP configuration from DB ...");
-      configEntities = ambariConfigurationDAOProvider.get().findByCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName());
-    }
-
-    if (configEntities != null) {
-      Map<String, String> properties = toProperties(configEntities);
-      instance = new AmbariLdapConfiguration(properties);
-    }else {
-      instance = new AmbariLdapConfiguration();
-    }
-
-    LOGGER.info("Loaded LDAP configuration instance: [ {} ]", instance.toMap());
-  }
-
-  private Map<String, String> toProperties(List<AmbariConfigurationEntity> configEntities) {
-    Map<String, String> map = new HashMap<>();
-
-    for (AmbariConfigurationEntity entity : configEntities) {
-      map.put(entity.getPropertyName(), entity.getPropertyValue());
-    }
-
-    return map;
-  }
-
-  // On changing the configuration, the provider gets updated with the fresh value
-  @Subscribe
-  public void ambariLdapConfigChanged(AmbariConfigurationChangedEvent event) {
-    LOGGER.info("LDAP config changed event received: {}", event);
-    loadInstance();
-    LOGGER.info("Refreshed LDAP config instance.");
-  }
-  
-  @Subscribe
-  public void jpaInitialized(JpaInitializedEvent event) {
-    LOGGER.info("JPA initialized event received: {}", event);
-    jpaInitialized.getAndSet(true);
-    loadInstance();
-    LOGGER.info("Refreshed LDAP config instance.");
+  protected AmbariLdapConfiguration loadInstance(Collection<AmbariConfigurationEntity> configurationEntities) {
+    return new AmbariLdapConfiguration(toProperties(configurationEntities));
   }
 }

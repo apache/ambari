@@ -217,7 +217,7 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
 
       @Override
       protected void configure() {
-        PartialNiceMockBinder.newBuilder().addActionDBAccessorConfigsBindings().addFactoriesInstallBinding()
+        PartialNiceMockBinder.newBuilder().addLdapBindings().addActionDBAccessorConfigsBindings().addFactoriesInstallBinding()
             .build().configure(binder());
 
         bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionSchedulerImpl.class));

@@ -34,6 +34,7 @@ import org.apache.ambari.server.security.authentication.AmbariAuthenticationExce
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationProvider;
 import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authentication.AmbariUserDetails;
+import org.apache.ambari.server.security.authentication.AmbariUserDetailsImpl;
 import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
 import org.apache.ambari.server.security.authorization.GroupType;
@@ -163,7 +164,7 @@ public class AmbariPamAuthenticationProvider extends AmbariAuthenticationProvide
           synchronizeGroups(unixUser, userEntity);
         }
 
-        AmbariUserDetails userDetails = new AmbariUserDetails(users.getUser(userEntity), null, users.getUserAuthorities(userEntity));
+        AmbariUserDetails userDetails = new AmbariUserDetailsImpl(users.getUser(userEntity), null, users.getUserAuthorities(userEntity));
         return new AmbariUserAuthentication(password, userDetails, true);
       }
 

@@ -18,6 +18,7 @@
 package org.apache.ambari.server.orm.entities;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -107,23 +108,19 @@ public class KerberosKeytabPrincipalEntity {
 
   @ManyToOne
   @JoinColumn(name = "principal_name", referencedColumnName = "principal_name", updatable = false, nullable = false, insertable = false)
-  private KerberosPrincipalEntity principalEntity;
+  private KerberosPrincipalEntity kerberosPrincipalEntity;
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "kerberosKeytabPrincipalEntity")
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "kerberosKeytabPrincipalEntity", orphanRemoval = true)
   private List<KerberosKeytabServiceMappingEntity> serviceMapping = new ArrayList<>();
 
   public KerberosKeytabPrincipalEntity() {
 
   }
 
-  public KerberosKeytabPrincipalEntity(
-    KerberosKeytabEntity kerberosKeytabEntity,
-    HostEntity hostEntity,
-    KerberosPrincipalEntity principalEntity
-  ) {
+  public KerberosKeytabPrincipalEntity(KerberosKeytabEntity kerberosKeytabEntity, HostEntity hostEntity, KerberosPrincipalEntity kerberosPrincipalEntity) {
     setKerberosKeytabEntity(kerberosKeytabEntity);
     setHostEntity(hostEntity);
-    setPrincipalEntity(principalEntity);
+    setKerberosPrincipalEntity(kerberosPrincipalEntity);
   }
 
   public Long getKkpId() {
@@ -164,14 +161,14 @@ public class KerberosKeytabPrincipalEntity {
     }
   }
 
-  public KerberosPrincipalEntity getPrincipalEntity() {
-    return principalEntity;
+  public KerberosPrincipalEntity getKerberosPrincipalEntity() {
+    return kerberosPrincipalEntity;
   }
 
-  public void setPrincipalEntity(KerberosPrincipalEntity principalEntity) {
-    this.principalEntity = principalEntity;
-    if (principalEntity != null) {
-      principalName = principalEntity.getPrincipalName();
+  public void setKerberosPrincipalEntity(KerberosPrincipalEntity kerberosPrincipalEntity) {
+    this.kerberosPrincipalEntity = kerberosPrincipalEntity;
+    if (kerberosPrincipalEntity != null) {
+      principalName = kerberosPrincipalEntity.getPrincipalName();
     }
   }
 
@@ -181,7 +178,7 @@ public class KerberosKeytabPrincipalEntity {
 
 
   public String getPrincipalName() {
-    return principalEntity != null ? principalEntity.getPrincipalName() : null;
+    return kerberosPrincipalEntity != null ? kerberosPrincipalEntity.getPrincipalName() : null;
   }
 
   public Long getHostId() {
@@ -190,6 +187,16 @@ public class KerberosKeytabPrincipalEntity {
 
   public String getHostName() {
     return hostEntity != null ? hostEntity.getHostName() : null;
+  }
+
+  public List<KerberosKeytabServiceMappingEntity> getServiceMapping() {
+    return serviceMapping;
+  }
+
+  public void setServiceMapping(List<KerberosKeytabServiceMappingEntity> serviceMapping) {
+    this.serviceMapping = (serviceMapping == null)
+        ? Collections.emptyList()
+        : new ArrayList<>(serviceMapping);
   }
 
   public boolean putServiceMapping(String service, String component) {

@@ -16,30 +16,73 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
-import {FormGroup} from '@angular/forms';
-import {LogsContainerService} from '@app/services/logs-container.service';
-import {HistoryManagerService} from '@app/services/history-manager.service';
-import {UserSettingsService} from '@app/services/user-settings.service';
-import {ListItem} from '@app/classes/list-item';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormGroup } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+
+import { Observable } from 'rxjs/Observable';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Subscription } from 'rxjs/Subscription';
+
+import { LogsContainerService } from '@app/services/logs-container.service';
+import { HistoryManagerService } from '@app/services/history-manager.service';
+import { UserSettingsService } from '@app/services/user-settings.service';
+import { ListItem } from '@app/classes/list-item';
+import { ClustersService } from '@app/services/storage/clusters.service';
+import { UtilsService } from '@app/services/utils.service';
 
 @Component({
   selector: 'action-menu',
   templateUrl: './action-menu.component.html',
   styleUrls: ['./action-menu.component.less']
 })
-export class ActionMenuComponent {
+export class ActionMenuComponent  implements OnInit, OnDestroy {
 
-  isLogIndexFilterDisplayed: boolean = false;
+  isLogIndexFilterDisplayed$: Observable<boolean> = this.route.queryParams
+    .map((params) => {
+      return params;
+    })
+    .map((params): boolean => /^(show|yes|true|1)$/.test(params.logIndexFilterSettings))
+    .distinctUntilChanged();
 
   settingsForm: FormGroup = this.settings.settingsFormGroup;
 
-  isModalSubmitDisabled: boolean = true;
+  isModalSubmitDisabled = true;
+
+  clustersListItems$: Observable<ListItem[]> = this.clustersService.getAll()
+    .map((clusterNames: string[]): ListItem[] => clusterNames.map(this.utilsService.getListItemFromString))
+    .map((clusters: ListItem[]) => {
+      if (clusters.length && !clusters.some((item: ListItem) => item.isChecked)) {
+        clusters[0].isChecked = true;
+      }
+      return clusters;
+    });
+
+  selectedClusterName$: BehaviorSubject<string> = new BehaviorSubject('');
+
+  subscriptions: Subscription[] = [];
 
   constructor(
-    private logsContainer: LogsContainerService, private historyManager: HistoryManagerService,
-    private settings: UserSettingsService
+    private logsContainer: LogsContainerService,
+    private historyManager: HistoryManagerService,
+    private settings: UserSettingsService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private clustersService: ClustersService,
+    private utilsService: UtilsService
   ) {
+  }
+
+  ngOnInit() {
+    this.subscriptions.push(
+      this.selectedClusterName$.subscribe(
+        (clusterName: string) => this.setModalSubmitDisabled(!(!!clusterName))
+      )
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
   }
 
   get undoItems(): ListItem[] {
@@ -86,16 +129,30 @@ export class ActionMenuComponent {
     this.logsContainer.loadLogs();
   }
 
+  onSelectCluster(cluster: string) {
+    this.selectedClusterName$.next(cluster);
+  }
+
   openLogIndexFilter(): void {
-    this.isLogIndexFilterDisplayed = true;
+    this.router.navigate(['.'], {
+      queryParamsHandling: 'merge',
+      queryParams: {logIndexFilterSettings: 'show'},
+      relativeTo: this.route.root.firstChild
+    });
   }
 
   closeLogIndexFilter(): void {
-    this.isLogIndexFilterDisplayed = false;
+    this.route.queryParams.first().subscribe((queryParams) => {
+      const {logIndexFilterSettings, ...params} = queryParams;
+      this.router.navigate(['.'], {
+        queryParams: params,
+        relativeTo: this.route.root.firstChild
+      });
+    });
   }
 
   saveLogIndexFilter(): void {
-    this.isLogIndexFilterDisplayed = false;
+    this.closeLogIndexFilter();
     this.settings.saveIndexFilterConfig();
   }
 

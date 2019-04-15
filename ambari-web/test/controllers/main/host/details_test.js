@@ -2587,16 +2587,16 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('No components', function () {
-      var event = {context: Em.A([])};
+      var event = {context: null};
       controller.refreshConfigs(event);
       expect(App.showConfirmationPopup.called).to.be.false;
     });
     it('Some components present', function () {
-      var event = {context: Em.A([Em.Object.create()])};
+      var event = {context: Em.Object.create({displayName: 'c1'})};
       var popup = controller.refreshConfigs(event);
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(batchUtils.restartHostComponents.calledWith(event.context)).to.be.true;
+      expect(batchUtils.restartHostComponents.calledWith([event.context])).to.be.true;
     });
   });
 
@@ -3426,7 +3426,7 @@ describe('App.MainHostDetailsController', function () {
 
     var cases = [
       {
-        'kmsHosts': ['host1'],
+        'zookeeperHosts': ['host1'],
         'kmsPort': 'port',
         'title': 'single host',
         'hostToInstall': undefined,
@@ -3445,6 +3445,7 @@ describe('App.MainHostDetailsController', function () {
             properties: {
               'kms-site': {
                 'hadoop.kms.cache.enable': 'true',
+                'hadoop.kms.authentication.zk-dt-secret-manager.enable': 'false',
                 'hadoop.kms.cache.timeout.ms': '600000',
                 'hadoop.kms.current.key.cache.timeout.ms': '30000',
                 'hadoop.kms.authentication.signer.secret.provider': 'random',
@@ -3459,7 +3460,7 @@ describe('App.MainHostDetailsController', function () {
         ]
       },
       {
-        'kmsHosts': ['host1', 'host2'],
+        'zookeeperHosts': ['host1', 'host2'],
         'kmsPort': 'port',
         'title': 'two hosts',
         'hostToInstall': 'host2',
@@ -3478,6 +3479,7 @@ describe('App.MainHostDetailsController', function () {
             properties: {
               'kms-site': {
                 'hadoop.kms.cache.enable': 'false',
+                'hadoop.kms.authentication.zk-dt-secret-manager.enable': 'true',
                 'hadoop.kms.cache.timeout.ms': '0',
                 'hadoop.kms.current.key.cache.timeout.ms': '0',
                 'hadoop.kms.authentication.signer.secret.provider': 'zookeeper',
@@ -3549,8 +3551,13 @@ describe('App.MainHostDetailsController', function () {
 
         beforeEach(function () {
           controller.set('rangerKMSServerHost', item.hostToInstall);
-          sinon.stub(controller, 'getRangerKMSServerHosts').returns(item.kmsHosts);
+          sinon.stub(App.MasterComponent, 'find').returns(Em.Object.create({hostNames: item.zookeeperHosts}))
+          sinon.stub(controller, 'getRangerKMSServerHosts').returns(item.zookeeperHosts);
           controller.onLoadRangerConfigs(data);
+        });
+
+        afterEach(function () {
+          App.MasterComponent.find.restore();
         });
 
         it('setConfigsChanges is called with valid arguments', function () {

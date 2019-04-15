@@ -111,7 +111,7 @@ abstract class KDCKerberosOperationHandler extends KerberosOperationHandler {
     // Pre-determine the paths to relevant Kerberos executables
     executableKinit = getExecutable("kinit");
 
-    setOpen(init());
+    setOpen(init(kerberosConfiguration));
   }
 
   @Override
@@ -269,9 +269,11 @@ abstract class KDCKerberosOperationHandler extends KerberosOperationHandler {
    * @param executableKinit  the absolute path to the kinit executable
    * @param credentials      the KDC adminisrator's credentials
    * @param credentialsCache the absolute path to the expected location of the Kerberos ticket/credential cache file
+   * @param kerberosConfigurations  a Map of key/value pairs containing data from the kerberos-env configuration set
+   * @throws KerberosOperationException in case there was any error during kinit command creation
    * @return an array of Strings containing the command to execute
    */
-  protected abstract String[] getKinitCommand(String executableKinit, PrincipalKeyCredential credentials, String credentialsCache);
+  protected abstract String[] getKinitCommand(String executableKinit, PrincipalKeyCredential credentials, String credentialsCache, Map<String, String> kerberosConfigurations) throws KerberosOperationException;
 
   /**
    * Export the requested keytab entries for a given principal into the specified file.
@@ -294,7 +296,7 @@ abstract class KDCKerberosOperationHandler extends KerberosOperationHandler {
    * @return
    * @throws KerberosOperationException
    */
-  protected boolean init() throws KerberosOperationException {
+  protected boolean init(Map<String, String> kerberosConfiguration) throws KerberosOperationException {
     if (credentialsCacheFile != null) {
       if (!credentialsCacheFile.delete()) {
         LOG.debug("Failed to remove the orphaned cache file, {}", credentialsCacheFile.getAbsolutePath());
@@ -317,7 +319,7 @@ abstract class KDCKerberosOperationHandler extends KerberosOperationHandler {
 
     PrincipalKeyCredential credentials = getAdministratorCredential();
 
-    ShellCommandUtil.Result result = executeCommand(getKinitCommand(executableKinit, credentials, credentialsCache),
+    ShellCommandUtil.Result result = executeCommand(getKinitCommand(executableKinit, credentials, credentialsCache, kerberosConfiguration),
         environmentMap,
         new InteractivePasswordHandler(String.valueOf(credentials.getKey()), null));
 

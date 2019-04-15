@@ -71,11 +71,8 @@ import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -362,11 +359,9 @@ public class HostImpl implements Host {
       }
 
       host.topologyManager.onHostRegistered(host, associatedWithCluster);
-      try {
-        host.restoreComponentsStatuses();
-      } catch (AmbariException e1) {
-        LOG.error("Unable to restore last valid host components status for host", e1);
-      }
+
+      host.setHealthStatus(new HostHealthStatus(HealthStatus.HEALTHY,
+          host.getHealthStatus().getHealthReport()));
       // initialize agent times in the last time to prevent setting registering/heartbeat times for failed registration.
       host.updateHostTimestamps(e);
     }
@@ -1210,28 +1205,6 @@ public class HostImpl implements Host {
     }
 
     return false;
-  }
-
-  public void restoreComponentsStatuses() throws AmbariException {
-    Long clusterId = null;
-    for (Cluster cluster : clusters.getClustersForHost(getHostName())) {
-      clusterId = cluster.getClusterId();
-      for (ServiceComponentHost sch : cluster.getServiceComponentHosts(getHostName())) {
-        Service s = cluster.getService(sch.getServiceName());
-        ServiceComponent sc = s.getServiceComponent(sch.getServiceComponentName());
-        if (!sc.isClientComponent() &&
-            sch.getState().equals(State.UNKNOWN)) {
-          State lastValidState = sch.getLastValidState();
-          LOG.warn("Restore component state to last valid state for component " + sc.getName() + " on " +
-              getHostName() + " to " + lastValidState);
-          sch.setState(lastValidState);
-        }
-      }
-    }
-    //TODO
-    if (clusterId != null) {
-      calculateHostStatus(clusterId);
-    }
   }
 
   @Override

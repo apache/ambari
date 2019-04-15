@@ -20,12 +20,10 @@ package org.apache.ambari.server.controller.utilities;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
@@ -133,13 +131,16 @@ public class RemovableIdentities {
   }
 
   /**
-   * Remove all identities which are not used by other services or components
+   * Remove all identities which are related to the specified set of components and not used by
+   * other services or components
    */
   public void remove(KerberosHelper kerberosHelper) throws AmbariException, KerberosOperationException {
-    Set<String> identitiesToRemove = skipUsed().stream().map(KerberosIdentityDescriptor::getPath).collect(toSet());
-    if (!identitiesToRemove.isEmpty()) {
-      kerberosHelper.deleteIdentities(cluster, components, identitiesToRemove);
-    }
+    // TODO: Fix the implementation identifying specific identities in the event we need to  pinpoint
+    // TODO: certain identities.  This is not currently needed here since we are only handing removing
+    // TODO: identities tied to a specific service, component, and/or host. The logic to determine
+    // TODO: whether an identity should be removed is handled elsewhere - unfortunately in different
+    // TODO: places
+    kerberosHelper.deleteIdentities(cluster, components, null);
   }
 
   private List<KerberosIdentityDescriptor> skipUsed() throws AmbariException {

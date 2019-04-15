@@ -22,6 +22,11 @@ import re
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import compare_versions
 
+try:
+    from stack_advisor_hdp25 import *
+except ImportError:
+    #Ignore ImportError
+    print("stack_advisor_hdp25 not found")
 
 class HDP26StackAdvisor(HDP25StackAdvisor):
   def __init__(self):

@@ -82,8 +82,9 @@ class TestMetadataServer(RMFTestCase):
                                 cd_access='a',
                                 mode=0644
       )
-      self.assertResourceCalled('File', self.stack_root+'/current/atlas-server/server/webapp/atlas.war',
-          content = StaticFile(self.stack_root+'/current/atlas-server/server/webapp/atlas.war'),
+      self.assertResourceCalled('Execute', ('cp', '/usr/hdp/current/atlas-server/server/webapp/atlas.war', '/usr/hdp/current/atlas-server/server/webapp/atlas.war'),
+                                sudo = True,
+                                not_if = True,
       )
       host_name = u"c6401.ambari.apache.org"
       app_props =  dict(self.getConfig()['configurations']['application-properties'])
@@ -217,9 +218,10 @@ class TestMetadataServer(RMFTestCase):
                               cd_access='a',
                               mode=0644
     )
-    self.assertResourceCalled('File', self.stack_root+'/current/atlas-server/server/webapp/atlas.war',
-                              content = StaticFile(self.stack_root+'/current/atlas-server/server/webapp/atlas.war'),
-                              )
+    self.assertResourceCalled('Execute', ('cp', self.stack_root+'/current/atlas-server/server/webapp/atlas.war', self.stack_root+'/current/atlas-server/server/webapp/atlas.war'),
+                              sudo = True,
+                              not_if = True,
+    )
     host_name = u"c6401.ambari.apache.org"
     app_props =  dict(self.getConfig()['configurations']['application-properties'])
     app_props['atlas.server.bind.address'] = host_name

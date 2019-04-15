@@ -705,7 +705,7 @@ public class StaleAlertRunnableTest {
      */
     @Override
     public void configure(Binder binder) {
-      PartialNiceMockBinder.newBuilder().addConfigsBindings()
+      PartialNiceMockBinder.newBuilder().addConfigsBindings().addLdapBindings()
           .addAlertDefinitionBinding().build().configure(binder);
 
       binder.bind(AlertsDAO.class).toInstance(createNiceMock(AlertsDAO.class));

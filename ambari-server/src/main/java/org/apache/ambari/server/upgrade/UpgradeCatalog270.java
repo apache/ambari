@@ -1058,7 +1058,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     setStatusOfStagesAndRequests();
     updateLogSearchConfigs();
     updateKerberosConfigurations();
-    updateHostComponentLastStateTable();
     moveAmbariPropertiesToAmbariConfiguration();
     createRoleAuthorizations();
     addUserAuthenticationSequence();
@@ -1765,6 +1764,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     map.put(AmbariServerConfigurationKey.PAGINATION_ENABLED, "authentication.ldap.pagination.enabled");
     map.put(AmbariServerConfigurationKey.COLLISION_BEHAVIOR, "ldap.sync.username.collision.behavior");
 
+    // Added in the event a previous version of Ambari had AMBARI-24827 back-ported to it
+    map.put(AmbariServerConfigurationKey.DISABLE_ENDPOINT_IDENTIFICATION, "ldap.sync.disable.endpoint.identification");
+
     // SSO-related properties
     map.put(AmbariServerConfigurationKey.SSO_PROVIDER_URL, "authentication.jwt.providerUrl");
     map.put(AmbariServerConfigurationKey.SSO_PROVIDER_CERTIFICATE, "authentication.jwt.publicKey");
@@ -1774,24 +1776,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     map.put(AmbariServerConfigurationKey.SSO_JWT_COOKIE_NAME, "authentication.jwt.cookieName");
 
     return map;
-  }
-
-  protected void updateHostComponentLastStateTable() throws SQLException {
-    executeInTransaction(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
-          List<HostComponentStateEntity> hostComponentStateEntities = hostComponentStateDAO.findAll();
-          for (HostComponentStateEntity hostComponentStateEntity : hostComponentStateEntities) {
-            hostComponentStateEntity.setLastLiveState(hostComponentStateEntity.getCurrentState());
-            hostComponentStateDAO.merge(hostComponentStateEntity);
-          }
-        } catch (Exception e) {
-          LOG.warn("Setting status for stages and Requests threw exception. ", e);
-        }
-      }
-    });
   }
 
   protected void updateSolrConfigurations() throws AmbariException {

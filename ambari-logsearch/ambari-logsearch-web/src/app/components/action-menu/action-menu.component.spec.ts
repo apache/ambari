@@ -40,10 +40,12 @@ import {HistoryManagerService} from '@app/services/history-manager.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UserSettingsService} from '@app/services/user-settings.service';
 import {UtilsService} from '@app/services/utils.service';
-import {ModalComponent} from '@app/modules/shared/components/modal/modal.component';
+import {ModalDialogComponent} from '@app/modules/shared/components/modal-dialog/modal-dialog.component';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
+import {ComponentLabelPipe} from '@app/pipes/component-label';
 
 import {ActionMenuComponent} from './action-menu.component';
+import { LogIndexFilterComponent } from '@app/components/log-index-filter/log-index-filter.component';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 import {RouterTestingModule} from '@angular/router/testing';
 import {LogsStateService} from '@app/services/storage/logs-state.service';
@@ -51,6 +53,8 @@ import {RoutingUtilsService} from '@app/services/routing-utils.service';
 import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 import {NotificationsService} from 'angular2-notifications/src/notifications.service';
 import {NotificationService} from '@modules/shared/services/notification.service';
+
+import { DataAvailabilityStatesStore, dataAvailabilityStates } from '@app/modules/app-load/stores/data-availability-state.store';
 
 describe('ActionMenuComponent', () => {
   let component: ActionMenuComponent;
@@ -76,13 +80,16 @@ describe('ActionMenuComponent', () => {
           components,
           hosts,
           serviceLogsTruncated,
-          tabs
+          tabs,
+          dataAvailabilityStates
         })
       ],
       declarations: [
+        LogIndexFilterComponent,
         ActionMenuComponent,
-        ModalComponent,
-        TimerSecondsPipe
+        ModalDialogComponent,
+        TimerSecondsPipe,
+        ComponentLabelPipe
       ],
       providers: [
         ...MockHttpRequestModules,
@@ -108,7 +115,8 @@ describe('ActionMenuComponent', () => {
         LogsFilteringUtilsService,
         LogsStateService,
         NotificationsService,
-        NotificationService
+        NotificationService,
+        DataAvailabilityStatesStore
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

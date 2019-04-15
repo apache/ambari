@@ -110,6 +110,7 @@ import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.security.unsecured.rest.ConnectionInfo;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.KerberosKeytabController;
 import org.apache.ambari.server.stack.UpdateActiveRepoVersionOnStartup;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.AmbariContext;
@@ -942,6 +943,7 @@ public class AmbariServer {
     ClusterPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     AmbariPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     ActionManager.setTopologyManager(injector.getInstance(TopologyManager.class));
+    KerberosKeytabController.setKerberosHelper(injector.getInstance(KerberosHelper.class));
     StackAdvisorBlueprintProcessor.init(injector.getInstance(StackAdvisorHelper.class));
     ThreadPoolEnabledPropertyProvider.init(injector.getInstance(Configuration.class));
 
@@ -1094,7 +1096,7 @@ public class AmbariServer {
 
       // Start and Initialize JPA
       GuiceJpaInitializer jpaInitializer = injector.getInstance(GuiceJpaInitializer.class);
-      jpaInitializer.setInitialized(); // This must be called to alert Ambari that JPA is initialized.
+      jpaInitializer.setInitialized(injector.getInstance(AmbariEventPublisher.class)); // This must be called to alert Ambari that JPA is initialized.
 
       DatabaseConsistencyCheckHelper.checkDBVersionCompatible();
 

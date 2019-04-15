@@ -48,6 +48,10 @@ STACK_ADVISOR_DEFAULT_IMPL_CLASS = 'DefaultStackAdvisor'
 STACK_ADVISOR_IMPL_PATH_TEMPLATE = os.path.join(STACKS_DIRECTORY, '{0}/{1}/services/stack_advisor.py')
 STACK_ADVISOR_IMPL_CLASS_TEMPLATE = '{0}{1}StackAdvisor'
 
+# After merging stack definitions, stack advisor may have deeper inheritance than the merged stack,
+# The extra classes are defined in this directory
+STACK_ADVISOR_BASE_MODULES = os.path.join(SCRIPT_DIRECTORY, '../stacks/{0}/{1}/stack-advisors')
+
 ADVISOR_CONTEXT = "advisor_context"
 CALL_TYPE = "call_type"
 
@@ -155,6 +159,8 @@ def instantiateStackAdvisor(stackName, stackVersion, parentVersions):
 
   versions = [stackVersion]
   versions.extend(parentVersions)
+
+  sys.path.append(STACK_ADVISOR_BASE_MODULES.format(stackName, versions[-1]))
 
   for version in reversed(versions):
     try:

@@ -28,6 +28,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions.version import format_stack_version, get_major_version
+from resource_management.libraries.functions.format import format
 from string import lower
 
 config = Script.get_config()
@@ -97,10 +98,13 @@ mapred_log_dir_prefix = default("/configurations/mapred-env/mapred_log_dir_prefi
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 user_group = config['configurations']['cluster-env']['user_group']
 
+namenode_hosts = default("/clusterHostInfo/namenode_hosts", [])
 hdfs_client_hosts = default("/clusterHostInfo/hdfs_client_hosts", [])
-has_hdfs_clients = not len(hdfs_client_hosts) == 0
+has_hdfs_clients = len(hdfs_client_hosts) > 0
+has_namenode = len(namenode_hosts) > 0
+has_hdfs = has_hdfs_clients or has_namenode
 
-if has_hdfs_clients or dfs_type == 'HCFS':
+if has_hdfs or dfs_type == 'HCFS':
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
   mount_table_xml_inclusion_file_full_path = None
@@ -117,3 +121,5 @@ link_configs_lock_file = get_config_lock_file()
 stack_select_lock_file = os.path.join(tmp_dir, "stack_select_lock_file")
 
 upgrade_suspended = default("/roleParams/upgrade_suspended", False)
+sysprep_skip_conf_select = default("/configurations/cluster-env/sysprep_skip_conf_select", False)
+conf_select_marker_file = format("{tmp_dir}/conf_select_done_marker")

@@ -48,4 +48,5 @@ public class AcceptAllFilter extends Filter {
   public String toString() {
     return getClass().getSimpleName() + " (visible=" + isVisible() + ")";
   }
+
 }

@@ -208,5 +208,10 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
   }
+
+  @Override
+  protected boolean pruneServiceFilter() {
+    return false;
+  }
 }
 

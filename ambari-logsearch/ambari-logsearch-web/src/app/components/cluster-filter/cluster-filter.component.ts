@@ -28,7 +28,7 @@ import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {FilterDropdownComponent} from '@modules/shared/components/filter-dropdown/filter-dropdown.component';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
 import {DataAvailabilityValues} from '@app/classes/string';
-import { DataAvailabilityStatesStore } from '@modules/app-load/stores/data-avaibility-state.store';
+import { DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-availability-state.store';
 import { DataStateStoreKeys } from '@app/modules/app-load/services/app-load.service';
 
 @Component({
@@ -128,10 +128,10 @@ export class ClusterFilterComponent implements OnInit, OnDestroy {
         .filter((state: DataAvailabilityValues) => state === DataAvailabilityValues.AVAILABLE)
         .first()
         .subscribe(() => {
-          this.filterDropdown.updateSelection(clusterSelection);
+          this.filterDropdown.writeValue(clusterSelection);
         });
     } else {
-      this.filterDropdown.updateSelection(null);
+      this.filterDropdown.clearSelection();
     }
   }
 

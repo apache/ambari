@@ -2913,7 +2913,7 @@ var urls = {
     mock: '/data/configurations/service_version.json'
   },
   'service.serviceConfigVersions.get.multiple': {
-    real: '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&service_config_version.in({serviceConfigVersions}){additionalParams}',
+    real: '/clusters/{clusterName}/configurations/service_config_versions?(service_name={serviceName}&service_config_version.in({serviceConfigVersions})){additionalParams}',
     mock: '/data/configurations/service_version.json',
     format: function (data) {
       return {

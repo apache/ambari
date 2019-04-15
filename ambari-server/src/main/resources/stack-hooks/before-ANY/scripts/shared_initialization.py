@@ -74,7 +74,7 @@ def setup_users():
       Logger.info('Skipping setting uid for hbase user as host is sys prepped')
 
   if should_create_users_and_groups:
-    if params.has_hdfs_clients:
+    if params.has_hdfs:
       create_dfs_cluster_admins()
     if params.has_tez and params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.3') >= 0:
       create_tez_am_view_acls()
@@ -180,7 +180,7 @@ def setup_hadoop_env():
   import params
   stackversion = params.stack_version_unformatted
   Logger.info("FS Type: {0}".format(params.dfs_type))
-  if params.has_hdfs_clients or stackversion.find('Gluster') >= 0 or params.dfs_type == 'HCFS':
+  if params.has_hdfs or stackversion.find('Gluster') >= 0 or params.dfs_type == 'HCFS':
     if params.security_enabled:
       tc_owner = "root"
     else:

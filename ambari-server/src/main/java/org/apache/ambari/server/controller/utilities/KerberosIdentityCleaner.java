@@ -26,6 +26,7 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.SecurityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,17 +63,20 @@ public class KerberosIdentityCleaner {
   public void componentRemoved(ServiceComponentUninstalledEvent event) throws KerberosMissingAdminCredentialsException {
     try {
       Cluster cluster = clusters.getCluster(event.getClusterId());
-      if (null != cluster.getUpgradeInProgress()) {
-        LOG.info("Skipping removal of identities for {} since there is an upgrade in progress",
-            event.getComponentName());
 
-        return;
+      if (cluster.getSecurityType() == SecurityType.KERBEROS) {
+        if (null != cluster.getUpgradeInProgress()) {
+          LOG.info("Skipping removal of identities for {} since there is an upgrade in progress",
+              event.getComponentName());
+
+          return;
+        }
+
+        LOG.info("Removing identities after {}", event);
+        RemovableIdentities
+            .ofComponent(clusters.getCluster(event.getClusterId()), event, kerberosHelper)
+            .remove(kerberosHelper);
       }
-
-      LOG.info("Removing identities after {}", event);
-      RemovableIdentities
-        .ofComponent(clusters.getCluster(event.getClusterId()), event, kerberosHelper)
-        .remove(kerberosHelper);
     } catch (Exception e) {
       LOG.error("Error while deleting kerberos identity after an event: " + event, e);
     }
@@ -86,17 +90,20 @@ public class KerberosIdentityCleaner {
   public void serviceRemoved(ServiceRemovedEvent event) {
     try {
       Cluster cluster = clusters.getCluster(event.getClusterId());
-      if (null != cluster.getUpgradeInProgress()) {
-        LOG.info("Skipping removal of identities for {} since there is an upgrade in progress",
-            event.getServiceName());
 
-        return;
+      if (cluster.getSecurityType() == SecurityType.KERBEROS) {
+        if (null != cluster.getUpgradeInProgress()) {
+          LOG.info("Skipping removal of identities for {} since there is an upgrade in progress",
+              event.getServiceName());
+
+          return;
+        }
+
+        LOG.info("Removing identities after {}", event);
+        RemovableIdentities
+            .ofService(clusters.getCluster(event.getClusterId()), event, kerberosHelper)
+            .remove(kerberosHelper);
       }
-
-      LOG.info("Removing identities after {}", event);
-      RemovableIdentities
-        .ofService(clusters.getCluster(event.getClusterId()), event, kerberosHelper)
-        .remove(kerberosHelper);
     } catch (Exception e) {
       LOG.error("Error while deleting kerberos identity after an event: " + event, e);
     }

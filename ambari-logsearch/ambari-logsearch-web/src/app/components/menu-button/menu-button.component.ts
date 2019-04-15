@@ -19,6 +19,7 @@
 import {Component, Input, Output, ViewChild, ElementRef, EventEmitter} from '@angular/core';
 import {ListItem} from '@app/classes/list-item';
 import {DropdownListComponent} from '@modules/shared/components/dropdown-list/dropdown-list.component';
+import {UtilsService} from '@app/services/utils.service';
 
 @Component({
   selector: 'menu-button',
@@ -46,13 +47,13 @@ export class MenuButtonComponent {
   subItems?: ListItem[];
 
   @Input()
-  isMultipleChoice: boolean = false;
+  isMultipleChoice = false;
 
   @Input()
-  hideCaret: boolean = false;
+  hideCaret = false;
 
   @Input()
-  isRightAlign: boolean = false;
+  isRightAlign = false;
 
   @Input()
   additionalLabelComponentSetter?: string;
@@ -61,10 +62,10 @@ export class MenuButtonComponent {
   badge: string;
 
   @Input()
-  caretClass: string = 'fa-caret-down';
+  caretClass = 'fa-caret-down';
 
   @Input()
-  useDropDownLocalFilter: boolean = false;
+  useDropDownLocalFilter = false;
 
   /**
    * The minimum time to handle a mousedown as a longclick. Default is 500 ms (0.5sec)
@@ -72,7 +73,7 @@ export class MenuButtonComponent {
    * @type {number}
    */
   @Input()
-  minLongClickDelay: number = 500;
+  minLongClickDelay = 500;
 
   /**
    * The maximum milliseconds to wait for longclick ends. The default is 0 which means no upper limit.
@@ -80,13 +81,13 @@ export class MenuButtonComponent {
    * @type {number}
    */
   @Input()
-  maxLongClickDelay: number = 0;
+  maxLongClickDelay = 0;
 
   @Input()
-  isDisabled: boolean = false;
+  isDisabled = false;
 
   @Input()
-  listClass: string = '';
+  listClass = '';
 
   @Output()
   buttonClick: EventEmitter<void> = new EventEmitter();
@@ -104,7 +105,7 @@ export class MenuButtonComponent {
    * Indicates if the dropdown list is open or not. So that we use internal state to display or hide the dropdown.
    * @type {boolean}
    */
-  private dropdownIsOpen: boolean = false;
+  private dropdownIsOpen = false;
 
   get hasSubItems(): boolean {
     return Boolean(this.subItems && this.subItems.length);
@@ -112,6 +113,26 @@ export class MenuButtonComponent {
 
   get hasCaret(): boolean {
     return this.hasSubItems && !this.hideCaret;
+  }
+
+  set selection(items: ListItem[] | null) {
+    const selectedItems = items ? (Array.isArray(items) ? items : [items]) : [];
+    this.subItems.forEach((subItem: ListItem) => {
+      const indexInSelection = this.findItemIndexInList(subItem, selectedItems);
+      subItem.isChecked = indexInSelection > -1;
+    });
+    this.refreshDropdownList();
+  }
+  get selection(): ListItem[] {
+    return this.subItems && this.subItems.filter((option: ListItem): boolean => option.isChecked);
+  }
+
+  constructor(private utils: UtilsService) {}
+
+  findItemIndexInList(item: ListItem, itemList: ListItem[] = this.subItems): number {
+    return itemList.findIndex((subItem) => (
+      item === subItem || this.utils.isEqual(item.value, subItem.value)
+    ));
   }
 
   /**
@@ -214,7 +235,7 @@ export class MenuButtonComponent {
 
   /**
    * The main goal if this function is tho handle the item change event on the child dropdown list.
-   * Should update the value and close the dropdown if it is not multiple choice type.
+   * Should update the value and close the dropdown.
    * @param {ListItem} item The selected item(s) from the dropdown list.
    */
   onDropdownItemChange(item: ListItem | ListItem[]) {
@@ -224,11 +245,22 @@ export class MenuButtonComponent {
     }
   }
 
-  updateSelection(item: ListItem | ListItem[]) {
-    this.selectItem.emit(item);
+  refreshDropdownList() {
     if (this.dropdownList) {
       this.dropdownList.doItemsCheck();
     }
+  }
+
+  updateSelection(item: ListItem | ListItem[]) {
+    const changes = Array.isArray(item) ? item : [item];
+    changes.forEach((change: ListItem): void => {
+      const subItemIndex = this.findItemIndexInList(change);
+      if (subItemIndex > -1) {
+        this.subItems[subItemIndex].isChecked = change.isChecked;
+      }
+    });
+    this.selectItem.emit(item);
+    this.refreshDropdownList();
   }
 
 }

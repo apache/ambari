@@ -355,7 +355,7 @@ export class LogsFilteringUtilsService {
           return item.isExclude === isExclude;
         }).map((parameter: SearchBoxParameter): HomogeneousObject<string> => {
           return {
-            [parameter.name]: parameter.value.replace(/\s/g, '+')
+            [parameter.name]: parameter.value
           };
         });
       }

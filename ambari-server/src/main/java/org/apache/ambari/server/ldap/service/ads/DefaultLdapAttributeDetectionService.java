@@ -155,7 +155,10 @@ public class DefaultLdapAttributeDetectionService implements LdapAttributeDetect
 
     for (Map.Entry<String, String> detecteMapEntry : detectedAttributes.entrySet()) {
       LOG.info("Setting detected configuration value: [{}] - > [{}]", detecteMapEntry.getKey(), detecteMapEntry.getValue());
-      ambariLdapConfiguration.setValueFor(AmbariServerConfigurationKey.translate(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, detecteMapEntry.getKey()), detecteMapEntry.getValue());
+      AmbariServerConfigurationKey key = AmbariServerConfigurationKey.translate(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, detecteMapEntry.getKey());
+      if(key != null) {
+        ambariLdapConfiguration.setValueFor(key, detecteMapEntry.getValue());
+      }
     }
 
   }

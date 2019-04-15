@@ -860,6 +860,10 @@ public class AmbariMetaInfo {
     return stackRoot;
   }
 
+  public File getCommonServicesRoot() {
+    return commonServicesRoot;
+  }
+
   public File getExtensionsRoot() {
     return extensionsRoot;
   }
@@ -1240,7 +1244,8 @@ public class AmbariMetaInfo {
       for (AlertDefinitionEntity definition : definitionsToDisable) {
         definition.setEnabled(false);
         alertDefinitionDao.merge(definition);
-        eventPublisher.publish(new AlertDefinitionDisabledEvent(clusterId, definition.getDefinitionId()));
+        eventPublisher.publish(new AlertDefinitionDisabledEvent(clusterId, definition.getDefinitionId(),
+            definition.getDefinitionName()));
       }
   }
 
