@@ -72,7 +72,7 @@
           </definition>
           <definition xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_urlauth_filesystem_schemes">
             <type>ranger-hive-security</type>
-            <set key="ranger.plugin.hive.urlauth.filesystem.schemes" value="hdfs:,file:,wasb:,adl:"
+            <set key="ranger.plugin.hive.urlauth.filesystem.schemes" value="hdfs:,file:,wasb:,adl:,abfs:"
               if-type="ranger-hive-security" if-key="ranger.plugin.hive.service.name" if-key-state="present"/>
           </definition>
           <definition xsi:type="configure" id="hdp_2_6_maint_jaas_config_for_hive_hook" summary="Updating hive atlas application properties">
