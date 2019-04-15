@@ -47,20 +47,18 @@ App.MoveHmConfigInitializer = App.MoveHiveComponentConfigInitializerClass.create
    * @method _initHiveMetastoreUris
    */
   _initHiveMetastoreUris: function (configProperty, localDB, dependencies) {
-    if (App.config.getConfigTagFromFileName(Em.get(configProperty, 'filename')) === 'hive-site') {
-      var hiveMSHosts = this.__getHmHostsConsideringMoved(localDB, dependencies);
+    var hiveMSHosts = this.__getHmHostsConsideringMoved(localDB, dependencies);
 
-      var value = Em.get(configProperty, 'value');
+    var value = Em.get(configProperty, 'value');
 
-      var port = value.match(/:[0-9]{2,4}/);
-      port = port ? port[0].slice(1) : '9083';
+    var port = value.match(/:[0-9]{2,4}/);
+    port = port ? port[0].slice(1) : '9083';
 
-      value = hiveMSHosts.uniq().map(function (hiveMSHost) {
-        return 'thrift://' + hiveMSHost + ':' + port;
-      }).join(',');
+    value = hiveMSHosts.uniq().map(function (hiveMSHost) {
+      return 'thrift://' + hiveMSHost + ':' + port;
+    }).join(',');
 
-      Em.set(configProperty, 'value', value);
-    }
+    Em.set(configProperty, 'value', value);
     return configProperty;
   },
 
