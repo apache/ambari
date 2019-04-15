@@ -1735,10 +1735,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   constructZookeeperConfigUrlParams: function (data) {
     var urlParams = [];
     var services = App.Service.find();
+    var zooKeeperRelatedServices = this.get('zooKeeperRelatedServices').slice(0);
     if (App.get('isHaEnabled')) {
-      urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
+      zooKeeperRelatedServices.push({
+        serviceName: 'HDFS',
+        typesToLoad: ['core-site'],
+        typesToSave: ['core-site']
+      });
     }
-    this.get('zooKeeperRelatedServices').forEach(function (service) {
+    zooKeeperRelatedServices.forEach(function (service) {
       if (services.someProperty('serviceName', service.serviceName)) {
         service.typesToLoad.forEach(function (type) {
           if (data.Clusters.desired_configs[type]) {
@@ -1767,7 +1772,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     this.updateZkConfigs(configs);
     var groups = [];
     var installedServiceNames = App.Service.find().mapProperty('serviceName');
-    this.get('zooKeeperRelatedServices').forEach(function (service) {
+    var zooKeeperRelatedServices = this.get('zooKeeperRelatedServices').slice(0);
+    if (App.get('isHaEnabled')) {
+      zooKeeperRelatedServices.push({
+        serviceName: 'HDFS',
+        typesToLoad: ['core-site'],
+        typesToSave: ['core-site']
+      });
+    }
+    zooKeeperRelatedServices.forEach(function (service) {
       if (installedServiceNames.contains(service.serviceName)) {
         var group = {
           properties: {},

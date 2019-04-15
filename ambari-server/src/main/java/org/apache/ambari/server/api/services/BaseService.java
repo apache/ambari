@@ -55,6 +55,7 @@ public abstract class BaseService {
   public static final String MSG_INVALID_REQUEST = "Invalid request";
   public static final String MSG_CLUSTER_NOT_FOUND = "Cluster not found";
   public static final String MSG_CLUSTER_OR_HOST_NOT_FOUND = "Cluster or host not found";
+  public static final String MSG_VIEW_NOT_FOUND = "View not found";
   public static final String MSG_NOT_AUTHENTICATED = "Not authenticated";
   public static final String MSG_PERMISSION_DENIED = "Not permitted to perform the operation";
   public static final String MSG_SERVER_ERROR = "Internal server error";
