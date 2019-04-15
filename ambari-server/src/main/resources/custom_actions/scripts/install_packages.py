@@ -41,6 +41,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.resources.repository import Repository
 from resource_management.libraries.script.script import Script
 from resource_management.core import sudo
+from resource_management.libraries.functions import lzo_utils
 
 
 class InstallPackages(Script):
@@ -147,6 +148,12 @@ class InstallPackages(Script):
     except Exception as err:
       num_errors += 1
       Logger.logger.exception("Could not install packages. Error: {0}".format(str(err)))
+
+    try:
+      lzo_utils.install_lzo_if_needed()
+    except Exception as err:
+      num_errors += 1
+      Logger.logger.exception("Could not install LZO packages. Error: {0}".format(str(err)))
 
     # Provide correct exit code
     if num_errors > 0:
