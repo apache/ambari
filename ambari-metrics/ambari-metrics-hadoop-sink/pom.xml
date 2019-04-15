@@ -206,6 +206,9 @@ limitations under the License.
       <artifactId>powermock-module-junit4</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+    </dependency>
   </dependencies>
-
 </project>

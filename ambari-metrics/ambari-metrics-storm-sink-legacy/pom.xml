@@ -177,6 +177,10 @@ limitations under the License.
         </exclusions>
     </dependency>
     <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-metrics-common</artifactId>
       <version>${project.version}</version>
