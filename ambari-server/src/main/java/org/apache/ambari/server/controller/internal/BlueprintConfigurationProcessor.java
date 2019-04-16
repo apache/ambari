@@ -2825,6 +2825,7 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> oozieEnvHeapSizeMap = new HashMap<>();
     Map<String, PropertyUpdater> multiWebhcatSiteMap = new HashMap<>();
     Map<String, PropertyUpdater> multiHbaseSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> livy2Conf = new HashMap<>();
     Map<String, PropertyUpdater> multiStormSiteMap = new HashMap<>();
     Map<String, PropertyUpdater> multiCoreSiteMap = new HashMap<>();
     Map<String, PropertyUpdater> multiHdfsSiteMap = new HashMap<>();
@@ -2898,6 +2899,7 @@ public class BlueprintConfigurationProcessor {
     multiHostTopologyUpdaters.put("accumulo-site", multiAccumuloSiteMap);
     multiHostTopologyUpdaters.put("kms-site", multiRangerKmsSiteMap);
     multiHostTopologyUpdaters.put("application-properties", atlasPropsMap);
+    multiHostTopologyUpdaters.put("livy2-conf", livy2Conf);
 
     dbHostTopologyUpdaters.put("hive-site", dbHiveSiteMap);
 
@@ -3224,6 +3226,8 @@ public class BlueprintConfigurationProcessor {
     druidCommon.put("metastore_hostname", HostGroupUpdater.INSTANCE);
     druidCommon.put("druid.metadata.storage.connector.connectURI", HostGroupUpdater.INSTANCE);
     druidCommon.put("druid.zk.service.host", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
+
+    livy2Conf.put("livy.server.recovery.state-store.url", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
   }
 
   private static void addUnitPropertyUpdaters() {
