@@ -17,32 +17,29 @@
  */
 package org.apache.ambari.server.security.authentication;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.easymock.EasyMockSupport;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.codec.Base64;
 
 public class AmbariBasicAuthenticationFilterTest extends EasyMockSupport {
@@ -61,27 +58,6 @@ public class AmbariBasicAuthenticationFilterTest extends EasyMockSupport {
     permissionHelper = createMock(PermissionHelper.class);
     entryPoint = createMock(AmbariEntryPoint.class);
     underTest = new AmbariBasicAuthenticationFilter(null, entryPoint, mockedAuditLogger, permissionHelper);
-  }
-
-  @Test
-  public void testDoFilter() throws IOException, ServletException {
-    SecurityContextHolder.getContext().setAuthentication(null);
-    // GIVEN
-    HttpServletRequest request = createMock(HttpServletRequest.class);
-    HttpServletResponse response = createMock(HttpServletResponse.class);
-    FilterChain filterChain = createMock(FilterChain.class);
-    expect(request.getHeader("Authorization")).andReturn("Basic ").andReturn(null);
-    expect(request.getHeader("X-Forwarded-For")).andReturn("1.2.3.4").anyTimes();
-    expect(mockedAuditLogger.isEnabled()).andReturn(true).anyTimes();
-    mockedAuditLogger.log(anyObject(AuditEvent.class));
-    expectLastCall().times(1);
-    filterChain.doFilter(request, response);
-    expectLastCall();
-    replayAll();
-    // WHEN
-    underTest.doFilter(request, response, filterChain);
-    // THEN
-    verifyAll();
   }
 
   @Test
