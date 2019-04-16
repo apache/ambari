@@ -387,6 +387,11 @@
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
+      <source>src/main/resources/index.html</source>
+      <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
+    </file>
+    <file>
       <fileMode>644</fileMode>
       <source>src/main/resources/slider_resources/README.txt</source>
       <outputDirectory>/var/lib/ambari-server/resources/apps</outputDirectory>
