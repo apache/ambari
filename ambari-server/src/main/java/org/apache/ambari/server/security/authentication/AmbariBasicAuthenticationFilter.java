@@ -18,6 +18,7 @@
 package org.apache.ambari.server.security.authentication;
 
 import java.io.IOException;
+
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -25,11 +26,10 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.LoginAuditEvent;
 import org.apache.ambari.server.security.AmbariEntryPoint;
-import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.apache.ambari.server.utils.RequestUtils;
 import org.slf4j.Logger;
@@ -104,8 +104,6 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
   }
 
   /**
-   * Checks whether the authentication information is filled. If it is not, then a login failed audit event is logged
-   *
    * @param servletRequest  the request
    * @param servletResponse the response
    * @param chain           the Spring filter chain
@@ -114,18 +112,6 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
    */
   @Override
   public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws IOException, ServletException {
-    HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-
-    if (auditLogger.isEnabled() && shouldApply(httpServletRequest) && (AuthorizationHelper.getAuthenticatedName() == null)) {
-      AuditEvent loginFailedAuditEvent = LoginAuditEvent.builder()
-          .withRemoteIp(RequestUtils.getRemoteAddress(httpServletRequest))
-          .withTimestamp(System.currentTimeMillis())
-          .withReasonOfFailure("Authentication required")
-          .withUserName(null)
-          .build();
-      auditLogger.log(loginFailedAuditEvent);
-    }
-
     super.doFilter(servletRequest, servletResponse, chain);
   }
 
