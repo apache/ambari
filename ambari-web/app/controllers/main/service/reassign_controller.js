@@ -158,7 +158,7 @@ App.ReassignMasterController = App.WizardController.extend({
     'APP_TIMELINE_SERVER': ['yarn-site', 'yarn-env'],
     'OOZIE_SERVER': ['oozie-site', 'core-site', 'oozie-env'],
     'HIVE_SERVER': ['hive-site', 'webhcat-site', 'hive-env', 'core-site'],
-    'HIVE_METASTORE': ['hive-site', 'webhcat-site', 'hive-env', 'core-site'],
+    'HIVE_METASTORE': ['hive-site', 'webhcat-site', 'hive-env', 'core-site', 'hive-interactive-site'],
     'MYSQL_SERVER': ['hive-site'],
     'HISTORYSERVER': ['mapred-site'],
     'TIMELINE_READER' : ['yarn-site']

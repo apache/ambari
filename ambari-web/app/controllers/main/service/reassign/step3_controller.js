@@ -371,13 +371,14 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
           this.get('propertiesToChange')[type].forEach(function (property) {
             var propertyName = property.name,
               stackProperty = App.configsCollection.getConfigByName(propertyName, type) || {},
+              displayName = self.getDisplayName(stackProperty.displayName, propertyName, type, serviceName),
               displayedProperty = App.ServiceConfigProperty.create({
                 name: propertyName,
-                displayName: propertyName,
                 fileName: type
               }, stackProperty, {
                 value: configs[type][propertyName],
                 category: serviceName,
+                displayName,
                 isEditable: Boolean(stackProperty.isEditable !== false && !property.isSecure)
               });
             displayedConfigs.push(displayedProperty);
@@ -390,6 +391,23 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
         isLoaded: true
       });
     });
+  },
+
+  getDisplayName: function (stackDisplayName, propertyName, type, serviceName) {
+    let displayName = stackDisplayName || propertyName;
+    const keys = Em.keys(this.get('propertiesToChange'));
+    for (let i = 0; i < keys.length; i++) {
+      const fileName = keys[i],
+          service = App.config.get('serviceByConfigTypeMap')[fileName];
+      if (fileName !== type && service && service.get('serviceName') === serviceName) {
+        const configs = this.get('propertiesToChange')[fileName];
+        if (configs.someProperty('name', propertyName)) {
+          displayName = `${type}/${propertyName}`;
+          break;
+        }
+      }
+    }
+    return displayName;
   },
 
   onLoadConfigs: function (data) {
