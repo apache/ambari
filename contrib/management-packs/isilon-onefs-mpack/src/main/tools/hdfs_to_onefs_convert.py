@@ -376,7 +376,7 @@ class Conversion:
     ver = self.cluster.version()
     print 'Found stack %s' % ver
     if not ver.startswith('HDP-3.'):
-      print 'Only HDP.3.x stacks are supported.'
+      print 'Only HDP-3.x stacks are supported.'
       return False
     if not self.cluster.installed_stack().has_service('ONEFS'):
       print 'ONEFS management pack is not installed.'
