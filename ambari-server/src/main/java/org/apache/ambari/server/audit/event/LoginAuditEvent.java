@@ -62,15 +62,14 @@ public class LoginAuditEvent extends AbstractUserAuditEvent {
     protected void buildAuditMessage(StringBuilder builder) {
       super.buildAuditMessage(builder);
 
-      builder.append(", Operation(User login), Roles(").append(System.lineSeparator());
+      builder.append(", Operation(User login), Roles(");
 
       if (roles != null && !roles.isEmpty()) {
         List<String> lines = new LinkedList<>();
         for (Map.Entry<String, List<String>> entry : roles.entrySet()) {
-          lines.add("    " + entry.getKey() + ": " + StringUtils.join(entry.getValue(), ", "));
+          lines.add("(" + "    " + entry.getKey() + ": " + StringUtils.join(entry.getValue(), ", ") + ")");
         }
-        builder.append(StringUtils.join(lines, System.lineSeparator()));
-        builder.append(System.lineSeparator());
+        builder.append(StringUtils.join(lines, ")"));
       }
       builder.append("), Status(")
         .append(reasonOfFailure == null ? "Success" : "Failed");

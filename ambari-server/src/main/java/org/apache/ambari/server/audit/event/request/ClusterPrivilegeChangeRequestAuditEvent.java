@@ -80,28 +80,32 @@ public class ClusterPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
       roleSet.addAll(roles.keySet());
 
       builder.append(", Roles(");
-      if (!users.isEmpty() || !groups.isEmpty()|| !roles.isEmpty()) {
-        builder.append(System.lineSeparator());
-      }
+
 
       List<String> lines = new LinkedList<>();
+      List<String> tmpLines = null;
+
 
       for (String role : roleSet) {
-        lines.add(role + ": ");
+        tmpLines = new LinkedList<>();
+        lines.add(role + ": [");
         if (users.get(role) != null && !users.get(role).isEmpty()) {
-          lines.add("  Users: " + StringUtils.join(users.get(role), ", "));
+          tmpLines.add("  Users: " + StringUtils.join(users.get(role), ", "));
         }
         if (groups.get(role) != null && !groups.get(role).isEmpty()) {
-          lines.add("  Groups: " + StringUtils.join(groups.get(role), ", "));
+          tmpLines.add("  Groups: " + StringUtils.join(groups.get(role), ", "));
         }
         if (roles.get(role) != null && !roles.get(role).isEmpty()) {
-          lines.add("  Roles: " + StringUtils.join(roles.get(role), ", "));
+          tmpLines.add("  Roles: " + StringUtils.join(roles.get(role), ", "));
         }
+        lines.add(StringUtils.join(tmpLines, ";"));
+        lines.add("] ");
       }
 
-      builder.append(StringUtils.join(lines, System.lineSeparator()));
+      builder.append(StringUtils.join(lines, ""));
 
       builder.append(")");
+
     }
 
     public ClusterPrivilegeChangeRequestAuditEventBuilder withUsers(Map<String, List<String>> users) {

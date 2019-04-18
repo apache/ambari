@@ -96,12 +96,12 @@ public class PrivilegeEventCreatorTest extends AuditEventCreatorTestBase{
     AuditEvent event = AuditEventCreatorTestHelper.getEvent(creator, request, result);
 
     String actual = event.getAuditMessage();
-    String expected = "User(" + userName + "), RemoteIp(1.2.3.4), Operation(Role change), RequestType(PUT), url(http://example.com:8080/api/v1/test), ResultStatus(200 OK), Roles(\n" +
-      "Permission1: \n" +
-      "  Users: " + userName + "\n" +
-      "  Groups: testgroup\n" +
-      "Permission2: \n" +
-      "  Users: " + userName + "2)";
+    String expected = "User(" + userName + "), RemoteIp(1.2.3.4), Operation(Role change), RequestType(PUT), url(http://example.com:8080/api/v1/test), ResultStatus(200 OK), Roles(" +
+      "Permission1: [" +
+      "  Users: " + userName + ";" +
+      "  Groups: testgroup]" +
+      " Permission2: [" +
+      "  Users: " + userName + "2] )";
 
     Assert.assertTrue("Class mismatch", event instanceof ClusterPrivilegeChangeRequestAuditEvent);
     Assert.assertEquals(expected, actual);
