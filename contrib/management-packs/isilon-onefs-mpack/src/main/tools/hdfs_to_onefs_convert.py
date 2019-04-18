@@ -370,14 +370,13 @@ class Conversion:
   def __init__(self, cluster, storage):
     self.cluster = cluster
     self.storage = storage
-    self.supported_stacks = ['HDP-3.0']
 
   def check_prerequisites(self):
     print 'Checking %s' % self.cluster
     ver = self.cluster.version()
     print 'Found stack %s' % ver
-    if ver not in self.supported_stacks:
-      print 'Only %s stacks are supported.' % self.supported_stacks
+    if not ver.startswith('HDP-3.'):
+      print 'Only HDP-3.x stacks are supported.'
       return False
     if not self.cluster.installed_stack().has_service('ONEFS'):
       print 'ONEFS management pack is not installed.'
@@ -522,7 +521,7 @@ if __name__ == '__main__':
   print 'The following prerequisites are required:'
   print '  * ONEFS management package must be installed'
   print '  * Ambari must be upgraded to >=v2.7.0'
-  print '  * Stack must be upgraded to HDP-3.0'
+  print '  * Stack must be upgraded to >=HDP-3.0'
   print '  * Is highly recommended to backup ambari database before you proceed.'
   conversion = Conversion(cluster, FsStorage())
   if not conversion.check_prerequisites():
