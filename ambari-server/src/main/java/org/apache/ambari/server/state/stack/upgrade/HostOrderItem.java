@@ -58,7 +58,15 @@ public class HostOrderItem {
    * {@link HostOrderActionType#SERVICE_CHECK}, then this should be a list of
    * services.
    */
-  private final List<String> m_actionItems;
+  private final List<String> m_hosts;
+
+  /**
+   * The items to take action on. If {@link HostOrderActionType#HOST_UPGRADE},
+   * then this should be a list of hosts. If
+   * {@link HostOrderActionType#SERVICE_CHECK}, then this should be a list of
+   * services.
+   */
+  private final List<String> m_checks;
 
   /**
    * Constructor.
@@ -66,9 +74,10 @@ public class HostOrderItem {
    * @param type
    * @param actionItems
    */
-  public HostOrderItem(HostOrderActionType type, List<String> actionItems) {
+  public HostOrderItem(HostOrderActionType type, List<String> hosts, List<String> checks) {
     m_type = type;
-    m_actionItems = actionItems;
+    m_hosts = hosts;
+    m_checks = checks;
   }
 
   /**
@@ -86,8 +95,12 @@ public class HostOrderItem {
    *
    * @return the list of action items.
    */
-  public List<String> getActionItems() {
-    return m_actionItems;
+  public List<String> getHosts() {
+    return m_hosts;
+  }
+
+  public List<String> getChecks() {
+    return m_checks;
   }
 
   /**
@@ -95,7 +108,10 @@ public class HostOrderItem {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("type", m_type).add("items",
-        StringUtils.join(m_actionItems, ", ")).omitNullValues().toString();
+    return Objects.toStringHelper(this)
+        .add("m_type", m_type)
+        .add("m_hosts", m_hosts)
+        .add("m_checks", m_checks)
+        .toString();
   }
 }

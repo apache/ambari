@@ -2107,10 +2107,10 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     // !!! make a custom grouping
     HostOrderItem hostItem = new HostOrderItem(HostOrderActionType.HOST_UPGRADE,
-        Lists.newArrayList("h1", "h2"));
+        Lists.newArrayList("h1", "h2"), Collections.<String>emptyList());
 
     HostOrderItem checkItem = new HostOrderItem(HostOrderActionType.SERVICE_CHECK,
-        Lists.newArrayList("ZOOKEEPER", "HBASE"));
+        Lists.newArrayList("h1", "h2"), Lists.newArrayList("ZOOKEEPER", "HBASE"));
 
     Grouping g = new HostOrderGrouping();
     ((HostOrderGrouping) g).setHostOrderItems(Lists.newArrayList(hostItem, checkItem));
@@ -2140,7 +2140,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     assertEquals(1, groups.size());
 
     UpgradeGroupHolder holder = groups.get(0);
-    assertEquals(9, holder.items.size());
+    assertEquals(11, holder.items.size());
 
     for (int i = 0; i < 7; i++) {
       StageWrapper w = holder.items.get(i);
@@ -2163,8 +2163,11 @@ public class UpgradeHelperTest extends EasyMockSupport {
       }
     }
 
+    // two hosts with two checks for each
     assertEquals(StageWrapper.Type.SERVICE_CHECK, holder.items.get(7).getType());
     assertEquals(StageWrapper.Type.SERVICE_CHECK, holder.items.get(8).getType());
+    assertEquals(StageWrapper.Type.SERVICE_CHECK, holder.items.get(9).getType());
+    assertEquals(StageWrapper.Type.SERVICE_CHECK, holder.items.get(10).getType());
 
     // !!! test downgrade when all host components have failed
     zookeeperServer1.setVersion(repoVersion211.getVersion());
@@ -2181,7 +2184,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     groups = m_upgradeHelper.createSequence(upgradePack, context);
 
     assertEquals(1, groups.size());
-    assertEquals(2, groups.get(0).items.size());
+    assertEquals(4, groups.get(0).items.size());
 
     // !!! test downgrade when one of the hosts had failed
     zookeeperServer1.setVersion(repoVersion211.getVersion());
@@ -2198,7 +2201,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     groups = m_upgradeHelper.createSequence(upgradePack, context);
 
     assertEquals(1, groups.size());
-    assertEquals(5, groups.get(0).items.size());
+    assertEquals(7, groups.get(0).items.size());
   }
 
   /**

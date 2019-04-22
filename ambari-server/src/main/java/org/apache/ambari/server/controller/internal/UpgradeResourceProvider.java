@@ -1158,7 +1158,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     List<RequestResourceFilter> filters = new ArrayList<>();
 
     for (TaskWrapper tw : wrapper.getTasks()) {
-      filters.add(new RequestResourceFilter(tw.getService(), "", Collections.<String> emptyList()));
+      filters.add(new RequestResourceFilter(tw.getService(), "", new ArrayList<>(tw.getHosts())));
     }
 
     Cluster cluster = context.getCluster();

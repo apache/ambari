@@ -73,6 +73,8 @@ public interface ServiceComponent {
 
   Map<String, ServiceComponentHost> getServiceComponentHosts();
 
+  Map<String, Host> getHostsForServiceComponents();
+
   ServiceComponentHost getServiceComponentHost(String hostname)
       throws AmbariException;
 
