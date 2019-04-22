@@ -139,6 +139,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Functions;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -2838,5 +2839,18 @@ public class ClusterImpl implements Cluster {
     }
 
     return componentVersionMap;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    ClusterImpl cluster = (ClusterImpl) o;
+    return clusterId == cluster.clusterId;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(clusterId);
   }
 }

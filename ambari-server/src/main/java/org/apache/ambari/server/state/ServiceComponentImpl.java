@@ -263,6 +263,15 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
+  public Map<String, Host> getHostsForServiceComponents() {
+    Map<String, Host> hosts = new HashMap<>();
+    for (Map.Entry<String, ServiceComponentHost> hostComponent : hostComponents.entrySet()) {
+      hosts.put(hostComponent.getKey(), hostComponent.getValue().getHost());
+    }
+    return hosts;
+  }
+
+  @Override
   public void addServiceComponentHosts(
       Map<String, ServiceComponentHost> hostComponents) throws AmbariException {
     // TODO validation

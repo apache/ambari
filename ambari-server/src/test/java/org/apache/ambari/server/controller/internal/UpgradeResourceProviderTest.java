@@ -1464,6 +1464,69 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     assertEquals(repoVersionEntity2200, service.getDesiredRepositoryVersion());
   }
 
+  @Test()
+  public void testCreateHostOrderedUpgrade() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+    assertNotNull(cluster);
+    String hostName1 = "h1";
+
+    // add second host with another zookeeper client
+    String hostName2 = "h2";
+    clusters.addHost(hostName2);
+    Host host = clusters.getHost(hostName2);
+    Map<String, String> hostAttributes = new HashMap<>();
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "6.3");
+    host.setHostAttributes(hostAttributes);
+    host.setState(HostState.HEALTHY);
+
+    clusters.mapHostToCluster(hostName2, "c1");
+
+    Service service = cluster.getService("ZOOKEEPER");
+    ServiceComponent component = service.getServiceComponent("ZOOKEEPER_CLIENT");
+    ServiceComponentHost sch = component.addServiceComponentHost(hostName2);
+    sch.setVersion("2.1.1.0");
+
+    // prepare upgrade request
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test_host_ordered");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.HOST_ORDERED.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+
+    Set<Map<String, List<String>>> hostsOrder = new LinkedHashSet<>();
+    Map<String, List<String>> hostGrouping = new HashMap<>();
+    hostGrouping.put("hosts", Lists.newArrayList(hostName1, hostName2));
+    hostGrouping.put("service_checks", Lists.newArrayList("ZOOKEEPER"));
+    hostsOrder.add(hostGrouping);
+
+    requestProps.put(UpgradeResourceProvider.UPGRADE_HOST_ORDERED_HOSTS, hostsOrder);
+    upgradeResourceProvider.createResources(request);
+
+    // find created service check tasks and check their hosts
+    List<RequestEntity> requestEntities = requestDao.findAll();
+    assertEquals(1, requestEntities.size());
+
+    RequestEntity requestEntity = requestEntities.get(0);
+
+    List<StageEntity> checkStages = new ArrayList<>();
+    for (StageEntity stageEntity : requestEntity.getStages()) {
+      if ("Service Check ZOOKEEPER".equals(stageEntity.getRequestContext())) {
+        checkStages.add(stageEntity);
+      }
+    }
+    assertEquals(2, checkStages.size());
+    assertEquals(1, checkStages.get(0).getHostRoleCommands().size());
+    assertEquals(1, checkStages.get(1).getHostRoleCommands().size());
+    assertEquals(hostName1, checkStages.get(0).getHostRoleCommands().iterator().next().getHostName());
+    assertEquals(hostName2, checkStages.get(1).getHostRoleCommands().iterator().next().getHostName());
+  }
+
   /**
    * Exercises that a component that goes from upgrade->downgrade that switches
    * {@code versionAdvertised} between will go to UKNOWN. This exercises

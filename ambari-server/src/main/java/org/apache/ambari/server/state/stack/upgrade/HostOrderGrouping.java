@@ -20,6 +20,7 @@ package org.apache.ambari.server.state.stack.upgrade;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -113,10 +114,10 @@ public class HostOrderGrouping extends Grouping {
       for (HostOrderItem orderItem : hostOrderItems) {
         switch (orderItem.getType()) {
           case HOST_UPGRADE:
-            wrappers.addAll(buildHosts(upgradeContext, orderItem.getActionItems()));
+            wrappers.addAll(buildHosts(upgradeContext, orderItem.getHosts()));
             break;
           case SERVICE_CHECK:
-            wrappers.addAll(buildServiceChecks(upgradeContext, orderItem.getActionItems()));
+            wrappers.addAll(buildServiceChecks(upgradeContext, orderItem.getHosts(), orderItem.getChecks()));
             break;
         }
       }
@@ -295,7 +296,8 @@ public class HostOrderGrouping extends Grouping {
      * @param upgradeContext  the context
      * @return  the wrappers for a host
      */
-    private List<StageWrapper> buildServiceChecks(UpgradeContext upgradeContext, List<String> serviceChecks) {
+    private List<StageWrapper> buildServiceChecks(UpgradeContext upgradeContext, List<String> hosts,
+                                                  List<String> serviceChecks) {
       if (CollectionUtils.isEmpty(serviceChecks)) {
         return Collections.emptyList();
       }
@@ -317,13 +319,18 @@ public class HostOrderGrouping extends Grouping {
           continue;
         }
 
-        StageWrapper wrapper = new StageWrapper(StageWrapper.Type.SERVICE_CHECK,
-            String.format("Service Check %s", upgradeContext.getServiceDisplay(serviceName)),
-            new TaskWrapper(serviceName, "", Collections.<String>emptySet(), new ServiceCheckTask()));
-
-        wrappers.add(wrapper);
+        if (CollectionUtils.isEmpty(hosts)) {
+          wrappers.add(new StageWrapper(StageWrapper.Type.SERVICE_CHECK,
+              String.format("Service Check %s", upgradeContext.getServiceDisplay(serviceName)),
+              new TaskWrapper(serviceName, "", Collections.<String>emptySet(), new ServiceCheckTask())));
+        } else {
+          for (String host : hosts) {
+            wrappers.add(new StageWrapper(StageWrapper.Type.SERVICE_CHECK,
+                String.format("Service Check %s", upgradeContext.getServiceDisplay(serviceName)),
+                new TaskWrapper(serviceName, "", Collections.singleton(host), new ServiceCheckTask())));
+          }
+        }
       }
-
       return wrappers;
     }
 

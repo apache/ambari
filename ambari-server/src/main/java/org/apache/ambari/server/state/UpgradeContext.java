@@ -1278,7 +1278,7 @@ public class UpgradeContext {
       List<String> hostsFromRequest = new ArrayList<>(hostOrderItems.size());
       for (HostOrderItem hostOrderItem : hostOrderItems) {
         if (hostOrderItem.getType() == HostOrderActionType.HOST_UPGRADE) {
-          hostsFromRequest.addAll(hostOrderItem.getActionItems());
+          hostsFromRequest.addAll(hostOrderItem.getHosts());
         }
       }
 
@@ -1350,11 +1350,11 @@ public class UpgradeContext {
         }
 
         if (CollectionUtils.isNotEmpty(hosts)) {
-          hostOrderItems.add(new HostOrderItem(HostOrderActionType.HOST_UPGRADE, hosts));
+          hostOrderItems.add(new HostOrderItem(HostOrderActionType.HOST_UPGRADE, hosts, Collections.<String>emptyList()));
         }
 
         if (CollectionUtils.isNotEmpty(serviceChecks)) {
-          hostOrderItems.add(new HostOrderItem(HostOrderActionType.SERVICE_CHECK, serviceChecks));
+          hostOrderItems.add(new HostOrderItem(HostOrderActionType.SERVICE_CHECK, hosts, serviceChecks));
         }
       }
 
