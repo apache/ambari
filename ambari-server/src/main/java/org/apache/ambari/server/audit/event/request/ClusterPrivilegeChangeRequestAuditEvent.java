@@ -83,11 +83,9 @@ public class ClusterPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
 
 
       List<String> lines = new LinkedList<>();
-      List<String> tmpLines = null;
-
 
       for (String role : roleSet) {
-        tmpLines = new LinkedList<>();
+        List<String>  tmpLines = new LinkedList<>();
         lines.add(role + ": [");
         if (users.get(role) != null && !users.get(role).isEmpty()) {
           tmpLines.add("Users: " + StringUtils.join(users.get(role), ", "));
