@@ -67,7 +67,7 @@ public class LoginAuditEvent extends AbstractUserAuditEvent {
       if (roles != null && !roles.isEmpty()) {
         List<String> lines = new LinkedList<>();
         for (Map.Entry<String, List<String>> entry : roles.entrySet()) {
-          lines.add("(" + "    " + entry.getKey() + ": " + StringUtils.join(entry.getValue(), ", ") + ")");
+          lines.add("(" +entry.getKey() + ": " + StringUtils.join(entry.getValue(), ", ") + ")");
         }
         builder.append(StringUtils.join(lines, ")"));
       }

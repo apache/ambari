@@ -76,10 +76,10 @@ public class ViewPrivilegeEventCreatorTest extends AuditEventCreatorTestBase{
     String actual = event.getAuditMessage();
     String expected = "User(" + userName + "), RemoteIp(1.2.3.4), Operation(View permission change), RequestType(PUT), url(http://example.com:8080/api/v1/test), ResultStatus(200 OK), Type(MyView), Version(MyView), Name(MyView), Permissions(" +
       "Permission1: [" +
-      "  Users: testuser;" +
-      "  Groups: testgroup]" +
+      "Users: testuser;" +
+      "Groups: testgroup]" +
       " Permission2: [" +
-      "  Users: testuser2] )";
+      "Users: testuser2] )";
 
     Assert.assertTrue("Class mismatch", event instanceof ViewPrivilegeChangeRequestAuditEvent);
     Assert.assertEquals(expected, actual);

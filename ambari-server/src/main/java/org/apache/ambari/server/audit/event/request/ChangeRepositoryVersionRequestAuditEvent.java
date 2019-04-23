@@ -95,7 +95,7 @@ public class ChangeRepositoryVersionRequestAuditEvent extends RequestAuditEvent 
         builder.append("Operating system: ").append(repo.getKey());
         builder.append("(");
         for (Map<String, String> properties : repo.getValue()) {
-          builder.append("    Repository ID(").append(properties.get("repo_id"));
+          builder.append("Repository ID(").append(properties.get("repo_id"));
           builder.append("), Repository name(").append(properties.get("repo_name"));
           builder.append("), Base url(").append(properties.get("base_url")).append(")");
           builder.append(")");

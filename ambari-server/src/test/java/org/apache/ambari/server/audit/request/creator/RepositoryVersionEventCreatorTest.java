@@ -61,9 +61,9 @@ public class RepositoryVersionEventCreatorTest extends AuditEventCreatorTestBase
     String actual = event.getAuditMessage();
     String expected = "User(" + userName + "), RemoteIp(1.2.3.4), Operation(Repository version addition), RequestType(POST), url(http://example.com:8080/api/v1/test), ResultStatus(200 OK), Stack(StackName), Stack version(1.9), Display name(MyStack), Repo version(1.2-56), Repositories(" +
       "Operating system: redhat6(" +
-      "    Repository ID(2), Repository name(MyRepo6), Base url(http://example6.com))" +
+      "Repository ID(2), Repository name(MyRepo6), Base url(http://example6.com))" +
       "Operating system: redhat7(" +
-      "    Repository ID(1), Repository name(MyRepo), Base url(http://example.com))" +
+      "Repository ID(1), Repository name(MyRepo), Base url(http://example.com))" +
       ")";
 
     Assert.assertTrue("Class mismatch", event instanceof AddRepositoryVersionRequestAuditEvent);
@@ -91,9 +91,9 @@ public class RepositoryVersionEventCreatorTest extends AuditEventCreatorTestBase
     String actual = event.getAuditMessage();
     String expected = "User(" + userName + "), RemoteIp(1.2.3.4), Operation(Repository version change), RequestType(PUT), url(http://example.com:8080/api/v1/test), ResultStatus(200 OK), Stack(StackName), Stack version(1.9), Display name(MyStack), Repo version(1.2-56), Repositories(" +
       "Operating system: redhat6(" +
-      "    Repository ID(2), Repository name(MyRepo6), Base url(http://example6.com))" +
+      "Repository ID(2), Repository name(MyRepo6), Base url(http://example6.com))" +
       "Operating system: redhat7(" +
-      "    Repository ID(1), Repository name(MyRepo), Base url(http://example.com))" +
+      "Repository ID(1), Repository name(MyRepo), Base url(http://example.com))" +
       ")";
 
     Assert.assertTrue("Class mismatch", event instanceof ChangeRepositoryVersionRequestAuditEvent);
