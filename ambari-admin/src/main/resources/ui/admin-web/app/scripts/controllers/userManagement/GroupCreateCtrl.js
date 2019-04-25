@@ -66,8 +66,8 @@ function($scope, $rootScope, Group, $location, Alert, UnsavedDialog, $translate,
     }).map(function(item) {
       return item.trim();
     });
-    return group.saveMembers().catch(function(data) {
-      Alert.error($t('groups.alerts.cannotUpdateGroupMembers'), "<div class='break-word'>" + data.message + "</div>");
+    return group.saveMembers().catch(function(resp) {
+      Alert.error($t('groups.alerts.cannotUpdateGroupMembers'), "<div class='break-word'>" + resp.data.message + "</div>");
     });
   }
 

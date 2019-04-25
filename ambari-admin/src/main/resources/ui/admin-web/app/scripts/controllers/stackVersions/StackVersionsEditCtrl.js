@@ -241,8 +241,8 @@ angular.module('ambariAdminConsole')
     ).then(function() {
         Stack.deleteRepo($scope.upgradeStack.stack_name, $scope.upgradeStack.stack_version, $scope.id).then( function () {
           $location.path('/stackVersions');
-        }).catch(function (data) {
-            Alert.error($t('versions.alerts.versionDeleteError'), data.message);
+        }).catch(function (resp) {
+            Alert.error($t('versions.alerts.versionDeleteError'), resp.data.message);
           });
       });
   };
