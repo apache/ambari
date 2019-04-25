@@ -352,7 +352,7 @@ angular.module('ambariAdminConsole')
             });
           }
         })
-        .catch(function (data) {
+        .catch(function (resp) {
           Alert.error($t('versions.alerts.readVersionInfoError'), data.message);
         });
       } else {
