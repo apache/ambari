@@ -55,7 +55,7 @@ public class LoginAuditEventTest {
     // When
     String actualAuditMessage = evnt.getAuditMessage();
 
-    String roleMessage = "(" + "a: r1, r2, r3" + ")";
+    String roleMessage =  "a: r1, r2, r3";
 
     // Then
     String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Operation(User login), Roles(%s), Status(Success)",
@@ -74,7 +74,7 @@ public class LoginAuditEventTest {
     // When
     actualAuditMessage = evnt.getAuditMessage();
 
-    roleMessage = "(" + "a: r1, r2, r3" +  ")";
+    roleMessage = "a: r1, r2, r3";
 
     // Then
     expectedAuditMessage = String.format("User(%s), RemoteIp(%s), ProxyUser(%s), Operation(User login), Roles(%s), Status(Success)",
@@ -109,7 +109,7 @@ public class LoginAuditEventTest {
     // When
     String actualAuditMessage = evnt.getAuditMessage();
 
-    String roleMessage = "(" + "a: r1, r2, r3" +  ")";
+    String roleMessage =  "a: r1, r2, r3" ;
 
     // Then
     String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Operation(User login), Roles(%s), Status(Failed), Reason(%s), Consecutive failures(%d)",
@@ -130,7 +130,7 @@ public class LoginAuditEventTest {
     // When
     actualAuditMessage = evnt.getAuditMessage();
 
-    roleMessage = "(" + "a: r1, r2, r3" +  ")";
+    roleMessage = "a: r1, r2, r3" ;
 
     // Then
     expectedAuditMessage = String.format("User(%s), RemoteIp(%s), ProxyUser(%s), Operation(User login), Roles(%s), Status(Failed), Reason(%s), Consecutive failures(%d)",
@@ -164,7 +164,7 @@ public class LoginAuditEventTest {
     // When
     String actualAuditMessage = evnt.getAuditMessage();
 
-    String roleMessage = "(" + "a: r1, r2, r3" +  ")";
+    String roleMessage = "a: r1, r2, r3" ;
 
     // Then
     String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Operation(User login), Roles(%s), Status(Failed), Reason(%s), Consecutive failures(UNKNOWN USER)",
@@ -185,7 +185,7 @@ public class LoginAuditEventTest {
     // When
     actualAuditMessage = evnt.getAuditMessage();
 
-    roleMessage =  "(" + "a: r1, r2, r3" +  ")";
+    roleMessage =  "a: r1, r2, r3";
 
     // Then
     expectedAuditMessage = String.format("User(%s), RemoteIp(%s), ProxyUser(%s), Operation(User login), Roles(%s), Status(Failed), Reason(%s), Consecutive failures(UNKNOWN USER)",
