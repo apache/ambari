@@ -18,8 +18,8 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsCreateCtrl', ['$scope', 'Stack', 'Utility', '$routeParams', '$location', '$timeout' ,'Alert', '$translate', 'Cluster', 'AddRepositoryModal', 'AddVersionModal', 'ConfirmationModal',
-    function($scope, Stack, Utility, $routeParams, $location, $timeout, Alert, $translate, Cluster, AddRepositoryModal, AddVersionModal, ConfirmationModal) {
+.controller('StackVersionsCreateCtrl', ['$scope', '$q', 'Stack', 'Utility', '$routeParams', '$location', '$timeout' ,'Alert', '$translate', 'Cluster', 'AddRepositoryModal', 'AddVersionModal', 'ConfirmationModal',
+    function($scope, $q, Stack, Utility, $routeParams, $location, $timeout, Alert, $translate, Cluster, AddRepositoryModal, AddVersionModal, ConfirmationModal) {
   var $t = $translate.instant;
   $scope.constants = {
     os: $t('versions.os')
@@ -189,7 +189,7 @@ angular.module('ambariAdminConsole')
    * Load GPL License Accepted value
    */
   $scope.fetchGPLLicenseAccepted = function () {
-    Stack.getGPLLicenseAccepted().then(function (data) {
+    return Stack.getGPLLicenseAccepted().then(function (data) {
       $scope.isGPLAccepted = data === 'true';
     })
   };
@@ -198,7 +198,7 @@ angular.module('ambariAdminConsole')
    * Load supported OS list
    */
   $scope.afterStackVersionRead = function () {
-    Stack.getSupportedOSList($scope.upgradeStack.stack_name, $scope.upgradeStack.stack_version)
+    return Stack.getSupportedOSList($scope.upgradeStack.stack_name, $scope.upgradeStack.stack_version)
       .then(function (data) {
         var existingOSHash = {};
         angular.forEach($scope.osList, function (os) {
@@ -307,9 +307,17 @@ angular.module('ambariAdminConsole')
         $scope.updateObj.operating_systems.push(os);
       }
     });
+    var osList = Object.assign([], $scope.osList).map(function(os) {
+      return Object.assign({}, os, {repositories: os.repositories.filter(function(repo) { return $scope.showRepo(repo); })});
+    });
+    osList.forEach(function (os) {
+      os.repositories = os.repositories.filter(function (repo) {
+        return repo.Repositories.tags.indexOf('GPL') === -1 || repo.Repositories.base_url;
+      });
+    });
 
     var skip = $scope.skipValidation || $scope.useRedhatSatellite;
-    return Stack.validateBaseUrls(skip, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
+    return Stack.validateBaseUrls(skip, osList, $scope.upgradeStack).then(function (invalidUrls) {
       if (invalidUrls.length === 0) {
         if ($scope.isPublicVersion) {
           var data = {
@@ -491,11 +499,35 @@ angular.module('ambariAdminConsole')
     $scope.repoVersionFullName = response.repoVersionFullName;
     $scope.osList = response.osList;
 
-    // load supported os type base on stack version
-    $scope.afterStackVersionRead();
+    $q.all([
+      // load supported os type base on stack version
+      $scope.afterStackVersionRead(),
 
-    // Load GPL license accepted value
-    $scope.fetchGPLLicenseAccepted();
+      // Load GPL license accepted value
+      $scope.fetchGPLLicenseAccepted()
+    ]).then(function () {
+      if (!$scope.isGPLAccepted) {
+        return;
+      }
+      $scope.osList.forEach(function (os) {
+        var gplRepo = os.repositories.find(function (repo) {
+          return repo.Repositories.tags.indexOf('GPL') !== -1;
+        });
+        if (!gplRepo) {
+          gplRepo = {Repositories: {}};
+          Object.assign(gplRepo.Repositories, os.repositories[0].Repositories);
+          gplRepo.Repositories.tags = ['GPL'];
+          gplRepo.Repositories.repo_id += '-GPL';
+          gplRepo.Repositories.repo_name += '-GPL';
+          gplRepo.Repositories.initial_base_url = '';
+          gplRepo.Repositories.base_url = '';
+          os.repositories.push(gplRepo);
+        } else {
+          var index = os.repositories.indexOf(gplRepo);
+          os.repositories.push(os.repositories.splice(index, 1)[0]);
+        }
+      });
+    });
   };
 
   $scope.selectRepoInList = function() {
