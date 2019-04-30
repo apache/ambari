@@ -80,7 +80,7 @@ module.exports = function(config) {
       'vendor/scripts/jquery.flexibleArea.js',
       'vendor/scripts/FileSaver.js',
       'vendor/scripts/Blob.js',
-      'vendor/scripts/moment.js',
+      'vendor/scripts/moment.min.js',
       'vendor/scripts/moment-timezone-with-data-2010-2020.js',
       'vendor/**/*.js',
       'app/templates/**/*.hbs',
