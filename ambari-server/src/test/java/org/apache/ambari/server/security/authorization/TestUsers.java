@@ -23,12 +23,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.sql.SQLException;
 import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.GroupDAO;
@@ -79,6 +81,8 @@ public class TestUsers {
   protected PrincipalDAO principalDAO;
   @Inject
   protected PasswordEncoder passwordEncoder;
+  @Inject
+  protected Configuration configuration;
 
   @Before
   public void setup() throws AmbariException {
@@ -153,6 +157,34 @@ public class TestUsers {
 
     users.modifyPassword("user", "admin", "user_new_password");
     assertTrue(passwordEncoder.matches("user_new_password", userDAO.findUserByName("user").getUserPassword()));
+  }
+
+  @Test
+  public void testValidatePassword() throws Exception {
+    try {
+      users.validatePassword(null);
+      fail("Null password should not be allowed");
+    } catch (IllegalArgumentException e) {
+      assertEquals("The password does not meet the password policy requirements", e.getLocalizedMessage());
+    }
+
+    try {
+      users.validatePassword("");
+      fail("Empty password should not be allowed");
+    } catch (IllegalArgumentException e) {
+      assertEquals("The password does not meet the password policy requirements", e.getLocalizedMessage());
+    }
+
+    //Minimum eight characters, at least one letter and one number:
+    configuration.setProperty(Configuration.PASSWORD_POLICY_REGEXP, "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$");
+    try {
+      users.validatePassword("abc123");
+      fail("Should not pass validation");
+    } catch (IllegalArgumentException e) {
+      assertEquals("The password does not meet the Ambari user password policy regexp:^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$", e.getLocalizedMessage());
+    }
+
+    users.validatePassword("abcd1234");
   }
 
   @Test

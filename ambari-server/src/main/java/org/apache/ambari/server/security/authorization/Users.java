@@ -26,6 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -187,6 +188,7 @@ public class Users {
     if (currentUserName == null) {
       throw new AmbariException("Authentication required. Please sign in.");
     }
+    validatePassword(newPassword);
 
     UserEntity currentUserEntity = userDAO.findLocalUserByName(currentUserName);
 
@@ -317,6 +319,9 @@ public class Users {
     if (existingUser != null) {
       throw new AmbariException("User " + existingUser.getUserName() + " already exists with type "
         + existingUser.getUserType());
+    }
+    if (!StringUtils.isEmpty(password)) {
+      validatePassword(password);
     }
 
     PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
@@ -1040,5 +1045,21 @@ public class Users {
     }
 
     return implicitPrivileges;
+  }
+
+  /**
+   * Validates that password meets configured requirements according to ambari.properties.
+   * @param password the password
+   * @throws  IllegalArgumentException if password does not meet the password policy requirements
+   */
+  public void validatePassword(String password) {
+    if (StringUtils.isEmpty(password)) {
+      throw new IllegalArgumentException("The password does not meet the password policy requirements");
+    }
+    String regexp = configuration.getPasswordPolicyRegexp();
+    if (!StringUtils.isEmpty(regexp) && (!Pattern.matches(regexp,password))) {
+      final String msg = "The password does not meet the Ambari user password policy regexp:" + regexp;
+      throw new IllegalArgumentException(msg);
+    }
   }
 }
