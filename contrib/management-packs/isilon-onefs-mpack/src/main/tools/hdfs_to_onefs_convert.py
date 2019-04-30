@@ -520,8 +520,8 @@ if __name__ == '__main__':
   print 'This script will replace the HDFS service to ONEFS'
   print 'The following prerequisites are required:'
   print '  * ONEFS management package must be installed'
-  print '  * Ambari must be upgraded to >=v2.7.0'
-  print '  * Stack must be upgraded to >=HDP-3.0'
+  print '  * Ambari must be upgraded to >=v2.7.1'
+  print '  * Stack must be upgraded to HDP-3.0'
   print '  * Is highly recommended to backup ambari database before you proceed.'
   conversion = Conversion(cluster, FsStorage())
   if not conversion.check_prerequisites():
