@@ -505,6 +505,14 @@ public class Configuration {
       "agent.ssl", "true");
 
   /**
+   * Configurable password policy for Ambari users
+   */
+  @Markdown(
+      description = "Determines Ambari user password policy. Passwords should match the regex")
+  public static final ConfigurationProperty<String> PASSWORD_POLICY_REGEXP = new ConfigurationProperty<>(
+      "security.password.policy.regexp", ".*");
+
+  /**
    * Determines whether the Ambari Agent host names should be validated against
    * a regular expression to ensure that they are well-formed.
    */
@@ -3997,6 +4005,13 @@ public class Configuration {
 
   public String getMySQLJarName() {
     return getProperty(MYSQL_JAR_NAME);
+  }
+
+  /**
+   * @return Configurable password policy for Ambari users
+   */
+  public String getPasswordPolicyRegexp() {
+    return getProperty(PASSWORD_POLICY_REGEXP);
   }
 
   public JPATableGenerationStrategy getJPATableGenerationStrategy() {
