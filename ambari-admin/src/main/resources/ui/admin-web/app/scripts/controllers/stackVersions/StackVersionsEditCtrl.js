@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsEditCtrl', ['$scope', '$location', 'Cluster', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', '$translate', 'AddRepositoryModal', function($scope, $location, Cluster, Stack, $routeParams, ConfirmationModal, Alert, $translate, AddRepositoryModal) {
+.controller('StackVersionsEditCtrl', ['$scope', '$location', '$q', 'Cluster', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', '$translate', 'AddRepositoryModal', function($scope, $location, $q, Cluster, Stack, $routeParams, ConfirmationModal, Alert, $translate, AddRepositoryModal) {
   var $t = $translate.instant;
   $scope.constants = {
     os: $t('versions.os')
@@ -73,11 +73,36 @@ angular.module('ambariAdminConsole')
         os.selected = true;
       });
       $scope.osList = response.osList;
-      // load supported os type base on stack version
-      $scope.afterStackVersionRead();
 
-      // Load GPL license accepted value
-      $scope.fetchGPLLicenseAccepted();
+      $q.all([
+        // load supported os type base on stack version
+        $scope.afterStackVersionRead(),
+
+        // Load GPL license accepted value
+        $scope.fetchGPLLicenseAccepted()
+      ]).then(function () {
+        if (!$scope.isGPLAccepted) {
+          return;
+        }
+        $scope.osList.forEach(function (os) {
+          var gplRepo = os.repositories.find(function (repo) {
+            return repo.Repositories.tags.indexOf('GPL') !== -1;
+          });
+          if (!gplRepo) {
+            gplRepo = {Repositories: {}};
+            Object.assign(gplRepo.Repositories, os.repositories[0].Repositories);
+            gplRepo.Repositories.tags = ['GPL'];
+            gplRepo.Repositories.repo_id += '-GPL';
+            gplRepo.Repositories.repo_name += '-GPL';
+            gplRepo.Repositories.initial_base_url = '';
+            gplRepo.Repositories.base_url = '';
+            os.repositories.push(gplRepo);
+          } else {
+            var index = os.repositories.indexOf(gplRepo);
+            os.repositories.push(os.repositories.splice(index, 1)[0]);
+          }
+        });
+      });
 
       // if user reach here from UI click, repo status should be cached
       // otherwise re-fetch repo status from cluster end point.
@@ -100,7 +125,7 @@ angular.module('ambariAdminConsole')
    * Load GPL License Accepted value
    */
   $scope.fetchGPLLicenseAccepted = function () {
-    Stack.getGPLLicenseAccepted().then(function (data) {
+    return Stack.getGPLLicenseAccepted().then(function (data) {
       $scope.isGPLAccepted = data === 'true';
     })
   };
@@ -109,7 +134,7 @@ angular.module('ambariAdminConsole')
    * Load supported OS list
    */
   $scope.afterStackVersionRead = function () {
-    Stack.getSupportedOSList($scope.upgradeStack.stack_name, $scope.upgradeStack.stack_version)
+    return Stack.getSupportedOSList($scope.upgradeStack.stack_name, $scope.upgradeStack.stack_version)
       .then(function (data) {
         var operatingSystems = data.operating_systems;
         operatingSystems.map(function (os) {
@@ -194,6 +219,11 @@ angular.module('ambariAdminConsole')
     // Filter out repositories that are not shown in the UI
     var osList = Object.assign([], $scope.osList).map(function(os) {
       return Object.assign({}, os, {repositories: os.repositories.filter(function(repo) { return $scope.showRepo(repo); })});
+    });
+    osList.forEach(function (os) {
+      os.repositories = os.repositories.filter(function (repo) {
+        return repo.Repositories.tags.indexOf('GPL') === -1 || repo.Repositories.base_url;
+      });
     });
     return Stack.validateBaseUrls(skip, osList, $scope.upgradeStack).then(function (invalidUrls) {
       if (invalidUrls.length === 0) {
