@@ -77,6 +77,7 @@ public class TestStagePlanner {
   public void testSingleStagePlan() throws AmbariException {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+    when(cluster.getDesiredStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
 
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
 
@@ -97,6 +98,7 @@ public class TestStagePlanner {
   public void testMultiStagePlan() {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+    when(cluster.getDesiredStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
     long now = System.currentTimeMillis();
@@ -122,6 +124,7 @@ public class TestStagePlanner {
   public void testRestartStagePlan() {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+    when(cluster.getDesiredStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
     long now = System.currentTimeMillis();
@@ -151,6 +154,7 @@ public class TestStagePlanner {
   public void testManyStages() {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+    when(cluster.getDesiredStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
     long now = System.currentTimeMillis();
@@ -202,6 +206,7 @@ public class TestStagePlanner {
   public void testDependencyOrderedStageCreate() {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+    when(cluster.getDesiredStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
     rg.setCommandExecutionType(CommandExecutionType.DEPENDENCY_ORDERED);
