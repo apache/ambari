@@ -1482,49 +1482,43 @@ class TestNamenode(RMFTestCase):
     json_content['commandParams']['upgrade_direction'] = 'upgrade'
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
-      classname = "NameNode",
-      command = "prepare_rolling_upgrade",
-      config_dict = json_content,
-      stack_version = self.STACK_VERSION,
-      target = RMFTestCase.TARGET_COMMON_SERVICES,
-      call_mocks = [(0, "Safe mode is OFF in c6401.ambari.apache.org")])
+                       classname="NameNode",
+                       command="prepare_rolling_upgrade",
+                       config_dict=json_content,
+                       stack_version=self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks=[(0, "Safe mode is OFF in c6401.ambari.apache.org")])
 
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
-      logoutput = True, user = 'hdfs')
-
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade prepare',
-      logoutput = True, user = 'hdfs')
-
+                              logoutput=True, user='hdfs')
+    self.assertResourceCalled('Execute',
+                              'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade prepare',
+                              logoutput=True, user='hdfs')
     self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade query',
-      logoutput = True, user = 'hdfs')
-
+                              logoutput=True, user='hdfs')
     self.assertNoMoreResources()
 
-  def test_prepare_rolling_upgrade__upgrade(self):
+  def test_prepare_rolling_upgrade__upgrade_ha(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/ha_secured.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
     json_content['commandParams']['upgrade_direction'] = 'upgrade'
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
-                       classname = "NameNode",
-                       command = "prepare_rolling_upgrade",
-                       config_dict = json_content,
-                       stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, "Safe mode is OFF in c6401.ambari.apache.org")])
+                       classname="NameNode",
+                       command="prepare_rolling_upgrade",
+                       config_dict=json_content,
+                       stack_version=self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks=[(0, "Safe mode is OFF in c6401.ambari.apache.org")])
 
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
-                              logoutput = True, user = 'hdfs')
-
+                              logoutput=True, user='hdfs')
     self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade prepare',
-                              logoutput = True, user = 'hdfs')
-
+                              logoutput=True, user='hdfs')
     self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade query',
-                              logoutput = True, user = 'hdfs')
-
+                              logoutput=True, user='hdfs')
     self.assertNoMoreResources()
-
 
 
   @patch.object(shell, "call")
