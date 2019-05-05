@@ -31,6 +31,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.namenode_ha_utils import get_name_service_by_hostname
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
+from resource_management.libraries.resources.execute_hdfs import ExecuteHDFS
 from resource_management.libraries.functions import Direction
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
@@ -452,10 +453,11 @@ def refreshProxyUsers():
     nn_refresh_cmd = format('dfsadmin -fs hdfs://{namenode_rpc} -refreshSuperUserGroupsConfiguration')
   else:
     nn_refresh_cmd = format('dfsadmin -fs {namenode_address} -refreshSuperUserGroupsConfiguration')
-  ExecuteHadoop(nn_refresh_cmd,
-                user=params.hdfs_user,
-                conf_dir=params.hadoop_conf_dir,
-                bin_dir=params.hadoop_bin_dir)
+  ExecuteHDFS(nn_refresh_cmd,
+              user=params.hdfs_user,
+              conf_dir=params.hadoop_conf_dir,
+              bin_dir=params.hadoop_bin_dir)
+
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def decommission():
@@ -491,10 +493,11 @@ def decommission():
       nn_refresh_cmd = format('dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes')
     else:
       nn_refresh_cmd = format('dfsadmin -fs {namenode_address} -refreshNodes')
-    ExecuteHadoop(nn_refresh_cmd,
-                  user=hdfs_user,
-                  conf_dir=conf_dir,
-                  bin_dir=params.hadoop_bin_dir)
+    ExecuteHDFS(nn_refresh_cmd,
+                user=hdfs_user,
+                conf_dir=conf_dir,
+                bin_dir=params.hadoop_bin_dir)
+
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def decommission():
@@ -517,9 +520,9 @@ def decommission():
   if params.dfs_ha_enabled:
     # due to a bug in hdfs, refreshNodes will not run on both namenodes so we
     # need to execute each command scoped to a particular namenode
-    nn_refresh_cmd = format('cmd /c hadoop dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes')
+    nn_refresh_cmd = format('cmd /c hdfs dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes')
   else:
-    nn_refresh_cmd = format('cmd /c hadoop dfsadmin -fs {namenode_address} -refreshNodes')
+    nn_refresh_cmd = format('cmd /c hdfs dfsadmin -fs {namenode_address} -refreshNodes')
   Execute(nn_refresh_cmd, user=hdfs_user)
 
 
