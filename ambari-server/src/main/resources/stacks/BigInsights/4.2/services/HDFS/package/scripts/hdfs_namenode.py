@@ -34,6 +34,7 @@ from resource_management.core.resources.service import Service
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
+from resource_management.libraries.resources.execute_hdfs import ExecuteHDFS
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 from utils import get_dfsadmin_base_command
@@ -387,11 +388,12 @@ def decommission():
       nn_refresh_cmd = format('dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes')
     else:
       nn_refresh_cmd = format('dfsadmin -fs {namenode_address} -refreshNodes')
-    ExecuteHadoop(nn_refresh_cmd,
-                  user=hdfs_user,
-                  conf_dir=conf_dir,
-                  kinit_override=True,
-                  bin_dir=params.hadoop_bin_dir)
+    ExecuteHDFS(nn_refresh_cmd,
+                user=hdfs_user,
+                conf_dir=conf_dir,
+                kinit_override=True,
+                bin_dir=params.hadoop_bin_dir)
+
 
 def bootstrap_standby_namenode(params, use_path=False):
 
