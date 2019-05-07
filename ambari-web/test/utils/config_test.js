@@ -442,7 +442,7 @@ describe('App.config', function () {
       savedValue: "sv1",
       isFinal: true,
       recommendedIsFinal: false,
-      savedIsFinal: true
+      savedIsFinal: false
     };
 
     var configProperty = App.ServiceConfigProperty.create(template);
@@ -452,7 +452,7 @@ describe('App.config', function () {
     Object.keys(template).forEach(function (key) {
       it(key, function () {
         var override = App.config.createOverride(configProperty, {}, group);
-        if (['savedValue', 'savedIsFinal'].contains(key)) {
+        if (['savedValue'].contains(key)) {
           expect(override.get(key)).to.equal(null);
         } else {
           expect(override.get(key)).to.equal(template[key]);
@@ -734,7 +734,7 @@ describe('App.config', function () {
       value: '',
       savedValue: null,
       isFinal: false,
-      savedIsFinal: null,
+      savedIsFinal: false,
       /** UI and Stack properties **/
       recommendedValue: null,
       recommendedIsFinal: null,
