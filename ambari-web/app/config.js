@@ -32,7 +32,7 @@ App.defaultStackVersion = 'HDP-2.3';
 App.defaultWindowsStackVersion = 'HDPWIN-2.1';
 
 App.defaultJavaHome = '/usr/jdk/jdk1.6.0_31';
-App.timeout = 180000; // default AJAX timeout
+App.timeout = 300000; // default AJAX timeout
 App.maxRetries = 3; // max number of retries for certain AJAX calls
 App.sessionKeepAliveInterval  = 60000;
 App.bgOperationsUpdateInterval = 6000;
