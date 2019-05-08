@@ -329,7 +329,7 @@ App.config = Em.Object.create({
       value: '',
       savedValue: null,
       isFinal: false,
-      savedIsFinal: null,
+      savedIsFinal: false,
       /** UI and Stack properties **/
       recommendedValue: null,
       recommendedIsFinal: null,
@@ -1195,7 +1195,7 @@ App.config = Em.Object.create({
 
     var newOverride = App.ServiceConfigProperty.create(serviceConfigProperty);
 
-    newOverride.setProperties({ 'savedValue': null, 'savedIsFinal': null });
+    newOverride.setProperties({ 'savedValue': null, 'savedIsFinal': false });
 
     if (!Em.isNone(override)) {
       for (var key in override) {
