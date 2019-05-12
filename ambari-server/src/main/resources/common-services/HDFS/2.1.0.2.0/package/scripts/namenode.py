@@ -169,6 +169,16 @@ class NameNode(Script):
     hdfs_binary = self.get_hdfs_binary()
     namenode(action="decommission", hdfs_binary=hdfs_binary)
 
+  def print_topology(self, env):
+    import params
+    env.set_params(params)
+    Execute(format("hdfs dfsadmin -printTopology"),
+            user=params.hdfs_user,
+            path=[params.hadoop_bin_dir],
+            logoutput=True
+            )
+
+
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class NameNodeDefault(NameNode):
 
