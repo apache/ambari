@@ -172,7 +172,7 @@ class NameNode(Script):
   def print_topology(self, env):
     import params
     env.set_params(params)
-    Execute(format("hdfs dfsadmin -printTopology"),
+    Execute("hdfs dfsadmin -printTopology",
             user=params.hdfs_user,
             path=[params.hadoop_bin_dir],
             logoutput=True
