@@ -24,8 +24,8 @@
     </ol>
     <div class="pull-right top-margin-4">
       <div ng-switch="isCurrentUser || user.user_type != 'LOCAL'">
-        <button class="btn deleteuser-btn disabled btn-default" ng-switch-when="true" tooltip="{{'common.cannotDelete' | translate: '{term: constants.user}'}}">{{'common.delete' | translate: '{term: constants.user}'}}</button>
-        <button class="btn deleteuser-btn btn-danger" ng-switch-when="false" ng-click="deleteUser()">{{'common.delete' | translate: '{term: constants.user}'}}</button>
+        <button class="btn deleteuser-btn disabled btn-default" ng-switch-when="true" tooltip="{{'common.cannotDelete' | translate: {term: constants.user} }}">{{'common.delete' | translate: {term: constants.user} }}</button>
+        <button class="btn deleteuser-btn btn-danger" ng-switch-when="false" ng-click="deleteUser()">{{'common.delete' | translate: {term: constants.user} }}</button>
       </div>
     </div>
   </div>
@@ -40,20 +40,20 @@
     <div class="form-group">
       <label for="" class="col-sm-2 control-label">{{'users.status' | translate}}</label>
       <div class="col-sm-10">
-        <toggle-switch on-change="toggleUserActive()" disabled-tooltip="{{'users.alerts.cannotChange' | translate: '{term: constants.status}'}}" ng-disabled="isCurrentUser" model="user.active" on-label="{{'users.active' | translate}}" off-label="{{'users.inactive' | translate}}" class="switch-primary userstatus {{user ? '' : 'no-animation'}}" data-off-color="danger"></toggle-switch>
+        <toggle-switch on-change="toggleUserActive()" disabled-tooltip="{{'users.alerts.cannotChange' | translate: {term: constants.status} }}" ng-disabled="isCurrentUser" model="user.active" on-label="{{'users.active' | translate}}" off-label="{{'users.inactive' | translate}}" class="switch-primary userstatus {{user ? '' : 'no-animation'}}" data-off-color="danger"></toggle-switch>
       </div>
     </div>
     <div class="form-group">
       <label for="" class="col-sm-2 control-label"><span class="glyphicon glyphicon-flash"></span> {{'users.ambariAdmin' | translate}}</label>
       <div class="col-sm-10">
-        <toggle-switch on-change="toggleUserAdmin()" disabled-tooltip="{{'users.alerts.cannotChange' | translate: '{term: constants.admin}'}}" ng-disabled="isCurrentUser" model="user.admin" on-label="{{'common.yes' | translate}}" off-label="{{'common.no' | translate}}" class="switch-primary userstatus {{user ? '' : 'no-animation'}}" data-off-color="danger"></toggle-switch>
+        <toggle-switch on-change="toggleUserAdmin()" disabled-tooltip="{{'users.alerts.cannotChange' | translate: {term: constants.admin} }}" ng-disabled="isCurrentUser" model="user.admin" on-label="{{'common.yes' | translate}}" off-label="{{'common.no' | translate}}" class="switch-primary userstatus {{user ? '' : 'no-animation'}}" data-off-color="danger"></toggle-switch>
       </div>
     </div>
     <div class="form-group">
       <label for="password" class="col-sm-2 control-label">{{'users.password' | translate}}</label>
       <div class="col-sm-10">
         <div ng-switch="user.user_type != 'LOCAL'">
-          <button class="btn deleteuser-btn disabled btn-default" ng-switch-when="true" tooltip="{{'users.alerts.cannotChange' | translate: '{term: constants.password}'}}">{{'users.changePassword' | translate}}</button>
+          <button class="btn deleteuser-btn disabled btn-default" ng-switch-when="true" tooltip="{{'users.alerts.cannotChange' | translate: {term: constants.password} }}">{{'users.changePassword' | translate}}</button>
           <a href ng-click="openChangePwdDialog()" ng-switch-when="false" class="btn btn-default changepassword">{{'users.changePassword' | translate}}</a>
         </div>
           
@@ -87,7 +87,7 @@
               </td>
             </tr>
             <tr>
-              <td ng-show="noClusterPriv">{{'common.alerts.noPrivileges' | translate: '{term: constants.cluster}'}}</td>
+              <td ng-show="noClusterPriv">{{'common.alerts.noPrivileges' | translate: {term: constants.cluster} }}</td>
             </tr>
           </tbody>
           <thead class="view-permission-header">
@@ -107,11 +107,11 @@
               </td>
             </tr>
             <tr>
-              <td ng-show="noViewPriv">{{'common.alerts.noPrivileges' | translate: '{term: constants.view}'}}</td>
+              <td ng-show="noViewPriv">{{'common.alerts.noPrivileges' | translate: {term: constants.view} }}</td>
             </tr>
           </tbody>
         </table>
-        <div class="alert alert-info" ng-show="!privileges && !user.admin">{{'common.alerts.noPrivilegesDescription' | translate: '{term: constants.user}'}}</div>
+        <div class="alert alert-info" ng-show="!privileges && !user.admin">{{'common.alerts.noPrivilegesDescription' | translate: {term: constants.user} }}</div>
         <div class="alert alert-info" ng-show="user.admin">{{'users.userIsAdmin' | translate}}</div>
       </div>
     </div>

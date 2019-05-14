@@ -54,16 +54,16 @@
           <link-to route="groups.edit" class="link-to-group" id="{{group.group_name}}">{{group.group_name}}</link-to>
         </td>
         <td class="col-sm-2">{{group.groupTypeName | translate}}</td>
-        <td class="col-sm-2">{{'groups.membersPlural' | translate: '{n: group.members && group.members.length || 0}'}}</td>
+        <td class="col-sm-2">{{'groups.membersPlural' | translate: {n: group.members && group.members.length || 0} }}</td>
       </tr>
     </tbody>
   </table>
   <div class="alert alert-info col-sm-12" ng-show="!groups.length">
-    {{'common.alerts.nothingToDisplay' | translate: '{term: constants.groups}'}}
+    {{'common.alerts.nothingToDisplay' | translate: {term: constants.groups} }}
   </div>
   <div class="col-sm-12 table-bar">
     <div class="pull-left filtered-info">
-      <span>{{'common.filterInfo' | translate: '{showed: tableInfo.showed, total: tableInfo.total, term: constants.groups}'}}</span>
+      <span>{{'common.filterInfo' | translate: {showed: tableInfo.showed, total: tableInfo.total, term: constants.groups} }}</span>
       <span ng-show="isNotEmptyFilter">- <a href ng-click="clearFilters()">{{'common.controls.clearFilters' | translate}}</a></span>
     </div>
     <div class="pull-right left-margin">

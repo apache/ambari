@@ -65,7 +65,7 @@
   </div>
   <div class="col-sm-12 table-bar">
     <div class="pull-left filtered-info">
-      <span>{{'common.filterInfo' | translate: '{showed: tableInfo.showed, total: tableInfo.total, term: constants.groups}'}}</span>
+      <span>{{'common.filterInfo' | translate: {showed: tableInfo.showed, total: tableInfo.total, term: constants.groups} }}</span>
       <span ng-show="isNotEmptyFilter">- <a href ng-click="clearFilters()">{{'common.controls.clearFilters' | translate}}</a></span>
     </div>
     <div class="pull-right left-margin">
