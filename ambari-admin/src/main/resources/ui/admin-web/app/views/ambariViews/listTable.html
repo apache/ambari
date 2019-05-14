@@ -73,7 +73,7 @@
                 <tr ng-repeat="instance in view.instances">
                     <td class="col-sm-1"></td>
                     <td class="col-sm-5">
-                        <a href="#/views/{{view.view_name}}/versions/{{instance.ViewInstanceInfo.version}}/instances/{{instance.ViewInstanceInfo.instance_name}}/edit" class="instance-link">{{instance.label}}</a>
+                        <a href="#!/views/{{view.view_name}}/versions/{{instance.ViewInstanceInfo.version}}/instances/{{instance.ViewInstanceInfo.instance_name}}/edit" class="instance-link">{{instance.label}}</a>
                     </td>
                     <td class="col-sm-5">{{instance.ViewInstanceInfo.version}}</td>
                     <td class="col-sm-5 " ><div class="description-column" tooltip="{{instance.ViewInstanceInfo.description}}">{{instance.ViewInstanceInfo.description || 'No description'}}</div>

@@ -68,6 +68,7 @@ angular.module('ambariAdminConsole')
 
   function loadMembers(){
     $scope.group.getMembers().then(function(members) {
+      console.log(members)
       $scope.group.groupTypeName = $t(GroupConstants.TYPES[$scope.group.group_type].LABEL_KEY);
       $scope.groupMembers = members;
       $scope.group.editingUsers = angular.copy($scope.groupMembers);
@@ -138,7 +139,7 @@ angular.module('ambariAdminConsole')
       clusters: {},
       views: {}
     };
-    angular.forEach(data.data.items, function(privilege) {
+    angular.forEach(data.items, function(privilege) {
       privilege = privilege.PrivilegeInfo;
       if(privilege.type === 'CLUSTER'){
         // This is cluster
@@ -152,12 +153,12 @@ angular.module('ambariAdminConsole')
       }
     });
 
-    $scope.privileges = data.data.items.length ? privileges : null;
+    $scope.privileges = data.items.length ? privileges : null;
     $scope.noClusterPriv = $.isEmptyObject(privileges.clusters);
     $scope.noViewPriv = $.isEmptyObject(privileges.views);
     $scope.hidePrivileges = $scope.noClusterPriv && $scope.noViewPriv;    $scope.dataLoaded = true;
   }).catch(function(data) {
-    Alert.error($t('common.alerts.cannotLoadPrivileges'), data.data.message);
+    Alert.error($t('common.alerts.cannotLoadPrivileges'), data.message);
   });
 
 

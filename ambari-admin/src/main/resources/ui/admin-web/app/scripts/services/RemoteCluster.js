@@ -24,60 +24,22 @@ angular.module('ambariAdminConsole')
     }
 
     RemoteCluster.edit = function(payload, config){
-      var deferred = $q.defer();
-
-      $http.put(Settings.baseUrl + '/remoteclusters/' + payload.ClusterInfo.name , payload, config)
-        .success(function (data) {
-          deferred.resolve(data)
-        })
-        .error(function (data) {
-          deferred.reject(data);
-        });
-      return deferred.promise;
+      return $http.put(Settings.baseUrl + '/remoteclusters/' + payload.ClusterInfo.name , payload, config);
     }
 
 
     RemoteCluster.getDetails = function(clusterName) {
-      var deferred = $q.defer();
-
-      $http.get( Settings.baseUrl  + '/remoteclusters/' + clusterName)
-        .success(function(response) {
-          deferred.resolve(response);
-        })
-        .error(function(data) {
-          deferred.reject(data);
-        });
-
-      return deferred.promise;
-
+      return $http.get( Settings.baseUrl  + '/remoteclusters/' + clusterName).then(function (resp) {
+        return resp.data;
+      });
     };
 
     RemoteCluster.deregister = function(clusterName){
-      var deferred = $q.defer();
-
-      $http.delete( Settings.baseUrl  + '/remoteclusters/' + clusterName)
-        .success(function(response) {
-          deferred.resolve(response);
-        })
-        .error(function(data) {
-          deferred.reject(data);
-        });
-
-      return deferred.promise;
-
+      return $http.delete( Settings.baseUrl  + '/remoteclusters/' + clusterName);
     };
 
     RemoteCluster.register = function(payload, config){
-      var deferred = $q.defer();
-
-      $http.post(Settings.baseUrl + '/remoteclusters/' + payload.ClusterInfo.name , payload, config)
-        .success(function (data) {
-          deferred.resolve(data)
-        })
-        .error(function (data) {
-          deferred.reject(data);
-        });
-        return deferred.promise;
+      return $http.post(Settings.baseUrl + '/remoteclusters/' + payload.ClusterInfo.name , payload, config);
     }
 
     RemoteCluster.all = function(params) {
@@ -90,42 +52,33 @@ angular.module('ambariAdminConsole')
           + '&page_size=' + params.groupsPerPage
           + (params.service === 'Any' ? '' : '&ClusterInfo/services.matches(.*'+params.service+'.*)')
         )
-        .success(function(response) {
-          deferred.resolve(response);
-        })
-        .error(function(data) {
+        .then(function(resp) {
+          deferred.resolve(resp.data);
+        }, function(data) {
           deferred.reject(data);
         });
       return deferred.promise;
     };
 
     RemoteCluster.affectedViews = function(clustername) {
-      var deferred = $q.defer();
-
-      $http.get(Settings.baseUrl + '/views?'
-          + 'fields=versions%2Finstances/ViewInstanceInfo/cluster_handle,versions%2Finstances/ViewInstanceInfo/cluster_type&versions%2FViewVersionInfo%2Fsystem=false&versions%2Finstances/ViewInstanceInfo/cluster_type=REMOTE_AMBARI&versions%2Finstances/ViewInstanceInfo/cluster_handle=' + clustername
-
-        )
-        .success(function(response) {
-          deferred.resolve(response);
-        })
-        .error(function(data) {
-          deferred.reject(data);
-        });
-      return deferred.promise;
+      return $http.get(Settings.baseUrl + '/views?'
+        + 'fields=versions%2Finstances/ViewInstanceInfo/cluster_handle,versions%2Finstances/ViewInstanceInfo/cluster_type&versions%2FViewVersionInfo%2Fsystem=false&versions%2Finstances/ViewInstanceInfo/cluster_type=REMOTE_AMBARI&versions%2Finstances/ViewInstanceInfo/cluster_handle=' + clustername
+      ).then(function (resp) {
+        return resp.data;
+      });
     };
 
     RemoteCluster.listAll = function() {
       var deferred = $q.defer();
 
       /* TODO :: Add params like RemoteCluster.matches and &from , &page_size */
-      $http.get(Settings.baseUrl + "/remoteclusters?fields=ClusterInfo/services,ClusterInfo/cluster_id")
-        .success(function(response) {
-          deferred.resolve(response.items);
-        })
-        .error(function(data) {
-          deferred.reject(data);
-        });
+      $http.get(Settings.baseUrl + "/remoteclusters?fields=ClusterInfo/services,ClusterInfo/cluster_id").then(
+        function(resp) {
+          deferred.resolve(resp.data.items);
+        }, function(resp) {
+          deferred.reject(resp.data);
+        }
+      );
       return deferred.promise;
     };
 

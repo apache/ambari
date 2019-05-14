@@ -65,7 +65,7 @@
 
         <ul class="nav nav-pills nav-stacked" ng-show="cluster.Clusters.provisioning_state == 'INSTALLED' ">
           <li ng-class="{active: isActive('clusters.manageAccess') || isActive('clusters.userAccessList')}">
-            <a href="#/clusters/{{cluster.Clusters.cluster_name}}/manageAccess" class="permissions">{{'common.roles' | translate}}</a>
+            <a href="#!/clusters/{{cluster.Clusters.cluster_name}}/manageAccess" class="permissions">{{'common.roles' | translate}}</a>
           </li>
           <li><a href="{{fromSiteRoot('/#/dashboard')}}" class="gotodashboard">{{'common.goToDashboard' | translate}}</a></li>
         </ul>
@@ -80,10 +80,10 @@
       </div>
       <ul class="nav nav-pills nav-stacked" >
         <li ng-class="{active: isActive('stackVersions.list')}" ng-show="cluster && totalRepos > 0">
-          <a href="#/stackVersions">{{'common.versions' | translate}}</a>
+          <a href="#!/stackVersions">{{'common.versions' | translate}}</a>
         </li>
         <li ng-class="{active: isActive('remoteClusters.list')}">
-          <a href="#/remoteClusters">{{'common.remoteClusters' | translate}}</a>
+          <a href="#!/remoteClusters">{{'common.remoteClusters' | translate}}</a>
         </li>
       </ul>
     </div>

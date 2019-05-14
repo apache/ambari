@@ -78,7 +78,7 @@
         <tr ng-repeat="url in urls.items">
 
             <td>
-                <a href="#/urls/edit/{{url.ViewUrlInfo.url_name}}">{{url.ViewUrlInfo.url_name}}</a>
+                <a href="#!/urls/edit/{{url.ViewUrlInfo.url_name}}">{{url.ViewUrlInfo.url_name}}</a>
             </td>
             <td>
                 <a target="_blank" href="{{fromSiteRoot('/#/main/view/' + url.ViewUrlInfo.view_instance_common_name + '/' + url.ViewUrlInfo.url_suffix)}}">/main/view/{{url.ViewUrlInfo.view_instance_common_name}}/{{url.ViewUrlInfo.url_suffix}}

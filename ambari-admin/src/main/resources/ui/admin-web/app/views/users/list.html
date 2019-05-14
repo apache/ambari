@@ -68,7 +68,7 @@
           <span class="glyphicon" tooltip="{{user.Users.admin ? constants.admin : ''}}" ng-class="{'glyphicon-flash' : user.Users.admin}"></span>
         </td>
         <td>
-           <a href="#/users/{{user.Users.encoded_name}}">{{user.Users.user_name}}</a>
+           <a href="#!/users/{{user.Users.encoded_name}}">{{user.Users.user_name}}</a>
         </td>
         <td>{{user.Users.userTypeName}}</td>
         <td><span ng-class="user.Users.active ? 'text-success' : 'text-danger'">{{'users.' + (user.Users.active ? 'active' : 'inactive') | translate}}</span></td>

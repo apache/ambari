@@ -182,8 +182,8 @@ angular.module('ambariAdminConsole')
             $scope.form.instanceCreateForm.isSaving = false;
             $scope.$root.$emit('instancesUpdate');
         })
-        .catch(function (data) {
-          var errorMessage = data.message;
+        .catch(function (resp) {
+          var errorMessage = resp.data.message;
           var showGeneralError = true;
 
           if (data.status >= 400 && $scope.instance.clusterType == 'NONE') {

@@ -19,7 +19,7 @@
 <div ng-show="user" class="user-edit-panel">
   <div class="clearfix">
     <ol class="breadcrumb pull-left">
-      <li><a href="#/users">{{'common.users' | translate}}</a></li>
+      <li><a href="#!/users">{{'common.users' | translate}}</a></li>
       <li class="active"><span class="glyphicon glyphicon-flash" ng-show="user.admin"></span>{{user.user_name}}</li>
     </ol>
     <div class="pull-right top-margin-4">
@@ -80,7 +80,7 @@
             <tr ng-repeat="(name, privilege) in privileges.clusters">
               <td>
                 <span class="glyphicon glyphicon-cloud"></span> 
-                <a href="#/clusters/{{name}}/manageAccess">{{name}}</a>
+                <a href="#!/clusters/{{name}}/manageAccess">{{name}}</a>
               </td>
               <td>
                 <span tooltip="{{privilege.permission_label}}">{{privilege.permission_label}}</span>
@@ -100,7 +100,7 @@
             <tr ng-repeat="(name, privilege) in privileges.views">
               <td>
                 <span class="glyphicon glyphicon-th"></span>
-                <a href="#/views/{{privilege.view_name}}/versions/{{privilege.version}}/instances/{{name}}/edit">{{name}}</a>
+                <a href="#!/views/{{privilege.view_name}}/versions/{{privilege.version}}/instances/{{name}}/edit">{{name}}</a>
               </td>
               <td>
                 <span tooltip="{{item}}" ng-repeat="item in privilege.privileges track by $index">{{item | translate}}{{$last ? '' : ', '}}</span>

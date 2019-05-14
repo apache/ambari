@@ -110,7 +110,7 @@ angular.module('ambariAdminConsole', [
     ngModel.controller = ['$scope', '$element', '$attrs', '$injector', function(scope, element, attrs, $injector) {
       var $interpolate = $injector.get('$interpolate');
       attrs.$set('name', $interpolate(attrs.name || '')(scope));
-      $injector.invoke(controller, this, {
+      $injector.invoke(controller, Object.setPrototypeOf(this, controller.prototype), {
         '$scope': scope,
         '$element': element,
         '$attrs': attrs
@@ -124,7 +124,7 @@ angular.module('ambariAdminConsole', [
     form.controller = ['$scope', '$element', '$attrs', '$injector', function(scope, element, attrs, $injector) {
       var $interpolate = $injector.get('$interpolate');
       attrs.$set('name', $interpolate(attrs.name || attrs.ngForm || '')(scope));
-        $injector.invoke(controller, this, {
+        $injector.invoke(controller, Object.setPrototypeOf(this, controller.prototype), {
         '$scope': scope,
         '$element': element,
         '$attrs': attrs

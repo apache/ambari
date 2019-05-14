@@ -64,7 +64,7 @@
     <tbody>
     <tr ng-repeat="user in users">
       <td>
-        <a href="#/{{user.url}}">{{user.principal_name}}</a>
+        <a href="#!/{{user.url}}">{{user.principal_name}}</a>
       </td>
       <td>
         <div ng-show="!user.editable">{{user.permission_label}}</div>
@@ -85,7 +85,7 @@
     </tbody>
   </table>
   <div class="alert alert-info col-sm-12" ng-show="!users.length">
-    {{'common.alerts.nothingToDisplay' | translate: {term: (isUserActive ? constants.users : constants.groups)}}}
+    {{'common.alerts.nothingToDisplay' | translate: {term: (isUserActive ? constants.users : constants.groups)} }}
   </div>
   <div class="col-sm-12 table-bar">
     <div class="pull-left filtered-info">

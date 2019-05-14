@@ -22,7 +22,7 @@
       <li class="active">Remote Clusters</li>
     </ol>
     <div class="pull-right top-margin-4">
-      <a href="#/remoteClusters/create" class="btn btn-primary">
+      <a href="#!/remoteClusters/create" class="btn btn-primary">
         <span class="glyphicon glyphicon-plus"></span>
         {{'views.registerRemoteCluster' | translate}}
       </a>
@@ -51,7 +51,7 @@
     </thead>
     <tbody>
     <tr ng-repeat="remoteCluster in remoteClusters" >
-      <td class="col-sm-3"><a href="#/remoteClusters/{{remoteCluster.ClusterInfo.name}}/edit">{{ remoteCluster.ClusterInfo.name }}</a></td>
+      <td class="col-sm-3"><a href="#!/remoteClusters/{{remoteCluster.ClusterInfo.name}}/edit">{{ remoteCluster.ClusterInfo.name }}</a></td>
       <td class="col-sm-9">
         <span ng-repeat="service in remoteCluster.ClusterInfo.services" ng-if="remoteCluster.ClusterInfo.services.length > 0">{{ service }}{{$last ? '' : ','}} </span>
         <span ng-if="remoteCluster.ClusterInfo.services.length == 0">--</span>

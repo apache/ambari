@@ -17,7 +17,7 @@
 -->
 <div class="clearfix">
   <ol class="breadcrumb pull-left">
-    <li><a href="#/views">{{'common.views' | translate}}</a></li>
+    <li><a href="#!/views">{{'common.views' | translate}}</a></li>
     <li class="active">{{instance.ViewInstanceInfo.label}}
       <a class="gotoinstance" ng-show="instance.ViewInstanceInfo.visible"
          href="{{fromSiteRoot('/#/main/views/' + viewUrl)}}">
@@ -94,10 +94,10 @@
           </div>
             <div ng-if="!settings.shortUrl">
               <p ng-hide="!editDetailsSettingsDisabled" class="form-control-static">
-                <a href="#/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}">{{'urls.createNewUrl' | translate}}</a>
+                <a href="#!/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}">{{'urls.createNewUrl' | translate}}</a>
               </p>
               <p class="form-control-static" ng-hide="editDetailsSettingsDisabled">
-                <a href="#/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}">{{'urls.createNewUrl' | translate}}</a>
+                <a href="#!/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}">{{'urls.createNewUrl' | translate}}</a>
               </p>
             </div>
           </div>
@@ -182,7 +182,7 @@
         <label for="" class="control-label col-sm-3 ng-binding not-required" >{{'views.clusterName' | translate}}</label>
         <div>
           <div class="col-sm-9">
-            <select ng-model="cluster" ng-disabled="(data.clusterType != 'LOCAL_AMBARI') || editConfigurationDisabled" ng-change="onClusterChange()" class="clusters-name-dropdown form-control"  ng-options="o as o.name for o in clusters"></select>
+            <select ng-model="cluster" ng-disabled="(data.clusterType != 'LOCAL_AMBARI') || editConfigurationDisabled" class="clusters-name-dropdown form-control"  ng-options="o as o.name for o in clusters"></select>
           </div>
         </div>
       </div>
@@ -198,7 +198,7 @@
           <label for="" class="control-label col-sm-3 ng-binding not-required" >{{'views.clusterName' | translate}}</label>
           <div>
             <div class="col-sm-9">
-              <select ng-model="data.remoteCluster" ng-disabled="(data.clusterType != 'REMOTE_AMBARI') || editConfigurationDisabled" ng-change="onClusterChange()" class="clusters-name-dropdown form-control"  ng-options="o as o.name for o in remoteClusters"></select>
+              <select ng-model="data.remoteCluster" ng-disabled="(data.clusterType != 'REMOTE_AMBARI') || editConfigurationDisabled" class="clusters-name-dropdown form-control"  ng-options="o as o.name for o in remoteClusters"></select>
             </div>
           </div>
         </div>
