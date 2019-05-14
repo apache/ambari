@@ -30,7 +30,7 @@
         <div class="buttons">
         <span ng-class="{active: isActive('clusters.manageAccess')}">
           <a ng-show="cluster.Clusters.provisioning_state != 'INSTALLED'" href class="btn btn-primary permission-button" ng-disabled="cluster.Clusters.provisioning_state != 'INSTALLED' ">{{'main.operateCluster.manageRoles' | translate}}</a>
-          <a ng-show="cluster.Clusters.provisioning_state == 'INSTALLED'" href="#/clusters/{{cluster.Clusters.cluster_name}}/userAccessList" class="btn btn-primary permission-button" ng-disabled="cluster.Clusters.provisioning_state != 'INSTALLED' ">{{'main.operateCluster.manageRoles' | translate}}</a>
+          <a ng-show="cluster.Clusters.provisioning_state == 'INSTALLED'" href="#!/clusters/{{cluster.Clusters.cluster_name}}/userAccessList" class="btn btn-primary permission-button" ng-disabled="cluster.Clusters.provisioning_state != 'INSTALLED' ">{{'main.operateCluster.manageRoles' | translate}}</a>
         </span>
         <span>
           <a ng-show="cluster.Clusters.provisioning_state != 'INSTALLED'" href class="btn btn-primary go-dashboard-button" ng-disabled="cluster.Clusters.provisioning_state != 'INSTALLED' ">{{'common.goToDashboard' | translate}}</a>

@@ -39,7 +39,8 @@ angular.module('ambariAdminConsole')
         method: 'GET',
         url: Settings.baseUrl + '/groups/'+this.group_name
       }).
-      success(function(data) {
+      then(function(resp) {
+        var data = resp.data;
         self.ldap_group = data.Groups.ldap_group;
         deferred.resolve(self.ldap_group);
       });
@@ -55,7 +56,8 @@ angular.module('ambariAdminConsole')
       method: 'GET',
       url: Settings.baseUrl + '/groups/'+this.group_name
     }).
-    success(function(data) {
+    then(function(resp) {
+      var data = resp.data;
       self.group_type = data.Groups.group_type;
       deferred.resolve(self.group_type);
     });
@@ -74,16 +76,7 @@ angular.module('ambariAdminConsole')
   };
 
   Group.prototype.destroy = function() {
-    var deferred = $q.defer();
-    $http.delete(Settings.baseUrl + '/groups/' +this.group_name)
-    .success(function() {
-      deferred.resolve();
-    })
-    .error(function(data) {
-      deferred.reject(data);
-    });
-
-    return deferred.promise;
+    return $http.delete(Settings.baseUrl + '/groups/' +this.group_name);
   };
 
   Group.prototype.getMembers = function() {
@@ -94,14 +87,14 @@ angular.module('ambariAdminConsole')
       method: 'GET',
       url: Settings.baseUrl + '/groups/' + this.group_name + '/members'
     })
-    .success(function(data) {
+    .then(function(resp) {
+      var data = resp.data;
       self.members = [];
       angular.forEach(data.items, function(member) {
         self.members.push(member.MemberInfo.user_name);
       });
       deferred.resolve(self.members);
-    })
-    .error(function(data) {
+    }, function(data) {
       deferred.reject(data);
     });
 
@@ -110,7 +103,6 @@ angular.module('ambariAdminConsole')
 
   Group.prototype.saveMembers = function() {
     var self = this;
-    var deferred = $q.defer();
 
     var members = [];
     angular.forEach(this.members, function(member) {
@@ -120,16 +112,10 @@ angular.module('ambariAdminConsole')
       });
     });
 
-    $http({
+    return $http({
       method: 'PUT',
       url: Settings.baseUrl + '/groups/' + this.group_name + '/members',
       data: members
-    })
-    .success(function(data) {
-      deferred.resolve(data);
-    })
-    .error(function(data) {
-      deferred.reject(data);
     });
     return deferred.promise;
   }
@@ -141,10 +127,9 @@ angular.module('ambariAdminConsole')
       method: 'POST',
       url: Settings.baseUrl + '/groups/' + this.group_name + '/members' + '/'+ encodeURIComponent(member.user_name)
     })
-    .success(function(data) {
+    .then(function(data) {
       deferred.resolve(data)
-    })
-    .error(function(data) {
+    }, function(data) {
       deferred.reject(data);
     });
 
@@ -173,7 +158,8 @@ angular.module('ambariAdminConsole')
       + '&page_size=' + params.groupsPerPage
       + (params.group_type === '*' ? '' : '&Groups/group_type=' + params.group_type)
     )
-    .success(function(data) {
+    .then(function(resp) {
+      var data = resp.data;
       var groups = [];
       if(Array.isArray(data.items)){
         angular.forEach(data.items, function(item) {
@@ -182,8 +168,7 @@ angular.module('ambariAdminConsole')
       }
       groups.itemTotal = data.itemTotal;
       deferred.resolve(groups);
-    })
-    .error(function(data) {
+    }, function(data) {
       deferred.reject(data);
     });
 
@@ -201,6 +186,8 @@ angular.module('ambariAdminConsole')
       params:{
         'fields': '*'
       }
+    }).then(function (resp) {
+      return resp.data;
     });
   };
 

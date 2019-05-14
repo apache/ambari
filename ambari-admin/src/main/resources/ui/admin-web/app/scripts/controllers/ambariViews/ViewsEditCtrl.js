@@ -55,11 +55,9 @@ angular.module('ambariAdminConsole')
               initCtrlVariables(instance);
               break;
           }
-        })
-        .catch(function(data) {
+        }, function(data) {
           Alert.error($t('views.alerts.cannotLoadInstanceInfo'), data.data.message);
         });
-
     }
 
     function initCtrlVariables(instance) {
@@ -68,7 +66,6 @@ angular.module('ambariAdminConsole')
        if (!clusterId) $scope.data.clusterType = 'NONE';
        switch($scope.data.clusterType) {
           case 'LOCAL_AMBARI':
-            $scope.cluster = null;
             $scope.clusters.forEach(function(cluster){
               if(cluster.id == clusterId){
                 $scope.cluster = cluster;
@@ -153,8 +150,7 @@ angular.module('ambariAdminConsole')
           $scope.permissionsEdit = permissions;
           $scope.permissions = angular.copy(permissions);
           $scope.isPermissionsEmpty = angular.equals({}, $scope.permissions);
-        })
-        .catch(function(data) {
+        }, function(data) {
           Alert.error($t('views.alerts.cannotLoadPermissions'), data.data.message);
         });
     }
@@ -261,8 +257,8 @@ angular.module('ambariAdminConsole')
             data.ViewInstanceInfo.properties[element.name] = $scope.configuration[element.name];
           }
         });
-        return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, data)
-          .success(function() {
+        return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, data).then(
+          function() {
             if( callback ){
               callback();
             } else {
@@ -270,10 +266,10 @@ angular.module('ambariAdminConsole')
               $scope.editSettingsDisabled = true;
               $scope.settingsForm.$setPristine();
             }
-          })
-          .catch(function(data) {
+          }, function(data) {
             Alert.error($t('views.alerts.cannotSaveSettings'), data.data.message);
-          });
+          }
+        );
       }
     };
     $scope.cancelSettings = function() {
@@ -292,8 +288,8 @@ angular.module('ambariAdminConsole')
             'description': $scope.settings.description
           }
         };
-        return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, data)
-          .success(function() {
+        return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, data).then(
+          function() {
             $scope.$root.$emit('instancesUpdate');
             if( callback ){
               callback();
@@ -302,10 +298,10 @@ angular.module('ambariAdminConsole')
               $scope.editDetailsSettingsDisabled = true;
               $scope.settingsForm.$setPristine();
             }
-          })
-          .catch(function(data) {
+          },  function(data) {
             Alert.error($t('views.alerts.cannotSaveSettings'), data.data.message);
-          });
+          }
+        );
       }
     };
     $scope.cancelDetails = function() {
@@ -357,12 +353,11 @@ angular.module('ambariAdminConsole')
           }
 
         $scope.originalClusterType = $scope.data.clusterType;
-        return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, data)
-          .success(function() {
+        return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, data).then(
+          function() {
             $scope.editConfigurationDisabled = true;
             $scope.propertiesForm.$setPristine();
-          })
-          .catch(function(data) {
+          }, function(data) {
             var errorMessage = data.data.message;
 
             //TODO: maybe the BackEnd should sanitize the string beforehand?
@@ -383,7 +378,8 @@ angular.module('ambariAdminConsole')
               }
             }
             Alert.error($t('views.alerts.cannotSaveProperties'), errorMessage);
-          });
+          }
+        );
       }
     };
     $scope.cancelConfiguration = function() {
@@ -410,8 +406,7 @@ angular.module('ambariAdminConsole')
           instance_name: $routeParams.instanceId
         }
         )
-        .then(reloadViewPrivileges)
-        .catch(function(data) {
+        .then(reloadViewPrivileges, function(data) {
           reloadViewPrivileges();
           Alert.error($t('common.alerts.cannotSavePermissions'), data.data.message);
         });
@@ -446,8 +441,7 @@ angular.module('ambariAdminConsole')
         View.deleteInstance(instance.ViewInstanceInfo.view_name, instance.ViewInstanceInfo.version, instance.ViewInstanceInfo.instance_name)
           .then(function() {
             $location.path('/views');
-          })
-          .catch(function(data) {
+          }, function(data) {
             Alert.error($t('views.alerts.cannotDeleteInstance'), data.data.message);
           });
       });

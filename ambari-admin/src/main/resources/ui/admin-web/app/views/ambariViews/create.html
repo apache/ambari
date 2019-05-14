@@ -16,7 +16,7 @@
 * limitations under the License.
 -->
 <ol class="breadcrumb">
-  <li><a href="#/views">{{'common.views' | translate}}</a></li>
+  <li><a href="#!/views">{{'common.views' | translate}}</a></li>
   <li class="active">{{'views.create' | translate}}</li>
 </ol>
 <hr>
@@ -190,7 +190,7 @@
         </div>
       </div>
       <div ng-show="!instance.properties.length">
-        <div class="alert alert-info">{{'views.alerts.notDefined' | translate: '{term: constants.props}'}}</div>
+        <div class="alert alert-info">{{'views.alerts.notDefined' | translate: {term: constants.props} }}</div>
       </div>
     </div>
   </div>

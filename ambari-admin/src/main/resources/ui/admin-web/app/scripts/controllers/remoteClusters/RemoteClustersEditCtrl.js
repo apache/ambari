@@ -78,13 +78,13 @@ angular.module('ambariAdminConsole')
               }
             }
 
-            RemoteCluster.edit(payload, config).then(function(data) {
+            RemoteCluster.edit(payload, config).then(function() {
                 Alert.success($t('views.alerts.credentialsUpdated'));
                 $scope.form.passwordChangeForm.$setPristine();
               })
-              .catch(function(data) {
-                console.log(data);
-                Alert.error(data.message);
+              .catch(function(resp) {
+                console.log(resp);
+                Alert.error(resp.data.message);
               });
 
             modalInstance.dismiss('cancel');
@@ -149,9 +149,9 @@ angular.module('ambariAdminConsole')
           Alert.success($t('views.alerts.savedRemoteClusterInformation'));
           $scope.form.$setPristine();
         })
-        .catch(function(data) {
-          console.log(data);
-          Alert.error(data.message);
+        .catch(function(resp) {
+          console.log(resp);
+          Alert.error(resp.data.message);
         });
     }
   };

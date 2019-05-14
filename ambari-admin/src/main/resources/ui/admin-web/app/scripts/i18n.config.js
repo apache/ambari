@@ -306,7 +306,7 @@ angular.module('ambariAdminConsole')
 
       'alerts': {
         'onlySimpleChars': 'Must contain only simple characters.',
-        'groupCreated': 'Created group <a href="#/groups/{{groupName}}/edit">{{groupName}}</a>',
+        'groupCreated': 'Created group <a href="#!/groups/{{groupName}}/edit">{{groupName}}</a>',
         'groupCreationError': 'Group creation error',
         'cannotUpdateGroupMembers': 'Cannot update group members',
         'getGroupsListError': 'Get groups list error'
@@ -365,7 +365,7 @@ angular.module('ambariAdminConsole')
         'wrongPassword': 'Password must match!',
         'usernameRequired':'Username Required',
         'cannotChange': 'Cannot Change {{term}}',
-        'userCreated': 'Created user <a href="#/users/{{encUserName}}">{{userName}}</a>',
+        'userCreated': 'Created user <a href="#!/users/{{encUserName}}">{{userName}}</a>',
         'userCreationError': 'User creation error',
         'removeUserError': 'Removing from group error',
         'cannotAddUser': 'Cannot add user to group',
@@ -451,12 +451,12 @@ angular.module('ambariAdminConsole')
         'skipValidationWarning': '<b>Warning:</b> This is for advanced users only. Use this option if you want to skip validation for Repository Base URLs.',
         'useRedhatSatelliteWarning': 'Disable distributed repositories and use RedHat Satellite/Spacewalk channels instead',
         'filterListError': 'Fetch stack version filter list error',
-        'versionCreated': 'Created version <a href="#/stackVersions/{{stackName}}/{{versionName}}/edit">{{stackName}}-{{versionName}}</a>',
+        'versionCreated': 'Created version <a href="#!/stackVersions/{{stackName}}/{{versionName}}/edit">{{stackName}}-{{versionName}}</a>',
         'versionCreationError': 'Version creation error',
         'allOsAdded': 'All Operating Systems have been added',
         'osListError': 'getSupportedOSList error',
         'readVersionInfoError': 'Version Definition read error',
-        'versionEdited': 'Edited version <a href="#/stackVersions/{{stackName}}/{{versionName}}/edit">{{displayName}}</a>',
+        'versionEdited': 'Edited version <a href="#!/stackVersions/{{stackName}}/{{versionName}}/edit">{{displayName}}</a>',
         'versionUpdateError': 'Version update error',
         'versionDeleteError': 'Version delete error'
       }

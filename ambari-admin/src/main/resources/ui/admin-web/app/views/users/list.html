@@ -68,7 +68,7 @@
           <span class="glyphicon" tooltip="{{user.Users.admin ? constants.admin : ''}}" ng-class="{'glyphicon-flash' : user.Users.admin}"></span>
         </td>
         <td>
-           <a href="#/users/{{user.Users.encoded_name}}">{{user.Users.user_name}}</a>
+           <a href="#!/users/{{user.Users.encoded_name}}">{{user.Users.user_name}}</a>
         </td>
         <td>{{user.Users.userTypeName}}</td>
         <td><span ng-class="user.Users.active ? 'text-success' : 'text-danger'">{{'users.' + (user.Users.active ? 'active' : 'inactive') | translate}}</span></td>
@@ -76,11 +76,11 @@
     </tbody>
   </table>
   <div class="alert alert-info col-sm-12" ng-show="!users.length">
-    {{'common.alerts.nothingToDisplay' | translate: '{term: constants.users}'}}
+    {{'common.alerts.nothingToDisplay' | translate: {term: constants.users} }}
   </div>
   <div class="col-sm-12 table-bar">
     <div class="pull-left filtered-info">
-      <span>{{'common.filterInfo' | translate: '{showed: tableInfo.showed, total: tableInfo.total, term: constants.users}'}}</span>
+      <span>{{'common.filterInfo' | translate: {showed: tableInfo.showed, total: tableInfo.total, term: constants.users} }}</span>
       <span ng-show="isNotEmptyFilter">- <a href ng-click="clearFilters()">{{'common.controls.clearFilters' | translate}}</a></span>
     </div>
     <div class="pull-right left-margin">
