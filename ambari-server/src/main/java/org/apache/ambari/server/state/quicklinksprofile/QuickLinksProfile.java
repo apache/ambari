@@ -20,9 +20,9 @@ package org.apache.ambari.server.state.quicklinksprofile;
 
 import java.util.List;
 
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * A quicklinks profile is essentially a set of quick link filters defined on three levels:

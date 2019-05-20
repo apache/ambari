@@ -21,7 +21,8 @@ package org.apache.ambari.server.api.services.stackadvisor.validations;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Validation response POJO.

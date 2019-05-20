@@ -21,7 +21,8 @@ package org.apache.ambari.server.state.quicklinksprofile;
 import java.util.Objects;
 
 import org.apache.ambari.server.state.quicklinks.Link;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * A quicklink filter based on link attribute match (the filter's link_attribute is contained by the links set of

@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller;
 
 
 import java.util.List;
-import java.util.Objects;
 
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -30,9 +29,9 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.inject.Inject;
 
 @StaticallyInject

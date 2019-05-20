@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.state.alert;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * The {@link AlertGroup} class is used to represent a grouping of alert

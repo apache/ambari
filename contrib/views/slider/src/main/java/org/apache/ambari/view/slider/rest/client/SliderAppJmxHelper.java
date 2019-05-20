@@ -19,9 +19,6 @@
 package org.apache.ambari.view.slider.rest.client;
 
 import org.apache.commons.io.IOUtils;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -40,6 +37,10 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 
 public class SliderAppJmxHelper {
 
@@ -71,7 +72,7 @@ public class SliderAppJmxHelper {
                                                Map<String, String> jmxProperties,
                                                Map<String, Metric> metrics) {
     ObjectMapper jmxObjectMapper = new ObjectMapper();
-    jmxObjectMapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, false);
+    jmxObjectMapper.configure(MapperFeature.USE_ANNOTATIONS, false);
     ObjectReader jmxObjectReader = jmxObjectMapper.reader(JMXMetricHolder.class);
     JMXMetricHolder metricHolder = null;
     try {

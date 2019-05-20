@@ -30,13 +30,14 @@ import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.slider.TemporalInfo;
 import org.apache.http.client.utils.URIBuilder;
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
-import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 
 public class SliderAppMetricsHelper {
   private static final Logger logger = LoggerFactory
@@ -53,8 +54,8 @@ public class SliderAppMetricsHelper {
     AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
     mapper.setAnnotationIntrospector(introspector);
     // no inspection deprecation
-    mapper.getSerializationConfig().setSerializationInclusion(
-        Inclusion.NON_NULL);
+    mapper.getSerializationConfig()
+        .withPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_NULL, JsonInclude.Include.NON_NULL));
     timelineObjectReader = mapper.reader(TimelineMetrics.class);
   }
 

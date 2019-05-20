@@ -19,8 +19,7 @@ package org.apache.ambari.server.agent;
 
 import java.util.Map;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CommandReport {
 

@@ -20,8 +20,9 @@ package org.apache.ambari.server.state.quicklinksprofile;
 
 import static org.junit.Assert.assertEquals;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.io.Resources;
-import org.codehaus.jackson.JsonParseException;
 import org.junit.Test;
 
 
@@ -66,14 +67,14 @@ public class QuickLinksProfileParserTest {
         yarn.getFilters().get(0));
   }
 
-  @Test(expected = JsonParseException.class)
+  @Test(expected = JsonMappingException.class)
   public void testParseInconsistentProfile_ambigousFilterDefinition() throws Exception {
     String profileName = "inconsistent_quicklinks_profile.json";
     QuickLinksProfileParser parser = new QuickLinksProfileParser();
     parser.parse(Resources.getResource(profileName));
   }
 
-  @Test(expected = JsonParseException.class)
+  @Test(expected = JsonMappingException.class)
   public void testParseInconsistentProfile_misspelledFilerDefinition() throws Exception {
     String profileName = "inconsistent_quicklinks_profile_3.json";
     QuickLinksProfileParser parser = new QuickLinksProfileParser();

@@ -20,7 +20,8 @@ package org.apache.ambari.server.state.alert;
 import java.util.Map;
 
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 /**

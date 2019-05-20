@@ -17,8 +17,8 @@
  */
 package org.apache.ambari.server.api.query.render;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * The {@link AlertStateValues} class holds various information about an alert

@@ -18,8 +18,7 @@
 
 package org.apache.ambari.server.agent;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Information about a mounted disk on a given node

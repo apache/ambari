@@ -34,10 +34,11 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.DirectoryScanner;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class FileUtil {
   private static final Logger LOG = LoggerFactory.getLogger(FileUtil.class);

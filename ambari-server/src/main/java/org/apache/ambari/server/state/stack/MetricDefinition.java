@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.state.stack;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonProperty;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Map.Entry;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Used to represent metrics for a stack component.

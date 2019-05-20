@@ -18,7 +18,8 @@
 package org.apache.ambari.server.api.query.render;
 
 import org.apache.ambari.server.state.AlertState;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * The {@link AlertStateSummary} class holds information about each possible

@@ -82,13 +82,13 @@ import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.DiscreteDomain;

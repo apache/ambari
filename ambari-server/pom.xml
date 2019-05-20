@@ -1315,21 +1315,20 @@
       <artifactId>jersey-guice</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
-      <version>1.9.2</version>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-core-asl</artifactId>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-jaxrs</artifactId>
+      <groupId>com.fasterxml.jackson.jaxrs</groupId>
+      <artifactId>jackson-jaxrs-json-provider</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-xc</artifactId>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-jaxb-annotations</artifactId>
     </dependency>
     <dependency>
       <groupId>com.sun.jersey.jersey-test-framework</groupId>
@@ -1553,7 +1552,7 @@
           <groupId>org.apache.httpcomponents</groupId>
           <artifactId>httpclient</artifactId>
         </exclusion>
-         <exclusion>
+        <exclusion>
           <groupId>commons-httpclient</groupId>
           <artifactId>commons-httpclient</artifactId>
         </exclusion>

@@ -17,8 +17,8 @@
  */
 package org.apache.ambari.server.state.scheduler;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 public class BatchSettings {
   private Integer batchSeparationInSeconds;

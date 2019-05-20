@@ -98,7 +98,6 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEve
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.codehaus.jackson.JsonGenerationException;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -108,6 +107,7 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;

@@ -27,10 +27,11 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Encapsulates IO operations on a stack definition service directory.

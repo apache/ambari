@@ -53,12 +53,14 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
-import org.codehaus.jackson.node.TextNode;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationConfig;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 /**
  * Parent for all commands.
@@ -116,7 +118,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
         .getActualTypeArguments()[0];
 
     this.mapper = new ObjectMapper();
-    this.mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+    this.mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
 
     this.recommendationsDir = recommendationsDir;
     this.recommendationsArtifactsLifetime = recommendationsArtifactsLifetime;
@@ -232,17 +234,17 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
   private void populateComponentHostsMap(ObjectNode root, Map<String, Set<String>> componentHostsMap) {
     ArrayNode services = (ArrayNode) root.get(SERVICES_PROPERTY);
-    Iterator<JsonNode> servicesIter = services.getElements();
+    Iterator<JsonNode> servicesIter = services.elements();
 
     while (servicesIter.hasNext()) {
       JsonNode service = servicesIter.next();
       ArrayNode components = (ArrayNode) service.get(SERVICES_COMPONENTS_PROPERTY);
-      Iterator<JsonNode> componentsIter = components.getElements();
+      Iterator<JsonNode> componentsIter = components.elements();
 
       while (componentsIter.hasNext()) {
         JsonNode component = componentsIter.next();
         ObjectNode componentInfo = (ObjectNode) component.get(COMPONENT_INFO_PROPERTY);
-        String componentName = componentInfo.get(COMPONENT_NAME_PROPERTY).getTextValue();
+        String componentName = componentInfo.get(COMPONENT_NAME_PROPERTY).textValue();
 
         Set<String> componentHosts = componentHostsMap.get(componentName);
         ArrayNode hostnames = componentInfo.putArray(COMPONENT_HOSTNAMES_PROPERTY);
@@ -257,7 +259,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
   private void populateServiceAdvisors(ObjectNode root) {
     ArrayNode services = (ArrayNode) root.get(SERVICES_PROPERTY);
-    Iterator<JsonNode> servicesIter = services.getElements();
+    Iterator<JsonNode> servicesIter = services.elements();
 
     ObjectNode version = (ObjectNode) root.get("Versions");
     String stackName = version.get("stack_name").asText();
@@ -266,7 +268,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     while (servicesIter.hasNext()) {
       JsonNode service = servicesIter.next();
       ObjectNode serviceVersion = (ObjectNode) service.get(STACK_SERVICES_PROPERTY);
-      String serviceName = serviceVersion.get("service_name").getTextValue();
+      String serviceName = serviceVersion.get("service_name").textValue();
       try {
         ServiceInfo serviceInfo = metaInfo.getService(stackName, stackVersion, serviceName);
         if (serviceInfo.getAdvisorFile() != null) {
@@ -398,10 +400,10 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
     try {
       JsonNode root = mapper.readTree(hostsJSON);
-      Iterator<JsonNode> iterator = root.get("items").getElements();
+      Iterator<JsonNode> iterator = root.get("items").elements();
       while (iterator.hasNext()) {
         JsonNode next = iterator.next();
-        String hostName = next.get("Hosts").get("host_name").getTextValue();
+        String hostName = next.get("Hosts").get("host_name").textValue();
         registeredHosts.add(hostName);
       }
 

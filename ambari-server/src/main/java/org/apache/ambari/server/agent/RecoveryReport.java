@@ -17,11 +17,11 @@
  */
 package org.apache.ambari.server.agent;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 public class RecoveryReport {

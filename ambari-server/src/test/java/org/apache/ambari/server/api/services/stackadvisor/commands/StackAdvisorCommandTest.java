@@ -48,16 +48,17 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand.StackAdvisorData;
 import org.apache.commons.io.FileUtils;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * StackAdvisorCommand unit tests.
@@ -213,7 +214,7 @@ public class StackAdvisorCommandTest {
     ArrayNode stackVersions = (ArrayNode) stackHierarchy.get("stack_versions");
     assertNotNull(stackVersions);
     assertEquals(2, stackVersions.size());
-    Iterator<JsonNode> stackVersionsElements = stackVersions.getElements();
+    Iterator<JsonNode> stackVersionsElements = stackVersions.elements();
     assertEquals("0.9", stackVersionsElements.next().asText());
     assertEquals("0.8", stackVersionsElements.next().asText());
   }
@@ -237,7 +238,7 @@ public class StackAdvisorCommandTest {
 
     JsonNode serverProperties = objectNode.get("ambari-server-properties");
     assertNotNull(serverProperties);
-    assertEquals("b", serverProperties.iterator().next().getTextValue());
+    assertEquals("b", serverProperties.iterator().next().textValue());
   }
 
   @Test

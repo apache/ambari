@@ -33,7 +33,8 @@ import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * The {@link AlertSummaryGroupedRenderer} is used to format the results of

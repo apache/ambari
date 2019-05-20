@@ -35,10 +35,11 @@ import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.io.FilenameUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Encapsulates IO operations on a stack definition stack directory.

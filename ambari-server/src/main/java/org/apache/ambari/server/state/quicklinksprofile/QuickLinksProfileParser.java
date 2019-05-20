@@ -23,16 +23,15 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.Version;
-import org.codehaus.jackson.map.DeserializationContext;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.deser.std.StdDeserializer;
-import org.codehaus.jackson.map.module.SimpleModule;
-import org.codehaus.jackson.node.ObjectNode;
-
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 
@@ -91,20 +90,20 @@ class QuickLinksFilterDeserializer extends StdDeserializer<Filter> {
   @Override
   public Filter deserialize (JsonParser parser, DeserializationContext context) throws IOException, JsonProcessingException {
     ObjectMapper mapper = (ObjectMapper) parser.getCodec();
-    ObjectNode root = (ObjectNode) mapper.readTree(parser);
+    ObjectNode root = mapper.readTree(parser);
     Class<? extends Filter> filterClass = null;
     List<String> invalidAttributes = new ArrayList<>();
-    for (String fieldName: ImmutableList.copyOf(root.getFieldNames())) {
+    for (String fieldName: ImmutableList.copyOf(root.fieldNames())) {
       switch(fieldName) {
         case LinkAttributeFilter.LINK_ATTRIBUTE:
           if (null != filterClass) {
-            throw new JsonParseException(PARSE_ERROR_MESSAGE_AMBIGUOUS_FILTER, parser.getCurrentLocation());
+            throw new JsonParseException(parser, PARSE_ERROR_MESSAGE_AMBIGUOUS_FILTER, parser.getCurrentLocation());
           }
           filterClass = LinkAttributeFilter.class;
           break;
         case LinkNameFilter.LINK_NAME:
           if (null != filterClass) {
-            throw new JsonParseException(PARSE_ERROR_MESSAGE_AMBIGUOUS_FILTER, parser.getCurrentLocation());
+            throw new JsonParseException(parser, PARSE_ERROR_MESSAGE_AMBIGUOUS_FILTER, parser.getCurrentLocation());
           }
           filterClass = LinkNameFilter.class;
           break;
@@ -116,12 +115,12 @@ class QuickLinksFilterDeserializer extends StdDeserializer<Filter> {
       }
     }
     if (!invalidAttributes.isEmpty()) {
-      throw new JsonParseException(PARSE_ERROR_MESSAGE_INVALID_JSON_TAG + invalidAttributes,
+      throw new JsonParseException(parser, PARSE_ERROR_MESSAGE_INVALID_JSON_TAG + invalidAttributes,
           parser.getCurrentLocation());
     }
     if (null == filterClass) {
       filterClass = AcceptAllFilter.class;
     }
-    return mapper.readValue(root, filterClass);
+    return mapper.readValue(root.traverse(), filterClass);
   }
 }
