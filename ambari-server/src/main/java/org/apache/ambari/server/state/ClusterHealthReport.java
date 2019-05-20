@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.state;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Cluster Health Report (part of Clusters API response)

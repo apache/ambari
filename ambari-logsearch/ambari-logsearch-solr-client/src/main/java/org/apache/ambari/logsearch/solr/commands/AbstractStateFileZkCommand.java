@@ -20,8 +20,9 @@ package org.apache.ambari.logsearch.solr.commands;
 
 import org.apache.ambari.logsearch.solr.AmbariSolrCloudClient;
 import org.apache.ambari.logsearch.solr.domain.AmbariSolrState;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public abstract class AbstractStateFileZkCommand extends AbstractZookeeperRetryCommand<AmbariSolrState>{
 

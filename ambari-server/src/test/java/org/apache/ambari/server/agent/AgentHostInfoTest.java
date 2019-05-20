@@ -23,11 +23,12 @@ import java.io.IOException;
 
 import junit.framework.Assert;
 
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * This tests makes sure the contract between the server and agent for info
@@ -36,8 +37,7 @@ import org.junit.Test;
 public class AgentHostInfoTest {
   
   @Test
-  public void testDeserializeHostInfo() throws JsonParseException, 
-    JsonMappingException, IOException {
+  public void testDeserializeHostInfo() throws IOException {
     String hostinfo = "{\"architecture\": \"x86_64\", " +
         "\"augeasversion\": \"0.10.0\"," +
     		"\"domain\": \"test.com\", " +
@@ -69,7 +69,7 @@ public class AgentHostInfoTest {
     		"\"memorytotal\": 3051356," +
     		"\"netmask\": \"255.255.255.0\"}";
     ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     HostInfo info = mapper.readValue(hostinfo, HostInfo.class);
     Assert.assertEquals(info.getMemoryTotal(), 3051356L);
     Assert.assertEquals(info.getKernel(), "Linux");

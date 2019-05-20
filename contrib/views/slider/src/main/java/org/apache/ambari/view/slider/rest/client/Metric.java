@@ -18,8 +18,6 @@
 
 package org.apache.ambari.view.slider.rest.client;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +28,9 @@ import javax.xml.xpath.XPathFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties({"keyName", "matchers", "xPathExpression", "xPathExpressionComputed"})
 public class Metric {

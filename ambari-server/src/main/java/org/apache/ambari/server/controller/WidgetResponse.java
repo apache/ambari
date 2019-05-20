@@ -18,7 +18,8 @@
 package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.orm.entities.WidgetEntity;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 /**

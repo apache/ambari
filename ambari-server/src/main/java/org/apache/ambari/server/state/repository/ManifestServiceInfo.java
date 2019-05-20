@@ -19,7 +19,7 @@ package org.apache.ambari.server.state.repository;
 
 import java.util.Set;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Used when formulating manifest info for API consumption.

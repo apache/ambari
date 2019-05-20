@@ -18,7 +18,9 @@
 package org.apache.ambari.server.state;
 
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * An alert represents a problem or notice for a cluster.
  */

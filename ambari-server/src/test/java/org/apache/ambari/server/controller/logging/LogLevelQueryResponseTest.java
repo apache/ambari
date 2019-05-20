@@ -18,18 +18,19 @@
 
 package org.apache.ambari.server.controller.logging;
 
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.StringReader;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 
 
 public class LogLevelQueryResponseTest {
@@ -53,7 +54,8 @@ public class LogLevelQueryResponseTest {
     AnnotationIntrospector introspector =
       new JacksonAnnotationIntrospector();
     mapper.setAnnotationIntrospector(introspector);
-    mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+    mapper.getSerializationConfig()
+        .withPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_NULL, JsonInclude.Include.NON_NULL));
 
 
     ObjectReader logLevelQueryResponseReader =

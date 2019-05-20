@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.controller.logging;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class NameValuePair {
 

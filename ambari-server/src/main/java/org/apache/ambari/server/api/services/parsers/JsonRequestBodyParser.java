@@ -31,10 +31,11 @@ import java.util.Set;
 import org.apache.ambari.server.api.services.NamedPropertySet;
 import org.apache.ambari.server.api.services.RequestBody;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * JSON parser which parses a JSON string into a map of properties and values.
@@ -57,7 +58,7 @@ public class JsonRequestBodyParser implements RequestBodyParser {
       try {
         JsonNode root = mapper.readTree(ensureArrayFormat(body));
 
-        Iterator<JsonNode> iterator = root.getElements();
+        Iterator<JsonNode> iterator = root.elements();
         while (iterator.hasNext()) {
           JsonNode            node             = iterator.next();
           Map<String, Object> mapProperties    = new HashMap<String, Object>();
@@ -112,13 +113,13 @@ public class JsonRequestBodyParser implements RequestBodyParser {
   private void processNode(JsonNode node, String path, NamedPropertySet propertySet,
                            Map<String, String> requestInfoProps) {
 
-    Iterator<String> iterator = node.getFieldNames();
+    Iterator<String> iterator = node.fieldNames();
     while (iterator.hasNext()) {
       String   name  = iterator.next();
       JsonNode child = node.get(name);
       if (child.isArray()) {
         //array
-        Iterator<JsonNode>       arrayIter = child.getElements();
+        Iterator<JsonNode>       arrayIter = child.elements();
         Set<Map<String, Object>> arraySet  = new LinkedHashSet<Map<String, Object>>();
         List<String> primitives = new ArrayList<String>();
 

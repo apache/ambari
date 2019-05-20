@@ -35,7 +35,6 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.hooks.users.UserHookParams;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.utils.ShellCommandUtil;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
@@ -49,6 +48,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 
 /**

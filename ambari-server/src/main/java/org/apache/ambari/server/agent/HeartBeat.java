@@ -22,7 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ambari.server.state.Alert;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  *

@@ -20,7 +20,6 @@ package org.apache.ambari.server.stack;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.QuickLinksConfigurationInfo;
 import org.apache.ambari.server.state.quicklinks.QuickLinks;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +32,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class QuickLinksConfigurationModule extends BaseModule<QuickLinksConfigurationModule, QuickLinksConfigurationInfo> implements Validable {
 

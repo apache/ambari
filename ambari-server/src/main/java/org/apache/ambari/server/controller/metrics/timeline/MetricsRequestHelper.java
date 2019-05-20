@@ -24,11 +24,6 @@ import org.apache.http.NameValuePair;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.http.client.utils.URIBuilder;
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +41,12 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
+
 /**
  * Helper class to call AMS backend that is utilized by @AMSPropertyProvider
  * and @AMSReportPropertyProvider as well as @TimelineMetricCacheEntryFactory
@@ -57,11 +58,12 @@ public class MetricsRequestHelper {
   private final URLStreamProvider streamProvider;
 
   static {
-    mapper = new ObjectMapper();
+    mapper = new com.fasterxml.jackson.databind.ObjectMapper();
     AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
     mapper.setAnnotationIntrospector(introspector);
     //noinspection deprecation
-    mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+    mapper.getSerializationConfig()
+        .withPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_NULL, JsonInclude.Include.NON_NULL));
     timelineObjectReader = mapper.reader(TimelineMetrics.class);
   }
 

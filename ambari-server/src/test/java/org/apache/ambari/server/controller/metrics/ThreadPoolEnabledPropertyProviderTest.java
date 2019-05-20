@@ -19,21 +19,22 @@
 package org.apache.ambari.server.controller.metrics;
 
 import org.apache.ambari.server.controller.jmx.JMXMetricHolder;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+
 public class ThreadPoolEnabledPropertyProviderTest {
 
   @Test
   public void testGetCacheKeyForException() throws Exception {
     ObjectMapper jmxObjectMapper = new ObjectMapper();
-    jmxObjectMapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, false);
+    jmxObjectMapper.configure(MapperFeature.USE_ANNOTATIONS, false);
     ObjectReader jmxObjectReader = jmxObjectMapper.reader(JMXMetricHolder.class);
 
     List<Exception> exceptions = new ArrayList<>();

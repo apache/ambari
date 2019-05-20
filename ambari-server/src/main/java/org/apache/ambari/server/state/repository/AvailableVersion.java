@@ -19,9 +19,8 @@ package org.apache.ambari.server.state.repository;
 
 import java.util.Set;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Represents a version of a {@link ManifestService} that is available for upgrading.
@@ -34,11 +33,11 @@ public class AvailableVersion {
   private String version;
 
   @JsonProperty("release_version")
-  @JsonSerialize(include=Inclusion.NON_NULL)
+  @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
   private String releaseVersion;
 
   @JsonProperty("version_id")
-  @JsonSerialize(include=Inclusion.NON_NULL)
+  @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
   private String versionId;
 
   @JsonProperty
