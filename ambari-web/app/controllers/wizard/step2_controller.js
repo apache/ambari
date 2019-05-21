@@ -213,7 +213,7 @@ App.WizardStep2Controller = Em.Controller.extend({
     this.get('invalidHostNames').clear();
     this.get('hostNameArr').forEach(function (hostName) {
       if (!validator.isHostname(hostName)) {
-        this.get('invalidHostNames').push(hostName);
+        this.get('invalidHostNames').push(encodeURIComponent(hostName));
         result = false;
       }
     }, this);

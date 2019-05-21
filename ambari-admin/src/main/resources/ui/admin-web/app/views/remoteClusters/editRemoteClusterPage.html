@@ -42,8 +42,9 @@
   <div class="form-group" ng-class="{'has-error' : form.user_name.$error.required && form.submitted}">
     <label for="clusterurl" class="col-sm-2 control-label">{{'users.ambariClusterURL' | translate}}*</label>
     <div class="col-sm-10">
-      <input type="text" id="clusterurl" class="form-control" name="cluster_url" placeholder="{{'users.ambariClusterURL' | translate}}" ng-model="cluster.cluster_url" required autocomplete="off">
+      <input type="text" id="clusterurl" class="form-control" ng-pattern="urlValidationPattern" name="cluster_url" placeholder="{{'users.ambariClusterURL' | translate}}" ng-model="cluster.cluster_url" required autocomplete="off">
       <div class="alert alert-danger top-margin" ng-show="form.cluster_url.$error.required && form.submitted"> {{'common.alerts.fieldIsRequired' | translate}}</div>
+      <div class="alert alert-danger top-margin" ng-show="form.cluster_url.$error.pattern && form.submitted"> {{'views.alerts.invalidUrl' | translate}}</div>
     </div>
   </div>
 
