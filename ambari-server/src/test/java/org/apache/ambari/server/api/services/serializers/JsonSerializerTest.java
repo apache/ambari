@@ -18,6 +18,17 @@
 
 package org.apache.ambari.server.api.services.serializers;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.ws.rs.core.UriInfo;
+
 import org.apache.ambari.server.api.services.DeleteResultMetadata;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
@@ -26,14 +37,6 @@ import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.junit.Test;
-
-import javax.ws.rs.core.UriInfo;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertEquals;
 
 /**
  * JSONSerializer unit tests
@@ -232,8 +235,7 @@ public class JsonSerializerTest {
         "      \"error\" : {\n" +
         "        \"key\" : \"key2\",\n" +
         "        \"code\" : 403,\n" +
-        "        \"message\" : \"org.apache.ambari.server.security.authorization.AuthorizationException:"+
-                              " The authenticated user is not authorized to perform the requested operation\"\n" +
+        "        \"message\" : \"The authenticated user is not authorized to perform the requested operation\"\n" +
         "      }\n" +
         "    }\n" +
         "  ]\n" +

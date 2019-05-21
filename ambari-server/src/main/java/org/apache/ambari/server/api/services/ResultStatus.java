@@ -131,7 +131,7 @@ public class ResultStatus {
    */
   public ResultStatus(STATUS status, Exception e) {
     m_status = status;
-    m_msg = e.toString();
+    m_msg = e.getMessage();
   }
 
   /**
