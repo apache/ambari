@@ -89,7 +89,7 @@
               "metric": "kafka.server.BrokerTopicMetrics.BytesInPerSec.count",
               "precision": "default",
               "refId": "A",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             },
             {
@@ -101,7 +101,7 @@
               "metric": "kafka.server.BrokerTopicMetrics.BytesOutPerSec.count",
               "precision": "default",
               "refId": "B",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],
@@ -172,7 +172,7 @@
               "metric": "kafka.server.BrokerTopicMetrics.MessagesInPerSec.count",
               "precision": "default",
               "refId": "A",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],
@@ -558,7 +558,7 @@
               "metric": "kafka.network.RequestMetrics.RequestsPerSec.request.Produce.count",
               "precision": "default",
               "refId": "A",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],
@@ -629,7 +629,7 @@
               "metric": "kafka.network.RequestMetrics.RequestsPerSec.request.FetchConsumer.count",
               "precision": "default",
               "refId": "A",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],
@@ -709,7 +709,7 @@
               "metric": "kafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.count",
               "precision": "default",
               "refId": "A",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "rate"
             }
           ],
@@ -780,7 +780,7 @@
               "metric": "kafka.controller.ControllerStats.UncleanLeaderElectionsPerSec.count",
               "precision": "default",
               "refId": "A",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],
@@ -860,7 +860,7 @@
               "metric": "kafka.server.ReplicaManager.IsrShrinksPerSec.count",
               "precision": "default",
               "refId": "A",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],
@@ -932,7 +932,7 @@
               "metric": "kafka.server.ReplicaManager.IsrExpandsPerSec.count",
               "precision": "default",
               "refId": "A",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],
