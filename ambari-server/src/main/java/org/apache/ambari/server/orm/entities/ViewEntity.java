@@ -18,16 +18,11 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.view.ViewSubResourceDefinition;
-import org.apache.ambari.server.view.configuration.ParameterConfig;
-import org.apache.ambari.server.view.configuration.ResourceConfig;
-import org.apache.ambari.server.view.configuration.ViewConfig;
-import org.apache.ambari.view.validation.Validator;
-import org.apache.ambari.view.View;
-import org.apache.ambari.view.ViewDefinition;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -42,11 +37,17 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.view.ViewSubResourceDefinition;
+import org.apache.ambari.server.view.configuration.ParameterConfig;
+import org.apache.ambari.server.view.configuration.ResourceConfig;
+import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.apache.ambari.view.Masker;
+import org.apache.ambari.view.View;
+import org.apache.ambari.view.ViewDefinition;
+import org.apache.ambari.view.validation.Validator;
 
 /**
  * Entity representing a View.
@@ -893,6 +894,21 @@ public class ViewEntity implements ViewDefinition {
    */
   public static String getViewName(String name, String version) {
     return name + "{" + version + "}";
+  }
+
+  /**
+   * Get the masker class.
+   *
+   * @return the masker class
+   *
+   * @throws RuntimeException if the class can not be loaded
+   */
+  public Class<? extends Masker> getMaskerClass() {
+    try {
+      return getConfiguration().getMaskerClass(getClassLoader());
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override

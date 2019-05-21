@@ -45,9 +45,6 @@ import javax.persistence.TableGenerator;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
@@ -58,11 +55,21 @@ import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.validation.InstanceValidationResultImpl;
 import org.apache.ambari.server.view.validation.ValidationException;
 import org.apache.ambari.server.view.validation.ValidationResultImpl;
-import org.apache.ambari.view.*;
+import org.apache.ambari.view.ClusterType;
+import org.apache.ambari.view.MaskException;
+import org.apache.ambari.view.Masker;
+import org.apache.ambari.view.ResourceProvider;
+import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.ViewDefinition;
+import org.apache.ambari.view.ViewInstanceDefinition;
 import org.apache.ambari.view.migration.ViewDataMigrationContext;
 import org.apache.ambari.view.migration.ViewDataMigrator;
-import org.apache.ambari.view.validation.Validator;
 import org.apache.ambari.view.validation.ValidationResult;
+import org.apache.ambari.view.validation.Validator;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 /**
  * Represents an instance of a View.
@@ -319,6 +326,11 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
 
   @Override
   public Map<String, String> getPropertyMap() {
+    return getPropertyMap(Masker.NONE);
+  }
+
+  @Override
+  public Map<String, String> getPropertyMap(Masker masker) {
     Map<String, String> propertyMap = new HashMap<String, String>();
 
     for (ViewInstancePropertyEntity viewInstancePropertyEntity : getProperties()) {
@@ -327,7 +339,11 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     for (ViewParameterEntity viewParameterEntity : view.getParameters()) {
       String parameterName = viewParameterEntity.getName();
       if (!propertyMap.containsKey(parameterName)) {
-        propertyMap.put(parameterName, viewParameterEntity.getDefaultValue());
+        try {
+          propertyMap.put(parameterName, viewParameterEntity.isMasked() ? masker.mask(viewParameterEntity.getDefaultValue()) : viewParameterEntity.getDefaultValue());
+        } catch (MaskException e) {
+          throw new RuntimeException(e);
+        }
       }
     }
     return propertyMap;
