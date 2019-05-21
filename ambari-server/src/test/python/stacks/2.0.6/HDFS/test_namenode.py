@@ -1041,6 +1041,7 @@ class TestNamenode(RMFTestCase):
                               user = 'hdfs',
                               conf_dir = '/etc/hadoop/conf',
                               bin_dir = '/usr/bin')
+    self.assert_configure_default()
     self.assertNoMoreResources()
 
   def test_decommission_update_files_only(self):
@@ -1056,6 +1057,7 @@ class TestNamenode(RMFTestCase):
                               content = Template('exclude_hosts_list.j2'),
                               group = 'hadoop',
                               )
+    self.assert_configure_default()
     self.assertNoMoreResources()
 
 
@@ -1077,6 +1079,7 @@ class TestNamenode(RMFTestCase):
                               user = 'hdfs',
                               conf_dir = '/etc/hadoop/conf',
                               bin_dir = '/usr/bin')
+    self.assert_configure_default()
     self.assertNoMoreResources()
 
 
@@ -1101,6 +1104,7 @@ class TestNamenode(RMFTestCase):
         conf_dir = '/etc/hadoop/conf',
         user = 'hdfs',
     )
+    self.assert_configure_default()
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
