@@ -1104,6 +1104,7 @@ class TestNamenode(RMFTestCase):
         conf_dir = '/etc/hadoop/conf',
         user = 'hdfs',
     )
+    self.assert_configure_secured(False)
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
