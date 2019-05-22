@@ -18,8 +18,28 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.DuplicateResourceException;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
@@ -40,16 +60,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static org.junit.Assert.*;
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertEquals;
 
 public class ViewInstanceResourceProviderTest {
 
@@ -84,7 +94,7 @@ public class ViewInstanceResourceProviderTest {
     propertyMap.put("par1", "val1");
     propertyMap.put("par2", "val2");
 
-    expect(viewInstanceEntity.getPropertyMap()).andReturn(propertyMap);
+    expect(viewInstanceEntity.getPropertyMap(null)).andReturn(propertyMap);
 
     expect(viewInstanceEntity.getData()).andReturn(Collections.<ViewInstanceDataEntity>emptyList()).anyTimes();
 

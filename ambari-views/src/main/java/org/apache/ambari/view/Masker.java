@@ -40,4 +40,16 @@ public interface Masker {
    * @throws MaskException error happened during unmasking process
    */
   public String unmask(String value) throws MaskException;
+
+  Masker NONE = new Masker() {
+    @Override
+    public String mask(String value) {
+      return value;
+    }
+
+    @Override
+    public String unmask(String value) {
+      return value;
+    }
+  };
 }

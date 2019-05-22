@@ -48,6 +48,7 @@ import org.apache.ambari.server.view.validation.InstanceValidationResultImpl;
 import org.apache.ambari.server.view.validation.ValidationException;
 import org.apache.ambari.server.view.validation.ValidationResultImpl;
 import org.apache.ambari.view.ClusterType;
+import org.apache.ambari.view.Masker;
 import org.apache.ambari.view.validation.Validator;
 
 import com.google.inject.Inject;
@@ -259,8 +260,9 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
 
     // only allow an admin to access the view properties
     if (ViewRegistry.getInstance().checkAdmin()) {
+      Masker masker = ViewRegistry.getInstance().getMasker(viewEntity.getMaskerClass());
       setResourceProperty(resource, PROPERTIES_PROPERTY_ID,
-          viewInstanceEntity.getPropertyMap(), requestedIds);
+          viewInstanceEntity.getPropertyMap(masker), requestedIds);
     }
 
     Map<String, String> applicationData = new HashMap<>();

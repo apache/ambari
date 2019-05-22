@@ -84,6 +84,13 @@ public interface ViewInstanceDefinition {
   public Map<String, String> getPropertyMap();
 
   /**
+   * Get property map, mask property values if needed
+   * @param masker
+   * @return
+   */
+  Map<String, String> getPropertyMap(Masker masker);
+
+  /**
    * Get the view instance application data.
    *
    * @return the view instance application data map
