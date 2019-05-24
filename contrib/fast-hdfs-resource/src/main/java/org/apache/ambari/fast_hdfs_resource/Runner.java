@@ -136,14 +136,14 @@ public class Runner {
               File f = new File(resource.getSource());
               if (null == f || !f.exists()) {
                 System.out.println(
-                    String.format("Skipping the operation of create as file doesnt exists : %s", resource.getSource()));
+                    String.format("Skipping the operation of create as file doesnt exists : %s", resource.getTarget()));
                 continue;
               }
-              double bytes = f.length();
+              long bytes = f.length();
               if (fileLength == bytes) {
                 System.out.println(String.format(
                     "Skipping the operation of create as file already exists in hdfs : %s . ActualFileSize : %s , HDFS Filesize : %s",
-                    resource.getSource(), bytes, fileLength));
+                    resource.getTarget(), bytes, fileLength));
                 continue;
               }
             }
