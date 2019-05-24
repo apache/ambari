@@ -28,8 +28,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
 import com.google.gson.Gson;
 
@@ -127,6 +128,25 @@ public class Runner {
           }
 
           if (resource.getAction().equals("create")) {
+            if ("file".equals(resource.getType())) {
+              // Check if the file already exists with same timestamp
+              // or not
+              FileStatus status = dfs.getFileStatus(pathHadoop);
+              long fileLength = status.getLen();
+              File f = new File(resource.getSource());
+              if (null == f || !f.exists()) {
+                System.out.println(
+                    String.format("Skipping the operation of create as file doesnt exists : %s", resource.getSource()));
+                continue;
+              }
+              double bytes = f.length();
+              if (fileLength == bytes) {
+                System.out.println(String.format(
+                    "Skipping the operation of create as file already exists in hdfs : %s . ActualFileSize : %s , HDFS Filesize : %s",
+                    resource.getSource(), bytes, fileLength));
+                continue;
+              }
+            }
             // 5 - Create
             Resource.createResource(resource, dfs, pathHadoop);
             Resource.setMode(resource, dfs, pathHadoop);
