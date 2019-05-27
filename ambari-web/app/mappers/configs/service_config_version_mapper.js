@@ -56,6 +56,7 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
         parsedItem.group_id = parsedItem.group_id === -1 ? parsedItem.service_name + '_default' : parsedItem.group_id;
         parsedItem.is_requested = true;
         parsedItem.create_time = App.dateTimeWithTimeZone(parsedItem.create_time);
+        parsedItem.notes = _.escape(parsedItem.notes);
         itemIds[parsedItem.id] = true;
         parsedItem.index = index;
         if (serviceToHostMap[item.service_name]) {
