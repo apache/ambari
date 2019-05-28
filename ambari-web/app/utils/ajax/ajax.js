@@ -3275,6 +3275,10 @@ var formatRequest = function (data) {
   if (this.format) {
     jQuery.extend(opt, this.format(data, opt));
   }
+  if (!('headers' in opt && 'Content-Type' in opt.headers)) {
+    // With the default www-url-form-encoded Content-Type KNOX would corrupt the json content.
+    opt.headers['Content-Type'] = 'text/plain';
+  }
   var statusCode = jQuery.extend({}, require('data/statusCodes'));
   statusCode['404'] = function () {
     console.log("Error code 404: URI not found. -> " + opt.url);
