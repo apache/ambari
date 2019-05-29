@@ -129,16 +129,15 @@ public class Runner {
 
           if (resource.getAction().equals("create")) {
             if ("file".equals(resource.getType())) {
-              // Check if the file already exists with same timestamp
-              // or not
-              FileStatus status = dfs.getFileStatus(pathHadoop);
-              long fileLength = status.getLen();
+              // Check if the file already exists or not by seeing the filesize
               File f = new File(resource.getSource());
               if (null == f || !f.exists()) {
                 System.out.println(
-                    String.format("Skipping the operation of create as file doesnt exists : %s", resource.getTarget()));
+                    String.format("Skipping the operation of create as source file doesnt exists : %s", resource.getSource()));
                 continue;
               }
+              FileStatus status = dfs.getFileStatus(pathHadoop);
+              long fileLength = status.getLen();
               long bytes = f.length();
               if (fileLength == bytes) {
                 System.out.println(String.format(
