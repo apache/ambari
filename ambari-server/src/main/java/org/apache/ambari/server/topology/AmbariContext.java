@@ -527,7 +527,7 @@ public class AmbariContext {
       RetryHelper.executeWithRetry(new Callable<Object>() {
         @Override
         public Object call() throws Exception {
-          getController().updateClusters(Collections.singleton(clusterRequest), null);
+          getController().updateClusters(Collections.singleton(clusterRequest), null, false);
           return null;
         }
       });

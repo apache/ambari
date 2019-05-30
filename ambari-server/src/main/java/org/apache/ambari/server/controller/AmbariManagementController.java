@@ -104,6 +104,17 @@ public interface AmbariManagementController {
    * Creates a configuration.
    *
    * @param request the request object which defines the configuration.
+   * @param refreshCluster should the cluster entity be refreshed from DB
+   * @throws AmbariException when the configuration cannot be created.
+   * @throws AuthorizationException when user is not authorized to perform operation.
+   */
+  ConfigurationResponse createConfiguration(ConfigurationRequest request, boolean refreshCluster)
+      throws AmbariException, AuthorizationException;
+
+  /**
+   * Creates a configuration.
+   *
+   * @param request the request object which defines the configuration.
    *
    * @throws AmbariException when the configuration cannot be created.
    */
@@ -113,6 +124,13 @@ public interface AmbariManagementController {
   /**
    * Create cluster config
    * TODO move this method to Cluster? doesn't seem to be on its place
+   * @return config created
+   */
+  Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
+                      String versionTag, Map<String, Map<String, String>> propertiesAttributes, boolean refreshCluster);
+
+  /**
+   * Create cluster config
    * @return config created
    */
   Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
@@ -250,6 +268,26 @@ public interface AmbariManagementController {
    */
   RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
                                               Map<String, String> requestProperties)
+      throws AmbariException, AuthorizationException;
+
+  /**
+   * Update the cluster identified by the given request object with the
+   * values carried by the given request object.
+   *
+   *
+   * @param requests          request objects which define which cluster to
+   *                          update and the values to set
+   * @param requestProperties request specific properties independent of resource
+   *
+   * @param refreshCluster    refreshes cluster entity after cluster configs update
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the resource cannot be updated
+   * @throws AuthorizationException thrown if the authenticated user is not authorized to perform this operation
+   */
+  RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
+                                              Map<String, String> requestProperties, boolean refreshCluster)
       throws AmbariException, AuthorizationException;
 
   /**

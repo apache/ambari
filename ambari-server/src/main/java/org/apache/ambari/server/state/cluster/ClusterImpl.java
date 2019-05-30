@@ -1261,6 +1261,20 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  @Transactional
+  public void deleteAllClusterConfigs() {
+    clusterGlobalLock.writeLock().lock();
+    try {
+      Collection<ClusterConfigEntity> clusterConfigs = getClusterEntity().getClusterConfigEntities();
+      for (ClusterConfigEntity clusterConfigEntity : clusterConfigs) {
+        clusterDAO.removeConfig(clusterConfigEntity);
+      }
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
+    }
+  }
+
+  @Override
   public void deleteService(String serviceName)
     throws AmbariException {
     clusterGlobalLock.writeLock().lock();
@@ -1346,6 +1360,7 @@ public class ClusterImpl implements Cluster {
     try {
       refresh();
       deleteAllServices();
+      deleteAllClusterConfigs();
 
       refresh(); // update one-to-many clusterServiceEntities
       removeEntities();
@@ -1934,7 +1949,9 @@ public class ClusterImpl implements Cluster {
       }
     }
 
-    clusterEntity = clusterDAO.merge(clusterEntity);
+    for (ClusterConfigEntity clusterConfigEntity : clusterConfigs) {
+      clusterDAO.merge(clusterConfigEntity);
+    }
 
     if (serviceName == null) {
       ArrayList<String> configTypes = new ArrayList<>();
@@ -2418,7 +2435,9 @@ public class ClusterImpl implements Cluster {
 
       // !!! without providing the flush here, when this transaction completes it
       // looks like the database has all unselected configs for some types
-      clusterEntity = clusterDAO.merge(clusterEntity, true);
+      for (ClusterConfigEntity clusterConfig : configEntities) {
+        clusterDAO.merge(clusterConfig, true);
+      }
 
       cacheConfigurations();
 
@@ -2499,7 +2518,9 @@ public class ClusterImpl implements Cluster {
       // since the entities which were modified came from the cluster entity's
       // list to begin with, we can just save them right back - no need for a
       // new collection since the entity instances were modified directly
-      clusterEntity = clusterDAO.merge(clusterEntity, true);
+      for (ClusterConfigEntity clusterConfig : configEntities) {
+        clusterDAO.merge(clusterConfig, true);
+      }
 
       cacheConfigurations();
 

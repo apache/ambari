@@ -316,7 +316,9 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
       }
 
       if (atLeastOneChanged) {
-        clusterDAO.merge(clusterEntity);
+        for (ClusterConfigEntity clusterConfigEntity : configEntities) {
+          clusterDAO.merge(clusterConfigEntity);
+        }
       }
     }
   }
