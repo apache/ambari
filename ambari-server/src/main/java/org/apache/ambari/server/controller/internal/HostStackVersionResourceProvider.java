@@ -488,7 +488,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
   private ActionExecutionContext createActionExecutionContext(Cluster cluster, RepositoryVersionEntity repoVersionEntity, Map<String, String> roleParams, RequestResourceFilter filter, String action) {
     List<RequestResourceFilter> resourceFilters = Collections.singletonList(filter);
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(), action, resourceFilters, roleParams);
-    Short timeout = Short.valueOf(configuration.getDefaultAgentTaskTimeout(true));
+    Integer timeout = Integer.valueOf(configuration.getDefaultAgentTaskTimeout(true));
     actionContext.setTimeout(timeout);
     actionContext.setRepositoryVersion(repoVersionEntity);
     return actionContext;

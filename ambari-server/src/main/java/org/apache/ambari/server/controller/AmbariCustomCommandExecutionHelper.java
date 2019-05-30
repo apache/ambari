@@ -448,7 +448,7 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       boolean isInstallCommand = commandName.equals(RoleCommand.INSTALL.toString());
-      int commandTimeout = Short.valueOf(configs.getDefaultAgentTaskTimeout(isInstallCommand)).intValue();
+      int commandTimeout = Integer.valueOf(configs.getDefaultAgentTaskTimeout(isInstallCommand));
 
       ComponentInfo componentInfo = ambariMetaInfo.getComponent(
           stackId.getStackName(), stackId.getStackVersion(),

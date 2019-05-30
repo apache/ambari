@@ -98,13 +98,13 @@ public class ActionResourceProviderTest {
     List<ActionDefinition> allDefinition = new ArrayList<ActionDefinition>();
     allDefinition.add(new ActionDefinition(
         "a1", ActionType.SYSTEM, "fileName", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
-        Short.valueOf("100"), null));
+        Integer.valueOf("100"), null));
     allDefinition.add(new ActionDefinition(
         "a2", ActionType.SYSTEM, "fileName", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
-        Short.valueOf("100"), null));
+        Integer.valueOf("100"), null));
     allDefinition.add(new ActionDefinition(
         "a3", ActionType.SYSTEM, "fileName", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
-        Short.valueOf("100"), null));
+        Integer.valueOf("100"), null));
 
     Set<ActionResponse> allResponse = new HashSet<ActionResponse>();
     for (ActionDefinition definition : allDefinition) {
@@ -113,7 +113,7 @@ public class ActionResourceProviderTest {
 
     ActionDefinition namedDefinition = new ActionDefinition(
         "a1", ActionType.SYSTEM, "fileName", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
-        Short.valueOf("100"), null);
+        Integer.valueOf("100"), null);
 
     Set<ActionResponse> nameResponse = new HashSet<ActionResponse>();
     nameResponse.add(namedDefinition.convertToResponse());

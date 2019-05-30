@@ -190,7 +190,7 @@ public class StageWrapper {
    *                      this in.
    * @return the maximum timeout, or the default agent execution timeout if none are found.  Never {@code null}.
    */
-  public Short getMaxTimeout(Configuration configuration) {
+  public Integer getMaxTimeout(Configuration configuration) {
 
     Set<String> timeoutKeys = new HashSet<>();
 
@@ -199,20 +199,20 @@ public class StageWrapper {
       timeoutKeys.addAll(wrapper.getTimeoutKeys());
     }
 
-    Short defaultTimeout = Short.valueOf(configuration.getDefaultAgentTaskTimeout(false));
+    Integer defaultTimeout = Integer.valueOf(configuration.getDefaultAgentTaskTimeout(false));
 
     if (CollectionUtils.isEmpty(timeoutKeys)) {
       return defaultTimeout;
     }
 
-    Short timeout = null;
+    Integer timeout = null;
 
     for (String key : timeoutKeys) {
       String configValue = configuration.getProperty(key);
 
       if (StringUtils.isNotBlank(configValue)) {
         try {
-          Short configTimeout = Short.valueOf(configValue);
+          Integer configTimeout = Integer.valueOf(configValue);
 
           if (null == timeout || configTimeout > timeout) {
             timeout = configTimeout;
