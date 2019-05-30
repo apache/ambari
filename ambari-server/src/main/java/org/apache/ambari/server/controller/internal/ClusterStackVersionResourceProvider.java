@@ -686,7 +686,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         INSTALL_PACKAGES_ACTION, Collections.singletonList(filter), roleParams);
 
     actionContext.setStackId(repoVersion.getStackId());
-    actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
+    actionContext.setTimeout(Integer.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
     repoVersionHelper.addCommandRepositoryToContext(actionContext, repoVersion, osEntity);
 
