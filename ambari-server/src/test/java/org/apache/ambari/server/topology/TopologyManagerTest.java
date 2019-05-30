@@ -33,6 +33,7 @@ import static org.easymock.EasyMock.verify;
 import static org.powermock.api.easymock.PowerMock.mockStatic;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -47,6 +48,7 @@ import java.util.concurrent.Future;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
@@ -65,6 +67,8 @@ import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
@@ -91,7 +95,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
  * TopologyManager unit tests
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest( { TopologyManager.class })
+@PrepareForTest( { TopologyManager.class, AmbariContext.class })
 public class TopologyManagerTest {
 
   private static final String CLUSTER_NAME = "test-cluster";
@@ -160,6 +164,12 @@ public class TopologyManagerTest {
   private ConfigureClusterTaskFactory configureClusterTaskFactory;
   @Mock(type = MockType.NICE)
   private ConfigureClusterTask configureClusterTask;
+  @Mock(type = MockType.NICE)
+  private AmbariManagementController ambariManagementController;
+  @Mock(type = MockType.NICE)
+  private Clusters clusters;
+  @Mock(type = MockType.NICE)
+  private Cluster cluster;
 
   @Mock(type = MockType.STRICT)
   private Future mockFuture;
@@ -329,6 +339,8 @@ public class TopologyManagerTest {
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();
     expect(ambariContext.getClusterId(CLUSTER_NAME)).andReturn(CLUSTER_ID).anyTimes();
     expect(ambariContext.getClusterName(CLUSTER_ID)).andReturn(CLUSTER_NAME).anyTimes();
+    expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster).anyTimes();
+    expect(ambariManagementController.getClusters()).andReturn(clusters).anyTimes();
     // cluster configuration task run() isn't executed by mock executor
     // so only INITIAL config
     expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture))).
@@ -372,6 +384,13 @@ public class TopologyManagerTest {
 
     EasyMockSupport.injectMocks(topologyManagerReplay);
 
+    Field controllerField = AmbariContext.class.getDeclaredField("controller");
+    controllerField.setAccessible(true);
+    Field modifiersField = Field.class.getDeclaredField("modifiers");
+    modifiersField.setAccessible(true);
+    modifiersField.setInt(controllerField, controllerField.getModifiers() & ~Modifier.FINAL);
+    controllerField.set(null, ambariManagementController);
+
   }
 
   @After
@@ -379,12 +398,14 @@ public class TopologyManagerTest {
     PowerMock.verify(System.class);
     verify(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
-        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO);
+        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO,
+        ambariManagementController, clusters, cluster);
 
     PowerMock.reset(System.class);
     reset(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
-        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO);
+        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO,
+        ambariManagementController, clusters, cluster);
   }
 
   @Test
@@ -546,7 +567,7 @@ public class TopologyManagerTest {
             configurationRequest, configurationRequest2, configurationRequest3, executor,
             persistedState, clusterTopologyMock, securityConfigurationFactory, credentialStoreService,
             clusterController, resourceProvider, mockFuture, requestStatusResponse, logicalRequest, settingDAO,
-            configureClusterTaskFactory, configureClusterTask);
+            configureClusterTaskFactory, configureClusterTask, ambariManagementController, clusters, cluster);
   }
 
   @Test(expected = InvalidTopologyException.class)
