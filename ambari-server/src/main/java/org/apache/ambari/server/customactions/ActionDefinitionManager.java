@@ -43,12 +43,12 @@ import java.util.Set;
  * Manages Action definitions read from XML files
  */
 public class ActionDefinitionManager {
-  public static final Short MIN_TIMEOUT = 60;
+  public static final Integer MIN_TIMEOUT = 60;
   private final static Logger LOG = LoggerFactory
       .getLogger(ActionDefinitionManager.class);
   private static final Map<Class<?>, JAXBContext> _jaxbContexts =
       new HashMap<Class<?>, JAXBContext>();
-  private static final Short MAX_TIMEOUT = Short.MAX_VALUE-1;
+  private static final Integer MAX_TIMEOUT = Integer.MAX_VALUE-1;
 
   static {
     try {
@@ -111,9 +111,9 @@ public class ActionDefinitionManager {
           TargetHostType targetType = safeValueOf(TargetHostType.class, ad.getTargetType(), errorReason);
           ActionType actionType = safeValueOf(ActionType.class, ad.getActionType(), errorReason);
 
-          Short defaultTimeout = MIN_TIMEOUT;
+          Integer defaultTimeout = MIN_TIMEOUT;
           if (ad.getDefaultTimeout() != null && !ad.getDefaultTimeout().isEmpty()) {
-            defaultTimeout = Short.parseShort(ad.getDefaultTimeout());
+            defaultTimeout = Integer.parseInt(ad.getDefaultTimeout());
           }
 
           if (isValidActionDefinition(ad, actionType, defaultTimeout, errorReason)) {
@@ -137,7 +137,7 @@ public class ActionDefinitionManager {
   }
 
   private boolean isValidActionDefinition(ActionDefinitionSpec ad, ActionType actionType,
-                                          Short defaultTimeout, StringBuilder reason) {
+                                          Integer defaultTimeout, StringBuilder reason) {
     if (isValidActionName(ad.getActionName(), reason)) {
 
       if (defaultTimeout < MIN_TIMEOUT || defaultTimeout > MAX_TIMEOUT) {

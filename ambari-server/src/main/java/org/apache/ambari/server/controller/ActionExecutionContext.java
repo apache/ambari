@@ -39,7 +39,7 @@ public class ActionExecutionContext {
   private RequestOperationLevel operationLevel;
   private Map<String, String> parameters;
   private TargetHostType targetType;
-  private Short timeout;
+  private Integer timeout;
   private String expectedServiceName;
   private String expectedComponentName;
   private boolean hostsInMaintenanceModeExcluded = true;
@@ -61,7 +61,7 @@ public class ActionExecutionContext {
   public ActionExecutionContext(String clusterName, String actionName,
       List<RequestResourceFilter> resourceFilters,
       Map<String, String> parameters, TargetHostType targetType,
-      Short timeout, String expectedServiceName,
+      Integer timeout, String expectedServiceName,
       String expectedComponentName) {
 
     this.clusterName = clusterName;
@@ -106,11 +106,11 @@ public class ActionExecutionContext {
     return targetType;
   }
 
-  public Short getTimeout() {
+  public Integer getTimeout() {
     return timeout;
   }
 
-  public void setTimeout(Short timeout) {
+  public void setTimeout(Integer timeout) {
     this.timeout = timeout;
   }
 

@@ -1348,7 +1348,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         Role.AMBARI_SERVER_ACTION.toString(), Collections.<RequestResourceFilter> emptyList(),
         commandParams);
 
-    actionContext.setTimeout(Short.valueOf((short) -1));
+    actionContext.setTimeout(-1);
     actionContext.setRetryAllowed(group.allowRetry);
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
 
