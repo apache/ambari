@@ -32,6 +32,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.stack.HostsType;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.OrderService;
@@ -224,10 +225,14 @@ public class Grouping {
 
       // Expand some of the TaskWrappers into multiple based on the batch size.
       for (TaskWrapper tw : tasks) {
-        List<Set<String>> hostSets = null;
-
+        List<Set<String>> hostSets;
         if (m_grouping.parallelScheduler != null) {
           int taskParallelism = m_grouping.parallelScheduler.maxDegreeOfParallelism;
+          String maxDegreeFromClusterEnv = ctx.getResolver()
+                  .getValueFromDesiredConfigurations(ConfigHelper.CLUSTER_ENV, "max_degree_parallelism");
+          if (StringUtils.isNotEmpty(maxDegreeFromClusterEnv) && StringUtils.isNumeric(maxDegreeFromClusterEnv)) {
+            taskParallelism = Integer.parseInt(maxDegreeFromClusterEnv);
+          }
           if (taskParallelism == Integer.MAX_VALUE) {
             taskParallelism = ctx.getDefaultMaxDegreeOfParallelism();
           }
