@@ -1423,7 +1423,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     ActionExecutionContext actionContext = buildActionExecutionContext(cluster, context,
         Role.AMBARI_SERVER_ACTION.toString(), stackId, Collections.emptyList(),
-        commandParams, group.allowRetry, (int) -1);
+        commandParams, group.allowRetry, -1);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
         cluster, context.getRepositoryVersion().getStackId(), null);
