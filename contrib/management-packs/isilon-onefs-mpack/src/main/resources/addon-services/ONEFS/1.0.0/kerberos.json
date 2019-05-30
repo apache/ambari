@@ -28,7 +28,8 @@
             "hadoop.security.authorization": "true",
             "hadoop.proxyuser.HTTP.groups": "${hadoop-env/proxyuser_group}",
             "hadoop.security.token.service.use_ip" : "false",
-            "dfs.namenode.kerberos.principal": "${hadoop-env/hdfs_user}/${onefs/onefs_host}@${realm}"
+            "dfs.namenode.kerberos.principal": "${hadoop-env/hdfs_user}/${onefs/onefs_host}@${realm}",
+            "dfs.namenode.kerberos.principal.pattern": "*"
           }
         },
         {
