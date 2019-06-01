@@ -32,8 +32,6 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
-import com.esotericsoftware.yamlbeans.YamlException;
-import com.esotericsoftware.yamlbeans.YamlReader;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.upgrade.UpgradePack.OrderService;
@@ -47,6 +45,8 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.utils.SetUtils;
 import org.apache.commons.lang.StringUtils;
 
+import com.esotericsoftware.yamlbeans.YamlException;
+import com.esotericsoftware.yamlbeans.YamlReader;
 import com.google.common.base.MoreObjects;
 
 /**
