@@ -1,0 +1,108 @@
+racks:
+  racka-1:
+    hostGroups:
+    - subnet: 120.190.211.64/15
+      hosts:
+      - cluster12b-slave1-237.abc.xyz.com
+      - cluster12b-slave1-274.abc.xyz.com
+      - cluster12b-slave1-278.abc.xyz.com
+      - cluster12b-slave1-282.abc.xyz.com
+      - cluster12b-slave1-363.abc.xyz.com
+      - cluster12b-slave1-378.abc.xyz.com
+      - cluster12b-slave1-380.abc.xyz.com
+      - cluster12b-slave1-430.abc.xyz.com
+    - subnet: 120.223.245.102/15
+      hosts:
+      - cluster12a-slave5-1.abc.xyz.com
+      - cluster12a-slave5-2.abc.xyz.com
+      - cluster12a-slave5-3.abc.xyz.com
+      - cluster12a-slave5-4.abc.xyz.com
+      - cluster12a-master5-1.abc.xyz.com
+      - cluster12a-master5-2.abc.xyz.com
+      - cluster12a-master5-3.abc.xyz.com
+      - cluster12b-slave1-141.abc.xyz.com
+      - cluster12b-slave1-163.abc.xyz.com
+      - cluster12b-slave1-176.abc.xyz.com
+      - cluster12b-slave1-5.abc.xyz.com
+      - cluster12b-slave1-72.abc.xyz.com
+      - cluster12b-master2-2.abc.xyz.com
+  rackb-22:
+    subnet: 120.115.247.64/15
+    hosts:
+    - cluster12a-slave39-1.abc.xyz.com
+    - cluster12a-slave39-2.abc.xyz.com
+    - cluster12a-slave39-3.abc.xyz.com
+    - cluster12a-slave39-4.abc.xyz.com
+    - cluster12a-slave39-5.abc.xyz.com
+    - cluster12a-slave39-6.abc.xyz.com
+    - cluster12b-slave1-162.abc.xyz.com
+    - cluster12b-slave1-242.abc.xyz.com
+    - cluster12b-slave1-336.abc.xyz.com
+    - cluster12b-slave1-360.abc.xyz.com
+    - cluster12b-slave1-376.abc.xyz.com
+    - cluster12b-master1-2.abc.xyz.com
+  rackc-3:
+    hostGroups:
+    - subnet: 120.190.131.72/20
+      hosts:
+      - cluster12b-slave1-339.abc.xyz.com
+    - subnet: 120.223.281.208/15
+      hosts:
+      - cluster12a-slave19-1.abc.xyz.com
+      - cluster12a-slave19-2.abc.xyz.com
+      - cluster12a-slave19-3.abc.xyz.com
+      - cluster12a-slave19-4.abc.xyz.com
+      - cluster12b-slave1-120.abc.xyz.com
+      - cluster12b-slave1-165.abc.xyz.com
+      - cluster12b-slave1-232.abc.xyz.com
+      - cluster12b-slave1-281.abc.xyz.com
+      - cluster12b-slave1-29.abc.xyz.com
+      - cluster12b-slave1-314.abc.xyz.com
+      - cluster12b-slave1-328.abc.xyz.com
+      - cluster12b-slave1-334.abc.xyz.com
+      - cluster12b-slave1-36.abc.xyz.com
+  rackd-11:
+    subnet: 120.93.245.96/15
+    hosts:
+    - cluster12a-slave50-1.abc.xyz.com
+    - cluster12a-slave50-2.abc.xyz.com
+    - cluster12a-slave50-3.abc.xyz.com
+    - cluster12a-slave50-4.abc.xyz.com
+  racke-122:
+    subnet: 120.223.200.64/15
+    hosts:
+    - cluster12a-slave57-1.abc.xyz.com
+    - cluster12a-slave57-2.abc.xyz.com
+    - cluster12a-slave57-3.abc.xyz.com
+    - cluster12b-slave1-171.abc.xyz.com
+    - cluster12b-slave1-178.abc.xyz.com
+    - cluster12b-slave1-213.abc.xyz.com
+    - cluster12b-slave1-269.abc.xyz.com
+    - cluster12b-slave1-28.abc.xyz.com
+    - cluster12b-slave1-293.abc.xyz.com
+    - cluster12b-slave1-298.abc.xyz.com
+    - cluster12b-slave1-423.abc.xyz.com
+    - cluster12b-slave1-437.abc.xyz.com
+    - cluster12b-slave1-56.abc.xyz.com
+  racka-98:
+    hostGroups:
+    - subnet: 120.190.199.56/20
+      hosts:
+      - cluster12b-slave1-356.abc.xyz.com
+      - cluster12b-slave1-459.abc.xyz.com
+      - cluster12b-slave1-460.abc.xyz.com
+    - subnet: 120.122.247.48/15
+      hosts:
+      - cluster12a-slave43-1.abc.xyz.com
+      - cluster12a-slave43-2.abc.xyz.com
+      - cluster12b-slave1-1.abc.xyz.com
+      - cluster12b-slave1-11.abc.xyz.com
+      - cluster12b-slave1-160.abc.xyz.com
+      - cluster12b-slave1-173.abc.xyz.com
+      - cluster12b-slave1-229.abc.xyz.com
+      - cluster12b-slave1-249.abc.xyz.com
+      - cluster12b-slave1-38.abc.xyz.com
+      - cluster12b-slave1-59.abc.xyz.com
+      - cluster12b-slave1-62.abc.xyz.com
+      - cluster12b-slave1-76.abc.xyz.com
+      - cluster12b-slave1-78.abc.xyz.com
