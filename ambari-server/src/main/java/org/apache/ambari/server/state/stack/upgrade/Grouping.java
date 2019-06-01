@@ -223,7 +223,8 @@ public class Grouping {
      * @param pc Processing Component
      * @param params Params to add to the stage.
      */
-    private void addTasksToStageInBatches(List<TaskWrapper> tasks, String verb, UpgradeContext ctx, String service, ProcessingComponent pc, Map<String, String> params) {
+    private void addTasksToStageInBatches(List<TaskWrapper> tasks, String verb, UpgradeContext ctx, String service,
+                                          ProcessingComponent pc, Map<String, String> params) {
       if (tasks == null || tasks.isEmpty() || tasks.get(0).getTasks() == null || tasks.get(0).getTasks().isEmpty()) {
         return;
       }
