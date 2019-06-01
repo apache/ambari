@@ -536,8 +536,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
         UpgradeType.ROLLING, repositoryVersion2210);
 
     // use a "real" master host resolver here so that we can actually test MM
-    MasterHostResolver masterHostResolver = new MasterHostResolver(cluster, null, context);
-
+    MasterHostResolver masterHostResolver = new MasterHostResolver(cluster, m_configHelper, context);
     expect(context.getResolver()).andReturn(masterHostResolver).anyTimes();
     replay(context);
 
@@ -1536,7 +1535,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     expect(m_masterHostResolver.getMasterAndHosts("OOZIE", "OOZIE_CLIENT")).andReturn(type).anyTimes();
 
     expect(m_masterHostResolver.getCluster()).andReturn(c).anyTimes();
-
+    expect(m_masterHostResolver.getValueFromDesiredConfigurations("cluster-env", "rack_yaml_file_path")).andReturn("").anyTimes();
     for(String service : additionalServices) {
       c.addService(service, repositoryVersion);
       if (service.equals("HBASE")) {
@@ -2101,7 +2100,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
     type = HostsType.normal("h1", "h2");
     expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_CLIENT")).andReturn(type).anyTimes();
 
-
+    expect(m_masterHostResolver.getValueFromDesiredConfigurations("cluster-env", "rack_yaml_file_path")).andReturn("")
+            .anyTimes();
     replay(m_masterHostResolver);
 
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
