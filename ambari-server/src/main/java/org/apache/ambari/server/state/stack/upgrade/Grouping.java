@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,6 +32,8 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import com.esotericsoftware.yamlbeans.YamlException;
+import com.esotericsoftware.yamlbeans.YamlReader;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -49,6 +53,10 @@ import com.google.common.base.Objects;
     UpdateStackGrouping.class, ServiceCheckGrouping.class, RestartGrouping.class,
     StartGrouping.class, StopGrouping.class, HostOrderGrouping.class })
 public class Grouping {
+
+  private static final String RACKS_YAML_KEY_NAME = "racks";
+  private static final String HOSTS_YAML_KEY_NAME = "hosts";
+  private static final String HOST_GROUPS_YAML_KEY_NAME = "hostGroups";
 
   @XmlAttribute(name="name")
   public String name;
@@ -225,7 +233,7 @@ public class Grouping {
 
       // Expand some of the TaskWrappers into multiple based on the batch size.
       for (TaskWrapper tw : tasks) {
-        List<Set<String>> hostSets;
+        List<Set<String>> hostSets = null;
         if (m_grouping.parallelScheduler != null) {
           int taskParallelism = m_grouping.parallelScheduler.maxDegreeOfParallelism;
           String maxDegreeFromClusterEnv = ctx.getResolver()
@@ -236,11 +244,28 @@ public class Grouping {
           if (taskParallelism == Integer.MAX_VALUE) {
             taskParallelism = ctx.getDefaultMaxDegreeOfParallelism();
           }
-          hostSets = SetUtils.split(tw.getHosts(), taskParallelism);
+          final String rackYamlFile =
+                  ctx.getResolver().getValueFromDesiredConfigurations(ConfigHelper.CLUSTER_ENV, "rack_yaml_file_path");
+          if (StringUtils.isNotEmpty(rackYamlFile)) {
+            // If rack to hosts mapping yaml file path is present in cluster-env property: rack_yaml_file_path,
+            // host sets will be formed based on rack i.e. based on parallel value, hosts present on same rack will
+            // be part of the same batch. This is useful when we want to avoid possibility of single rack failure
+            Map<String, Set<String>> hostsByRack = organizeHostsByRack(tw.getHosts(), rackYamlFile);
+            List<Set<String>> hostSetsForRack;
+            for (String rack : hostsByRack.keySet()) {
+              hostSetsForRack = SetUtils.split(hostsByRack.get(rack), taskParallelism);
+              if (hostSets == null) {
+                hostSets = hostSetsForRack;
+              } else {
+                hostSets.addAll(hostSetsForRack);
+              }
+            }
+          } else {
+            hostSets = SetUtils.split(tw.getHosts(), taskParallelism);
+          }
         } else {
           hostSets = SetUtils.split(tw.getHosts(), 1);
         }
-
         int numBatchesNeeded = hostSets.size();
         int batchNum = 0;
         for (Set<String> hostSubset : hostSets) {
@@ -256,6 +281,66 @@ public class Grouping {
           m_stages.add(stage);
         }
       }
+    }
+
+    /**
+     * Utility method to organize and return Rack to Hosts mapping for given rack yaml file
+     *
+     * @param hosts        : All hosts that are part of current group
+     * @param rackYamlFile : file path for yaml containing rack to hosts mapping
+     *                        e.g ambari-server/src/examples/rack_hosts.yaml
+     * @return
+     */
+    private Map<String, Set<String>> organizeHostsByRack(Set<String> hosts, String rackYamlFile) {
+      try {
+        Map<String, String> hostToRackMap = getHostToRackMap(rackYamlFile);
+        Map<String, Set<String>> rackToHostsMap = new HashMap<>();
+        for (String host : hosts) {
+          if (hostToRackMap.containsKey(host)) {
+            String rack = hostToRackMap.get(host);
+            if (!rackToHostsMap.containsKey(rack)) {
+              rackToHostsMap.put(rack, new HashSet<>());
+            }
+            rackToHostsMap.get(rack).add(host);
+          } else {
+            throw new RuntimeException(String.format("Rack mapping is not present for host name: %s", host));
+          }
+        }
+        return rackToHostsMap;
+      } catch (Exception e) {
+        throw new RuntimeException(
+                String.format("Failed to generate Rack to Hosts mapping. filePath: %s", rackYamlFile), e);
+      }
+    }
+
+    private static Map<String, String> getHostToRackMap(String rackYamlFile)
+            throws FileNotFoundException, YamlException {
+      YamlReader yamlReader = new YamlReader(new FileReader(rackYamlFile));
+      Map rackHostsMap = (Map) yamlReader.read();
+      Map racks = (Map) rackHostsMap.get(RACKS_YAML_KEY_NAME);
+      Map<String, String> hostToRackMap = new HashMap<>();
+      for (Map.Entry entry : (Set<Map.Entry>) racks.entrySet()) {
+        Map rackInfoMap = (Map) entry.getValue();
+        String rackName = (String) entry.getKey();
+        if (rackInfoMap.containsKey(HOSTS_YAML_KEY_NAME)) {
+          List<String> hostList = (List<String>) rackInfoMap.get(HOSTS_YAML_KEY_NAME);
+          for (String host : hostList) {
+            hostToRackMap.put(host, rackName);
+          }
+        }
+        if (rackInfoMap.containsKey(HOST_GROUPS_YAML_KEY_NAME)) {
+          List<Map> hostGroups = (List<Map>) rackInfoMap.get(HOST_GROUPS_YAML_KEY_NAME);
+          for (Map hostGroup : hostGroups) {
+            if (hostGroup.containsKey(HOSTS_YAML_KEY_NAME)) {
+              List<String> hostList = (List<String>) hostGroup.get(HOSTS_YAML_KEY_NAME);
+              for (String host : hostList) {
+                hostToRackMap.put(host, rackName);
+              }
+            }
+          }
+        }
+      }
+      return hostToRackMap;
     }
 
     /**

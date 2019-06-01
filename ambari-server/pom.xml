@@ -1634,6 +1634,11 @@
       <version>1.10.1</version>
     </dependency>
     <dependency>
+      <groupId>com.esotericsoftware.yamlbeans</groupId>
+      <artifactId>yamlbeans</artifactId>
+      <version>1.13</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-metrics-common</artifactId>
       <version>${project.version}</version>
