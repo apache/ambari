@@ -27,7 +27,8 @@ import javax.ws.rs.core.MediaType;
  * This workaround is replacing application/json Content-Type to text/plain in requests, thus
  * preventing the failure.
  *
- *
+ * Furthermore the response is also tweaked by changing the Content-Type to application/json
+ * when the original Content-Type of the request was application/json.
  */
 public class ContentTypeOverrideFilter implements Filter {
 
