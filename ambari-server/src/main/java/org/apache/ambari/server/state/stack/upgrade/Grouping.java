@@ -17,8 +17,8 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,7 +42,6 @@ import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.utils.SetUtils;
 import org.apache.commons.lang.StringUtils;
 
-import com.esotericsoftware.yamlbeans.YamlException;
 import com.esotericsoftware.yamlbeans.YamlReader;
 import com.google.common.base.Objects;
 
@@ -315,9 +314,14 @@ public class Grouping {
     }
 
     private static Map<String, String> getHostToRackMap(String rackYamlFile)
-            throws FileNotFoundException, YamlException {
+            throws IOException {
       YamlReader yamlReader = new YamlReader(new FileReader(rackYamlFile));
-      Map rackHostsMap = (Map) yamlReader.read();
+      Map rackHostsMap;
+      try {
+        rackHostsMap = (Map) yamlReader.read();
+      } finally {
+        yamlReader.close();
+      }
       Map racks = (Map) rackHostsMap.get(RACKS_YAML_KEY_NAME);
       Map<String, String> hostToRackMap = new HashMap<>();
       for (Map.Entry entry : (Set<Map.Entry>) racks.entrySet()) {

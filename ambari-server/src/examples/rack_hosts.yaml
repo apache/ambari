@@ -18,8 +18,7 @@
 racks:
   racka-1:
     hostGroups:
-    - subnet: 120.190.211.64/15
-      hosts:
+    - hosts:
       - cluster12b-slave1-237.abc.xyz.com
       - cluster12b-slave1-274.abc.xyz.com
       - cluster12b-slave1-278.abc.xyz.com
@@ -28,8 +27,7 @@ racks:
       - cluster12b-slave1-378.abc.xyz.com
       - cluster12b-slave1-380.abc.xyz.com
       - cluster12b-slave1-430.abc.xyz.com
-    - subnet: 120.223.245.102/15
-      hosts:
+    - hosts:
       - cluster12a-slave5-1.abc.xyz.com
       - cluster12a-slave5-2.abc.xyz.com
       - cluster12a-slave5-3.abc.xyz.com
@@ -44,7 +42,6 @@ racks:
       - cluster12b-slave1-72.abc.xyz.com
       - cluster12b-master2-2.abc.xyz.com
   rackb-22:
-    subnet: 120.115.247.64/15
     hosts:
     - cluster12a-slave39-1.abc.xyz.com
     - cluster12a-slave39-2.abc.xyz.com
@@ -60,11 +57,9 @@ racks:
     - cluster12b-master1-2.abc.xyz.com
   rackc-3:
     hostGroups:
-    - subnet: 120.190.131.72/20
-      hosts:
+    - hosts:
       - cluster12b-slave1-339.abc.xyz.com
-    - subnet: 120.223.281.208/15
-      hosts:
+    - hosts:
       - cluster12a-slave19-1.abc.xyz.com
       - cluster12a-slave19-2.abc.xyz.com
       - cluster12a-slave19-3.abc.xyz.com
@@ -79,14 +74,12 @@ racks:
       - cluster12b-slave1-334.abc.xyz.com
       - cluster12b-slave1-36.abc.xyz.com
   rackd-11:
-    subnet: 120.93.245.96/15
     hosts:
     - cluster12a-slave50-1.abc.xyz.com
     - cluster12a-slave50-2.abc.xyz.com
     - cluster12a-slave50-3.abc.xyz.com
     - cluster12a-slave50-4.abc.xyz.com
   racke-122:
-    subnet: 120.223.200.64/15
     hosts:
     - cluster12a-slave57-1.abc.xyz.com
     - cluster12a-slave57-2.abc.xyz.com
@@ -103,13 +96,11 @@ racks:
     - cluster12b-slave1-56.abc.xyz.com
   racka-98:
     hostGroups:
-    - subnet: 120.190.199.56/20
-      hosts:
+    - hosts:
       - cluster12b-slave1-356.abc.xyz.com
       - cluster12b-slave1-459.abc.xyz.com
       - cluster12b-slave1-460.abc.xyz.com
-    - subnet: 120.122.247.48/15
-      hosts:
+    - hosts:
       - cluster12a-slave43-1.abc.xyz.com
       - cluster12a-slave43-2.abc.xyz.com
       - cluster12b-slave1-1.abc.xyz.com
