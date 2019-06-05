@@ -2466,7 +2466,6 @@ public class UpgradeHelperTest extends EasyMockSupport {
             "      - h3\n" +
             "      - h5\n" +
             "  rackb-22:\n" +
-            "    subnet: 120.115.247.64/15\n" +
             "    hosts:\n" +
             "    - h1\n" +
             "    - " + StageUtils.getHostName() + "\n", Charset.defaultCharset(), false);
