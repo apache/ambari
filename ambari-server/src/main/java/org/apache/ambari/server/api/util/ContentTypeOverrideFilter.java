@@ -14,6 +14,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
@@ -24,6 +26,8 @@ import javax.ws.rs.core.MediaType;
  *
  * This workaround is replacing application/json Content-Type to text/plain in requests, thus
  * preventing the failure.
+ *
+ *
  */
 public class ContentTypeOverrideFilter implements Filter {
 
@@ -63,6 +67,33 @@ public class ContentTypeOverrideFilter implements Filter {
         }
     }
 
+    private class ContentTypeOverrideResponseWrapper extends HttpServletResponseWrapper {
+
+        public ContentTypeOverrideResponseWrapper(HttpServletResponse response) {
+            super(response);
+            super.setContentType(MediaType.APPLICATION_JSON);
+        }
+
+        @Override
+        public void setHeader(String name, String value) {
+            if (!HttpHeaders.CONTENT_TYPE.equals(name)) {
+                super.setHeader(name, value);
+            }
+        }
+
+        @Override
+        public void addHeader(String name, String value) {
+            if (!HttpHeaders.CONTENT_TYPE.equals(name)) {
+                super.addHeader(name, value);
+            }
+        }
+
+        @Override
+        public void setContentType(String type) {
+            // Ignore changing the content type
+        }
+    }
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         if (request instanceof HttpServletRequest) {
@@ -71,10 +102,13 @@ public class ContentTypeOverrideFilter implements Filter {
 
             if (contentType != null && contentType.startsWith(MediaType.APPLICATION_JSON)) {
                 ContentTypeOverrideRequestWrapper requestWrapper = new ContentTypeOverrideRequestWrapper(httpServletRequest);
-                chain.doFilter(requestWrapper, response);
+                ContentTypeOverrideResponseWrapper responseWrapper = new ContentTypeOverrideResponseWrapper((HttpServletResponse) response);
+
+                chain.doFilter(requestWrapper, responseWrapper);
                 return;
             }
         }
+
         chain.doFilter(request, response);
     }
 
