@@ -1052,10 +1052,10 @@ class TestNamenode(RMFTestCase):
                               group = 'hadoop',
                               )
     self.assertResourceCalled('Execute', '', user = 'hdfs')
-    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes',
-                              user = 'hdfs',
-                              conf_dir = '/etc/hadoop/conf',
-                              bin_dir = '/usr/bin')
+    self.assertResourceCalled('ExecuteHDFS', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes',
+                              user='hdfs',
+                              conf_dir='/etc/hadoop/conf',
+                              bin_dir='/usr/bin')
     self.assertNoMoreResources()
 
   def test_decommission_update_files_only(self):
@@ -1088,10 +1088,10 @@ class TestNamenode(RMFTestCase):
                               group = 'hadoop',
                               )
     self.assertResourceCalled('Execute', '', user = 'hdfs')
-    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes',
-                              user = 'hdfs',
-                              conf_dir = '/etc/hadoop/conf',
-                              bin_dir = '/usr/bin')
+    self.assertResourceCalled('ExecuteHDFS', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes',
+                              user='hdfs',
+                              conf_dir='/etc/hadoop/conf',
+                              bin_dir='/usr/bin')
     self.assertNoMoreResources()
 
 
@@ -1111,11 +1111,11 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/nn.service.keytab nn/c6401.ambari.apache.org@EXAMPLE.COM;',
         user = 'hdfs',
     )
-    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes',
-        bin_dir = '/usr/bin',
-        conf_dir = '/etc/hadoop/conf',
-        user = 'hdfs',
-    )
+    self.assertResourceCalled('ExecuteHDFS', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes',
+                              bin_dir='/usr/bin',
+                              conf_dir='/etc/hadoop/conf',
+                              user='hdfs',
+                              )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
@@ -1763,11 +1763,11 @@ class TestNamenode(RMFTestCase):
                          stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
                          )
-
-      self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshSuperUserGroupsConfiguration',
-                                user = 'hdfs',
-                                conf_dir = '/etc/hadoop/conf',
-                                bin_dir = '/usr/bin')
+      self.assertResourceCalled('ExecuteHDFS',
+                                'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshSuperUserGroupsConfiguration',
+                                user='hdfs',
+                                conf_dir='/etc/hadoop/conf',
+                                bin_dir='/usr/bin')
       self.assertNoMoreResources()
 
   def test_reload_configs(self):
