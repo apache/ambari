@@ -33,7 +33,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -114,17 +116,21 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
+import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.spi.ClusterInformation;
 import org.apache.ambari.spi.RepositoryType;
 import org.apache.ambari.spi.upgrade.OrchestrationOptions;
 import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.commons.io.FileUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.collect.ImmutableMap;
@@ -164,6 +170,9 @@ public class UpgradeHelperTest extends EasyMockSupport {
   private RepositoryVersionEntity repositoryVersion2200;
   private RepositoryVersionEntity repositoryVersion2210;
   private HostsType namenodeHosts = HostsType.highAvailability("h1", "h2", newLinkedHashSet(Arrays.asList("h1", "h2")));
+
+  @Rule
+  public TemporaryFolder tmpFolder = new TemporaryFolder();
 
   /**
    * Because test cases need to share config mocks, put common ones in this function.
@@ -536,8 +545,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
         UpgradeType.ROLLING, repositoryVersion2210);
 
     // use a "real" master host resolver here so that we can actually test MM
-    MasterHostResolver masterHostResolver = new MasterHostResolver(cluster, null, context);
-
+    MasterHostResolver masterHostResolver = new MasterHostResolver(cluster, m_configHelper, context);
     expect(context.getResolver()).andReturn(masterHostResolver).anyTimes();
     replay(context);
 
@@ -1212,7 +1220,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     // HBASE and PIG have service checks, but not TEZ.
     Set<String> additionalServices = new HashSet<String>() {{ add("HBASE"); add("PIG"); add("TEZ"); add("AMBARI_METRICS"); }};
-    Cluster c = makeCluster(true, additionalServices);
+    Cluster c = makeCluster(true, additionalServices, "");
 
     int numServiceChecksExpected = 0;
     Collection<Service> services = c.getServices().values();
@@ -1399,14 +1407,15 @@ public class UpgradeHelperTest extends EasyMockSupport {
    * @throws AmbariException
    */
   private Cluster makeCluster(boolean clean) throws AmbariException, AuthorizationException {
-    return makeCluster(clean, new HashSet<>());
+    return makeCluster(clean, new HashSet<>(), "");
   }
 
   /**
    * Create an HA cluster
    * @throws AmbariException
    */
-  private Cluster makeCluster(boolean clean, Set<String> additionalServices) throws AmbariException, AuthorizationException {
+  private Cluster makeCluster(boolean clean, Set<String> additionalServices, String yamlFileName)
+          throws AmbariException, AuthorizationException {
     Clusters clusters = injector.getInstance(Clusters.class);
     ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
 
@@ -1536,7 +1545,9 @@ public class UpgradeHelperTest extends EasyMockSupport {
     expect(m_masterHostResolver.getMasterAndHosts("OOZIE", "OOZIE_CLIENT")).andReturn(type).anyTimes();
 
     expect(m_masterHostResolver.getCluster()).andReturn(c).anyTimes();
-
+    expect(m_masterHostResolver
+            .getValueFromDesiredConfigurations("cluster-env", "rack_yaml_file_path"))
+            .andReturn(yamlFileName).anyTimes();
     for(String service : additionalServices) {
       c.addService(service, repositoryVersion);
       if (service.equals("HBASE")) {
@@ -2101,7 +2112,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
     type = HostsType.normal("h1", "h2");
     expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_CLIENT")).andReturn(type).anyTimes();
 
-
+    expect(m_masterHostResolver.getValueFromDesiredConfigurations("cluster-env", "rack_yaml_file_path")).andReturn("")
+            .anyTimes();
     replay(m_masterHostResolver);
 
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
@@ -2430,6 +2442,113 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     EasyMock.verify(kerberosDetails);
   }
+
+  @Test
+  public void testUpgradeOrchestrationWithRack() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");
+    assertTrue(upgrades.isEmpty());
+    upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    ServiceInfo serviceInfo = ambariMetaInfo.getService("HDP", "2.2.0", "ZOOKEEPER");
+    serviceInfo.setDisplayName("Zk");
+    ComponentInfo componentInfo = serviceInfo.getComponentByName("ZOOKEEPER_SERVER");
+    componentInfo.setDisplayName("ZooKeeper1 Server2");
+    assertTrue(upgrades.containsKey("upgrade_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_test");
+    assertNotNull(upgrade);
+    File file = tmpFolder.newFile("rack_config.yaml");
+    FileUtils.writeStringToFile(file, "racks:\n" +
+            "  racka-1:\n" +
+            "    hostGroups:\n" +
+            "    - hosts:\n" +
+            "      - h2\n" +
+            "      - h4\n" +
+            "    - hosts:\n" +
+            "      - h3\n" +
+            "      - h5\n" +
+            "  rackb-22:\n" +
+            "    hosts:\n" +
+            "    - h1\n" +
+            "    - " + StageUtils.getHostName() + "\n", Charset.defaultCharset(), false);
+    Cluster cluster = makeCluster(true, new HashSet<>(), file.getAbsolutePath());
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+    assertEquals(7, groups.size());
+    assertEquals("PRE_CLUSTER", groups.get(0).name);
+    assertEquals("ZOOKEEPER", groups.get(1).name);
+    assertEquals("CORE_MASTER", groups.get(2).name);
+    assertEquals("CORE_SLAVES", groups.get(3).name);
+    assertEquals("HIVE", groups.get(4).name);
+    assertEquals("OOZIE", groups.get(5).name);
+    UpgradeGroupHolder holder = groups.get(2);
+    boolean found = false;
+    for (StageWrapper sw : holder.items) {
+      if (sw.getTasksJson().contains("Upgrading your database")) {
+        found = true;
+      }
+    }
+    assertTrue("Expected to find replaced text for Upgrading", found);
+
+    UpgradeGroupHolder group = groups.get(1);
+    assertTrue(group.items.get(1).getText().contains("ZooKeeper1 Server2"));
+    assertEquals(group.items.get(5).getText(), "Service Check Zk");
+    group = groups.get(3);
+    assertEquals(8, group.items.size());
+    StageWrapper sw = group.items.get(3);
+    assertEquals("Validate Partial Upgrade", sw.getText());
+    assertEquals(1, sw.getTasks().size());
+    assertEquals(1, sw.getTasks().get(0).getTasks().size());
+    Task task = sw.getTasks().get(0).getTasks().get(0);
+    assertEquals(ManualTask.class, task.getClass());
+    ManualTask mt = (ManualTask) task;
+    assertTrue(mt.messages.get(0).contains("DataNode and NodeManager"));
+    assertNotNull(mt.structuredOut);
+    assertTrue(mt.structuredOut.contains("DATANODE"));
+    assertTrue(mt.structuredOut.contains("NODEMANAGER"));
+    UpgradeGroupHolder postGroup = groups.get(6);
+    assertEquals("POST_CLUSTER", postGroup.name);
+    assertEquals("Finalize Upgrade", postGroup.title);
+    assertEquals(3, postGroup.items.size());
+    assertEquals("Confirm Finalize", postGroup.items.get(0).getText());
+    assertEquals("Execute HDFS Finalize", postGroup.items.get(1).getText());
+    assertEquals("Save Cluster State", postGroup.items.get(2).getText());
+    assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(2).getType());
+    assertEquals(4, groups.get(0).items.size());
+    assertEquals(6, groups.get(1).items.size());
+    assertEquals(9, groups.get(2).items.size());
+    assertEquals(8, groups.get(3).items.size());
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
+  }
+
+  @Test
+  public void testUpgradeOrchestrationWithRackError() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");
+    assertTrue(upgrades.isEmpty());
+    upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    ServiceInfo serviceInfo = ambariMetaInfo.getService("HDP", "2.2.0", "ZOOKEEPER");
+    serviceInfo.setDisplayName("Zk");
+    ComponentInfo componentInfo = serviceInfo.getComponentByName("ZOOKEEPER_SERVER");
+    componentInfo.setDisplayName("ZooKeeper1 Server2");
+    assertTrue(upgrades.containsKey("upgrade_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_test");
+    assertNotNull(upgrade);
+    File file = tmpFolder.newFile("rack_config.yaml");
+    FileUtils.writeStringToFile(file, "racks:\n" +
+            "  racka-1:\n" +
+            "    hostGroups:\n" +
+            "    - hosts:\n" +
+            "      - h4\n" +
+            "    - hosts:\n" +
+            "      - h5\n", Charset.defaultCharset(), false);
+    Cluster cluster = makeCluster(true, new HashSet<>(), file.getAbsolutePath());
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
+    try {
+      m_upgradeHelper.createSequence(upgrade, context);
+    } catch (RuntimeException e) {
+      assertTrue(e.getCause().getMessage().contains("Rack mapping is not present for host name"));
+    }
+  }
+
 
   /**
    * Tests merging configurations between existing and new stack values on
