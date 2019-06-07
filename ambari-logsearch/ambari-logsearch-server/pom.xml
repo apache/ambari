@@ -15,7 +15,7 @@
    limitations under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <artifactId>ambari-logsearch</artifactId>
     <groupId>org.apache.ambari</groupId>
@@ -24,7 +24,6 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-logsearch-server</artifactId>
   <packaging>jar</packaging>
-  <url>http://maven.apache.org</url>
   <name>Ambari Logsearch Server</name>
   <properties>
     <spring.version>5.1.1.RELEASE</spring.version>

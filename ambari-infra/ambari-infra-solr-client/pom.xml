@@ -17,14 +17,13 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>ambari-infra</artifactId>
     <groupId>org.apache.ambari</groupId>
     <version>2.7.3.0.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <url>http://maven.apache.org</url>
   <name>Ambari Infra Solr Client</name>
 
   <artifactId>ambari-infra-solr-client</artifactId>
@@ -32,9 +31,9 @@
   <properties>
     <lucene6.version>6.6.2</lucene6.version>
     <lucene6-core-jar.name>lucene-core-${lucene6.version}.jar</lucene6-core-jar.name>
-    <lucene6-core.url>http://central.maven.org/maven2/org/apache/lucene/lucene-core/${lucene6.version}/${lucene6-core-jar.name}</lucene6-core.url>
+    <lucene6-core.url>https://repo1.maven.org/maven2/org/apache/lucene/lucene-core/${lucene6.version}/${lucene6-core-jar.name}</lucene6-core.url>
     <lucene6-backward-codecs-jar.name>lucene-backward-codecs-${lucene6.version}.jar</lucene6-backward-codecs-jar.name>
-    <lucene6-backward-codecs.url>http://central.maven.org/maven2/org/apache/lucene/lucene-backward-codecs/${lucene6.version}/${lucene6-backward-codecs-jar.name}</lucene6-backward-codecs.url>
+    <lucene6-backward-codecs.url>https://repo1.maven.org/maven2/org/apache/lucene/lucene-backward-codecs/${lucene6.version}/${lucene6-backward-codecs-jar.name}</lucene6-backward-codecs.url>
   </properties>
 
   <dependencies>

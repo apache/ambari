@@ -15,7 +15,7 @@
    limitations under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-view-examples</artifactId>
@@ -26,7 +26,6 @@
   <version>2.7.3.0.0</version>
   <packaging>jar</packaging>
   <name>Ambari Simple View</name>
-  <url>http://maven.apache.org</url>
   <properties>
     <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
   </properties>

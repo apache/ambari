@@ -15,14 +15,13 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <groupId>org.apache.ambari</groupId>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-logsearch</artifactId>
   <version>2.7.3.0.0</version>
   <packaging>pom</packaging>
 
-  <url>http://maven.apache.org</url>
   <modules>
     <module>ambari-logsearch-assembly</module>
     <module>ambari-logsearch-appender</module>
@@ -64,7 +63,7 @@
   </licenses>
   <organization>
     <name>Apache Software Foundation</name>
-    <url>http://www.apache.org</url>
+    <url>https://www.apache.org</url>
   </organization>
   <issueManagement>
     <system>jira</system>
@@ -75,7 +74,7 @@
     <repository>
       <id>apache-hadoop</id>
       <name>hdp</name>
-      <url>http://repo.hortonworks.com/content/groups/public/</url>
+      <url>https://repo.hortonworks.com/content/groups/public/</url>
     </repository>
     <repository>
       <id>oss.sonatype.org</id>
@@ -85,7 +84,7 @@
     <repository>
       <id>spring-milestones</id>
       <name>Spring Milestones</name>
-      <url>http://repo.spring.io/milestone</url>
+      <url>https://repo.spring.io/milestone</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
