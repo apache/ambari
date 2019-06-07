@@ -463,7 +463,7 @@ public class HdfsApi {
   public void copy(final String src, final String dest) throws IOException, InterruptedException, HdfsApiException {
     boolean result = execute(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws Exception {
-        return FileUtil.copy(fs, new Path(src), fs, new Path(dest), false, conf);
+        return FileUtil.copy(fs, new Path(src), fs, new Path(dest), false,false, conf);
       }
     });
 
