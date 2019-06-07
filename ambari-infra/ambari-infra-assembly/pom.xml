@@ -26,7 +26,6 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-infra-assembly</artifactId>
   <name>Ambari Infra Assembly</name>
-  <url>https://maven.apache.org</url>
 
   <properties>
     <mapping.base.path>/usr/lib</mapping.base.path>

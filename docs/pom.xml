@@ -55,10 +55,10 @@
     </licenses>
 
     <scm>
-      <connection>scm:svn:https://svn.apache.org/repos/asf/incubator/ambari</connection>
-      <developerConnection>scm:svn:https://svn.apache.org/repos/asf/incubator/ambari</developerConnection>
+      <connection>scm:git:https://github.com/apache/ambari.git</connection>
+      <developerConnection>scm:git:https://github.com/apache/ambari.git</developerConnection>
       <tag>HEAD</tag>
-      <url>https://svn.apache.org/repos/asf/incubator/ambari</url>
+      <url>https://github.com/apache/ambari.git</url>
     </scm>
 
     <issueManagement>

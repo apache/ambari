@@ -30,7 +30,6 @@
     <packaging>jar</packaging>
 
     <name>Ambari Metrics Host Aggregator</name>
-    <url>https://maven.apache.org</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

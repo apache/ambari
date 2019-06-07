@@ -28,8 +28,6 @@
   <packaging>jar</packaging>
   <name>Ambari Logsearch Appender</name>
 
-  <url>https://maven.apache.org</url>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.7</maven.compiler.source>

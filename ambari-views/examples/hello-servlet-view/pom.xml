@@ -26,7 +26,6 @@
   <packaging>jar</packaging>
   <name>Ambari Hello Servlet View</name>
   <version>2.7.3.0.0</version>
-  <url>https://maven.apache.org</url>
   <properties>
     <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
   </properties>

@@ -24,7 +24,6 @@
     <version>2.7.3.0.0</version>
   </parent>
   <name>Ambari Infra Manager</name>
-  <url>https://maven.apache.org</url>
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>ambari-infra-manager</artifactId>

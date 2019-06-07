@@ -22,7 +22,6 @@
   <version>2.7.3.0.0</version>
   <packaging>pom</packaging>
 
-  <url>https://maven.apache.org</url>
   <modules>
     <module>ambari-logsearch-assembly</module>
     <module>ambari-logsearch-appender</module>

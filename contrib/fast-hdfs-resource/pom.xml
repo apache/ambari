@@ -25,7 +25,6 @@
   <packaging>jar</packaging>
 
   <name>fast-hdfs-resource</name>
-  <url>https://maven.apache.org</url>
   <repositories>
     <repository>
       <id>hdp.internal</id>

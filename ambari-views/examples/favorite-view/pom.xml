@@ -25,7 +25,6 @@
   <artifactId>favorite-view</artifactId>
   <packaging>jar</packaging>
   <name>Ambari Favorite View</name>
-  <url>https://maven.apache.org</url>
   <properties>
     <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
   </properties>

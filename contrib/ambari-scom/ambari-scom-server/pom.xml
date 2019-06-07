@@ -25,7 +25,6 @@
     <artifactId>ambari-scom-server</artifactId>
     <packaging>jar</packaging>
     <name>Ambari SCOM Server</name>
-    <url>https://maven.apache.org</url>
     <properties>
         <ambari.version>2.7.3.0.0</ambari.version>
         <powermock.version>1.5.4</powermock.version>

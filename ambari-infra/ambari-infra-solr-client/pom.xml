@@ -24,7 +24,6 @@
     <version>2.7.3.0.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <url>https://maven.apache.org</url>
   <name>Ambari Infra Solr Client</name>
 
   <artifactId>ambari-infra-solr-client</artifactId>

@@ -28,7 +28,6 @@
   <artifactId>ambari-logsearch-logfeeder-plugin-api</artifactId>
   <packaging>jar</packaging>
   <name>Ambari Logsearch Log Feeder Plugin Api</name>
-  <url>https://maven.apache.org</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
