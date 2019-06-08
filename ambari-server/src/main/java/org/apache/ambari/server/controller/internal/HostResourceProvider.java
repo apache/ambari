@@ -510,33 +510,14 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
 
     if (!duplicates.isEmpty()) {
-      StringBuilder names = new StringBuilder();
-      boolean first = true;
-      for (String hName : duplicates) {
-        if (!first) {
-          names.append(",");
-        }
-        first = false;
-        names.append(hName);
-      }
-      throw new IllegalArgumentException("Invalid request contains"
-          + " duplicate hostnames"
-          + ", hostnames=" + names);
+      throw new IllegalArgumentException("Invalid request contains duplicate hostnames"
+              + ", hostnames=" + String.join(",", duplicates));
     }
 
     if (!unknowns.isEmpty()) {
-      StringBuilder names = new StringBuilder();
-      boolean first = true;
-      for (String hName : unknowns) {
-        if (!first) {
-          names.append(",");
-        }
-        first = false;
-        names.append(hName);
-      }
-
       throw new IllegalArgumentException("Attempted to add unknown hosts to a cluster.  " +
-          "These hosts have not been registered with the server: " + names);
+              "These hosts have not been registered with the server: " +
+              String.join(",", unknowns));
     }
 
     Map<String, Set<String>> hostClustersMap = new HashMap<>();
