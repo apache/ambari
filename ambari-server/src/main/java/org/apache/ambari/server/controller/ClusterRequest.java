@@ -24,9 +24,9 @@ import java.util.Set;
 
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.commons.lang.StringUtils;
 
 import io.swagger.annotations.ApiModelProperty;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Used for create Cluster
