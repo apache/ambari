@@ -335,13 +335,15 @@ public class AlertTargetResourceProvider extends
       }
 
       // if we are overwriting an existing, determine if one exists first
-      AlertTargetEntity entity = null;
-      if( overwriteExisting ) {
-        entity = s_dao.findTargetByName(name);
-      }
+      AlertTargetEntity entity = s_dao.findTargetByName(name);
 
       if (null == entity) {
         entity = new AlertTargetEntity();
+      } else {
+        if( !overwriteExisting ) {
+          throw new IllegalArgumentException(
+              "Alert targets already exists and can't be created");
+        }
       }
 
       // groups are not required on creation
