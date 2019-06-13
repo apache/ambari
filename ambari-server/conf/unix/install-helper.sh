@@ -29,7 +29,7 @@ OLD_PYLIB_PATH="${ROOT}/usr/lib/python2.6/site-packages"
 OLD_PY_MODULES="ambari_commons;resource_management;ambari_jinja2;ambari_simplejson;ambari_server"
 
 AMBARI_SERVER_ROOT_DIR="${ROOT}/usr/lib/${AMBARI_UNIT}"
-AMBARI_AGENT_ROOT_DIR=="${ROOT}/usr/lib/ambari-agent"
+AMBARI_AGENT_ROOT_DIR="${ROOT}/usr/lib/ambari-agent"
 AMBARI_SERVER="${AMBARI_SERVER_ROOT_DIR}/lib/ambari_server"
 
 CA_CONFIG="${ROOT}/var/lib/${AMBARI_UNIT}/keys/ca.config"

@@ -18,13 +18,13 @@
 -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
     <name>Ambari</name>
     <description>
       Ambari is a web-based tool for performing installation, management, and monitoring of Apache Hadoop clusters. The stack of components that are currently supported by
       Ambari includes Falcon, HBase, HCatalog, HDFS, Hive, MapReduce, Oozie, Pig, Scoop, Storm, Templeton, Tez, YARN and Zookeeper.
     </description>
-    <url>http://ambari.apache.org</url>
+    <url>https://ambari.apache.org</url>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.apache.ambari</groupId>
@@ -55,15 +55,15 @@
     </licenses>
 
     <scm>
-      <connection>scm:svn:http://svn.apache.org/repos/asf/incubator/ambari</connection>
-      <developerConnection>scm:svn:https://svn.apache.org/repos/asf/incubator/ambari</developerConnection>
+      <connection>scm:git:https://github.com/apache/ambari.git</connection>
+      <developerConnection>scm:git:https://github.com/apache/ambari.git</developerConnection>
       <tag>HEAD</tag>
-      <url>http://svn.apache.org/repos/asf/incubator/ambari</url>
+      <url>https://github.com/apache/ambari.git</url>
     </scm>
 
     <issueManagement>
         <system>Jira</system>
-        <url>http://issues.apache.org/jira/browse/AMBARI</url>
+        <url>https://issues.apache.org/jira/browse/AMBARI</url>
     </issueManagement>
 
     <mailingLists>
@@ -74,7 +74,7 @@
             <unsubscribe>mailto:user-unsubscribe@ambari.apache.org
             </unsubscribe>
             <post>mailto:user@ambari.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/ambari-user/</archive>
+            <archive>https://mail-archives.apache.org/mod_mbox/ambari-user/</archive>
         </mailingList>
         <mailingList>
             <name>Development list</name>
@@ -83,7 +83,7 @@
             <unsubscribe>mailto:dev-unsubscribe@ambari.apache.org
             </unsubscribe>
             <post>mailto:dev@ambari.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/ambari-dev/</archive>
+            <archive>https://mail-archives.apache.org/mod_mbox/ambari-dev/</archive>
         </mailingList>
         <mailingList>
             <name>JIRA list</name>
@@ -92,7 +92,7 @@
             <unsubscribe>mailto:issues-unsubscribe@ambari.apache.org
             </unsubscribe>
             <post>mailto:issues@ambari.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/ambari-issues/</archive>
+            <archive>https://mail-archives.apache.org/mod_mbox/ambari-issues/</archive>
         </mailingList>
         <mailingList>
             <name>Review Board list</name>
@@ -101,7 +101,7 @@
             <unsubscribe>mailto:reviews-unsubscribe@ambari.apache.org
             </unsubscribe>
             <post>mailto:reviews@ambari.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/ambari-reviews/</archive>
+            <archive>https://mail-archives.apache.org/mod_mbox/ambari-reviews/</archive>
         </mailingList>
         <mailingList>
             <name>Commit list</name>
@@ -110,7 +110,7 @@
             <unsubscribe>mailto:commits-unsubscribe@ambari.apache.org
             </unsubscribe>
             <post>mailto:commits@ambari.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/ambari-commits/</archive>
+            <archive>https://mail-archives.apache.org/mod_mbox/ambari-commits/</archive>
         </mailingList>
     </mailingLists>
 
@@ -1579,7 +1579,7 @@
 
     <organization>
         <name>Apache Software Foundation</name>
-        <url>http://www.apache.org/</url>
+        <url>https://www.apache.org/</url>
     </organization>
 
     <build>

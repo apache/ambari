@@ -83,7 +83,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "alias": "Messages In",
               "app": "kafka_broker",
               "downsampleAggregator": "avg",
@@ -91,7 +91,7 @@
               "metric": "kafka.server.BrokerTopicMetrics.BytesInPerSec.topic.*.count",
               "precision": "default",
               "refId": "A",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],
@@ -156,7 +156,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "alias": "Bytes Out",
               "app": "kafka_broker",
               "downsampleAggregator": "avg",
@@ -164,11 +164,11 @@
               "metric": "kafka.server.BrokerTopicMetrics.BytesOutPerSec.topic.*.count",
               "precision": "default",
               "refId": "A",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             },
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "alias": "Bytes In",
               "app": "kafka_broker",
               "downsampleAggregator": "avg",
@@ -176,7 +176,7 @@
               "metric": "kafka.server.BrokerTopicMetrics.BytesInPerSec.topic.*.count",
               "precision": "default",
               "refId": "B",
-              "transform": "none"
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -249,7 +249,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "alias": "Total Fetch Requests",
               "app": "kafka_broker",
               "downsampleAggregator": "avg",
@@ -257,7 +257,7 @@
               "metric": "kafka.server.BrokerTopicMetrics.MessagesInPerSec.topic.*.count",
               "precision": "default",
               "refId": "A",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],
@@ -331,7 +331,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "alias": "Total Produce Requests",
               "app": "kafka_broker",
               "downsampleAggregator": "avg",
@@ -339,7 +339,7 @@
               "metric": "kafka.server.BrokerTopicMetrics.TotalProduceRequestsPerSec.topic.*.count",
               "precision": "default",
               "refId": "A",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],

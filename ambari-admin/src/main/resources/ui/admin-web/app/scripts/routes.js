@@ -157,7 +157,9 @@ angular.module('ambariAdminConsole')
   var rootUrl = ROUTES['clusters']['clusterInformation'].url;
   angular.forEach(ROUTES, createRoute);
   $routeProvider.otherwise({
-    redirectTo: rootUrl
+    redirectTo: function () {
+      return rootUrl;
+    }
   });
 }])
 .run(['$rootScope', 'ROUTES', 'Settings', function ($rootScope, ROUTES, Settings) {

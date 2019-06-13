@@ -15,22 +15,3 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-
-<div id="user-management">
-  <ul class="nav nav-tabs">
-    <li ng-class="{active: activeTab === 'USERS'}">
-      <a href="#!/userManagement?tab=users" >{{'common.users' | translate}}</a>
-    </li>
-    <li ng-class="{active: activeTab === 'GROUPS'}">
-      <a href="#!/userManagement?tab=groups" >{{'common.groups' | translate}}</a>
-    </li>
-  </ul>
-  <div>
-    <div class="users" ng-if="activeTab === 'USERS'">
-      <div ng-include="'views/userManagement/usersList.html'" ng-controller="UsersListCtrl"></div>
-    </div>
-    <div class="groups" ng-if="activeTab === 'GROUPS'">
-      <div ng-include="'views/userManagement/groupsList.html'" ng-controller="GroupsListCtrl"></div>
-    </div>
-  </div>
-</div>
