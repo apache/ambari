@@ -22,7 +22,7 @@ from resource_management.core import global_lock
 from resource_management.core.resources import Execute
 from resource_management.libraries.functions import format
 from resource_management.core.signal_utils import TerminateStrategy
-from resource_management.core.utils import PasswordString
+from resource_management.core.shell import quote_bash_args
 
 
 def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd=None, smokeuser='ambari-qa',
@@ -52,6 +52,14 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
   if hive_auth == "NOSASL":
     beeline_url.append('auth=noSasl')
 
+  credential_str = "-n {hive_user}"
+
+  # append username and password for LDAP
+  if hive_auth == "LDAP":
+    # password might contain special characters that need to be escaped
+    quoted_ldap_password = quote_bash_args(ldap_password)
+    credential_str = "-n {ldap_username} -p {quoted_ldap_password!p}"
+
   # append url according to ssl configuration
   if ssl and ssl_keystore is not None and ssl_password is not None:
     beeline_url.extend(['ssl={ssl_str}', 'sslTrustStore={ssl_keystore}', 'trustStorePassword={ssl_password!p}'])
@@ -70,14 +78,9 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
 
   # -n the user to connect as (ignored when using the hive principal in the URL, can be different from the user running the beeline command)
   # -e ';' executes a SQL commmand of NOOP
-
-  cmd = ("beeline", "-u", "%s" % (format(";".join(beeline_url))),
-         "-n", format(hive_user),
-         "-e", ";")
-  if hive_auth == "LDAP":
-    cmd = ("beeline", "-u", "%s" % (format(";".join(beeline_url))),
-           "-n", ldap_username, "-p",  PasswordString(ldap_password),
-           "-e", ";")
+  cmd = ("beeline -u '%s' %s -e ';' 2>&1 | awk '{print}' | grep -i " + \
+         "-e 'Connected to:' -e 'Transaction isolation:' -e 'inactive HS2 instance; use service discovery'") % \
+        (format(";".join(beeline_url)), format(credential_str))
 
   Execute(cmd,
     user=smokeuser,
