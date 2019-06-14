@@ -147,6 +147,7 @@ angular.module('ambariAdminConsole')
   }
 })
 .config(['$routeProvider', '$locationProvider', 'ROUTES', function ($routeProvider, $locationProvider, ROUTES) {
+  $locationProvider.hashPrefix('');
   var createRoute = function (routeObj) {
     if (routeObj.url) {
       $routeProvider.when(routeObj.url, routeObj);
@@ -157,9 +158,7 @@ angular.module('ambariAdminConsole')
   var rootUrl = ROUTES['clusters']['clusterInformation'].url;
   angular.forEach(ROUTES, createRoute);
   $routeProvider.otherwise({
-    redirectTo: function () {
-      return rootUrl;
-    }
+    redirectTo: rootUrl
   });
 }])
 .run(['$rootScope', 'ROUTES', 'Settings', function ($rootScope, ROUTES, Settings) {
