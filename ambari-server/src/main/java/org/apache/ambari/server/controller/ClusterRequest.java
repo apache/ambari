@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.commons.lang.StringUtils;
 
 import io.swagger.annotations.ApiModelProperty;
 
@@ -144,18 +145,9 @@ public class ClusterRequest {
         .append(", securityType=").append(securityType)
         .append(", stackVersion=").append(stackVersion)
         .append(", desired_scv=").append(serviceConfigVersionRequest)
-        .append(", hosts=[");
-    if (hostNames != null) {
-      int i = 0;
-      for (String hostName : hostNames) {
-        if (i != 0) {
-          sb.append(",");
-        }
-        ++i;
-        sb.append(hostName);
-      }
-    }
-    sb.append("] }");
+        .append(", hosts=[")
+        .append(hostNames != null ? String.join(",", hostNames) : StringUtils.EMPTY)
+        .append("] }");
     return sb.toString();
   }
 

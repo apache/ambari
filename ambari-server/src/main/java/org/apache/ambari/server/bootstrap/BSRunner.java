@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,18 +108,7 @@ class BSRunner extends Thread {
   }
 
   private String createHostString(List<String> list) {
-    StringBuilder ret = new StringBuilder();
-    if (list == null) {
-      return "";
-    }
-
-    int i = 0;
-    for (String host: list) {
-      ret.append(host);
-      if (i++ != list.size()-1)
-        ret.append(",");
-    }
-    return ret.toString();
+    return list != null ? String.join(",", list) : StringUtils.EMPTY;
   }
 
   /** Create request id dir for each bootstrap call **/
