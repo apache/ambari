@@ -3275,7 +3275,7 @@ var formatRequest = function (data) {
   if (this.format) {
     jQuery.extend(opt, this.format(data, opt));
   }
-  if (!('headers' in opt && 'Content-Type' in opt.headers)) {
+  if (!('headers' in opt && 'Content-Type' in opt.headers) && opt.contentType === undefined) {
     // With the default www-url-form-encoded Content-Type KNOX would corrupt the json content.
     opt.headers['Content-Type'] = 'text/plain';
   }
