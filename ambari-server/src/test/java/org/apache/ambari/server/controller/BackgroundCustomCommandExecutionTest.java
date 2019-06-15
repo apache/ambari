@@ -77,6 +77,13 @@ public class BackgroundCustomCommandExecutionTest {
   private Clusters clusters;
 
   private static final String REQUEST_CONTEXT_PROPERTY = "context";
+  private static final String UPDATE_REPLICATION_PARAMS = "{\n" +
+          "              \"replication_cluster_keys\": c7007.ambari.apache.org,c7008.ambari.apache.org,c7009.ambari.apache.org:2181:/hbase,\n" +
+          "              \"replication_peers\": 1\n" +
+          "            }";
+  private static final String STOP_REPLICATION_PARAMS = "{\n" +
+          "              \"replication_peers\": 1\n" +
+          "            }";
 
   @Captor ArgumentCaptor<Request> requestCapture;
   @Mock ActionManager am;
@@ -180,15 +187,18 @@ public class BackgroundCustomCommandExecutionTest {
     createCluster("c1");
     addHost("c6401","c1");
     addHost("c6402","c1");
+    addHost("c7007", "c1");
     clusters.updateHostMappings(clusters.getHost("c6401"));
     clusters.updateHostMappings(clusters.getHost("c6402"));
+    clusters.updateHostMappings(clusters.getHost("c7007"));
 
     clusters.getCluster("c1");
     createService("c1", "HDFS", null);
-
-    createServiceComponent("c1","HDFS","NAMENODE", State.INIT);
-
-    createServiceComponentHost("c1","HDFS","NAMENODE","c6401", null);
+    createService("c1", "HBASE", null);
+    createServiceComponent("c1", "HDFS", "NAMENODE", State.INIT);
+    createServiceComponent("c1", "HBASE", "HBASE_MASTER", State.INIT);
+    createServiceComponentHost("c1", "HDFS", "NAMENODE", "c6401", null);
+    createServiceComponentHost("c1", "HBASE", "HBASE_MASTER", "c7007", null);
   }
   private void addHost(String hostname, String clusterName) throws AmbariException {
     clusters.addHost(hostname);
@@ -205,6 +215,90 @@ public class BackgroundCustomCommandExecutionTest {
 
     host.setHostAttributes(hostAttributes);
   }
+
+
+  @SuppressWarnings("serial")
+  @Test
+  public void testUpdateHBaseReplicationCustomCommand()
+          throws AuthorizationException, AmbariException, IllegalAccessException,
+          NoSuchFieldException {
+    createClusterFixture();
+    Map<String, String> requestProperties = new HashMap<String, String>() {
+      {
+        put(REQUEST_CONTEXT_PROPERTY, "Enable Cross Cluster HBase Replication");
+        put("command", "UPDATE_REPLICATION");
+        put("parameters", UPDATE_REPLICATION_PARAMS);
+      }
+    };
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1",
+            "UPDATE_REPLICATION", new HashMap<>(), false);
+    actionRequest.getResourceFilters().add(new RequestResourceFilter("HBASE", "HBASE_MASTER",
+            Collections.singletonList("c7007")));
+
+    controller.createAction(actionRequest, requestProperties);
+
+    Mockito.verify(am, Mockito.times(1))
+            .sendActions(requestCapture.capture(), any(ExecuteActionRequest.class));
+
+    Request request = requestCapture.getValue();
+    Assert.assertNotNull(request);
+    Assert.assertNotNull(request.getStages());
+    Assert.assertEquals(1, request.getStages().size());
+    Stage stage = request.getStages().iterator().next();
+
+    Assert.assertEquals(1, stage.getHosts().size());
+
+    List<ExecutionCommandWrapper> commands = stage.getExecutionCommands("c7007");
+    Assert.assertEquals(1, commands.size());
+    ExecutionCommand command = commands.get(0).getExecutionCommand();
+    Assert.assertEquals(AgentCommandType.EXECUTION_COMMAND, command.getCommandType());
+    Assert.assertEquals("UPDATE_REPLICATION", command.getCommandParams().get("custom_command"));
+
+  }
+
+
+
+  @SuppressWarnings("serial")
+  @Test
+  public void testStopHBaseReplicationCustomCommand()
+          throws AuthorizationException, AmbariException, IllegalAccessException,
+          NoSuchFieldException {
+    createClusterFixture();
+    Map<String, String> requestProperties = new HashMap<String, String>() {
+      {
+        put(REQUEST_CONTEXT_PROPERTY, "Disable Cross Cluster HBase Replication");
+        put("command", "STOP_REPLICATION");
+        put("parameters", STOP_REPLICATION_PARAMS);
+      }
+    };
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1",
+            "STOP_REPLICATION", new HashMap<>(), false);
+    actionRequest.getResourceFilters().add(new RequestResourceFilter("HBASE", "HBASE_MASTER",
+            Collections.singletonList("c7007")));
+
+    controller.createAction(actionRequest, requestProperties);
+
+    Mockito.verify(am, Mockito.times(1))
+            .sendActions(requestCapture.capture(), any(ExecuteActionRequest.class));
+
+    Request request = requestCapture.getValue();
+    Assert.assertNotNull(request);
+    Assert.assertNotNull(request.getStages());
+    Assert.assertEquals(1, request.getStages().size());
+    Stage stage = request.getStages().iterator().next();
+
+    Assert.assertEquals(1, stage.getHosts().size());
+
+    List<ExecutionCommandWrapper> commands = stage.getExecutionCommands("c7007");
+    Assert.assertEquals(1, commands.size());
+    ExecutionCommand command = commands.get(0).getExecutionCommand();
+    Assert.assertEquals(AgentCommandType.EXECUTION_COMMAND, command.getCommandType());
+    Assert.assertEquals("STOP_REPLICATION", command.getCommandParams().get("custom_command"));
+
+  }
+
+
+
 
   private void createCluster(String clusterName) throws AmbariException, AuthorizationException {
     ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(),
