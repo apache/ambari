@@ -35,7 +35,7 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
   mastersExcludedCommands: {
     'NAMENODE': ['DECOMMISSION', 'REBALANCEHDFS'],
     'RESOURCEMANAGER': ['DECOMMISSION', 'REFRESHQUEUES'],
-    'HBASE_MASTER': ['DECOMMISSION'],
+    'HBASE_MASTER': ['DECOMMISSION', 'UPDATE_REPLICATION', 'STOP_REPLICATION'],
     'KNOX_GATEWAY': ['STARTDEMOLDAP','STOPDEMOLDAP'],
     'HAWQMASTER': ['IMMEDIATE_STOP_HAWQ_SERVICE', 'RUN_HAWQ_CHECK', 'HAWQ_CLEAR_CACHE', 'REMOVE_HAWQ_STANDBY', 'RESYNC_HAWQ_STANDBY'],
     'HAWQSEGMENT': ['IMMEDIATE_STOP_HAWQ_SEGMENT'],
@@ -275,6 +275,18 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
             });
           }
         }
+
+        const hMasterComponent = App.StackServiceComponent.find().findProperty('componentName', 'HBASE_MASTER');
+        if (serviceName === 'HBASE' && hMasterComponent) {
+          const hMasterCustomCommands = hMasterComponent.get('customCommands');
+          if (hMasterCustomCommands && hMasterCustomCommands.contains('UPDATE_REPLICATION')) {
+            options.push(actionMap.UPDATE_REPLICATION);
+          }
+          if (hMasterCustomCommands && hMasterCustomCommands.contains('STOP_REPLICATION')) {
+            options.push(actionMap.STOP_REPLICATION);
+          }
+        }
+
 
         /**
          * Display all custom commands of Master and StandBy on Service page.

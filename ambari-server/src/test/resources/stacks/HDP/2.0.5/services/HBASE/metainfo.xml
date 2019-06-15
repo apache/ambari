@@ -59,6 +59,22 @@
                 <timeout>600</timeout>
               </commandScript>
             </customCommand>
+            <customCommand>
+              <name>UPDATE_REPLICATION</name>
+              <commandScript>
+                <script>scripts/hbase_master.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>STOP_REPLICATION</name>
+              <commandScript>
+                <script>scripts/hbase_master.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
           </customCommands>
         </component>
 

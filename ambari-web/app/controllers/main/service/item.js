@@ -937,6 +937,146 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     });
   },
 
+  /**
+   * On click handler for Update HBase Replication command from items menu
+   */
+  updateHBaseReplication: function () {
+    const controller = this;
+    App.ModalPopup.show({
+      classNames: ['sixty-percent-width-modal', 'service-params-popup'],
+      header: Em.I18n.t('services.service.actions.run.updateHBaseReplication.context'),
+      primary: Em.I18n.t('common.start'),
+      secondary: Em.I18n.t('common.cancel'),
+      peerId: '',
+      parentzkey: '/hbase',
+      zkport: '2181',
+      zkquorum: '',
+      errorMessage: Em.I18n.t('services.service.actions.run.updateHBaseReplication.promptError'),
+      isInvalid: function () {
+        const zkquorum = this.get('zkquorum');
+        const zkport = this.get('zkport');
+        const parentzkey = this.get('parentzkey');
+        const peerId = this.get('peerId');
+        if (zkquorum && zkport && parentzkey && peerId) {
+          if (isNaN(zkport) || isNaN(peerId)) {
+            return true;
+          }
+          const zkquorumArray = zkquorum.split(',');
+          return zkquorumArray.length < 2;
+        } else {
+          return true;
+        }
+      }.property('zkquorum', 'zkport', 'parentzkey', 'peerId'),
+      disablePrimary: Em.computed.alias('isInvalid'),
+      onPrimary: function () {
+        if (this.get('isInvalid')) {
+          return;
+        }
+        App.ajax.send({
+          name: 'service.item.updateHBaseReplication',
+          sender: controller,
+          data: {
+            hosts: App.Service.find('HBASE').get('hostComponents').findProperty('componentName', 'HBASE_MASTER').get('hostName'),
+            replication_peers: this.get('peerId'),
+            replication_cluster_keys: this.get('zkquorum') + ':' + this.get('zkport') + ":" + this.get('parentzkey')
+          },
+          success: 'updateHBaseReplicationSuccessCallback',
+          error: 'updateHBaseReplicationErrorCallback',
+          showLoadingPopup: true
+        });
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/common/modal_popups/update_replication_popup'),
+        zkquorumText: Em.I18n.t('services.service.actions.run.updateHBaseReplication.zkquorumText.prompt'),
+        zkportText: Em.I18n.t('services.service.actions.run.updateHBaseReplication.zkportText.prompt'),
+        parentzkeyText: Em.I18n.t('services.service.actions.run.updateHBaseReplication.parentzkeyText.prompt'),
+        peerIdText: Em.I18n.t('services.service.actions.run.updateHBaseReplication.peerIdText.prompt')
+      })
+    });
+  },
+
+  updateHBaseReplicationSuccessCallback: function (data) {
+    if (data.Requests.id) {
+      App.router.get('backgroundOperationsController').showPopup();
+    }
+  },
+
+  updateHBaseReplicationErrorCallback: function (data) {
+    var error = Em.I18n.t('services.service.actions.run.updateHBaseReplication.error');
+    if (data && data.responseText) {
+      try {
+        const json = $.parseJSON(data.responseText);
+        error += json.message;
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    App.showAlertPopup(Em.I18n.t('services.service.actions.run.updateHBaseReplication.error'), error);
+  },
+
+
+  /**
+   * On click handler for Stop HBase Replication command from items menu
+   */
+  stopHBaseReplication: function () {
+    const controller = this;
+    App.ModalPopup.show({
+      classNames: ['forty-percent-width-modal'],
+      header: Em.I18n.t('services.service.actions.run.stopHBaseReplication.context'),
+      primary: Em.I18n.t('common.start'),
+      secondary: Em.I18n.t('common.cancel'),
+      inputValue: '',
+      errorMessage: Em.I18n.t('services.service.actions.run.stopHBaseReplication.promptError'),
+      isInvalid: function () {
+        const inputValue = this.get('inputValue');
+        return !inputValue || isNaN(inputValue);
+      }.property('inputValue'),
+      disablePrimary: Em.computed.alias('isInvalid'),
+      onPrimary: function () {
+        if (this.get('isInvalid')) {
+          return;
+        }
+        App.ajax.send({
+          name: 'service.item.stopHBaseReplication',
+          sender: controller,
+          data: {
+            hosts: App.Service.find('HBASE').get('hostComponents').findProperty('componentName', 'HBASE_MASTER').get('hostName'),
+            replication_peers: this.get('inputValue')
+          },
+          success: 'stopHBaseReplicationSuccessCallback',
+          error: 'stopHBaseReplicationErrorCallback',
+          showLoadingPopup: true
+        });
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/common/modal_popups/prompt_popup'),
+        text: Em.I18n.t('services.service.actions.run.stopHBaseReplication.prompt'),
+      })
+    });
+  },
+
+  stopHBaseReplicationSuccessCallback: function (data) {
+    if (data.Requests.id) {
+      App.router.get('backgroundOperationsController').showPopup();
+    }
+  },
+
+  stopHBaseReplicationErrorCallback: function (data) {
+    var error = Em.I18n.t('services.service.actions.run.stopHBaseReplication.error');
+    if (data && data.responseText) {
+      try {
+        const json = $.parseJSON(data.responseText);
+        error += json.message;
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    App.showAlertPopup(Em.I18n.t('services.service.actions.run.stopHBaseReplication.error'), error);
+  },
+
+
   restartAllHostComponents: function (serviceName) {
     const serviceDisplayName = this.get('content.displayName'),
       bodyMessage = Em.Object.create({
