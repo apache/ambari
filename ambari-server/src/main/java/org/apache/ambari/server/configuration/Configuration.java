@@ -33,6 +33,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -2827,7 +2828,7 @@ public class Configuration {
       try {
         password = RandomStringUtils.randomAlphanumeric(Integer
             .parseInt(configsMap.get(SRVR_CRT_PASS_LEN.getKey())));
-        FileUtils.writeStringToFile(passFile, password);
+        FileUtils.writeStringToFile(passFile, password, Charset.defaultCharset());
         ShellCommandUtil.setUnixFilePermissions(
           ShellCommandUtil.MASK_OWNER_ONLY_RW, passFile.getAbsolutePath());
       } catch (IOException e) {
@@ -2838,7 +2839,7 @@ public class Configuration {
     } else {
       LOG.info("Reading password from existing file");
       try {
-        password = FileUtils.readFileToString(passFile);
+        password = FileUtils.readFileToString(passFile, Charset.defaultCharset());
         password = password.replaceAll("\\p{Cntrl}", "");
       } catch (IOException e) {
         e.printStackTrace();
@@ -2854,7 +2855,7 @@ public class Configuration {
       if (httpsPassFile.exists()) {
         LOG.info("Reading password from existing file");
         try {
-          password = FileUtils.readFileToString(httpsPassFile);
+          password = FileUtils.readFileToString(httpsPassFile, Charset.defaultCharset());
           password = password.replaceAll("\\p{Cntrl}", "");
         } catch (IOException e) {
           e.printStackTrace();
@@ -3536,7 +3537,9 @@ public class Configuration {
    */
   public String getServerVersion() {
     try {
-      return FileUtils.readFileToString(new File(getServerVersionFilePath())).trim();
+      return FileUtils
+              .readFileToString(new File(getServerVersionFilePath()), Charset.defaultCharset())
+              .trim();
     } catch (IOException e) {
       LOG.error("Unable to read server version file", e);
     }
@@ -5678,7 +5681,7 @@ public class Configuration {
       markdown = markdown.replace(MARKDOWN_BASELINE_VALUES_KEY, baselineBuffer.toString());
 
       File file = new File(outputFile);
-      FileUtils.writeStringToFile(file, markdown);
+      FileUtils.writeStringToFile(file, markdown, Charset.defaultCharset());
       System.out.println("Successfully created " + outputFile);
       LOG.info("Successfully created {}", outputFile);
     } finally {

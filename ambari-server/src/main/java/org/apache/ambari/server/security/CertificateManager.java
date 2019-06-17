@@ -287,7 +287,7 @@ public class CertificateManager {
     File agentCrtReqFile = new File(srvrKstrDir + File.separator +
         agentCrtReqName);
     try {
-      FileUtils.writeStringToFile(agentCrtReqFile, agentCrtReqContent);
+      FileUtils.writeStringToFile(agentCrtReqFile, agentCrtReqContent, Charset.defaultCharset());
     } catch (IOException e1) {
       // TODO Auto-generated catch block
       e1.printStackTrace();
@@ -307,7 +307,7 @@ public class CertificateManager {
 
     String agentCrtContent = "";
     try {
-      agentCrtContent = FileUtils.readFileToString(agentCrtFile);
+      agentCrtContent = FileUtils.readFileToString(agentCrtFile, Charset.defaultCharset());
     } catch (IOException e) {
       e.printStackTrace();
       LOG.error("Error reading signed agent certificate");

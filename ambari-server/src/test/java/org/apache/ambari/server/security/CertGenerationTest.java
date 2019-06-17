@@ -25,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
@@ -201,7 +202,7 @@ public class CertGenerationTest {
 
     Assert.assertTrue(passFile.exists());
 
-    String pass = FileUtils.readFileToString(passFile);
+    String pass = FileUtils.readFileToString(passFile, Charset.defaultCharset());
 
     Assert.assertEquals(pass.length(), passLen);
 

@@ -25,6 +25,7 @@ import static org.easymock.EasyMock.expectLastCall;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 
 import javax.persistence.EntityManager;
 
@@ -166,7 +167,7 @@ public class ConfigureAmbariIdentitiesServerActionTest extends EasyMockSupport {
             "    useTicketCache=false;\n" +
             "};\n";
 
-    FileUtils.writeStringToFile(jaasConfFile, originalJAASFileContent);
+    FileUtils.writeStringToFile(jaasConfFile, originalJAASFileContent, Charset.defaultCharset());
 
     Injector injector = createInjector();
 
@@ -196,11 +197,12 @@ public class ConfigureAmbariIdentitiesServerActionTest extends EasyMockSupport {
             "    storeKey=true\n" +
             "    useTicketCache=false;\n" +
             "};\n",
-        FileUtils.readFileToString(jaasConfFile)
+            FileUtils.readFileToString(jaasConfFile, Charset.defaultCharset())
     );
 
     // Ensure the backup file matches the original content
-    Assert.assertEquals(originalJAASFileContent, FileUtils.readFileToString(jaasConfFileBak));
+    Assert.assertEquals(originalJAASFileContent,
+            FileUtils.readFileToString(jaasConfFileBak, Charset.defaultCharset()));
   }
 
 
