@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -131,11 +132,11 @@ class BSRunner extends Thread {
   }
 
   private void writeSshKeyFile(String data) throws IOException {
-    FileUtils.writeStringToFile(sshKeyFile, data);
+    FileUtils.writeStringToFile(sshKeyFile, data, Charset.defaultCharset());
   }
 
   private void writePasswordFile(String data) throws IOException {
-    FileUtils.writeStringToFile(passwordFile, data);
+    FileUtils.writeStringToFile(passwordFile, data, Charset.defaultCharset());
   }
 
   /**
@@ -290,8 +291,10 @@ class BSRunner extends Thread {
         String outMesg = "";
         String errMesg = "";       
         try {
-          outMesg = FileUtils.readFileToString(new File(bootStrapOutputFilePath));
-          errMesg = FileUtils.readFileToString(new File(bootStrapErrorFilePath));
+          outMesg = FileUtils
+                  .readFileToString(new File(bootStrapOutputFilePath), Charset.defaultCharset());
+          errMesg = FileUtils
+                  .readFileToString(new File(bootStrapErrorFilePath), Charset.defaultCharset());
         } catch(IOException io) {
           LOG.info("Error in reading files ", io);
         }
