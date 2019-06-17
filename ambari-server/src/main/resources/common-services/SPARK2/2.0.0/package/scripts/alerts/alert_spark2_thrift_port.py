@@ -147,22 +147,19 @@ def execute(configurations={}, parameters={}, host_name=None):
         if host_name is None:
             host_name = socket.getfqdn()
 
+        beeline_url = ["jdbc:hive2://{host_name}:{port}/default", "transportMode={transport_mode}"]
         if security_enabled:
+            beeline_url.append("principal={hive_principal}")
+        if transport_mode == "http":
+            beeline_url.append("httpPath=cliservice")
             if spark_ssl_enabled:
-                beeline_url = ['"jdbc:hive2://{host_name}:{port}/default;principal={hive_principal};transportMode={transport_mode};ssl=true;sslTrustStore={spark_truststore_path};trustStorePassword={spark_truststore_pass!p};httpPath=cliservice"']
-            else:
-                beeline_url = ["jdbc:hive2://{host_name}:{port}/default;principal={hive_principal}","transportMode={transport_mode}"]
-        else:
-            if spark_ssl_enabled:
-                beeline_url = ['"jdbc:hive2://{host_name}:{port}/default;transportMode={transport_mode};ssl=true;sslTrustStore={spark_truststore_path};trustStorePassword={spark_truststore_pass!p};httpPath=cliservice"']
-            else:
-                beeline_url = ["jdbc:hive2://{host_name}:{port}/default","transportMode={transport_mode}"]
-                
+                beeline_url.append("ssl=true;sslTrustStore={spark_truststore_path};trustStorePassword={spark_truststore_pass!p}")
+
         # append url according to used transport
 
         beeline_cmd = os.path.join(spark_home, "bin", "beeline")
-        cmd = "! beeline -u %s  -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'" % \
-              (format(" ".join(beeline_url)))
+        cmd = "! beeline -u '%s'  -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'" % \
+              (format(";".join(beeline_url)))
 
         start_time = time.time()
         try:
