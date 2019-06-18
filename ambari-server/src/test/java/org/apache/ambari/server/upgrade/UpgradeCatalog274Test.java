@@ -74,8 +74,4 @@ public class UpgradeCatalog274Test {
 
     verify(dbAccessor);
   }
-
-
-  
-
 }

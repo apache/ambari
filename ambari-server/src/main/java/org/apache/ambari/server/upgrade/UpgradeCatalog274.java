@@ -104,5 +104,4 @@ public class UpgradeCatalog274 extends AbstractUpgradeCatalog {
       dbAccessor.alterColumn(AMBARI_CONFIGURATION_TABLE, propertyColumn);
     }
   }
-
 }
