@@ -108,7 +108,12 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
 
     // Load collector configs
     protocol = conf.getString(COLLECTOR_PROTOCOL, "http");
-    collectorHosts = parseHostsStringArrayIntoCollection(conf.getStringArray(COLLECTOR_HOSTS_PROPERTY));
+    String collectorHostStr = conf.getString(COLLECTOR_HOSTS_PROPERTY);
+    String[] collectorHostArr = null;
+    if(collectorHostStr !=null) {
+      collectorHostArr = collectorHostStr.split(",");
+    }
+    collectorHosts = parseHostsStringArrayIntoCollection(collectorHostArr);
     port = conf.getString(COLLECTOR_PORT, "6188");
     hostInMemoryAggregationEnabled = conf.getBoolean(HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY, false);
     hostInMemoryAggregationPort = conf.getInt(HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY, 61888);
