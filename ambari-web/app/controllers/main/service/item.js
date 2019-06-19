@@ -824,7 +824,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   rebalanceHdfsNodes: function () {
     var controller = this;
     App.ModalPopup.show({
-      classNames: ['fourty-percent-width-modal'],
+      classNames: ['forty-percent-width-modal'],
       header: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.context'),
       primary: Em.I18n.t('common.start'),
       secondary: Em.I18n.t('common.cancel'),
