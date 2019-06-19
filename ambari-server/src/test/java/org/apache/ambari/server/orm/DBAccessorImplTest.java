@@ -815,6 +815,20 @@ public class DBAccessorImplTest {
   }
 
   @Test
+  public void testFromSqlTypeToClass() throws Exception {
+    String tableName = getFreeTableName();
+    String columnName = "col1";
+
+    createMyTable(tableName, columnName);
+
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+    DBColumnInfo columnInfo =  dbAccessor.getColumnInfo(tableName, columnName);
+
+    assertEquals(columnName.toUpperCase(), columnInfo.getName());
+    assertEquals(String.class, columnInfo.getType());
+  }
+
+  @Test
   public void testBuildQuery() throws Exception {
     String tableName = getFreeTableName();
     createMyTable(tableName);

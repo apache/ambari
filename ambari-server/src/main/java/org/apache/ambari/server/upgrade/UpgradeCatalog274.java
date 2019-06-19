@@ -19,7 +19,11 @@ package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
 
+import javax.persistence.Table;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,11 +31,15 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 /**
- * The {@link UpgradeCatalog274} upgrades Ambari from 2.7.3 to 2.7.4.
+ * The {@link UpgradeCatalog274} upgrades Ambari from 2.7.2 to 2.7.4.
  */
 public class UpgradeCatalog274 extends AbstractUpgradeCatalog {
 
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog274.class);
+  static final String AMBARI_CONFIGURATION_TABLE = AmbariConfigurationEntity.class.getAnnotation(Table.class).name();
+  static final String AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN = UpgradeCatalog270.AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN;
+  static final Integer AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN_LEN = 4000;
+
 
   @Inject
   public UpgradeCatalog274(Injector injector) {
@@ -40,7 +48,18 @@ public class UpgradeCatalog274 extends AbstractUpgradeCatalog {
 
   @Override
   public String getSourceVersion() {
-    return "2.7.3";
+    return "2.7.2";
+  }
+
+  /**
+   * Perform database schema transformation. Can work only before persist service start
+   *
+   * @throws AmbariException
+   * @throws SQLException
+   */
+  @Override
+  protected void executeDDLUpdates() throws AmbariException, SQLException {
+    upgradeConfigurationTableValueMaxSize();
   }
 
   @Override
@@ -48,19 +67,41 @@ public class UpgradeCatalog274 extends AbstractUpgradeCatalog {
     return "2.7.4";
   }
 
-  @Override
-  protected void executeDDLUpdates() throws AmbariException, SQLException {
-    // nothing to do
-  }
-
+  /**
+   * Perform data insertion before running normal upgrade of data, requires started persist service
+   *
+   * @throws AmbariException
+   * @throws SQLException
+   */
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
-    // nothing to do
+    // no actions needed
   }
 
+  /**
+   * Performs normal data upgrade
+   *
+   * @throws AmbariException
+   * @throws SQLException
+   */
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
-    addNewConfigurationsFromXml();
+    // no actions needed
   }
 
+
+  private void upgradeConfigurationTableValueMaxSize() throws SQLException {
+    DBAccessor.DBColumnInfo propertyColumn = dbAccessor.getColumnInfo(AMBARI_CONFIGURATION_TABLE,
+      AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN);
+
+    if (propertyColumn != null && propertyColumn.getType() != null &&
+      propertyColumn.getLength() < AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN_LEN) {
+
+      LOG.info("Updating column max size to {} for {}.{}", AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN_LEN,
+        AMBARI_CONFIGURATION_TABLE, AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN);
+
+      propertyColumn.setLength(AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN_LEN);
+      dbAccessor.alterColumn(AMBARI_CONFIGURATION_TABLE, propertyColumn);
+    }
+  }
 }

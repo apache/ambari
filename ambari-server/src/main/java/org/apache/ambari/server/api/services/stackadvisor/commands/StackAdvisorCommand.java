@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -308,11 +309,15 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     try {
       createRequestDirectory();
 
-      FileUtils.writeStringToFile(new File(requestDirectory, "hosts.json"), adjusted.hostsJSON);
-      FileUtils.writeStringToFile(new File(requestDirectory, "services.json"), adjusted.servicesJSON);
+      FileUtils.writeStringToFile(new File(requestDirectory, "hosts.json"), adjusted.hostsJSON,
+              Charset.defaultCharset());
+      FileUtils
+              .writeStringToFile(new File(requestDirectory, "services.json"), adjusted.servicesJSON,
+                      Charset.defaultCharset());
 
       saRunner.runScript(serviceAdvisorType, getCommandType(), requestDirectory);
-      String result = FileUtils.readFileToString(new File(requestDirectory, getResultFileName()));
+      String result = FileUtils.readFileToString(new File(requestDirectory, getResultFileName()),
+              Charset.defaultCharset());
 
       T response = this.mapper.readValue(result, this.type);
       return updateResponse(request, setRequestId(response));
