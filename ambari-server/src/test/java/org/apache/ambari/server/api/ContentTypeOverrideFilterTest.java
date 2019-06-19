@@ -18,13 +18,10 @@
 
 package org.apache.ambari.server.api;
 
-import junit.framework.Assert;
-import org.easymock.EasyMockRule;
-import org.easymock.EasyMockSupport;
-import org.easymock.Mock;
-import org.easymock.MockType;
-import org.junit.Rule;
-import org.junit.Test;
+import static org.easymock.EasyMock.expect;
+
+import java.io.IOException;
+import java.util.Vector;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -32,13 +29,19 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
-import java.io.IOException;
-import java.util.Vector;
+import org.easymock.EasyMockRule;
+import org.easymock.EasyMockSupport;
+import org.easymock.Mock;
+import org.easymock.MockType;
+import org.junit.Rule;
+import org.junit.Test;
 
-import static org.easymock.EasyMock.*;
+import junit.framework.Assert;
+
 
 public class ContentTypeOverrideFilterTest extends EasyMockSupport {
 
