@@ -110,7 +110,7 @@ public class DestroyPrincipalsServerAction extends KerberosServerAction {
     String defaultRealm = getDefaultRealm(commandParameters);
 
     KerberosOperationHandler operationHandler = kerberosOperationHandlerFactory.getKerberosOperationHandler(kdcType);
-    Map<String, String> kerberosConfiguration = getConfiguration("kerberos-env");
+    Map<String, String> kerberosConfiguration = getConfigurationProperties("kerberos-env");
 
     try {
       operationHandler.open(administratorCredential, defaultRealm, kerberosConfiguration);

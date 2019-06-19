@@ -692,15 +692,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     if (!duplicates.isEmpty()) {
-      StringBuilder names = new StringBuilder();
-      boolean first = true;
-      for (String hName : duplicates) {
-        if (!first) {
-          names.append(",");
-        }
-        first = false;
-        names.append(hName);
-      }
+      final String names = String.join(",", duplicates);
       String msg;
       if (duplicates.size() == 1) {
         msg = "Attempted to create a host_component which already exists: ";

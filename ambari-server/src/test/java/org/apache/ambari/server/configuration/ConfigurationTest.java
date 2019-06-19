@@ -30,6 +30,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
@@ -164,7 +165,7 @@ public class ConfigurationTest {
 
     String password = "pass12345";
 
-    FileUtils.writeStringToFile(passFile, password);
+    FileUtils.writeStringToFile(passFile, password, Charset.defaultCharset());
 
     Properties ambariProperties = new Properties();
     ambariProperties.setProperty(Configuration.API_USE_SSL.getKey(), "true");

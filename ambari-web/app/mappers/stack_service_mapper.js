@@ -77,7 +77,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
 
   mapStackServices: function(json) {
     App.set('isStackServicesLoaded',false);
-    this.clearStackModels();
+    App.clearModels([this.get('model'), this.get('component_model')]);
     App.resetDsStoreTypeMap(App.StackServiceComponent);
     App.resetDsStoreTypeMap(App.StackService);
     this.map(json);
@@ -127,22 +127,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     }, this);
     App.store.safeLoadMany(this.get('component_model'), stackServiceComponents);
     App.store.safeLoadMany(model, result);
-  },
-
-  /**
-   * Clean store from already loaded data.
-   **/
-  clearStackModels: function () {
-    var models = [App.StackServiceComponent, App.StackService];
-    models.forEach(function (model) {
-      var records = App.get('store').findAll(model).filterProperty('id');
-      records.forEach(function (rec) {
-        Ember.run(this, function () {
-          rec.deleteRecord();
-          App.store.fastCommit();
-        });
-      }, this);
-    }, this);
   }
+
 });
 

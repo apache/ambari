@@ -17,7 +17,7 @@
 -->
 <div class="clearfix">
   <ol class="breadcrumb pull-left">
-    <li><a href="#!/views">{{'common.views' | translate}}</a></li>
+    <li><a href="#/views">{{'common.views' | translate}}</a></li>
     <li class="active">{{instance.ViewInstanceInfo.label}}
       <a class="gotoinstance" ng-show="instance.ViewInstanceInfo.visible"
          href="{{fromSiteRoot('/#/main/views/' + viewUrl)}}" target="_blank">
@@ -94,10 +94,10 @@
           </div>
             <div ng-if="!settings.shortUrl">
               <p ng-hide="!editDetailsSettingsDisabled" class="form-control-static">
-                <a href="#!/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}">{{'urls.createNewUrl' | translate}}</a>
+                <a href="#/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}">{{'urls.createNewUrl' | translate}}</a>
               </p>
               <p class="form-control-static" ng-hide="editDetailsSettingsDisabled">
-                <a href="#!/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}">{{'urls.createNewUrl' | translate}}</a>
+                <a href="#/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}">{{'urls.createNewUrl' | translate}}</a>
               </p>
             </div>
           </div>

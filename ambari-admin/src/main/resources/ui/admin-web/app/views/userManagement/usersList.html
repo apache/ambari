@@ -74,7 +74,7 @@
         <td><span>{{user.Users.userTypeName}}</span></td>
         <td><span>{{user.Users.groups.length ? user.Users.groups.join(' ') : '-'}}</span></td>
         <td class="entity-actions">
-          <a href="#!/users/{{user.Users.encodedName}}/edit">
+          <a href="#/users/{{user.Users.encodedName}}/edit">
             <i class="fa fa-pencil"></i>
           </a>
           <a href ng-click="deleteUser(user.Users)" ng-disabled="!user.Users.isDeletable">

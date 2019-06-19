@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.sql.Blob;
 import java.sql.Connection;
@@ -146,6 +147,49 @@ public class DBAccessorImpl implements DBAccessor {
     } else {
       dbType = DbType.UNKNOWN;
       return new GenericDbmsHelper(databasePlatform);
+    }
+  }
+
+  /**
+   * Map SQL datatype to Java Class type
+   *
+   * @param type  SQL datatype
+   * @return Java class or null if no mapping found
+   */
+  private static Class<?> fromSqlTypeToClass(int type) {
+    switch (type) {
+      case Types.VARCHAR:
+      case Types.CHAR:
+      case Types.LONGVARCHAR:
+        return String.class;
+      case Types.NUMERIC:
+      case Types.DECIMAL:
+        return BigDecimal.class;
+      case Types.BIT:
+        return Boolean.class;
+      case Types.TINYINT:
+        return Byte.class;
+      case Types.SMALLINT:
+        return Short.class;
+      case Types.INTEGER:
+        return Integer.class;
+      case Types.BIGINT:
+        return Long.class;
+      case Types.FLOAT:
+      case Types.REAL:
+        return Float.class;
+      case Types.DOUBLE:
+        return Double.class;
+      case Types.BINARY:
+      case Types.VARBINARY:
+      case Types.LONGVARBINARY:
+        return Byte[].class;
+      case Types.DATE:
+        return java.sql.Date.class;
+      case Types.TIME:
+        return java.sql.Timestamp.class;
+      default:
+        return null;
     }
   }
 
@@ -1227,6 +1271,39 @@ public class DBAccessorImpl implements DBAccessor {
     }
 
     alterColumn(tableName, new DBColumnInfo(columnName, toType, null));
+  }
+
+  /**
+   * Obtain column metadata information by given table and column name.
+   *
+   * Not able to return column default value.
+   *
+   * @param tableName  Name of the table
+   * @param columnName Name of the column
+   * @return Column information or null, if no column found
+   * @throws SQLException
+   */
+  @Override
+  public DBColumnInfo getColumnInfo(String tableName, String columnName) {
+    try {
+      String sqlQuery = String.format("SELECT %s FROM %s WHERE 1=2", columnName, convertObjectName(tableName));
+
+      try (Statement statement = getConnection().createStatement();
+           ResultSet rs = statement.executeQuery(sqlQuery)) {
+
+        ResultSetMetaData rsmd = rs.getMetaData();
+
+        return new DBColumnInfo(
+          rsmd.getColumnName(1),
+          fromSqlTypeToClass(rsmd.getColumnType(1)),
+          rsmd.getColumnDisplaySize(1),
+          null,
+          rsmd.isNullable(1) == ResultSetMetaData.columnNullable
+        );
+      }
+    } catch (SQLException e) {
+      return null;
+    }
   }
 
   @Override

@@ -228,7 +228,7 @@ describe('App.stackServiceMapper', function () {
       };
 
     beforeEach(function () {
-      App.stackServiceMapper.clearStackModels();
+      App.clearModels([App.StackService, App.StackServiceComponent]);
     });
 
     it('should sort and map data about services with their components', function () {

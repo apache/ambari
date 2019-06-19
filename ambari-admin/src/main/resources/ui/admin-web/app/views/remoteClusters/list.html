@@ -19,7 +19,7 @@
 <div class="users-pane">
   <div class="clearfix">
     <div class="pull-right">
-      <a href="#!/remoteClusters/create" class="btn btn-default">
+      <a href="#/remoteClusters/create" class="btn btn-default">
         {{'views.registerRemoteCluster' | translate}}
       </a>
     </div>
@@ -50,7 +50,7 @@
     </thead>
     <tbody>
     <tr ng-repeat="remoteCluster in remoteClusters  | filter : { isShowed: true }">
-      <td class="col-sm-3"><a href="#!/remoteClusters/{{remoteCluster.ClusterInfo.name}}/edit">{{ remoteCluster.clusterName }}</a></td>
+      <td class="col-sm-3"><a href="#/remoteClusters/{{remoteCluster.ClusterInfo.name}}/edit">{{ remoteCluster.clusterName }}</a></td>
       <td class="col-sm-9">
         <span ng-repeat="service in remoteCluster.ClusterInfo.services" ng-if="remoteCluster.ClusterInfo.services.length > 0">{{ service }}{{$last ? '' : ','}} </span>
         <span ng-if="remoteCluster.ClusterInfo.services.length == 0">--</span>

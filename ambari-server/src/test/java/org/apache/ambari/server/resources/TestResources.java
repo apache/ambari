@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.nio.charset.Charset;
 import java.util.Properties;
 
 import org.apache.ambari.server.configuration.Configuration;
@@ -51,18 +52,20 @@ public class TestResources extends TestCase {
 
   protected Properties buildTestProperties() {
 
-	Properties properties = new Properties();
+    Properties properties = new Properties();
     try {
-		tempFolder.create();
+      tempFolder.create();
 
-		properties.setProperty(Configuration.SRVR_KSTR_DIR.getKey(), tempFolder.getRoot().getAbsolutePath());
-		properties.setProperty(Configuration.RESOURCES_DIR.getKey(), tempFolder.getRoot().getAbsolutePath());
+      properties.setProperty(Configuration.SRVR_KSTR_DIR.getKey(),
+              tempFolder.getRoot().getAbsolutePath());
+      properties.setProperty(Configuration.RESOURCES_DIR.getKey(),
+              tempFolder.getRoot().getAbsolutePath());
 
-	    resourceFile = tempFolder.newFile(RESOURCE_FILE_NAME);
-	    FileUtils.writeStringToFile(resourceFile, RESOURCE_FILE_CONTENT);
-	} catch (IOException e) {
-		e.printStackTrace();
-	}
+      resourceFile = tempFolder.newFile(RESOURCE_FILE_NAME);
+      FileUtils.writeStringToFile(resourceFile, RESOURCE_FILE_CONTENT, Charset.defaultCharset());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
     return properties;
   }
 
@@ -107,7 +110,7 @@ public class TestResources extends TestCase {
   public void testGetResource() throws Exception {
     File resFile = resMan.getResource(resourceFile.getName());
     assertTrue(resFile.exists());
-    String resContent = FileUtils.readFileToString(resFile);
+    String resContent = FileUtils.readFileToString(resFile, Charset.defaultCharset());
     assertEquals(resContent, RESOURCE_FILE_CONTENT);
   }
 

@@ -41,6 +41,7 @@ import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerbero
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.io.FileUtils;
@@ -435,7 +436,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       String defaultRealm = getDefaultRealm(commandParameters);
 
       KerberosOperationHandler handler = kerberosOperationHandlerFactory.getKerberosOperationHandler(kdcType);
-      Map<String, String> kerberosConfiguration = getConfiguration("kerberos-env");
+      Map<String, String> kerberosConfiguration = getConfigurationProperties("kerberos-env");
 
       try {
         handler.open(administratorCredential, defaultRealm, kerberosConfiguration);
@@ -603,6 +604,35 @@ public abstract class KerberosServerAction extends AbstractServerAction {
     return (ambariServerHostEntity == null)
         ? null
         : ambariServerHostEntity.getHostId();
+  }
+
+
+  /**
+   * Retrieve the current set of properties for the requested config type for the relevant cluster.
+   *
+   * @return a Map of property names to property values for the requested config type; or null if no data is found
+   * @throws AmbariException if an error occurs retrieving the relevant cluster details
+   */
+  protected Map<String, String> getConfigurationProperties(String configType) throws AmbariException {
+    if (StringUtils.isNotEmpty(configType)) {
+      Cluster cluster = getCluster();
+      Config config = (cluster == null) ? null : cluster.getDesiredConfigByType(configType);
+      Map<String, String> properties = (config == null) ? null : config.getProperties();
+
+      if (properties == null) {
+        LOG.warn("The '{}' configuration data is not available:" +
+                "\n\tcluster: {}" +
+                "\n\tconfig: {}" +
+                "\n\tproperties: null",
+            configType,
+            (cluster == null) ? "null" : "not null",
+            (config == null) ? "null" : "not null");
+      }
+
+      return properties;
+    } else {
+      return null;
+    }
   }
 
   public static class KerberosCommandParameters {

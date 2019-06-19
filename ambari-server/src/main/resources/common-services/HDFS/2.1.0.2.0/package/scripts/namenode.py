@@ -168,6 +168,8 @@ class NameNode(Script):
     env.set_params(params)
     hdfs_binary = self.get_hdfs_binary()
     namenode(action="decommission", hdfs_binary=hdfs_binary)
+    self.configure(env)
+
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class NameNodeDefault(NameNode):
