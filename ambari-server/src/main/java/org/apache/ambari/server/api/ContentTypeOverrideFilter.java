@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.api.util;
+package org.apache.ambari.server.api;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -64,7 +64,7 @@ public class ContentTypeOverrideFilter implements Filter {
 
     private final Set<String> excludedUrls = new HashSet<>();
 
-    private class ContentTypeOverrideRequestWrapper extends HttpServletRequestWrapper {
+    class ContentTypeOverrideRequestWrapper extends HttpServletRequestWrapper {
 
         public ContentTypeOverrideRequestWrapper(HttpServletRequest request) {
             super(request);
@@ -100,7 +100,7 @@ public class ContentTypeOverrideFilter implements Filter {
         }
     }
 
-    private class ContentTypeOverrideResponseWrapper extends HttpServletResponseWrapper {
+    class ContentTypeOverrideResponseWrapper extends HttpServletResponseWrapper {
 
         public ContentTypeOverrideResponseWrapper(HttpServletResponse response) {
             super(response);

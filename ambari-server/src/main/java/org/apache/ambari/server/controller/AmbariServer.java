@@ -52,7 +52,7 @@ import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
-import org.apache.ambari.server.api.util.ContentTypeOverrideFilter;
+import org.apache.ambari.server.api.ContentTypeOverrideFilter;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
