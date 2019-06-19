@@ -33,6 +33,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -69,9 +70,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 
 import com.google.common.collect.Lists;
 
@@ -193,15 +192,14 @@ public class StackAdvisorCommandTest {
     doReturn(data).when(command)
         .adjust(any(StackAdvisorData.class), any(StackAdvisorRequest.class));
 
-    doAnswer(new Answer() {
-      public Object answer(InvocationOnMock invocation) throws Throwable {
-        String resultFilePath = String.format("%s/%s", requestId, command.getResultFileName());
-        File resultFile = new File(recommendationsDir, resultFilePath);
-        resultFile.getParentFile().mkdirs();
-        FileUtils.writeStringToFile(resultFile, testResourceString);
-        return null;
-      }
-    }).when(saRunner).runScript(any(ServiceInfo.ServiceAdvisorType.class), any(StackAdvisorCommandType.class), any(File.class));
+    doAnswer(invocation -> {
+      String resultFilePath = String.format("%s/%s", requestId, command.getResultFileName());
+      File resultFile = new File(recommendationsDir, resultFilePath);
+      resultFile.getParentFile().mkdirs();
+      FileUtils.writeStringToFile(resultFile, testResourceString, Charset.defaultCharset());
+      return null;
+    }).when(saRunner).runScript(any(ServiceInfo.ServiceAdvisorType.class),
+            any(StackAdvisorCommandType.class), any(File.class));
 
     TestResource result = command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON);
 

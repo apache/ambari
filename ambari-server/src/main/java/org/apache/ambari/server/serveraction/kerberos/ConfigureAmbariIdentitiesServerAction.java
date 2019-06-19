@@ -20,6 +20,7 @@ package org.apache.ambari.server.serveraction.kerberos;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
@@ -249,12 +250,12 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
     if (jaasConfPath != null) {
       File jaasConfigFile = new File(jaasConfPath);
       try {
-        String jaasConfig = FileUtils.readFileToString(jaasConfigFile);
+        String jaasConfig = FileUtils.readFileToString(jaasConfigFile, Charset.defaultCharset());
         File oldJaasConfigFile = new File(jaasConfPath + ".bak");
-        FileUtils.writeStringToFile(oldJaasConfigFile, jaasConfig);
+        FileUtils.writeStringToFile(oldJaasConfigFile, jaasConfig, Charset.defaultCharset());
         jaasConfig = jaasConfig.replaceFirst(KEYTAB_PATTERN, "keyTab=\"" + keytabFilePath + "\"");
         jaasConfig = jaasConfig.replaceFirst(PRINCIPAL_PATTERN, "principal=\"" + principal + "\"");
-        FileUtils.writeStringToFile(jaasConfigFile, jaasConfig);
+        FileUtils.writeStringToFile(jaasConfigFile, jaasConfig, Charset.defaultCharset());
         String message = String.format("JAAS config file %s modified successfully for principal %s.",
             jaasConfigFile.getName(), principal);
         if (actionLog != null) {
