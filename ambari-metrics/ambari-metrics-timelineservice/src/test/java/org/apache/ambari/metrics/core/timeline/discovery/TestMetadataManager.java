@@ -181,7 +181,7 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
   }
 
   @Test
-  public void testWildcardSanitization() throws IOException, SQLException, URISyntaxException {
+  public void testMetricHostWildcardSanitization() throws IOException, SQLException, URISyntaxException {
     // Initialize new manager
     metadataManager = new TimelineMetricMetadataManager(new Configuration(), hdb);
     hdb.setMetadataInstance(metadataManager);
@@ -234,6 +234,7 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     replay(configuration);
 
     hdb.insertMetricRecordsWithMetadata(metadataManager, timelineMetrics, true);
+    metadataManager.forceMetricsMetadataSync();
 
     List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(Collections.singletonList("dummy_m%"),
       Collections.singletonList("dummy_host2"), "dummy_app1", null);
@@ -252,6 +253,85 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     hosts = Arrays.asList("dummy_host");
     uuids = metadataManager.getUuidsForGetMetricQuery(metrics, hosts, "dummy_app2", null);
     Assert.assertTrue(uuids.isEmpty());
+  }
+
+  @Test
+  public void testAppInstanceWildcardSanitization() throws IOException, SQLException, URISyntaxException {
+    // Initialize new manager
+    metadataManager = new TimelineMetricMetadataManager(new Configuration(), hdb);
+    hdb.setMetadataInstance(metadataManager);
+    final long now = System.currentTimeMillis();
+
+    TimelineMetrics timelineMetrics = new TimelineMetrics();
+
+    TimelineMetric metric1 = new TimelineMetric();
+    metric1.setMetricName("dummy_m1");
+    metric1.setHostName("dummy_host1");
+    metric1.setStartTime(now - 1000);
+    metric1.setAppId("dummy_app1");
+    metric1.setInstanceId("dummy_i1");
+    metric1.setType("Integer");
+    metric1.setMetricValues(new TreeMap<Long, Double>() {{
+      put(now - 100, 1.0);
+      put(now - 200, 2.0);
+      put(now - 300, 3.0);
+    }});
+    timelineMetrics.getMetrics().add(metric1);
+
+    TimelineMetric metric2 = new TimelineMetric();
+    metric2.setMetricName("dummy_m2");
+    metric2.setHostName("dummy_host2");
+    metric2.setStartTime(now - 1000);
+    metric2.setAppId("dummy_app2");
+    metric2.setInstanceId("dummy_i2");
+    metric2.setType("Integer");
+    metric2.setMetricValues(new TreeMap<Long, Double>() {{
+      put(now - 100, 1.0);
+      put(now - 200, 2.0);
+      put(now - 300, 3.0);
+    }});
+    timelineMetrics.getMetrics().add(metric2);
+
+    TimelineMetric metric3 = new TimelineMetric();
+    metric3.setMetricName("dummy_3");
+    metric3.setHostName("gummy_3h");
+    metric3.setStartTime(now - 1000);
+    metric3.setAppId("gummy_app3");
+    metric3.setType("Integer");
+    metric3.setMetricValues(new TreeMap<Long, Double>() {{
+      put(now - 100, 1.0);
+      put(now - 200, 2.0);
+      put(now - 300, 3.0);
+    }});
+    timelineMetrics.getMetrics().add(metric3);
+
+    Configuration metricsConf = new Configuration();
+    TimelineMetricConfiguration configuration = EasyMock.createNiceMock(TimelineMetricConfiguration.class);
+    expect(configuration.getMetricsConf()).andReturn(metricsConf).once();
+    replay(configuration);
+
+    hdb.insertMetricRecordsWithMetadata(metadataManager, timelineMetrics, true);
+    metadataManager.forceMetricsMetadataSync();
+
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(Collections.singletonList("dummy_m%"),
+      Collections.singletonList("dummy_host%"), "dummy_app%", "dummy_i%");
+    Assert.assertTrue(uuids.size() == 4);
+
+    uuids = metadataManager.getUuidsForGetMetricQuery(Collections.singletonList("dummy_m1"),
+      Collections.singletonList("dummy_host1"), "dummy_app1", "%");
+    Assert.assertTrue(uuids.size() == 1);
+
+    uuids = metadataManager.getUuidsForGetMetricQuery(Collections.singletonList("dummy_m1"),
+      Collections.singletonList("dummy_host1"), "dummy_app1", "dummy_i%");
+    Assert.assertTrue(uuids.size() == 1);
+
+    uuids = metadataManager.getUuidsForGetMetricQuery(Collections.singletonList("dummy_m1"),
+      Collections.singletonList("dummy_host1"), "dummy_app1", "dummy_i2");
+    Assert.assertTrue(uuids.size() == 0);
+
+    uuids = metadataManager.getUuidsForGetMetricQuery(Collections.singletonList("%"),
+      Collections.singletonList("%"), "%", "%");
+    Assert.assertTrue(uuids.size() == 9);
   }
 
   @Test
