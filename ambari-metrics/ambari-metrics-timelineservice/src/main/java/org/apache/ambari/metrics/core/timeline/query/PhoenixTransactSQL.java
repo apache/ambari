@@ -47,6 +47,16 @@ public class PhoenixTransactSQL {
 
   public static final String METRICS_RECORD_TABLE_NAME = "METRIC_RECORD_UUID";
 
+  public static final String SCAN_METRIC_METADATA_SQL = "SELECT METRIC_NAME, APP_ID, INSTANCE_ID, UUID FROM %s";
+
+  public static final String SCAN_HOST_METADATA_SQL = "SELECT HOSTNAME, UUID FROM %s";
+
+  public static final String METRICS_METADATA_TABLE_NAME =
+    "METRICS_METADATA_UUID";
+
+  public static final String HOST_METADATA_TABLE_NAME =
+    "HOSTED_APPS_METADATA_UUID";
+
   public static final String CREATE_METRICS_TABLE_SQL = "CREATE TABLE IF NOT " +
     "EXISTS " + METRICS_RECORD_TABLE_NAME + " (UUID BINARY(20) NOT NULL, " +
     "SERVER_TIME BIGINT NOT NULL, " +
@@ -978,6 +988,46 @@ public class PhoenixTransactSQL {
 
     return stmt;
 
+  }
+
+  public static PreparedStatement prepareScanMetricMetadataSqlStmt(Connection connection, MetadataQueryCondition condition)
+    throws SQLException {
+
+    String stmtStr;
+    if (condition.isMetricMetadataCondition()) {
+      stmtStr = String.format(SCAN_METRIC_METADATA_SQL, METRICS_METADATA_TABLE_NAME);
+    } else {
+      stmtStr = String.format(SCAN_HOST_METADATA_SQL, HOST_METADATA_TABLE_NAME);
+    }
+
+    StringBuilder sb = new StringBuilder(stmtStr);
+
+    sb.append(" WHERE ");
+    sb.append(condition.getConditionClause());
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("SQL: " + sb.toString() + ", condition: " + condition);
+    }
+
+    PreparedStatement stmt = null;
+    try {
+      stmt = connection.prepareStatement(sb.toString());
+      int pos = 1;
+      if (condition.isMetricMetadataCondition()) {
+        pos = addMetricNames(condition, pos, stmt);
+        pos = addAppId(condition, pos, stmt);
+        pos = addInstanceId(condition, pos, stmt);
+      } else {
+        pos = addHostNames(condition, pos, stmt);
+      }
+
+    } catch (SQLException e) {
+      if (stmt != null) {
+        stmt.close();
+      }
+      throw e;
+    }
+    return stmt;
   }
 
   public static String getTargetTableUsingPrecision(Precision precision, boolean withHosts) {

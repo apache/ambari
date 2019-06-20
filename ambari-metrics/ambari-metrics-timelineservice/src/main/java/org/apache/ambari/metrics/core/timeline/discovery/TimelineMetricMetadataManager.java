@@ -361,7 +361,8 @@ public class TimelineMetricMetadataManager {
   }
 
   boolean isDistributedModeEnabled() {
-    return metricsConf.get("timeline.metrics.service.operation.mode").equals("distributed");
+    String mode = metricsConf.get("timeline.metrics.service.operation.mode");
+    return (mode != null) && mode.equals("distributed");
   }
 
   /**
@@ -632,67 +633,92 @@ public class TimelineMetricMetadataManager {
     Collection<String> sanitizedMetricNames = new HashSet<>();
     List<byte[]> uuids = new ArrayList<>();
 
+    boolean metricNameHasWildcard = false;
+
     for (String metricName : metricNames) {
-      if (metricName.contains("%")) {
-        String metricRegEx = getJavaRegexFromSqlRegex(metricName);
-        for (TimelineMetricMetadataKey key : METADATA_CACHE.keySet()) {
-          String metricNameFromMetadata = key.getMetricName();
-          if (metricNameFromMetadata.matches(metricRegEx)) {
-            sanitizedMetricNames.add(metricNameFromMetadata);
-          }
-        }
-      } else {
-        sanitizedMetricNames.add(metricName);
+      if (hasWildCard(metricName)) {
+        metricNameHasWildcard = true;
+        break;
       }
     }
 
-    if(sanitizedMetricNames.isEmpty()) {
-      return uuids;
+    boolean hostNameHasWildcard = false;
+    if (CollectionUtils.isNotEmpty(hostnames)) {
+      for (String hostname : hostnames) {
+        if (hasWildCard(hostname)) {
+          hostNameHasWildcard = true;
+          break;
+        }
+      }
     }
 
-    Set<String> sanitizedHostNames = getSanitizedHostnames(hostnames);
+    if (hasWildCard(instanceId) || hasWildCard(appId) || hostNameHasWildcard || metricNameHasWildcard) {
+      try {
+        List<TimelineMetricMetadata> metricMetadataFromStore = hBaseAccessor.scanMetricMetadataForWildCardRequest(metricNames,
+          appId, instanceId);
+        List<byte[]> hostUuidsFromStore = hBaseAccessor.scanHostMetadataForWildCardRequest(hostnames);
 
-    if (CollectionUtils.isNotEmpty(sanitizedHostNames)) {
-      if (CollectionUtils.isNotEmpty(sanitizedMetricNames)) {
-
-        //Skip getting UUID if it is a transient metric.
-        //An attempt to get it will also be OK as we don't add null UUIDs.
-        for (String metricName : sanitizedMetricNames) {
-          if (isTransientMetric(metricName, appId)) {
-            transientMetricNames.add(metricName);
-            continue;
+        for (TimelineMetricMetadata matchedEntry : metricMetadataFromStore) {
+          if (matchedEntry.getUuid() != null) {
+            if (CollectionUtils.isNotEmpty(hostnames)) {
+              for (byte[] hostUuidEntry : hostUuidsFromStore) {
+                uuids.add(ArrayUtils.addAll(matchedEntry.getUuid(), hostUuidEntry));
+              }
+            } else {
+              uuids.add(matchedEntry.getUuid());
+            }
+          } else if (isTransientMetric(matchedEntry.getMetricName(), matchedEntry.getAppId())) {
+            transientMetricNames.add(matchedEntry.getMetricName());
           }
-          TimelineMetric metric = new TimelineMetric();
-          metric.setMetricName(metricName);
-          metric.setAppId(appId);
-          metric.setInstanceId(instanceId);
-          for (String hostname : sanitizedHostNames) {
-            metric.setHostName(hostname);
-            byte[] uuid = getUuid(metric, false);
+        }
+        return uuids;
+      } catch (SQLException e) {
+        LOG.error("Unable to query metadata table to check satisfying metric keys for wildcard request : " + e);
+        return uuids;
+      }
+    } else {
+
+      if (CollectionUtils.isNotEmpty(hostnames)) {
+        if (CollectionUtils.isNotEmpty(metricNames)) {
+          //Skip getting UUID if it is a transient metric.
+          //An attempt to get it will also be OK as we don't add null UUIDs.
+          for (String metricName : metricNames) {
+            if (isTransientMetric(metricName, appId)) {
+              transientMetricNames.add(metricName);
+              continue;
+            }
+            TimelineMetric metric = new TimelineMetric();
+            metric.setMetricName(metricName);
+            metric.setAppId(appId);
+            metric.setInstanceId(instanceId);
+            for (String hostname : hostnames) {
+              metric.setHostName(hostname);
+              byte[] uuid = getUuid(metric, false);
+              if (uuid != null) {
+                uuids.add(uuid);
+              }
+            }
+          }
+        } else {
+          for (String hostname : hostnames) {
+            byte[] uuid = getUuidForHostname(hostname, false);
             if (uuid != null) {
               uuids.add(uuid);
             }
           }
         }
       } else {
-        for (String hostname : sanitizedHostNames) {
-          byte[] uuid = getUuidForHostname(hostname, false);
+        for (String metricName : metricNames) {
+          //Skip getting UUID if it is a transient metric. An attempt to get it will also be OK as we don't add null UUIDs.
+          if (isTransientMetric(metricName, appId)) {
+            transientMetricNames.add(metricName);
+            continue;
+          }
+          TimelineClusterMetric metric = new TimelineClusterMetric(metricName, appId, instanceId, -1l);
+          byte[] uuid = getUuid(metric, false);
           if (uuid != null) {
             uuids.add(uuid);
           }
-        }
-      }
-    } else {
-      for (String metricName : sanitizedMetricNames) {
-        //Skip getting UUID if it is a transient metric. An attempt to get it will also be OK as we don't add null UUIDs.
-        if (isTransientMetric(metricName, appId)) {
-          transientMetricNames.add(metricName);
-          continue;
-        }
-        TimelineClusterMetric metric = new TimelineClusterMetric(metricName, appId, instanceId, -1l);
-        byte[] uuid = getUuid(metric, false);
-        if (uuid != null) {
-          uuids.add(uuid);
         }
       }
     }
@@ -830,7 +856,14 @@ public class TimelineMetricMetadataManager {
    * Run TimelineMetricMetadataSync once
    */
   public void forceMetricsMetadataSync() {
+    if (metricMetadataSync == null) {
+      metricMetadataSync = new TimelineMetricMetadataSync(this);
+    }
     metricMetadataSync.run();
+  }
+
+  private boolean hasWildCard(String key) {
+    return StringUtils.isNotEmpty(key) && key.contains("%");
   }
 
   public void updateMetadataCacheUsingV1Tables() throws SQLException {
