@@ -18,13 +18,11 @@
  */
 package org.apache.ambari.logsearch.conf;
 
-import org.apache.ambari.logsearch.conf.global.LogLevelFilterManagerState;
+import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
+
 import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
 
 @Configuration
 public class LogSearchConfigApiConfig {
@@ -58,11 +56,6 @@ public class LogSearchConfigApiConfig {
   )
   @Value("${logsearch.config.api.filter.zk.enabled:false}")
   public boolean zkFilterStorage;
-
-  @Bean(name = "logLevelFilterManagerState")
-  public LogLevelFilterManagerState logLevelFilterManagerState() {
-    return new LogLevelFilterManagerState();
-  }
 
   public boolean isConfigApiEnabled() {
     return configApiEnabled;
