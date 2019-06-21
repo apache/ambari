@@ -22,7 +22,7 @@
 
   <property>
     <name>ranger.plugin.hive.urlauth.filesystem.schemes</name>
-    <value>hdfs:,file:,wasb:,adl:,abfs:</value>
+    <value>hdfs:,file:,wasb:,adl:</value>
     <description>Add urlauth filesystem schemes</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
