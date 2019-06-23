@@ -153,7 +153,7 @@ def execute(configurations={}, parameters={}, host_name=None):
         if transport_mode == "http":
             beeline_url.append("httpPath=cliservice")
             if spark_ssl_enabled:
-                beeline_url.append("ssl=true;sslTrustStore={spark_truststore_path};trustStorePassword={spark_truststore_pass!p}")
+                beeline_url.extend(["ssl=true", "sslTrustStore={spark_truststore_path}", "trustStorePassword={spark_truststore_pass!p}"])
 
         # append url according to used transport
 
