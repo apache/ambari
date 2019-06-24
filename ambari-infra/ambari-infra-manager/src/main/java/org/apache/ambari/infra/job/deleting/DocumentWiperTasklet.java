@@ -18,28 +18,30 @@
  */
 package org.apache.ambari.infra.job.deleting;
 
+import static org.apache.ambari.infra.job.archive.SolrQueryBuilder.computeEnd;
+
 import org.apache.ambari.infra.job.SolrDAOBase;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.lang.NonNull;
 
 public class DocumentWiperTasklet extends SolrDAOBase implements Tasklet {
-  private final String filterField;
-  private final String start;
-  private final String end;
+  private final DeletingProperties parameters;
 
-  public DocumentWiperTasklet(DocumentDeletingProperties properties, String start, String end) {
-    super(properties.getZooKeeperConnectionString(), properties.getCollection());
-    this.filterField = properties.getFilterField();
-    this.start = start;
-    this.end = end;
+  public DocumentWiperTasklet(DeletingProperties deletingProperties) {
+    super(deletingProperties.getZooKeeperConnectionString(), deletingProperties.getCollection());
+    parameters = deletingProperties;
   }
 
   @Override
-  public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-    delete(String.format("%s:[%s TO %s]", filterField, getValue(start), getValue(end)));
+  public RepeatStatus execute(@NonNull StepContribution contribution, @NonNull ChunkContext chunkContext) {
+    delete(String.format("%s:[%s TO %s]",
+            parameters.getFilterField(),
+            getValue(parameters.getStart()),
+            getValue(computeEnd(parameters.getEnd(), parameters.getTtl()))));
     return RepeatStatus.FINISHED;
   }
 

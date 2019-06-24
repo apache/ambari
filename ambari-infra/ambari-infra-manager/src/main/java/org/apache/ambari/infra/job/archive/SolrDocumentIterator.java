@@ -18,11 +18,6 @@
  */
 package org.apache.ambari.infra.job.archive;
 
-import org.apache.ambari.infra.job.CloseableIterator;
-import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.text.DateFormat;
@@ -31,6 +26,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.TimeZone;
+
+import org.apache.ambari.infra.job.CloseableIterator;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
 
 public class SolrDocumentIterator implements CloseableIterator<Document> {
 
@@ -56,20 +56,23 @@ public class SolrDocumentIterator implements CloseableIterator<Document> {
       return null;
     
     SolrDocument document = documentIterator.next();
-    HashMap<String, String> fieldMap = new HashMap<>();
+    HashMap<String, Object> fieldMap = new HashMap<>();
     for (String key : document.getFieldNames()) {
-      fieldMap.put(key, toString(document.get(key)));
+      fieldMap.put(key, convertFieldValue(document.get(key)));
     }
 
     return new Document(fieldMap);
   }
 
-  private String toString(Object value) {
+  private Object convertFieldValue(Object value) {
     if (value == null) {
       return null;
     }
     else if (value instanceof Date) {
       return SOLR_DATE_FORMAT.format(value);
+    }
+    else if (value instanceof Integer || value instanceof Long) {
+      return value;
     }
     else {
       return value.toString();

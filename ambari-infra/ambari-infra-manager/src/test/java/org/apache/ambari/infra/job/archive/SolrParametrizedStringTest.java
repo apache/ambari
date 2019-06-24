@@ -1,12 +1,12 @@
 package org.apache.ambari.infra.job.archive;
 
-import org.junit.Test;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -28,9 +28,9 @@ import static org.junit.Assert.assertThat;
  */
 public class SolrParametrizedStringTest {
 
-  private static final Map<String, String> PARAMETERS_1 = new HashMap<String, String>() {{ put("id", "1"); put("name", "User"); put("product", "Computer"); }};
-  private static final Map<String, String> PARAMETERS_START = new HashMap<String, String>() {{ put("price", "1000"); }};
-  private static final Map<String, String> PARAMETERS_END = new HashMap<String, String>() {{ put("price", "2000"); }};
+  private static final Map<String, Object> PARAMETERS_1 = new HashMap<String, Object>() {{ put("id", "1"); put("name", "User"); put("product", "Computer"); }};
+  private static final Map<String, Object> PARAMETERS_START = new HashMap<String, Object>() {{ put("price", "1000"); }};
+  private static final Map<String, Object> PARAMETERS_END = new HashMap<String, Object>() {{ put("price", "2000"); }};
 
   @Test
   public void testToStringEmptyStringResultsEmptyString() {

@@ -31,17 +31,17 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.LBHttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Solr {
-  private static final Logger LOG = LoggerFactory.getLogger(Solr.class);
+  private static final Logger logger = LogManager.getLogger(Solr.class);
   public static final String AUDIT_LOGS_COLLECTION = "audit_logs";
   public static final String HADOOP_LOGS_COLLECTION = "hadoop_logs";
   private static final int SOLR_PORT = 8983;
@@ -55,7 +55,7 @@ public class Solr {
 
   public Solr(String configSetPath) {
     this.configSetPath = configSetPath;
-    this.solrClient = new LBHttpSolrClient.Builder().withBaseSolrUrls(String.format("http://%s:%d/solr/%s_shard1_replica1",
+    this.solrClient = new LBHttpSolrClient.Builder().withBaseSolrUrls(String.format("http://%s:%d/solr/%s_shard1_replica_n1",
             getDockerHost(),
             SOLR_PORT,
             AUDIT_LOGS_COLLECTION)).build();
@@ -85,8 +85,8 @@ public class Solr {
   }
 
   public void createSolrCollection(String collectionName) {
-    LOG.info("Creating collection");
-    runCommand(new String[]{"docker", "exec", "docker_solr_1", "solr", "create_collection", "-force", "-c", collectionName, "-d", Paths.get(configSetPath, "configsets", collectionName, "conf").toString(), "-n", collectionName + "_conf"});
+    logger.info("Creating collection");
+    runCommand(new String[]{"docker", "exec", "solr", "solr", "create_collection", "-force", "-c", collectionName, "-d", Paths.get(configSetPath, "configsets", collectionName, "conf").toString(), "-n", collectionName + "_conf"});
   }
 
   public QueryResponse query(SolrQuery query) {

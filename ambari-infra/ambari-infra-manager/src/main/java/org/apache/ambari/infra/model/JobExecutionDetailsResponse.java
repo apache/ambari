@@ -18,32 +18,30 @@
  */
 package org.apache.ambari.infra.model;
 
+import static java.util.Collections.unmodifiableList;
+
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class JobExecutionDetailsResponse {
 
-  private JobExecutionInfoResponse jobExecutionInfoResponse;
+  @JsonProperty("jobExecution")
+  private final JobExecutionInfoResponse jobExecutionInfoResponse;
 
-  private List<StepExecutionInfoResponse> stepExecutionInfoList;
+  @JsonProperty("stepExecutionList")
+  private final List<StepExecutionInfoResponse> stepExecutionInfoList;
 
   public JobExecutionDetailsResponse(JobExecutionInfoResponse jobExecutionInfoResponse, List<StepExecutionInfoResponse> stepExecutionInfoList) {
     this.jobExecutionInfoResponse = jobExecutionInfoResponse;
-    this.stepExecutionInfoList = stepExecutionInfoList;
+    this.stepExecutionInfoList = unmodifiableList(stepExecutionInfoList);
   }
 
   public JobExecutionInfoResponse getJobExecutionInfoResponse() {
     return jobExecutionInfoResponse;
   }
 
-  public void setJobExecutionInfoResponse(JobExecutionInfoResponse jobExecutionInfoResponse) {
-    this.jobExecutionInfoResponse = jobExecutionInfoResponse;
-  }
-
   public List<StepExecutionInfoResponse> getStepExecutionInfoList() {
     return stepExecutionInfoList;
-  }
-
-  public void setStepExecutionInfoList(List<StepExecutionInfoResponse> stepExecutionInfoList) {
-    this.stepExecutionInfoList = stepExecutionInfoList;
   }
 }

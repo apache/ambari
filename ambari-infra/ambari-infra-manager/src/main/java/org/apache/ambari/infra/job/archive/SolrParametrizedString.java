@@ -18,13 +18,13 @@
  */
 package org.apache.ambari.infra.job.archive;
 
-import org.apache.solr.client.solrj.util.ClientUtils;
-
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.solr.client.solrj.util.ClientUtils;
 
 public class SolrParametrizedString {
   private static final String PARAMETER_PATTERN = "\\$\\{%s[a-z0-9A-Z]+}";
@@ -49,16 +49,16 @@ public class SolrParametrizedString {
     return string;
   }
 
-  public SolrParametrizedString set(Map<String, String> parameterMap) {
+  public SolrParametrizedString set(Map<String, Object> parameterMap) {
     return set(NO_PREFIX_PARAMETER_PATTERN, null, parameterMap);
   }
 
-  public SolrParametrizedString set(String prefix, Map<String, String> parameterMap) {
+  public SolrParametrizedString set(String prefix, Map<String, Object> parameterMap) {
     String dottedPrefix = prefix + ".";
     return set(Pattern.compile(String.format(PARAMETER_PATTERN, dottedPrefix)), dottedPrefix, parameterMap);
   }
 
-  private SolrParametrizedString set(Pattern regExPattern, String prefix, Map<String, String> parameterMap) {
+  private SolrParametrizedString set(Pattern regExPattern, String prefix, Map<String, Object> parameterMap) {
     String newString = string;
     for (String paramName : collectParamNames(regExPattern)) {
       String paramSuffix = prefix == null ? paramName : paramName.replace(prefix, "");
@@ -68,10 +68,13 @@ public class SolrParametrizedString {
     return new SolrParametrizedString(newString);
   }
 
-  private String getValue(Map<String, String> parameterMap, String paramSuffix) {
-    String value = parameterMap.get(paramSuffix);
-    if ("*".equals(value))
-      return value;
-    return ClientUtils.escapeQueryChars(value);
+  private String getValue(Map<String, Object> parameterMap, String paramSuffix) {
+    Object value = parameterMap.get(paramSuffix);
+    if (value == null)
+      throw new NullPointerException(String.format("Value can not be null parameterMap[%s]", paramSuffix));
+    String stringValue = value.toString();
+    if ("*".equals(stringValue))
+      return stringValue;
+    return ClientUtils.escapeQueryChars(stringValue);
   }
 }

@@ -18,6 +18,8 @@
  */
 package org.apache.ambari.infra.manager;
 
+import java.util.Optional;
+
 import org.apache.ambari.infra.model.JobExecutionInfoResponse;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
@@ -28,8 +30,6 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 
-import java.util.Optional;
-
 public interface Jobs {
   JobExecutionInfoResponse launchJob(String jobName, JobParameters params)
           throws JobParametersInvalidException, NoSuchJobException,
@@ -39,4 +39,6 @@ public interface Jobs {
           JobParametersInvalidException, JobRestartException, NoSuchJobExecutionException;
 
   Optional<JobExecution> lastRun(String jobName) throws NoSuchJobException, NoSuchJobExecutionException;
+
+  void stopAndAbandon(Long jobExecution) throws NoSuchJobExecutionException, JobExecutionAlreadyRunningException;
 }
