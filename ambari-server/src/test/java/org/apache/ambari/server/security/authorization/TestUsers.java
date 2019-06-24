@@ -229,11 +229,12 @@ public class TestUsers {
 
     //Minimum eight characters, at least one letter and one number:
     configuration.setProperty(Configuration.PASSWORD_POLICY_REGEXP, "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$");
+    configuration.setProperty(Configuration.PASSWORD_POLICY_DESCRIPTION, "test description");
     try {
       users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "abc123", false);
       fail("Should not pass validation");
     } catch (IllegalArgumentException e) {
-      assertEquals("The password does not meet the Ambari user password policy regexp:^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$", e.getLocalizedMessage());
+      assertEquals("The password does not meet the Ambari user password policy : test description", e.getLocalizedMessage());
     }
     users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "abcd1234", false);
   }
