@@ -1088,6 +1088,7 @@ public class AmbariServer {
 
       // check if this instance is the active instance
       Configuration config = injector.getInstance(Configuration.class);
+      config.validatePasswordPolicyRegexp();
       if (!config.isActiveInstance()) {
         String errMsg = "This instance of ambari server is not designated as active. Cannot start ambari server." +
                             "The property active.instance is set to false in ambari.properties";

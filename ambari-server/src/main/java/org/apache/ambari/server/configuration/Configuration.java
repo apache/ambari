@@ -50,6 +50,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
@@ -512,6 +513,14 @@ public class Configuration {
       description = "Determines Ambari user password policy. Passwords should match the regex")
   public static final ConfigurationProperty<String> PASSWORD_POLICY_REGEXP = new ConfigurationProperty<>(
       "security.password.policy.regexp", ".*");
+
+  /**
+   * Configurable password policy for Ambari users
+   */
+  @Markdown(
+      description = "Password policy description that is shown to users")
+  public static final ConfigurationProperty<String> PASSWORD_POLICY_DESCRIPTION = new ConfigurationProperty<>(
+      "security.password.policy.description", "");
 
   /**
    * Determines whether the Ambari Agent host names should be validated against
@@ -2634,6 +2643,17 @@ public class Configuration {
   }
 
   /**
+   * Validate password policy regexp syntax
+   * @throws java.util.regex.PatternSyntaxException If the expression's syntax is invalid
+   */
+  public void validatePasswordPolicyRegexp() {
+    String regexp = getPasswordPolicyRegexp();
+    if (!StringUtils.isEmpty(regexp) && !regexp.equalsIgnoreCase(".*")) {
+      Pattern.compile(regexp);
+    }
+  }
+
+  /**
    * Ldap username collision handling behavior.
    * ADD - append the new LDAP entry to the set of existing authentication methods.
    * CONVERT - remove all authentication methods except for the new LDAP entry.
@@ -4015,6 +4035,13 @@ public class Configuration {
    */
   public String getPasswordPolicyRegexp() {
     return getProperty(PASSWORD_POLICY_REGEXP);
+  }
+
+  /**
+   * @return Password policy explanation according to regexp
+   */
+  public String getPasswordPolicyDescription() {
+    return getProperty(PASSWORD_POLICY_DESCRIPTION);
   }
 
   public JPATableGenerationStrategy getJPATableGenerationStrategy() {
