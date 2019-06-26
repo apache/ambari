@@ -471,18 +471,20 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         serviceConfigVersionRequest =
             (serviceConfigVersionRequest ==null ) ? new ServiceConfigVersionRequest() : serviceConfigVersionRequest;
 
-        switch (propName) {
-          case "service_name": {
-            serviceConfigVersionRequest.setServiceName(entry.getValue().toString());
-            break;
-          }
-          case "service_config_version": {
-            serviceConfigVersionRequest.setVersion(Long.valueOf(entry.getValue().toString()));
-            break;
-          }
-          case "service_config_version_note": {
-            serviceConfigVersionRequest.setNote(entry.getValue().toString());
-            break;
+        if (propName != null) {
+          switch (propName) {
+            case "service_name": {
+              serviceConfigVersionRequest.setServiceName(entry.getValue().toString());
+              break;
+            }
+            case "service_config_version": {
+              serviceConfigVersionRequest.setVersion(Long.valueOf(entry.getValue().toString()));
+              break;
+            }
+            case "service_config_version_note": {
+              serviceConfigVersionRequest.setNote(entry.getValue().toString());
+              break;
+            }
           }
         }
       }
