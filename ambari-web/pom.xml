@@ -65,7 +65,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.0</version>
+        <version>3.2</version>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>

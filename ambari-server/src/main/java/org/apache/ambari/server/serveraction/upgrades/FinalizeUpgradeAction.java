@@ -56,6 +56,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.text.StrBuilder;
 
+import com.google.common.base.MoreObjects;
 import com.google.inject.Inject;
 
 /**
@@ -500,7 +501,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
      */
     @Override
     public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("host", hostName)
           .add("component", componentName)
           .add("current", currentVersion)
