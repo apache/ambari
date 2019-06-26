@@ -63,7 +63,7 @@ from ambari_server_main import server_process_main
 
 logger = logging.getLogger()
 
-formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
+formatstr = "%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s"
 
 SERVER_STOP_TIMEOUT = 30
 

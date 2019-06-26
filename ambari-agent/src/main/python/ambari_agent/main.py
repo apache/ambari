@@ -118,7 +118,7 @@ alerts_logger_global = logging.getLogger('ambari_agent.alerts')
 apscheduler_logger = logging.getLogger('apscheduler')
 apscheduler_logger_global = logging.getLogger('ambari_agent.apscheduler')
 
-formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
+formatstr = "%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
 
 # Global variables to be set later.
