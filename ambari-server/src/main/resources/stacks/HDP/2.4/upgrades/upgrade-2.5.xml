@@ -533,6 +533,11 @@
         </task>
       </execute-stage>
 
+      <execute-stage title="Update Target Repositories">
+        <task xsi:type="server_action"
+                class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredRepositoryAction"/>
+      </execute-stage>
+
       <execute-stage title="Save Cluster State">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction" />
       </execute-stage>

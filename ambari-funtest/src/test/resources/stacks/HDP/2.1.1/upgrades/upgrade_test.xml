@@ -114,6 +114,10 @@
           <command>ls</command>
         </task>
       </execute-stage>
+      <execute-stage title="Update Target Repositories">
+        <task xsi:type="server_action"
+                class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredRepositoryAction"/>
+      </execute-stage>
       <execute-stage title="Save Cluster State" service="" component="">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
         </task>
