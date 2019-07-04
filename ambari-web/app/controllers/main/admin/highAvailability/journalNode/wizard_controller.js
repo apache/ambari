@@ -42,7 +42,7 @@ App.ManageJournalNodeWizardController = App.WizardController.extend({
     serviceConfigProperties: [],
     serviceName: 'MISC',
     hdfsUser: "hdfs",
-    nameServiceId: '',
+    nameServiceIds: [],
     failedTask: null,
     requestIds: null
   }),
@@ -104,7 +104,7 @@ App.ManageJournalNodeWizardController = App.WizardController.extend({
       {
         type: 'sync',
         callback: function () {
-          this.loadNameServiceId();
+          this.loadNameServiceIds();
           this.loadServiceConfigProperties();
         }
       }
@@ -205,14 +205,14 @@ App.ManageJournalNodeWizardController = App.WizardController.extend({
     this.set('content.' + tag, tagVal);
   },
 
-  saveNameServiceId: function (nameServiceId) {
-    this.setDBProperty('nameServiceId', nameServiceId);
-    this.set('content.nameServiceId', nameServiceId);
+  saveNameServiceIds: function (nameServiceIds) {
+    this.setDBProperty('nameServiceIds', nameServiceIds);
+    this.set('content.nameServiceIds', nameServiceIds);
   },
 
-  loadNameServiceId: function () {
-    var nameServiceId = this.getDBProperty('nameServiceId');
-    this.set('content.nameServiceId', nameServiceId);
+  loadNameServiceIds: function () {
+    var nameServiceIds = this.getDBProperty('nameServiceIds');
+    this.set('content.nameServiceIds', nameServiceIds);
   },
 
   /**
