@@ -74,7 +74,7 @@
     <repository>
       <id>apache-hadoop</id>
       <name>hdp</name>
-      <url>http://nexus-private.hortonworks.com/nexus/content/groups/public</url>
+      <url>https://nexus-private.hortonworks.com/nexus/content/groups/public</url>
     </repository>
     <repository>
       <id>apache-snapshots</id>
