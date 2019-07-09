@@ -2609,6 +2609,13 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES = new ConfigurationProperty<>(
     "stack.upgrade.default.parallelism", 100);
 
+  /**
+   * The timeout, in seconds, when finalizing Kerberos enable/disable/regenerate commands.
+   */
+  @Markdown(description = "The timeout, in seconds, when finalizing Kerberos enable/disable/regenerate commands.")
+  public static final ConfigurationProperty<Integer> KERBEROS_SERVER_ACTION_FINALIZE_SECONDS = new ConfigurationProperty<>(
+    "server.kerberos.finalize.timeout", 600);
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -5561,6 +5568,16 @@ public class Configuration {
     return Integer.parseInt(getProperty(DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES));
   }
 
+  /**
+   * Get the timeout, in seconds, when finalizing Kerberos
+   * enable/disable/regenerate commands.
+   *
+   * @return the timeout, in seconds, defaulting to 600.
+   */
+  public int getKerberosServerActionFinalizeTimeout() {
+    return Integer.parseInt(getProperty(KERBEROS_SERVER_ACTION_FINALIZE_SECONDS));
+  }
+  
   /**
    * Generates a markdown table which includes:
    * <ul>
