@@ -14,7 +14,7 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
---><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
+--><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
@@ -27,7 +27,6 @@
   <version>2.6.2.0.0</version>
   <packaging>pom</packaging>
 
-  <url>http://maven.apache.org</url>
   <modules>
     <module>ambari-logsearch-assembly</module>
     <module>ambari-logsearch-appender</module>
@@ -51,7 +50,7 @@
     <repository>
       <id>apache-hadoop</id>
       <name>hdp</name>
-      <url>http://repo.hortonworks.com/content/groups/public/</url>
+      <url>https://repo.hortonworks.com/content/groups/public/</url>
     </repository>
     <repository>
       <id>apache-snapshots</id>

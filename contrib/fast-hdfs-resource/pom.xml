@@ -25,11 +25,10 @@
   <packaging>jar</packaging>
 
   <name>fast-hdfs-resource</name>
-  <url>http://maven.apache.org</url>
   <repositories>
     <repository>
       <id>hdp.internal</id>
-      <url>http://repo1.maven.org/maven2</url>
+      <url>https://repo1.maven.org/maven2</url>
     </repository>
   </repositories>
   <properties>

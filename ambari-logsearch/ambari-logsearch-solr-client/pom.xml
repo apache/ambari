@@ -24,7 +24,6 @@
     <version>2.6.2.0.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <url>http://maven.apache.org</url>
   <name>Ambari Logsearch Solr Client</name>
 
   <artifactId>ambari-logsearch-solr-client</artifactId>

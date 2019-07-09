@@ -24,7 +24,6 @@
     <version>2.6.2.0.0</version>
   </parent>
   <name>Ambari Infra Solr Plugin</name>
-  <url>http://maven.apache.org</url>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-infra-solr-plugin</artifactId>
   <dependencies>
