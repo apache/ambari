@@ -163,8 +163,8 @@ def decommission():
       nn_refresh_cmd = format('dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes')
     else:
       nn_refresh_cmd = format('dfsadmin -refreshNodes')
-    ExecuteHadoop(nn_refresh_cmd,
-                  user=hdfs_user,
-                  conf_dir=conf_dir,
-                  kinit_override=True,
-                  bin_dir=params.hadoop_bin_dir)
+    ExecuteHDFS(nn_refresh_cmd,
+                user=hdfs_user,
+                conf_dir=conf_dir,
+                kinit_override=True,
+                bin_dir=params.hadoop_bin_dir)

@@ -1529,5 +1529,18 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         });
       }
     });
+  },
+
+  /**
+   * Replace placeholders for config properties which have dynamic names/values with actual data
+   * @param value
+   * @param dependencies
+   * @returns {*}
+     */
+  replaceDependencies: function (value, dependencies) {
+    Em.keys(dependencies).forEach(function (key) {
+      value = value.replace(new RegExp('{{' + key + '}}', 'g'), dependencies[key]);
+    });
+    return value;
   }
 });

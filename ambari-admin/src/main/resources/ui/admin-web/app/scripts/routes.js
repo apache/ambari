@@ -147,6 +147,7 @@ angular.module('ambariAdminConsole')
   }
 })
 .config(['$routeProvider', '$locationProvider', 'ROUTES', function ($routeProvider, $locationProvider, ROUTES) {
+  $locationProvider.hashPrefix('');
   var createRoute = function (routeObj) {
     if (routeObj.url) {
       $routeProvider.when(routeObj.url, routeObj);

@@ -18,36 +18,37 @@
  */
 package org.apache.ambari.infra.job.archive;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
+import static java.util.Collections.unmodifiableMap;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static java.util.Collections.unmodifiableMap;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 
 public class Document {
-  private final Map<String, String> fieldMap;
+  private final Map<String, Object> fieldMap;
 
   private Document() {
     fieldMap = new HashMap<>();
   }
 
-  public Document(Map<String, String> fieldMap) {
+  public Document(Map<String, Object> fieldMap) {
     this.fieldMap = unmodifiableMap(fieldMap);
   }
 
-  public String get(String key) {
-    return fieldMap.get(key);
+  public String getString(String key) {
+    Object value = fieldMap.get(key);
+    return value == null ? null : value.toString();
   }
 
   @JsonAnyGetter
-  public Map<String, String> getFieldMap() {
+  public Map<String, Object> getFieldMap() {
     return fieldMap;
   }
 
   @JsonAnySetter
-  private void put(String key, String value) {
+  private void put(String key, Object value) {
     fieldMap.put(key, value);
   }
 }

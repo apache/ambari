@@ -27,8 +27,8 @@ import static spark.Spark.post;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 
@@ -37,7 +37,7 @@ import spark.Response;
 import spark.servlet.SparkApplication;
 
 public class MockMetricsServer implements SparkApplication {
-  private static final Logger LOG = LoggerFactory.getLogger(MockMetricsServer.class);
+  private static final Logger logger = LogManager.getLogger(MockMetricsServer.class);
   private static final String HOST_NAME = "metrics_collector";
 
   private Set<String> expectedMetrics;
@@ -51,14 +51,14 @@ public class MockMetricsServer implements SparkApplication {
   }
 
   private Object queryState(Request request, Response response) {
-    LOG.info("Sending hostname {}", HOST_NAME);
+    logger.info("Sending hostname {}", HOST_NAME);
     response.type("application/json");
     return new Gson().toJson(singletonList(HOST_NAME));
   }
 
   private Object logBody(Request req, Response resp) {
     String body = req.body();
-    LOG.info("Incoming metrics {}", body);
+    logger.info("Incoming metrics {}", body);
 
     expectedMetrics.removeIf(body::contains);
 

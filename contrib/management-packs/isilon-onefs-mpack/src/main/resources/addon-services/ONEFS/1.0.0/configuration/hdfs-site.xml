@@ -19,6 +19,13 @@
 <!-- Put site-specific property overrides in this file. -->
 <configuration supports_final="true">
   <property>
+    <name>dfs.webhdfs.enabled</name>
+    <value>true</value>
+    <display-name>WebHDFS enabled</display-name>
+    <description>Whether to enable WebHDFS feature</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>dfs.namenode.http-address</name>
     <value>localhost:8082</value>
     <description>The name of the default file system.  Either the

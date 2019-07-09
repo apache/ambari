@@ -18,20 +18,19 @@
  */
 package org.apache.ambari.infra.conf;
 
+import javax.ws.rs.ApplicationPath;
+
 import org.apache.ambari.infra.rest.JobResource;
-import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletProperties;
-
-import javax.ws.rs.ApplicationPath;
 
 @ApplicationPath("/api/v1")
 public class InfraManagerJerseyResourceConfig extends ResourceConfig {
 
   public InfraManagerJerseyResourceConfig() {
     packages(JobResource.class.getPackage().getName());
-    register(JacksonFeature.class);
+    register(JacksonJaxbJsonProvider.class);
     property(ServletProperties.FILTER_FORWARD_ON_404, true);
   }
-
 }

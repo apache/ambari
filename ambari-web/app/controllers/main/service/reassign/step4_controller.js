@@ -72,21 +72,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   dependentHostComponents: [],
 
-  dbPropertyMap: {
-    'HIVE_SERVER': {
-      type: 'hive-site',
-      name: 'javax.jdo.option.ConnectionDriverName'
-    },
-    'HIVE_METASTORE': {
-      type: 'hive-site',
-      name: 'javax.jdo.option.ConnectionDriverName'
-    },
-    'OOZIE_SERVER': {
-      type: 'oozie-site',
-      name: 'oozie.service.JPAService.jdbc.url'
-    }
-  },
-
   /**
    * load step info
    */
@@ -659,30 +644,12 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     return propertiesMap[this.get('content.reassign.service_id')];
   }.property(),
 
-  dbType: function() {
-    var databaseTypes = /MySQL|PostgreS|Oracle|Derby|MSSQL|Anywhere/gi,
-      dbPropertyMapItem = Em.getWithDefault(this.get('dbPropertyMap'), this.get('content.reassign.component_name'), null),
-      databasePropMatch,
-      databaseProp,
-      result;
-
-    if (dbPropertyMapItem) {
-      databaseProp = Em.getWithDefault(this.get('content.configs'), dbPropertyMapItem.type, {})[dbPropertyMapItem.name];
-      databasePropMatch = databaseProp && databaseProp.match(databaseTypes);
-      if (databasePropMatch) {
-        result = databasePropMatch[0];
-      }
-    }
-
-    return result;
-  }.property(),
-
   prepareDBCheckAction: function() {
     var params = this.get('preparedDBProperties');
 
     var ambariProperties = App.router.get('clusterController.ambariProperties');
 
-    params['db_name'] = this.get('dbType');
+    params['db_name'] = this.get('content.databaseType');
     params['jdk_location'] = ambariProperties['jdk_location'];
     params['jdk_name'] = ambariProperties['jdk.name'];
     params['java_home'] = ambariProperties['java.home'];
@@ -774,7 +741,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   testDBRetryTooltip: function() {
     var db_host = this.get('content.serviceProperties.database_hostname');
-    var db_type = this.get('dbType');
+    var db_type = this.get('content.databaseType');
     var db_props = this.get('preparedDBProperties');
 
     return Em.I18n.t('services.reassign.step4.tasks.testDBConnection.tooltip').format(

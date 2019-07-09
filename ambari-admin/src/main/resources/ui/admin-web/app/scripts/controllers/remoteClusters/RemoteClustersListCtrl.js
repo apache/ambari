@@ -80,10 +80,9 @@ function ($scope, $routeParams, $translate, RemoteCluster, Settings, Pagination,
       $scope.tableInfo.total = $scope.remoteClusters.length;
       $scope.filterClusters();
       Filters.initFilterOptions($scope.filters, $scope.remoteClusters);
-    })
-      .catch(function (data) {
-        console.error($t('remoteClusters.alerts.fetchError'), data);
-      });
+    }).catch(function (data) {
+      console.error($t('remoteClusters.alerts.fetchError'), data);
+    });
   }
 
   loadRemoteClusters();

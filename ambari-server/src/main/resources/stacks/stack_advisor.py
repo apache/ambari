@@ -1502,7 +1502,6 @@ class DefaultStackAdvisor(StackAdvisor):
       if siteProperties is not None:
         siteRecommendations = recommendedDefaults[siteName]["properties"]
         self.logger.info("SiteName: %s, method: %s" % (siteName, method.__name__))
-        self.logger.info("Site properties: %s" % str(siteProperties))
         self.logger.info("Recommendations: %s" % str(siteRecommendations))
         return method(siteProperties, siteRecommendations, configurations, services, hosts)
     return []

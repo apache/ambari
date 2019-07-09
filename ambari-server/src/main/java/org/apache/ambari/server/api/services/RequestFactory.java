@@ -26,6 +26,7 @@ import java.util.Map;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.server.api.predicate.QueryLexer;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 
@@ -154,6 +155,7 @@ public class RequestFactory {
    */
   private boolean applyDirectives(Request.Type requestType, RequestBody body, UriInfo uriInfo, ResourceInstance resource) {
     Map<String, String> queryParameters = getQueryParameters(uriInfo, body);
+    queryParameters.remove(QueryLexer.QUERY_DOAS); // KNOX appends a doAs parameter to every request. Ignore this as it's neither a query predicate nor a directive.
     Map<String, String> requestInfoProperties;
     boolean allDirectivesApplicable = true;
     if (!queryParameters.isEmpty()) {

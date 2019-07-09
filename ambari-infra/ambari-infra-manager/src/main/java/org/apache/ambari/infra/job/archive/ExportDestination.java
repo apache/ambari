@@ -20,6 +20,5 @@ package org.apache.ambari.infra.job.archive;
 
 public enum ExportDestination {
   LOCAL,
-  HDFS,
-  S3
+  HDFS
 }

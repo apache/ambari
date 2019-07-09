@@ -49,6 +49,7 @@
                name="clusterName"
                ng-change="toggleSaveButton()"
                ng-model="edit.clusterName"
+               ng-pattern="nameValidationPattern"
                required
                autofocus
                ng-maxlength="100"
@@ -58,7 +59,7 @@
                ng-class="{edited: isClusterNameEdited}">
         <button
           type="submit"
-          ng-class="{'disabled': editClusterNameForm.clusterName.$invalid}"
+          ng-disabled="editClusterNameForm.clusterName.$invalid"
           class="btn btn-default pull-right"
           ng-show="isClusterNameEdited">
           {{'common.controls.save' | translate}}

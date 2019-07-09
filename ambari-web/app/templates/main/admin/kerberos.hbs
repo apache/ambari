@@ -21,10 +21,10 @@
       <span class="text-success">{{t admin.security.enabled}}</span>
       {{#isAuthorized "CLUSTER.TOGGLE_KERBEROS"}}
         {{#if App.supports.enableToggleKerberos}}
-          <button class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.kerberos.button.disable}} </button>
-          {{#unless isManualKerberos}}
+          <button class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="controller.isKerberosButtonsDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.kerberos.button.disable}} </button>
+          {{#unless controller.isManualKerberos}}
             <button class="btn btn-success"
-                    id="regenerate-keytabs" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action regenerateKeytabs target="controller"}}>
+                    id="regenerate-keytabs" {{bindAttr disabled="controller.isKerberosButtonsDisabled"}} {{action regenerateKeytabs target="controller"}}>
               <i class="glyphicon glyphicon-repeat"></i>&nbsp; {{t admin.kerberos.button.regenerateKeytabs}}</button>
             {{#if App.isCredentialStorePersistent}}
               <button class="btn btn-primary" {{action showManageKDCCredentialsPopup target="controller"}}>{{t admin.kerberos.credentials.store.menu.label}}</button>

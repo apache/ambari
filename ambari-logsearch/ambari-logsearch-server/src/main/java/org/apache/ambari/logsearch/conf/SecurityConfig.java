@@ -100,6 +100,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Inject
   private LogSearchConfigApiConfig logSearchConfigApiConfig;
 
+  @Inject
+  private LogsearchAuthenticationProvider logsearchAuthenticationProvider;
+
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http
@@ -108,7 +111,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .requestMatchers(requestMatcher()).permitAll()
         .antMatchers("/**").authenticated()
       .and()
-      .authenticationProvider(logsearchAuthenticationProvider())
+      .authenticationProvider(logsearchAuthenticationProvider)
       .httpBasic()
         .authenticationEntryPoint(logsearchAuthenticationEntryPoint())
       .and()
@@ -141,11 +144,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Bean
   public LogsearchKRBAuthenticationFilter logsearchKRBAuthenticationFilter() {
     return new LogsearchKRBAuthenticationFilter(requestMatcher());
-  }
-
-  @Bean
-  public LogsearchAuthenticationProvider logsearchAuthenticationProvider() {
-    return new LogsearchAuthenticationProvider();
   }
 
   @Bean

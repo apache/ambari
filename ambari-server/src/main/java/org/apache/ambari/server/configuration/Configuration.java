@@ -33,6 +33,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -49,6 +50,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
@@ -503,6 +505,22 @@ public class Configuration {
   @Markdown(description = "Determines whether SSL is used to communicate between Ambari Server and Ambari Agents.")
   public static final ConfigurationProperty<String> AGENT_USE_SSL = new ConfigurationProperty<>(
       "agent.ssl", "true");
+
+  /**
+   * Configurable password policy for Ambari users
+   */
+  @Markdown(
+      description = "Determines Ambari user password policy. Passwords should match the regex")
+  public static final ConfigurationProperty<String> PASSWORD_POLICY_REGEXP = new ConfigurationProperty<>(
+      "security.password.policy.regexp", ".*");
+
+  /**
+   * Configurable password policy for Ambari users
+   */
+  @Markdown(
+      description = "Password policy description that is shown to users")
+  public static final ConfigurationProperty<String> PASSWORD_POLICY_DESCRIPTION = new ConfigurationProperty<>(
+      "security.password.policy.description", "");
 
   /**
    * Determines whether the Ambari Agent host names should be validated against
@@ -2632,6 +2650,17 @@ public class Configuration {
   }
 
   /**
+   * Validate password policy regexp syntax
+   * @throws java.util.regex.PatternSyntaxException If the expression's syntax is invalid
+   */
+  public void validatePasswordPolicyRegexp() {
+    String regexp = getPasswordPolicyRegexp();
+    if (!StringUtils.isEmpty(regexp) && !regexp.equalsIgnoreCase(".*")) {
+      Pattern.compile(regexp);
+    }
+  }
+
+  /**
    * Ldap username collision handling behavior.
    * ADD - append the new LDAP entry to the set of existing authentication methods.
    * CONVERT - remove all authentication methods except for the new LDAP entry.
@@ -2826,7 +2855,7 @@ public class Configuration {
       try {
         password = RandomStringUtils.randomAlphanumeric(Integer
             .parseInt(configsMap.get(SRVR_CRT_PASS_LEN.getKey())));
-        FileUtils.writeStringToFile(passFile, password);
+        FileUtils.writeStringToFile(passFile, password, Charset.defaultCharset());
         ShellCommandUtil.setUnixFilePermissions(
           ShellCommandUtil.MASK_OWNER_ONLY_RW, passFile.getAbsolutePath());
       } catch (IOException e) {
@@ -2837,7 +2866,7 @@ public class Configuration {
     } else {
       LOG.info("Reading password from existing file");
       try {
-        password = FileUtils.readFileToString(passFile);
+        password = FileUtils.readFileToString(passFile, Charset.defaultCharset());
         password = password.replaceAll("\\p{Cntrl}", "");
       } catch (IOException e) {
         e.printStackTrace();
@@ -2853,7 +2882,7 @@ public class Configuration {
       if (httpsPassFile.exists()) {
         LOG.info("Reading password from existing file");
         try {
-          password = FileUtils.readFileToString(httpsPassFile);
+          password = FileUtils.readFileToString(httpsPassFile, Charset.defaultCharset());
           password = password.replaceAll("\\p{Cntrl}", "");
         } catch (IOException e) {
           e.printStackTrace();
@@ -3535,7 +3564,9 @@ public class Configuration {
    */
   public String getServerVersion() {
     try {
-      return FileUtils.readFileToString(new File(getServerVersionFilePath())).trim();
+      return FileUtils
+              .readFileToString(new File(getServerVersionFilePath()), Charset.defaultCharset())
+              .trim();
     } catch (IOException e) {
       LOG.error("Unable to read server version file", e);
     }
@@ -4004,6 +4035,20 @@ public class Configuration {
 
   public String getMySQLJarName() {
     return getProperty(MYSQL_JAR_NAME);
+  }
+
+  /**
+   * @return Configurable password policy for Ambari users
+   */
+  public String getPasswordPolicyRegexp() {
+    return getProperty(PASSWORD_POLICY_REGEXP);
+  }
+
+  /**
+   * @return Password policy explanation according to regexp
+   */
+  public String getPasswordPolicyDescription() {
+    return getProperty(PASSWORD_POLICY_DESCRIPTION);
   }
 
   public JPATableGenerationStrategy getJPATableGenerationStrategy() {
@@ -5680,7 +5725,7 @@ public class Configuration {
       markdown = markdown.replace(MARKDOWN_BASELINE_VALUES_KEY, baselineBuffer.toString());
 
       File file = new File(outputFile);
-      FileUtils.writeStringToFile(file, markdown);
+      FileUtils.writeStringToFile(file, markdown, Charset.defaultCharset());
       System.out.println("Successfully created " + outputFile);
       LOG.info("Successfully created {}", outputFile);
     } finally {

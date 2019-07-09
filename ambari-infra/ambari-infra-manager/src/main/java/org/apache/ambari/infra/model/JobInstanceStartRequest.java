@@ -22,14 +22,17 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
+import io.swagger.annotations.ApiParam;
+
 public class JobInstanceStartRequest {
 
   @PathParam("jobName")
   @NotNull
+  @ApiParam(required = true)
   private String jobName;
 
   @QueryParam("params")
-  String params;
+  private String params;
 
   public String getJobName() {
     return jobName;

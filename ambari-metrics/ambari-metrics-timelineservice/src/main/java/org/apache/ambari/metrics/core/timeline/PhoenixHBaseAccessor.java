@@ -121,6 +121,7 @@ import org.apache.ambari.metrics.core.timeline.discovery.TimelineMetricMetadataK
 import org.apache.ambari.metrics.core.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.ambari.metrics.core.timeline.query.Condition;
 import org.apache.ambari.metrics.core.timeline.query.DefaultPhoenixDataSource;
+import org.apache.ambari.metrics.core.timeline.query.MetadataQueryCondition;
 import org.apache.ambari.metrics.core.timeline.query.PhoenixConnectionProvider;
 import org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL;
 import org.apache.ambari.metrics.core.timeline.query.SplitByMetricNamesCondition;
@@ -1988,6 +1989,106 @@ public class PhoenixHBaseAccessor {
     }
 
     return metadataMap;
+  }
+
+  public List<TimelineMetricMetadata> scanMetricMetadataForWildCardRequest(Collection<String> metricNames,
+                                                                           String appId,
+                                                                           String instanceId) throws SQLException {
+    List<TimelineMetricMetadata> metadataList = new ArrayList<>();
+    Connection conn = getConnection();
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+
+    MetadataQueryCondition metadataQueryCondition = new MetadataQueryCondition(new ArrayList<>(metricNames), appId, instanceId);
+    stmt = PhoenixTransactSQL.prepareScanMetricMetadataSqlStmt(conn, metadataQueryCondition);
+    try {
+      if (stmt != null) {
+        rs = stmt.executeQuery();
+        while (rs.next()) {
+          TimelineMetricMetadata metadata = new TimelineMetricMetadata(
+            rs.getString("METRIC_NAME"),
+            rs.getString("APP_ID"),
+            rs.getString("INSTANCE_ID"),
+            null,
+            null,
+            null,
+            false,
+            true
+          );
+
+          metadata.setUuid(rs.getBytes("UUID"));
+          metadataList.add(metadata);
+        }
+      }
+    } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (stmt != null) {
+        try {
+          stmt.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (SQLException sql) {
+          // Ignore
+        }
+      }
+    }
+
+    return metadataList;
+  }
+
+  public List<byte[]> scanHostMetadataForWildCardRequest(List<String> hostnames) throws SQLException {
+    List<byte[]> uuidList = new ArrayList<>();
+    Connection conn = getConnection();
+    PreparedStatement stmt;
+    ResultSet rs = null;
+
+    MetadataQueryCondition metadataQueryCondition = new MetadataQueryCondition(hostnames);
+    stmt = PhoenixTransactSQL.prepareScanMetricMetadataSqlStmt(conn, metadataQueryCondition);
+    try {
+      if (stmt != null) {
+        rs = stmt.executeQuery();
+        while (rs.next()) {
+          byte[] uuid = rs.getBytes("UUID");
+          if (uuid != null) {
+            uuidList.add(uuid);
+          }
+        }
+      }
+    } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (stmt != null) {
+        try {
+          stmt.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (SQLException sql) {
+          // Ignore
+        }
+      }
+    }
+    return uuidList;
   }
 
   // No filter criteria support for now.

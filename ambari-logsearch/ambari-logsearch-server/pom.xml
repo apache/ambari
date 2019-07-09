@@ -15,7 +15,7 @@
    limitations under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <artifactId>ambari-logsearch</artifactId>
     <groupId>org.apache.ambari</groupId>
@@ -24,14 +24,13 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-logsearch-server</artifactId>
   <packaging>jar</packaging>
-  <url>http://maven.apache.org</url>
   <name>Ambari Logsearch Server</name>
   <properties>
-    <spring.version>5.1.1.RELEASE</spring.version>
-    <spring.security.version>5.1.1.RELEASE</spring.security.version>
+    <spring.version>5.1.8.RELEASE</spring.version>
+    <spring.security.version>5.1.5.RELEASE</spring.security.version>
     <spring-data-solr.version>3.0.10.RELEASE</spring-data-solr.version>
     <spring-data.version>2.0.10.RELEASE</spring-data.version>
-    <spring-boot.version>2.0.6.RELEASE</spring-boot.version>
+    <spring-boot.version>2.1.5.RELEASE</spring-boot.version>
     <jersey.version>2.27</jersey.version>
     <jetty.version>9.4.12.v20180830</jetty.version>
     <swagger.version>1.5.16</swagger.version>
@@ -477,7 +476,7 @@
     <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
-      <version>2.5</version>
+      <version>2.6</version>
     </dependency>
     <dependency>
       <groupId>cglib</groupId>
@@ -538,12 +537,12 @@
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15on</artifactId>
-      <version>1.60</version>
+      <version>1.61</version>
     </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcpkix-jdk15on</artifactId>
-      <version>1.60</version>
+      <version>1.61</version>
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>

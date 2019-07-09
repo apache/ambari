@@ -17,7 +17,7 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>ambari-infra</artifactId>
     <groupId>org.apache.ambari</groupId>
@@ -26,12 +26,11 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-infra-assembly</artifactId>
   <name>Ambari Infra Assembly</name>
-  <url>http://maven.apache.org</url>
 
   <properties>
     <mapping.base.path>/usr/lib</mapping.base.path>
     <!-- original url: <solr.tar>http://archive.apache.org/dist/lucene/solr/${solr.version}/solr-${solr.version}.tgz</solr.tar> -->
-    <solr.tar>http://public-repo-1.hortonworks.com/ARTIFACTS/dist/lucene/solr/${solr.version}/solr-${solr.version}.tgz</solr.tar>
+    <solr.tar>https://public-repo-1.hortonworks.com/ARTIFACTS/dist/lucene/solr/${solr.version}/solr-${solr.version}.tgz</solr.tar>
     <solr.mapping.path>${mapping.base.path}/ambari-infra-solr</solr.mapping.path>
     <solr.package.name>ambari-infra-solr</solr.package.name>
     <solr.client.package.name>ambari-infra-solr-client</solr.client.package.name>
@@ -42,7 +41,7 @@
     <infra-manager.dir>${project.basedir}/../ambari-infra-manager</infra-manager.dir>
     <infra-manager.mapping.path>${mapping.base.path}/${infra-manager.package.name}</infra-manager.mapping.path>
     <infra-manager.conf.mapping.path>${infra-manager.mapping.path}/conf</infra-manager.conf.mapping.path>
-    <common-fileupload.location.url>http://central.maven.org/maven2/commons-fileupload/commons-fileupload/1.3.3/commons-fileupload-1.3.3.jar</common-fileupload.location.url>
+    <common-fileupload.location.url>https://repo1.maven.org/maven2/commons-fileupload/commons-fileupload/1.3.3/commons-fileupload-1.3.3.jar</common-fileupload.location.url>
     <common-fileupload.jar.name>commons-fileupload-1.3.3.jar</common-fileupload.jar.name>
     <common-fileupload.old.jar.name>commons-fileupload-1.3.2.jar</common-fileupload.old.jar.name>
   </properties>

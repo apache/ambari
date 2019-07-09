@@ -37,6 +37,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -1020,7 +1021,7 @@ public class UpgradeCatalog260Test {
 
     File dataDirectory = temporaryFolder.newFolder();
     File file = new File(dataDirectory, "hdfs_widget.json");
-    FileUtils.writeStringToFile(file, widgetStr);
+    FileUtils.writeStringToFile(file, widgetStr, Charset.defaultCharset());
 
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override

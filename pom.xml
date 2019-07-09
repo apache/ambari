@@ -15,7 +15,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari</artifactId>
@@ -23,7 +23,7 @@
   <name>Ambari Main</name>
   <version>2.7.3.0.0</version>
   <description>Ambari</description>
-  <url>http://ambari.apache.org/</url>
+  <url>https://ambari.apache.org/</url>
   <scm>
     <url>https://github.com/apache/ambari</url>
     <connection>scm:git:https://gitbox.apache.org/repos/asf/ambari.git</connection>
@@ -37,7 +37,7 @@
   </licenses>
   <organization>
     <name>Apache Software Foundation</name>
-    <url>http://www.apache.org</url>
+    <url>https://www.apache.org</url>
   </organization>
   <issueManagement>
     <system>jira</system>
@@ -67,13 +67,13 @@
     <pluginRepository>
       <id>maven2-repository.dev.java.net</id>
       <name>Java.net Repository for Maven</name>
-      <url>http://download.java.net/maven/2/</url>
+      <url>https://download.java.net/maven/2/</url>
       <layout>default</layout>
     </pluginRepository>
     <pluginRepository>
       <id>maven2-glassfish-repository.dev.java.net</id>
       <name>Java.net Repository for Maven</name>
-      <url>http://download.java.net/maven/glassfish/</url>
+      <url>https://download.java.net/maven/glassfish/</url>
     </pluginRepository>
     <pluginRepository>
       <id>maven2-repository.atlassian</id>
@@ -111,7 +111,7 @@
     <repository>
       <id>spring-milestones</id>
       <name>Spring Milestones</name>
-      <url>http://repo.spring.io/milestone</url>
+      <url>https://repo.spring.io/milestone</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>

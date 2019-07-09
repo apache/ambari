@@ -63,8 +63,8 @@ function($scope, $rootScope, Group, $routeParams, Cluster, View, Alert, Confirma
       }
     );
     $scope.group.members = newMembers;
-    $scope.group.saveMembers().catch(function(data) {
-        Alert.error($t('groups.alerts.cannotUpdateGroupMembers'), "<div class='break-word'>" + data.message + "</div>");
+    $scope.group.saveMembers().catch(function(resp) {
+        Alert.error($t('groups.alerts.cannotUpdateGroupMembers'), "<div class='break-word'>" + resp.data.message + "</div>");
       }).finally(function() {
         loadGroup();
       });

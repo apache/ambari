@@ -225,6 +225,7 @@ angular.module('ambariAdminConsole')
 
     'views.alerts.noSpecialChars': 'Must not contain any special characters.',
     'views.alerts.noSpecialCharsOrSpaces': 'Must not contain any special characters or spaces.',
+    'views.alerts.invalidUrl': 'Must be a valid URL.',
     'views.alerts.instanceExists': 'Instance with this name already exists.',
     'views.alerts.notDefined': 'There are no {{term}} defined for this view.',
     'views.alerts.cannotEditInstance': 'Cannot Edit Static Instances',

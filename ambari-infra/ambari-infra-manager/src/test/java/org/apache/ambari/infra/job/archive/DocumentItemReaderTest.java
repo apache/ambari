@@ -19,6 +19,14 @@
 
 package org.apache.ambari.infra.job.archive;
 
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.nullValue;
+import static org.junit.Assert.assertThat;
+
+import java.util.HashMap;
+
 import org.apache.ambari.infra.job.CloseableIterator;
 import org.apache.ambari.infra.job.ObjectSource;
 import org.easymock.EasyMockRunner;
@@ -30,19 +38,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.batch.item.ExecutionContext;
 
-import java.util.HashMap;
-
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNull.nullValue;
-import static org.junit.Assert.assertThat;
-
 @RunWith(EasyMockRunner.class)
 public class DocumentItemReaderTest extends EasyMockSupport {
-  private static final Document DOCUMENT = new Document(new HashMap<String, String>() {{ put("id", "1"); }});
-  private static final Document DOCUMENT_2 = new Document(new HashMap<String, String>() {{ put("id", "2"); }});
-  private static final Document DOCUMENT_3 = new Document(new HashMap<String, String>() {{ put("id", "3"); }});
+  private static final Document DOCUMENT = new Document(new HashMap<String, Object>() {{ put("id", "1"); }});
+  private static final Document DOCUMENT_2 = new Document(new HashMap<String, Object>() {{ put("id", "2"); }});
+  private static final Document DOCUMENT_3 = new Document(new HashMap<String, Object>() {{ put("id", "3"); }});
   private static final int READ_BLOCK_SIZE = 2;
 
   private DocumentItemReader documentItemReader;
@@ -117,7 +117,7 @@ public class DocumentItemReaderTest extends EasyMockSupport {
 
   @Test
   public void testReadWhenCollectionContainsMoreElementsThanReadBlockSize() throws Exception {
-    Document document3 = new Document(new HashMap<String, String>() {{ put("id", "2"); }});
+    Document document3 = new Document(new HashMap<String, Object>() {{ put("id", "2"); }});
 
     expect(documentSource.open(null, 2)).andReturn(documentIterator);
     expect(documentSource.open(DOCUMENT_2, 2)).andReturn(documentIterator2);

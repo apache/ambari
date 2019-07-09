@@ -25,58 +25,54 @@ import static org.apache.ambari.infra.TestUtil.getDockerHost;
 import static org.apache.ambari.infra.TestUtil.runCommand;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.time.OffsetDateTime;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.ambari.infra.InfraClient;
+import org.apache.ambari.infra.S3Client;
 import org.apache.ambari.infra.Solr;
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocatedFileStatus;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.RemoteIterator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
 import org.jbehave.core.annotations.AfterStories;
 import org.jbehave.core.annotations.BeforeStories;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
+import spark.resource.ClassPathResource;
 
 public abstract class AbstractInfraSteps {
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractInfraSteps.class);
+  private static final Logger logger = LogManager.getLogger(AbstractInfraSteps.class);
 
   private static final int INFRA_MANAGER_PORT = 61890;
   private static final int FAKE_S3_PORT = 4569;
-  private static final int HDFS_PORT = 9000;
   protected static final String S3_BUCKET_NAME = "testbucket";
   private String ambariFolder;
   private String shellScriptLocation;
-  private String dockerHost;
-  private AmazonS3Client s3client;
+  private S3Client s3client;
   private int documentId = 0;
   private Solr solr;
+  private InfraClient infraClient;
 
   public InfraClient getInfraClient() {
-    return new InfraClient(String.format("http://%s:%d/api/v1/jobs", dockerHost, INFRA_MANAGER_PORT));
+    return infraClient;
   }
 
   public Solr getSolr() {
     return solr;
   }
 
-  public AmazonS3Client getS3client() {
+  public S3Client getS3client() {
     return s3client;
   }
 
   public String getLocalDataFolder() {
     return ambariFolder + "/ambari-infra/ambari-infra-manager/docker/test-out";
+  }
+
+  public String getInfraManagerConfDir() {
+    return ambariFolder + "/ambari-infra/ambari-infra-manager/target/package/conf";
   }
 
   @BeforeStories
@@ -86,14 +82,22 @@ public abstract class AbstractInfraSteps {
     URL location = AbstractInfraSteps.class.getProtectionDomain().getCodeSource().getLocation();
     ambariFolder = new File(location.toURI()).getParentFile().getParentFile().getParentFile().getParent();
 
-    LOG.info("Clean local data folder {}", getLocalDataFolder());
-    FileUtils.cleanDirectory(new File(getLocalDataFolder()));
+    String localDataFolder = getLocalDataFolder();
+    if (new File(localDataFolder).exists()) {
+      logger.info("Clean local data folder {}", localDataFolder);
+      FileUtils.cleanDirectory(new File(localDataFolder));
+    }
+
+    logger.info("Copy resources");
+    FileUtils.copyDirectory(new ClassPathResource("conf").getFile(), new File(getInfraManagerConfDir()));
 
     shellScriptLocation = ambariFolder + "/ambari-infra/ambari-infra-manager/docker/infra-manager-docker-compose.sh";
-    LOG.info("Create new docker container for testing Ambari Infra Manager ...");
+    logger.info("Create new docker container for testing Ambari Infra Manager ...");
     runCommand(new String[]{shellScriptLocation, "start"});
 
-    dockerHost = getDockerHost();
+    String dockerHost = getDockerHost();
+
+    this.infraClient = new InfraClient(String.format("http://%s:%d/api/v1", dockerHost, INFRA_MANAGER_PORT));
 
     solr = new Solr();
     solr.waitUntilSolrIsUp();
@@ -101,22 +105,20 @@ public abstract class AbstractInfraSteps {
     solr.createSolrCollection(AUDIT_LOGS_COLLECTION);
     solr.createSolrCollection(HADOOP_LOGS_COLLECTION);
 
-    LOG.info("Initializing s3 client");
-    s3client = new AmazonS3Client(new BasicAWSCredentials("remote-identity", "remote-credential"));
-    s3client.setEndpoint(String.format("http://%s:%d", dockerHost, FAKE_S3_PORT));
-    s3client.createBucket(S3_BUCKET_NAME);
+    logger.info("Initializing s3 client");
+    s3client = new S3Client(dockerHost, FAKE_S3_PORT, S3_BUCKET_NAME);
+    s3client.createBucket();
 
     checkInfraManagerReachable();
   }
 
-  private void checkInfraManagerReachable() throws Exception {
-    try (InfraClient httpClient = getInfraClient()) {
-      doWithin(30, "Start Ambari Infra Manager", httpClient::getJobs);
-      LOG.info("Ambari Infra Manager is up and running");
-    }
+  private void checkInfraManagerReachable() {
+    InfraClient infraClient = getInfraClient();
+    doWithin(30, "Start Ambari Infra Manager", infraClient::getJobs);
+    logger.info("Ambari Infra Manager is up and running");
   }
 
-  protected void addDocument(OffsetDateTime logtime) {
+  protected SolrInputDocument addDocument(OffsetDateTime logtime) {
     SolrInputDocument solrInputDocument = new SolrInputDocument();
     solrInputDocument.addField("logType", "HDFSAudit");
     solrInputDocument.addField("cluster", "cl1");
@@ -139,7 +141,6 @@ public abstract class AbstractInfraSteps {
     solrInputDocument.addField("level", "INFO");
     solrInputDocument.addField("resource", "/ats/active");
     solrInputDocument.addField("ip", "172.18.0.2");
-    solrInputDocument.addField("evtTime", "2017-12-08T10:23:16.452Z");
     solrInputDocument.addField("req_caller_id", "HIVE_QUERY_ID:ambari-qa_20160317200111_223b3079-4a2d-431c-920f-6ba37ed63e9f");
     solrInputDocument.addField("repoType", 1);
     solrInputDocument.addField("enforcer", "hadoop-acl");
@@ -147,37 +148,21 @@ public abstract class AbstractInfraSteps {
     solrInputDocument.addField("message_md5", "-6778765776916226588");
     solrInputDocument.addField("event_md5", "5627261521757462732");
     solrInputDocument.addField("logtime", new Date(logtime.toInstant().toEpochMilli()));
+    solrInputDocument.addField("evtTime", new Date(logtime.toInstant().toEpochMilli()));
     solrInputDocument.addField("_ttl_", "+7DAYS");
-    solrInputDocument.addField("_expire_at_", "2017-12-15T10:23:19.106Z");
+    solrInputDocument.addField("_expire_at_", new Date(logtime.plusDays(7).toInstant().toEpochMilli()));
     solr.add(solrInputDocument);
+    return solrInputDocument;
   }
 
   @AfterStories
   public void shutdownContainers() throws Exception {
     Thread.sleep(2000); // sync with s3 server
-    ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(S3_BUCKET_NAME);
-    ObjectListing objectListing = getS3client().listObjects(listObjectsRequest);
-    LOG.info("Found {} files on s3.", objectListing.getObjectSummaries().size());
-    objectListing.getObjectSummaries().forEach(s3ObjectSummary ->  LOG.info("Found file on s3 with key {}", s3ObjectSummary.getKey()));
+    List<String> objectKeys = getS3client().listObjectKeys();
+    logger.info("Found {} files on s3.", objectKeys.size());
+    objectKeys.forEach(objectKey ->  logger.info("Found file on s3 with key {}", objectKey));
 
-    LOG.info("Listing files on hdfs.");
-    try (FileSystem fileSystem = getHdfs()) {
-      int count = 0;
-      RemoteIterator<LocatedFileStatus> it = fileSystem.listFiles(new Path("/test_audit_logs"), true);
-      while (it.hasNext()) {
-        LOG.info("Found file on hdfs with name {}", it.next().getPath().getName());
-        ++count;
-      }
-      LOG.info("{} files found on hfds", count);
-    }
-
-    LOG.info("shutdown containers");
+    logger.info("shutdown containers");
     runCommand(new String[]{shellScriptLocation, "stop"});
-  }
-
-  protected FileSystem getHdfs() throws IOException {
-    Configuration conf = new Configuration();
-    conf.set("fs.defaultFS", String.format("hdfs://%s:%d/", dockerHost, HDFS_PORT));
-    return FileSystem.get(conf);
   }
 }
