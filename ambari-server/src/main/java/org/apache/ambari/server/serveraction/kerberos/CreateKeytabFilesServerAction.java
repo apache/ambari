@@ -217,6 +217,17 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                 KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(resolvedPrincipal.getPrincipal());
                 String cachedKeytabPath = (principalEntity == null) ? null : principalEntity.getCachedKeytabPath();
 
+		//This is to hanlde regenerate keytabs for missing hosts if keytab file does not exist in the cache dir.                
+		if(!regenerateKeytabs) {
+                  if(cachedKeytabPath != null) {
+                    File file = new File(cachedKeytabPath);
+                    if(!file.exists()) {
+                      regenerateKeytabs = true;
+                      LOG.info("Regenerating the keytab  since  " + cachedKeytabPath + " is not present");
+                    } //else do nothing.
+                  }
+                }
+
                 if (password == null) {
                   if (!regenerateKeytabs && hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME)) {
                     // There is nothing to do for this since it must already exist and we don't want to
@@ -231,6 +242,9 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                       commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
                     } else {
                       try {
+                        if(regenerateKeytabs) {
+                          Keytab keytab = createKeytab(resolvedPrincipal.getPrincipal(), password, keyNumber, operationHandler, visitedPrincipalKeys != null, true, actionLog);
+                        }
                         operationHandler.createKeytabFile(new File(cachedKeytabPath), destinationKeytabFile);
                       } catch (KerberosOperationException e) {
                         message = String.format("Failed to create keytab file for %s - %s", resolvedPrincipal.getPrincipal(), e.getMessage());
