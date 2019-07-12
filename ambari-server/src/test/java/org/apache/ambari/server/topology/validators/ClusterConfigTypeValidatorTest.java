@@ -144,8 +144,10 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
 
     EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<>(Arrays.asList("YARN", "HDFS")));
 
-    EasyMock.expect(stackMock.getConfigurationTypes("HDFS")).andReturn(Arrays.asList("core-site"));
-    EasyMock.expect(stackMock.getConfigurationTypes("YARN")).andReturn(Arrays.asList("yarn-site"));
+    EasyMock.expect(stackMock.getConfigurationTypes("HDFS")).andReturn(
+            Collections.singletonList("core-site"));
+    EasyMock.expect(stackMock.getConfigurationTypes("YARN")).andReturn(
+            Collections.singletonList("yarn-site"));
 
     replayAll();
 
