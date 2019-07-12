@@ -402,6 +402,11 @@ public interface Cluster {
   void deleteAllServices() throws AmbariException;
 
   /**
+   * Deletes all cluster configs associated with this cluster.
+   */
+  void deleteAllClusterConfigs();
+
+  /**
    * Delete the named service associated with this cluster
    * @param serviceName
    * @throws AmbariException

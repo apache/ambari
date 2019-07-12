@@ -429,8 +429,8 @@ public class ConfigGroupImpl implements ConfigGroup {
           Service service = cluster.getServices().get(serviceName);
           StackId stackId = (null == service) ? cluster.getDesiredStackVersion() : service.getDesiredStackId();
 
-          config = configFactory.createNew(stackId, cluster, config.getType(),
-              config.getTag(), config.getProperties(), config.getPropertiesAttributes());
+          config = configFactory.createNew(stackId, config.getType(), cluster,
+              config.getTag(), config.getProperties(), config.getPropertiesAttributes(), true);
 
           entry.setValue(config);
 
