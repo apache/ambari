@@ -223,9 +223,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
     Collection<ExtensionInfo> extensions = getExtensions();
     extensions.add(extension);
     Collection<ServiceInfo> services = getServices();
-    for (ServiceInfo service : extension.getServices()) {
-      services.add(service);
-    }
+    services.addAll(extension.getServices());
   }
 
   public void removeExtension(ExtensionInfo extension) {
