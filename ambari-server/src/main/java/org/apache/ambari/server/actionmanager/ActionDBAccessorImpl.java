@@ -736,14 +736,13 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       return Collections.emptyList();
     }
 
-    List<HostRoleCommand> commands = new ArrayList<>();
+    List<HostRoleCommand> commands;
     try {
       hrcOperationsLock.readLock().lock();
       Map<Long, HostRoleCommand> cached = hostRoleCommandCache.getAllPresent(taskIds);
-      commands.addAll(cached.values());
+      commands = new ArrayList<>(cached.values());
 
-      List<Long> absent = new ArrayList<>();
-      absent.addAll(taskIds);
+      List<Long> absent = new ArrayList<>(taskIds);
       absent.removeAll(cached.keySet());
 
       if (!absent.isEmpty()) {
@@ -753,12 +752,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
           cacheHostRoleCommand(hostRoleCommand);
         }
       }
-      Collections.sort(commands, new Comparator<HostRoleCommand>() {
-        @Override
-        public int compare(HostRoleCommand o1, HostRoleCommand o2) {
-          return (int) (o1.getTaskId()-o2.getTaskId());
-        }
-      });
+      commands.sort((o1, o2) -> (int) (o1.getTaskId() - o2.getTaskId()));
     } finally {
       hrcOperationsLock.readLock().unlock();
     }
