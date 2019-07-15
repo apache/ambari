@@ -3719,7 +3719,7 @@ public class KerberosHelperImpl implements KerberosHelper {
       if (dataDirectory != null) {
         commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
       }
-      int timeout = configuration.getKerberosServerActionFinalizeTimeout();
+
       Stage stage = createServerActionStage(requestStageContainer.getLastStageId(),
         cluster,
         requestStageContainer.getId(),
@@ -3729,7 +3729,7 @@ public class KerberosHelperImpl implements KerberosHelper {
         FinalizeKerberosServerAction.class,
         event,
         commandParameters,
-        "Finalize Operations", timeout);
+        "Finalize Operations", 300);
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
