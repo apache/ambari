@@ -576,7 +576,7 @@ class Master(Script):
           interpreter['properties']['spark2.url'] = 'jdbc:hive2://' + \
               params.spark2_thrift_server_hosts + ':' + params.spark2_hive_thrift_port + '/'
           if params.spark2_hive_principal:
-            interpreter['properties']['spark2.url'] += ';principal=' + params.hive_principal
+            interpreter['properties']['spark2.url'] += ';principal=' + params.spark2_hive_principal
           if params.spark2_transport_mode:
             interpreter['properties']['spark2.url'] += ';transportMode=' + params.spark2_transport_mode
           if params.spark2_http_path:
