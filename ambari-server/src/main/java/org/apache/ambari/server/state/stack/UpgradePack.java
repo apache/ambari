@@ -413,11 +413,7 @@ public class UpgradePack {
   }
 
   private List<Grouping> getDowngradeGroupsForNonrolling() {
-    List<Grouping> list = new ArrayList<>();
-    for (Grouping g : groups) {
-      list.add(g);
-    }
-    return list;
+    return new ArrayList<>(groups);
   }
 
   /**
