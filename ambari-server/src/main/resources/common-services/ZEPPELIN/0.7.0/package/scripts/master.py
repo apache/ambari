@@ -575,10 +575,14 @@ class Master(Script):
           interpreter['properties']['spark2.proxy.user.property'] = 'hive.server2.proxy.user'
           interpreter['properties']['spark2.url'] = 'jdbc:hive2://' + \
               params.spark2_thrift_server_hosts + ':' + params.spark2_hive_thrift_port + '/'
-          if params.hive_principal:
-            interpreter['properties']['spark2.url'] += ';principal=' + params.hive_principal
-          if params.hive_transport_mode:
-            interpreter['properties']['spark2.url'] += ';transportMode=' + params.hive_transport_mode
+          if params.spark2_hive_principal:
+            interpreter['properties']['spark2.url'] += ';principal=' + params.spark2_hive_principal
+          if params.spark2_transport_mode:
+            interpreter['properties']['spark2.url'] += ';transportMode=' + params.spark2_transport_mode
+          if params.spark2_http_path:
+            interpreter['properties']['spark2.url'] += ';httpPath=' + params.spark2_http_path
+          if params.spark2_ssl:
+            interpreter['properties']['spark2.url'] += ';ssl=true'
           if 'spark2.splitQueries' not in interpreter['properties']:
             interpreter['properties']['spark2.splitQueries'] = "true"
 
