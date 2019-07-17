@@ -661,6 +661,9 @@ public class ControllerModule extends AbstractModule {
           LOG.error("Unable to bind and register notification dispatcher {}",
                   clazz, exception);
         }
+      } else {
+        LOG.error("Binding and registering notification dispatcher is not possible for" +
+            " beanDefinition: {} in the absence of className", beanDefinition);
       }
     }
 
