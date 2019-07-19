@@ -176,7 +176,7 @@ public class ContentTypeOverrideFilter implements Filter {
             /* Do not fail here, but fallback to manual definition of excluded endpoints. */
             excludedUrls.add(Pattern.compile("/bootstrap"));
         } finally {
-            excludedUrls.add(Pattern.compile("/views/SMARTSENSE/.*"));
+            excludedUrls.add(Pattern.compile("/views/.*"));
         }
     }
 
