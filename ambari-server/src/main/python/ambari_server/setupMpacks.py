@@ -821,6 +821,7 @@ def _install_mpack(options, replay_mode=False, is_upgrade=False):
 
   print_info_msg("Management pack {0}-{1} successfully installed! Please restart ambari-server.".format(mpack_name, mpack_version))
   return mpack_metadata, mpack_name, mpack_version, mpack_staging_dir, mpack_archive_path
+
 # TODO
 def _execute_hook(mpack_metadata, hook_name, base_dir):
   if "hooks" in mpack_metadata:
@@ -830,23 +831,24 @@ def _execute_hook(mpack_metadata, hook_name, base_dir):
         hook_script = os.path.join(base_dir, hook.script)
         if os.path.exists(hook_script):
           print_info_msg("Executing {0} hook script : {1}".format(hook_name, hook_script))
-          command = []
           if hook.type == PYTHON_HOOK_TYPE:
             command = ["/usr/bin/ambari-python-wrap", hook_script]
           elif hook.type == SHELL_HOOK_TYPE:
             command = ["/bin/bash", hook_script]
           else:
-            raise FatalException("Malformed management pack. Unknown hook type for {0} hook script".format(hook_name))
+            raise FatalException(-1, "Malformed management pack. Unknown hook type for {0} hook script"
+                                 .format(hook_name))
           (returncode, stdoutdata, stderrdata) = run_os_command(command)
           if returncode != 0:
             msg = "Failed to execute {0} hook. Failed with error code {0}".format(hook_name, returncode)
             print_error_msg(msg)
             print_error_msg(stderrdata)
-            raise FatalException(msg)
+            raise FatalException(-1, msg)
           else:
             print_info_msg(stdoutdata)
         else:
-          raise FatalException("Malformed management pack. Missing {0} hook script {1}".format(hook_name, hook_script))
+          raise FatalException(-1, "Malformed management pack. Missing {0} hook script {1}"
+                               .format(hook_name, hook_script))
 
 def get_replay_log_file():
   """
