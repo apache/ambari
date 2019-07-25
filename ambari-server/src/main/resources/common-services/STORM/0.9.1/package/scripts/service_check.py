@@ -20,8 +20,6 @@ limitations under the License.
 
 import os
 
-import time
-
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import get_unique_id_and_date
 from resource_management.core.resources import File
