@@ -96,6 +96,24 @@
               <primary>true</primary>
             </log>
           </logs>
+          <customCommands>
+            <customCommand>
+              <name>GRACEFUL_STOP</name>
+              <commandScript>
+                <script>scripts/hbase_regionserver.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>GRACEFUL_START</name>
+              <commandScript>
+                <script>scripts/hbase_regionserver.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
         </component>
 
         <component>
