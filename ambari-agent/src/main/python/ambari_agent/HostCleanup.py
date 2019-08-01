@@ -141,9 +141,14 @@ class HostCleanup:
       dirList = argMap.get(DIR_SECTION)
       repoList = argMap.get(REPO_SECTION)
       proc_map = argMap.get(PROCESS_SECTION)
-      procList = proc_map.get(PROCESS_KEY)
-      procUserList = proc_map.get(PROCESS_OWNER_KEY)
-      procIdentifierList = proc_map.get(PROCESS_IDENTIFIER_KEY)
+      if proc_map:
+        procList = proc_map.get(PROCESS_KEY)
+        procUserList = proc_map.get(PROCESS_OWNER_KEY)
+        procIdentifierList = proc_map.get(PROCESS_IDENTIFIER_KEY)
+      else:
+        procList = []
+        procUserList = []
+        procIdentifierList = []
       alt_map = argMap.get(ALT_SECTION)
       additionalDirList = self.get_additional_dirs()
 
