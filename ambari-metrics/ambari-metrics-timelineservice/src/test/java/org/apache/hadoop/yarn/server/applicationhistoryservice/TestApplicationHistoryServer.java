@@ -153,7 +153,7 @@ public class TestApplicationHistoryServer {
     Thread.currentThread().setContextClassLoader(urlClassLoader);
     metricsConf = new Configuration(false);
     metricsConf.addResource(Thread.currentThread().getContextClassLoader()
-      .getResource(METRICS_SITE_CONFIGURATION_FILE).toURI().toURL());
+      .getResource(METRICS_SITE_CONFIGURATION_FILE).toURI().toURL(), false);
     assertNotNull(metricsConf.get("test"));
   }
 
