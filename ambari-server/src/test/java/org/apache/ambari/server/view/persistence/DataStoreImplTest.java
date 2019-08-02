@@ -165,8 +165,8 @@ public class DataStoreImplTest {
     dataStore.store(new TestEntity("foo", new TestSubEntity("bar")));
 
     Assert.assertEquals("bar", entityCapture.getValue().get("DS_name"));
-    Assert.assertEquals(99, (long)entityCapture.getValue().get("DS_id"));
-    Assert.assertEquals(100, (long)entityCapture2.getValue().get("DS_id"));
+    Assert.assertEquals(99, (int)entityCapture.getValue().get("DS_id"));
+    Assert.assertEquals(100, (int)entityCapture2.getValue().get("DS_id"));
     Assert.assertEquals("foo", entityCapture2.getValue().get("DS_name"));
 
     // verify mocks
