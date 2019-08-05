@@ -353,14 +353,8 @@ public class Configuration {
    */
   public Collection<String> getAllConfigTypes() {
     Collection<String> allTypes = new HashSet<>();
-    for (String type : getFullProperties().keySet()) {
-      allTypes.add(type);
-    }
-
-    for (String type : getFullAttributes().keySet()) {
-      allTypes.add(type);
-    }
-
+    allTypes.addAll(getFullProperties().keySet());
+    allTypes.addAll(getFullAttributes().keySet());
     return allTypes;
   }
 

@@ -18,37 +18,31 @@
  */
 package org.apache.ambari.infra.model;
 
-import org.springframework.batch.core.JobInstance;
+import static java.util.Collections.unmodifiableList;
 
 import java.util.List;
 
+import org.springframework.batch.admin.web.JobInfo;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+
 public class JobInstanceDetailsResponse {
 
-  private JobInstance jobInstance;
+  private final JobInfo jobInfo;
+  @JsonProperty("jobExecutionList")
+  private final List<JobExecutionInfoResponse> jobExecutionInfoResponseList;
 
-  private List<JobExecutionInfoResponse> jobExecutionInfoResponseList;
-
-  public JobInstanceDetailsResponse() {
+  public JobInstanceDetailsResponse(JobInfo jobInfo, List<JobExecutionInfoResponse> jobExecutionInfoResponseList) {
+    this.jobInfo = jobInfo;
+    this.jobExecutionInfoResponseList = unmodifiableList(jobExecutionInfoResponseList);
   }
 
-  public JobInstanceDetailsResponse(JobInstance jobInstance, List<JobExecutionInfoResponse> jobExecutionInfoResponseList) {
-    this.jobInstance = jobInstance;
-    this.jobExecutionInfoResponseList = jobExecutionInfoResponseList;
-  }
-
-  public JobInstance getJobInstance() {
-    return jobInstance;
-  }
-
-  public void setJobInstance(JobInstance jobInstance) {
-    this.jobInstance = jobInstance;
+  public JobInfo getJobInfo() {
+    return jobInfo;
   }
 
   public List<JobExecutionInfoResponse> getJobExecutionInfoResponseList() {
     return jobExecutionInfoResponseList;
-  }
-
-  public void setJobExecutionInfoResponseList(List<JobExecutionInfoResponse> jobExecutionInfoResponseList) {
-    this.jobExecutionInfoResponseList = jobExecutionInfoResponseList;
   }
 }

@@ -18,8 +18,12 @@
  */
 package org.apache.ambari.infra.job;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
@@ -27,18 +31,15 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 
-import javax.annotation.PostConstruct;
-import java.util.Map;
+public abstract class AbstractJobsConfiguration<TProperties extends JobProperties<TParameters>, TParameters extends Validatable> {
+  private static final Logger logger = LogManager.getLogger(AbstractJobsConfiguration.class);
 
-public abstract class AbstractJobsConfiguration<T extends JobProperties<T>> {
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractJobsConfiguration.class);
-
-  private final Map<String, T> propertyMap;
+  private final Map<String, TProperties> propertyMap;
   private final JobScheduler scheduler;
   private final JobBuilderFactory jobs;
   private final JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor;
 
-  protected AbstractJobsConfiguration(Map<String, T> propertyMap, JobScheduler scheduler, JobBuilderFactory jobs, JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor) {
+  protected AbstractJobsConfiguration(Map<String, TProperties> propertyMap, JobScheduler scheduler, JobBuilderFactory jobs, JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor) {
     this.propertyMap = propertyMap;
     this.scheduler = scheduler;
     this.jobs = jobs;
@@ -55,13 +56,13 @@ public abstract class AbstractJobsConfiguration<T extends JobProperties<T>> {
             .forEach(jobName -> {
               try {
                 propertyMap.get(jobName).validate(jobName);
-                LOG.info("Registering job {}", jobName);
+                logger.info("Registering job {}", jobName);
                 JobBuilder jobBuilder = jobs.get(jobName).listener(new JobsPropertyMap<>(propertyMap));
                 Job job = buildJob(jobBuilder);
                 jobRegistryBeanPostProcessor.postProcessAfterInitialization(job, jobName);
               }
               catch (Exception e) {
-                LOG.warn("Unable to register job " + jobName, e);
+                logger.warn("Unable to register job " + jobName, e);
                 propertyMap.get(jobName).setEnabled(false);
               }
             });

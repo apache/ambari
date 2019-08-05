@@ -18,6 +18,10 @@
  */
 package org.apache.ambari.infra.job.deleting;
 
+import static org.apache.ambari.infra.job.JobsPropertyMap.PARAMETERS_CONTEXT_KEY;
+
+import javax.inject.Inject;
+
 import org.apache.ambari.infra.job.AbstractJobsConfiguration;
 import org.apache.ambari.infra.job.JobScheduler;
 import org.springframework.batch.core.Job;
@@ -33,10 +37,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.inject.Inject;
-
 @Configuration
-public class DocumentDeletingConfiguration extends AbstractJobsConfiguration<DocumentDeletingProperties> {
+public class DocumentDeletingConfiguration extends AbstractJobsConfiguration<DeletingProperties, DeletingProperties> {
 
   private final StepBuilderFactory steps;
   private final Step deleteStep;
@@ -70,9 +72,7 @@ public class DocumentDeletingConfiguration extends AbstractJobsConfiguration<Doc
   @Bean
   @StepScope
   public DocumentWiperTasklet documentWiperTasklet(
-          @Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentDeletingProperties properties,
-          @Value("#{jobParameters[start]}") String start,
-          @Value("#{jobParameters[end]}") String end) {
-    return new DocumentWiperTasklet(properties, start, end);
+          @Value("#{stepExecution.jobExecution.executionContext.get('" + PARAMETERS_CONTEXT_KEY + "')}") DeletingProperties parameters) {
+    return new DocumentWiperTasklet(parameters);
   }
 }

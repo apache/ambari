@@ -50,6 +50,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
@@ -512,6 +513,14 @@ public class Configuration {
       description = "Determines Ambari user password policy. Passwords should match the regex")
   public static final ConfigurationProperty<String> PASSWORD_POLICY_REGEXP = new ConfigurationProperty<>(
       "security.password.policy.regexp", ".*");
+
+  /**
+   * Configurable password policy for Ambari users
+   */
+  @Markdown(
+      description = "Password policy description that is shown to users")
+  public static final ConfigurationProperty<String> PASSWORD_POLICY_DESCRIPTION = new ConfigurationProperty<>(
+      "security.password.policy.description", "");
 
   /**
    * Determines whether the Ambari Agent host names should be validated against
@@ -2600,6 +2609,13 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES = new ConfigurationProperty<>(
     "stack.upgrade.default.parallelism", 100);
 
+  /**
+   * The timeout, in seconds, when finalizing Kerberos enable/disable/regenerate commands.
+   */
+  @Markdown(description = "The timeout, in seconds, when finalizing Kerberos enable/disable/regenerate commands.")
+  public static final ConfigurationProperty<Integer> KERBEROS_SERVER_ACTION_FINALIZE_SECONDS = new ConfigurationProperty<>(
+    "server.kerberos.finalize.timeout", 600);
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -2630,6 +2646,17 @@ public class Configuration {
     else {
       DEF_ARCHIVE_EXTENSION = ".tar.gz";
       DEF_ARCHIVE_CONTENT_TYPE = "application/x-ustar";
+    }
+  }
+
+  /**
+   * Validate password policy regexp syntax
+   * @throws java.util.regex.PatternSyntaxException If the expression's syntax is invalid
+   */
+  public void validatePasswordPolicyRegexp() {
+    String regexp = getPasswordPolicyRegexp();
+    if (!StringUtils.isEmpty(regexp) && !regexp.equalsIgnoreCase(".*")) {
+      Pattern.compile(regexp);
     }
   }
 
@@ -4015,6 +4042,13 @@ public class Configuration {
    */
   public String getPasswordPolicyRegexp() {
     return getProperty(PASSWORD_POLICY_REGEXP);
+  }
+
+  /**
+   * @return Password policy explanation according to regexp
+   */
+  public String getPasswordPolicyDescription() {
+    return getProperty(PASSWORD_POLICY_DESCRIPTION);
   }
 
   public JPATableGenerationStrategy getJPATableGenerationStrategy() {
@@ -5534,6 +5568,16 @@ public class Configuration {
     return Integer.parseInt(getProperty(DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES));
   }
 
+  /**
+   * Get the timeout, in seconds, when finalizing Kerberos
+   * enable/disable/regenerate commands.
+   *
+   * @return the timeout, in seconds, defaulting to 600.
+   */
+  public int getKerberosServerActionFinalizeTimeout() {
+    return Integer.parseInt(getProperty(KERBEROS_SERVER_ACTION_FINALIZE_SECONDS));
+  }
+  
   /**
    * Generates a markdown table which includes:
    * <ul>

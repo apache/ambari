@@ -75,16 +75,22 @@ class ServiceCheckDefault(ServiceCheck):
         storm_client_jaas_file = format("{conf_dir}/client_jaas.conf")
         cmd = format("{kinit_cmd}{cmd} -c java.security.auth.login.config={storm_client_jaas_file}")
 
+    try_count = 1
+    if params.nimbus_hosts and len(params.nimbus_hosts) > 1:
+      try_count = 3
+      print("Nimbus HA is enabled. The check may be retried up to %d times in order to wait for the Nimbus leader selection" % try_count)
     Execute(cmd,
             logoutput=True,
             path=params.storm_bin_dir,
-            user=params.storm_user
-    )
+            user=params.storm_user,
+            try_sleep=30,
+            tries=try_count
+            )
 
     Execute(format("storm kill WordCount{unique}"),
             path=params.storm_bin_dir,
             user=params.storm_user
-    )
+            )
 
 if __name__ == "__main__":
   ServiceCheck().execute()

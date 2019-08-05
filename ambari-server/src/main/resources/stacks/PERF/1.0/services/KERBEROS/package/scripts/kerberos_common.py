@@ -436,13 +436,15 @@ class KerberosScript(Script):
 
   def find_missing_keytabs(self):
     import params
-    missing_keytabs = MissingKeytabs.fromKerberosRecords(params.kerberos_command_params, params.hostname)
+    missing_keytabs = MissingKeytabs.from_kerberos_records(params.kerberos_command_params, params.hostname)
     Logger.info(str(missing_keytabs))
     curr_content = Script.structuredOut
     curr_content['missing_keytabs'] = missing_keytabs.as_dict()
     self.put_structured_out(curr_content)
 
+
 class MissingKeytabs:
+
   class Identity(namedtuple('Identity', ['principal', 'keytab_file_path'])):
     @staticmethod
     def fromKerberosRecord(item, hostname):
@@ -454,10 +456,11 @@ class MissingKeytabs:
       return "Keytab: %s Principal: %s" % (self.keytab_file_path, self.principal)
 
   @classmethod
-  def fromKerberosRecords(self, kerberos_record, hostname):
-    with_missing_keytab = (each for each in kerberos_record \
-                           if not self.keytab_exists(each) or not self.keytab_has_principal(each, hostname))
-    return MissingKeytabs(set(MissingKeytabs.Identity.fromKerberosRecord(each, hostname) for each in with_missing_keytab))
+  def from_kerberos_records(cls, kerberos_record, hostname):
+    with_missing_keytab = (each for each in kerberos_record if not MissingKeytabs.keytab_exists(each) or
+                           not MissingKeytabs.keytab_has_principal(each, hostname))
+    return MissingKeytabs(
+      set(MissingKeytabs.Identity.fromKerberosRecord(each, hostname) for each in with_missing_keytab))
 
   @staticmethod
   def keytab_exists(kerberos_record):

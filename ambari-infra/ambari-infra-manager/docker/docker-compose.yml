@@ -15,6 +15,7 @@
 version: '3.3'
 services:
   zookeeper:
+    container_name: zookeeper
     image: zookeeper:${ZOOKEEPER_VERSION:-3.4.10}
     restart: always
     hostname: zookeeper
@@ -28,6 +29,7 @@ services:
   solr:
 #  TODO: use infra-solr
     image: solr:${SOLR_VERSION:-7.7.0}
+    container_name: solr
     restart: always
     hostname: solr
     ports:
@@ -45,14 +47,16 @@ services:
       - "-z"
       - ${ZOOKEEPER_CONNECTION_STRING}
     volumes:
-      - $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-server/src/main/configsets:/opt/solr/configsets
+      - $AMBARI_INFRA_LOCATION/ambari-infra-manager/docker/configsets:/opt/solr/configsets
   fakes3:
+    container_name: fakes3
     image: localstack/localstack
     hostname: fakes3
     ports:
       - "4569:4569"
     environment:
       - SERVICES=s3:4569
+      - DEBUG=s3
     networks:
       infra-network:
         aliases:
@@ -60,6 +64,7 @@ services:
     env_file:
       - Profile
   namenode:
+    container_name: hdfs_namenode
     image: flokkr/hadoop-hdfs-namenode:${HADOOP_VERSION:-3.0.0}
     hostname: namenode
     ports:
@@ -72,6 +77,7 @@ services:
     networks:
       - infra-network
   datanode:
+    container_name: hdfs_datanode
     image: flokkr/hadoop-hdfs-datanode:${HADOOP_VERSION:-3.0.0}
     links:
       - namenode
@@ -80,6 +86,7 @@ services:
     networks:
       - infra-network
   inframanager:
+    container_name: infra_manager
     image: ambari-infra-manager:v1.0
     restart: always
     hostname: infra-manager.apache.org
@@ -91,13 +98,13 @@ services:
       - 61890:61890
       - 5007:5007
     environment:
-      COMPONENT: infra-manager
-      COMPONENT_LOG: infra-manager
+      COMPONENT: infra_manager
+      COMPONENT_LOG: infra_manager
       ZK_CONNECT_STRING: ${ZOOKEEPER_CONNECTION_STRING}
       DISPLAY: $DOCKERIP:0
     volumes:
-      - $AMBARI_LOCATION/ambari-infra/ambari-infra-manager/target/package:/root/ambari-infra-manager
-      - $AMBARI_LOCATION/ambari-infra/ambari-infra-manager/docker/test-out:/root/archive
+      - $AMBARI_INFRA_LOCATION/ambari-infra-manager/target/package:/root/ambari-infra-manager
+      - $AMBARI_INFRA_LOCATION/ambari-infra-manager/docker/test-out:/root/archive
 networks:
   infra-network:
     driver: bridge

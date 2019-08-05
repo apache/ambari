@@ -18,38 +18,29 @@
  */
 package org.apache.ambari.infra.job;
 
-import org.springframework.batch.core.ExitStatus;
+import java.util.Map;
+
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 
-import java.util.Map;
+public class JobsPropertyMap<TProperties extends JobProperties<TParameters>, TParameters extends Validatable>
+        implements JobExecutionListener {
 
-public class JobsPropertyMap<T extends JobProperties<T>> implements JobExecutionListener {
+  public static final String PARAMETERS_CONTEXT_KEY = "jobParameters";
+  private final Map<String, TProperties> propertyMap;
 
-  private final Map<String, T> propertyMap;
-
-  public JobsPropertyMap(Map<String, T> propertyMap) {
+  public JobsPropertyMap(Map<String, TProperties> propertyMap) {
     this.propertyMap = propertyMap;
   }
 
   @Override
   public void beforeJob(JobExecution jobExecution) {
-    try {
-      String jobName = jobExecution.getJobInstance().getJobName();
-      T defaultProperties = propertyMap.get(jobName);
-      if (defaultProperties == null)
-        throw new UnsupportedOperationException("Properties not found for job " + jobName);
+    String jobName = jobExecution.getJobInstance().getJobName();
+    TProperties defaultProperties = propertyMap.get(jobName);
+    if (defaultProperties == null)
+      throw new UnsupportedOperationException("Properties not found for job " + jobName);
 
-      T properties = defaultProperties.deepCopy();
-      properties.apply(jobExecution.getJobParameters());
-      properties.validate(jobName);
-      jobExecution.getExecutionContext().put("jobProperties", properties);
-    }
-    catch (UnsupportedOperationException | IllegalArgumentException ex) {
-      jobExecution.stop();
-      jobExecution.setExitStatus(new ExitStatus(ExitStatus.FAILED.getExitCode(), ex.getMessage()));
-      throw ex;
-    }
+    new JobPropertiesHolder<>(defaultProperties).beforeJob(jobExecution);
   }
 
   @Override

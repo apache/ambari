@@ -18,21 +18,21 @@
  */
 package org.apache.ambari.infra.job.archive;
 
+import java.util.Map;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
 
 @Configuration
 @ConfigurationProperties(prefix = "infra-manager.jobs")
 public class DocumentArchivingPropertyMap {
-  private Map<String, DocumentArchivingProperties> solrDataArchiving;
+  private Map<String, ArchivingProperties> solrDataArchiving;
 
-  public Map<String, DocumentArchivingProperties> getSolrDataArchiving() {
+  public Map<String, ArchivingProperties> getSolrDataArchiving() {
     return solrDataArchiving;
   }
 
-  public void setSolrDataArchiving(Map<String, DocumentArchivingProperties> solrDataArchiving) {
+  public void setSolrDataArchiving(Map<String, ArchivingProperties> solrDataArchiving) {
     this.solrDataArchiving = solrDataArchiving;
   }
 }

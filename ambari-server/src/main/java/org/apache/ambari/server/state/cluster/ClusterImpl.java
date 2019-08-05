@@ -1232,9 +1232,7 @@ public class ClusterImpl implements Cluster {
     try {
       List<Config> list = new ArrayList<>();
       for (Entry<String, ConcurrentMap<String, Config>> entry : allConfigs.entrySet()) {
-        for (Config config : entry.getValue().values()) {
-          list.add(config);
-        }
+        list.addAll(entry.getValue().values());
       }
       return Collections.unmodifiableList(list);
     } finally {

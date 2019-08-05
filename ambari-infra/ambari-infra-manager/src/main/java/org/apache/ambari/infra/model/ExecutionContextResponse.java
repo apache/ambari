@@ -18,6 +18,8 @@
  */
 package org.apache.ambari.infra.model;
 
+import static java.util.Collections.unmodifiableMap;
+
 import java.util.Map;
 
 public class ExecutionContextResponse {
@@ -27,7 +29,7 @@ public class ExecutionContextResponse {
 
   public ExecutionContextResponse(Long jobExecutionId, Map<String, Object> executionContextMap) {
     this.jobExecutionId = jobExecutionId;
-    this.executionContextMap = executionContextMap;
+    this.executionContextMap = unmodifiableMap(executionContextMap);
   }
 
   public Long getJobExecutionId() {

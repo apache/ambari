@@ -177,11 +177,26 @@ if 'spark_thriftserver_hosts' in master_configs and len(master_configs['spark_th
 
 spark2_thrift_server_hosts = None
 spark2_hive_thrift_port = None
-spark2_hive_principal = None
+spark2_hive_principal = hive_principal
+spark2_transport_mode = hive_transport_mode
+spark2_http_path = None
+spark2_ssl = False
 if 'spark2_thriftserver_hosts' in master_configs and len(master_configs['spark2_thriftserver_hosts']) != 0:
   spark2_thrift_server_hosts = str(master_configs['spark2_thriftserver_hosts'][0])
   if config['configurations']['spark2-hive-site-override']:
     spark2_hive_thrift_port = config['configurations']['spark2-hive-site-override']['hive.server2.thrift.port']
+
+    if 'hive.server2.authentication.kerberos.principal' in config['configurations']['spark2-hive-site-override']:
+      spark2_hive_principal = config['configurations']['spark2-hive-site-override']['hive.server2.authentication.kerberos.principal']
+
+    if 'hive.server2.transport.mode' in config['configurations']['spark2-hive-site-override']:
+      spark2_transport_mode = config['configurations']['spark2-hive-site-override']['hive.server2.transport.mode']
+
+    if 'hive.server2.http.endpoint' in config['configurations']['spark2-hive-site-override']:
+     spark2_http_path = config['configurations']['spark2-hive-site-override']['hive.server2.http.endpoint']
+
+    if 'hive.server2.use.SSL' in config['configurations']['spark2-hive-site-override']:
+      spark2_ssl = default("configurations/spark2-hive-site-override/hive.server2.use.SSL", False)
 
 
 # detect hbase details if installed

@@ -1,11 +1,12 @@
 package org.apache.ambari.infra.job.archive;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+
 import org.junit.Test;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,7 +28,7 @@ import static org.junit.Assert.assertThat;
  */
 public class  SolrPropertiesTest {
   @Test
-  public void testApplySortColumns() throws Exception {
+  public void testMergeSortColumns() {
     JobParameters jobParameters = new JobParametersBuilder()
             .addString("sortColumn[0]", "logtime")
             .addString("sortColumn[1]", "id")
@@ -35,20 +36,31 @@ public class  SolrPropertiesTest {
 
     SolrProperties solrProperties = new SolrProperties();
     solrProperties.setSortColumn(new String[] {"testColumn"});
-    solrProperties.apply(jobParameters);
-    assertThat(solrProperties.getSortColumn().length, is(2));
-    assertThat(solrProperties.getSortColumn()[0], is("logtime"));
-    assertThat(solrProperties.getSortColumn()[1], is("id"));
+    SolrProperties solrParameters = solrProperties.merge(jobParameters);
+    assertThat(solrParameters.getSortColumn().length, is(2));
+    assertThat(solrParameters.getSortColumn()[0], is("logtime"));
+    assertThat(solrParameters.getSortColumn()[1], is("id"));
   }
 
   @Test
-  public void testApplyWhenNoSortIsDefined() throws Exception {
+  public void testMergeWhenNoSortIsDefined() {
+    JobParameters jobParameters = new JobParametersBuilder()
+            .toJobParameters();
+
+    SolrProperties solrProperties = new SolrProperties();
+    SolrProperties solrParameters = solrProperties.merge(jobParameters);
+    assertThat(solrParameters.getSortColumn(), is(nullValue()));
+  }
+
+  @Test
+  public void testMergeWhenPropertiesAreDefinedButJobParamsAreNot() {
     JobParameters jobParameters = new JobParametersBuilder()
             .toJobParameters();
 
     SolrProperties solrProperties = new SolrProperties();
     solrProperties.setSortColumn(new String[] {"testColumn"});
-    solrProperties.apply(jobParameters);
-    assertThat(solrProperties.getSortColumn().length, is(1));
+    SolrProperties solrParameters = solrProperties.merge(jobParameters);
+    assertThat(solrParameters.getSortColumn().length, is(1));
+    assertThat(solrParameters.getSortColumn()[0], is("testColumn"));
   }
 }

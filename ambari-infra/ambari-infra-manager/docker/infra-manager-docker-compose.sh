@@ -61,13 +61,13 @@ function check_env_file() {
 
 function setup_env() {
   pushd $sdir/../../
-  local AMBARI_LOCATION=$(pwd)
+  local AMBARI_INFRA_LOCATION=$(pwd)
   popd
   local docker_ip=$(get_docker_ip)
   cat << EOF > $sdir/.env
 DOCKERIP=$docker_ip
 MAVEN_REPOSITORY_LOCATION=$HOME/.m2
-AMBARI_LOCATION=$AMBARI_LOCATION
+AMBARI_INFRA_LOCATION=$AMBARI_INFRA_LOCATION
 
 ZOOKEEPER_VERSION=3.4.10
 ZOOKEEPER_CONNECTION_STRING=zookeeper:2181

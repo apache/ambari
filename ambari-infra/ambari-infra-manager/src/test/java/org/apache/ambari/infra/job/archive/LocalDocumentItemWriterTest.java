@@ -19,7 +19,19 @@
 
 package org.apache.ambari.infra.job.archive;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.easymock.EasyMock.cmp;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.LogicalOperator.EQUAL;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+
 import org.apache.commons.io.FileUtils;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
@@ -29,25 +41,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-
-import static org.easymock.EasyMock.cmp;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.LogicalOperator.EQUAL;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(EasyMockRunner.class)
 public class LocalDocumentItemWriterTest extends EasyMockSupport {
 
-  private static final Document DOCUMENT = new Document(new HashMap<String, String>() {{ put("id", "1"); }});
-  private static final Document DOCUMENT2 = new Document(new HashMap<String, String>() {{ put("id", "2"); }});
-  private static final Document DOCUMENT3 = new Document(new HashMap<String, String>() {{ put("id", "3"); }});
+  private static final Document DOCUMENT = new Document(new HashMap<String, Object>() {{ put("id", "1"); }});
+  private static final Document DOCUMENT2 = new Document(new HashMap<String, Object>() {{ put("id", "2"); }});
+  private static final Document DOCUMENT3 = new Document(new HashMap<String, Object>() {{ put("id", "3"); }});
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private LocalDocumentItemWriter localDocumentItemWriter;
@@ -80,9 +81,9 @@ public class LocalDocumentItemWriterTest extends EasyMockSupport {
 
     List<Document> documentList = readBack(outFile);
     assertThat(documentList.size(), is(3));
-    assertThat(documentList.get(0).get("id"), is(DOCUMENT.get("id")));
-    assertThat(documentList.get(1).get("id"), is(DOCUMENT2.get("id")));
-    assertThat(documentList.get(2).get("id"), is(DOCUMENT3.get("id")));
+    assertThat(documentList.get(0).getString("id"), is(DOCUMENT.getString("id")));
+    assertThat(documentList.get(1).getString("id"), is(DOCUMENT2.getString("id")));
+    assertThat(documentList.get(2).getString("id"), is(DOCUMENT3.getString("id")));
   }
 
   private Comparator<WriteCompletedEvent> writeCompletedEventEqualityComparator() {

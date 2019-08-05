@@ -22,6 +22,8 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
+import io.swagger.annotations.ApiParam;
+
 public class JobExecutionRestartRequest {
 
   @PathParam("jobName")
@@ -34,6 +36,7 @@ public class JobExecutionRestartRequest {
 
   @QueryParam("operation")
   @NotNull
+  @ApiParam(required = true)
   private JobOperationParams.JobRestartOperationParam operation;
 
   public String getJobName() {

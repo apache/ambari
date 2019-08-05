@@ -1760,7 +1760,7 @@ public class Users {
     }
     String regexp = configuration.getPasswordPolicyRegexp();
     if (!StringUtils.isEmpty(regexp) && (!Pattern.matches(regexp,password))) {
-      final String msg = "The password does not meet the Ambari user password policy regexp:" + regexp;
+      final String msg = "The password does not meet the Ambari user password policy : " + configuration.getPasswordPolicyDescription();
       throw new IllegalArgumentException(msg);
     }
   }

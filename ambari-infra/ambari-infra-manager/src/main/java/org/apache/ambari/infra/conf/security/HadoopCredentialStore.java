@@ -18,16 +18,14 @@
  */
 package org.apache.ambari.infra.conf.security;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Optional;
-
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 
-public class HadoopCredentialStore implements PasswordStore {
-  private static final Logger LOG = LoggerFactory.getLogger(InfraManagerSecurityConfig.class);
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Optional;
+
+public class HadoopCredentialStore {
   public static final String CREDENTIAL_STORE_PROVIDER_PATH_PROPERTY = "hadoop.security.credential.provider.path";
 
   private final String credentialStoreProviderPath;
@@ -36,8 +34,7 @@ public class HadoopCredentialStore implements PasswordStore {
     this.credentialStoreProviderPath = credentialStoreProviderPath;
   }
 
-  @Override
-  public Optional<String> getPassword(String propertyName) {
+  public Optional<char[]> get(String key) {
     try {
       if (isBlank(credentialStoreProviderPath)) {
         return Optional.empty();
@@ -45,11 +42,14 @@ public class HadoopCredentialStore implements PasswordStore {
 
       org.apache.hadoop.conf.Configuration config = new org.apache.hadoop.conf.Configuration();
       config.set(CREDENTIAL_STORE_PROVIDER_PATH_PROPERTY, credentialStoreProviderPath);
-      char[] passwordChars = config.getPassword(propertyName);
-      return (isNotEmpty(passwordChars)) ? Optional.of(new String(passwordChars)) : Optional.empty();
-    } catch (Exception e) {
-      LOG.warn("Could not load password {} from credential store.", propertyName);
-      return Optional.empty();
+      char[] passwordChars = config.getPassword(key);
+      return (isNotEmpty(passwordChars)) ? Optional.of(passwordChars) : Optional.empty();
+    } catch (IOException e) {
+      throw new UncheckedIOException(String.format("Could not load password %s from credential store.", key), e);
     }
+  }
+
+  public Secret getSecret(String key) {
+    return new HadoopCredential(this, key);
   }
 }

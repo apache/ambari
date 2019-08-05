@@ -18,15 +18,23 @@
  */
 package org.apache.ambari.infra.job.archive;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
+import java.io.UnsupportedEncodingException;
 
-import java.io.*;
+import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class LocalDocumentItemWriter implements DocumentItemWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(LocalDocumentItemWriter.class);
+  private static final Logger logger = LogManager.getLogger(LocalDocumentItemWriter.class);
 
   private static final ObjectMapper json = new ObjectMapper();
   private static final String ENCODING = "UTF-8";
@@ -69,7 +77,7 @@ public class LocalDocumentItemWriter implements DocumentItemWriter {
   public void revert() {
     IOUtils.closeQuietly(bufferedWriter);
     if (!outFile.delete())
-      LOG.warn("File {} was not deleted. Exists: {}", outFile.getAbsolutePath(), outFile.exists());
+      logger.warn("File {} was not deleted. Exists: {}", outFile.getAbsolutePath(), outFile.exists());
   }
 
   @Override
