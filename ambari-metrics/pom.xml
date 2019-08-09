@@ -56,7 +56,8 @@
     <distMgmtStagingId>apache.staging.https</distMgmtStagingId>
     <distMgmtStagingName>Apache Release Distribution Repository</distMgmtStagingName>
     <distMgmtStagingUrl>https://repository.apache.org/service/local/staging/deploy/maven2</distMgmtStagingUrl>
-    <fasterxml.jackson.version>2.9.8</fasterxml.jackson.version>
+    <fasterxml.jackson.version>2.9.9</fasterxml.jackson.version>
+    <fasterxml.jackson.databind.version>2.9.9.3</fasterxml.jackson.databind.version>
   </properties>
   <distributionManagement>
     <repository>
@@ -97,7 +98,7 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>${fasterxml.jackson.version}</version>
+        <version>${fasterxml.jackson.databind.version}</version>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
