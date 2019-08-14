@@ -78,8 +78,8 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
 
   # -n the user to connect as (ignored when using the hive principal in the URL, can be different from the user running the beeline command)
   # -e ';' executes a SQL commmand of NOOP
-  cmd = ("beeline -u '%s' %s -e ';' 2>&1 | awk '{print}' | grep -i " + \
-         "-e 'Connected to:' -e 'Transaction isolation:' -e 'inactive HS2 instance; use service discovery'") % \
+  cmd = ("! (beeline -u '%s' %s -e ';' 2>&1 | awk '{print}' | grep -vz -i " + \
+         "-e 'Connected to:' -e 'Transaction isolation:' -e 'inactive HS2 instance; use service discovery')") % \
         (format(";".join(beeline_url)), format(credential_str))
 
   Execute(cmd,
