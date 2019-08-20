@@ -575,7 +575,7 @@
             {
               "name": "appId",
               "display_name": "AMS application id",
-              "value": "NAMENODE",
+              "value": "namenode",
               "type": "STRING",
               "description": "The application id used to retrieve the metric.",
               "visibility": "HIDDEN"
@@ -655,7 +655,7 @@
             {
               "name": "appId",
               "display_name": "AMS application id",
-              "value": "NAMENODE",
+              "value": "namenode",
               "type": "STRING",
               "description": "The application id used to retrieve the metric.",
               "visibility": "HIDDEN"
@@ -735,7 +735,7 @@
             {
               "name": "appId",
               "display_name": "AMS application id",
-              "value": "NAMENODE",
+              "value": "namenode",
               "type": "STRING",
               "description": "The application id used to retrieve the metric.",
               "visibility": "HIDDEN"
@@ -815,7 +815,7 @@
             {
               "name": "appId",
               "display_name": "AMS application id",
-              "value": "NAMENODE",
+              "value": "namenode",
               "type": "STRING",
               "description": "The application id used to retrieve the metric.",
               "visibility": "HIDDEN"
@@ -895,7 +895,7 @@
             {
               "name": "appId",
               "display_name": "AMS application id",
-              "value": "NAMENODE",
+              "value": "namenode",
               "type": "STRING",
               "description": "The application id used to retrieve the metric.",
               "visibility": "HIDDEN"
@@ -975,7 +975,7 @@
             {
               "name": "appId",
               "display_name": "AMS application id",
-              "value": "NAMENODE",
+              "value": "namenode",
               "type": "STRING",
               "description": "The application id used to retrieve the metric.",
               "visibility": "HIDDEN"
@@ -1055,7 +1055,7 @@
             {
               "name": "appId",
               "display_name": "AMS application id",
-              "value": "NAMENODE",
+              "value": "namenode",
               "type": "STRING",
               "description": "The application id used to retrieve the metric.",
               "visibility": "HIDDEN"
@@ -1135,7 +1135,7 @@
             {
               "name": "appId",
               "display_name": "AMS application id",
-              "value": "NAMENODE",
+              "value": "namenode",
               "type": "STRING",
               "description": "The application id used to retrieve the metric.",
               "visibility": "HIDDEN"
@@ -1215,7 +1215,7 @@
             {
               "name": "appId",
               "display_name": "AMS application id",
-              "value": "NAMENODE",
+              "value": "namenode",
               "type": "STRING",
               "description": "The application id used to retrieve the metric.",
               "visibility": "HIDDEN"
@@ -1295,7 +1295,7 @@
             {
               "name": "appId",
               "display_name": "AMS application id",
-              "value": "NAMENODE",
+              "value": "namenode",
               "type": "STRING",
               "description": "The application id used to retrieve the metric.",
               "visibility": "HIDDEN"
@@ -1375,7 +1375,7 @@
             {
               "name": "appId",
               "display_name": "AMS application id",
-              "value": "NAMENODE",
+              "value": "namenode",
               "type": "STRING",
               "description": "The application id used to retrieve the metric.",
               "visibility": "HIDDEN"
@@ -1455,7 +1455,7 @@
             {
               "name": "appId",
               "display_name": "AMS application id",
-              "value": "NAMENODE",
+              "value": "namenode",
               "type": "STRING",
               "description": "The application id used to retrieve the metric.",
               "visibility": "HIDDEN"
