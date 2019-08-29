@@ -293,19 +293,13 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    *                                 to a given request
    * @return A Map of principals-to-password
    */
+  @SuppressWarnings("unchecked")
   protected static Map<String, String> getPrincipalPasswordMap(Map<String, Object> requestSharedDataContext) {
     if (requestSharedDataContext == null) {
       return null;
-    } else {
-      Object map = requestSharedDataContext.get(PRINCIPAL_PASSWORD_MAP);
-
-      if (map == null) {
-        map = new HashMap<String, String>();
-        requestSharedDataContext.put(PRINCIPAL_PASSWORD_MAP, map);
-      }
-
-      return (Map<String, String>) map;
-    }
+    } 
+    Object map = requestSharedDataContext.computeIfAbsent(PRINCIPAL_PASSWORD_MAP, k -> new HashMap<String, String>());
+    return (Map<String, String>) map;
   }
 
   /**
@@ -319,19 +313,13 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    *                                 to a given request
    * @return A Map of principals-to-key_numbers
    */
+  @SuppressWarnings("unchecked")
   protected static Map<String, Integer> getPrincipalKeyNumberMap(Map<String, Object> requestSharedDataContext) {
     if (requestSharedDataContext == null) {
       return null;
-    } else {
-      Object map = requestSharedDataContext.get(PRINCIPAL_KEY_NUMBER_MAP);
-
-      if (map == null) {
-        map = new HashMap<String, String>();
-        requestSharedDataContext.put(PRINCIPAL_KEY_NUMBER_MAP, map);
-      }
-
-      return (Map<String, Integer>) map;
     }
+    Object map = requestSharedDataContext.computeIfAbsent(PRINCIPAL_KEY_NUMBER_MAP, k -> new HashMap<String, String>());
+    return (Map<String, Integer>) map;
   }
 
   /**
