@@ -2837,10 +2837,6 @@ var urls = {
     'real': '/hosts?Hosts/host_name.in({hostNames})&fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&minimal_response=true',
     'mock': ''
   },
-  'hosts.ips': {
-    'real': '/hosts?Hosts/host_name.in({hostNames})&fields=Hosts/ip',
-    'mock': ''
-  },
   'hosts.host_components.pre_load': {
     real: '',
     mock: '/data/hosts/HDP2/hosts.json',
@@ -3220,7 +3216,7 @@ var urls = {
     mock: '',
     format: function (data) {
       return {
-        url: 'http://' + data.hsiHost + ':' + data.port + '/leader'
+        url: data.proto + '://' + data.hsiHost + ':' + data.port + '/leader'
       }
     }
   }

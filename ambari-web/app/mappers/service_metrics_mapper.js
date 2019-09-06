@@ -205,8 +205,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
    */
   ADVANCED_COMPONENTS: ['SECONDARY_NAMENODE', 'RESOURCEMANAGER', 'NAMENODE', 'HBASE_MASTER', 'RESOURCEMANAGER', 'HIVE_SERVER_INTERACTIVE'],
 
-  hostNameIpMap: {},
-
   map: function (json) {
     console.time('App.serviceMetricsMapper execution time');
     if (json.items) {
@@ -316,49 +314,25 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     var self = this;
     App.router.get('configurationController').getCurrentConfigsBySites(['hive-site', 'hive-interactive-site']).done(function (configs) {
       var hiveWebUiPort = configs.findProperty('type', 'hive-interactive-site').properties['hive.server2.webui.port'];
+      var hiveWebUiProtoFlag = configs.findProperty('type', 'hive-interactive-site').properties['hive.server2.webui.use.ssl'];
+      var hiveWebUiProto = hiveWebUiProtoFlag ? 'https' : 'http';
       var hostNames = hiveInteractiveServers.mapProperty('host_name');
-      var notDefinedHostIp = hostNames.find(function (hostName) {
-        return !self.get('hostNameIpMap')[hostName];
-      });
-      if (notDefinedHostIp) {
-        self.getHostNameIpMap(hostNames).done(function () {
-          self.getHiveServersInteractiveStatus(hiveInteractiveServers, hiveWebUiPort);
-        });
-      } else {
-        self.getHiveServersInteractiveStatus(hiveInteractiveServers, hiveWebUiPort);
-      }
+      self.getHiveServersInteractiveStatus(hiveInteractiveServers, hiveWebUiPort, hiveWebUiProto);
     });
   },
 
-  getHostNameIpMap: function (hostNames) {
-    var self = this;
-    return App.ajax.send({
-      name: 'hosts.ips',
-      data: {
-        hostNames: hostNames
-      },
-      sender: self
-    }).success(function (data) {
-      data.items.forEach(function(hostData) {
-        var ip = hostData.Hosts.ip;
-        var hostName = hostData.Hosts.host_name;
-        self.get('hostNameIpMap')[hostName] = ip;
-      })
-    });
-  },
-
-  getHiveServersInteractiveStatus: function(hiveInteractiveServers, hiveWebUiPort) {
+  getHiveServersInteractiveStatus: function(hiveInteractiveServers, hiveWebUiPort, hiveWebUiProto) {
     var self = this;
     hiveInteractiveServers.forEach(function (hiveInteractiveServer) {
       App.ajax.send({
         name: 'hiveServerInteractive.getStatus',
         data: {
-          hsiHost: self.hostNameIpMap[hiveInteractiveServer.host_name],
-          port: hiveWebUiPort
+          hsiHost: hiveInteractiveServer.host_name,
+          port: hiveWebUiPort,
+          proto: hiveWebUiProto
         },
         sender: self
       }).success(function (isActive) {
-
         var advancedName = Em.I18n.t('quick.links.label.' +  (isActive ? 'active': 'standby')) + ' ' + hiveInteractiveServer.display_name;
         var hiveInteractiveServerComponent = App.HostComponent.find().find(function (component) {
           return component.get('hostName') === hiveInteractiveServer.host_name && component.get('componentName') === 'HIVE_SERVER_INTERACTIVE';
