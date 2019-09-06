@@ -99,7 +99,7 @@ define([
             if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "yarnqueues") {
               alias = alias + ' on ' + target.qmetric; }
             if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "kafka-topics") {
-            alias = alias + ' on ' + target.kbTopic; }
+              alias = alias + ' on ' + target.kbTopic; }
             return function (res) {
               res = res.data;
               console.log('processing metric ' + target.metric);
@@ -595,12 +595,29 @@ define([
               if (indexOfHosts >= 0) {
               var allHosts = templateSrv._values.hosts.lastIndexOf('}') > 0 ? templateSrv._values.hosts.slice(1,-1) :
               templateSrv._values.hosts;
-              allHosts = templateSrv._texts.hosts === "All" ? '%' : allHosts;
-              metricsPromises.push(_.map(options.targets, function(target) {
-                  target.templatedHost = allHosts? allHosts : '';
-                  target.templatedCluster = templatedCluster;
-                  return getAllHostData(target);
-              }));
+
+              /* The Producer & Comsumer Requests graphs on the Kafka Hosts dashboard should display metrics that are
+               * versioned, thus the value of different versions should be aggregated and grouped by hosts.
+               * In order to have a 'grouped by hosts' like view the metric results are queried for each hosts separately.
+               */
+              if (!_.isEmpty(options.targets.filter(function(target) {
+                    return target.metric.endsWith(".%.count"); }))) {
+                allHosts = allHosts.split(',');
+                _.forEach(allHosts, function(host) {
+                    metricsPromises.push(_.map(options.targets, function(target) {
+                        target.templatedHost = host;
+                        target.templatedCluster = templatedCluster;
+                        return getAllHostData(target);
+                    }));
+                });
+              } else {
+                  allHosts = templateSrv._texts.hosts === "All" ? '%' : allHosts;
+                  metricsPromises.push(_.map(options.targets, function(target) {
+                      target.templatedHost = allHosts? allHosts : '';
+                      target.templatedCluster = templatedCluster;
+                      return getAllHostData(target);
+                }));
+              }
             }
             metricsPromises = _.flatten(metricsPromises);
           } else {
