@@ -3220,7 +3220,7 @@ var urls = {
     mock: '',
     format: function (data) {
       return {
-        url: 'http://' + data.hsiHost + ':' + data.port + '/leader'
+        url: data.proto + '://' + data.hsiHost + ':' + data.port + '/leader'
       }
     }
   }
