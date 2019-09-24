@@ -105,18 +105,18 @@ public class ConfigImpl implements Config {
       @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
       ClusterDAO clusterDAO, StackDAO stackDAO,
       Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
-    this(cluster.getDesiredStackVersion(), cluster, type, tag, properties, propertiesAttributes,
-        clusterDAO, stackDAO, gson, eventPublisher, lockFactory);
+    this(cluster.getDesiredStackVersion(), type, cluster, tag, properties, propertiesAttributes,
+        clusterDAO, stackDAO, gson, eventPublisher, lockFactory, true);
   }
 
 
   @AssistedInject
-  ConfigImpl(@Assisted @Nullable StackId stackId, @Assisted Cluster cluster, @Assisted("type") String type,
+  ConfigImpl(@Assisted @Nullable StackId stackId, @Assisted("type") String type, @Assisted Cluster cluster,
       @Assisted("tag") @Nullable String tag,
       @Assisted Map<String, String> properties,
       @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
       ClusterDAO clusterDAO, StackDAO stackDAO,
-      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
+      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory, @Assisted boolean refreshCluster) {
 
     propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
 
@@ -158,9 +158,20 @@ public class ConfigImpl implements Config {
     // cluster's desired stack as the config's stack
     this.stackId = stackId;
     propertiesTypes = cluster.getConfigPropertiesTypes(type);
-    persist(entity);
+    persist(entity, refreshCluster);
 
     configId = entity.getConfigId();
+  }
+
+  @AssistedInject
+  ConfigImpl(@Assisted StackId stackId, @Assisted Cluster cluster, @Assisted("type") String type,
+      @Assisted("tag") @Nullable String tag,
+      @Assisted Map<String, String> properties,
+      @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
+      ClusterDAO clusterDAO, StackDAO stackDAO,
+      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
+    this(stackId, type, cluster, tag, properties, propertiesAttributes, clusterDAO, stackDAO, gson, eventPublisher,
+        lockFactory, true);
   }
 
   @AssistedInject
@@ -343,14 +354,15 @@ public class ConfigImpl implements Config {
    * Persist the entity and update the internal state relationships once the
    * transaction has been committed.
    */
-  private void persist(ClusterConfigEntity entity) {
+  private void persist(ClusterConfigEntity entity, boolean refreshCluster) {
     persistEntitiesInTransaction(entity);
 
     // ensure that the in-memory state of the cluster is kept consistent
     cluster.addConfig(this);
 
-    // re-load the entity associations for the cluster
-    cluster.refresh();
+    if (refreshCluster) {
+      cluster.refresh();
+    }
 
     // broadcast the change event for the configuration
     ClusterConfigChangedEvent event = new ClusterConfigChangedEvent(cluster.getClusterName(),
@@ -394,7 +406,7 @@ public class ConfigImpl implements Config {
 
       // save the entity, forcing a flush to ensure the refresh picks up the
       // newest data
-      clusterDAO.merge(clusterEntity, true);
+      clusterDAO.merge(entity, true);
 
       // re-load the entity associations for the cluster
       cluster.refresh();
