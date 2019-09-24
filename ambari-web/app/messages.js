@@ -2701,6 +2701,7 @@ Em.I18n.translations = {
   'hosts.table.menu.l2.allComponents':'All Components',
   'hosts.table.menu.l2.restartAllComponents':'Restart All Components',
   'hosts.table.menu.l2.reinstallFailedComponents':'Reinstall Failed Components',
+  'hosts.table.menu.l2.refreshConfigsClientComponents':'Refresh All Configs',
 
   'hosts.bulkOperation.confirmation.header':'Confirm Bulk Operation',
   'hosts.bulkOperation.confirmation.hosts':'Are you sure you want to <strong>{0}</strong> on the following {1} hosts?',
@@ -3267,6 +3268,7 @@ Em.I18n.translations = {
   'rollingrestart.dialog.msg.staleConfigsOnly': 'Only restart {0} with stale configs',
   'rollingrestart.rest.context': 'Rolling Restart of {0}s - batch {1} of {2}',
   'rollingrestart.context.allOnSelectedHosts':'Restart all components on the selected hosts',
+  'rollingrestart.context.configs.allOnSelectedHosts':'Refresh all configs on the selected hosts',
   'rollingrestart.context.allForSelectedService':'Restart all components for {0}',
   'rollingrestart.context.allWithStaleConfigsForSelectedService':'Restart all components with Stale Configs for {0}',
   'rollingrestart.context.ClientOnSelectedHost':'Restart {0} on {1}',

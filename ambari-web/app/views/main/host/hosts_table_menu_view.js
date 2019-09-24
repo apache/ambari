@@ -288,6 +288,13 @@ App.HostTableMenuView = Em.View.extend({
               action: 'REINSTALL',
               message: Em.I18n.t('hosts.table.menu.l2.reinstallFailedComponents')
             })
+          }),
+          O.create({
+            label: Em.I18n.t('hosts.table.menu.l2.refreshConfigsClientComponents'),
+            operationData: O.create({
+              action: 'CONFIGURE',
+              message: Em.I18n.t('hosts.table.menu.l2.refreshConfigsClientComponents')
+            })
           })
         ]);
       }
