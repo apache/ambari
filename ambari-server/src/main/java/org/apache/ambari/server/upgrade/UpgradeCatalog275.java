@@ -50,6 +50,11 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
     return "2.7.4";
   }
 
+  @Override
+  public String getTargetVersion() {
+    return "2.7.5";
+  }
+
   /**
    * Perform database schema transformation. Can work only before persist service start
    *
@@ -59,11 +64,6 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
 
-  }
-
-  @Override
-  public String getTargetVersion() {
-    return "2.7.5";
   }
 
   /**
