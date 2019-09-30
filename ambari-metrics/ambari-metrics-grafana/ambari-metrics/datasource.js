@@ -19,7 +19,7 @@ define([
       'angular',
       'lodash',
       'jquery',
-      './queryCtrl'
+      './query_ctrl'
     ],
     function (angular, _) {
       'use strict';
