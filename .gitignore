@@ -32,3 +32,10 @@ createDDL.jdbc
 /dist
 /build
 ambari_python.egg-info
+contrib/views/hive20/src/main/resources/ui/node_modules
+contrib/views/hueambarimigration/src/main/resources/ui/hueambarimigration-view/node_modules
+contrib/views/hive-next/src/main/resources/ui/hive-web/node_modules
+contrib/views/hawq/src/main/resources/ui/node_modules
+contrib/views/hive20/src/main/resources/ui/node/yarn/dist/node_modules
+contrib/views/hueambarimigration/src/main/resources/ui/hueambarimigration-view/node
+contrib/views/jobs/src/main/resources/ui/app/bower_components

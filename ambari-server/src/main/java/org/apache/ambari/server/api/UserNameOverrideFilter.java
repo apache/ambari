@@ -31,13 +31,15 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
-import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This filter overrides usernames found in request url.
  */
 public class UserNameOverrideFilter implements Filter {
-
+ 
+  private static final Logger LOG = LoggerFactory.getLogger(UserNameOverrideFilter.class);
   // Regex for extracting user name component from the user related api request Uris
   private final static Pattern USER_NAME_IN_URI_REGEXP = Pattern.compile("(?<pre>.*/users/)(?<username>[^/]+)(?<post>(/.*)?)");
 
@@ -87,20 +89,22 @@ public class UserNameOverrideFilter implements Filter {
 
       if (userNameMatcher.find()) {
         String userNameFromUri = URLDecoder.decode(userNameMatcher.group("username"), "UTF-8");
-        final String userName = AuthorizationHelper.resolveLoginAliasToUserName(userNameFromUri);
-
+        // as ambari saves all the users in lower case if at all any
+        // request is coming it need to be overriden using lowercase
+        final String userName = userNameFromUri.toLowerCase();
         if (!userNameFromUri.equals(userName)) {
-          final String requestUriOverride = String.format("%s%s%s", userNameMatcher.group("pre"), userName, userNameMatcher.group("post"));
-
+          final String requestUriOverride = String.format("%s%s%s", userNameMatcher.group("pre"), userName,
+              userNameMatcher.group("post"));
+          LOG.info("Change Request Filder as the username : {} is not equal to username : {}From URI", userName,
+              userNameFromUri);
           request = new HttpServletRequestWrapper(httpServletRequest) {
             @Override
             public String getRequestURI() {
               return requestUriOverride;
             }
           };
-
         }
-      }
+		}
     }
 
     chain.doFilter(request, response);
