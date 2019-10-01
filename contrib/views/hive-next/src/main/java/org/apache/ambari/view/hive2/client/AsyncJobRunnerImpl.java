@@ -48,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 public class AsyncJobRunnerImpl implements AsyncJobRunner {
 
   private final Logger LOG = LoggerFactory.getLogger(getClass());
+  private static scala.concurrent.duration.FiniteDuration WAIT_TIME = Duration.create(12, TimeUnit.HOURS);
 
   private final ActorRef controller;
   private final ActorSystem system;
@@ -76,7 +77,7 @@ public class AsyncJobRunnerImpl implements AsyncJobRunner {
   public Optional<NonPersistentCursor> getCursor(String jobId, String username) {
     Inbox inbox = Inbox.create(system);
     inbox.send(controller, new FetchResult(jobId, username));
-    Object receive = inbox.receive(Duration.create(1, TimeUnit.MINUTES));
+    Object receive = inbox.receive(WAIT_TIME);
     if(receive instanceof ResultNotReady) {
       String errorString = "Result not ready for job: " + jobId + ", username: " + username + ". Try after sometime.";
       LOG.info(errorString);
@@ -98,7 +99,7 @@ public class AsyncJobRunnerImpl implements AsyncJobRunner {
   public Optional<NonPersistentCursor> resetAndGetCursor(String jobId, String username) {
     Inbox inbox = Inbox.create(system);
     inbox.send(controller, new FetchResult(jobId, username));
-    Object receive = inbox.receive(Duration.create(1, TimeUnit.MINUTES));
+    Object receive = inbox.receive(WAIT_TIME);
     if(receive instanceof ResultNotReady) {
       String errorString = "Result not ready for job: " + jobId + ", username: " + username + ". Try after sometime.";
       LOG.info(errorString);
@@ -110,7 +111,7 @@ public class AsyncJobRunnerImpl implements AsyncJobRunner {
       Optional<ActorRef> iterator = (Optional<ActorRef>) receive;
       if(iterator.isPresent()) {
         inbox.send(iterator.get(), new ResetCursor());
-        Object resetResult = inbox.receive(Duration.create(1, TimeUnit.MINUTES));
+        Object resetResult = inbox.receive(WAIT_TIME);
         if (resetResult instanceof CursorReset) {
           return Optional.of(new NonPersistentCursor(context, system, iterator.get()));
         } else {
@@ -126,7 +127,7 @@ public class AsyncJobRunnerImpl implements AsyncJobRunner {
   public Optional<Failure> getError(String jobId, String username) {
     Inbox inbox = Inbox.create(system);
     inbox.send(controller, new FetchError(jobId, username));
-    Object receive = inbox.receive(Duration.create(1, TimeUnit.MINUTES));
+    Object receive = inbox.receive(WAIT_TIME);
     if(receive instanceof FetchFailed){
       FetchFailed fetchFailed = (FetchFailed) receive;
       return Optional.of(new Failure(fetchFailed.getMessage(), getExceptionForRetry()));

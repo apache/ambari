@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class NonPersistentCursor implements Cursor<Row, ColumnDescription> {
   private final Logger LOG = LoggerFactory.getLogger(getClass());
-  private static long DEFAULT_WAIT_TIMEOUT = 60 * 1000L;
+  private static scala.concurrent.duration.FiniteDuration WAIT_TIME = Duration.create(12, TimeUnit.HOURS);
 
   private final ActorSystem system;
   private final ActorRef actorRef;
@@ -124,8 +124,7 @@ public class NonPersistentCursor implements Cursor<Row, ColumnDescription> {
     inbox.send(actorRef, new Next());
     Object receive;
     try {
-      receive = inbox.receive(Duration.create(actorConfiguration.getResultFetchTimeout(DEFAULT_WAIT_TIMEOUT),
-        TimeUnit.MILLISECONDS));
+      receive = inbox.receive(WAIT_TIME);
     } catch (Throwable ex) {
       String errorMessage = "Result fetch timed out";
       LOG.error(errorMessage, ex);
