@@ -95,7 +95,7 @@ public class UserNameOverrideFilter implements Filter {
         if (!userNameFromUri.equals(userName)) {
           final String requestUriOverride = String.format("%s%s%s", userNameMatcher.group("pre"), userName,
               userNameMatcher.group("post"));
-          LOG.info("Change Request Filder as the username : {} is not equal to username : {}From URI", userName,
+          LOG.info("Changing the URL as the userNameFromURI {} is not equal to userName {}", userName,
               userNameFromUri);
           request = new HttpServletRequestWrapper(httpServletRequest) {
             @Override
