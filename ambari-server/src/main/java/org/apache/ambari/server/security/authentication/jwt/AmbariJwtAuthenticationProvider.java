@@ -29,6 +29,7 @@ import org.apache.ambari.server.security.authentication.AmbariUserDetails;
 import org.apache.ambari.server.security.authentication.AmbariUserDetailsImpl;
 import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
 import org.apache.ambari.server.security.authentication.UserNotFoundException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.slf4j.Logger;
@@ -119,8 +120,14 @@ public class AmbariJwtAuthenticationProvider extends AmbariAuthenticationProvide
         }
       }
 
-      AmbariUserDetails userDetails = new AmbariUserDetailsImpl(users.getUser(userEntity), null, users.getUserAuthorities(userEntity));
-      return new AmbariUserAuthentication(authentication.getCredentials().toString(), userDetails, true);
+	AmbariUserDetails userDetails = new AmbariUserDetailsImpl(users.getUser(userEntity), null,
+	users.getUserAuthorities(userEntity));
+	String jwtUserName = authentication.getName().trim();
+	String authenticatedUsername = userDetails.getUsername().trim();
+	if (!jwtUserName.equals(authenticatedUsername)) {
+		AuthorizationHelper.addLoginNameAlias(jwtUserName, authenticatedUsername);
+	}
+			return new AmbariUserAuthentication(authentication.getCredentials().toString(), userDetails, true);
     } else {
       // The user was not authenticated, fail
       LOG.debug("Authentication failed: password does not match stored value: {}", userName);
