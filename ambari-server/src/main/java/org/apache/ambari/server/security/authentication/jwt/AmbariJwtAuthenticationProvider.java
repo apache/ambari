@@ -122,11 +122,10 @@ public class AmbariJwtAuthenticationProvider extends AmbariAuthenticationProvide
 
       AmbariUserDetails userDetails = new AmbariUserDetailsImpl(users.getUser(userEntity), null, users.getUserAuthorities(userEntity));
       
-      String usernName = authentication.getName();
-      String jwtTokenName = userDetails.getUsername();
+      String jwtTokenName = userDetails.getUsername().trim();
       //If JwtToken Provided Username and authenticatedUsername is different Add it to Alias
-      if(!usernName.equals(jwtTokenName)){
-        AuthorizationHelper.addLoginNameAlias(usernName,jwtTokenName);
+      if(!userName.equals(jwtTokenName)){
+        AuthorizationHelper.addLoginNameAlias(userName,jwtTokenName);
       }
       return new AmbariUserAuthentication(authentication.getCredentials().toString(), userDetails, true);
     } else {
