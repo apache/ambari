@@ -103,7 +103,7 @@
         <plugin>
           <groupId>org.vafer</groupId>
           <artifactId>jdeb</artifactId>
-          <version>1.4</version>
+          <version>1.8</version>
           <executions>
             <execution>
               <!--Stub execution on direct plugin call - workaround for ambari deb build process-->
@@ -135,7 +135,7 @@
           </execution>
         </executions>
         <configuration>
-          <copyright>2012, Apache Software Foundation</copyright>
+          <license>2012, Apache Software Foundation</license>
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
           <release>${package-release}</release>

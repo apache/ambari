@@ -157,7 +157,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.0</version>
+        <version>3.2</version>
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -170,7 +170,6 @@
       <plugin>
         <groupId>org.vafer</groupId>
         <artifactId>jdeb</artifactId>
-        <version>1.0.1</version>
         <executions>
             <execution>
                 <phase>none</phase>
