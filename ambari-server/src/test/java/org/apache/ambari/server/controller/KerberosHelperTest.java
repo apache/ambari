@@ -52,9 +52,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
@@ -1999,7 +1996,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     serviceNames.add("EXISTING_SERVICE");
     serviceNames.add("PRECONFIGURE_SERVICE");
 
-    SortedMap<String, SortedSet<String>> hostMap = new TreeMap<>();
+    Map<String, Set<String>> hostMap = new HashMap<>();
 
     Map<String, Service> services = new HashMap<>();
 
@@ -2382,7 +2379,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     services.put("SERVICE2", service2);
     services.put("SERVICE3", service3);
 
-    SortedMap<String, SortedSet<String>> serviceComponentHostMap = new TreeMap<>();
+    Map<String, Set<String>> serviceComponentHostMap = new HashMap<>();
     serviceComponentHostMap.put("COMPONENT1A", new TreeSet<>(Arrays.asList("hostA")));
     serviceComponentHostMap.put("COMPONENT1B", new TreeSet<>(Arrays.asList("hostB", "hostC")));
     serviceComponentHostMap.put("COMPONENT2A", new TreeSet<>(Arrays.asList("hostA")));

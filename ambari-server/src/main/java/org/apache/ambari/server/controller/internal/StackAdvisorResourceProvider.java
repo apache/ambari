@@ -27,10 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.WebApplicationException;
@@ -148,11 +144,11 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
 
       List<String> hosts;
       List<String> services;
-      SortedMap<String, SortedSet<String>> hgComponentsMap;
-      SortedMap<String, SortedSet<String>> hgHostsMap;
-      SortedMap<String, SortedSet<String>> componentHostsMap;
-      SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurations;
-      SortedSet<RecommendationResponse.ConfigGroup> configGroups;
+      Map<String, Set<String>> hgComponentsMap;
+      Map<String, Set<String>> hgHostsMap;
+      Map<String, Set<String>> componentHostsMap;
+      Map<String, Map<String, Map<String, String>>> configurations;
+      Set<RecommendationResponse.ConfigGroup> configGroups;
 
       // In auto complete case all required fields will be filled will cluster current info
       if (autoComplete) {
@@ -202,7 +198,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
         configurations = calculateConfigurations(request);
         configGroups = calculateConfigGroups(request);
       }
-      SortedMap<String, String> userContext = readUserContext(request);
+      Map<String, String> userContext = readUserContext(request);
       Boolean gplLicenseAccepted = configuration.getGplLicenseAccepted();
       List<ChangedConfigInfo> changedConfigurations =
         requestType == StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES ?
@@ -240,10 +236,10 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
    * @return host-group to components map
    */
   @SuppressWarnings("unchecked")
-  private SortedMap<String, SortedSet<String>> calculateHostGroupComponentsMap(Request request) {
+  private Map<String, Set<String>> calculateHostGroupComponentsMap(Request request) {
     Set<Map<String, Object>> hostGroups = (Set<Map<String, Object>>) getRequestProperty(request,
         BLUEPRINT_HOST_GROUPS_PROPERTY);
-    SortedMap<String, SortedSet<String>> map = new TreeMap<>();
+    Map<String, Set<String>> map = new HashMap<>();
     if (hostGroups != null) {
       for (Map<String, Object> hostGroup : hostGroups) {
         String hostGroupName = (String) hostGroup.get(BLUEPRINT_HOST_GROUPS_NAME_PROPERTY);
@@ -251,7 +247,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
         Set<Map<String, Object>> componentsSet = (Set<Map<String, Object>>) hostGroup
             .get(BLUEPRINT_HOST_GROUPS_COMPONENTS_PROPERTY);
 
-        SortedSet<String> components = new TreeSet<>();
+        Set<String> components = new HashSet<>();
         for (Map<String, Object> component : componentsSet) {
           components.add((String) component.get(BLUEPRINT_HOST_GROUPS_COMPONENTS_NAME_PROPERTY));
         }
@@ -268,14 +264,14 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
    * @param cluster cluster for calculating components mapping by host groups
    * @return map "host group name" -> ["component name1", "component name 2", ...]
    */
-  private SortedMap<String, SortedSet<String>> calculateHostGroupComponentsMap(Cluster cluster) {
-    SortedMap<String, SortedSet<String>> map = new TreeMap<>();
+  private Map<String, Set<String>> calculateHostGroupComponentsMap(Cluster cluster) {
+    Map<String, Set<String>> map = new HashMap<>();
     List<Host> hosts = new ArrayList<>(cluster.getHosts());
     if (!hosts.isEmpty()) {
       for (Host host : hosts) {
         String hostGroupName = host.getHostName();
 
-        SortedSet<String> components = new TreeSet<>();
+        Set<String> components = new HashSet<>();
         for (ServiceComponentHost sch : cluster.getServiceComponentHosts(host.getHostName())) {
           components.add(sch.getServiceComponentName());
         }
@@ -293,10 +289,10 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
    * @return host-group to hosts map
    */
   @SuppressWarnings("unchecked")
-  private SortedMap<String, SortedSet<String>> calculateHostGroupHostsMap(Request request) {
+  private Map<String, Set<String>> calculateHostGroupHostsMap(Request request) {
     Set<Map<String, Object>> bindingHostGroups = (Set<Map<String, Object>>) getRequestProperty(
         request, BINDING_HOST_GROUPS_PROPERTY);
-    SortedMap<String, SortedSet<String>> map = new TreeMap<>();
+    Map<String, Set<String>> map = new HashMap<>();
     if (bindingHostGroups != null) {
       for (Map<String, Object> hostGroup : bindingHostGroups) {
         String hostGroupName = (String) hostGroup.get(BINDING_HOST_GROUPS_NAME_PROPERTY);
@@ -304,7 +300,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
         Set<Map<String, Object>> hostsSet = (Set<Map<String, Object>>) hostGroup
             .get(BINDING_HOST_GROUPS_HOSTS_PROPERTY);
 
-        SortedSet<String> hosts = new TreeSet<>();
+        Set<String> hosts = new HashSet<>();
         for (Map<String, Object> host : hostsSet) {
           hosts.add((String) host.get(BINDING_HOST_GROUPS_HOSTS_NAME_PROPERTY));
         }
@@ -321,13 +317,13 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
    * @param cluster cluster for calculating hosts mapping by host groups
    * @return map "host group name" -> ["host name 1"]
    */
-  private SortedMap<String, SortedSet<String>> calculateHostGroupHostsMap(Cluster cluster) {
-    SortedMap<String, SortedSet<String>> map = new TreeMap<>();
+  private Map<String, Set<String>> calculateHostGroupHostsMap(Cluster cluster) {
+    Map<String, Set<String>> map = new HashMap<>();
 
     List<Host> hosts = new ArrayList<>(cluster.getHosts());
     if (!hosts.isEmpty()) {
       for (Host host : hosts) {
-        map.put(host.getHostName(), new TreeSet<String>(){{add(host.getHostName());}});
+        map.put(host.getHostName(), Collections.singleton(host.getHostName()));
       }
     }
 
@@ -346,10 +342,10 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
     return configs;
   }
 
-  protected SortedSet<RecommendationResponse.ConfigGroup> calculateConfigGroups(Request request) {
+  protected Set<RecommendationResponse.ConfigGroup> calculateConfigGroups(Request request) {
 
-    SortedSet<RecommendationResponse.ConfigGroup> configGroups =
-      new TreeSet<>();
+    Set<RecommendationResponse.ConfigGroup> configGroups =
+      new HashSet<>();
 
     Set<HashMap<String, Object>> configGroupsProperties =
       (HashSet<HashMap<String, Object>>) getRequestProperty(request, CONFIG_GROUPS_PROPERTY);
@@ -380,10 +376,9 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
     return configGroups;
   }
 
-  protected SortedSet<RecommendationResponse.ConfigGroup> calculateConfigGroups(Cluster cluster, Request request) {
+  protected Set<RecommendationResponse.ConfigGroup> calculateConfigGroups(Cluster cluster, Request request) {
 
-    SortedSet<RecommendationResponse.ConfigGroup> configGroups =
-      new TreeSet<>();
+    Set<RecommendationResponse.ConfigGroup> configGroups = new HashSet<>();
 
     Set<HashMap<String, Object>> configGroupsProperties =
       (HashSet<HashMap<String, Object>>) getRequestProperty(request, CONFIG_GROUPS_PROPERTY);
@@ -421,8 +416,8 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
    * @param request
    * @return
    */
-  protected SortedMap<String, String> readUserContext(Request request) {
-    SortedMap<String, String> userContext = new TreeMap<>();
+  protected Map<String, String> readUserContext(Request request) {
+    Map<String, String> userContext = new HashMap<>();
     if (null != getRequestProperty(request, USER_CONTEXT_OPERATION_PROPERTY)) {
       userContext.put(OPERATION_PROPERTY,
                       (String) getRequestProperty(request, USER_CONTEXT_OPERATION_PROPERTY));
@@ -436,8 +431,8 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
 
   protected static final String CONFIGURATIONS_PROPERTY_ID = "recommendations/blueprint/configurations/";
 
-  protected SortedMap<String, SortedMap<String, SortedMap<String, String>>> calculateConfigurations(Request request) {
-    SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurations = new TreeMap<>();
+  protected Map<String, Map<String, Map<String, String>>> calculateConfigurations(Request request) {
+    Map<String, Map<String, Map<String, String>>> configurations = new HashMap<>();
     Map<String, Object> properties = request.getProperties().iterator().next();
     for (String property : properties.keySet()) {
       if (property.startsWith(CONFIGURATIONS_PROPERTY_ID)) {
@@ -448,15 +443,15 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
           String propertiesProperty = propertyPath[1];
           String propertyName = propertyPath[2];
 
-          SortedMap<String, SortedMap<String, String>> siteMap = configurations.get(siteName);
+          Map<String, Map<String, String>> siteMap = configurations.get(siteName);
           if (siteMap == null) {
-            siteMap = new TreeMap<>();
+            siteMap = new HashMap<>();
             configurations.put(siteName, siteMap);
           }
 
-          SortedMap<String, String> propertiesMap = siteMap.get(propertiesProperty);
+          Map<String, String> propertiesMap = siteMap.get(propertiesProperty);
           if (propertiesMap == null) {
-            propertiesMap = new TreeMap<>();
+            propertiesMap = new HashMap<>();
             siteMap.put(propertiesProperty, propertiesMap);
           }
 
@@ -475,9 +470,9 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
     return configurations;
   }
 
-  protected SortedMap<String, SortedMap<String, SortedMap<String, String>>> calculateConfigurations(Cluster cluster, String serviceName)
+  protected Map<String, Map<String, Map<String, String>>> calculateConfigurations(Cluster cluster, String serviceName)
       throws AmbariException {
-    SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurations = new TreeMap<>();
+    Map<String, Map<String, Map<String, String>>> configurations = new HashMap<>();
     Service service = cluster.getService(serviceName);
 
     StackId stackId = service.getDesiredStackId();
@@ -494,31 +489,30 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
     }
     for (Map.Entry<String, DesiredConfig> requiredDesiredConfigEntry : requiredDesiredConfigs.entrySet()) {
       Config config = cluster.getConfig(requiredDesiredConfigEntry.getKey(), requiredDesiredConfigEntry.getValue().getTag());
-      configurations.put(requiredDesiredConfigEntry.getKey(),
-          new TreeMap<String, SortedMap<String, String>>(){{put("properties", new TreeMap<>(config.getProperties()));}});
+      configurations.put(requiredDesiredConfigEntry.getKey(), Collections.singletonMap("properties", config.getProperties()));
     }
     return configurations;
   }
 
   @SuppressWarnings("unchecked")
-  private SortedMap<String, SortedSet<String>> calculateComponentHostsMap(SortedMap<String, SortedSet<String>> hostGroups,
-                                                                    SortedMap<String, SortedSet<String>> bindingHostGroups) {
+  private Map<String, Set<String>> calculateComponentHostsMap(Map<String, Set<String>> hostGroups,
+                                                              Map<String, Set<String>> bindingHostGroups) {
     /*
      * ClassCastException may occur in case of body inconsistency: property
      * missed, etc.
      */
 
-    SortedMap<String, SortedSet<String>> componentHostsMap = new TreeMap<>();
+    Map<String, Set<String>> componentHostsMap = new HashMap<>();
     if (null != bindingHostGroups && null != hostGroups) {
-      for (Map.Entry<String, SortedSet<String>> hgComponents : hostGroups.entrySet()) {
+      for (Map.Entry<String, Set<String>> hgComponents : hostGroups.entrySet()) {
         String hgName = hgComponents.getKey();
         Set<String> components = hgComponents.getValue();
 
         Set<String> hosts = bindingHostGroups.get(hgName);
         for (String component : components) {
-          SortedSet<String> componentHosts = componentHostsMap.get(component);
+          Set<String> componentHosts = componentHostsMap.get(component);
           if (componentHosts == null) { // if was not initialized
-            componentHosts = new TreeSet<>();
+            componentHosts = new HashSet<>();
             componentHostsMap.put(component, componentHosts);
           }
           componentHosts.addAll(hosts);
@@ -530,16 +524,16 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
   }
 
   @SuppressWarnings("unchecked")
-  private SortedMap<String, SortedSet<String>> calculateComponentHostsMap(Cluster cluster) {
+  private Map<String, Set<String>> calculateComponentHostsMap(Cluster cluster) {
     /*
      * ClassCastException may occur in case of body inconsistency: property
      * missed, etc.
      */
 
-    SortedMap<String, SortedSet<String>> componentHostsMap = new TreeMap<>();
+    Map<String, Set<String>> componentHostsMap = new HashMap<>();
     List<ServiceComponentHost> schs = cluster.getServiceComponentHosts();
     for (ServiceComponentHost sch : schs) {
-      componentHostsMap.putIfAbsent(sch.getServiceComponentName(), new TreeSet<>());
+      componentHostsMap.putIfAbsent(sch.getServiceComponentName(), new HashSet<>());
       componentHostsMap.get(sch.getServiceComponentName()).add(sch.getHostName());
     }
 
