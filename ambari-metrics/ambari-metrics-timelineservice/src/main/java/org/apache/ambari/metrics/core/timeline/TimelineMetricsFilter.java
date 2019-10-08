@@ -76,7 +76,7 @@ public class TimelineMetricsFilter {
     if (configuration.isWhitelistingEnabled()) {
       String whitelistFile = metricsConf.get(TimelineMetricConfiguration.TIMELINE_METRICS_WHITELIST_FILE, TimelineMetricConfiguration.TIMELINE_METRICS_WHITELIST_FILE_LOCATION_DEFAULT);
       readMetricWhitelistFromFile(whitelistedMetrics, whitelistedMetricPatterns, whitelistFile);
-      LOG.info("Whitelisting " + whitelistedMetrics.size() + " metrics");
+      LOG.info("Whitelisting " + whitelistedMetrics.size() + " metrics and " + whitelistedMetricPatterns.size() + " metric patterns");
       LOG.debug("Whitelisted metrics : " + Arrays.toString(whitelistedMetrics.toArray()));
     }
 
