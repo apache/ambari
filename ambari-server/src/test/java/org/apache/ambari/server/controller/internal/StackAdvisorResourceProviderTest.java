@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 
 import javax.annotation.Nonnull;
 
@@ -55,11 +56,11 @@ public class StackAdvisorResourceProviderTest {
         CONFIGURATIONS_PROPERTY_ID + "site/properties/string_prop", "string",
         CONFIGURATIONS_PROPERTY_ID + "site/properties/array_prop", Lists.newArrayList("array1", "array2"));
 
-    Map<String, Map<String, Map<String, String>>> calculatedConfigurations = provider.calculateConfigurations(request);
+    SortedMap<String, SortedMap<String, SortedMap<String, String>>> calculatedConfigurations = provider.calculateConfigurations(request);
 
     assertNotNull(calculatedConfigurations);
     assertEquals(1, calculatedConfigurations.size());
-    Map<String, Map<String, String>> site = calculatedConfigurations.get("site");
+    SortedMap<String, SortedMap<String, String>> site = calculatedConfigurations.get("site");
     assertNotNull(site);
     assertEquals(1, site.size());
     Map<String, String> properties = site.get("properties");
@@ -112,11 +113,11 @@ public class StackAdvisorResourceProviderTest {
         CONFIGURATIONS_PROPERTY_ID + "site/properties/string_prop", null,
         CONFIGURATIONS_PROPERTY_ID + "site/properties/array_prop", Lists.newArrayList("array1", "array2"));
 
-    Map<String, Map<String, Map<String, String>>> calculatedConfigurations = provider.calculateConfigurations(request);
+    SortedMap<String, SortedMap<String, SortedMap<String, String>>> calculatedConfigurations = provider.calculateConfigurations(request);
 
     assertNotNull(calculatedConfigurations);
     assertEquals(1, calculatedConfigurations.size());
-    Map<String, Map<String, String>> site = calculatedConfigurations.get("site");
+    SortedMap<String, SortedMap<String, String>> site = calculatedConfigurations.get("site");
     assertNotNull(site);
     assertEquals(1, site.size());
     Map<String, String> properties = site.get("properties");

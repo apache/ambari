@@ -827,7 +827,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Received an updateHost request, hostname={}, request={}", request.getHostname(), request);
       }
-      TopologyHost topologyHost = new TopologyHost();
 
       Host host = clusters.getHost(request.getHostname());
 
@@ -835,7 +834,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       Cluster cluster = clusters.getCluster(clusterName);
       Long clusterId = cluster.getClusterId();
       Long resourceId = cluster.getResourceId();
-      topologyHost.setHostId(host.getHostId());
+      TopologyHost topologyHost = new TopologyHost(host.getHostId(), host.getHostName());
 
       try {
         // The below method call throws an exception when trying to create a duplicate mapping in the clusterhostmapping

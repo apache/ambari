@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
@@ -35,6 +36,7 @@ import org.apache.ambari.server.api.services.stackadvisor.recommendations.Recomm
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.collections.CollectionUtils;
+import org.codehaus.jackson.JsonNode;
 
 /**
  * {@link org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand} implementation for
@@ -57,8 +59,10 @@ public class ConfigurationRecommendationCommand extends StackAdvisorCommand<Reco
                                             int requestId,
                                             StackAdvisorRunner saRunner,
                                             AmbariMetaInfo metaInfo,
-                                            AmbariServerConfigurationHandler ambariServerConfigurationHandler) {
-    super(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType, requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
+                                            AmbariServerConfigurationHandler ambariServerConfigurationHandler,
+                                            Map<String, JsonNode> hostInfoCache) {
+    super(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType, requestId, saRunner, metaInfo,
+        ambariServerConfigurationHandler, hostInfoCache);
     this.commandType = commandType;
   }
 
@@ -83,7 +87,7 @@ public class ConfigurationRecommendationCommand extends StackAdvisorCommand<Reco
 
   protected Set<HostGroup> processHostGroups(StackAdvisorRequest request) {
     Set<HostGroup> resultSet = new HashSet<>();
-    for (Map.Entry<String, Set<String>> componentHost : request.getHostComponents().entrySet()) {
+    for (Map.Entry<String, SortedSet<String>> componentHost : request.getHostComponents().entrySet()) {
       String hostGroupName = componentHost.getKey();
       Set<String> components = componentHost.getValue();
       if (hostGroupName != null && components != null) {
@@ -104,7 +108,7 @@ public class ConfigurationRecommendationCommand extends StackAdvisorCommand<Reco
 
   private Set<BindingHostGroup> processHostGroupBindings(StackAdvisorRequest request) {
     Set<BindingHostGroup> resultSet = new HashSet<>();
-    for (Map.Entry<String, Set<String>> hostBinding : request.getHostGroupBindings().entrySet()) {
+    for (Map.Entry<String, SortedSet<String>> hostBinding : request.getHostGroupBindings().entrySet()) {
       String hostGroupName = hostBinding.getKey();
       Set<String> hosts = hostBinding.getValue();
       if (hostGroupName != null && hosts != null) {

@@ -221,11 +221,12 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     var updateDependencies = Em.isArray(changedConfigs) && changedConfigs.length > 0;
     var stepConfigs = this.get('stepConfigs');
     var requiredTags = [];
+    const isAutoComplete = Boolean(this.get('isRecommendationsAutoComplete'));
 
     if (updateDependencies || Em.isNone(this.get('recommendationsConfigs'))) {
-      var recommendations = this.get('hostGroups');
-      var dataToSend = this.getConfigRecommendationsParams(updateDependencies, changedConfigs);
-      this.modifyRecommendationConfigGroups(recommendations);
+      var recommendations = isAutoComplete ? {} : this.get('hostGroups');
+      var dataToSend = this.getConfigRecommendationsParams(updateDependencies, changedConfigs, isAutoComplete);
+      this.modifyRecommendationConfigGroups(recommendations, isAutoComplete);
 
       if (!stepConfigs.someProperty('serviceName', 'MISC')) {
         requiredTags.push({site: 'cluster-env', serviceName: 'MISC'});
@@ -265,8 +266,16 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * @param stepConfigs
    */
   addRecommendationRequestParams: function(recommendations, dataToSend, stepConfigs) {
-    recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(stepConfigs);
+    const isAutoComplete = Boolean(this.get('isRecommendationsAutoComplete'));
+    if (!isAutoComplete) {
+        recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(stepConfigs);
+    }
     dataToSend.recommendations = recommendations;
+    dataToSend.serviceName = this.get('content.serviceName');
+    dataToSend.clusterId = App.get('clusterId');
+    dataToSend.autoComplete = String(isAutoComplete);
+    // configsResponse - tells server to return only configurations in recommendations call
+    dataToSend.configsResponse = String(isAutoComplete);
   },
 
   /**
@@ -289,12 +298,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   /**
    *
    * @param {object} recommendations
+   * @param {boolean} isAutoComplete
    */
-  modifyRecommendationConfigGroups: function(recommendations) {
+  modifyRecommendationConfigGroups: function(recommendations, isAutoComplete) {
     var configGroup = this.get('selectedConfigGroup');
 
     if (configGroup && !configGroup.get('isDefault') && configGroup.get('hosts.length') > 0) {
-      recommendations.config_groups = [this.buildConfigGroupJSON(this.get('selectedService.configs'), configGroup)];
+      recommendations.config_groups = [this.buildConfigGroupJSON(this.get('selectedService.configs'), configGroup, isAutoComplete)];
     } else {
       delete recommendations.config_groups;
     }
@@ -304,13 +314,14 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    *
    * @param {boolean} updateDependencies
    * @param {Array} changedConfigs
+   * @param {boolean} isAutoComplete
    * @returns {{recommend: string, hosts: *, services: *, changed_configurations: *}}
    */
-  getConfigRecommendationsParams: function(updateDependencies, changedConfigs) {
+  getConfigRecommendationsParams: function(updateDependencies, changedConfigs, isAutoComplete) {
     return {
       recommend: updateDependencies ? 'configuration-dependencies' : 'configurations',
-      hosts: this.get('hostNames'),
-      services: this.get('serviceNames'),
+      hosts: isAutoComplete ? undefined : this.get('hostNames'),
+      services: isAutoComplete ? undefined : this.get('serviceNames'),
       changed_configurations: updateDependencies ? changedConfigs : undefined
     };
   },
@@ -378,10 +389,16 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * generates JSON with config group info to send it for recommendations
    * @param configs
    * @param configGroup
+   * @param {boolean} isAutoComplete
    * @returns {{configurations: Object[], hosts: string[]}}
    */
-  buildConfigGroupJSON: function(configs, configGroup) {
+  buildConfigGroupJSON: function(configs, configGroup, isAutoComplete) {
     Em.assert('configGroup can\'t be null', configGroup);
+    if (isAutoComplete) {
+      return {
+        group_id: Number(configGroup.get('id'))
+      }
+    }
     var hosts = configGroup.get('hosts');
     var configurations = {};
     var overrides = configs.forEach(function(cp) {
@@ -396,7 +413,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     });
     return {
       configurations: [configurations],
-      hosts: hosts
+      hosts: hosts,
+      group_id: Number(configGroup.get('id'))
     }
   },
 

@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
@@ -687,19 +688,19 @@ public class KerberosHelperImpl implements KerberosHelper {
     // This could happen when enabling Kerberos while installing a cluster via Blueprints due to the
     // way hosts are discovered during the install process.
     if (!hostNames.isEmpty()) {
-      Map<String, Map<String, Map<String, String>>> requestConfigurations = new HashMap<>();
+      SortedMap<String, SortedMap<String, SortedMap<String, String>>> requestConfigurations = new TreeMap<>();
       if (existingConfigurations != null) {
         for (Map.Entry<String, Map<String, String>> configuration : existingConfigurations.entrySet()) {
-          Map<String, Map<String, String>> properties = new HashMap<>();
+          SortedMap<String, SortedMap<String, String>> properties = new TreeMap<>();
           String configType = configuration.getKey();
-          Map<String, String> configurationProperties = configuration.getValue();
+          SortedMap<String, String> configurationProperties = new TreeMap<>(configuration.getValue());
 
           if (configurationProperties == null) {
-            configurationProperties = Collections.emptyMap();
+            configurationProperties = Collections.emptySortedMap();
           }
 
           if ("cluster-env".equals(configType)) {
-            configurationProperties = new HashMap<>(configurationProperties);
+            configurationProperties = new TreeMap<>(configurationProperties);
             configurationProperties.put("security_enabled", (kerberosEnabled) ? "true" : "false");
           }
 
@@ -714,18 +715,18 @@ public class KerberosHelperImpl implements KerberosHelper {
         Map<String, String> configurationProperties = configuration.getValue();
 
         if ((configurationProperties != null) && !configurationProperties.isEmpty()) {
-          Map<String, Map<String, String>> requestConfiguration = requestConfigurations.get(configType);
+          SortedMap<String, SortedMap<String, String>> requestConfiguration = requestConfigurations.get(configType);
 
           if (requestConfiguration == null) {
-            requestConfiguration = new HashMap<>();
+            requestConfiguration = new TreeMap<>();
             requestConfigurations.put(configType, requestConfiguration);
           }
 
-          Map<String, String> requestConfigurationProperties = requestConfiguration.get("properties");
+          SortedMap<String, String> requestConfigurationProperties = requestConfiguration.get("properties");
           if (requestConfigurationProperties == null) {
-            requestConfigurationProperties = new HashMap<>();
+            requestConfigurationProperties = new TreeMap<>();
           } else {
-            requestConfigurationProperties = new HashMap<>(requestConfigurationProperties);
+            requestConfigurationProperties = new TreeMap<>(requestConfigurationProperties);
           }
 
           requestConfigurationProperties.putAll(configurationProperties);

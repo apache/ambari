@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
@@ -78,7 +79,7 @@ public class ConfigurationDependenciesRecommendationCommand extends
 
   protected Set<HostGroup> processHostGroups(StackAdvisorRequest request) {
     Set<HostGroup> resultSet = new HashSet<>();
-    for (Map.Entry<String, Set<String>> componentHost : request.getHostComponents().entrySet()) {
+    for (Map.Entry<String, SortedSet<String>> componentHost : request.getHostComponents().entrySet()) {
       String hostGroupName = componentHost.getKey();
       Set<String> components = componentHost.getValue();
       if (hostGroupName != null && components != null) {
@@ -99,7 +100,7 @@ public class ConfigurationDependenciesRecommendationCommand extends
 
   private Set<BindingHostGroup> processHostGroupBindings(StackAdvisorRequest request) {
     Set<BindingHostGroup> resultSet = new HashSet<>();
-    for (Map.Entry<String, Set<String>> hostBinding : request.getHostGroupBindings().entrySet()) {
+    for (Map.Entry<String, SortedSet<String>> hostBinding : request.getHostGroupBindings().entrySet()) {
       String hostGroupName = hostBinding.getKey();
       Set<String> hosts = hostBinding.getValue();
       if (hostGroupName != null && hosts != null) {

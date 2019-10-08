@@ -42,6 +42,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
 
 import javax.persistence.EntityManager;
 
@@ -747,7 +749,7 @@ public class ClusterTest {
     ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
     scDN.addServiceComponentHost(scDNH2);
 
-    Map<String, Set<String>> componentHostMap;
+    SortedMap<String, SortedSet<String>> componentHostMap;
 
     componentHostMap = c1.getServiceComponentHostMap(null, null);
     Assert.assertEquals(2, componentHostMap.size());
@@ -789,7 +791,7 @@ public class ClusterTest {
     ServiceComponentHost schJTH1 = serviceComponentHostFactory.createNew(scJT, "h1");
     scJT.addServiceComponentHost(schJTH1);
 
-    Map<String, Set<String>> componentHostMap;
+    SortedMap<String, SortedSet<String>> componentHostMap;
 
     componentHostMap = c1.getServiceComponentHostMap(null, Collections.singleton("HDFS"));
     Assert.assertEquals(2, componentHostMap.size());
@@ -847,7 +849,7 @@ public class ClusterTest {
     ServiceComponentHost schJTH1 = serviceComponentHostFactory.createNew(scJT, "h1");
     scJT.addServiceComponentHost(schJTH1);
 
-    Map<String, Set<String>> componentHostMap;
+    SortedMap<String, SortedSet<String>> componentHostMap;
 
     componentHostMap = c1.getServiceComponentHostMap(Collections.singleton("h1"), null);
     Assert.assertEquals(3, componentHostMap.size());
@@ -906,7 +908,7 @@ public class ClusterTest {
     ServiceComponentHost schJTH1 = serviceComponentHostFactory.createNew(scJT, "h1");
     scJT.addServiceComponentHost(schJTH1);
 
-    Map<String, Set<String>> componentHostMap;
+    SortedMap<String, SortedSet<String>> componentHostMap;
 
     componentHostMap = c1.getServiceComponentHostMap(Collections.singleton("h1"), Collections.singleton("HDFS"));
     Assert.assertEquals(2, componentHostMap.size());
