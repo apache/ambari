@@ -310,7 +310,11 @@ angular.module('ambariAdminConsole')
     });
 
     var skip = $scope.skipValidation || $scope.useRedhatSatellite;
-    return Stack.validateBaseUrls(skip, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
+    // Filter out repositories that are not shown in the UI
+    var osList = Object.assign([], $scope.osList).map(function(os) {
+      return Object.assign({}, os, {repositories: os.repositories.filter(function(repo) { return $scope.showRepo(repo); })});
+    });
+    return Stack.validateBaseUrls(skip, osList, $scope.upgradeStack).then(function (invalidUrls) {
       if (invalidUrls.length === 0) {
         if ($scope.isPublicVersion) {
           var data = {
