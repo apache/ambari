@@ -425,6 +425,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
           for (PropertyInfo property : properties) {
             String configType = ConfigHelper.fileNameToConfigType(property.getFilename());
             PropertyUpgradeBehavior upgradeBehavior = property.getPropertyAmbariUpgradeBehavior();
+            LOG.debug("Property: {}, Config Type: {}", property, configType);
 
             if (property.isDeleted()) {
               // Do nothing

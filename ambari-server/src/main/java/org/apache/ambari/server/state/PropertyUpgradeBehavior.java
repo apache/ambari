@@ -82,4 +82,13 @@ public class PropertyUpgradeBehavior {
   public boolean isUpdate() {
     return update;
   }
+
+  @Override
+  public String toString() {
+    return "PropertyUpgradeBehavior{" +
+            "add=" + add +
+            ", delete=" + delete +
+            ", update=" + update +
+            '}';
+  }
 }
