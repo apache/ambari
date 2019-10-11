@@ -450,6 +450,7 @@ define([
                 } else if (table.selected) {
                   allTables.push(table.value);
                 }
+              }
 
               while (allTable.length > 0) {
                 splitTables.push(allTable.splice(0, 20));
