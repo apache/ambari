@@ -52,6 +52,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 import javax.persistence.EntityManager;
@@ -2379,11 +2380,11 @@ public class KerberosHelperTest extends EasyMockSupport {
     services.put("SERVICE3", service3);
 
     Map<String, Set<String>> serviceComponentHostMap = new HashMap<>();
-    serviceComponentHostMap.put("COMPONENT1A", Collections.singleton("hostA"));
-    serviceComponentHostMap.put("COMPONENT1B", new HashSet<>(Arrays.asList("hostB", "hostC")));
-    serviceComponentHostMap.put("COMPONENT2A", Collections.singleton("hostA"));
-    serviceComponentHostMap.put("COMPONENT2B", new HashSet<>(Arrays.asList("hostB", "hostC")));
-    serviceComponentHostMap.put("COMPONEN3A", Collections.singleton("hostA"));
+    serviceComponentHostMap.put("COMPONENT1A", new TreeSet<>(Arrays.asList("hostA")));
+    serviceComponentHostMap.put("COMPONENT1B", new TreeSet<>(Arrays.asList("hostB", "hostC")));
+    serviceComponentHostMap.put("COMPONENT2A", new TreeSet<>(Arrays.asList("hostA")));
+    serviceComponentHostMap.put("COMPONENT2B", new TreeSet<>(Arrays.asList("hostB", "hostC")));
+    serviceComponentHostMap.put("COMPONEN3A", new TreeSet<>(Arrays.asList("hostA")));
 
     final Cluster cluster = createMockCluster("c1", hosts, SecurityType.KERBEROS, krb5ConfConfig, kerberosEnvConfig);
     expect(cluster.getServices()).andReturn(services).anyTimes();

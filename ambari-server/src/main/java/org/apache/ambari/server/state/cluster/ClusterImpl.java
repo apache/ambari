@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -531,6 +533,11 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  public ConfigGroup getConfigGroupsById(Long configId) {
+    return clusterConfigGroups.get(configId);
+  }
+
+  @Override
   public void addRequestExecution(RequestExecution requestExecution) throws AmbariException {
     LOG.info("Adding a new request schedule" + ", clusterName = " + getClusterName() + ", id = "
         + requestExecution.getId() + ", description = " + requestExecution.getDescription());
@@ -800,7 +807,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public Map<String, Set<String>> getServiceComponentHostMap(Set<String> hostNames, Set<String> serviceNames) {
-    Map<String, Set<String>> componentHostMap = new HashMap<>();
+    Map<String, Set<String>> componentHostMap = new TreeMap<>();
 
     Collection<Host> hosts = getHosts();
 
@@ -820,7 +827,7 @@ public class ClusterImpl implements Cluster {
                 Set<String> componentHosts = componentHostMap.get(component);
 
                 if (componentHosts == null) {
-                  componentHosts = new HashSet<>();
+                  componentHosts = new TreeSet<>();
                   componentHostMap.put(component, componentHosts);
                 }
 

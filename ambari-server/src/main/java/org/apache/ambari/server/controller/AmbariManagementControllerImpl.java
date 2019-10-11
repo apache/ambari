@@ -116,6 +116,7 @@ import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
 import org.apache.ambari.server.agent.stomp.dto.MetadataServiceInfo;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
+import org.apache.ambari.server.agent.stomp.dto.TopologyUpdateHandlingReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.LoggingService;
 import org.apache.ambari.server.configuration.Configuration;
@@ -790,8 +791,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           .setComponentName(sch.getServiceComponentName())
           .setServiceName(sch.getServiceName())
           .setDisplayName(sc.getDisplayName())
-          .setHostIds(hostIds)
-          .setHostNames(hostNames)
+          .setHostIdentifiers(hostIds, hostNames)
           .setPublicHostNames(publicHostNames)
           .setComponentLevelParams(getTopologyComponentLevelParams(cluster.getClusterId(), serviceName, componentName,
               cluster.getSecurityType()))
@@ -806,7 +806,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         Set<TopologyComponent> newComponents = new HashSet<>();
         newComponents.add(newComponent);
         topologyUpdates.get(clusterId).update(newComponents, Collections.emptySet(),
-            UpdateEventType.UPDATE);
+            UpdateEventType.UPDATE, new TopologyUpdateHandlingReport());
       } else {
         topologyUpdates.get(clusterId).addTopologyComponent(newComponent);
       }

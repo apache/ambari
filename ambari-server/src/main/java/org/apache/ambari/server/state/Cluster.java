@@ -511,6 +511,13 @@ public interface Cluster {
       throws AmbariException;
 
   /**
+   * Find config group by config group id
+   * @param configId id of config group to return
+   * @return config group
+   */
+  ConfigGroup getConfigGroupsById(Long configId);
+
+  /**
    * Add a @RequestExecution to the cluster
    * @param requestExecution
    * @throws AmbariException

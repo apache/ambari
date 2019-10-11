@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
@@ -38,6 +39,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.state.Clusters;
 import org.junit.Test;
 
 public class ValidationResourceProviderTest {
@@ -60,7 +62,7 @@ public class ValidationResourceProviderTest {
     doReturn(3).when(response).getId();
     doReturn(version).when(response).getVersion();
     doReturn(response).when(saHelper).validate(any(StackAdvisorRequest.class));
-    ValidationResourceProvider.init(saHelper, configuration);
+    ValidationResourceProvider.init(saHelper, configuration, mock(Clusters.class), mock(AmbariMetaInfo.class));
 
     RequestStatus status = provider.createResources(request);
 

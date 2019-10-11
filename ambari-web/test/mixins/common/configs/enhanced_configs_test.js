@@ -25,7 +25,12 @@ describe('App.EnhancedConfigsMixin', function () {
   var mixinClass = Em.Controller.extend(App.EnhancedConfigsMixin);
 
   beforeEach(function () {
-    mixin = Em.Object.create(App.EnhancedConfigsMixin);
+    mixin = Em.Object.create(App.EnhancedConfigsMixin, {
+      isRecommendationsAutoComplete: false,
+      content: Em.Object.create({
+        serviceName: 'S1'
+      })
+    });
   });
 
   describe('#removeCurrentFromDependentList()', function () {
@@ -54,6 +59,7 @@ describe('App.EnhancedConfigsMixin', function () {
     it('generates JSON based on config group info', function () {
       var configGroup = Em.Object.create({
         name: 'group1',
+        id: '1',
         isDefault: false,
         hosts: ['host1', 'host2']
       });
@@ -94,7 +100,8 @@ describe('App.EnhancedConfigsMixin', function () {
             }
           }
         ],
-        "hosts": ['host1', 'host2']
+        "hosts": ['host1', 'host2'],
+        "group_id": 1
       })
     });
 
@@ -575,10 +582,12 @@ describe('App.EnhancedConfigsMixin', function () {
 
     beforeEach(function() {
       sinon.stub(blueprintUtils, 'buildConfigsJSON').returns([{}]);
+      sinon.stub(App, 'get').returns(1);
     });
 
     afterEach(function() {
       blueprintUtils.buildConfigsJSON.restore();
+      App.get.restore();
     });
 
     it("recommendations should be set", function () {
@@ -591,7 +600,11 @@ describe('App.EnhancedConfigsMixin', function () {
               {}
             ]
           }
-        }
+        },
+        "autoComplete": "false",
+        "configsResponse": "false",
+        "serviceName": "S1",
+        "clusterId": 1
       });
     });
   });
@@ -775,11 +788,25 @@ describe('App.EnhancedConfigsMixin', function () {
       {
         configs: [],
         configGroup: Em.Object.create({
-          hosts: []
+          hosts: [],
+          id: '1'
         }),
+        autoComplete: false,
         expected: {
           configurations: [{}],
-          hosts: []
+          hosts: [],
+          group_id: 1
+        }
+      },
+      {
+        configs: [],
+        configGroup: Em.Object.create({
+          hosts: [],
+          id: '1'
+        }),
+        autoComplete: true,
+        expected: {
+          group_id: 1
         }
       },
       {
@@ -787,11 +814,14 @@ describe('App.EnhancedConfigsMixin', function () {
           overrides: null
         })],
         configGroup: Em.Object.create({
-          hosts: []
+          hosts: [],
+          id: '2'
         }),
+        autoComplete: false,
         expected: {
           configurations: [{}],
-          hosts: []
+          hosts: [],
+          group_id: 2
         }
       },
       {
@@ -804,11 +834,14 @@ describe('App.EnhancedConfigsMixin', function () {
         })],
         configGroup: Em.Object.create({
           name: 'g1',
+          id: '3',
           hosts: []
         }),
+        autoComplete: false,
         expected: {
           configurations: [{}],
-          hosts: []
+          hosts: [],
+          group_id: 3
         }
       },
       {
@@ -823,8 +856,10 @@ describe('App.EnhancedConfigsMixin', function () {
         })],
         configGroup: Em.Object.create({
           name: 'g1',
-          hosts: []
+          hosts: [],
+          id: '4'
         }),
+        autoComplete: false,
         expected: {
           configurations: [{
             "tag1": {
@@ -833,15 +868,17 @@ describe('App.EnhancedConfigsMixin', function () {
               }
             }
           }],
-          hosts: []
+          hosts: [],
+          group_id: 4
         }
       }
     ];
 
     testCases.forEach(function(test) {
-      it("configs = " + test.configs +
-         "configGroup = " + JSON.stringify(test.configGroup), function() {
-        expect(mixin.buildConfigGroupJSON(test.configs, test.configGroup)).to.be.eql(test.expected);
+      it("configs = " + JSON.stringify(test.configs) +
+         "configGroup = " + JSON.stringify(test.configGroup) +
+         "autoComplete = " + test.autoComplete, function() {
+        expect(mixin.buildConfigGroupJSON(test.configs, test.configGroup, test.autoComplete)).to.be.eql(test.expected);
       });
     });
   });

@@ -765,6 +765,11 @@ public class HostImpl implements Host {
   }
 
   @Override
+  public String getOsFamily(Map<String, String> hostAttributes) {
+	  return getOSFamilyFromHostAttributes(hostAttributes);
+  }
+
+  @Override
   public String getOSFamilyFromHostAttributes(Map<String, String> hostAttributes) {
     try {
       String majorVersion = hostAttributes.get(OS_RELEASE_VERSION).split("\\.")[0];
@@ -806,6 +811,15 @@ public class HostImpl implements Host {
   }
 
   @Override
+  public HostHealthStatus getHealthStatus(HostStateEntity hostStateEntity) {
+    if (hostStateEntity != null) {
+      return gson.fromJson(hostStateEntity.getHealthStatus(), HostHealthStatus.class);
+    }
+
+    return null;
+  }
+
+  @Override
   public void setHealthStatus(HostHealthStatus healthStatus) {
     HostStateEntity hostStateEntity = getHostStateEntity();
     if (hostStateEntity != null) {
@@ -834,6 +848,11 @@ public class HostImpl implements Host {
   @Override
   public Map<String, String> getHostAttributes() {
     return gson.fromJson(getHostEntity().getHostAttributes(), hostAttributesType);
+  }
+
+  @Override
+  public Map<String, String> getHostAttributes(HostEntity hostEntity) {
+    return gson.fromJson(hostEntity.getHostAttributes(), hostAttributesType);
   }
 
   @Override
@@ -903,6 +922,15 @@ public class HostImpl implements Host {
   }
 
   @Override
+  public AgentVersion getAgentVersion(HostStateEntity hostStateEntity) {
+    if (hostStateEntity != null) {
+      return gson.fromJson(hostStateEntity.getAgentVersion(), AgentVersion.class);
+    }
+
+    return null;
+  }
+
+  @Override
   public void setAgentVersion(AgentVersion agentVersion) {
     HostStateEntity hostStateEntity = getHostStateEntity();
     if (hostStateEntity != null) {
@@ -963,26 +991,33 @@ public class HostImpl implements Host {
   public HostResponse convertToResponse() {
     HostResponse r = new HostResponse(getHostName());
 
-    r.setAgentVersion(getAgentVersion());
-    r.setPhCpuCount(getPhCpuCount());
-    r.setCpuCount(getCpuCount());
+    HostEntity hostEntity = getHostEntity();
+    HostStateEntity hostStateEntity = getHostStateEntity();
+
+    Map<String, String> hostAttributes = getHostAttributes(hostEntity);
+    r.setHostAttributes(hostAttributes);
+    r.setOsFamily(getOsFamily(hostAttributes));
+
+    r.setAgentVersion(getAgentVersion(hostStateEntity));
+    r.setHealthStatus(getHealthStatus(hostStateEntity));
+
+    r.setPhCpuCount(hostEntity.getPhCpuCount());
+    r.setCpuCount(hostEntity.getCpuCount());
+    r.setIpv4(hostEntity.getIpv4());
+    r.setOsArch(hostEntity.getOsArch());
+    r.setOsType(hostEntity.getOsType());
+    r.setTotalMemBytes(hostEntity.getTotalMem());
+    r.setLastRegistrationTime(hostEntity.getLastRegistrationTime());
+    r.setPublicHostName(hostEntity.getPublicHostName());
+    r.setRackInfo(hostEntity.getRackInfo());
+
     r.setDisksInfo(getDisksInfo());
-    r.setHealthStatus(getHealthStatus());
-    r.setHostAttributes(getHostAttributes());
-    r.setIpv4(getIPv4());
+    r.setStatus(getStatus());
     r.setLastHeartbeatTime(getLastHeartbeatTime());
     r.setLastAgentEnv(lastAgentEnv);
-    r.setLastRegistrationTime(getLastRegistrationTime());
-    r.setOsArch(getOsArch());
-    r.setOsType(getOsType());
-    r.setOsFamily(getOsFamily());
-    r.setRackInfo(getRackInfo());
-    r.setTotalMemBytes(getTotalMemBytes());
-    r.setPublicHostName(getPublicHostName());
-    r.setHostState(getState());
-    r.setStatus(getStatus());
     r.setRecoveryReport(getRecoveryReport());
     r.setRecoverySummary(getRecoveryReport().getSummary());
+    r.setHostState(getState());
     return r;
   }
 
