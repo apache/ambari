@@ -38,12 +38,12 @@ installScriptHash = -1
 
 MAX_SYMBOLS_PER_LOG_MESSAGE = 7900
 
-_PASSWORD_REPLACEMENT = '********'
-__passwordPattern = re.compile(r"('\S*password':\s*u?')(\S+)(')")
+PASSWORD_REPLACEMENT = '[PROTECTED]'
+PASSWORD_PATTERN = re.compile(r"('\S*password':\s*u?')(\S+)(')")
 
 def hide_passwords(text):
   """ Replaces the matching passwords with **** in the given text """
-  return None if text is None else __passwordPattern.sub(r'\1{}\3'.format(_PASSWORD_REPLACEMENT), text)
+  return None if text is None else PASSWORD_PATTERN.sub(r'\1{}\3'.format(PASSWORD_REPLACEMENT), text)
 
 
 class ActionQueue(threading.Thread):

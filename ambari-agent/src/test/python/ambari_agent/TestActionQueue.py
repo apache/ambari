@@ -1175,13 +1175,13 @@ class TestActionQueue(TestCase):
     self.assertEqual(hide_passwords("No u'password': u'' in this text"), "No u'password': u'' in this text")
 
   def test_hide_passwords(self):
-    self.assertEqual(hide_passwords("u'password': u'changeIT!'"), "u'password': u'********'")
-    self.assertEqual(hide_passwords("'password': 'password'"), "'password': '********'")
-    self.assertEqual(hide_passwords("'some.password': 'password', 'other.password': 'password',"), "'some.password': '********', 'other.password': '********',")
-    self.assertEqual(hide_passwords("u'metrics_grafana_password': u'mypassword123!'"), "u'metrics_grafana_password': u'********'")
+    self.assertEqual(hide_passwords("u'password': u'changeIT!'"), "u'password': u'[PROTECTED]'")
+    self.assertEqual(hide_passwords("'password': 'password'"), "'password': '[PROTECTED]'")
+    self.assertEqual(hide_passwords("'some.password': 'password', 'other.password': 'password',"), "'some.password': '[PROTECTED]', 'other.password': '[PROTECTED]',")
+    self.assertEqual(hide_passwords("u'metrics_grafana_password': u'mypassword123!'"), "u'metrics_grafana_password': u'[PROTECTED]'")
 
     self.assertEqual(hide_passwords("u'metrics_grafana_username': u'admin', u'metrics_grafana_password': u'mypassword123!', some text, u'clientssl.keystore.password': u'myKeyFilePassword', another text, "),
-                     "u'metrics_grafana_username': u'admin', u'metrics_grafana_password': u'********', some text, u'clientssl.keystore.password': u'********', another text, ")
+                     "u'metrics_grafana_username': u'admin', u'metrics_grafana_password': u'[PROTECTED]', some text, u'clientssl.keystore.password': u'[PROTECTED]', another text, ")
 
 def patch_output_file(pythonExecutor):
   def windows_py(command, tmpout, tmperr):
