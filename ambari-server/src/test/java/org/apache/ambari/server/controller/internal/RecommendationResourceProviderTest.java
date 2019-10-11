@@ -148,8 +148,9 @@ public class RecommendationResourceProviderTest {
     RecommendationResourceProvider.init(stackAdvisorHelper, configuration, clusters, ambariMetaInfo);
 
     StackAdvisorRequest stackAdvisorRequest = StackAdvisorRequest.StackAdvisorRequestBuilder.
-        forStack(null, null).ofType(type).
-        build();
+      forStack(null, null).ofType(type).
+      withConfigsResponse(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS.equals(type)).
+      build();
 
     Request request = createMock(Request.class);
     expect(provider.prepareStackAdvisorRequest(eq(request))).andReturn(stackAdvisorRequest);
