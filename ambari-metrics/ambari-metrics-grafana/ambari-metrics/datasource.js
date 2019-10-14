@@ -424,7 +424,6 @@ define([
               var allUsers = templateSrv.variables.filter(function(variable) { return variable.query === "hbase-users";});
               var selectedUsers = (_.isEmpty(allUsers)) ? "" : allUsers[0].options.filter(function(user)
               { return user.selected; }).map(function(uName) { return uName.value; });
-              // TODO This is chnaged.
               if (selectedUsers[0] === "") {
                 selectedUsers = "";
               }
@@ -440,7 +439,6 @@ define([
             // Templatized Dashboard for per-table metrics in HBase.
             if (templateSrv.variables[0].query === "hbase-tables") {
               var splitTables = [];
-              // TODO this is changed
               let allTables = [];
               const tables = templateSrv.index.Tables.options;
               for (let table of tables) {
@@ -471,7 +469,6 @@ define([
               var allTopics = templateSrv.variables.filter(function(variable) { return variable.query === "kafka-topics";});
               var selectedTopics = (_.isEmpty(allTopics)) ? "" : allTopics[0].options.filter(function(topic)
               { return topic.selected; }).map(function(topicName) { return topicName.value; });
-              // TODO This is changed
               if (selectedTopics[0] === "") {
                 selectedTopics = "";
               }
@@ -486,7 +483,6 @@ define([
             //Templatized Dashboard for Call Queues
             if (templateSrv.variables[0].query === "callers") {
               var allCallers = templateSrv.variables.filter(function(variable) { return variable.query === "callers";});
-              //TODO This has changed
               let selectedCallers = [];
               const callers = templateSrv.index.Callers.options;
               for (let caller of callers) {
@@ -511,7 +507,6 @@ define([
                 var allCores = templateSrv.variables.filter(function(variable) { return variable.query === "infra_solr_core";});
                 var selectedCores = (_.isEmpty(allCores)) ? "" : allCores[0].options.filter(function(core)
                 { return core.selected; }).map(function(coreName) { return coreName.value; });
-                //TODO This is changed
                 if (selectedCores[0] === "") {
                   selectedCores = "";
                 }
@@ -529,7 +524,6 @@ define([
                 var allCollections = templateSrv.variables.filter(function(variable) { return variable.query === "infra_solr_collection";});
                 var selectedCollections = (_.isEmpty(allCollections)) ? "" : allCollections[0].options.filter(function(collection)
                 { return collection.selected; }).map(function(collectionsName) { return collectionsName.value; });
-                //TODO this is changed
                 if (selectedCollections [0] === "") {
                   selectedCollections = "";
                 }
@@ -547,7 +541,6 @@ define([
               var allTopologies = templateSrv.variables.filter(function(variable) { return variable.query === "topologies";});
               var selectedTopologies = (_.isEmpty(allTopologies)) ? "" : allTopologies[0].options.filter(function(topo)
               { return topo.selected; }).map(function(topoName) { return topoName.value; });
-              // TODO This is changed
               if (selectedTopologies === "") {
                 selectedTopologies = "";
               }
@@ -593,7 +586,6 @@ define([
               var allDataSources = templateSrv.variables.filter(function(variable) { return variable.query === "druidDataSources";});
               var selectedDataSources = (_.isEmpty(allDataSources)) ? "" : allDataSources[0].options.filter(function(dataSource)
                             { return dataSource.selected; }).map(function(dataSourceName) { return dataSourceName.value; });
-              //TODO This is changed
               if (selectedDataSources[0] === "") {
                 selectedDataSources = "";
               }
@@ -608,13 +600,11 @@ define([
             // To speed up querying on templatized dashboards.
             var indexOfHosts = -1;
             for (var i = 0; i < templateSrv.variables.length; i++) {
-              //TODO This is changed
               if (templateSrv.variables[i].name == 'hosts' && templateSrv.index.hosts) {
                 indexOfHosts = i;
               }
             }
             if (indexOfHosts >= 0) {
-              // TODO This is changed
               let allHosts = [];
               const hosts = templateSrv.index.hosts.options
                 for (let host of hosts) {
