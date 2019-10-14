@@ -21,7 +21,7 @@ from Queue import Queue
 
 from unittest import TestCase
 from ambari_agent.LiveStatus import LiveStatus
-from ambari_agent.ActionQueue import ActionQueue
+from ambari_agent.ActionQueue import ActionQueue, hide_passwords
 from ambari_agent.AmbariConfig import AmbariConfig
 import os, errno, time, pprint, tempfile, threading
 import sys
@@ -1166,6 +1166,22 @@ class TestActionQueue(TestCase):
       "cancelTaskIdTargets":"13,14"
     },
   }
+
+  def test_hide_passwords_no_matching_password(self):
+    self.assertEqual(hide_passwords(None), None)
+    self.assertEqual(hide_passwords('No password in this text'), 'No password in this text')
+    self.assertEqual(hide_passwords("No 'password' 'in' this text'"), "No 'password' 'in' this text'")
+    self.assertEqual(hide_passwords("No 'password': in this text"), "No 'password': in this text")
+    self.assertEqual(hide_passwords("No u'password': u'' in this text"), "No u'password': u'' in this text")
+
+  def test_hide_passwords(self):
+    self.assertEqual(hide_passwords("u'password': u'changeIT!'"), "u'password': u'[PROTECTED]'")
+    self.assertEqual(hide_passwords("'password': 'password'"), "'password': '[PROTECTED]'")
+    self.assertEqual(hide_passwords("'some.password': 'password', 'other.password': 'password',"), "'some.password': '[PROTECTED]', 'other.password': '[PROTECTED]',")
+    self.assertEqual(hide_passwords("u'metrics_grafana_password': u'mypassword123!'"), "u'metrics_grafana_password': u'[PROTECTED]'")
+
+    self.assertEqual(hide_passwords("u'metrics_grafana_username': u'admin', u'metrics_grafana_password': u'mypassword123!', some text, u'clientssl.keystore.password': u'myKeyFilePassword', another text, "),
+                     "u'metrics_grafana_username': u'admin', u'metrics_grafana_password': u'[PROTECTED]', some text, u'clientssl.keystore.password': u'[PROTECTED]', another text, ")
 
 def patch_output_file(pythonExecutor):
   def windows_py(command, tmpout, tmperr):
