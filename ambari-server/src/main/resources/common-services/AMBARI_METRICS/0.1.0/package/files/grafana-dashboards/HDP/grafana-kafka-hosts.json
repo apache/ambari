@@ -323,12 +323,13 @@
               "app": "kafka_broker",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "kafka.network.RequestMetrics.RequestsPerSec.request.Produce.count",
+              "metric": "kafka.network.RequestMetrics.RequestsPerSec.request.Produce.%.count",
               "precision": "default",
               "refId": "A",
               "templatedHost": "",
               "transform": "rate",
-              "transformData": "none"
+              "transformData": "none",
+              "seriesAggregator": "sum"
             }
           ],
           "timeFrom": null,
@@ -395,12 +396,13 @@
               "app": "kafka_broker",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "kafka.network.RequestMetrics.RequestsPerSec.request.FetchConsumer.count",
+              "metric": "kafka.network.RequestMetrics.RequestsPerSec.request.FetchConsumer.%.count",
               "precision": "default",
               "refId": "A",
               "templatedHost": "",
               "transform": "rate",
-              "transformData": "none"
+              "transformData": "none",
+              "seriesAggregator": "sum"
             }
           ],
           "timeFrom": null,
@@ -1991,7 +1993,7 @@
     "list": []
   },
   "schemaVersion": 8,
-  "version": 16,
+  "version": 17,
   "links": [
     {
       "asDropdown": true,

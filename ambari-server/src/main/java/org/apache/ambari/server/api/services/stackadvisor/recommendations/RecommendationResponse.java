@@ -163,6 +163,24 @@ public class RecommendationResponse extends StackAdvisorResponse {
     public void setPropertyAttributes(Map<String, ValueAttributesInfo> propertyAttributes) {
       this.propertyAttributes = propertyAttributes;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      BlueprintConfigurations that = (BlueprintConfigurations) o;
+
+      if (properties != null ? !properties.equals(that.properties) : that.properties != null) return false;
+      return propertyAttributes != null ? propertyAttributes.equals(that.propertyAttributes) : that.propertyAttributes == null;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = properties != null ? properties.hashCode() : 0;
+      result = 31 * result + (propertyAttributes != null ? propertyAttributes.hashCode() : 0);
+      return result;
+    }
   }
 
   public static class HostGroup {
@@ -267,6 +285,27 @@ public class RecommendationResponse extends StackAdvisorResponse {
 
     public void setDependentConfigurations(Map<String, BlueprintConfigurations> dependentConfigurations) {
       this.dependentConfigurations = dependentConfigurations;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      ConfigGroup that = (ConfigGroup) o;
+
+      if (hosts != null ? !hosts.equals(that.hosts) : that.hosts != null) return false;
+      if (configurations != null ? !configurations.equals(that.configurations) : that.configurations != null)
+        return false;
+      return dependentConfigurations != null ? dependentConfigurations.equals(that.dependentConfigurations) : that.dependentConfigurations == null;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = hosts != null ? hosts.hashCode() : 0;
+      result = 31 * result + (configurations != null ? configurations.hashCode() : 0);
+      result = 31 * result + (dependentConfigurations != null ? dependentConfigurations.hashCode() : 0);
+      return result;
     }
   }
 

@@ -273,6 +273,8 @@ kafka.controller.KafkaController.OfflinePartitionsCount
 kafka.log.LogFlushStats.LogFlushRateAndTimeMs.1MinuteRate
 kafka.network.RequestMetrics.RequestsPerSec.request.FetchConsumer.count
 kafka.network.RequestMetrics.RequestsPerSec.request.Produce.count
+kafka.network.RequestMetrics.RequestsPerSec.request.FetchConsumer.version.*.count
+kafka.network.RequestMetrics.RequestsPerSec.request.Produce.version.*.count
 kafka.network.RequestMetrics.TotalTimeMs.request.FetchConsumer.99percentile
 kafka.network.RequestMetrics.TotalTimeMs.request.FetchConsumer.max
 kafka.network.RequestMetrics.TotalTimeMs.request.FetchConsumer.mean

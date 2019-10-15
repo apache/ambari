@@ -116,6 +116,7 @@ import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
 import org.apache.ambari.server.agent.stomp.dto.MetadataServiceInfo;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
+import org.apache.ambari.server.agent.stomp.dto.TopologyUpdateHandlingReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.LoggingService;
 import org.apache.ambari.server.configuration.Configuration;
@@ -790,8 +791,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           .setComponentName(sch.getServiceComponentName())
           .setServiceName(sch.getServiceName())
           .setDisplayName(sc.getDisplayName())
-          .setHostIds(hostIds)
-          .setHostNames(hostNames)
+          .setHostIdentifiers(hostIds, hostNames)
           .setPublicHostNames(publicHostNames)
           .setComponentLevelParams(getTopologyComponentLevelParams(cluster.getClusterId(), serviceName, componentName,
               cluster.getSecurityType()))
@@ -806,7 +806,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         Set<TopologyComponent> newComponents = new HashSet<>();
         newComponents.add(newComponent);
         topologyUpdates.get(clusterId).update(newComponents, Collections.emptySet(),
-            UpdateEventType.UPDATE);
+            UpdateEventType.UPDATE, new TopologyUpdateHandlingReport());
       } else {
         topologyUpdates.get(clusterId).addTopologyComponent(newComponent);
       }
@@ -922,7 +922,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    */
   @Override
   public synchronized ConfigurationResponse createConfiguration(
-      ConfigurationRequest request) throws AmbariException, AuthorizationException {
+      ConfigurationRequest request, boolean refreshCluster) throws AmbariException, AuthorizationException {
     if (null == request.getClusterName() || request.getClusterName().isEmpty()
         || null == request.getType() || request.getType().isEmpty()
         || null == request.getProperties()) {
@@ -1059,7 +1059,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     Config config = createConfig(cluster, stackId, request.getType(), requestProperties,
-      request.getVersionTag(), propertiesAttributes);
+      request.getVersionTag(), propertiesAttributes, refreshCluster);
 
     LOG.info(MessageFormat.format("Creating configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
         request.getVersionTag(),
@@ -1070,14 +1070,27 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
-                             String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
+  public synchronized ConfigurationResponse createConfiguration(
+      ConfigurationRequest request) throws AmbariException, AuthorizationException {
+    return createConfiguration(request, true);
+  }
 
-    Config config = configFactory.createNew(stackId, cluster, type, versionTag, properties,
-        propertiesAttributes);
+  @Override
+  public Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
+                             String versionTag, Map<String, Map<String, String>> propertiesAttributes, boolean refreshCluster) {
+
+    Config config = configFactory.createNew(stackId, type, cluster, versionTag, properties,
+        propertiesAttributes, refreshCluster);
 
     cluster.addConfig(config);
     return config;
+  }
+
+  @Override
+  public Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
+                             String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
+
+    return createConfig(cluster, stackId, type, properties, versionTag, propertiesAttributes, true);
   }
 
   @Override
@@ -1566,14 +1579,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public synchronized RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
                                                            Map<String, String> requestProperties)
       throws AmbariException, AuthorizationException {
-    return updateClusters(requests, requestProperties, true);
+    return updateClusters(requests, requestProperties, true, true);
   }
 
   @Override
   @Transactional
   public synchronized RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
                                                            Map<String, String> requestProperties,
-                                                           boolean fireAgentUpdates)
+                                                           boolean fireAgentUpdates, boolean refreshCluster)
       throws AmbariException, AuthorizationException {
 
     RequestStatusResponse response = null;
@@ -1581,7 +1594,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // We have to allow for multiple requests to account for multiple
     // configuration updates (create multiple configuration resources)...
     for (ClusterRequest request : requests) {
-      response = updateCluster(request, requestProperties, fireAgentUpdates);
+      response = updateCluster(request, requestProperties, fireAgentUpdates, refreshCluster);
     }
     return response;
   }
@@ -1682,7 +1695,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private synchronized RequestStatusResponse updateCluster(ClusterRequest request,
                                                            Map<String, String> requestProperties,
-                                                           boolean fireAgentUpdates
+                                                           boolean fireAgentUpdates, boolean refreshCluster
   )
       throws AmbariException, AuthorizationException {
 
@@ -1841,7 +1854,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 cr.getProperties().size() > 0) {            // properties to set
 
               cr.setClusterName(cluster.getClusterName());
-              configurationResponses.add(createConfiguration(cr));
+              configurationResponses.add(createConfiguration(cr, refreshCluster));
+
 
               LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
                   cr.getVersionTag(),
@@ -5795,7 +5809,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     clusterLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
-    
+
     for (Service service : cluster.getServices().values()) {
       ServiceInfo serviceInfoInstance = ambariMetaInfo.getService(service);
       String serviceType = serviceInfoInstance.getServiceType();

@@ -29,6 +29,8 @@ import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
 import org.apache.ambari.server.agent.stomp.dto.TopologyHost;
+import org.apache.ambari.server.agent.stomp.dto.TopologyUpdateHandlingReport;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.events.ClusterComponentsRepoChangedEvent;
 import org.apache.ambari.server.events.TopologyAgentUpdateEvent;
@@ -60,6 +62,9 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
 
   @Inject
   private Clusters clusters;
+
+  @Inject
+  private StackAdvisorHelper stackAdvisorHelper;
 
   @Inject
   public TopologyHolder(AmbariEventPublisher ambariEventPublisher) {
@@ -101,6 +106,10 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
               .filter(h -> hostNames.contains(h.getHostName()))
               .map(Host::getHostId)
               .collect(Collectors.toSet());
+            Set<String> hostOrderNames = clusterHosts.stream()
+              .filter(h -> hostNames.contains(h.getHostName()))
+              .map(Host::getHostName)
+              .collect(Collectors.toSet());
             String serviceName = sch.getServiceName();
             String componentName = sch.getServiceComponentName();
             StackId stackId = cl.getDesiredStackVersion();
@@ -108,7 +117,7 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
             TopologyComponent topologyComponent = TopologyComponent.newBuilder()
                 .setComponentName(sch.getServiceComponentName())
                 .setServiceName(sch.getServiceName())
-                .setHostIds(hostOrderIds)
+                .setHostIdentifiers(hostOrderIds, hostOrderNames)
                 .setComponentLevelParams(ambariManagementController.getTopologyComponentLevelParams(cl.getClusterId(), serviceName,
                     componentName, cl.getSecurityType()))
                 .setCommandParams(ambariManagementController.getTopologyCommandParams(cl.getClusterId(), serviceName, componentName, sch))
@@ -144,7 +153,7 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
 
   @Override
   protected boolean handleUpdate(TopologyUpdateEvent update) throws AmbariException {
-    boolean changed = false;
+    TopologyUpdateHandlingReport report = new TopologyUpdateHandlingReport();
     UpdateEventType eventType = update.getEventType();
     for (Map.Entry<String, TopologyCluster> updatedCluster : update.getClusters().entrySet()) {
       String clusterId = updatedCluster.getKey();
@@ -154,25 +163,24 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
             CollectionUtils.isEmpty(cluster.getTopologyComponents()) &&
             CollectionUtils.isEmpty(cluster.getTopologyHosts())) {
           getData().getClusters().remove(clusterId);
-          changed = true;
+          report.mappingWasChanged();
         } else {
-          if (getData().getClusters().get(clusterId).update(
+          getData().getClusters().get(clusterId).update(
               update.getClusters().get(clusterId).getTopologyComponents(),
               update.getClusters().get(clusterId).getTopologyHosts(),
-              eventType)) {
-            changed = true;
-          }
+              eventType, report);
         }
       } else {
         if (eventType.equals(UpdateEventType.UPDATE)) {
           getData().getClusters().put(clusterId, cluster);
-          changed = true;
+          report.mappingWasChanged();
         } else {
           throw new ClusterNotFoundException(Long.parseLong(clusterId));
         }
       }
     }
-    return changed;
+    stackAdvisorHelper.clearCaches(report.getUpdatedHostNames());
+    return report.wasChanged();
   }
 
   private void prepareAgentTopology(TopologyUpdateEvent topologyUpdateEvent) {

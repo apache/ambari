@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.7.3.0.0</version>
+    <version>2.7.4.0.0</version>
     <relativePath>../../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -27,7 +27,7 @@
   <artifactId>ambari-view-examples</artifactId>
   <packaging>pom</packaging>
   <name>Ambari View Examples</name>
-  <version>2.7.3.0.0</version>
+  <version>2.7.4.0.0</version>
   <modules>
     <module>helloworld-view</module>
     <module>hello-servlet-view</module>

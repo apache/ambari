@@ -1849,6 +1849,9 @@ class DefaultStackAdvisor(StackAdvisor):
     component = next((component for component in componentsList
                               if component["component_name"] == componentName), None)
 
+    if component is None and componentName == 'HDFS_CLIENT':
+      component = next((component for component in componentsList if component["component_type"] == 'HCFS_CLIENT'), None)
+
     return component
 
   def getComponentAttribute(self, component, attribute):

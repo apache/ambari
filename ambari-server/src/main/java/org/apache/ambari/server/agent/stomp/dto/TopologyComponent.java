@@ -75,12 +75,8 @@ public class TopologyComponent {
       return this;
     }
 
-    public Builder setHostIds(Set<Long> hostIds) {
+    public Builder setHostIdentifiers(Set<Long> hostIds, Set<String> hostNames) {
       TopologyComponent.this.setHostIds(hostIds);
-      return this;
-    }
-
-    public Builder setHostNames(Set<String> hostNames) {
       TopologyComponent.this.setHostNames(hostNames);
       return this;
     }
@@ -188,8 +184,8 @@ public class TopologyComponent {
         .setDisplayName(getDisplayName())
         .setServiceName(getServiceName())
         .setComponentLevelParams(getComponentLevelParams() == null ? null : new TreeMap<>(getComponentLevelParams()))
-        .setHostIds(getHostIds() == null ? null : new HashSet<>(getHostIds()))
-        .setHostNames(getHostNames() == null ? null : new HashSet<>(getHostNames()))
+        .setHostIdentifiers(getHostIds() == null ? null : new HashSet<>(getHostIds()),
+            getHostNames() == null ? null : new HashSet<>(getHostNames()))
         .setPublicHostNames(getPublicHostNames() == null ? null : new HashSet<>(getPublicHostNames()))
         .setCommandParams(getCommandParams() == null ? null : new TreeMap<>(getCommandParams()))
         .build();

@@ -257,6 +257,12 @@ limitations under the License.
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>hive.server2.leadertest.use.ip</name>
+    <value>true</value>
+    <description>Use ip address to check hive interactive service status</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>hive.server2.zookeeper.namespace</name>
     <value>hiveserver2-hive2</value>
     <description>The parent node in ZooKeeper used by HiveServer2 when supporting dynamic service discovery.</description>

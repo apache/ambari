@@ -38,6 +38,8 @@ import com.google.common.base.Preconditions;
  */
 public class StackAdvisorRequest {
 
+  private Long clusterId;
+  private String serviceName;
   private String stackName;
   private String stackVersion;
   private StackAdvisorRequestType requestType;
@@ -52,6 +54,7 @@ public class StackAdvisorRequest {
   private Map<String, String> userContext = new HashMap<>();
   private Map<String, Object> ldapConfig = new HashMap<>();
   private Boolean gplLicenseAccepted;
+  private Boolean configsResponse = false;
 
   public String getStackName() {
     return stackName;
@@ -123,11 +126,23 @@ public class StackAdvisorRequest {
     this.configGroups = configGroups;
   }
 
+  public Long getClusterId() {
+    return clusterId;
+  }
+
+  public String getServiceName() {
+    return serviceName;
+  }
+
   /**
    * @return true if GPL license is accepted, false otherwise
    */
   public Boolean getGplLicenseAccepted() {
     return gplLicenseAccepted;
+  }
+
+  public Boolean getConfigsResponse() {
+    return configsResponse;
   }
 
   private StackAdvisorRequest(String stackName, String stackVersion) {
@@ -197,7 +212,7 @@ public class StackAdvisorRequest {
     }
 
     public StackAdvisorRequestBuilder withConfigGroups(
-      Set<RecommendationResponse.ConfigGroup> configGroups) {
+        Set<RecommendationResponse.ConfigGroup> configGroups) {
       this.instance.configGroups = configGroups;
       return this;
     }
@@ -219,6 +234,21 @@ public class StackAdvisorRequest {
       return this;
     }
 
+    public StackAdvisorRequestBuilder withClusterId(Long clusterId) {
+      this.instance.clusterId = clusterId;
+      return this;
+    }
+
+    public StackAdvisorRequestBuilder withServiceName(String serviceName) {
+      this.instance.serviceName = serviceName;
+      return this;
+    }
+
+    public StackAdvisorRequestBuilder withConfigsResponse(
+        Boolean configsResponse) {
+      this.instance.configsResponse = configsResponse;
+      return this;
+    }
 
     public StackAdvisorRequest build() {
       return this.instance;

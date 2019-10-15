@@ -8449,14 +8449,11 @@
           "type" : "integer",
           "format" : "int64"
         },
-        "description" : {
-          "type" : "string"
-        },
         "enabled" : {
           "type" : "boolean",
           "default" : false
         },
-        "notification_type" : {
+        "description" : {
           "type" : "string"
         },
         "groups" : {
@@ -8464,6 +8461,9 @@
           "items" : {
             "$ref" : "#/definitions/AlertGroup"
           }
+        },
+        "notification_type" : {
+          "type" : "string"
         },
         "alert_states" : {
           "type" : "array",
@@ -8499,9 +8499,6 @@
     "Artifacts" : {
       "type" : "object",
       "properties" : {
-        "stack_name" : {
-          "type" : "string"
-        },
         "stack_version" : {
           "type" : "string"
         },
@@ -8510,20 +8507,23 @@
         },
         "artifact_name" : {
           "type" : "string"
+        },
+        "stack_name" : {
+          "type" : "string"
         }
       }
     },
     "BatchRequest" : {
       "type" : "object",
       "properties" : {
-        "batch_settings" : {
-          "$ref" : "#/definitions/BatchSettings"
-        },
         "requests" : {
           "type" : "array",
           "items" : {
             "$ref" : "#/definitions/BatchRequestRequest"
           }
+        },
+        "batch_settings" : {
+          "$ref" : "#/definitions/BatchSettings"
         }
       }
     },
@@ -8533,15 +8533,15 @@
         "type" : {
           "type" : "string"
         },
-        "RequestBodyInfo" : {
-          "$ref" : "#/definitions/RequestBodyInfo"
-        },
         "order_id" : {
           "type" : "integer",
           "format" : "int64"
         },
         "uri" : {
           "type" : "string"
+        },
+        "RequestBodyInfo" : {
+          "$ref" : "#/definitions/RequestBodyInfo"
         }
       }
     },
@@ -8551,6 +8551,9 @@
         "request_type" : {
           "type" : "string"
         },
+        "request_body" : {
+          "type" : "string"
+        },
         "request_status" : {
           "type" : "string"
         },
@@ -8558,17 +8561,14 @@
           "type" : "integer",
           "format" : "int32"
         },
-        "response_message" : {
-          "type" : "string"
-        },
         "order_id" : {
           "type" : "integer",
           "format" : "int64"
         },
-        "request_uri" : {
+        "response_message" : {
           "type" : "string"
         },
-        "request_body" : {
+        "request_uri" : {
           "type" : "string"
         }
       }
@@ -8576,25 +8576,25 @@
     "BatchResponse" : {
       "type" : "object",
       "properties" : {
-        "batch_settings" : {
-          "$ref" : "#/definitions/BatchSettings"
-        },
         "batch_requests" : {
           "type" : "array",
           "items" : {
             "$ref" : "#/definitions/BatchRequestResponse"
           }
+        },
+        "batch_settings" : {
+          "$ref" : "#/definitions/BatchSettings"
         }
       }
     },
     "BatchSettings" : {
       "type" : "object",
       "properties" : {
-        "task_failure_tolerance_limit" : {
+        "batch_separation_in_seconds" : {
           "type" : "integer",
           "format" : "int32"
         },
-        "batch_separation_in_seconds" : {
+        "task_failure_tolerance_limit" : {
           "type" : "integer",
           "format" : "int32"
         }
@@ -8603,13 +8603,13 @@
     "BlueprintInfo" : {
       "type" : "object",
       "properties" : {
-        "stack_name" : {
-          "type" : "string"
-        },
         "security" : {
           "$ref" : "#/definitions/SecurityInfo"
         },
         "stack_version" : {
+          "type" : "string"
+        },
+        "stack_name" : {
           "type" : "string"
         },
         "blueprint_name" : {
@@ -8665,14 +8665,14 @@
     "ClusterArtifactRequest" : {
       "type" : "object",
       "properties" : {
-        "Artifacts" : {
-          "$ref" : "#/definitions/ClusterArtifactRequestInfo"
-        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
+        },
+        "Artifacts" : {
+          "$ref" : "#/definitions/ClusterArtifactRequestInfo"
         }
       }
     },
@@ -8687,14 +8687,14 @@
     "ClusterArtifactResponse" : {
       "type" : "object",
       "properties" : {
-        "Artifacts" : {
-          "$ref" : "#/definitions/ClusterArtifactResponseInfo"
-        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
+        },
+        "Artifacts" : {
+          "$ref" : "#/definitions/ClusterArtifactResponseInfo"
         }
       }
     },
@@ -8855,14 +8855,14 @@
     "ClusterServiceArtifactRequest" : {
       "type" : "object",
       "properties" : {
-        "Artifacts" : {
-          "$ref" : "#/definitions/ClusterServiceArtifactRequestInfo"
-        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
+        },
+        "Artifacts" : {
+          "$ref" : "#/definitions/ClusterServiceArtifactRequestInfo"
         }
       }
     },
@@ -8877,14 +8877,14 @@
     "ClusterServiceArtifactResponse" : {
       "type" : "object",
       "properties" : {
-        "Artifacts" : {
-          "$ref" : "#/definitions/ClusterServiceArtifactResponseInfo"
-        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
+        },
+        "Artifacts" : {
+          "$ref" : "#/definitions/ClusterServiceArtifactResponseInfo"
         }
       }
     },
@@ -8913,22 +8913,19 @@
     "ComponentDependencyResponseInfo" : {
       "type" : "object",
       "properties" : {
-        "stack_name" : {
-          "type" : "string"
-        },
-        "conditions" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/definitions/DependencyConditionInfo"
-          }
-        },
         "scope" : {
           "type" : "string"
         },
         "stack_version" : {
           "type" : "string"
         },
+        "service_name" : {
+          "type" : "string"
+        },
         "component_name" : {
+          "type" : "string"
+        },
+        "stack_name" : {
           "type" : "string"
         },
         "dependent_component_name" : {
@@ -8937,8 +8934,11 @@
         "dependent_service_name" : {
           "type" : "string"
         },
-        "service_name" : {
-          "type" : "string"
+        "conditions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/DependencyConditionInfo"
+          }
         }
       }
     },
@@ -8972,6 +8972,10 @@
     "Config" : {
       "type" : "object",
       "properties" : {
+        "version" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
         "properties" : {
           "type" : "object",
           "additionalProperties" : {
@@ -8984,24 +8988,11 @@
         "tag" : {
           "type" : "string"
         },
-        "version" : {
-          "type" : "integer",
-          "format" : "int64"
-        },
         "serviceConfigVersions" : {
           "type" : "array",
           "items" : {
             "type" : "integer",
             "format" : "int64"
-          }
-        },
-        "propertiesAttributes" : {
-          "type" : "object",
-          "additionalProperties" : {
-            "type" : "object",
-            "additionalProperties" : {
-              "type" : "string"
-            }
           }
         },
         "stackId" : {
@@ -9013,6 +9004,15 @@
             "type" : "array",
             "uniqueItems" : true,
             "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "propertiesAttributes" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "object",
+            "additionalProperties" : {
               "type" : "string"
             }
           }
@@ -9195,6 +9195,9 @@
             "type" : "string"
           }
         },
+        "tag" : {
+          "type" : "string"
+        },
         "properties_attributes" : {
           "type" : "object",
           "additionalProperties" : {
@@ -9203,9 +9206,6 @@
               "type" : "string"
             }
           }
-        },
-        "tag" : {
-          "type" : "string"
         }
       }
     },
@@ -9264,19 +9264,19 @@
         "display_name" : {
           "type" : "string"
         },
-        "password" : {
-          "type" : "string"
-        },
         "active" : {
           "type" : "boolean",
           "default" : false
         },
-        "local_user_name" : {
+        "password" : {
           "type" : "string"
         },
         "admin" : {
           "type" : "boolean",
           "default" : false
+        },
+        "local_user_name" : {
+          "type" : "string"
         }
       }
     },
@@ -9286,22 +9286,22 @@
         "display_name" : {
           "type" : "string"
         },
+        "active" : {
+          "type" : "boolean",
+          "default" : false
+        },
         "user_name" : {
           "type" : "string"
         },
         "password" : {
           "type" : "string"
         },
-        "active" : {
+        "admin" : {
           "type" : "boolean",
           "default" : false
         },
         "local_user_name" : {
           "type" : "string"
-        },
-        "admin" : {
-          "type" : "boolean",
-          "default" : false
         }
       }
     },
@@ -9372,10 +9372,10 @@
         "userName" : {
           "type" : "string"
         },
-        "userStatus" : {
+        "userHomeDir" : {
           "type" : "string"
         },
-        "userHomeDir" : {
+        "userStatus" : {
           "type" : "string"
         },
         "name" : {
@@ -9546,13 +9546,13 @@
     "HostComponentServiceComponentInfo" : {
       "type" : "object",
       "properties" : {
-        "component_name" : {
-          "type" : "string"
-        },
         "cluster_name" : {
           "type" : "string"
         },
         "service_name" : {
+          "type" : "string"
+        },
+        "component_name" : {
           "type" : "string"
         }
       }
@@ -9569,17 +9569,17 @@
             "$ref" : "#/definitions/HostComponentComponent"
           }
         },
-        "HostRoles" : {
-          "$ref" : "#/definitions/ServiceComponentHostResponse"
-        },
-        "metrics" : {
-          "$ref" : "#/definitions/HostComponentMetrics"
-        },
         "processes" : {
           "type" : "array",
           "items" : {
             "$ref" : "#/definitions/HostComponentProcesses"
           }
+        },
+        "HostRoles" : {
+          "$ref" : "#/definitions/ServiceComponentHostResponse"
+        },
+        "metrics" : {
+          "$ref" : "#/definitions/HostComponentMetrics"
         }
       }
     },
@@ -9600,6 +9600,12 @@
     "HostGroupInfo" : {
       "type" : "object",
       "properties" : {
+        "components" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/ComponentInfo"
+          }
+        },
         "configurations" : {
           "type" : "array",
           "items" : {
@@ -9607,12 +9613,6 @@
             "additionalProperties" : {
               "type" : "object"
             }
-          }
-        },
-        "components" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/definitions/ComponentInfo"
           }
         },
         "name" : {
@@ -9678,13 +9678,13 @@
         "maintenance_state" : {
           "type" : "string"
         },
-        "host_group" : {
+        "public_host_name" : {
           "type" : "string"
         },
         "blueprint" : {
           "type" : "string"
         },
-        "public_host_name" : {
+        "host_group" : {
           "type" : "string"
         }
       }
@@ -9934,10 +9934,10 @@
     "PackageDetail" : {
       "type" : "object",
       "properties" : {
-        "name" : {
+        "version" : {
           "type" : "string"
         },
-        "version" : {
+        "name" : {
           "type" : "string"
         },
         "repoName" : {
@@ -10117,13 +10117,13 @@
         "file_name" : {
           "type" : "string"
         },
-        "stack_name" : {
-          "type" : "string"
-        },
         "stack_version" : {
           "type" : "string"
         },
         "service_name" : {
+          "type" : "string"
+        },
+        "stack_name" : {
           "type" : "string"
         },
         "quicklink_data" : {
@@ -10212,16 +10212,16 @@
             "enum" : [ "GPL" ]
           }
         },
-        "mirrorsList" : {
-          "type" : "string"
-        },
-        "repoId" : {
-          "type" : "string"
-        },
         "repoName" : {
           "type" : "string"
         },
         "baseUrl" : {
+          "type" : "string"
+        },
+        "mirrorsList" : {
+          "type" : "string"
+        },
+        "repoId" : {
           "type" : "string"
         }
       }
@@ -10403,25 +10403,25 @@
           "type" : "boolean",
           "default" : false
         },
+        "stackVersion" : {
+          "type" : "string"
+        },
+        "stackId" : {
+          "$ref" : "#/definitions/StackId"
+        },
         "stackName" : {
           "type" : "string"
         },
-        "stackVersion" : {
-          "type" : "string"
+        "repositoryXml" : {
+          "$ref" : "#/definitions/VersionDefinitionXml"
         },
         "legacy" : {
           "type" : "boolean",
           "default" : false
         },
-        "repositoryXml" : {
-          "$ref" : "#/definitions/VersionDefinitionXml"
-        },
         "parentId" : {
           "type" : "integer",
           "format" : "int64"
-        },
-        "stackId" : {
-          "$ref" : "#/definitions/StackId"
         }
       }
     },
@@ -10464,6 +10464,9 @@
     "Request" : {
       "type" : "object",
       "properties" : {
+        "cluster_name" : {
+          "type" : "string"
+        },
         "resource_filters" : {
           "type" : "array",
           "items" : {
@@ -10473,9 +10476,6 @@
         "exclusive" : {
           "type" : "boolean",
           "default" : false
-        },
-        "cluster_name" : {
-          "type" : "string"
         }
       }
     },
@@ -10502,10 +10502,10 @@
             "type" : "object"
           }
         },
-        "command" : {
+        "action" : {
           "type" : "string"
         },
-        "action" : {
+        "command" : {
           "type" : "string"
         },
         "operation_level" : {
@@ -10569,13 +10569,13 @@
         "hosts" : {
           "type" : "string"
         },
+        "service_name" : {
+          "type" : "string"
+        },
         "component_name" : {
           "type" : "string"
         },
         "hosts_predicate" : {
-          "type" : "string"
-        },
-        "service_name" : {
           "type" : "string"
         }
       }
@@ -10613,6 +10613,9 @@
     "RequestScheduleResponseElement" : {
       "type" : "object",
       "properties" : {
+        "schedule" : {
+          "$ref" : "#/definitions/ScheduleResponse"
+        },
         "id" : {
           "type" : "integer",
           "format" : "int64"
@@ -10623,21 +10626,6 @@
         "status" : {
           "type" : "string"
         },
-        "schedule" : {
-          "$ref" : "#/definitions/ScheduleResponse"
-        },
-        "batch" : {
-          "$ref" : "#/definitions/BatchResponse"
-        },
-        "create_user" : {
-          "type" : "string"
-        },
-        "update_user" : {
-          "type" : "string"
-        },
-        "update_time" : {
-          "type" : "string"
-        },
         "last_execution_status" : {
           "type" : "string"
         },
@@ -10645,10 +10633,22 @@
           "type" : "integer",
           "format" : "int32"
         },
+        "batch" : {
+          "$ref" : "#/definitions/BatchResponse"
+        },
         "cluster_name" : {
           "type" : "string"
         },
         "create_time" : {
+          "type" : "string"
+        },
+        "update_time" : {
+          "type" : "string"
+        },
+        "create_user" : {
+          "type" : "string"
+        },
+        "update_user" : {
           "type" : "string"
         }
       }
@@ -10664,18 +10664,6 @@
     "RequestStatusInfo" : {
       "type" : "object",
       "properties" : {
-        "type" : {
-          "type" : "string"
-        },
-        "start_time" : {
-          "type" : "string"
-        },
-        "request_status" : {
-          "type" : "string"
-        },
-        "request_context" : {
-          "type" : "string"
-        },
         "task_count" : {
           "type" : "integer",
           "format" : "int32"
@@ -10683,14 +10671,49 @@
         "completed_task_count" : {
           "type" : "string"
         },
-        "request_schedule" : {
+        "type" : {
+          "type" : "string"
+        },
+        "start_time" : {
+          "type" : "string"
+        },
+        "request_context" : {
+          "type" : "string"
+        },
+        "request_status" : {
+          "type" : "string"
+        },
+        "id" : {
           "type" : "string"
         },
         "end_time" : {
           "type" : "string"
         },
-        "id" : {
+        "request_schedule" : {
           "type" : "string"
+        },
+        "cluster_name" : {
+          "type" : "string"
+        },
+        "create_time" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "inputs" : {
+          "type" : "string"
+        },
+        "operation_level" : {
+          "type" : "string"
+        },
+        "resource_filters" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/RequestResourceFilter"
+          }
+        },
+        "exclusive" : {
+          "type" : "boolean",
+          "default" : false
         },
         "aborted_task_count" : {
           "type" : "integer",
@@ -10699,9 +10722,6 @@
         "failed_task_count" : {
           "type" : "integer",
           "format" : "int32"
-        },
-        "inputs" : {
-          "type" : "string"
         },
         "progress_percent" : {
           "type" : "number",
@@ -10714,26 +10734,6 @@
         "request_schedule_id" : {
           "type" : "integer",
           "format" : "int64"
-        },
-        "resource_filters" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/definitions/RequestResourceFilter"
-          }
-        },
-        "exclusive" : {
-          "type" : "boolean",
-          "default" : false
-        },
-        "cluster_name" : {
-          "type" : "string"
-        },
-        "create_time" : {
-          "type" : "integer",
-          "format" : "int64"
-        },
-        "operation_level" : {
-          "type" : "string"
         }
       }
     },
@@ -10749,10 +10749,10 @@
         "categoryName" : {
           "type" : "string"
         },
-        "componentName" : {
+        "serviceName" : {
           "type" : "string"
         },
-        "serviceName" : {
+        "componentName" : {
           "type" : "string"
         }
       }
@@ -10777,10 +10777,10 @@
         "categoryName" : {
           "type" : "string"
         },
-        "componentName" : {
+        "serviceName" : {
           "type" : "string"
         },
-        "serviceName" : {
+        "componentName" : {
           "type" : "string"
         }
       }
@@ -10906,9 +10906,6 @@
     "ScheduleRequest" : {
       "type" : "object",
       "properties" : {
-        "startTime" : {
-          "type" : "string"
-        },
         "day_of_week" : {
           "type" : "string"
         },
@@ -10922,6 +10919,9 @@
           "type" : "string"
         },
         "year" : {
+          "type" : "string"
+        },
+        "startTime" : {
           "type" : "string"
         },
         "days_of_month" : {
@@ -10935,9 +10935,6 @@
     "ScheduleResponse" : {
       "type" : "object",
       "properties" : {
-        "start_time" : {
-          "type" : "string"
-        },
         "day_of_week" : {
           "type" : "string"
         },
@@ -10951,6 +10948,9 @@
           "type" : "string"
         },
         "year" : {
+          "type" : "string"
+        },
+        "start_time" : {
           "type" : "string"
         },
         "days_of_month" : {
@@ -11009,12 +11009,12 @@
             "type" : "object"
           }
         },
-        "kerberos_descriptor_reference" : {
-          "type" : "string"
-        },
         "security_type" : {
           "type" : "string",
           "enum" : [ "NONE", "KERBEROS" ]
+        },
+        "kerberos_descriptor_reference" : {
+          "type" : "string"
         }
       }
     },
@@ -11246,6 +11246,14 @@
           "default" : false
         },
         "sso_integration_enabled" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "sso_integration_requires_kerberos" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "kerberos_enabled" : {
           "type" : "boolean",
           "default" : false
         }
@@ -11539,12 +11547,12 @@
           "type" : "boolean",
           "default" : false
         },
+        "bulk_commands_master_component_namen" : {
+          "type" : "string"
+        },
         "is_client" : {
           "type" : "boolean",
           "default" : false
-        },
-        "bulk_commands_master_component_namen" : {
-          "type" : "string"
         },
         "decommission_allowed" : {
           "type" : "boolean",
@@ -11642,6 +11650,10 @@
           "default" : false
         },
         "sso_integration_supported" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "sso_integration_requires_kerberos" : {
           "type" : "boolean",
           "default" : false
         }
@@ -11857,13 +11869,13 @@
         "file_name" : {
           "type" : "string"
         },
-        "stack_name" : {
-          "type" : "string"
-        },
         "stack_version" : {
           "type" : "string"
         },
         "service_name" : {
+          "type" : "string"
+        },
+        "stack_name" : {
           "type" : "string"
         },
         "theme_data" : {
@@ -11893,22 +11905,22 @@
         "display_name" : {
           "type" : "string"
         },
-        "password" : {
-          "type" : "string"
-        },
         "active" : {
           "type" : "boolean",
           "default" : false
         },
-        "local_user_name" : {
-          "type" : "string"
-        },
-        "old_password" : {
+        "password" : {
           "type" : "string"
         },
         "admin" : {
           "type" : "boolean",
           "default" : false
+        },
+        "old_password" : {
+          "type" : "string"
+        },
+        "local_user_name" : {
+          "type" : "string"
         }
       }
     },
@@ -12108,18 +12120,18 @@
           "type" : "integer",
           "format" : "int32"
         },
-        "user_name" : {
-          "type" : "string"
-        },
         "active" : {
           "type" : "boolean",
           "default" : false
         },
-        "admin" : {
+        "user_name" : {
+          "type" : "string"
+        },
+        "ldap_user" : {
           "type" : "boolean",
           "default" : false
         },
-        "ldap_user" : {
+        "admin" : {
           "type" : "boolean",
           "default" : false
         },
@@ -12139,12 +12151,12 @@
     "ValidationResult" : {
       "type" : "object",
       "properties" : {
-        "detail" : {
-          "type" : "string"
-        },
         "valid" : {
           "type" : "boolean",
           "default" : false
+        },
+        "detail" : {
+          "type" : "string"
         }
       }
     },
@@ -12471,19 +12483,19 @@
     "ViewUrlInfo" : {
       "type" : "object",
       "properties" : {
-        "url_name" : {
+        "view_instance_name" : {
           "type" : "string"
         },
         "url_suffix" : {
           "type" : "string"
         },
-        "view_instance_common_name" : {
-          "type" : "string"
-        },
         "view_instance_version" : {
           "type" : "string"
         },
-        "view_instance_name" : {
+        "view_instance_common_name" : {
+          "type" : "string"
+        },
+        "url_name" : {
           "type" : "string"
         }
       }

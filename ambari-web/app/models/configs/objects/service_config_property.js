@@ -346,9 +346,6 @@ App.ServiceConfigProperty = Em.Object.extend({
       isFinal = this.get('isFinal'),
       savedIsFinal = this.get('savedIsFinal');
 
-    if (this.get('name') === 'kdc_type') {
-      return App.router.get('mainAdminKerberosController.kdcTypesValues')[savedValue] !== value;
-    }
     // ignore precision difference for configs with type of `float` which value may ends with 0
     // e.g. between 0.4 and 0.40
     if (this.get('stackConfigProperty') && this.get('stackConfigProperty.valueAttributes.type') == 'float') {

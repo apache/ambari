@@ -280,7 +280,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
     var alertsRepeatTolerance = App.router.get('clusterController.clusterEnv.properties.alerts_repeat_tolerance') || "1";
 
     return App.ModalPopup.show({
-      classNames: ['fourty-percent-width-modal'],
+      classNames: ['forty-percent-width-modal'],
       header: Em.I18n.t('alerts.actions.editRepeatTolerance.header'),
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.cancel'),

@@ -325,16 +325,18 @@ public class AuthorizationHelper {
    * of alias user name to local ambari user name to make possible resolving
    * login alias to ambari user name.
    * @param ambariUserName ambari user name for which the alias is to be stored in the session
-   * @param loginAlias the alias for the ambari user name.
+   * @param loginAlias The Name with which user logged in Ambari UI.
    */
   public static void addLoginNameAlias(String ambariUserName, String loginAlias) {
     ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
     if (attr != null) {
       LOG.info("Adding login alias '{}' for user name '{}'", loginAlias, ambariUserName);
       attr.setAttribute(loginAlias, ambariUserName, RequestAttributes.SCOPE_SESSION);
+      //save Vice Versa Too
+      attr.setAttribute(ambariUserName, loginAlias, RequestAttributes.SCOPE_SESSION);
     }
   }
-
+ 
   /**
    * Looks up the provided loginAlias in the current http session and return the ambari
    * user name that the alias is defined for.

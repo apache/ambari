@@ -18,6 +18,15 @@
 
 package org.apache.ambari.server.api.services.stackadvisor;
 
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.partialMockBuilder;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -27,6 +36,11 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestBuilder;
@@ -41,9 +55,14 @@ import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorC
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.node.JsonNodeFactory;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import com.google.gson.Gson;
 
 /**
  * StackAdvisorHelper unit tests.
@@ -160,7 +179,7 @@ public class StackAdvisorHelperTest {
     ServiceInfo service = mock(ServiceInfo.class);
     when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
     when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
-    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null, null);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.HOST_GROUPS;
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .ofType(requestType).build();
@@ -196,7 +215,7 @@ public class StackAdvisorHelperTest {
     ServiceInfo service = mock(ServiceInfo.class);
     when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
     when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
-    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null, null);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.HOST_GROUPS;
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .ofType(requestType).build();
@@ -216,7 +235,7 @@ public class StackAdvisorHelperTest {
     ServiceInfo service = mock(ServiceInfo.class);
     when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
     when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
-    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null, null);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.CONFIGURATIONS;
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .ofType(requestType).build();
@@ -236,7 +255,7 @@ public class StackAdvisorHelperTest {
     ServiceInfo service = mock(ServiceInfo.class);
     when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
     when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
-    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null, null);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES;
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .ofType(requestType).build();
@@ -244,6 +263,124 @@ public class StackAdvisorHelperTest {
     StackAdvisorCommand<RecommendationResponse> command = helper.createRecommendationCommand("ZOOKEEPER", request);
 
     assertEquals(ConfigurationDependenciesRecommendationCommand.class, command.getClass());
+  }
+
+  @Test
+  public void testClearCacheAndHost() throws IOException, NoSuchFieldException, IllegalAccessException {
+    Field hostInfoCacheField = StackAdvisorHelper.class.getDeclaredField("hostInfoCache");
+    Field configsRecommendationResponseField = StackAdvisorHelper.class.getDeclaredField("configsRecommendationResponse");
+    StackAdvisorHelper helper = testClearCachesSetup(hostInfoCacheField, configsRecommendationResponseField);
+
+    helper.clearCaches("hostName1");
+
+    Map<String, JsonNode> hostInfoCache = (Map<String, JsonNode>) hostInfoCacheField.get(helper);
+    Map<String, RecommendationResponse> configsRecommendationResponse =
+        (Map<String, RecommendationResponse>) configsRecommendationResponseField.get(helper);
+
+    assertEquals(2, hostInfoCache.size());
+    assertTrue(hostInfoCache.containsKey("hostName2"));
+    assertTrue(hostInfoCache.containsKey("hostName3"));
+    assertTrue(configsRecommendationResponse.isEmpty());
+  }
+
+  @Test
+  public void testClearCacheAndHosts() throws IOException, NoSuchFieldException, IllegalAccessException {
+
+    Field hostInfoCacheField = StackAdvisorHelper.class.getDeclaredField("hostInfoCache");
+    Field configsRecommendationResponseField = StackAdvisorHelper.class.getDeclaredField("configsRecommendationResponse");
+    StackAdvisorHelper helper = testClearCachesSetup(hostInfoCacheField, configsRecommendationResponseField);
+
+    helper.clearCaches(new HashSet<>(Arrays.asList(new String[]{"hostName1", "hostName2"})));
+
+    Map<String, JsonNode> hostInfoCache = (Map<String, JsonNode>) hostInfoCacheField.get(helper);
+    Map<String, RecommendationResponse> configsRecommendationResponse =
+        (Map<String, RecommendationResponse>) configsRecommendationResponseField.get(helper);
+
+    assertEquals(1, hostInfoCache.size());
+    assertTrue(hostInfoCache.containsKey("hostName3"));
+    assertTrue(configsRecommendationResponse.isEmpty());
+  }
+
+  @Test
+  public void testCacheRecommendations() throws IOException, StackAdvisorException {
+    Configuration configuration = createNiceMock(Configuration.class);
+    StackAdvisorRunner stackAdvisorRunner = createNiceMock(StackAdvisorRunner.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    AmbariServerConfigurationHandler ambariServerConfigurationHandler = createNiceMock(AmbariServerConfigurationHandler.class);
+
+    expect(configuration.getRecommendationsArtifactsRolloverMax()).andReturn(1);
+
+    replay(configuration, stackAdvisorRunner, ambariMetaInfo, ambariServerConfigurationHandler);
+
+    StackAdvisorHelper helper = partialMockBuilder(StackAdvisorHelper.class).withConstructor(Configuration.class,
+        StackAdvisorRunner.class, AmbariMetaInfo.class, AmbariServerConfigurationHandler.class, Gson.class).
+        withArgs(configuration, stackAdvisorRunner, ambariMetaInfo, ambariServerConfigurationHandler, new Gson()).
+        addMockedMethod("createRecommendationCommand").
+        createMock();
+
+    verify(configuration, stackAdvisorRunner, ambariMetaInfo, ambariServerConfigurationHandler);
+    reset(ambariMetaInfo);
+
+    ServiceInfo serviceInfo = new ServiceInfo();
+    serviceInfo.setServiceAdvisorType(ServiceInfo.ServiceAdvisorType.PYTHON);
+    expect(ambariMetaInfo.getService(anyString(), anyString(), anyString())).andReturn(serviceInfo).atLeastOnce();
+
+    ConfigurationRecommendationCommand command = createMock(ConfigurationRecommendationCommand.class);
+
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.
+        forStack(null, null).ofType(StackAdvisorRequestType.CONFIGURATIONS).
+        build();
+
+    expect(helper.createRecommendationCommand(eq("ZOOKEEPER"), eq(request))).andReturn(command).times(2);
+
+    // populate response with dummy info to check equivalence
+    RecommendationResponse response = new RecommendationResponse();
+    response.setServices(new HashSet<String>(){{add("service1"); add("service2"); add("service3");}});
+
+    // invoke() should be fired for first recommend() execution only
+    expect(command.invoke(eq(request), eq(ServiceInfo.ServiceAdvisorType.PYTHON))).andReturn(response).once();
+
+    replay(ambariMetaInfo, helper, command);
+
+    RecommendationResponse calculatedResponse = helper.recommend(request);
+    RecommendationResponse cachedResponse = helper.recommend(request);
+
+    verify(ambariMetaInfo, helper, command);
+
+    assertEquals(response.getServices(), calculatedResponse.getServices());
+    assertEquals(response.getServices(), cachedResponse.getServices());
+  }
+
+  private StackAdvisorHelper testClearCachesSetup(Field hostInfoCacheField,
+                                                  Field configsRecommendationResponseField) throws IOException,
+      NoSuchFieldException, IllegalAccessException {
+    Configuration configuration = createNiceMock(Configuration.class);
+    StackAdvisorRunner stackAdvisorRunner = createNiceMock(StackAdvisorRunner.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    AmbariServerConfigurationHandler ambariServerConfigurationHandler = createNiceMock(AmbariServerConfigurationHandler.class);
+
+    replay(configuration, stackAdvisorRunner, ambariMetaInfo, ambariServerConfigurationHandler);
+
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, stackAdvisorRunner,
+        ambariMetaInfo, ambariServerConfigurationHandler, null);
+
+    verify(configuration, stackAdvisorRunner, ambariMetaInfo, ambariServerConfigurationHandler);
+
+    hostInfoCacheField.setAccessible(true);
+    configsRecommendationResponseField.setAccessible(true);
+
+    Map<String, JsonNode> hostInfoCache = new ConcurrentHashMap<>();
+    JsonNodeFactory jnf = JsonNodeFactory.instance;
+    hostInfoCache.put("hostName1", jnf.nullNode());
+    hostInfoCache.put("hostName2", jnf.nullNode());
+    hostInfoCache.put("hostName3", jnf.nullNode());
+    Map<String, RecommendationResponse> configsRecommendationResponse = new ConcurrentHashMap<>();
+    configsRecommendationResponse.put("111", new RecommendationResponse());
+    configsRecommendationResponse.put("222", new RecommendationResponse());
+
+    hostInfoCacheField.set(helper, hostInfoCache);
+    configsRecommendationResponseField.set(helper, configsRecommendationResponse);
+    return helper;
   }
 
   private void testCreateConfigurationRecommendationCommand(StackAdvisorRequestType requestType, StackAdvisorCommandType expectedCommandType)
@@ -255,7 +392,7 @@ public class StackAdvisorHelperTest {
     ServiceInfo service = mock(ServiceInfo.class);
     when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
     when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
-    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null, null);
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .ofType(requestType).build();
@@ -268,6 +405,6 @@ public class StackAdvisorHelperTest {
   }
 
   private static StackAdvisorHelper stackAdvisorHelperSpy(Configuration configuration, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) throws IOException {
-    return spy(new StackAdvisorHelper(configuration, saRunner, metaInfo, null));
+    return spy(new StackAdvisorHelper(configuration, saRunner, metaInfo, null, null));
   }
 }

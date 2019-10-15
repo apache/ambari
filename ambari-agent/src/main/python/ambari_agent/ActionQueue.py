@@ -25,6 +25,7 @@ import os
 import ambari_simplejson as json
 import time
 import signal
+import re
 
 from AgentException import AgentException
 from ambari_agent.BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
@@ -36,6 +37,13 @@ logger = logging.getLogger()
 installScriptHash = -1
 
 MAX_SYMBOLS_PER_LOG_MESSAGE = 7900
+
+PASSWORD_REPLACEMENT = '[PROTECTED]'
+PASSWORD_PATTERN = re.compile(r"('\S*password':\s*u?')(\S+)(')")
+
+def hide_passwords(text):
+  """ Replaces the matching passwords with **** in the given text """
+  return None if text is None else PASSWORD_PATTERN.sub(r'\1{}\3'.format(PASSWORD_REPLACEMENT), text)
 
 
 class ActionQueue(threading.Thread):
@@ -393,12 +401,12 @@ class ActionQueue(threading.Thread):
     If logs are redirected to syslog (syslog_enabled=1), this is very useful for logging big messages.
     As syslog usually truncates long messages.
     """
-    chunks = split_on_chunks(text, MAX_SYMBOLS_PER_LOG_MESSAGE)
+    chunks = split_on_chunks(hide_passwords(text), MAX_SYMBOLS_PER_LOG_MESSAGE)
     if len(chunks) > 1:
       for i in range(len(chunks)):
         logger.info("Cmd log for taskId={0} and chunk {1}/{2} of log for command: \n".format(taskId, i+1, len(chunks)) + chunks[i])
     else:
-      logger.info("Cmd log for taskId={0}: ".format(taskId) + text)
+      logger.info("Cmd log for taskId={0}: ".format(taskId) + chunks[0])
 
   def get_retry_delay(self, last_delay):
     """

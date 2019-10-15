@@ -431,6 +431,11 @@ public interface Cluster {
   void deleteAllServices() throws AmbariException;
 
   /**
+   * Deletes all cluster configs associated with this cluster.
+   */
+  void deleteAllClusterConfigs();
+
+  /**
    * Delete the named service associated with this cluster
    * @param serviceName
    * @throws AmbariException
@@ -504,6 +509,13 @@ public interface Cluster {
    */
   Map<Long, ConfigGroup> getConfigGroupsByHostname(String hostname)
       throws AmbariException;
+
+  /**
+   * Find config group by config group id
+   * @param configId id of config group to return
+   * @return config group
+   */
+  ConfigGroup getConfigGroupsById(Long configId);
 
   /**
    * Add a @RequestExecution to the cluster

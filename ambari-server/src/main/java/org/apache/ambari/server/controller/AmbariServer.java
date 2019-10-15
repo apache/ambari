@@ -511,6 +511,7 @@ public class AmbariServer {
       File resourcesDirectory = new File(configs.getResourceDirPath());
       ServletHolder resources = new ServletHolder(DefaultServlet.class);
       resources.setInitParameter("resourceBase", resourcesDirectory.getParent());
+      resources.setInitParameter("dirAllowed", "false");
       root.addServlet(resources, "/resources/*");
       resources.setInitOrder(5);
 
@@ -916,7 +917,7 @@ public class AmbariServer {
     KeyService.init(injector.getInstance(PersistKeyValueImpl.class));
     BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
     StackAdvisorResourceProvider.init(injector.getInstance(StackAdvisorHelper.class),
-        injector.getInstance(Configuration.class));
+        injector.getInstance(Configuration.class), injector.getInstance(Clusters.class), injector.getInstance(AmbariMetaInfo.class));
     StageUtils.setGson(injector.getInstance(Gson.class));
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
