@@ -466,13 +466,18 @@ define([
             }
             // Templatized Dashboard for per-topic metrics in Kafka.
             if (templateSrv.variables[0].query === "kafka-topics") {
-              var allTopics = templateSrv.variables.filter(function(variable) { return variable.query === "kafka-topics";});
-              var selectedTopics = (_.isEmpty(allTopics)) ? "" : allTopics[0].options.filter(function(topic)
-              { return topic.selected; }).map(function(topicName) { return topicName.value; });
+              var allTopics = templateSrv.variables.filter(function(variable) {
+                return variable.query === "kafka-topics";
+              });
+              var selectedTopics = (_.isEmpty(allTopics)) ? "" : allTopics[0].options.filter(function(topic) {
+                return topic.selected;
+              }).map(function(topicName) {
+                return topicName.value;
+              });
               if (selectedTopics[0] === "") {
                 selectedTopics = "";
               }
-              _.forEach(selectedTopic, function(processTopic) {
+              _.forEach(selectedTopics, function(processTopic) {
                 metricsPromises.push(_.map(options.targets, function(target) {
                   target.kbTopic = processTopic;
                   target.kbMetric = target.metric.replace('*', target.kbTopic);
