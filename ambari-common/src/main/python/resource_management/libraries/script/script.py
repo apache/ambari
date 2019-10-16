@@ -354,6 +354,10 @@ class Script(object):
         if not self.is_hook():
           self.execute_prefix_function(self.command_name, 'post', env)
 
+    # catch this to avoid unhandled exception logs in /var/log/messages
+    except (ComponentIsNotRunning, ClientComponentHasNoStatus), e:
+      traceback.print_exc()
+      sys.exit(1)
     except Fail as ex:
       ex.pre_raise()
       raise
