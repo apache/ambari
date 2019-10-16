@@ -466,16 +466,26 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       String absCategory = PropertyHelper.getPropertyCategory(entry.getKey());
       String propName = PropertyHelper.getPropertyName(entry.getKey());
 
-      if (absCategory.startsWith(parentCategory + "/desired_service_config_version")) {
+      if (absCategory != null &&
+              absCategory.startsWith(parentCategory + "/desired_service_config_version")) {
         serviceConfigVersionRequest =
             (serviceConfigVersionRequest ==null ) ? new ServiceConfigVersionRequest() : serviceConfigVersionRequest;
 
-        if (propName.equals("service_name"))
-          serviceConfigVersionRequest.setServiceName(entry.getValue().toString());
-        else if (propName.equals("service_config_version"))
-          serviceConfigVersionRequest.setVersion(Long.valueOf(entry.getValue().toString()));
-        else if (propName.equals("service_config_version_note")) {
-          serviceConfigVersionRequest.setNote(entry.getValue().toString());
+        if (propName != null) {
+          switch (propName) {
+            case "service_name": {
+              serviceConfigVersionRequest.setServiceName(entry.getValue().toString());
+              break;
+            }
+            case "service_config_version": {
+              serviceConfigVersionRequest.setVersion(Long.valueOf(entry.getValue().toString()));
+              break;
+            }
+            case "service_config_version_note": {
+              serviceConfigVersionRequest.setNote(entry.getValue().toString());
+              break;
+            }
+          }
         }
       }
     }

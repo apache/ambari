@@ -666,25 +666,30 @@ public class ControllerModule extends AbstractModule {
     // the dispatch factory
     for (BeanDefinition beanDefinition : beanDefinitions) {
       String className = beanDefinition.getBeanClassName();
-      Class<?> clazz = ClassUtils.resolveClassName(className,
-          ClassUtils.getDefaultClassLoader());
-
-      try {
-        NotificationDispatcher dispatcher;
-        if (clazz.equals(AmbariSNMPDispatcher.class)) {
-          dispatcher = (NotificationDispatcher) clazz.getConstructor(Integer.class).newInstance(configuration.getAmbariSNMPUdpBindPort());
-        } else if (clazz.equals(SNMPDispatcher.class)) {
-          dispatcher = (NotificationDispatcher) clazz.getConstructor(Integer.class).newInstance(configuration.getSNMPUdpBindPort());
-        } else {
-          dispatcher = (NotificationDispatcher) clazz.newInstance();
+      if (className != null) {
+        Class<?> clazz = ClassUtils.resolveClassName(className,
+                ClassUtils.getDefaultClassLoader());
+        try {
+          NotificationDispatcher dispatcher;
+          if (clazz.equals(AmbariSNMPDispatcher.class)) {
+            dispatcher = (NotificationDispatcher) clazz.getConstructor(Integer.class)
+                    .newInstance(configuration.getAmbariSNMPUdpBindPort());
+          } else if (clazz.equals(SNMPDispatcher.class)) {
+            dispatcher = (NotificationDispatcher) clazz.getConstructor(Integer.class)
+                    .newInstance(configuration.getSNMPUdpBindPort());
+          } else {
+            dispatcher = (NotificationDispatcher) clazz.newInstance();
+          }
+          dispatchFactory.register(dispatcher.getType(), dispatcher);
+          bind((Class<NotificationDispatcher>) clazz).toInstance(dispatcher);
+          LOG.info("Binding and registering notification dispatcher {}", clazz);
+        } catch (Exception exception) {
+          LOG.error("Unable to bind and register notification dispatcher {}",
+                  clazz, exception);
         }
-        dispatchFactory.register(dispatcher.getType(), dispatcher);
-        bind((Class<NotificationDispatcher>) clazz).toInstance(dispatcher);
-
-        LOG.info("Binding and registering notification dispatcher {}", clazz);
-      } catch (Exception exception) {
-        LOG.error("Unable to bind and register notification dispatcher {}",
-            clazz, exception);
+      } else {
+        LOG.error("Binding and registering notification dispatcher is not possible for" +
+            " beanDefinition: {} in the absence of className", beanDefinition);
       }
     }
 
