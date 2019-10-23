@@ -868,6 +868,11 @@ if security_enabled:
 # For ldap - hive_check
 hive_ldap_user= config['configurations']['hive-env'].get('alert_ldap_username','')
 hive_ldap_passwd=config['configurations']['hive-env'].get('alert_ldap_password','')
+
+# For pam - hive_check
+hive_pam_username = config['configurations']['hive-env'].get('alert_pam_username','')
+hive_pam_password = config['configurations']['hive-env'].get('alert_pam_password','')
+
 # For druid metadata password
 druid_metadata_password = ""
 if 'druid-common' in config['configurations'] \

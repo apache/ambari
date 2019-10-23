@@ -124,7 +124,8 @@ class HiveServiceCheckDefault(HiveServiceCheck):
                                transport_mode=params.hive_transport_mode, http_endpoint=params.hive_http_endpoint,
                                ssl=params.hive_ssl, ssl_keystore=ssl_keystore,
                                ssl_password=ssl_password, ldap_username=params.hive_ldap_user,
-                               ldap_password=params.hive_ldap_passwd)
+                               ldap_password=params.hive_ldap_passwd, pam_username=params.hive_pam_username,
+                               pam_password=params.hive_pam_password)
         Logger.info("Successfully connected to {0} on port {1}".format(address, server_port))
         workable_server_available = True
       except:
