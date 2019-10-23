@@ -28,7 +28,7 @@ from resource_management.core.shell import quote_bash_args
 def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd=None, smokeuser='ambari-qa',
                            hive_user='hive', transport_mode="binary", http_endpoint="cliservice",
                            ssl=False, ssl_keystore=None, ssl_password=None, check_command_timeout=30,
-                           ldap_username="", ldap_password=""):
+                           ldap_username="", ldap_password="", pam_username="", pam_password=""):
   """
   Hive thrift SASL port check
   """
@@ -59,6 +59,12 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
     # password might contain special characters that need to be escaped
     quoted_ldap_password = quote_bash_args(ldap_password)
     credential_str = "-n {ldap_username} -p {quoted_ldap_password!p}"
+
+  # append username and password for PAM
+  if hive_auth == "PAM":
+    # password might contain special characters that need to be escaped
+    quoted_pam_password = quote_bash_args(pam_password)
+    credential_str = "-n '{pam_username}' -p '{quoted_pam_password!p}'"
 
   # append url according to ssl configuration
   if ssl and ssl_keystore is not None and ssl_password is not None:
