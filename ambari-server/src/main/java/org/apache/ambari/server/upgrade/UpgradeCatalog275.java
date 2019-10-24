@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * The {@link UpgradeCatalog275} upgrades Ambari from 2.7.4 to 2.7.5.
  */
 public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
-  
+
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog275.class);
   static final Gson GSON = new Gson();
 
@@ -67,7 +67,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
-      // no actions needed
+    // no actions needed
   }
 
   /**
