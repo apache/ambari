@@ -693,7 +693,6 @@
           <plugin>
             <artifactId>jdeb</artifactId>
             <groupId>org.vafer</groupId>
-            <version>1.0.1</version>
             <executions>
               <execution>
                 <phase>package</phase>

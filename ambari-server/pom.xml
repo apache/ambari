@@ -532,7 +532,7 @@
           </execution>
         </executions>
         <configuration>
-          <copyright>2012, Apache Software Foundation</copyright>
+          <license>2012, Apache Software Foundation</license>
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
           <autoRequires>no</autoRequires>
@@ -630,7 +630,6 @@
       <plugin>
         <groupId>org.vafer</groupId>
         <artifactId>jdeb</artifactId>
-        <version>1.4</version>
         <executions>
           <execution>
             <!-- unbinds rpm creation from maven lifecycle -->

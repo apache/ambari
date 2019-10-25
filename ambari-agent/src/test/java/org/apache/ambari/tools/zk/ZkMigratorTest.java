@@ -110,7 +110,7 @@ public class ZkMigratorTest {
     path("/parent/a/b");
     path("/parent/a/b/c");
     // When
-    setAcls("/", "ip:127.0.0.1:r");
+    setAcls("/parent", "ip:127.0.0.1:r");
     // Then
     assertHasAcl("/parent", "ip", "127.0.0.1", READ);
     assertHasAcl("/parent/a", "ip", "127.0.0.1", READ);
