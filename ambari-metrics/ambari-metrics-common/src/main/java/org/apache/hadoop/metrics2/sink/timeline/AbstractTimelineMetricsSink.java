@@ -626,18 +626,27 @@ public abstract class AbstractTimelineMetricsSink {
       connection.setReadTimeout(2000);
 
       int responseCode = connection.getResponseCode();
-      if (responseCode == 200) {
-        try (InputStream in = connection.getInputStream()) {
-          StringWriter writer = new StringWriter();
-          IOUtils.copy(in, writer);
-          try {
-            collectors = gson.fromJson(writer.toString(), new TypeToken<List<String>>(){}.getType());
-          } catch (JsonSyntaxException jse) {
-            // Swallow this at the behest of still trying to POST
-            LOG.debug("Exception deserializing the json data on live " +
-              "collector nodes.", jse);
+
+      switch (responseCode) {
+        case 200 :
+          try (InputStream in = connection.getInputStream()) {
+            StringWriter writer = new StringWriter();
+            IOUtils.copy(in, writer);
+            try {
+              collectors = gson.fromJson(writer.toString(), new TypeToken<List<String>>(){}.getType());
+            } catch (JsonSyntaxException jse) {
+              // Swallow this at the behest of still trying to POST
+              LOG.debug("Exception deserializing the json data on live " +
+                      "collector nodes.", jse);
+            }
           }
-        }
+          break;
+        case 500 :
+          String warnMsg = "Unable to connect to collector to find live nodes, Internal server error";
+          throw new MetricCollectorUnavailableException(warnMsg);
+        default :
+          String msg = String.format("Unhandled response code (%d) at requesting live collector nodes!", responseCode);
+          LOG.warn(msg);
       }
 
     } catch (IOException ioe) {
