@@ -36,11 +36,13 @@ import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
+import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO.KeytabPrincipalFindOrCreateResult;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.serveraction.ActionLog;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.io.FileUtils;
 import org.easymock.EasyMockSupport;
@@ -94,9 +96,13 @@ public class ConfigureAmbariIdentitiesServerActionTest extends EasyMockSupport {
 
     expect(hostDAO.findByName(StageUtils.getHostName())).andReturn(hostEntity).once();
     KerberosKeytabPrincipalDAO kerberosKeytabPrincipalDAO = injector.getInstance(KerberosKeytabPrincipalDAO.class);
-    KerberosKeytabPrincipalEntity kke = createNiceMock(KerberosKeytabPrincipalEntity.class);
-    expect(kerberosKeytabPrincipalDAO.findOrCreate(anyObject(), eq(hostEntity), anyObject())).andReturn(kke).once();
-    expect(kerberosKeytabPrincipalDAO.merge(kke)).andReturn(createNiceMock(KerberosKeytabPrincipalEntity.class)).once();
+    KerberosKeytabPrincipalEntity kkp = createNiceMock(KerberosKeytabPrincipalEntity.class);
+    KeytabPrincipalFindOrCreateResult result = new KeytabPrincipalFindOrCreateResult();
+    result.created = true;
+    result.kkp = kkp;
+
+    expect(kerberosKeytabPrincipalDAO.findOrCreate(anyObject(), eq(hostEntity), anyObject())).andReturn(result).once();
+    expect(kerberosKeytabPrincipalDAO.merge(kkp)).andReturn(createNiceMock(KerberosKeytabPrincipalEntity.class)).once();
 
     // Mock the methods that do the actual file manipulation to avoid having to deal with ambari-sudo.sh used in
     // ShellCommandUtil#mkdir, ShellCommandUtil#copyFile, etc..
@@ -215,6 +221,7 @@ public class ConfigureAmbariIdentitiesServerActionTest extends EasyMockSupport {
         bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
         bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
 
         bind(HostDAO.class).toInstance(createMock(HostDAO.class));
         bind(KerberosKeytabPrincipalDAO.class).toInstance(createMock(KerberosKeytabPrincipalDAO.class));

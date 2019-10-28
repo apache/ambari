@@ -35,8 +35,12 @@ import org.apache.ambari.server.orm.entities.KerberosKeytabEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
+import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.MapUtils;
 
 import com.google.common.collect.ImmutableSet;
@@ -55,6 +59,9 @@ public class KerberosKeytabController {
 
   @Inject
   private KerberosKeytabPrincipalDAO kerberosKeytabPrincipalDAO;
+
+  @Inject
+  private Clusters clusters;
 
   //TODO: due to circular dependencies in Guice this field cannot be injected with Guice's @Inject annotation; for now we should statically inject in AmbariServer
   private static KerberosHelper kerberosHelper;
@@ -100,7 +107,10 @@ public class KerberosKeytabController {
    * @return set of keytabs found
    */
   public Set<ResolvedKerberosKeytab> getFromPrincipal(ResolvedKerberosPrincipal rkp) {
-    return fromKeytabEntities(kerberosKeytabDAO.findByPrincipalAndHost(rkp.getPrincipal(), rkp.getHostId()));
+    List<KerberosKeytabEntity> keytabs = kerberosKeytabDAO.findByPrincipalAndHost(
+        rkp.getPrincipal(), rkp.getHostId());
+
+    return fromKeytabEntities(keytabs);
   }
 
   /**
@@ -224,6 +234,7 @@ public class KerberosKeytabController {
     ImmutableSet.Builder<ResolvedKerberosPrincipal> builder = ImmutableSet.builder();
     for (KerberosKeytabPrincipalEntity kkpe : principalEntities) {
       KerberosPrincipalEntity kpe = kkpe.getKerberosPrincipalEntity();
+
       if(kpe != null) {
         ResolvedKerberosPrincipal rkp = new ResolvedKerberosPrincipal(
             kkpe.getHostId(),
@@ -281,8 +292,33 @@ public class KerberosKeytabController {
 
   public Collection<KerberosIdentityDescriptor> getServiceIdentities(String clusterName, Collection<String> services) throws AmbariException {
     final Collection<KerberosIdentityDescriptor> serviceIdentities = new ArrayList<>();
+    Cluster cluster = clusters.getCluster(clusterName);
+    KerberosDescriptor kerberosDescriptor = kerberosHelper.getKerberosDescriptor(cluster, false);
+    Map<String, Map<String, Map<String, String>>> hostConfigurations = new HashMap<>();
+    Map<String, Host> hostMap = clusters.getHostsForCluster(clusterName);
+    Set<String> hosts = new HashSet<>(hostMap.keySet());
+
+    String ambariServerHostname = StageUtils.getHostName();
+    if (!hosts.contains(ambariServerHostname)) {
+      hosts.add(ambariServerHostname);
+    }
+    for( String hostName : hosts ) {
+      Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(
+        cluster, hostName, kerberosDescriptor, false, false);
+      hostConfigurations.put(hostName, configurations);
+    }
     for (String service : services) {
-      for (Collection<KerberosIdentityDescriptor> activeIdentities : kerberosHelper.getActiveIdentities(clusterName, null, service, null, true).values()) {
+      Collection<Collection<KerberosIdentityDescriptor>> identities = kerberosHelper.getActiveIdentities(
+        clusterName,
+       null,
+        service,
+       null,
+       true,
+        hostConfigurations,
+        kerberosDescriptor
+      ).values();
+
+      for (Collection<KerberosIdentityDescriptor> activeIdentities : identities) {
         serviceIdentities.addAll(activeIdentities);
       }
     }

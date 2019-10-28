@@ -21,15 +21,26 @@ package org.apache.ambari.server.serveraction.kerberos;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.UpdateConfigurationPolicy;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -42,6 +53,8 @@ import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerbero
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.io.FileUtils;
@@ -50,6 +63,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.reflect.TypeToken;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 
 /**
@@ -188,6 +202,9 @@ public abstract class KerberosServerAction extends AbstractServerAction {
 
   @Inject
   private KerberosKeytabController kerberosKeytabController;
+
+  @Inject
+  private Configuration configuration;
 
   /**
    * Given a (command parameter) Map and a property name, attempts to safely retrieve the requested
@@ -403,6 +420,9 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    * Using {@link #getHostFilter()}, {@link #getIdentityFilter()} and {@link #getServiceComponentFilter()} it retrieve
    * list of filtered keytabs and their principals and process each principal using
    * {@link #processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, boolean, Map)}.
+   * The configuration option {@link Configuration#getKerberosServerActionThreadpoolSize()} defines
+   * how many threads will handle {@link #processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, boolean, Map)}.
+   * The default is {@code 1}, but this method must be thread-safe in the event that concurrent threads are used.
    *
    * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
    *                                 to a given request
@@ -437,20 +457,67 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       }
 
       try {
+        // create the thread factory, executor, and completion service for
+        // running the identity processing in parallel
+        String factoryName = "process-identity-%d";
+        ExecutionCommand executionCommand = getExecutionCommand();
+        if( null != executionCommand ) {
+          factoryName = "process-identity-task-" + executionCommand.getTaskId() + "-thread-%d";
+        }
+
+        ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat(factoryName).build();
+
+        int threadCount = configuration.getKerberosServerActionThreadpoolSize();
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount, threadFactory);
+        CompletionService<CommandReport> completionService = new ExecutorCompletionService<>(executorService);
+
         Map<String, Collection<String>> serviceComponentFilter = getServiceComponentFilter();
         if (serviceComponentFilter != null && pruneServiceFilter()) {
           kerberosKeytabController.adjustServiceComponentFilter(clusters.getCluster(getClusterName()), true, serviceComponentFilter);
         }
         final Collection<KerberosIdentityDescriptor> serviceIdentities = serviceComponentFilter == null ? null : kerberosKeytabController.getServiceIdentities(getClusterName(), serviceComponentFilter.keySet());
+        List<Future<CommandReport>> futures = new ArrayList<>();
         for (ResolvedKerberosKeytab rkk : kerberosKeytabController.getFilteredKeytabs(serviceIdentities, getHostFilter(),getIdentityFilter())) {
           for (ResolvedKerberosPrincipal principal : rkk.getPrincipals()) {
-            commandReport = processIdentity(principal, handler, kerberosConfiguration, isRelevantIdentity(serviceIdentities, principal), requestSharedDataContext);
+            // submit this method to the service to be processed concurrently
+            Future<CommandReport> future = completionService.submit(() -> {
+              try {
+                return processIdentity(principal, handler, kerberosConfiguration,
+                    isRelevantIdentity(serviceIdentities, principal), requestSharedDataContext);
+              } catch (AmbariException ambariException) {
+                throw new RuntimeException(ambariException);
+              }
+            });
+
+            // keep track of futures for total count and ability to cancel later
+            futures.add(future);
+          }
+        }
+
+        LOG.info("Processing {} identities concurrently...", futures.size());
+
+        // get each future as it completes (out of order is OK), cancelling if
+        // an error is found
+        try {
+          for( int i = 0; i < futures.size(); i++ ) {
+            Future<CommandReport> future = completionService.take();
+            commandReport = future.get();
+
             // If the principal processor returns a CommandReport, than it is time to stop
             // since an error condition has probably occurred, else all is assumed to be well.
             if (commandReport != null) {
               break;
             }
           }
+        } catch (Exception exception) {
+          LOG.error("Unable to process identities asynchronously", exception);
+          return createCommandReport(0, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(),actionLog.getStdErr());
+        } finally {
+          futures.stream()
+            .filter(x -> !x.isCancelled() && !x.isDone())
+            .forEach(x -> x.cancel(true));
+
+          executorService.shutdown();
         }
       } finally {
         // The KerberosOperationHandler needs to be closed, if it fails to close ignore the

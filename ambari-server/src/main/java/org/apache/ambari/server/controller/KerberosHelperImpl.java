@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
 import org.apache.ambari.annotations.Experimental;
@@ -63,6 +64,7 @@ import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.KerberosKeytabDAO;
 import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
+import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO.KeytabPrincipalFindOrCreateResult;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
@@ -137,6 +139,7 @@ import org.apache.directory.server.kerberos.shared.keytab.Keytab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -1745,7 +1748,9 @@ public class KerberosHelperImpl implements KerberosHelper {
                                                                                  String hostName,
                                                                                  String serviceName,
                                                                                  String componentName,
-                                                                                 boolean replaceHostNames)
+                                                                                 boolean replaceHostNames,
+                                                                                 Map<String, Map<String, Map<String, String>>> hostConfigurations,
+                                                                                 KerberosDescriptor kerberosDescriptor)
     throws AmbariException {
 
     if ((clusterName == null) || clusterName.isEmpty()) {
@@ -1790,8 +1795,15 @@ public class KerberosHelperImpl implements KerberosHelper {
         hosts = Collections.singleton(hostName);
       }
 
+      if (null == hostConfigurations) {
+        hostConfigurations = new HashMap<>();
+      }
+
       if (!hosts.isEmpty()) {
-        KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster, false);
+
+        if (null == kerberosDescriptor) {
+          kerberosDescriptor = getKerberosDescriptor(cluster, false);
+        }
 
         if (kerberosDescriptor != null) {
           Set<String> existingServices = cluster.getServices().keySet();
@@ -1799,11 +1811,16 @@ public class KerberosHelperImpl implements KerberosHelper {
           for (String host : hosts) {
             // Calculate the current host-specific configurations. These will be used to replace
             // variables within the Kerberos descriptor data
-            Map<String, Map<String, String>> configurations = calculateConfigurations(cluster,
+            Map<String, Map<String, String>> configurations = hostConfigurations.get(host);
+            if (configurations == null) {
+              configurations = calculateConfigurations(cluster,
                 (ambariServerHostnameIsForced && ambariServerHostname.equals(host)) ? null : host,
                 kerberosDescriptor,
                 false,
                 false);
+
+              hostConfigurations.put(host, configurations);
+            }
 
             // Create the context to use for filtering Kerberos Identities based on the state of the cluster
             Map<String, Object> filterContext = new HashMap<>();
@@ -1951,15 +1968,27 @@ public class KerberosHelperImpl implements KerberosHelper {
   }
 
   /**
-   * Creates and saves  underlying  {@link org.apache.ambari.server.orm.entities.KerberosPrincipalEntity},
-   * {@link org.apache.ambari.server.orm.entities.KerberosKeytabEntity} entities in JPA storage.
+   * Creates and saves underlying
+   * {@link org.apache.ambari.server.orm.entities.KerberosPrincipalEntity},
+   * {@link org.apache.ambari.server.orm.entities.KerberosKeytabEntity} entities
+   * in JPA storage.
+   * <p>
+   * This method has to be very, very careful WRT how and when it merges
+   * bidirectional associations.For larger cluster, merging the
+   * {@link KerberosKeytabEntity} and {@link KerberosPrincipalEntity} even when
+   * a {@link KerberosKeytabPrincipalEntity} will result in major performance
+   * problems.
    *
-   * @param resolvedKerberosKeytab kerberos keytab to be persisted
+   * @param resolvedKerberosKeytab
+   *          kerberos keytab to be persisted
    */
   @Override
   public void createResolvedKeytab(ResolvedKerberosKeytab resolvedKerberosKeytab) {
-    if (kerberosKeytabDAO.find(resolvedKerberosKeytab.getFile()) == null) {
-      KerberosKeytabEntity kke = new KerberosKeytabEntity(resolvedKerberosKeytab.getFile());
+    Stopwatch stopwatch = Stopwatch.createStarted();
+
+    KerberosKeytabEntity kke = kerberosKeytabDAO.find(resolvedKerberosKeytab.getFile());
+    if (null == kke) {
+      kke = new KerberosKeytabEntity(resolvedKerberosKeytab.getFile());
       kke.setAmbariServerKeytab(resolvedKerberosKeytab.isAmbariServerKeytab());
       kke.setWriteAmbariJaasFile(resolvedKerberosKeytab.isMustWriteAmbariJaasFile());
       kke.setOwnerName(resolvedKerberosKeytab.getOwnerName());
@@ -1968,24 +1997,43 @@ public class KerberosHelperImpl implements KerberosHelper {
       kke.setGroupAccess(resolvedKerberosKeytab.getGroupAccess());
       kerberosKeytabDAO.create(kke);
     }
+
     for (ResolvedKerberosPrincipal principal : resolvedKerberosKeytab.getPrincipals()) {
-      if (!kerberosPrincipalDAO.exists(principal.getPrincipal())) {
-        kerberosPrincipalDAO.create(principal.getPrincipal(), principal.isService());
+      KerberosPrincipalEntity kpe = kerberosPrincipalDAO.find(principal.getPrincipal());
+
+      if (null == kpe) {
+        kpe = kerberosPrincipalDAO.create(principal.getPrincipal(), principal.isService());
       }
+
+      // only need to merge the kke and kpe if a new kkp is created/added to their lists
+      boolean mergeBidirectionalAssociatedEntities = false;
       for (Map.Entry<String, String> mappingEntry : principal.getServiceMapping().entries()) {
         String serviceName = mappingEntry.getKey();
         HostEntity hostEntity = principal.getHostId() != null ? hostDAO.findById(principal.getHostId()) : null;
-        KerberosKeytabEntity kke = kerberosKeytabDAO.find(resolvedKerberosKeytab.getFile());
-        KerberosPrincipalEntity kpe = kerberosPrincipalDAO.find(principal.getPrincipal());
 
-        KerberosKeytabPrincipalEntity kkp = kerberosKeytabPrincipalDAO.findOrCreate(kke, hostEntity, kpe);
+        KeytabPrincipalFindOrCreateResult result = kerberosKeytabPrincipalDAO.findOrCreate(kke, hostEntity, kpe);
+        KerberosKeytabPrincipalEntity kkp = result.kkp;
+        mergeBidirectionalAssociatedEntities = mergeBidirectionalAssociatedEntities || result.created;
+
+        // updating the kkp service mappings does not affect kke/kpe bidirectional relationships
         if (kkp.putServiceMapping(serviceName, mappingEntry.getValue())) {
           kerberosKeytabPrincipalDAO.merge(kkp);
         }
-        kerberosKeytabDAO.merge(kke);
-        kerberosPrincipalDAO.merge(kpe);
+      }
+
+      // merge the keytab and the principal IFF at least one keytabprincipal was
+      // created causing the bi-directional lists associations to need updating
+      if(mergeBidirectionalAssociatedEntities) {
+        Stopwatch mergeStockwatch = Stopwatch.createStarted();
+        kke = kerberosKeytabDAO.merge(kke);
+        kpe = kerberosPrincipalDAO.merge(kpe);
+        LOG.info("Merging bidirectional associated entities for this keytab took {}ms"
+            + mergeStockwatch.elapsed(TimeUnit.MILLISECONDS));
       }
     }
+
+    LOG.info("Resolving this keytab and all associated principals took {}ms ",
+        stopwatch.elapsed(TimeUnit.MILLISECONDS));
   }
 
   @Override
@@ -2392,7 +2440,10 @@ public class KerberosHelperImpl implements KerberosHelper {
                 kerberosPrincipalDAO.create(kpe);
               }
 
-              KerberosKeytabPrincipalEntity kkp = kerberosKeytabPrincipalDAO.findOrCreate(kke, hostDAO.findById(sch.getHost().getHostId()), kpe);
+              KeytabPrincipalFindOrCreateResult result = kerberosKeytabPrincipalDAO.findOrCreate(
+                  kke, hostDAO.findById(sch.getHost().getHostId()), kpe);
+
+              KerberosKeytabPrincipalEntity kkp = result.kkp;
               if (kkp.putServiceMapping(sch.getServiceName(), sch.getServiceComponentName())) {
                 kerberosKeytabPrincipalDAO.merge(kkp);
               }

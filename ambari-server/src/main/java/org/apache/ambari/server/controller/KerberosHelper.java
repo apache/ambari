@@ -704,32 +704,52 @@ public interface KerberosHelper {
   Map<String, Map<String, String>> getIdentityConfigurations(List<KerberosIdentityDescriptor> identityDescriptors);
 
   /**
-   * Returns the active identities for the named cluster.  Results are filtered by host, service,
-   * and/or component; and grouped by host.
+   * Returns the active identities for the named cluster. Results are filtered
+   * by host, service, and/or component; and grouped by host.
    * <p/>
-   * The cluster name is mandatory; however the active identities may be filtered by one or more of
-   * host, service, or component. A <code>null</code> value for any of these filters indicates no
-   * filter for that parameter.
+   * The cluster name is mandatory; however the active identities may be
+   * filtered by one or more of host, service, or component. A <code>null</code>
+   * value for any of these filters indicates no filter for that parameter.
    * <p/>
-   * The return values are grouped by host and optionally <code>_HOST</code> in principals will be
-   * replaced with the relevant hostname if specified to do so.
+   * The return values are grouped by host and optionally <code>_HOST</code> in
+   * principals will be replaced with the relevant hostname if specified to do
+   * so.
    *
-   * @param clusterName      the name of the relevant cluster (mandatory)
-   * @param hostName         the name of a host for which to find results, null indicates all hosts
-   * @param serviceName      the name of a service for which to find results, null indicates all
-   *                         services
-   * @param componentName    the name of a component for which to find results, null indicates all
-   *                         components
-   * @param replaceHostNames if true, _HOST in principals will be replace with the relevant host
-   *                         name
+   * @param clusterName
+   *          the name of the relevant cluster (mandatory)
+   * @param hostName
+   *          the name of a host for which to find results, null indicates all
+   *          hosts
+   * @param serviceName
+   *          the name of a service for which to find results, null indicates
+   *          all services
+   * @param componentName
+   *          the name of a component for which to find results, null indicates
+   *          all components
+   * @param replaceHostNames
+   *          if true, _HOST in principals will be replace with the relevant
+   *          host name
+   * @param hostConfigurations
+   *          a mapping of hostname to configurations for that host. Fetching
+   *          this ahead of time for every host in the cluster will ensure that
+   *          this method doesn't need to do it inside of a loop. If
+   *          {@code null} or empty, then this method will do the lookup itself,
+   *          at considerable cost.
+   * @param kerberosDescriptor
+   *          the kerberos descriptor to use when looking up identities. If
+   *          {@code null}, then this method will deserialize the descriptor
+   *          inside of a loop at considerable cost.
    * @return a map of host names to kerberos identities
-   * @throws AmbariException if an error occurs processing the cluster's active identities
+   * @throws AmbariException
+   *           if an error occurs processing the cluster's active identities
    */
   Map<String, Collection<KerberosIdentityDescriptor>> getActiveIdentities(String clusterName,
                                                                           String hostName,
                                                                           String serviceName,
                                                                           String componentName,
-                                                                          boolean replaceHostNames)
+                                                                          boolean replaceHostNames,
+                                                                          Map<String, Map<String, Map<String, String>>> hostConfigurations,
+                                                                          KerberosDescriptor kerberosDescriptor)
       throws AmbariException;
 
   /**
@@ -814,7 +834,7 @@ public interface KerberosHelper {
    * @return a map of configuration types to sets of property names
    */
   Map<String, Set<String>> translateConfigurationSpecifications(Collection<String> configurationSpecifications);
-  
+
   /**
    * Gathers the Kerberos-related data from configurations and stores it in a new KerberosDetails
    * instance.
@@ -827,7 +847,7 @@ public interface KerberosHelper {
    * @throws AmbariException
    */
   KerberosDetails getKerberosDetails(Cluster cluster, Boolean manageIdentities)
-    throws KerberosInvalidConfigurationException, AmbariException;  
+    throws KerberosInvalidConfigurationException, AmbariException;
 
   /**
    * Types of Kerberos descriptors related to where the data is stored.
