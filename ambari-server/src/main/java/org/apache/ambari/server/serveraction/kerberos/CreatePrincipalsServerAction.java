@@ -151,8 +151,8 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
         processPrincipal = true;
       } else if (!StringUtils.isEmpty(kerberosPrincipalEntity.getCachedKeytabPath())) {
         // This principal has been processed, process again only if there is no physical keytab file.
-	File file = new File(kerberosPrincipalEntity.getCachedKeytabPath());
-	processPrincipal = !file.exists();	
+        File file = new File(kerberosPrincipalEntity.getCachedKeytabPath());
+        processPrincipal = !file.exists();
       } else {
         // This principal has been processed but a keytab file for it has not been distributed... process it.
         processPrincipal = true;
