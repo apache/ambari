@@ -24,6 +24,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.expect import expect
 
 config = Script.get_config()
 
@@ -42,6 +43,7 @@ hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
+java_version = expect("/ambariLevelParams/java_version", int)
 
 ambari_libs_dir = "/var/lib/ambari-agent/lib"
 
