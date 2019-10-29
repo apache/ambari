@@ -56,8 +56,8 @@
     <distMgmtStagingId>apache.staging.https</distMgmtStagingId>
     <distMgmtStagingName>Apache Release Distribution Repository</distMgmtStagingName>
     <distMgmtStagingUrl>https://repository.apache.org/service/local/staging/deploy/maven2</distMgmtStagingUrl>
-    <fasterxml.jackson.version>2.9.9</fasterxml.jackson.version>
-    <fasterxml.jackson.databind.version>2.9.9.3</fasterxml.jackson.databind.version>
+    <fasterxml.jackson.version>2.10.0</fasterxml.jackson.version>
+    <fasterxml.jackson.databind.version>2.10.0</fasterxml.jackson.databind.version>
   </properties>
   <distributionManagement>
     <repository>
