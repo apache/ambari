@@ -34,11 +34,9 @@ import com.yammer.metrics.util.RatioGauge;
 
 public class JvmMetricSet {
 
-  private static final String GARBAGE_COLLECTOR = "gc";
   private static final String MEMORY = "memory";
   private static final String THREADS = "threads";
   private static final String RUNTIME = "runtime";
-
 
   private static final JvmMetricSet INSTANCE = new JvmMetricSet();
 
@@ -47,11 +45,11 @@ public class JvmMetricSet {
     return INSTANCE;
   }
 
-  private final MemoryMXBean mxBean;
-  private final ThreadMXBean threads;
-  private final RuntimeMXBean runtimeBean;
+  private final MemoryMXBean memoryMXBean;
+  private final ThreadMXBean threadMXBean;
+  private final RuntimeMXBean runtimeMXBean;
 
-  private class JvmMetric {
+  private static class JvmMetric {
     private final MetricName metricName;
     private final Gauge<?> metric;
 
@@ -76,10 +74,10 @@ public class JvmMetricSet {
 
   }
 
-  private JvmMetricSet(MemoryMXBean mxBean, ThreadMXBean threads, RuntimeMXBean runtimeBean) {
-    this.mxBean = mxBean;
-    this.threads = threads;
-    this.runtimeBean = runtimeBean;
+  private JvmMetricSet(MemoryMXBean memoryMXBean, ThreadMXBean threadMXBean, RuntimeMXBean runtimeMXBean) {
+    this.memoryMXBean = memoryMXBean;
+    this.threadMXBean = threadMXBean;
+    this.runtimeMXBean = runtimeMXBean;
   }
 
   public Map<MetricName, Gauge<?>> getJvmMetrics() {
@@ -95,8 +93,8 @@ public class JvmMetricSet {
   private List<JvmMetric> getMemoryUsageMetrics() {
 
     return Stream.of(
-      new AbstractMap.SimpleEntry<>("heap_usage", mxBean.getHeapMemoryUsage()),
-      new AbstractMap.SimpleEntry<>("non_heap_usage", mxBean.getNonHeapMemoryUsage()))
+      new AbstractMap.SimpleEntry<>("heap_usage", memoryMXBean.getHeapMemoryUsage()),
+      new AbstractMap.SimpleEntry<>("non_heap_usage", memoryMXBean.getNonHeapMemoryUsage()))
       .map(entry ->
         new JvmMetric(
           MetricNameBuilder.builder().type(MEMORY).name(entry.getKey()).build(),
@@ -127,7 +125,7 @@ public class JvmMetricSet {
             new Gauge<Integer>() {
               @Override
               public Integer value() {
-                return threads.getThreadCount();
+                return threadMXBean.getThreadCount();
               }
             }
           ),
@@ -136,7 +134,7 @@ public class JvmMetricSet {
             new Gauge<Integer>() {
               @Override
               public Integer value() {
-                return threads.getDaemonThreadCount();
+                return threadMXBean.getDaemonThreadCount();
               }
             }
           )),
@@ -180,7 +178,7 @@ public class JvmMetricSet {
   }
 
   private long getThreadCountByState(Thread.State state) {
-    return Arrays.stream(threads.getThreadInfo(threads.getAllThreadIds(), 0))
+    return Arrays.stream(threadMXBean.getThreadInfo(threadMXBean.getAllThreadIds(), 0))
       .filter(threadInfo -> threadInfo.getThreadState().equals(state))
       .count();
   }
@@ -191,7 +189,7 @@ public class JvmMetricSet {
       new Gauge<Long>() {
         @Override
         public Long value() {
-          return runtimeBean.getUptime();
+          return runtimeMXBean.getUptime();
         }
       }
     );
