@@ -33,7 +33,7 @@
     <spring.security.version>5.1.5.RELEASE</spring.security.version>
     <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
     <jersey.version>2.27</jersey.version>
-    <spring-batch.version>4.1.0.RELEASE</spring-batch.version>
+    <spring-batch.version>4.1.1.RELEASE</spring-batch.version>
     <sqlite.version>3.8.11.2</sqlite.version>
     <spring-data-solr.version>3.0.10.RELEASE</spring-data-solr.version>
     <spring-boot.version>2.1.5.RELEASE</spring-boot.version>
