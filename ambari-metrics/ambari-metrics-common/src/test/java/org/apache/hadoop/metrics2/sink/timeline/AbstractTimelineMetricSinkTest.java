@@ -18,6 +18,7 @@
 package org.apache.hadoop.metrics2.sink.timeline;
 
 import junit.framework.Assert;
+import org.apache.hadoop.metrics2.sink.timeline.availability.MetricCollectorUnavailableException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
@@ -35,6 +36,7 @@ import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
 import static org.powermock.api.easymock.PowerMock.expectNew;
 import static org.powermock.api.easymock.PowerMock.replayAll;
+import static org.powermock.api.easymock.PowerMock.verifyAll;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AbstractTimelineMetricsSink.class, HttpURLConnection.class})
@@ -184,6 +186,22 @@ public class AbstractTimelineMetricSinkTest {
     sink.emitMetrics(timelineMetrics, true);
 
     Assert.assertEquals(0, sink.getMetricsPostCache().size());
+  }
+
+  @Test(expected = MetricCollectorUnavailableException.class)
+  @PrepareForTest({URL.class, AbstractTimelineMetricsSink.class, HttpURLConnection.class, TimelineMetric.class})
+  public void testFindLiveCollectorHostsFromKnownCollector() throws Exception {
+    HttpURLConnection connection = PowerMock.createNiceMock(HttpURLConnection.class);
+    URL url = PowerMock.createNiceMock(URL.class);
+    expectNew(URL.class, anyString()).andReturn(url).anyTimes();
+    expect(url.openConnection()).andReturn(connection).anyTimes();
+    expect(connection.getResponseCode()).andReturn(500).anyTimes();
+    replayAll();
+
+    TestTimelineMetricsSink sink = new TestTimelineMetricsSink();
+    sink.findLiveCollectorHostsFromKnownCollector("host", "1234");
+
+    verifyAll();
   }
 
   private class TestTimelineMetricsSink extends AbstractTimelineMetricsSink {
