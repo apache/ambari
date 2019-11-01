@@ -467,57 +467,6 @@ public class RepositoryVersionHelper {
     }
   }
 
-
-  /**
-   * Get repository info given a cluster and host.
-   *
-   * @param cluster  the cluster
-   * @param host     the host
-   *
-   * @return the repo info
-   *
-   * @deprecated use {@link #getCommandRepository(Cluster, ServiceComponent, Host)} instead.
-   * @throws SystemException if the repository information can not be obtained
-   */
-  @Deprecated
-  public String getRepoInfo(Cluster cluster, ServiceComponent component, Host host) throws SystemException {
-    final JsonArray jsonList = getBaseUrls(cluster, component, host);
-    final RepositoryVersionEntity rve = getRepositoryVersionEntity(cluster, component);
-
-    if (null == rve || null == jsonList) {
-      return "";
-    }
-
-    final JsonArray result = new JsonArray();
-
-    for (JsonElement e : jsonList) {
-      JsonObject obj = e.getAsJsonObject();
-
-      String repoId = obj.has("repoId") ? obj.get("repoId").getAsString() : null;
-      String repoName = obj.has("repoName") ? obj.get("repoName").getAsString() : null;
-      String baseUrl = obj.has("baseUrl") ? obj.get("baseUrl").getAsString() : null;
-      String osType = obj.has("osType") ? obj.get("osType").getAsString() : null;
-
-      if (null == repoId || null == baseUrl || null == osType || null == repoName) {
-        continue;
-      }
-
-      for (RepoOsEntity ose : rve.getRepoOsEntities()) {
-        if (ose.getFamily().equals(osType) && ose.isAmbariManaged()) {
-          for (RepoDefinitionEntity re : ose.getRepoDefinitionEntities()) {
-            if (re.getRepoName().equals(repoName) &&
-              !re.getBaseUrl().equals(baseUrl)) {
-              obj.addProperty("baseUrl", re.getBaseUrl());
-            }
-          }
-          result.add(e);
-        }
-      }
-    }
-    return result.toString();
-  }
-
-
   /**
    * Executed by two different representations of repos.  When we are comfortable with the new
    * implementation, this may be removed and called inline in {@link #getCommandRepository(Cluster, ServiceComponent, Host)}

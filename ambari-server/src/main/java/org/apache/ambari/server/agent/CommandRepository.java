@@ -27,6 +27,7 @@ import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.stack.RepoTag;
+import org.apache.ambari.server.utils.URLCredentialsHider;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
@@ -349,7 +350,7 @@ public class CommandRepository {
           .append("distribution", m_distribution)
           .append("components", m_components)
           .append("id", m_repoId)
-          .append("baseUrl", m_baseUrl)
+          .append("baseUrl", URLCredentialsHider.hideCredentials(m_baseUrl))
           .append("applicableServices", (m_applicableServices != null? StringUtils.join(m_applicableServices, ",") : ""))
           .toString();
     }
