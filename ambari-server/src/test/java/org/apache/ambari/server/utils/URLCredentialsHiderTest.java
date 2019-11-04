@@ -27,12 +27,15 @@ public class URLCredentialsHiderTest {
   public void testHideUserInfo() {
 
     String testURL1 = "http://user01:pass@host:8443/api/v1";
-    Assert.assertEquals("http://user:password@host:8443/api/v1", URLCredentialsHider.hideCredentials(testURL1));
+    Assert.assertEquals(String.format("http://%s@host:8443/api/v1", URLCredentialsHider.HIDDEN_CREDENTIALS),
+                        URLCredentialsHider.hideCredentials(testURL1));
 
     String testURL2 = "http://user01@host:8443/api/v1";
-    Assert.assertEquals("http://user@host:8443/api/v1", URLCredentialsHider.hideCredentials(testURL2));
+    Assert.assertEquals(String.format("http://%s@host:8443/api/v1",
+                                      URLCredentialsHider.HIDDEN_USER),
+                        URLCredentialsHider.hideCredentials(testURL2));
 
     String invalidURL = "htt://user01:pass@host:8443/api/v1";
-    Assert.assertEquals("", URLCredentialsHider.hideCredentials(invalidURL));
+    Assert.assertEquals(URLCredentialsHider.INVALID_URL, URLCredentialsHider.hideCredentials(invalidURL));
   }
 }

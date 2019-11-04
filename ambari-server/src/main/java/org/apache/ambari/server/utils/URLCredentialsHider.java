@@ -27,6 +27,9 @@ import org.apache.commons.lang3.StringUtils;
  * Provides functionality for hiding credentials in URLs.
  */
 public class URLCredentialsHider {
+  public static final String INVALID_URL = "invalid_url";
+  public static final String HIDDEN_USER = "****";
+  public static final String HIDDEN_CREDENTIALS = HIDDEN_USER + ":" + HIDDEN_USER;
 
   public static String hideCredentials(String urlString) {
     if (StringUtils.isEmpty(urlString)) {
@@ -36,15 +39,15 @@ public class URLCredentialsHider {
     try {
       url = new URL(urlString);
     } catch (MalformedURLException e) {
-      // it is better to miss url entirely instead of spreading it out
-      return "";
+      // it is better to miss url instead of spreading it out
+      return INVALID_URL;
     }
     String userInfo = url.getUserInfo();
     if (StringUtils.isNotEmpty(userInfo)) {
       if (userInfo.contains(":")) {
-        return urlString.replaceFirst(userInfo, "user:password");
+        return urlString.replaceFirst(userInfo, HIDDEN_CREDENTIALS);
       } else {
-        return urlString.replaceFirst(userInfo, "user");
+        return urlString.replaceFirst(userInfo, HIDDEN_USER);
       }
     }
     return urlString;
