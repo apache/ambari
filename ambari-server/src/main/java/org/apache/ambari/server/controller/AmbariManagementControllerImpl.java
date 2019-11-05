@@ -238,6 +238,7 @@ import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.apache.ambari.server.topology.Setting;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.utils.URLCredentialsHider;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.IOUtils;
@@ -4506,7 +4507,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           IOUtils.readLines(usp.readFrom(spec));
         } catch (IOException ioe) {
           e = ioe;
-          errorMessage = "Could not access base url . " + request.getBaseUrl() + " . ";
+          errorMessage = String.format("Could not access base url '%s'",
+                                       URLCredentialsHider.hideCredentials(request.getBaseUrl()));
           if (LOG.isDebugEnabled()) {
             errorMessage += ioe;
           } else {

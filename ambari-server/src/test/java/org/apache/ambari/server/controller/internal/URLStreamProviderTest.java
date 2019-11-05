@@ -25,6 +25,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
 import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -47,17 +48,20 @@ public class URLStreamProviderTest {
         withConstructor(Integer.TYPE, Integer.TYPE, String.class, String.class, String.class).
         withArgs(1000, 1000, "path", "password", "type").
         addMockedMethod("getAppCookieManager").
-        addMockedMethod("getConnection", String.class).
+        addMockedMethod("getConnection", URL.class).
         createMock();
 
+    String fakeURL = "http://fakehost";
+    URL url = new URL(fakeURL);
+
     expect(urlStreamProvider.getAppCookieManager()).andReturn(appCookieManager).anyTimes();
-    expect(urlStreamProvider.getConnection("spec")).andReturn(connection);
+    expect(urlStreamProvider.getConnection(url)).andReturn(connection);
 
     Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("Header1", Collections.singletonList("value"));
     headerMap.put("Cookie", Collections.singletonList("FOO=bar"));
 
-    expect(appCookieManager.getCachedAppCookie("spec")).andReturn("APPCOOKIE=abcdef");
+    expect(appCookieManager.getCachedAppCookie(fakeURL)).andReturn("APPCOOKIE=abcdef");
 
     connection.setConnectTimeout(1000);
     connection.setReadTimeout(1000);
@@ -68,7 +72,7 @@ public class URLStreamProviderTest {
 
     replay(urlStreamProvider, connection, appCookieManager);
 
-    Assert.assertEquals(connection, urlStreamProvider.processURL("spec", "GET", (String) null, headerMap));
+    Assert.assertEquals(connection, urlStreamProvider.processURL(fakeURL, "GET", (String) null, headerMap));
 
     verify(urlStreamProvider, connection, appCookieManager);
   }
@@ -80,7 +84,6 @@ public class URLStreamProviderTest {
         withConstructor(Integer.TYPE, Integer.TYPE, String.class, String.class, String.class).
         withArgs(1000, 1000, null, null, null).
         addMockedMethod("getAppCookieManager").
-        addMockedMethod("getConnection", String.class).
         createMock();
 
     Map<String, List<String>> headerMap = new HashMap<>();
