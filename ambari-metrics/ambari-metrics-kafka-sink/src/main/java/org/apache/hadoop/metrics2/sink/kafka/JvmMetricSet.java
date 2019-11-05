@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import com.yammer.metrics.core.Gauge;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.util.RatioGauge;
@@ -152,32 +153,11 @@ public class JvmMetricSet {
         .collect(Collectors.toList());
   }
 
-  private String getThreadMetricNameByState(Thread.State state) {
-    String name = "thread-states.";
-    switch (state) {
-      case BLOCKED:
-        name += "blocked";
-        break;
-      case RUNNABLE:
-        name += "runnable";
-        break;
-      case TIMED_WAITING:
-        name += "timed_waiting";
-        break;
-      case TERMINATED:
-        name += "terminated";
-        break;
-      case NEW:
-        name += "new";
-        break;
-      case WAITING:
-        name += "waiting";
-        break;
-    }
-    return name;
+  private String getThreadMetricNameByState(@Nonnull Thread.State state) {
+    return String.format("thread-states.%s", state.name().toLowerCase());
   }
 
-  private long getThreadCountByState(Thread.State state) {
+  private long getThreadCountByState(@Nonnull Thread.State state) {
     return Arrays.stream(threadMXBean.getThreadInfo(threadMXBean.getAllThreadIds(), 0))
       .filter(threadInfo -> threadInfo.getThreadState().equals(state))
       .count();
