@@ -323,6 +323,12 @@ public class Configuration {
   // Ambari server log4j file name
   public static final String AMBARI_LOG_FILE = "log4j.properties";
 
+  @Markdown(
+    description = "Interval for heartbeat presence checks.",
+    examples = {"60000","600000"} )
+  public static final ConfigurationProperty<Integer> HEARTBEAT_MONITORING_INTERVAL = new ConfigurationProperty<>(
+    "heartbeat.monitoring.interval",60000);
+
   /**
    * The directory on the Ambari Server file system used for storing
    * Ambari Agent bootstrap information such as request responses.
@@ -3358,6 +3364,10 @@ public class Configuration {
     return getProperty(SYS_PREPPED_HOSTS);
   }
 
+  public Integer getHeartbeatMonitorInterval() {
+    return Integer.parseInt(getProperty(HEARTBEAT_MONITORING_INTERVAL));
+  }
+
   /**
    * Return {@code true} if we forced to work with legacy repositories
    *
@@ -5594,7 +5604,7 @@ public class Configuration {
   public int getKerberosServerActionFinalizeTimeout() {
     return Integer.parseInt(getProperty(KERBEROS_SERVER_ACTION_FINALIZE_SECONDS));
   }
-  
+
   /**
    * Generates a markdown table which includes:
    * <ul>

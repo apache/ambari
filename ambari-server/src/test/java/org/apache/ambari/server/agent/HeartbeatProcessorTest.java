@@ -1046,7 +1046,7 @@ public class HeartbeatProcessorTest {
     hostObject.setIPv6("ipv6");
     hostObject.setOsType(DummyOsType);
 
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, am, injector);
+    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am, injector);
     Register reg = new Register();
     HostInfo hi = new HostInfo();
     hi.setHostName(DummyHostname1);

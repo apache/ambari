@@ -211,7 +211,7 @@ public class TestHeartbeatHandler {
 
     String hostname = hostObject.getHostName();
 
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, am, injector);
+    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am, injector);
     Register reg = new Register();
     HostInfo hi = new HostInfo();
     hi.setHostName(hostname);
@@ -362,7 +362,7 @@ public class TestHeartbeatHandler {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, am,
+    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am,
         injector);
     clusters.addHost(DummyHostname1);
     Host hostObject = clusters.getHost(DummyHostname1);
@@ -410,7 +410,7 @@ public class TestHeartbeatHandler {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, am,
+    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am,
         injector);
     handler.start();
 
@@ -458,7 +458,7 @@ public class TestHeartbeatHandler {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, am,
+    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am,
             injector);
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
@@ -509,7 +509,7 @@ public class TestHeartbeatHandler {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, am,
+    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am,
                                                     injector);
     clusters.addHost(DummyHostname1);
     Host hostObject = clusters.getHost(DummyHostname1);
@@ -542,7 +542,7 @@ public class TestHeartbeatHandler {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, am,
+    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am,
         injector);
     clusters.addHost(DummyHostname1);
     Host hostObject = clusters.getHost(DummyHostname1);
@@ -583,7 +583,7 @@ public class TestHeartbeatHandler {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, am,
+    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am,
         injector);
     clusters.addHost(DummyHostname1);
     Host hostObject = clusters.getHost(DummyHostname1);
@@ -616,7 +616,7 @@ public class TestHeartbeatHandler {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, am,
+    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am,
         injector);
     clusters.addHost(DummyHostname1);
     Host hostObject = clusters.getHost(DummyHostname1);
@@ -645,7 +645,7 @@ public class TestHeartbeatHandler {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, am,
+    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am,
             injector);
     clusters.addHost(DummyHostname1);
     Host hostObject = clusters.getHost(DummyHostname1);
@@ -678,7 +678,7 @@ public class TestHeartbeatHandler {
     hostObject.setIPv4("ipv4");
     hostObject.setIPv6("ipv6");
 
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, am,
+    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am,
         injector);
     Register reg = new Register();
     HostInfo hi = new HostInfo();
@@ -766,7 +766,7 @@ public class TestHeartbeatHandler {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, am,
+    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am,
         injector);
     handler.setHeartbeatMonitor(hm);
     clusters.addHost(DummyHostname1);
@@ -989,7 +989,7 @@ public class TestHeartbeatHandler {
           add(command);
         }}).anyTimes();
     replay(am);
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, am, injector);
+    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am, injector);
 
     Register reg = new Register();
     HostInfo hi = new HostInfo();
@@ -1070,7 +1070,7 @@ public class TestHeartbeatHandler {
               add(command);
             }}).anyTimes();
     replay(am);
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, am, injector);
+    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am, injector);
     HeartbeatProcessor heartbeatProcessor = handler.getHeartbeatProcessor();
 
     Register reg = new Register();
