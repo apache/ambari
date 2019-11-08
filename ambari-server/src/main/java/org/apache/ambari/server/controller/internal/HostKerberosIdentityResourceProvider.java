@@ -40,6 +40,9 @@ import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
@@ -158,9 +161,15 @@ public class HostKerberosIdentityResourceProvider extends ReadOnlyResourceProvid
         String clusterName = (String) propertyMap.get(KERBEROS_IDENTITY_CLUSTER_NAME_PROPERTY_ID);
         String hostName = (String) propertyMap.get(KERBEROS_IDENTITY_HOST_NAME_PROPERTY_ID);
 
+        Clusters clusters = getManagementController().getClusters();        
+        Cluster cluster = clusters.getCluster(clusterName);
+            
+        KerberosDescriptor kerberosDescriptor = kerberosHelper.getKerberosDescriptor(cluster, false);
+        
         // Retrieve the active identities for the cluster filtered and grouped by hostname
         Map<String, Collection<KerberosIdentityDescriptor>> hostDescriptors =
-            kerberosHelper.getActiveIdentities(clusterName, hostName, null, null, true);
+            kerberosHelper.getActiveIdentities(clusterName, hostName, null, null, true, null, 
+                kerberosDescriptor);
 
         if (hostDescriptors != null) {
           for (Map.Entry<String, Collection<KerberosIdentityDescriptor>> entry : hostDescriptors.entrySet()) {
