@@ -777,6 +777,7 @@
                     <path>/var/lib/ambari-metrics-monitor/lib</path>
                     <path>/var/lib/ambari-metrics-grafana</path>
                     <path>/var/lib/ambari-metrics-grafana/plugins</path>
+                    <path>/var/lib/ambari-metrics-grafana/plugins/ambari-metrics</path>
                     <path>/usr/lib/ambari-metrics-hadoop-sink</path>
                     <path>/usr/lib/ambari-metrics-kafka-sink</path>
                     <path>/usr/lib/ambari-metrics-kafka-sink/lib</path>
@@ -990,6 +991,15 @@
                     <type>perm</type>
                     <filemode>644</filemode>
                     <prefix>/etc/ambari-metrics-grafana/conf</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${grafana.dir}/ambari-metrics</src>
+                  <type>directory</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>755</filemode>
+                    <prefix>/var/lib/ambari-metrics-grafana/plugins/ambari-metrics</prefix>
                   </mapper>
                 </data>
 
