@@ -80,7 +80,7 @@ export default Ember.Component.extend(OperationModal, {
           this.set('hasError', true);
           this.set('currentFailedPath', error.failed);
           this.set('currentServerFailureMessage', error.message);
-          this.set('currentFailureMessage', `Failed to delete <strong>${Ember.Handlebars.Utils.escapeExpression(error.failed)}</strong>.`);
+          this.set('currentFailureMessage', `Failed to delete ${Ember.Handlebars.Utils.escapeExpression(error.failed)}.`);
           this.set('shouldRetry', error.retry);
           this.set('currentUnprocessedPaths', error.unprocessed);
         } else {

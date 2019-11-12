@@ -61,7 +61,7 @@ export default Ember.Route.extend(FileOperationMixin, {
       this.get('fileSelectionService').reset();
       let path = transition.queryParams.path;
       var formattedError = this.extractError(error);
-      this.get('logger').danger(`Failed to transition to <strong>${path}</strong>`, formattedError);
+      this.get('logger').danger(`Failed to transition to ${path}`, formattedError);
       // Had to do this as we are unloading all files before transitioning
       this.transitionTo({
         queryParams: {
