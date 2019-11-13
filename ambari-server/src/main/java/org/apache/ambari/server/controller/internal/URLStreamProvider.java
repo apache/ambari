@@ -184,7 +184,7 @@ public class URLStreamProvider implements StreamProvider {
 
     URL url = new URL(spec);
     HttpURLConnection connection = (spec.startsWith("https") && this.setupTruststoreForHttps) ?
-            getSSLConnection(spec) : getConnection(url);
+            getSSLConnection(url) : getConnection(url);
 
     AppCookieManager appCookieManager = getAppCookieManager();
 
@@ -235,7 +235,7 @@ public class URLStreamProvider implements StreamProvider {
       if (wwwAuthHeader != null &&
         wwwAuthHeader.trim().startsWith(NEGOTIATE)) {
         connection = spec.startsWith("https") ?
-           getSSLConnection(spec) : getConnection(url);
+           getSSLConnection(url) : getConnection(url);
         appCookie = appCookieManager.getAppCookie(spec, true);
         connection.setRequestProperty(COOKIE, appCookie);
         connection.setConnectTimeout(connTimeout);
@@ -297,7 +297,7 @@ public class URLStreamProvider implements StreamProvider {
   }
 
   // Get an ssl connection
-  protected HttpsURLConnection getSSLConnection(String spec) throws IOException, IllegalStateException {
+  protected HttpsURLConnection getSSLConnection(URL url) throws IOException, IllegalStateException {
 
     if (sslSocketFactory == null) {
       synchronized (this) {
@@ -306,7 +306,7 @@ public class URLStreamProvider implements StreamProvider {
           if (trustStorePath == null || trustStorePassword == null) {
             String msg =
                 String.format("Can't get secure connection to %s.  Truststore path or password is not set.",
-                              URLCredentialsHider.hideCredentials(spec));
+                              URLCredentialsHider.hideCredentials(url.toString()));
 
             LOG.error(msg);
             throw new IllegalStateException(msg);
@@ -333,7 +333,7 @@ public class URLStreamProvider implements StreamProvider {
         }
       }
     }
-    HttpsURLConnection connection = (HttpsURLConnection) (new URL(spec)
+    HttpsURLConnection connection = (HttpsURLConnection) (url
         .openConnection());
 
     connection.setSSLSocketFactory(sslSocketFactory);
