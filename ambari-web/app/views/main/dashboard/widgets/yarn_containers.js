@@ -19,7 +19,7 @@
 var App = require('app');
 
 function counterOrNA(key) {
-  var _key = 'model.{0}.length'.format(key);
+  var _key = 'model.{0}'.format(key);
   return Em.computed(_key, function () {
     if (Em.isNone(this.get('model.'+ key)) || this.get('model.metricsNotAvailable')) {
       return Em.I18n.t('services.service.summary.notAvailable');
@@ -32,9 +32,9 @@ App.YarnContainersView = App.TextDashboardWidgetView.extend({
 
   hiddenInfo: function () {
     return [
-      this.get('containersAllocated') + ' ' + Em.I18n.t('dashboard.services.yarn.containers.allocated'),
-      this.get('containersPending') + ' ' + Em.I18n.t('dashboard.services.yarn.containers.pending'),
-      this.get('containersReserved')+ ' ' + Em.I18n.t('dashboard.services.yarn.containers.reserved')
+      this.get('model.containersAllocated') + ' ' + Em.I18n.t('dashboard.services.yarn.containers.allocated'),
+      this.get('model.containersPending') + ' ' + Em.I18n.t('dashboard.services.yarn.containers.pending'),
+      this.get('model.containersReserved')+ ' ' + Em.I18n.t('dashboard.services.yarn.containers.reserved')
     ];
   }.property('containersAllocated', 'containersPending', 'containersReserved'),
 
