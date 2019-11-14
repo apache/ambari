@@ -10,30 +10,12 @@
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific
+# See the License for the specific language governing permissions and
+# limitations under the License
 
-# This service unit file is tuned for SLES 12.x. It is not suitable for RHEL like distributions due to different
-# paths for ExecStart/ExecStop.
+# This is a custom SLES12 dependent script which contains postinstall steps
+# to execute. Please note executing this might cause unexpected errors on
+# other linux distributions.
 
-[Unit]
-Description=Ambari Agent Service for SLES
-Before=runlevel3.target
-Before=runlevel5.target
-Before=shutdown.target
-After=remote-fs.target
-After=network-online.target
-Wants=network-online.target
-Conflicts=shutdown.target
-
-[Service]
-Type=forking
-PIDFile=/run/ambari-agent/ambari-agent.pid
-Restart=no
-TimeoutSec=5min
-IgnoreSIGPIPE=no
-KillMode=process
-GuessMainPID=no
-RemainAfterExit=no
-TasksMax=infinity
-ExecStart=/etc/init.d/ambari-agent start
-ExecStop=/etc/init.d/ambari-agent stop
+systemctl enable ambari-agent
+systemctl set-property ambari-agent TasksMax=infinity

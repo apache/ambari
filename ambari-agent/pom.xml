@@ -726,14 +726,14 @@
               <group>Development</group>
               <mappings>
                 <mapping>
-                  <directory>/usr/lib/systemd/system/</directory>
+                  <directory>/var/lib/${project.artifactId}/tmp</directory>
                   <username>root</username>
                   <groupname>root</groupname>
                   <filemode>644</filemode>
                   <directoryIncluded>false</directoryIncluded>
                   <sources>
                     <source>
-                      <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}${dirsep}usr${dirsep}lib${dirsep}systemd${dirsep}system${dirsep}ambari-agent.service</location>
+                      <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}${dirsep}etc${dirsep}ambari-agent${dirsep}conf${dirsep}custom${dirsep}sles12.sh</location>
                     </source>
                   </sources>
                 </mapping>

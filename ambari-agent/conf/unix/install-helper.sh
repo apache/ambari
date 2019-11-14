@@ -118,6 +118,15 @@ install_autostart(){
   fi
 }
 
+install_custom(){
+   if [ -d "/etc/ambari-agent/conf/custom" ]; then
+     for f in /etc/ambari-agent/conf/custom/*.sh; do
+       echo "${f}"
+       bash "$f" -H
+     done
+  fi
+}
+
 locate_python(){
   local python_binaries="/usr/bin/python;/usr/bin/python2;/usr/bin/python2.7"
 
@@ -153,6 +162,8 @@ do_install(){
   chmod 700 ${AMBARI_AGENT_VAR}/data
 
   install_autostart 1>>${LOG_FILE} 2>&1
+
+  install_custom 1>>${LOG_FILE} 2>&1
 
   # remove old python wrapper
   rm -f "${PYTHON_WRAPER_TARGET}"
