@@ -1,7 +1,7 @@
 {
   "type" : "full-release",
   "name" : "onefs-ambari-mpack",
-  "version": "1.0.1.0",
+  "version": "1.0.2.0",
   "description" : "OneFS Ambari Management Pack",
   "prerequisites": {
     "min-ambari-version" : "3.0.0.0"
