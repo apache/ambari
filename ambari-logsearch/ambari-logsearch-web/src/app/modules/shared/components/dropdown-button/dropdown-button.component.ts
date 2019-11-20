@@ -55,8 +55,18 @@ export class DropdownButtonComponent {
   selectItem: EventEmitter<any> = new EventEmitter();
 
   // PROXY PROPERTIES TO DROPDOWN LIST COMPONENT
+  private _options: ListItem[] = [];
+  private originalOptions: ListItem[] = [];
+
   @Input()
-  options: ListItem[] = [];
+  set options(options: ListItem[]) {
+    this._options = options;
+    this.originalOptions = options.map(option => Object.assign({}, option));
+  }
+
+  get options(): ListItem[] {
+    return this._options;
+  }
 
   @Input()
   listItemArguments: any[] = [];
@@ -106,8 +116,8 @@ export class DropdownButtonComponent {
       const items: ListItem[] = Array.isArray(updates) ? updates : [updates];
       if (this.isMultipleChoice) {
         items.forEach((item: ListItem) => {
-          if (this.options && this.options.length) {
-            const itemToUpdate: ListItem = this.options.find((option: ListItem) => this.utils.isEqual(option.value, item.value));
+          if (this.originalOptions && this.originalOptions.length) {
+            const itemToUpdate: ListItem = this.originalOptions.find((option: ListItem) => this.utils.isEqual(option.value, item.value));
             if (itemToUpdate) {
               hasChange = hasChange || itemToUpdate.isChecked !== item.isChecked;
               itemToUpdate.isChecked = item.isChecked;
