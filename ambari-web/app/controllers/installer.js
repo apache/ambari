@@ -305,7 +305,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }, this);
     }
-
+    if (!data.items || !data.items.length) {
+      this.setSelected(true, params.dfd);
+    }
     data.items.sortProperty('VersionDefinition.stack_version').reverse().forEach(function (versionDefinition) {
       // to display repos panel, should map all available operating systems including empty ones
       var stackInfo = {};
@@ -352,7 +354,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       stacks.sortProperty('id').set('lastObject.isSelected', true);
     }
     this.set('content.stacks', App.Stack.find());
-    App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('stackNameVersion'));
+    var selected = App.Stack.find().findProperty('isSelected');
+    App.set('currentStackVersion', selected ? selected.get('stackNameVersion') : null);
     dfd.resolve();
   },
 
