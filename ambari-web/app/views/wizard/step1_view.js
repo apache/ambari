@@ -324,7 +324,7 @@ App.WizardStep1View = Em.View.extend({
         });
       }
     }, this);
-    if (changedRepo) {
+    if (changedRepo && !App.supports.disableCredentialsAutocompleteForRepoUrls) {
       try {
         var urlObject = new URL(changedRepo.get('baseUrl'));
       } catch (e) {

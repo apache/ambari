@@ -18,8 +18,8 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsCreateCtrl', ['$scope', 'Stack', 'Utility', '$routeParams', '$location', '$timeout' ,'Alert', '$translate', 'Cluster', 'AddRepositoryModal', 'AddVersionModal', 'ConfirmationModal',
-    function($scope, Stack, Utility, $routeParams, $location, $timeout, Alert, $translate, Cluster, AddRepositoryModal, AddVersionModal, ConfirmationModal) {
+.controller('StackVersionsCreateCtrl', ['$scope', '$rootScope', 'Stack', 'Utility', '$routeParams', '$location', '$timeout' ,'Alert', '$translate', 'Cluster', 'AddRepositoryModal', 'AddVersionModal', 'ConfirmationModal',
+    function($scope, $rootScope, Stack, Utility, $routeParams, $location, $timeout, Alert, $translate, Cluster, AddRepositoryModal, AddVersionModal, ConfirmationModal) {
   var $t = $translate.instant;
   $scope.constants = {
     os: $t('versions.os')
@@ -448,6 +448,9 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.setUsernameAndPasswordsIfNeeded = function(repo) {
+    if ($rootScope.supports.disableCredentialsAutocompleteForRepoUrls) {
+      return;
+    }
     try {
       var urlObject = new URL(repo.Repositories.base_url);
       var username = urlObject.username;

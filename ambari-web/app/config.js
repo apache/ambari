@@ -90,7 +90,8 @@ App.supports = {
   manageJournalNode: true,
   enableToggleKerberos: true,
   enableAddDeleteServices: true,
-  regenerateKeytabsOnSingleHost: false
+  regenerateKeytabsOnSingleHost: false,
+  disableCredentialsAutocompleteForRepoUrls: false
 };
 
 if (App.enableExperimental) {

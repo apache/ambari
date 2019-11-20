@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsEditCtrl', ['$scope', '$location', 'Cluster', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', '$translate', 'AddRepositoryModal', function($scope, $location, Cluster, Stack, $routeParams, ConfirmationModal, Alert, $translate, AddRepositoryModal) {
+.controller('StackVersionsEditCtrl', ['$scope', '$rootScope', '$location', 'Cluster', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', '$translate', 'AddRepositoryModal', function($scope, $rootScope, $location, Cluster, Stack, $routeParams, ConfirmationModal, Alert, $translate, AddRepositoryModal) {
   var $t = $translate.instant;
   $scope.constants = {
     os: $t('versions.os')
@@ -323,6 +323,9 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.onRepoUrlChange = function(repo) {
+    if ($rootScope.supports.disableCredentialsAutocompleteForRepoUrls) {
+      return;
+    }
     try {
       var urlObject = new URL(repo.Repositories.base_url);
       var username = urlObject.username;
