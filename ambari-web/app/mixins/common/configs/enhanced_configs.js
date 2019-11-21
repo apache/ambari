@@ -221,7 +221,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     var updateDependencies = Em.isArray(changedConfigs) && changedConfigs.length > 0;
     var stepConfigs = this.get('stepConfigs');
     var requiredTags = [];
-    const isAutoComplete = Boolean(this.get('isRecommendationsAutoComplete'));
+    const isAutoComplete = !updateDependencies;
+    this.set('isRecommendationsAutoComplete', isAutoComplete);
 
     if (updateDependencies || Em.isNone(this.get('recommendationsConfigs'))) {
       var recommendations = isAutoComplete ? {} : this.get('hostGroups');
