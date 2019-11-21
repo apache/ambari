@@ -726,14 +726,14 @@
               <group>Development</group>
               <mappings>
                 <mapping>
-                  <directory>/var/lib/${project.artifactId}/tmp</directory>
+                  <directory>/etc/${project.artifactId}/conf/custom</directory>
                   <username>root</username>
                   <groupname>root</groupname>
                   <filemode>644</filemode>
                   <directoryIncluded>false</directoryIncluded>
                   <sources>
                     <source>
-                      <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}${dirsep}etc${dirsep}ambari-agent${dirsep}conf${dirsep}custom${dirsep}sles12.sh</location>
+                      <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}${dirsep}var${dirsep}lib${dirsep}ambari-agent${dirsep}tmp${dirsep}sles12.sh</location>
                     </source>
                   </sources>
                 </mapping>
