@@ -712,7 +712,7 @@ define([
           if(interpolated === "hbase-users") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var hbaseUsers = allMetrics["hbase"];
+                var hbaseUsers = getMetrics(allMetrics, "hbase");
                 var extractUsers = hbaseUsers.filter(/./.test.bind(new RegExp("regionserver.Users.", 'g')));
                 var removeUser = "regionserver.Users.numUsers";
                 var i = extractUsers.indexOf(removeUser);
@@ -737,7 +737,7 @@ define([
           if(interpolated === "hbase-tables") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var hbaseTables = allMetrics["hbase"];
+                var hbaseTables = getMetrics(allMetrics, "hbase");
                 var extractTables = hbaseTables.filter(/./.test.bind(new RegExp("regionserver.Tables.", 'g')));
                 var removeTable = "regionserver.Tables.numTables";
                 var i = extractTables.indexOf(removeTable);
@@ -762,7 +762,7 @@ define([
           if(interpolated === "kafka-topics") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var kafkaTopics = allMetrics["kafka_broker"];
+                var kafkaTopics = getMetrics(allMetrics, "kafka_broker");
                 var extractTopics = kafkaTopics.filter(/./.test.bind(new RegExp("\\b.log.Log.\\b", 'g')));
                 var topics =_.map(extractTopics, function (topic) {
                   var topicPrefix = "topic.";
@@ -783,7 +783,7 @@ define([
           if(interpolated === "callers") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var nnCallers = allMetrics["namenode"];
+                var nnCallers = getMetrics(allMetrics, "namenode");
                 var extractCallers = nnCallers.filter(/./.test.bind(new
                   RegExp("ipc.client.org.apache.hadoop.ipc.DecayRpcScheduler.Caller", 'g')));
                 var callers = _.sortBy(_.uniq(_.map(extractCallers, function(caller) {
@@ -801,10 +801,7 @@ define([
           if (interpolated === "infra_solr_core") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var solrMetrics = [];
-                if (allMetrics["ambari-infra-solr"]) {
-                  var solrMetrics = allMetrics["ambari-infra-solr"];
-                }
+                var solrMetrics = getMetrics(allMetrics, "ambari-infra-solr");
                 var extractCores = solrMetrics.filter(/./.test.bind(new
                 RegExp("^infra.solr.core.", 'g')));
                 _.map(extractCores, function (core) {
@@ -829,10 +826,7 @@ define([
           if (interpolated === "infra_solr_collection") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var solrMetrics = [];
-                if (allMetrics["ambari-infra-solr"]) {
-                  var solrMetrics = allMetrics["ambari-infra-solr"];
-                }
+                var solrMetrics = getMetrics(allMetrics, "ambari-infra-solr");
                 var extractCollections = solrMetrics.filter(/./.test.bind(new
                 RegExp("^infra.solr.core.", 'g')));
                 _.map(extractCollections, function (core) {
@@ -856,10 +850,7 @@ define([
           if(interpolated === "topologies") {
             return this.initMetricAppidMapping()
                 .then(function () {
-                  var storm = [];
-                  if(allMetrics["nimbus"]) {
-                    storm = allMetrics["nimbus"];
-                  }
+                  var storm = getMetrics(allMetrics, "nimbus");
                   var extractTopologies = storm.filter(/./.test.bind(new
                       RegExp("^topology.", 'g')));
                   _.map(extractTopologies, function(topology){
@@ -883,10 +874,7 @@ define([
             var componentName = interpolated.substring(0,interpolated.indexOf('.'));
             return this.initMetricAppidMapping()
                 .then(function () {
-                  var storm = [];
-                  if(allMetrics["nimbus"]) {
-                    storm = allMetrics["nimbus"];
-                  }
+                  var storm = getMetrics(allMetrics, "nimbus");
                   var extractTopologies = storm.filter(/./.test.bind(new
                       RegExp("^topology.", 'g')));
                   _.map(extractTopologies, function(topology){
@@ -913,10 +901,7 @@ define([
           this.getStormEntities = function () {
             return this.initMetricAppidMapping()
                 .then(function () {
-                  var storm = [];
-                  if(allMetrics["nimbus"]) {
-                    storm = allMetrics["nimbus"];
-                  }
+                  var storm = getMetrics(allMetrics, "nimbus");
                   var extractTopologies = storm.filter(/./.test.bind(new
                       RegExp("partition", 'g')));
                   _.map(extractTopologies, function(topology){
@@ -966,7 +951,7 @@ define([
           if(interpolated === "yarnqueues") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var yarnqueues = allMetrics["resourcemanager"];
+                var yarnqueues = getMetrics(allMetrics, "resourcemanager");
                 var extractQueues = yarnqueues.filter(/./.test.bind(new RegExp(".=root", 'g')));
                 var queues = _.map(extractQueues, function(metric) {
                   return metric.substring("yarn.QueueMetrics.Queue=".length);
@@ -988,10 +973,7 @@ define([
           if(interpolated === "druidServices") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var druidMetrics = [];
-                if(allMetrics["druid"]) {
-                  druidMetrics = allMetrics["druid"];
-                }
+                var druidMetrics = getMetrics(allMetrics, "druid");
                 // Assumption: each node always emits jvm metrics
                 var extractNodeTypes = druidMetrics.filter(/./.test.bind(new RegExp("jvm/gc/time", 'g')));
                 var nodeTypes = _.map(extractNodeTypes, function(metricName) {
@@ -1011,10 +993,7 @@ define([
           if(interpolated === "druidDataSources") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var druidMetrics = [];
-                if(allMetrics["druid"]) {
-                  druidMetrics = allMetrics["druid"];
-                }
+                var druidMetrics = getMetrics(allMetrics, "druid");
                 // Assumption: query/time is emitted for each datasource
                 var extractDataSources = druidMetrics.filter(/./.test.bind(new RegExp("query/time", 'g')));
                 var dataSources = _.map(extractDataSources, function(metricName) {
@@ -1034,10 +1013,7 @@ define([
           if(interpolated === "druidQueryTypes") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var druidMetrics = [];
-                if(allMetrics["druid"]) {
-                  druidMetrics = allMetrics["druid"];
-                }
+                var druidMetrics = getMetrics(allMetrics, "druid");
                 // Assumption: query/time is emitted for each query type.
                 var extractQueryTypes = druidMetrics.filter(/./.test.bind(new RegExp("query/time", 'g')));
                 var queryTypes = _.map(extractQueryTypes, function(metricName) {
@@ -1174,5 +1150,13 @@ define([
       function getSelectedItems(item, index, options) {
         // When 'All' is selected return every items except that, otherwise return what is selected.
         return index > 0 && (options[0].selected || item.selected);
+      }
+
+      function getMetrics(allmetrics, appname) {
+        var metrics = allmetrics[appname];
+        if(!metrics) {
+            metrics = [];
+        }
+        return metrics;
       }
     });
