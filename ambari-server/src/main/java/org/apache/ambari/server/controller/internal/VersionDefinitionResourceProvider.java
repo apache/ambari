@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -581,6 +582,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       } else {
         URLStreamProvider provider = new URLStreamProvider(connectTimeout, readTimeout,
             ComponentSSLConfiguration.instance());
+        provider.setSetupTruststoreForHttps(false);
 
         stream = provider.readFrom(definitionUrl);
       }
@@ -615,12 +617,14 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     entity.setStack(stackEntity);
 
-    String credentials;
-    try {
-      URL url = new URL(holder.url);
-      credentials = url.getUserInfo();
-    } catch (MalformedURLException e) {
-      throw new AmbariException(String.format("Could not parse url %s", holder.url), e);
+    String credentials = null;
+    if (holder.url != null) {
+      try {
+        URI uri = new URI(holder.url);
+        credentials = uri.getUserInfo();
+      } catch (URISyntaxException e) {
+        throw new AmbariException(String.format("Could not parse url %s", holder.url), e);
+      }
     }
 
     List<RepositoryInfo> repos = holder.xml.repositoryInfo.getRepositories(credentials);
