@@ -20,7 +20,7 @@ package org.apache.ambari.server.controller.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.ambari.server.utils.URLCredentialsHider;
 import org.apache.commons.io.IOUtils;
@@ -62,7 +62,7 @@ public class URLRedirectProvider {
         final InputStream is = entity.getContent();
 
         final int statusCode = response.getStatusLine().getStatusCode();
-        final RequestResult result = new RequestResult(IOUtils.toString(is, Charset.defaultCharset()), statusCode);
+        final RequestResult result = new RequestResult(IOUtils.toString(is, StandardCharsets.UTF_8), statusCode);
 
         if (statusCode == HttpStatus.SC_UNAUTHORIZED || statusCode == HttpStatus.SC_NOT_FOUND
           || statusCode == HttpStatus.SC_FORBIDDEN) {
