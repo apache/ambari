@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -32,9 +33,10 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.google.common.base.Strings;
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.RepositoryInfo;
+
+import com.google.common.base.Strings;
 
 /**
  * Represents the repository file <code>$STACK_VERSION/repos/repoinfo.xml</code>.
