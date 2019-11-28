@@ -22,7 +22,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -31,6 +32,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.google.common.base.Strings;
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.RepositoryInfo;
 
@@ -40,6 +42,7 @@ import org.apache.ambari.server.state.RepositoryInfo;
 @XmlRootElement(name="reposinfo")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class RepositoryXml implements Validable{
+  private static final Pattern HTTP_URL_PROTOCOL_PATTERN = Pattern.compile("((http(s)*:\\/\\/))");
 
   @XmlElement(name="latest")
   private String latestUri;
@@ -219,6 +222,16 @@ public class RepositoryXml implements Validable{
    * @return the list of repositories consumable by the web service.
    */
   public List<RepositoryInfo> getRepositories() {
+    return getRepositories(null);
+  }
+
+  /**
+   * @param credentials string with column separated username and password to be inserted in basurl.
+   *                    If set to null baseurl is not changed.
+   *
+   * @return the list of repositories consumable by the web service.
+   */
+  public List<RepositoryInfo> getRepositories(String credentials) {
     List<RepositoryInfo> repos = new ArrayList<>();
 
     for (RepositoryXml.Os o : getOses()) {
@@ -227,7 +240,15 @@ public class RepositoryXml implements Validable{
         for (RepositoryXml.Repo r : o.getRepos()) {
 
           RepositoryInfo ri = new RepositoryInfo();
-          ri.setBaseUrl(r.getBaseUrl());
+          String baseUrl = r.getBaseUrl();
+
+          // add credentials from VDF url to baseurl.
+          if (!Strings.isNullOrEmpty(credentials)) {
+            Matcher matcher = HTTP_URL_PROTOCOL_PATTERN.matcher(baseUrl);
+            baseUrl = matcher.replaceAll("$1" + credentials + "@");
+          }
+
+          ri.setBaseUrl(baseUrl);
           ri.setDefaultBaseUrl(r.getBaseUrl());
           ri.setMirrorsList(r.getMirrorsList());
           ri.setOsType(os.trim());

@@ -19,7 +19,9 @@ package org.apache.ambari.server.controller.internal;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
@@ -611,7 +615,15 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     entity.setStack(stackEntity);
 
-    List<RepositoryInfo> repos = holder.xml.repositoryInfo.getRepositories();
+    String credentials;
+    try {
+      URL url = new URL(holder.url);
+      credentials = url.getUserInfo();
+    } catch (MalformedURLException e) {
+      throw new AmbariException(String.format("Could not parse url %s", holder.url), e);
+    }
+
+    List<RepositoryInfo> repos = holder.xml.repositoryInfo.getRepositories(credentials);
 
     // Add service repositories (these are not contained by the VDF but are there in the stack model)
     ListMultimap<String, RepositoryInfo> stackReposByOs =
