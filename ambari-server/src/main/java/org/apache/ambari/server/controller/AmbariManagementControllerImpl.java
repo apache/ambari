@@ -126,7 +126,7 @@ import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
-import org.apache.ambari.server.controller.internal.URLStreamProvider;
+import org.apache.ambari.server.controller.internal.URLRedirectProvider;
 import org.apache.ambari.server.controller.internal.WidgetLayoutResourceProvider;
 import org.apache.ambari.server.controller.internal.WidgetResourceProvider;
 import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider;
@@ -241,10 +241,10 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.URLCredentialsHider;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -4464,8 +4464,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    * @throws AmbariException if verification fails
    */
   private void verifyRepository(RepositoryRequest request) throws AmbariException {
-    URLStreamProvider usp = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT, REPO_URL_READ_TIMEOUT, null, null, null);
-    usp.setSetupTruststoreForHttps(false);
+    URLRedirectProvider usp = new URLRedirectProvider(REPO_URL_CONNECT_TIMEOUT, REPO_URL_READ_TIMEOUT);
 
     String repoName = request.getRepoName();
     if (StringUtils.isEmpty(repoName)) {
@@ -4504,7 +4503,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       }else{
         try {
-          IOUtils.readLines(usp.readFrom(spec));
+          URLRedirectProvider.RequestResult result = usp.executeGet(spec);
+          if (result.getCode() != HttpStatus.SC_OK) {
+            errorMessage = String.format("Could not access base url '%s', code: '%d', response: '%s'",
+                                         URLCredentialsHider.hideCredentials(request.getBaseUrl()),
+                                         result.getCode(),
+                                         result.getContent());
+          }
         } catch (IOException ioe) {
           e = ioe;
           errorMessage = String.format("Could not access base url '%s'",
@@ -4519,9 +4524,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-    if (e != null) {
+    if (errorMessage != null) {
       LOG.error(errorMessage);
-      throw new IllegalArgumentException(errorMessage, e);
+      if (e == null) {
+        throw new IllegalArgumentException(errorMessage);
+      } else {
+        throw new IllegalArgumentException(errorMessage, e);
+      }
     }
   }
 
