@@ -234,10 +234,12 @@ if security_enabled:
   kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_principal_name};")
   kinit_cmd_master = format("{kinit_path_local} -kt {master_keytab_path} {master_jaas_princ};")
   master_security_config = format("-Djava.security.auth.login.config={hbase_conf_dir}/hbase_master_jaas.conf")
+  client_security_config = format("-Djava.security.auth.login.config={hbase_conf_dir}/hbase_client_jaas.conf")
 else:
   kinit_cmd = ""
   kinit_cmd_master = ""
   master_security_config = ""
+  client_security_config = ""
 
 #log4j.properties
 # HBase log4j settings

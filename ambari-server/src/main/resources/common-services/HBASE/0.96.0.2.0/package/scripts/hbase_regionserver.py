@@ -30,6 +30,7 @@ from resource_management.libraries.functions.security_commons import build_expec
   FILE_TYPE_XML
 
 from ambari_commons import OSCheck, OSConst
+from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from ambari_commons.os_family_impl import OsFamilyImpl
 
 from hbase import hbase
@@ -63,7 +64,7 @@ class HbaseRegionServer(Script):
     hbase_decommission(env)
 
     # Stop RegionServer
-    self.stop(env)
+    hbase_service('regionserver', action='stop')
 
     # Remove from Draining ZNode to make host useable on restarting regionserver
     params.hbase_drain_only = True
@@ -75,14 +76,14 @@ class HbaseRegionServer(Script):
     env.set_params(params)
 
     #Start RegionServer
-    self.start(env)
+    hbase_service('regionserver', action='start')
 
     # Load Regions back
     kinit_cmd = params.kinit_cmd_master
     host = params.hostname
 
     regionmover_cmd = format(
-      "{kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} {master_security_config} org.jruby.Main {region_mover} load {host}")
+      "{kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} {client_security_config} org.jruby.Main {region_mover} load {host}")
 
     Execute(regionmover_cmd,
             user=params.hbase_user,
@@ -128,15 +129,23 @@ class HbaseRegionServerDefault(HbaseRegionServer):
     self.configure(env) # for security
     setup_ranger_hbase(upgrade_type=upgrade_type, service_name="hbase-regionserver")
 
-    hbase_service('regionserver', action='start')
+    if upgrade_type == UPGRADE_TYPE_ROLLING and len(params.rs_hosts) > 5:
+      self.graceful_start(env)
+    else:
+      hbase_service('regionserver',
+                    action='start'
+                    )
 
   def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
-    hbase_service( 'regionserver',
-      action = 'stop'
-    )
+    if upgrade_type == UPGRADE_TYPE_ROLLING and len(params.rs_hosts) > 5:
+      self.graceful_stop(env)
+    else:
+      hbase_service('regionserver',
+                    action='stop'
+                    )
 
   def status(self, env):
     import status_params
