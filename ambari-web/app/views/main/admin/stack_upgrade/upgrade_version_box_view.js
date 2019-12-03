@@ -480,7 +480,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
               repoName: repository.get('repoName'),
               repoId: repository.get('repoId'),
               baseUrl: repository.get('baseUrl'),
-              hasError: false
+              hasError: false,
+              showRepo: repository.get('showRepo')
             });
           })
         });
