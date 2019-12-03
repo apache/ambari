@@ -921,10 +921,12 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       var os = selectedStack.get('operatingSystems').findProperty('id', params.osId);
       var repo = os.get('repositories').findProperty('repoId', params.repoId);
       if (repo) {
+        var title = Ember.Handlebars.Utils.escapeExpression(request.status + ":" + request.statusText);
+        var content =  Ember.Handlebars.Utils.escapeExpression($.parseJSON(request.responseText) ? $.parseJSON(request.responseText).message : "");
         repo.setProperties({
           validation: 'INVALID',
-          errorTitle: request.status + ":" + request.statusText,
-          errorContent: $.parseJSON(request.responseText) ? $.parseJSON(request.responseText).message : ""
+          errorTitle: title,
+          errorContent: content
         });
       }
     }
