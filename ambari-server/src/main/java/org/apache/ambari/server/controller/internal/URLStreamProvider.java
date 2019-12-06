@@ -24,16 +24,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
@@ -288,12 +297,49 @@ public class URLStreamProvider implements StreamProvider {
     return cookies + "; " + newCookie;
   }
 
+  public static class TrustAllHostnameVerifier implements HostnameVerifier
+  {
+    public boolean verify(String hostname, SSLSession session) { return true; }
+  }
+
+  public static class TrustAllManager implements X509TrustManager
+  {
+    public X509Certificate[] getAcceptedIssuers()
+    {
+      return new X509Certificate[0];
+    }
+    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+  }
 
   // ----- helper methods ----------------------------------------------------
 
   // Get a connection
   protected HttpURLConnection getConnection(URL url) throws IOException {
-    return (HttpURLConnection) url.openConnection();
+    URLConnection connection = url.openConnection();
+
+    if (!setupTruststoreForHttps) {
+      HttpsURLConnection httpsConnection = (HttpsURLConnection) connection;
+
+      // Create a trust manager that does not validate certificate chains
+      TrustManager[] trustAllCerts = new TrustManager[] {
+          new TrustAllManager()
+      };
+
+      // Ignore differences between given hostname and certificate hostname
+      HostnameVerifier hostnameVerifier = new TrustAllHostnameVerifier();
+      // Install the all-trusting trust manager
+      try {
+        SSLContext sc = SSLContext.getInstance("SSL");
+        sc.init(null, trustAllCerts, new SecureRandom());
+        httpsConnection.setSSLSocketFactory(sc.getSocketFactory());
+        httpsConnection.setHostnameVerifier(hostnameVerifier);
+      } catch (NoSuchAlgorithmException | KeyManagementException e) {
+        throw new IllegalStateException("Cannot create unverified ssl context.", e);
+      }
+    }
+
+    return (HttpURLConnection) connection;
   }
 
   // Get an ssl connection
