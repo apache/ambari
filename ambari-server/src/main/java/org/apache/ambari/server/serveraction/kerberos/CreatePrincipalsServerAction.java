@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import com.google.common.util.concurrent.Striped;
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -29,6 +30,7 @@ import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.apache.ambari.server.security.SecurePasswordHelper;
 import org.apache.ambari.server.serveraction.ActionLog;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +38,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.Lock;
 
 /**
  * CreatePrincipalsServerAction is a ServerAction implementation that creates principals as instructed.
@@ -61,6 +64,11 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
   private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
 
   /**
+   * Used to prevent multiple threads from working with the same principal.
+   */
+  private Striped<Lock> locksByPrincipal = Striped.lazyWeakLock(25);
+
+  /**
    * SecurePasswordHelper used to generate secure passwords for newly created principals
    */
   @Inject
@@ -70,7 +78,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
    * A set of visited principal names used to prevent unnecessary processing on already processed
    * principal names
    */
-  private Set<String> seenPrincipals = new HashSet<String>();
+  private Set<String> seenPrincipals = new ConcurrentHashSet<>();
 
   /**
    * Called to execute this action.  Upon invocation, calls
@@ -154,20 +162,27 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
       if (processPrincipal) {
         Map<String, String> principalPasswordMap = getPrincipalPasswordMap(requestSharedDataContext);
 
+        Lock lock = locksByPrincipal.get(evaluatedPrincipal);
+        lock.lock();
+
         String password = principalPasswordMap.get(evaluatedPrincipal);
 
-        if (password == null) {
-          boolean servicePrincipal = "service".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.PRINCIPAL_TYPE));
-          CreatePrincipalResult result = createPrincipal(evaluatedPrincipal, servicePrincipal, kerberosConfiguration, operationHandler, regenerateKeytabs, actionLog);
+        try {
+          if (password == null) {
+            boolean servicePrincipal = "service".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.PRINCIPAL_TYPE));
+            CreatePrincipalResult result = createPrincipal(evaluatedPrincipal, servicePrincipal, kerberosConfiguration, operationHandler, regenerateKeytabs, actionLog);
 
-          if (result == null) {
-            commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
-          } else {
-            Map<String, Integer> principalKeyNumberMap = getPrincipalKeyNumberMap(requestSharedDataContext);
+            if (result == null) {
+              commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+            } else {
+              Map<String, Integer> principalKeyNumberMap = getPrincipalKeyNumberMap(requestSharedDataContext);
 
-            principalPasswordMap.put(evaluatedPrincipal, result.getPassword());
-            principalKeyNumberMap.put(evaluatedPrincipal, result.getKeyNumber());
+              principalPasswordMap.put(evaluatedPrincipal, result.getPassword());
+              principalKeyNumberMap.put(evaluatedPrincipal, result.getKeyNumber());
+            }
           }
+        } finally {
+          lock.unlock();
         }
       }
     }

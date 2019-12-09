@@ -27,7 +27,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import sun.nio.cs.StandardCharsets;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;

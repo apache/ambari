@@ -30,6 +30,7 @@ import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.serveraction.ActionLog;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.io.FileUtils;
 import org.easymock.EasyMockSupport;
@@ -194,6 +195,7 @@ public class ConfigureAmbariIdentitiesServerActionTest extends EasyMockSupport {
         bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
         bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
 
         bind(HostDAO.class).toInstance(createMock(HostDAO.class));
         bind(KerberosPrincipalHostDAO.class).toInstance(createMock(KerberosPrincipalHostDAO.class));

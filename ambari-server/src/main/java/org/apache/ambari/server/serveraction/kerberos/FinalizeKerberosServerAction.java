@@ -40,9 +40,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.Lock;
+
+import com.google.common.util.concurrent.Striped;
 
 public class FinalizeKerberosServerAction extends KerberosServerAction {
   private final static Logger LOG = LoggerFactory.getLogger(FinalizeKerberosServerAction.class);
+
+  /**
+   * Used to prevent multiple threads from working with the same keytab.
+   */
+  private Striped<Lock> m_locksByKeytab = Striped.lazyWeakLock(25);
 
   /**
    * Processes an identity as necessary.
@@ -86,7 +94,13 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
 
           String keytabFilePath = identityRecord.get(KerberosIdentityDataFile.KEYTAB_FILE_PATH);
 
-          if (!StringUtils.isEmpty(keytabFilePath)) {
+          if (StringUtils.isEmpty(keytabFilePath)) {
+            return null;
+          }
+
+          Lock lock = m_locksByKeytab.get(keytabFilePath);
+          lock.lock();
+          try {
             Set<String> visited = (Set<String>) requestSharedDataContext.get(this.getClass().getName() + "_visited");
 
             if (!visited.contains(keytabFilePath)) {
@@ -149,6 +163,8 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
 
               visited.add(keytabFilePath);
             }
+          } finally {
+            lock.unlock();
           }
         }
       }

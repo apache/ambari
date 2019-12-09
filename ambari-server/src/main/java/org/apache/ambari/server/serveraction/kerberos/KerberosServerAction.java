@@ -18,11 +18,13 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
@@ -36,8 +38,18 @@ import static org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDat
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * KerberosServerAction is an abstract class to be implemented by Kerberos-related
@@ -164,6 +176,12 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    */
   @Inject
   private KerberosHelper kerberosHelper;
+
+  @Inject
+  /**
+   * Ambari configuration
+   */
+  private Configuration configuration;
 
   /**
    * Given a (command parameter) Map and a property name, attempts to safely retrieve the requested
@@ -350,7 +368,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    * @return a CommandReport indicating the result of this operation
    * @throws AmbariException
    */
-  protected CommandReport processIdentities(Map<String, Object> requestSharedDataContext)
+  protected CommandReport processIdentities(final Map<String, Object> requestSharedDataContext)
       throws AmbariException {
     CommandReport commandReport = null;
     Map<String, String> commandParameters = getCommandParameters();
@@ -361,7 +379,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
     if (commandParameters != null) {
       // Grab the relevant data from this action's command parameters map
       PrincipalKeyCredential administratorCredential = kerberosHelper.getKDCAdministratorCredentials(getClusterName());
-      String defaultRealm = getDefaultRealm(commandParameters);
+      final String defaultRealm = getDefaultRealm(commandParameters);
       KDCType kdcType = getKDCType(commandParameters);
       String dataDirectoryPath = getDataDirectoryPath(commandParameters);
 
@@ -390,7 +408,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
               throw new AmbariException(message);
             }
 
-            KerberosOperationHandler handler = kerberosOperationHandlerFactory.getKerberosOperationHandler(kdcType);
+            final KerberosOperationHandler handler = kerberosOperationHandlerFactory.getKerberosOperationHandler(kdcType);
             if (handler == null) {
               String message = String.format("Failed to process the identities, a KDC operation handler was not found for the KDC type of : %s",
                   kdcType.toString());
@@ -399,7 +417,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
               throw new AmbariException(message);
             }
 
-            Map<String, String> kerberosConfiguration = getConfiguration("kerberos-env");
+            final Map<String, String> kerberosConfiguration = getConfiguration("kerberos-env");
 
             try {
               handler.open(administratorCredential, defaultRealm, kerberosConfiguration);
@@ -413,16 +431,51 @@ public abstract class KerberosServerAction extends AbstractServerAction {
 
             // Create the data file reader to parse and iterate through the records
             KerberosIdentityDataFileReader reader = null;
+            ExecutorService executorService = null;
             try {
-              reader = kerberosIdentityDataFileReaderFactory.createKerberosIdentityDataFileReader(identityDataFile);
-              for (Map<String, String> record : reader) {
-                // Process the current record
-                commandReport = processRecord(record, defaultRealm, handler, kerberosConfiguration, requestSharedDataContext);
+              // create the thread factory, executor, and completion service for
+              // running the identity processing in parallel
+              ExecutionCommand executionCommand = getExecutionCommand();
+              int threadCount = configuration.getKerberosServerActionThreadpoolSize();
+              String factoryName = (executionCommand == null)
+                ? "process-identity-%d"
+                : "process-identity-task-" + executionCommand.getTaskId() + "-thread-%d";
+              ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat(factoryName).build();
+              executorService = Executors.newFixedThreadPool(threadCount, threadFactory);
+              CompletionService<CommandReport> completionService = new ExecutorCompletionService<>(executorService);
 
-                // If the principal processor returns a CommandReport, than it is time to stop since
-                // an error condition has probably occurred, else all is assumed to be well.
-                if (commandReport != null) {
-                  break;
+              List<Future<CommandReport>> futures = new ArrayList<>();
+              reader = kerberosIdentityDataFileReaderFactory.createKerberosIdentityDataFileReader(identityDataFile);
+              try {
+                for (final Map<String, String> record : reader) {
+                  Future<CommandReport> future = completionService.submit(new Callable<CommandReport>() {
+                    @Override
+                    public CommandReport call() throws Exception {
+                      return processRecord(record, defaultRealm, handler, kerberosConfiguration, requestSharedDataContext);
+                    }
+                  });
+                  futures.add(future);
+                }
+
+                LOG.info("Processing {} identities concurrently with {} thread(s)...", futures.size(), threadCount);
+                for (int i = 0; i < futures.size(); i++) {
+                  Future<CommandReport> future = completionService.take();
+
+                  // If the principal processor returns a CommandReport, than it is time to stop since
+                  // an error condition has probably occurred, else all is assumed to be well.
+                  commandReport = future.get();
+                  if (commandReport != null) {
+                    break;
+                  }
+                }
+              } catch (Exception e) {
+                LOG.error("Unable to process identities asynchronously", e);
+                return createCommandReport(0, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(),actionLog.getStdErr());
+              } finally {
+                for (Future<CommandReport> future: futures){
+                  if (!future.isCancelled() &!future.isDone()) {
+                    future.cancel(true);
+                  }
                 }
               }
             } catch (AmbariException e) {
@@ -452,6 +505,10 @@ public abstract class KerberosServerAction extends AbstractServerAction {
                 handler.close();
               } catch (KerberosOperationException e) {
                 // Ignore this...
+              }
+
+              if (executorService != null) {
+                executorService.shutdown();
               }
             }
           }

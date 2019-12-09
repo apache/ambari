@@ -46,6 +46,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
 import org.junit.Rule;
 import org.junit.Test;
@@ -198,6 +199,7 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
       protected void configure() {
         bind(KerberosHelper.class).toInstance(createMock(KerberosHelper.class));
         bind(Clusters.class).toInstance(clusters);
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
       }
     });
