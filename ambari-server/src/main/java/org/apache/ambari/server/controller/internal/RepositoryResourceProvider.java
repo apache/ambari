@@ -44,7 +44,6 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.utils.URLCredentialsHider;
 import org.apache.commons.lang.BooleanUtils;
 
 public class RepositoryResourceProvider extends AbstractControllerResourceProvider {
