@@ -103,7 +103,7 @@ public class JMXPropertyProviderTest {
     MetricsRetrievalService metricsRetrievalService = injector.getInstance(
         MetricsRetrievalService.class);
 
-    metricsRetrievalService.start();
+    metricsRetrievalService.startAsync();
     metricsRetrievalService.setThreadPoolExecutor(new SynchronousThreadPoolExecutor());
   }
 

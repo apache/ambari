@@ -26,6 +26,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.UpgradeContext;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 /**
@@ -49,7 +50,7 @@ public final class SecurityCondition extends Condition {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("type", securityType).omitNullValues().toString();
+    return MoreObjects.toStringHelper(this).add("type", securityType).omitNullValues().toString();
   }
 
   /**

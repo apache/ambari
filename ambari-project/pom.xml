@@ -252,7 +252,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>16.0</version>
+        <version>24.1.1-jre</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.findbugs</groupId>
@@ -561,7 +561,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.0</version>
+        <version>3.2</version>
       </plugin>
       <plugin>
         <groupId>org.apache.rat</groupId>

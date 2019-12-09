@@ -38,6 +38,7 @@ import org.apache.ambari.server.state.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 /**
@@ -319,7 +320,7 @@ public class ConfigUpgradeChangeDefinition {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper("Set").add("key", key)
+      return MoreObjects.toStringHelper("Set").add("key", key)
           .add("value", value)
           .add("ifKey", ifKey)
           .add("ifType", ifType)
@@ -394,7 +395,7 @@ public class ConfigUpgradeChangeDefinition {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).add("operation", operation)
+      return MoreObjects.toStringHelper(this).add("operation", operation)
           .add("fromType", fromType)
           .add("fromKey", fromKey)
           .add("toKey", toKey)
@@ -437,7 +438,7 @@ public class ConfigUpgradeChangeDefinition {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).add("key", key)
+      return MoreObjects.toStringHelper(this).add("key", key)
           .add("find", find)
           .add("replaceWith", replaceWith)
           .add("ifKey", ifKey)
@@ -474,7 +475,7 @@ public class ConfigUpgradeChangeDefinition {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).add("key", key)
+      return MoreObjects.toStringHelper(this).add("key", key)
           .add("find", find)
           .add("replaceWith",replaceWith)
           .add("ifKey", ifKey)
@@ -544,7 +545,7 @@ public class ConfigUpgradeChangeDefinition {
      */
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).add("insertType", insertType)
+      return MoreObjects.toStringHelper(this).add("insertType", insertType)
           .add("key", key)
           .add("value",value)
           .add("newlineBefore", newlineBefore)

@@ -34,9 +34,9 @@
     <!-- Needed for generating FindBugs warnings using parent pom -->
     <!--<yarn.basedir>${project.parent.parent.basedir}</yarn.basedir>-->
     <protobuf.version>2.5.0</protobuf.version>
-    <hadoop.version>2.7.3.2.6.4.0-91</hadoop.version>
-    <phoenix.version>4.7.0.2.6.4.0-91</phoenix.version>
-    <hbase.version>1.1.2.2.6.4.0-91</hbase.version>
+    <hadoop.version>2.7.3.2.6.5.3012-38</hadoop.version>
+    <phoenix.version>4.7.0.2.6.5.3012-38</phoenix.version>
+    <hbase.version>1.1.2.2.6.5.3012-38</hbase.version>
   </properties>
 
   <build>
@@ -87,7 +87,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.0</version>
+        <version>3.2</version>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -520,7 +520,6 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>14.0.1</version>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>
