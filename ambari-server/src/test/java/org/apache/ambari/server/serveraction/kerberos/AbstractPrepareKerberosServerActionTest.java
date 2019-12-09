@@ -20,6 +20,7 @@ package org.apache.ambari.server.serveraction.kerberos;
 
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -44,6 +45,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
@@ -65,10 +67,10 @@ public class AbstractPrepareKerberosServerActionTest {
   private Injector injector;
   private final PrepareKerberosServerAction prepareKerberosServerAction = new PrepareKerberosServerAction();
 
-  private final AuditLogger auditLogger = EasyMock.createNiceMock(AuditLogger.class);
-  private final Clusters clusters = EasyMock.createNiceMock(Clusters.class);
-  private final KerberosHelper kerberosHelper = EasyMock.createNiceMock(KerberosHelper.class);
-  private final KerberosIdentityDataFileWriterFactory kerberosIdentityDataFileWriterFactory = EasyMock.createNiceMock(KerberosIdentityDataFileWriterFactory.class);
+  private final AuditLogger auditLogger = createNiceMock(AuditLogger.class);
+  private final Clusters clusters = createNiceMock(Clusters.class);
+  private final KerberosHelper kerberosHelper = createNiceMock(KerberosHelper.class);
+  private final KerberosIdentityDataFileWriterFactory kerberosIdentityDataFileWriterFactory = createNiceMock(KerberosIdentityDataFileWriterFactory.class);
 
   @Before
   public void setUp() throws Exception {
@@ -78,6 +80,7 @@ public class AbstractPrepareKerberosServerActionTest {
         bind(KerberosHelper.class).toInstance(kerberosHelper);
         bind(KerberosIdentityDataFileWriterFactory.class).toInstance(kerberosIdentityDataFileWriterFactory);
         bind(Clusters.class).toInstance(clusters);
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(AuditLogger.class).toInstance(auditLogger);
       }
     });
@@ -94,13 +97,13 @@ public class AbstractPrepareKerberosServerActionTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testProcessServiceComponentHosts() throws Exception {
-    final Cluster cluster =  EasyMock.createNiceMock(Cluster.class);
-    final KerberosIdentityDataFileWriter kerberosIdentityDataFileWriter = EasyMock.createNiceMock(KerberosIdentityDataFileWriter.class);
-    final KerberosDescriptor kerberosDescriptor = EasyMock.createNiceMock(KerberosDescriptor.class);
-    final ServiceComponentHost serviceComponentHostHDFS = EasyMock.createNiceMock(ServiceComponentHost.class);
-    final ServiceComponentHost serviceComponentHostZK = EasyMock.createNiceMock(ServiceComponentHost.class);
-    final KerberosServiceDescriptor serviceDescriptor = EasyMock.createNiceMock(KerberosServiceDescriptor.class);
-    final KerberosComponentDescriptor componentDescriptor = EasyMock.createNiceMock(KerberosComponentDescriptor.class);
+    final Cluster cluster =  createNiceMock(Cluster.class);
+    final KerberosIdentityDataFileWriter kerberosIdentityDataFileWriter = createNiceMock(KerberosIdentityDataFileWriter.class);
+    final KerberosDescriptor kerberosDescriptor = createNiceMock(KerberosDescriptor.class);
+    final ServiceComponentHost serviceComponentHostHDFS = createNiceMock(ServiceComponentHost.class);
+    final ServiceComponentHost serviceComponentHostZK = createNiceMock(ServiceComponentHost.class);
+    final KerberosServiceDescriptor serviceDescriptor = createNiceMock(KerberosServiceDescriptor.class);
+    final KerberosComponentDescriptor componentDescriptor = createNiceMock(KerberosComponentDescriptor.class);
 
     final String hdfsService = "HDFS";
     final String zookeeperService = "ZOOKEEPER";

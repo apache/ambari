@@ -2736,6 +2736,20 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> TLS_EPHEMERAL_DH_KEY_SIZE = new ConfigurationProperty<>(
     "security.server.tls.ephemeral_dh_key_size", 2048);
 
+  /**
+   * The number of threads to use when executing server-side Kerberos commands, such as generate keytabs.
+   */
+  @Markdown(description = "The number of threads to use when executing server-side Kerberos commands, such as generate keytabs.")
+  public static final ConfigurationProperty<Integer> KERBEROS_SERVER_ACTION_THREADPOOL_SIZE = new ConfigurationProperty<>(
+    "server.kerberos.action.threadpool.size", 1);
+
+  /**
+   * The timeout, in seconds, when finalizing Kerberos enable/disable/regenerate commands.
+   */
+  @Markdown(description = "The timeout, in seconds, when finalizing Kerberos enable/disable/regenerate commands.")
+  public static final ConfigurationProperty<Integer> KERBEROS_SERVER_ACTION_FINALIZE_SECONDS = new ConfigurationProperty<>(
+    "server.kerberos.finalize.timeout", 600);
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -5616,6 +5630,26 @@ public class Configuration {
    */
   public int getDefaultMaxParallelismForUpgrades() {
     return Integer.parseInt(getProperty(DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES));
+  }
+
+  /**
+   * Gets the number of threads to use when executing server-side Kerberos
+   * commands, such as generate keytabs.
+   *
+   * @return the threadpool size, defaulting to 1
+   */
+  public int getKerberosServerActionThreadpoolSize() {
+    return Integer.parseInt(getProperty(KERBEROS_SERVER_ACTION_THREADPOOL_SIZE));
+  }
+
+  /**
+   * Get the timeout, in seconds, when finalizing Kerberos
+   * enable/disable/regenerate commands.
+   *
+   * @return the timeout, in seconds, defaulting to 600.
+   */
+  public int getKerberosServerActionFinalizeTimeout() {
+    return Integer.parseInt(getProperty(KERBEROS_SERVER_ACTION_FINALIZE_SECONDS));
   }
 
   /**
