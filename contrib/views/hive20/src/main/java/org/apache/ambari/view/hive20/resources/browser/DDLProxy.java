@@ -222,6 +222,7 @@ public class DDLProxy {
       public boolean apply(@Nullable TableInfo input) {
         return input.getName().equalsIgnoreCase(tableName);
       }
+
     }).first();
   }
 

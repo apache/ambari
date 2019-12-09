@@ -42,6 +42,8 @@ import javax.persistence.UniqueConstraint;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 
+import com.google.common.base.MoreObjects;
+
 @Entity
 @Table(name = "clusterconfig",
   uniqueConstraints = {@UniqueConstraint(name = "UQ_config_type_tag", columnNames = {"cluster_id", "type_name", "version_tag"}),
@@ -300,7 +302,7 @@ public class ClusterConfigEntity {
    */
   @Override
   public String toString() {
-    return com.google.common.base.Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
       .add("clusterId", clusterId)
       .add("type", type)
       .add("version", version)

@@ -41,6 +41,7 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.State;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 
@@ -263,7 +264,7 @@ public class HostComponentDesiredStateEntity {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("serviceName", serviceName).add("componentName",
+    return MoreObjects.toStringHelper(this).add("serviceName", serviceName).add("componentName",
         componentName).add("hostId", hostId).add("desiredState", desiredState).toString();
   }
 }

@@ -82,6 +82,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -895,7 +896,7 @@ public class UpgradeContext {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("direction", m_direction)
         .add("type", m_type)
         .add("target", m_repositoryVersion).toString();

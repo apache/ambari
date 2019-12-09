@@ -128,7 +128,7 @@ public class RestMetricsPropertyProviderTest {
     MetricsRetrievalService metricsRetrievalService = injector.getInstance(
         MetricsRetrievalService.class);
 
-    metricsRetrievalService.start();
+    metricsRetrievalService.startAsync();
     metricsRetrievalService.setThreadPoolExecutor(new SynchronousThreadPoolExecutor());
 
     // Setting up Mocks for Controller, Clusters etc, queried as part of user's Role context
