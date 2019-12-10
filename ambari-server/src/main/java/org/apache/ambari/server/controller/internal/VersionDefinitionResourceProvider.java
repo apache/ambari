@@ -576,7 +576,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
         InputStream stream = uri.toURL().openStream();
         holder.xmlString = IOUtils.toString(stream, "UTF-8");
       } else {
-        URLRedirectProvider provider = new URLRedirectProvider(connectTimeout, readTimeout);
+        URLRedirectProvider provider = new URLRedirectProvider(connectTimeout, readTimeout, true);
         URLRedirectProvider.RequestResult requestResult = provider.executeGet(definitionUrl);
 
         if (requestResult.getCode() != HttpStatus.SC_OK) {

@@ -4464,7 +4464,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    * @throws AmbariException if verification fails
    */
   private void verifyRepository(RepositoryRequest request) throws AmbariException {
-    URLRedirectProvider usp = new URLRedirectProvider(REPO_URL_CONNECT_TIMEOUT, REPO_URL_READ_TIMEOUT);
+    URLRedirectProvider usp = new URLRedirectProvider(REPO_URL_CONNECT_TIMEOUT, REPO_URL_READ_TIMEOUT, true);
 
     String repoName = request.getRepoName();
     if (StringUtils.isEmpty(repoName)) {
