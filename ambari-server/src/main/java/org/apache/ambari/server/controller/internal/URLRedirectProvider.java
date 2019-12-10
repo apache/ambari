@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+
 import javax.net.ssl.SSLContext;
 
 import org.apache.ambari.server.AmbariException;
