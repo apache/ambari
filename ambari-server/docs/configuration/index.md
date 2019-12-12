@@ -112,6 +112,7 @@ The following are the properties which can be used to configure Ambari.
 | extensions.path | The location on the Ambari Server where stack extensions exist.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/extensions`</ul> | | 
 | gpl.license.accepted | Whether user accepted GPL license. |`false` | 
 | gzip.handler.jetty.enabled | Determines whether jetty Gzip compression is enabled or not. |`true` | 
+| heartbeat.monitoring.interval | Interval for heartbeat presence checks.<br/><br/>The following are examples of valid values:<ul><li>`60000`<li>`600000`</ul> |`60000` | 
 | http.cache-control | The value that will be used to set the `Cache-Control` HTTP response header. |`no-store` | 
 | http.charset | The value that will be used to set the Character encoding to HTTP response header. |`utf-8` | 
 | http.pragma | The value that will be used to set the `PRAGMA` HTTP response header. |`no-cache` | 
@@ -227,6 +228,7 @@ The following are the properties which can be used to configure Ambari.
 | server.jdbc.rca.user.passwd | The password for the user when connecting to the database which stores RCA information. |`mapred` | 
 | server.jdbc.user.name | The user name used to login to the database. |`ambari` | 
 | server.jdbc.user.passwd | The password for the user when logging into the database. |`bigdata` | 
+| server.kerberos.action.threadpool.size | The number of threads to use when executing server-side Kerberos commands, such as generate keytabs. |`1` | 
 | server.kerberos.finalize.timeout | The timeout, in seconds, when finalizing Kerberos enable/disable/regenerate commands. |`600` | 
 | server.locks.profiling | Enable the profiling of internal locks. |`false` | 
 | server.metrics.retrieval-service.thread.priority | The priority of threads used by the service which retrieves JMX and REST metrics directly from their respective endpoints. |`5` | 
