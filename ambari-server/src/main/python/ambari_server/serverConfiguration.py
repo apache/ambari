@@ -412,7 +412,7 @@ class ServerConfigDefaults(object):
 
     self.MASTER_KEY_FILE_PERMISSIONS = "640"
     self.CREDENTIALS_STORE_FILE_PERMISSIONS = "640"
-    self.TRUST_STORE_LOCATION_PERMISSIONS = "640"
+    self.TRUST_STORE_LOCATION_PERMISSIONS = "644"
 
     self.DEFAULT_DB_NAME = "ambari"
 
