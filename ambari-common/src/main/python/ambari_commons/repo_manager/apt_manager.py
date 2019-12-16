@@ -155,7 +155,7 @@ class AptManager(GenericManager):
 
   def transform_baseurl_to_repoid(self, base_url):
     """
-    Transforms the URL looking like proto://localhost/some/long/path to localhost_some_long_path
+    Transforms the URL looking like proto://login:password@localhost/some/long/path to localhost_some_long_path
 
     :type base_url str
     :rtype str
@@ -164,6 +164,9 @@ class AptManager(GenericManager):
     url_proto_pos = base_url.find(url_proto_mask)
     if url_proto_pos > 0:
       base_url = base_url[url_proto_pos+len(url_proto_mask):]
+
+    if "@" in base_url:
+      base_url = base_url.split("@", 1)[1]
 
     return base_url.replace("/", "_").replace(" ", "_")
 
