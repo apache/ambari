@@ -83,8 +83,10 @@ public class DeleteHandler extends BaseManagementHandler implements RequestHandl
       return null;
     }
 
-    if (!DeleteStatusMetaData.class.isInstance(requestStatusMetaData)) {
-      throw new IllegalArgumentException("RequestStatusDetails is not of type DeleteStatusDetails. requestStatusMetaData.getClass= " + requestStatusMetaData.getClass());
+    if (!(requestStatusMetaData instanceof DeleteStatusMetaData)) {
+      throw new IllegalArgumentException(
+		  String.format("Wrong status details class received - expecting: %s; actual: %s", 
+			   DeleteStatusMetaData.class, requestStatusMetaData.getClass()));
     }
 
     DeleteStatusMetaData statusDetails = (DeleteStatusMetaData) requestStatusMetaData;
