@@ -3605,12 +3605,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     ServiceComponentHost componentHost = component.getServiceComponentHost(request.getHostname());
 
     if (!componentHost.canBeRemoved()) {
-      throw new AmbariException("Host Component cannot be removed"
+      throw new AmbariException("Current host component state prohibiting component removal."
               + ", clusterName=" + request.getClusterName()
               + ", serviceName=" + request.getServiceName()
               + ", componentName=" + request.getComponentName()
               + ", hostname=" + request.getHostname()
-              + ", request=" + request);
+              + ", request=" + request
+              + ", state=" + componentHost.getState());
     }
   }
 

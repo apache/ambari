@@ -37,7 +37,7 @@ public class DeleteHostComponentStatusMetaData extends DeleteStatusMetaData {
                                       String clusterId, String version, State lastComponentState) {
     removedHostComponents.add(new HostComponent(componentName, serviceName, hostId,
         hostName, clusterId, version, lastComponentState));
-    addDeletedKey(componentName + "/" + hostName);
+    addDeletedKey(hostName + "/" + componentName);
   }
 
   public Set<HostComponent> getRemovedHostComponents() {
