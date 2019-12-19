@@ -349,6 +349,10 @@ public class FileOperationService extends HdfsService {
         for (MultiRemoveRequest.PathEntry entry : request.paths) {
           String trashFilePath = api.getTrashDirPath(entry.path);
           try {
+              if(api.exists(trashFilePath))
+              {
+                  api.delete(trashFilePath, true);
+              }
             if (api.rename(entry.path, trashFilePath)) {
               index ++;
             } else {
