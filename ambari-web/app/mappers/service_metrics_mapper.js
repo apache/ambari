@@ -316,7 +316,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     var self = this;
     App.router.get('configurationController').getCurrentConfigsBySites(['hive-site', 'hive-interactive-site']).done(function (configs) {
       var hiveWebUiPort = configs.findProperty('type', 'hive-interactive-site').properties['hive.server2.webui.port'];
-      var hiveWebUiProtoFlag = configs.findProperty('type', 'hive-interactive-site').properties['hive.server2.webui.use.ssl'];
+      var hiveWebUiProtoFlag = configs.findProperty('type', 'hive-interactive-site').properties['hive.server2.webui.use.ssl'] === 'true';
       var hiveWebUiProto = hiveWebUiProtoFlag ? 'https' : 'http';
       var hostNames = hiveInteractiveServers.mapProperty('host_name');
       var useIps = configs.findProperty('type', 'hive-interactive-site').properties['hive.server2.leadertest.use.ip'];
