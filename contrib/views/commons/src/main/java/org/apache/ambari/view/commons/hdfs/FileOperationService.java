@@ -18,8 +18,33 @@
 
 package org.apache.ambari.view.commons.hdfs;
 
-import com.google.common.base.Strings;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.sql.Time;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.UriInfo;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.apache.ambari.view.ViewContext;
+import org.apache.hadoop.util.*;
 import org.apache.ambari.view.commons.exceptions.NotFoundFormattedException;
 import org.apache.ambari.view.commons.exceptions.ServiceFormattedException;
 import org.apache.ambari.view.utils.hdfs.DirListInfo;
@@ -30,17 +55,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
+import com.google.common.base.Strings;
 
 /**
  * File operations service
@@ -349,9 +364,12 @@ public class FileOperationService extends HdfsService {
         for (MultiRemoveRequest.PathEntry entry : request.paths) {
           String trashFilePath = api.getTrashDirPath(entry.path);
           try {
-              if(api.exists(trashFilePath))
+
+              long current_time = Time.now();
+              while(api.exists(trashFilePath))
               {
-                  api.delete(trashFilePath, true);
+                  trashFilePath = trashFilePath + Long.toString(current_time);
+                  api.delete(trashFilePath,true);
               }
             if (api.rename(entry.path, trashFilePath)) {
               index ++;
