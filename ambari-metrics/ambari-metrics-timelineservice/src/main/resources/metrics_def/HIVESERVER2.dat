@@ -60,9 +60,9 @@ default.General.gc.PS-MarkSweep.count
 default.General.gc.PS-MarkSweep.time
 default.General.gc.PS-Scavenge.count
 default.General.gc.PS-Scavenge.time
-default.General.init_total_count_dbs
-default.General.init_total_count_partitions
-default.General.init_total_count_tables
+default.General.total_count_dbs
+default.General.total_count_partitions
+default.General.total_count_tables
 default.General.jvm.pause.extraSleepTime
 default.General.memory.heap.committed
 default.General.memory.heap.init

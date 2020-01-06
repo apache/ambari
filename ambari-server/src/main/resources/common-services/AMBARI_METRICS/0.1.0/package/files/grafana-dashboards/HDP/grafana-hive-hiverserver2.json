@@ -33,180 +33,6 @@
       "title": "New row"
     },
     {
-      "collapse": false,
-      "editable": true,
-      "height": "250px",
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": null,
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {
-            "leftLogBase": 1,
-            "leftMax": null,
-            "leftMin": 0,
-            "rightLogBase": 1,
-            "rightMax": null,
-            "rightMin": null,
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "id": 9,
-          "isNew": true,
-          "leftYAxisLabel": "",
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 2,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "repeat": null,
-          "seriesOverrides": [],
-          "span": 6,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "aggregator": "avg",
-              "alias": "typical",
-              "app": "hiveserver2",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "default.General.api_get_all_databases_75thpercentile",
-              "precision": "default",
-              "refId": "A",
-              "templatedHost": ""
-            },
-            {
-              "aggregator": "max",
-              "alias": "max",
-              "app": "hiveserver2",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "default.General.api_get_all_databases_999thpercentile",
-              "precision": "default",
-              "refId": "B",
-              "templatedHost": ""
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "API call times - Health Check roundtrip (get_all_databases)",
-          "tooltip": {
-            "shared": true,
-            "value_type": "cumulative"
-          },
-          "type": "graph",
-          "x-axis": true,
-          "y-axis": true,
-          "y_formats": [
-            "ms",
-            "short"
-          ]
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": null,
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {
-            "leftLogBase": 1,
-            "leftMax": null,
-            "leftMin": 0,
-            "rightLogBase": 1,
-            "rightMax": null,
-            "rightMin": null,
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "id": 19,
-          "isNew": true,
-          "leftYAxisLabel": "",
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 2,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 6,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "aggregator": "avg",
-              "alias": "typical",
-              "app": "hiveserver2",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "default.General.api_get_partitions_by_names_75thpercentile",
-              "precision": "default",
-              "refId": "C",
-              "templatedHost": ""
-            },
-            {
-              "aggregator": "max",
-              "alias": "max",
-              "app": "hiveserver2",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "default.General.api_get_partitions_by_names_999thpercentile",
-              "precision": "default",
-              "refId": "D",
-              "templatedHost": ""
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "API call times - Moderate size call (get_partitions_by_names)",
-          "tooltip": {
-            "shared": true,
-            "value_type": "cumulative"
-          },
-          "type": "graph",
-          "x-axis": true,
-          "y-axis": true,
-          "y_formats": [
-            "ms",
-            "short"
-          ]
-        }
-      ],
-      "showTitle": true,
-      "title": "API Times"
-    },
-    {
       "collapse": true,
       "editable": true,
       "height": "250px",
@@ -433,7 +259,7 @@
               "app": "hiveserver2",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.memory.non-heap.used",
+                "metric": "default.General.memory.non-heap.used",
               "precision": "default",
               "refId": "B",
               "templatedHost": ""
@@ -777,7 +603,7 @@
   },
   "refresh": false,
   "schemaVersion": 8,
-  "version": 52,
+  "version": 53,
   "links": [
     {
       "asDropdown": true,
