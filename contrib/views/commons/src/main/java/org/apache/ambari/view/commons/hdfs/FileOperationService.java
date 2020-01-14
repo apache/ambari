@@ -364,12 +364,11 @@ public class FileOperationService extends HdfsService {
         for (MultiRemoveRequest.PathEntry entry : request.paths) {
           String trashFilePath = api.getTrashDirPath(entry.path);
           try {
-
               long current_time = Time.now();
               while(api.exists(trashFilePath))
               {
                   trashFilePath = trashFilePath + Long.toString(current_time);
-                  api.delete(trashFilePath,true);
+                  api.delete(trashFilePath,true);    //Recursively deleting the file with currenttimestamp as per hadoop convention
               }
             if (api.rename(entry.path, trashFilePath)) {
               index ++;
