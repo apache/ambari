@@ -37,5 +37,9 @@ public class URLCredentialsHiderTest {
 
     String invalidURL = "htt://user01:pass@host:8443/api/v1";
     Assert.assertEquals(URLCredentialsHider.INVALID_URL, URLCredentialsHider.hideCredentials(invalidURL));
+
+    String testURL3 = "http://***:***@host:8443/api/v1";
+    Assert.assertEquals(String.format("http://%s@host:8443/api/v1", URLCredentialsHider.HIDDEN_CREDENTIALS),
+                        URLCredentialsHider.hideCredentials(testURL3));
   }
 }
