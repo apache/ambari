@@ -482,7 +482,7 @@ template = '''
     {
       "id": "central",
       "type": "default",
-      "url": "http://repo1.maven.org/maven2/",
+      "url": "https://repo1.maven.org/maven2/",
       "releasePolicy": {
         "enabled": true,
         "updatePolicy": "daily",
