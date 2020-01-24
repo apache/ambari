@@ -80,7 +80,8 @@ App.ManageJournalNodeWizardStep2Controller = Em.Controller.extend({
 
   onLoadConfigs: function (data) {
     this.set('serverConfigData',data);
-    this.set('content.nameServiceId', data.items[0].properties['dfs.nameservices']);
+    this.set('content.nameServiceId',
+              data.items[0].properties['dfs.internal.nameservices'] || data.items[0].properties['dfs.nameservices'].split(',')[0]);
     this.tweakServiceConfigs(this.get('moveJNConfig.configs'));
     this.renderServiceConfigs(this.get('moveJNConfig'));
     this.set('isLoaded', true);
