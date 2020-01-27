@@ -716,6 +716,11 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
+  public List<Host> getHostsListForCluster(String clusterName) {
+    return new ArrayList<>(getClusterHostsMap().get(clusterName));
+  }
+
+  @Override
   public Map<Long, Host> getHostIdsForCluster(String clusterName)
       throws AmbariException {
     Map<Long, Host> hosts = new HashMap<>();

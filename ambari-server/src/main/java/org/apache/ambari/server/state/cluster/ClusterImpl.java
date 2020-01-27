@@ -2290,7 +2290,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public Collection<Host> getHosts() {
-    return clusters.getHostsForCluster(clusterName).values();
+    return clusters.getHostsListForCluster(clusterName);
   }
 
   private ClusterHealthReport getClusterHealthReport(

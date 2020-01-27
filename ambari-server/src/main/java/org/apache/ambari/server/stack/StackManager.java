@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -564,26 +565,31 @@ public class StackManager {
     Map<String, ServiceModule> commonServiceModules = new HashMap<>();
 
     if(commonServicesRoot != null && commonServicesRoot.exists()) {
-      File[] commonServiceFiles = commonServicesRoot.listFiles(StackDirectory.FILENAME_FILTER);
+      File[] commonServiceFiles = Objects.requireNonNull(commonServicesRoot.listFiles(StackDirectory.FILENAME_FILTER));
+
       for (File commonService : commonServiceFiles) {
         if (commonService.isFile()) {
           continue;
         }
-        for (File serviceFolder : commonService.listFiles(StackDirectory.FILENAME_FILTER)) {
+        for (File serviceFolder : Objects.requireNonNull(commonService.listFiles(StackDirectory.FILENAME_FILTER))) {
+          if (serviceFolder.isFile()) {
+            continue;
+          }
           ServiceDirectory serviceDirectory = new CommonServiceDirectory(serviceFolder.getPath());
           ServiceMetainfoXml metaInfoXml = serviceDirectory.getMetaInfoFile();
           if (metaInfoXml != null) {
             if (metaInfoXml.isValid()) {
               for (ServiceInfo serviceInfo : metaInfoXml.getServices()) {
                 ServiceModule serviceModule = new ServiceModule(stackContext, serviceInfo, serviceDirectory, true);
-
                 String commonServiceKey = serviceInfo.getName() + StackManager.PATH_DELIMITER + serviceInfo.getVersion();
+
                 commonServiceModules.put(commonServiceKey, serviceModule);
               }
             } else {
               ServiceModule serviceModule = new ServiceModule(stackContext, new ServiceInfo(), serviceDirectory, true);
               serviceModule.setValid(false);
               serviceModule.addErrors(metaInfoXml.getErrors());
+
               commonServiceModules.put(metaInfoXml.getSchemaVersion(), serviceModule);
               metaInfoXml.setSchemaVersion(null);
             }

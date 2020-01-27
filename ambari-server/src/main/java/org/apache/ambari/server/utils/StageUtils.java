@@ -37,7 +37,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -56,6 +56,7 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
@@ -280,40 +281,42 @@ public class StageUtils {
     return componentName.toLowerCase()+"_hosts";
   }
 
-  public static Map<String, Set<String>> getClusterHostInfo(Cluster cluster) throws AmbariException {
+  public static Map<String, Set<String>> getClusterHostInfo(Cluster cluster) {
     //Fill hosts and ports lists
-    Set<String>   hostsSet  = new LinkedHashSet<>();
+    Map<String, Integer> indexedHosts = new LinkedHashMap<>();
     List<Integer> portsList = new ArrayList<>();
     List<String>  rackList  = new ArrayList<>();
     List<String>  ipV4List  = new ArrayList<>();
 
+    int hostIndex = 0;
     Collection<Host> allHosts = cluster.getHosts();
     for (Host host : allHosts) {
 
-      hostsSet.add(host.getHostName());
+      String hostName = host.getHostName();
+      indexedHosts.put(hostName, hostIndex++);
 
       Integer currentPingPort = host.getCurrentPingPort();
       portsList.add(currentPingPort == null ? DEFAULT_PING_PORT : currentPingPort);
 
-      String rackInfo = host.getRackInfo();
+      HostEntity hostEntity = host.getHostEntity();
+      String rackInfo = hostEntity.getRackInfo();
       rackList.add(StringUtils.isEmpty(rackInfo) ? DEFAULT_RACK : rackInfo );
 
-      String iPv4 = host.getIPv4();
+      String iPv4 = hostEntity.getIpv4();
       ipV4List.add(StringUtils.isEmpty(iPv4) ? DEFAULT_IPV4_ADDRESS : iPv4 );
     }
 
     // add hosts from topology manager
     Map<String, Collection<String>> pendingHostComponents = topologyManager.getPendingHostComponents();
     for (String hostname : pendingHostComponents.keySet()) {
-      if (!hostsSet.contains(hostname)) {
-        hostsSet.add(hostname);
+      if (!indexedHosts.keySet().contains(hostname)) {
+        indexedHosts.put(hostname, hostIndex++);
         portsList.add(DEFAULT_PING_PORT);
         rackList.add(DEFAULT_RACK);
         ipV4List.add(DEFAULT_IPV4_ADDRESS);
       }
     }
 
-    List<String> hostsList = new ArrayList<>(hostsSet);
     Map<String, String> additionalComponentToClusterInfoKeyMap = new HashMap<>();
 
     // Fill hosts for services
@@ -340,7 +343,7 @@ public class StageUtils {
           continue;
         }
 
-        for (String hostName : serviceComponent.getServiceComponentHosts().keySet()) {
+        for (String hostName : serviceComponent.getServiceComponentsHosts()) {
 
           if (roleName != null) {
             SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
@@ -350,9 +353,9 @@ public class StageUtils {
               hostRolesInfo.put(roleName, hostsForComponentsHost);
             }
 
-            int hostIndex = hostsList.indexOf(hostName);
+            Integer componentHostIndex = indexedHosts.get(hostName);
             //Add index of host to current host role
-            hostsForComponentsHost.add(hostIndex);
+            hostsForComponentsHost.add(componentHostIndex == null ? -1 : componentHostIndex);
           }
         }
       }
@@ -389,10 +392,10 @@ public class StageUtils {
             hostRolesInfo.put(roleName, hostsForComponentsHost);
           }
 
-          int hostIndex = hostsList.indexOf(hostname);
-          if (hostIndex != -1) {
-            if (!hostsForComponentsHost.contains(hostIndex)) {
-              hostsForComponentsHost.add(hostIndex);
+          Integer componentHostIndex = indexedHosts.get(hostname);
+          if (componentHostIndex != null) {
+            if (!hostsForComponentsHost.contains(componentHostIndex)) {
+              hostsForComponentsHost.add(componentHostIndex);
             }
           } else {
             //todo: I don't think that this can happen
@@ -414,7 +417,7 @@ public class StageUtils {
       clusterHostInfo.put(entry.getKey(), replacedRangesSet);
     }
 
-    clusterHostInfo.put(HOSTS_LIST, hostsSet);
+    clusterHostInfo.put(HOSTS_LIST, indexedHosts.keySet());
     clusterHostInfo.put(PORTS, replaceMappedRanges(portsList));
     clusterHostInfo.put(IPV4_ADDRESSES, replaceMappedRanges(ipV4List));
     clusterHostInfo.put(RACKS, replaceMappedRanges(rackList));

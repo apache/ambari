@@ -23,6 +23,8 @@ import static java.util.stream.Collectors.toList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -167,6 +169,25 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
           }
         }
       }
+    }
+  }
+
+  /**
+   * Initialize new object from and existing by creating duplicate properties with shallow copy of objects inside
+   *
+   * @param object object to copy
+   */
+  protected AbstractKerberosDescriptorContainer(AbstractKerberosDescriptorContainer object) {
+    if (object.identities != null) {
+      this.identities = new ArrayList<>(object.identities);
+    }
+
+    if (object.authToLocalProperties != null) {
+      this.authToLocalProperties = new HashSet<>(object.authToLocalProperties);
+    }
+
+    if (object.configurations != null) {
+      this.configurations = new HashMap<>(object.configurations);
     }
   }
 

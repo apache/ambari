@@ -62,6 +62,7 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
@@ -209,7 +210,9 @@ public class HostStackVersionResourceProviderTest {
     final Host host1 = createNiceMock("host1", Host.class);
     expect(host1.getHostName()).andReturn("host1").anyTimes();
     expect(host1.getOsFamily()).andReturn("redhat6").anyTimes();
-    replay(host1);
+    HostEntity hostEntity = createNiceMock(HostEntity.class);
+    expect(host1.getHostEntity()).andReturn(hostEntity).anyTimes();
+    replay(host1, hostEntity);
     Map<String, Host> hostsForCluster = Collections.singletonMap(host1.getHostName(), host1);
 
     ServiceComponentHost sch = createMock(ServiceComponentHost.class);
@@ -404,7 +407,9 @@ public class HostStackVersionResourceProviderTest {
     final Host host1 = createNiceMock("host1", Host.class);
     expect(host1.getHostName()).andReturn("host1").anyTimes();
     expect(host1.getOsFamily()).andReturn("redhat6").anyTimes();
-    replay(host1);
+    HostEntity hostEntity = createNiceMock(HostEntity.class);
+    expect(host1.getHostEntity()).andReturn(hostEntity).anyTimes();
+    replay(host1, hostEntity);
     Map<String, Host> hostsForCluster = Collections.singletonMap(host1.getHostName(), host1);
 
     ServiceComponentHost sch = createMock(ServiceComponentHost.class);

@@ -534,16 +534,12 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
           "Parent stack/service resource doesn't exist: stackName='%s', stackVersion='%s', serviceName='%s'",
           stackName, stackVersion, serviceName));
     }
-    File kerberosFile = serviceInfo.getKerberosDescriptorFile();
 
-    if (kerberosFile != null) {
-      KerberosServiceDescriptor serviceDescriptor =
-          kerberosServiceDescriptorFactory.createInstance(kerberosFile, serviceName);
-
-      if (serviceDescriptor != null) {
-        return serviceDescriptor.toMap();
-      }
+    KerberosServiceDescriptor serviceDescriptor = kerberosServiceDescriptorFactory.getInstance(serviceInfo, serviceName);
+    if (serviceDescriptor != null) {
+      return serviceDescriptor.toMap();
     }
+
     return null;
   }
 

@@ -122,7 +122,8 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    * @param serviceInfo       associated service info
    * @param serviceDirectory  used for all IO interaction with service directory in stack definition
    */
-  public ServiceModule(StackContext stackContext, ServiceInfo serviceInfo, ServiceDirectory serviceDirectory) {
+  public ServiceModule(StackContext stackContext, ServiceInfo serviceInfo, ServiceDirectory serviceDirectory)
+    throws AmbariException{
     this(stackContext, serviceInfo, serviceDirectory, false);
   }
 
@@ -135,7 +136,8 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    * @param isCommonService   flag to mark a service as a common service
    */
   public ServiceModule(
-      StackContext stackContext, ServiceInfo serviceInfo, ServiceDirectory serviceDirectory, boolean isCommonService) {
+      StackContext stackContext, ServiceInfo serviceInfo, ServiceDirectory serviceDirectory, boolean isCommonService)
+  throws AmbariException{
     this.serviceInfo = serviceInfo;
     this.stackContext = stackContext;
     this.serviceDirectory = serviceDirectory;

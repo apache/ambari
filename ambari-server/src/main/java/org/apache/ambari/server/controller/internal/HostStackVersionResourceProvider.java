@@ -458,12 +458,8 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
     // Generate cluster host info
     String clusterHostInfoJson;
-    try {
-      clusterHostInfoJson = StageUtils.getGson().toJson(
-        StageUtils.getClusterHostInfo(cluster));
-    } catch (AmbariException e) {
-      throw new SystemException("Could not build cluster topology", e);
-    }
+    clusterHostInfoJson = StageUtils.getGson().toJson(
+      StageUtils.getClusterHostInfo(cluster));
 
     Stage stage = stageFactory.createNew(req.getId(),
             "/tmp/ambari",

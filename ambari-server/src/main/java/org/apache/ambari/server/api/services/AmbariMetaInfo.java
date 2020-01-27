@@ -146,6 +146,8 @@ public class AmbariMetaInfo {
   private File commonWidgetsDescriptorFile;
   private File customActionRoot;
   private String commonKerberosDescriptorFileLocation;
+  private File commonKerberosDescriptorFile;
+  private KerberosDescriptor commonKerberosDescriptor;
   Map<String, VersionDefinitionXml> versionDefinitions = null;
 
 
@@ -230,12 +232,10 @@ public class AmbariMetaInfo {
       extensionsRoot = new File(extensionsPath);
     }
 
-    String serverVersionFilePath = conf.getServerVersionFilePath();
-    serverVersionFile = new File(serverVersionFilePath);
-
+    serverVersionFile = new File(conf.getServerVersionFilePath());
     customActionRoot = new File(conf.getCustomActionDefinitionPath());
-
-    commonKerberosDescriptorFileLocation = new File(conf.getResourceDirPath(), KERBEROS_DESCRIPTOR_FILE_NAME).getAbsolutePath();
+    commonKerberosDescriptorFile = new File(conf.getResourceDirPath(), KERBEROS_DESCRIPTOR_FILE_NAME);
+    commonKerberosDescriptorFileLocation = commonKerberosDescriptorFile.getAbsolutePath();
     commonWidgetsDescriptorFile = new File(conf.getResourceDirPath(), WIDGETS_DESCRIPTOR_FILE_NAME);
   }
 
@@ -248,6 +248,7 @@ public class AmbariMetaInfo {
   public void init() throws Exception {
     // Need to be initialized before all actions
     ALL_SUPPORTED_OS = new ArrayList<>(osFamily.os_list());
+    commonKerberosDescriptor = kerberosDescriptorFactory.createInstance(commonKerberosDescriptorFile);
 
     readServerVersion();
 
@@ -1300,18 +1301,17 @@ public class AmbariMetaInfo {
    * @return a new complete KerberosDescriptor, or null if no Kerberos descriptor information is available
    * @throws AmbariException if an error occurs reading or parsing the stack's kerberos.json files
    */
-  public KerberosDescriptor getKerberosDescriptor(String stackName, String stackVersion, boolean includePreconfigureData) throws AmbariException {
+  public KerberosDescriptor getKerberosDescriptor(String stackName, String stackVersion,
+                                                  boolean includePreconfigureData) throws AmbariException {
     StackInfo stackInfo = getStack(stackName, stackVersion);
 
-    KerberosDescriptor kerberosDescriptor = readKerberosDescriptorFromFile(getCommonKerberosDescriptorFileLocation());
+    KerberosDescriptor kerberosDescriptor = (commonKerberosDescriptor == null)
+      ? new KerberosDescriptor()
+      : new KerberosDescriptor(commonKerberosDescriptor);
 
-    if (kerberosDescriptor == null) {
-      LOG.warn("Couldn't read common Kerberos descriptor with path {%s}", getCommonKerberosDescriptorFileLocation());
-      kerberosDescriptor = new KerberosDescriptor();
-    }
     // Read in the stack-level Kerberos descriptor pre-configuration data
     if (includePreconfigureData) {
-      KerberosDescriptor preConfigureKerberosDescriptor = readKerberosDescriptorFromFile(stackInfo.getKerberosDescriptorPreConfigurationFileLocation());
+      KerberosDescriptor preConfigureKerberosDescriptor = stackInfo.getKerberosDescriptor();
 
       if (preConfigureKerberosDescriptor != null) {
         // Ensure the all services to be pre-configured are flagged appropriately.
@@ -1330,7 +1330,7 @@ public class AmbariMetaInfo {
 
     if (services != null) {
       for (ServiceInfo service : services.values()) {
-        KerberosServiceDescriptor[] serviceDescriptors = getKerberosDescriptor(service);
+        KerberosServiceDescriptor[] serviceDescriptors = service.getKerberosServiceDescriptors();
 
         if (serviceDescriptors != null) {
           for (KerberosServiceDescriptor serviceDescriptor : serviceDescriptors) {
@@ -1367,6 +1367,7 @@ public class AmbariMetaInfo {
    * does not contain Kerberos descriptor details
    * @throws AmbariException if an error occurs reading or parsing the service's kerberos.json files
    */
+  @Deprecated
   public KerberosServiceDescriptor[] getKerberosDescriptor(ServiceInfo serviceInfo) throws AmbariException {
 
     KerberosServiceDescriptor[] kerberosServiceDescriptors = null;

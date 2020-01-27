@@ -86,6 +86,7 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
 import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO.KeytabPrincipalFindOrCreateResult;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
@@ -1033,7 +1034,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final ServiceComponent serviceComponentKerberosClient = createNiceMock(ServiceComponent.class);
     expect(serviceComponentKerberosClient.getName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
-    expect(serviceComponentKerberosClient.getServiceComponentHosts()).andReturn(Collections.singletonMap("host1", schKerberosClient)).anyTimes();
+    expect(serviceComponentKerberosClient.getServiceComponentsHosts()).andReturn(Collections.singleton("host1")).anyTimes();
 
     final Service serviceKerberos = createNiceMock(Service.class);
     expect(serviceKerberos.getDesiredStackId()).andReturn(stackId).anyTimes();
@@ -1198,6 +1199,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final ServiceComponent serviceComponentKerberosClient = createNiceMock(ServiceComponent.class);
     expect(serviceComponentKerberosClient.getName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
+    expect(serviceComponentKerberosClient.getServiceComponentsHosts()).andReturn(Collections.singleton("host1")).anyTimes();
     expect(serviceComponentKerberosClient.getServiceComponentHosts()).andReturn(Collections.singletonMap("host1", schKerberosClient)).anyTimes();
 
     final Service serviceKerberos = createNiceMock(Service.class);
@@ -1384,20 +1386,19 @@ public class KerberosHelperTest extends EasyMockSupport {
 
       hostInvalid = createMockHost("host1");
     } else {
-      schKerberosClientInvalid = null;
       hostInvalid = null;
     }
 
-    Map<String, ServiceComponentHost> map = new HashMap<>();
+    Set<String> hostsSet = new HashSet<>();
     final ServiceComponent serviceComponentKerberosClient = createNiceMock(ServiceComponent.class);
-    map.put("host1", schKerberosClient);
+    hostsSet.add("host1");
     expect(serviceComponentKerberosClient.getName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
 
     if (testInvalidHost) {
-      map.put("host2", schKerberosClientInvalid);
+      hostsSet.add("host2");
     }
 
-    expect(serviceComponentKerberosClient.getServiceComponentHosts()).andReturn(map).anyTimes();
+    expect(serviceComponentKerberosClient.getServiceComponentsHosts()).andReturn(hostsSet).anyTimes();
 
     final Service serviceKerberos = createStrictMock(Service.class);
     expect(serviceKerberos.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
@@ -3002,15 +3003,8 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final ServiceComponent serviceComponentKerberosClient = createNiceMock(ServiceComponent.class);
     expect(serviceComponentKerberosClient.getName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
-    expect(serviceComponentKerberosClient.getServiceComponentHosts()).andReturn(
-        new HashMap<String, ServiceComponentHost>() {
-          {
-            put("hostA", schKerberosClientA);
-            put("hostB", schKerberosClientB);
-            put("hostC", schKerberosClientC);
-          }
-        }
-    ).anyTimes();
+    expect(serviceComponentKerberosClient.getServiceComponentsHosts()).andReturn(new HashSet<>(
+      Arrays.asList("hostA", "hostB", "hostC"))).anyTimes();
 
     final Service serviceKerberos = createStrictMock(Service.class);
     expect(serviceKerberos.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
@@ -3258,7 +3252,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final ServiceComponent serviceComponentKerberosClient = createNiceMock(ServiceComponent.class);
     expect(serviceComponentKerberosClient.getName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
-    expect(serviceComponentKerberosClient.getServiceComponentHosts()).andReturn(Collections.singletonMap("host1", schKerberosClient)).anyTimes();
+    expect(serviceComponentKerberosClient.getServiceComponentsHosts()).andReturn(Collections.singleton("host1")).anyTimes();
 
     final Service serviceKerberos = createStrictMock(Service.class);
     expect(serviceKerberos.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
@@ -3481,7 +3475,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
       final ServiceComponent serviceComponentKerberosClient = createNiceMock(ServiceComponent.class);
       expect(serviceComponentKerberosClient.getName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
-      expect(serviceComponentKerberosClient.getServiceComponentHosts()).andReturn(Collections.singletonMap("host1", schKerberosClient)).anyTimes();
+      expect(serviceComponentKerberosClient.getServiceComponentsHosts()).andReturn(Collections.singleton("host1")).anyTimes();
 
       final Service serviceKerberos = createNiceMock(Service.class);
       expect(serviceKerberos.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
@@ -3635,6 +3629,9 @@ public class KerberosHelperTest extends EasyMockSupport {
     Host host1 = createMock(Host.class);
     expect(host1.getHostId()).andReturn(1l).anyTimes();
 
+    HostEntity hostEntity1 = createNiceMock(HostEntity.class);
+    expect(host1.getHostEntity()).andReturn(hostEntity1).anyTimes();
+
     final ServiceComponentHost schKerberosClient = createMock(ServiceComponentHost.class);
     expect(schKerberosClient.getServiceName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
     expect(schKerberosClient.getServiceComponentName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
@@ -3660,7 +3657,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final ServiceComponent serviceComponentKerberosClient = createNiceMock(ServiceComponent.class);
     expect(serviceComponentKerberosClient.getName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
-    expect(serviceComponentKerberosClient.getServiceComponentHosts()).andReturn(Collections.singletonMap("host1", schKerberosClient)).anyTimes();
+    expect(serviceComponentKerberosClient.getServiceComponentsHosts()).andReturn(Collections.singleton("host1")).anyTimes();
 
     final Service serviceKerberos = createNiceMock(Service.class);
     expect(serviceKerberos.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
@@ -3831,7 +3828,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final ServiceComponent serviceComponentKerberosClient = createNiceMock(ServiceComponent.class);
     expect(serviceComponentKerberosClient.getName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
-    expect(serviceComponentKerberosClient.getServiceComponentHosts()).andReturn(Collections.singletonMap("host1", schKerberosClient1)).anyTimes();
+    expect(serviceComponentKerberosClient.getServiceComponentsHosts()).andReturn(Collections.singleton("host1")).anyTimes();
 
     final Service serviceKerberos = createNiceMock(Service.class);
     expect(serviceKerberos.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
@@ -4203,6 +4200,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(component.isMasterComponent()).andReturn(isMasterComponent).anyTimes();
     expect(component.isClientComponent()).andReturn(!isMasterComponent).anyTimes();
     expect(component.getServiceComponentHosts()).andReturn(hosts).anyTimes();
+    expect(component.getServiceComponentsHosts()).andReturn(hosts.keySet()).anyTimes();
     return component;
   }
 
@@ -4221,6 +4219,9 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(host.getCurrentPingPort()).andReturn(1).anyTimes();
     expect(host.getRackInfo()).andReturn("rack1").anyTimes();
     expect(host.getIPv4()).andReturn("1.2.3.4").anyTimes();
+
+    HostEntity hostEntity = createNiceMock(HostEntity.class);
+    expect(host.getHostEntity()).andReturn(hostEntity).anyTimes();
     return host;
   }
 

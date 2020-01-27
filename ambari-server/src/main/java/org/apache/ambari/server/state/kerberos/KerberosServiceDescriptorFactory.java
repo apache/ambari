@@ -23,8 +23,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Stream;
+
+import javax.annotation.Nullable;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.state.ServiceInfo;
 
 import com.google.inject.Singleton;
 
@@ -156,6 +160,23 @@ public class KerberosServiceDescriptorFactory extends AbstractKerberosDescriptor
     } catch (AmbariException e) {
       throw new AmbariException(String.format("An error occurred processing the JSON-formatted file: %s", file.getAbsolutePath()), e);
     }
+  }
+
+  /**
+   * Return pre-created kerberos descriptor instance
+   */
+  @Nullable
+  public KerberosServiceDescriptor getInstance(ServiceInfo serviceInfo, String serviceName) {
+    KerberosServiceDescriptor[] descriptors = serviceInfo.getKerberosServiceDescriptors();
+
+    if (descriptors == null) {
+      return null;
+    }
+
+    return Stream.of(descriptors)
+      .filter(x -> x.getName().equals(serviceName))
+      .findFirst()
+      .orElse(null);
   }
 
   /**

@@ -1152,7 +1152,7 @@ public class ServiceModuleTest {
   }
 
   @Test
-  public void testInvalidServiceInfo() {
+  public void testInvalidServiceInfo() throws AmbariException{
     // Given
     ServiceInfo serviceInfo = new ServiceInfo();
     serviceInfo.setName("TEST_SERVICE");
@@ -1298,7 +1298,7 @@ public class ServiceModuleTest {
   }
 
 
-  private ServiceModule createServiceModule(ServiceInfo serviceInfo) {
+  private ServiceModule createServiceModule(ServiceInfo serviceInfo) throws AmbariException{
     String configType = "type1";
 
     if (serviceInfo.getName() == null) {
@@ -1319,7 +1319,7 @@ public class ServiceModuleTest {
 
   private ServiceModule createServiceModule(ServiceInfo serviceInfo,
                                             Collection<ConfigurationModule> configurations,
-                                            StackContext context) {
+                                            StackContext context) throws AmbariException{
 
     if (serviceInfo.getName() == null) {
       serviceInfo.setName("service1");
@@ -1331,7 +1331,8 @@ public class ServiceModuleTest {
     return createServiceModule(context, serviceInfo, serviceDirectory);
   }
 
-  private ServiceModule createServiceModule(ServiceInfo serviceInfo, Collection<ConfigurationModule> configurations) {
+  private ServiceModule createServiceModule(ServiceInfo serviceInfo, Collection<ConfigurationModule> configurations)
+   throws AmbariException{
     String serviceName = serviceInfo.getName();
 
     if (serviceInfo.getName() == null) {
@@ -1342,7 +1343,7 @@ public class ServiceModuleTest {
   }
 
   private ServiceModule createServiceModule(StackContext context, ServiceInfo serviceInfo,
-                                            ServiceDirectory serviceDirectory) {
+                                            ServiceDirectory serviceDirectory) throws AmbariException {
 
     return new ServiceModule(context, serviceInfo, serviceDirectory);
   }

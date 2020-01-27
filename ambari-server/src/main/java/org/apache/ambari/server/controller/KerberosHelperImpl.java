@@ -1719,7 +1719,8 @@ public class KerberosHelperImpl implements KerberosHelper {
   public Map<String, Map<String, String>> calculateConfigurations(Cluster cluster, String hostname,
                                                                   KerberosDescriptor kerberosDescriptor,
                                                                   boolean includePreconfigureData,
-                                                                  boolean calculateClusterHostInfo)
+                                                                  boolean calculateClusterHostInfo,
+                                                                  Map<String, String> componentHosts)
     throws AmbariException {
 
 
@@ -1727,12 +1728,22 @@ public class KerberosHelperImpl implements KerberosHelper {
       cluster,
       configHelper.calculateExistingConfigurations(ambariManagementController, cluster, hostname),
       hostname,
-      (kerberosDescriptor == null) ? null : kerberosDescriptor.getProperties());
+      (kerberosDescriptor == null) ? null : kerberosDescriptor.getProperties(), componentHosts);
 
     if (includePreconfigureData) {
       calculatedConfigurations = addConfigurationsForPreProcessedServices(calculatedConfigurations, cluster, kerberosDescriptor, calculateClusterHostInfo);
     }
     return calculatedConfigurations;
+  }
+
+  @Override
+  public Map<String, Map<String, String>> calculateConfigurations(Cluster cluster, String hostname,
+                                                                  KerberosDescriptor kerberosDescriptor,
+                                                                  boolean includePreconfigureData,
+                                                                  boolean calculateClusterHostInfo)
+    throws AmbariException {
+    return calculateConfigurations(cluster, hostname, kerberosDescriptor, includePreconfigureData,
+                                   calculateClusterHostInfo, null);
   }
 
   private Map<String, String> principalNames(Cluster cluster, Map<String, Map<String, String>> configuration) throws AmbariException {
@@ -2976,11 +2987,13 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @param configurations               a map of configurations
    * @param hostname                     a hostname
    * @param kerberosDescriptorProperties the Kerberos descriptor properties
+   * @param componentHosts               cached cluster hosts info, will be populated if is empty
    * @return the supplied map of configurations with updates applied
    * @throws AmbariException
    */
   private Map<String, Map<String, String>> addAdditionalConfigurations(Cluster cluster, Map<String, Map<String, String>> configurations,
-                                                                       String hostname, Map<String, String> kerberosDescriptorProperties)
+                                                                       String hostname, Map<String, String> kerberosDescriptorProperties,
+                                                                       Map<String, String> componentHosts)
     throws AmbariException {
 
     // A map to hold un-categorized properties.  This may come from the KerberosDescriptor
@@ -3011,22 +3024,44 @@ public class KerberosHelperImpl implements KerberosHelper {
 
     // add clusterHostInfo config
     if (configurations.get("clusterHostInfo") == null) {
-      Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
+      if (componentHosts == null) {
+        componentHosts = new HashMap<>();
+      }
+      if (componentHosts.isEmpty()) {
+        Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
+        if (clusterHostInfo != null) {
 
-      if (clusterHostInfo != null) {
-        Map<String, String> componentHosts = new HashMap<>();
+          clusterHostInfo = StageUtils.substituteHostIndexes(clusterHostInfo);
 
-        clusterHostInfo = StageUtils.substituteHostIndexes(clusterHostInfo);
-
-        for (Map.Entry<String, Set<String>> entry : clusterHostInfo.entrySet()) {
-          componentHosts.put(entry.getKey(), StringUtils.join(entry.getValue(), ","));
+          for (Map.Entry<String, Set<String>> entry : clusterHostInfo.entrySet()) {
+            componentHosts.put(entry.getKey(), StringUtils.join(entry.getValue(), ","));
+          }
         }
-
+      }
+      if (!componentHosts.isEmpty()) {
         configurations.put("clusterHostInfo", componentHosts);
       }
     }
     configurations.put("principals", principalNames(cluster, configurations));
     return configurations;
+  }
+
+  /**
+   * Add configurations related to Kerberos, to a previously created map of configurations.
+   * <p/>
+   * The supplied map of configurations is expected to be mutable and will be altered.
+   *
+   * @param cluster                      the cluster
+   * @param configurations               a map of configurations
+   * @param hostname                     a hostname
+   * @param kerberosDescriptorProperties the Kerberos descriptor properties
+   * @return the supplied map of configurations with updates applied
+   * @throws AmbariException
+   */
+  private Map<String, Map<String, String>> addAdditionalConfigurations(Cluster cluster, Map<String, Map<String, String>> configurations,
+                                                                       String hostname, Map<String, String> kerberosDescriptorProperties)
+    throws AmbariException {
+    return addAdditionalConfigurations(cluster, configurations, hostname, kerberosDescriptorProperties, null);
   }
 
   /**

@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import org.apache.ambari.server.controller.StackVersionResponse;
 import org.apache.ambari.server.stack.Validable;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.RepositoryXml;
@@ -62,6 +63,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   private List<PropertyInfo> properties;
   private Map<String, Map<String, Map<String, String>>> configTypes;
   private Map<String, UpgradePack> upgradePacks;
+  private KerberosDescriptor kerberosDescriptor;
   private ConfigUpgradePack configUpgradePack;
   private StackRoleCommandOrder roleCommandOrder;
   private boolean valid = true;
@@ -405,6 +407,22 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
    */
   public void setKerberosDescriptorPreConfigurationFileLocation(String kerberosDescriptorPreConfigurationFileLocation) {
     this.kerberosDescriptorPreConfigurationFileLocation = kerberosDescriptorPreConfigurationFileLocation;
+  }
+
+  /**
+   * Sets kerberos descriptor
+   *
+   * @param kerberosDescriptor an Kerberos descriptor object
+   */
+  public void setKerberosDescriptor(KerberosDescriptor kerberosDescriptor) {
+    this.kerberosDescriptor = kerberosDescriptor;
+  }
+
+  /**
+   * Gets kerberos descriptor
+   */
+  public KerberosDescriptor getKerberosDescriptor() {
+    return kerberosDescriptor;
   }
 
   /**

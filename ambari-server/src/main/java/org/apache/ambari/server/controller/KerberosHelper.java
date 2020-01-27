@@ -633,6 +633,27 @@ public interface KerberosHelper {
    * @param kerberosDescriptor a map of general Kerberos descriptor properties
    * @param includePreconfigureData <code>true</code> to include the preconfigure data; otherwise false
    * @param calculateClusterHostInfo
+   * @param componentHosts map of cached cluster host info
+   * @return a Map of calculated configuration types
+   * @throws AmbariException
+   */
+  Map<String, Map<String, String>> calculateConfigurations(Cluster cluster, String hostname,
+                                                           KerberosDescriptor kerberosDescriptor,
+                                                           boolean includePreconfigureData,
+                                                           boolean calculateClusterHostInfo,
+                                                           Map<String, String> componentHosts)
+      throws AmbariException;
+
+  /**
+   * Calculates the map of configurations relative to the cluster and host.
+   * <p/>
+   * Most of this was borrowed from {@link org.apache.ambari.server.actionmanager.ExecutionCommandWrapper#getExecutionCommand()}
+   *
+   * @param cluster                      the relevant Cluster
+   * @param hostname                     the relevant hostname
+   * @param kerberosDescriptor a map of general Kerberos descriptor properties
+   * @param includePreconfigureData <code>true</code> to include the preconfigure data; otherwise false
+   * @param calculateClusterHostInfo
    * @return a Map of calculated configuration types
    * @throws AmbariException
    */

@@ -302,9 +302,10 @@ public class KerberosKeytabController {
     if (!hosts.contains(ambariServerHostname)) {
       hosts.add(ambariServerHostname);
     }
+    Map<String, String> componentHosts = new HashMap<>();
     for( String hostName : hosts ) {
       Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(
-        cluster, hostName, kerberosDescriptor, false, false);
+        cluster, hostName, kerberosDescriptor, false, false, componentHosts);
       hostConfigurations.put(hostName, configurations);
     }
     for (String service : services) {

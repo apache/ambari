@@ -44,6 +44,7 @@ import org.apache.ambari.server.state.RefreshCommand;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
@@ -56,6 +57,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
@@ -149,6 +151,11 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * Logger
    */
   private final static Logger LOG = LoggerFactory.getLogger(StackModule.class);
+
+  /**
+   * KerberosDescriptorFactory used to create KerberosDescriptor instances
+   */
+  private final static KerberosDescriptorFactory kerberosDescriptorFactory = new KerberosDescriptorFactory();
 
   /**
    * Constructor.
@@ -578,6 +585,19 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     }
 
     try {
+      String preconfigurePath = stackDirectory.getKerberosDescriptorPreconfigureFilePath();
+      File preconfiguredDescriptorFile = null;
+      if (!Strings.isNullOrEmpty(preconfigurePath)) {
+        preconfiguredDescriptorFile = new File(preconfigurePath);
+      } else {
+        LOG.info(String.format("Preconfigured Kerberos descriptor is missing in %s %s stack",
+          stackInfo.getName(), stackInfo.getVersion()));
+      }
+
+      stackInfo.setKerberosDescriptor(
+        kerberosDescriptorFactory.createInstance(preconfiguredDescriptorFile)
+      );
+
       //configurationModules
       RepositoryXml rxml = stackDirectory.getRepoFile();
       if (rxml != null && !rxml.isValid()) {
@@ -618,7 +638,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    *
    * @param serviceDirectory the child service directory
    */
-  private void populateService(ServiceDirectory serviceDirectory)  {
+  private void populateService(ServiceDirectory serviceDirectory) throws AmbariException {
     Collection<ServiceModule> serviceModules = new ArrayList<>();
     // unfortunately, we allow multiple services to be specified in the same metainfo.xml,
     // so we can't move the unmarshal logic into ServiceModule

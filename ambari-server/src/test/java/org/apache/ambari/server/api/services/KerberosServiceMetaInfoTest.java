@@ -18,17 +18,16 @@
 
 package org.apache.ambari.server.api.services;
 
+import static org.apache.ambari.server.api.services.AmbariMetaInfoTest.createAmbariMetaInfo;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import javax.persistence.EntityManager;
 
@@ -152,13 +151,15 @@ public class KerberosServiceMetaInfoTest {
 
   @Before
   public void before() throws Exception {
-    File stackRoot = new File("src/main/resources/stacks");
-    File commonServicesRoot = new File("src/main/resources/common-services");
-    LOG.info("Stacks file " + stackRoot.getAbsolutePath());
-    LOG.info("Common Services file " + commonServicesRoot.getAbsolutePath());
+    InMemoryDefaultTestModule.MockedProperties properties = new InMemoryDefaultTestModule.MockedPropertiesBuilder()
+      .useRealPath()
+      .setExtraProperties()
+      .build();
 
-    AmbariMetaInfo metaInfo = createAmbariMetaInfo(stackRoot,
-        commonServicesRoot, new File("src/test/resources/version"), true);
+    LOG.info("Stacks file " + properties.getStacksDir());
+    LOG.info("Common Services file " + properties.getCommonServicesDir());
+
+    AmbariMetaInfo metaInfo = createAmbariMetaInfo(properties);
 
     metaInfo.init();
 
@@ -194,29 +195,6 @@ public class KerberosServiceMetaInfoTest {
         put("KERBEROS_CLIENT", new HashMap<>());
       }
     });
-  }
-
-  private TestAmbariMetaInfo createAmbariMetaInfo(File stackRoot, File commonServicesRoot, File versionFile, boolean replayMocks) throws Exception {
-    Properties properties = new Properties();
-    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stackRoot.getPath());
-    properties.setProperty(Configuration.COMMON_SERVICES_DIR_PATH.getKey(), commonServicesRoot.getPath());
-    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), versionFile.getPath());
-    Configuration configuration = new Configuration(properties);
-
-    TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(configuration);
-    if (replayMocks) {
-      metaInfo.replayAllMocks();
-
-      try {
-        metaInfo.init();
-      } catch(Exception e) {
-        LOG.info("Error in initializing ", e);
-        throw e;
-      }
-      waitForAllReposToBeResolved(metaInfo);
-    }
-
-    return metaInfo;
   }
 
   private void waitForAllReposToBeResolved(AmbariMetaInfo metaInfo) throws Exception {

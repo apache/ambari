@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import javax.annotation.Nullable;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -40,10 +42,13 @@ import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.collections.PredicateUtils;
 import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.ambari.server.stack.Validable;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.commons.lang.StringUtils;
@@ -193,6 +198,9 @@ public class ServiceInfo implements Validable, Cloneable {
   private File kerberosDescriptorFile = null;
 
   @XmlTransient
+  private KerberosServiceDescriptor[] kerberosServiceDescriptors = null;
+
+  @XmlTransient
   private File widgetsDescriptorFile = null;
 
   @XmlTransient
@@ -207,6 +215,12 @@ public class ServiceInfo implements Validable, Cloneable {
 
   @XmlTransient
   private Map<String, String> servicePropertyMap = ImmutableMap.copyOf(ensureMandatoryServiceProperties(Maps.newHashMap()));
+
+  /**
+   * KerberosServiceDescriptorFactory used to create KerberosServiceDescriptor instances
+   */
+  @XmlTransient
+  private final static KerberosServiceDescriptorFactory kerberosServiceDescriptorFactory = new KerberosServiceDescriptorFactory();
 
   /**
    * @return valid xml flag
@@ -1076,10 +1090,26 @@ public class ServiceInfo implements Validable, Cloneable {
   }
 
   /**
-   * @param file the file containing the alert definitions
+   * @param file the file containing the kerberos descriptor
    */
-  public void setKerberosDescriptorFile(File file) {
+  public void setKerberosDescriptorFile(File file) throws AmbariException {
     kerberosDescriptorFile = file;
+    if (file != null && file.isFile() && file.exists()) {
+      try {
+        kerberosServiceDescriptors = kerberosServiceDescriptorFactory.createInstances(file);
+      } catch (IOException e) {
+        throw new AmbariException("Kerberos descriptor loading error", e);
+      }
+    } else {
+      if (file != null) {
+        addError(String.format("Unable to load '%s' kerberos descriptor", file.getPath()));
+      }
+    }
+  }
+
+  @Nullable
+  public KerberosServiceDescriptor[] getKerberosServiceDescriptors() {
+    return kerberosServiceDescriptors;
   }
 
   /**

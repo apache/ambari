@@ -54,6 +54,7 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -191,6 +192,9 @@ public class StageUtilsTest extends EasyMockSupport {
       expect(host.getHostName()).andReturn(hostname).anyTimes();
       expect(host.getHostAttributes()).andReturn(hostAttributes).anyTimes();
       expect(host.getCurrentPingPort()).andReturn(pingPorts.get(i)).anyTimes();
+
+      HostEntity hostEntity = createNiceMock(HostEntity.class);
+      expect(host.getHostEntity()).andReturn(hostEntity).anyTimes();
 
       hosts.add(host);
       hostNames.add(hostname);
@@ -360,7 +364,7 @@ public class StageUtilsTest extends EasyMockSupport {
             return nnServiceComponentHosts.get(args[0]);
           }
         }).anyTimes();
-    expect(nnComponent.getServiceComponentHosts()).andReturn(nnServiceComponentHosts).anyTimes();
+    expect(nnComponent.getServiceComponentsHosts()).andReturn(nnServiceComponentHosts.keySet()).anyTimes();
     expect(nnComponent.isClientComponent()).andReturn(false).anyTimes();
 
     final ServiceComponent snnComponent = createMock(ServiceComponent.class);
@@ -373,7 +377,7 @@ public class StageUtilsTest extends EasyMockSupport {
             return snnServiceComponentHosts.get(args[0]);
           }
         }).anyTimes();
-    expect(snnComponent.getServiceComponentHosts()).andReturn(snnServiceComponentHosts).anyTimes();
+    expect(snnComponent.getServiceComponentsHosts()).andReturn(snnServiceComponentHosts.keySet()).anyTimes();
     expect(snnComponent.isClientComponent()).andReturn(false).anyTimes();
 
     final ServiceComponent dnComponent = createMock(ServiceComponent.class);
@@ -386,7 +390,7 @@ public class StageUtilsTest extends EasyMockSupport {
             return dnServiceComponentHosts.get(args[0]);
           }
         }).anyTimes();
-    expect(dnComponent.getServiceComponentHosts()).andReturn(dnServiceComponentHosts).anyTimes();
+    expect(dnComponent.getServiceComponentsHosts()).andReturn(dnServiceComponentHosts.keySet()).anyTimes();
     expect(dnComponent.isClientComponent()).andReturn(false).anyTimes();
 
     final ServiceComponent hbmComponent = createMock(ServiceComponent.class);
@@ -399,7 +403,7 @@ public class StageUtilsTest extends EasyMockSupport {
             return hbmServiceComponentHosts.get(args[0]);
           }
         }).anyTimes();
-    expect(hbmComponent.getServiceComponentHosts()).andReturn(hbmServiceComponentHosts).anyTimes();
+    expect(hbmComponent.getServiceComponentsHosts()).andReturn(hbmServiceComponentHosts.keySet()).anyTimes();
     expect(hbmComponent.isClientComponent()).andReturn(false).anyTimes();
 
     final ServiceComponent hbrsComponent = createMock(ServiceComponent.class);
@@ -418,7 +422,7 @@ public class StageUtilsTest extends EasyMockSupport {
         return s.equals("h1");
       }
     });
-    expect(hbrsComponent.getServiceComponentHosts()).andReturn(hbrsServiceComponentHosts).anyTimes();
+    expect(hbrsComponent.getServiceComponentsHosts()).andReturn(hbrsServiceComponentHosts.keySet()).anyTimes();
     expect(hbrsComponent.isClientComponent()).andReturn(false).anyTimes();
 
     final ServiceComponent mrjtComponent = createMock(ServiceComponent.class);
@@ -431,7 +435,7 @@ public class StageUtilsTest extends EasyMockSupport {
             return mrjtServiceComponentHosts.get(args[0]);
           }
         }).anyTimes();
-    expect(mrjtComponent.getServiceComponentHosts()).andReturn(mrjtServiceComponentHosts).anyTimes();
+    expect(mrjtComponent.getServiceComponentsHosts()).andReturn(mrjtServiceComponentHosts.keySet()).anyTimes();
     expect(mrjtComponent.isClientComponent()).andReturn(false).anyTimes();
 
     final ServiceComponent mrttCompomnent = createMock(ServiceComponent.class);
@@ -444,7 +448,7 @@ public class StageUtilsTest extends EasyMockSupport {
             return mrttServiceComponentHosts.get(args[0]);
           }
         }).anyTimes();
-    expect(mrttCompomnent.getServiceComponentHosts()).andReturn(mrttServiceComponentHosts).anyTimes();
+    expect(mrttCompomnent.getServiceComponentsHosts()).andReturn(mrttServiceComponentHosts.keySet()).anyTimes();
     expect(mrttCompomnent.isClientComponent()).andReturn(false).anyTimes();
 
     final ServiceComponent nnsComponent = createMock(ServiceComponent.class);
@@ -457,7 +461,7 @@ public class StageUtilsTest extends EasyMockSupport {
             return nnsServiceComponentHosts.get(args[0]);
           }
         }).anyTimes();
-    expect(nnsComponent.getServiceComponentHosts()).andReturn(nnsServiceComponentHosts).anyTimes();
+    expect(nnsComponent.getServiceComponentsHosts()).andReturn(nnsServiceComponentHosts.keySet()).anyTimes();
     expect(nnsComponent.isClientComponent()).andReturn(false).anyTimes();
 
     final Service hdfsService = createMock(Service.class);

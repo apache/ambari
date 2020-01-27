@@ -83,14 +83,17 @@ public class AgentCommandsPublisher {
   @Inject
   private AgentConfigsHolder agentConfigsHolder;
 
+
   public void sendAgentCommand(Multimap<Long, AgentCommand> agentCommands) throws AmbariException {
     if (agentCommands != null && !agentCommands.isEmpty()) {
       Map<Long, TreeMap<String, ExecutionCommandsCluster>> executionCommandsClusters = new TreeMap<>();
+
       for (Map.Entry<Long, AgentCommand> acHostEntry : agentCommands.entries()) {
         Long hostId = acHostEntry.getKey();
         AgentCommand ac = acHostEntry.getValue();
         populateExecutionCommandsClusters(executionCommandsClusters, hostId, ac);
       }
+
       for (Map.Entry<Long, TreeMap<String, ExecutionCommandsCluster>> hostEntry : executionCommandsClusters.entrySet()) {
         Long hostId = hostEntry.getKey();
         ExecutionCommandEvent executionCommandEvent = new ExecutionCommandEvent(hostId,
@@ -110,13 +113,14 @@ public class AgentCommandsPublisher {
 
   private void populateExecutionCommandsClusters(Map<Long, TreeMap<String, ExecutionCommandsCluster>> executionCommandsClusters,
                                             Long hostId, AgentCommand ac) throws AmbariException {
-    try {
-      if (LOG.isDebugEnabled()) {
+    if (LOG.isDebugEnabled()) {
+      try {
         LOG.debug("Sending command string = " + StageUtils.jaxbToString(ac));
+      } catch (Exception e) {
+        throw new AmbariException("Could not get jaxb string for command", e);
       }
-    } catch (Exception e) {
-      throw new AmbariException("Could not get jaxb string for command", e);
     }
+
     switch (ac.getCommandType()) {
       case BACKGROUND_EXECUTION_COMMAND:
       case EXECUTION_COMMAND: {

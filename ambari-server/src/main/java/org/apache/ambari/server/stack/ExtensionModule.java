@@ -430,7 +430,7 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
    *
    * @param serviceDirectory the child service directory
    */
-  private void populateService(ServiceDirectory serviceDirectory)  {
+  private void populateService(ServiceDirectory serviceDirectory) throws AmbariException {
     Collection<ServiceModule> serviceModules = new ArrayList<>();
     // unfortunately, we allow multiple services to be specified in the same metainfo.xml,
     // so we can't move the unmarshal logic into ServiceModule

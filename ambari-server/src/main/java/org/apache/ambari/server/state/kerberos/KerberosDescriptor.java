@@ -108,7 +108,24 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
    * Creates an empty KerberosDescriptor
    */
   public KerberosDescriptor() {
-    this(null);
+    this((Map<?,?>)null);
+  }
+
+  /**
+   * Initialize new object from and existing by creating duplicate properties with shallow copy of objects inside
+   *
+   * @param object object to copy
+   */
+  public KerberosDescriptor(KerberosDescriptor object) {
+    super(object);
+
+    if (object.properties != null) {
+      this.properties = new HashMap<>(object.properties);
+    }
+
+    if (object.services != null) {
+      this.services = new HashMap<>(object.services);
+    }
   }
 
   /**

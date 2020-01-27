@@ -38,10 +38,10 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
@@ -55,6 +55,8 @@ import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule.MockedProperties;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule.MockedPropertiesBuilder;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
@@ -140,20 +142,12 @@ public class AmbariMetaInfoTest {
 
   //todo: add fail() for cases where an exception is expected such as getService, getComponent ...
 
-
   @Rule
   public TemporaryFolder tmpFolder = new TemporaryFolder();
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    File stacks = new File("src/test/resources/stacks");
-    File version = new File("src/test/resources/version");
-    File resourcesRoot = new File("src/test/resources/");
-    if (System.getProperty("os.name").contains("Windows")) {
-      stacks = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
-      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
-    }
-    metaInfo = createAmbariMetaInfo(stacks, version, resourcesRoot);
+    metaInfo = createAmbariMetaInfo(null);
   }
 
   @AfterClass
@@ -264,7 +258,7 @@ public class AmbariMetaInfoTest {
     }
     else {
       FileUtils.deleteQuietly(latestUrlFile);
-      assertTrue(!latestUrlFile.exists());
+      assertFalse(latestUrlFile.exists());
     }
     AmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfoExistingDirs(buildDir);
 
@@ -429,17 +423,15 @@ public class AmbariMetaInfoTest {
   @Test
   public void testMetaInfoFileFilter() throws Exception {
     String buildDir = tmpFolder.getRoot().getAbsolutePath();
-    File stackRoot = new File("src/test/resources/stacks");
-    File version = new File("src/test/resources/version");
-    if (System.getProperty("os.name").contains("Windows")) {
-      stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
-      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
-    }
+    File stackRoot =  MockedProperties.getDefaultStackDir();
     File stackRootTmp = getStackRootTmp(buildDir);
+
     stackRootTmp.mkdir();
     FileUtils.copyDirectory(stackRoot, stackRootTmp);
-    //todo
-    //ambariMetaInfo.injector = injector;
+
+    MockedPropertiesBuilder builder = new MockedPropertiesBuilder()
+      .stacksDir(getStackRootTmp(buildDir).getPath());
+
     File f1, f2, f3;
     f1 = new File(stackRootTmp.getAbsolutePath() + "/001.svn"); f1.createNewFile();
     f2 = new File(stackRootTmp.getAbsolutePath() + "/abcd.svn/001.svn"); f2.mkdirs(); f2.createNewFile();
@@ -448,7 +440,7 @@ public class AmbariMetaInfoTest {
       f3.createNewFile();
     }
 
-    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, new File(""));
+    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(builder.build());
 
     // Tests the stack is loaded as expected
     getServices();
@@ -487,7 +479,7 @@ public class AmbariMetaInfoTest {
 
     try {
       metaInfo.getRepository(STACK_NAME_HDP, STACK_VERSION_HDP, OS_TYPE, NON_EXT_VALUE);
-    } catch (StackAccessException e) {
+    } catch (StackAccessException ignored) {
     }
   }
 
@@ -497,15 +489,9 @@ public class AmbariMetaInfoTest {
     Assert.assertEquals(service.getName(), SERVICE_NAME_HDFS);
     try {
       metaInfo.getService(STACK_NAME_HDP, STACK_VERSION_HDP, NON_EXT_VALUE);
-    } catch (StackAccessException e) {
+    } catch (StackAccessException ignored) {
     }
 
-  }
-
-  @Test
-  public void testGetStacks() {
-    //Collection<StackInfo> stacks = metaInfo.getStacks();
-    //todo: complete test
   }
 
   @Test
@@ -516,7 +502,7 @@ public class AmbariMetaInfoTest {
     Assert.assertEquals(stackInfo.getMinUpgradeVersion(), STACK_MINIMAL_VERSION_HDP);
     try {
       metaInfo.getStack(STACK_NAME_HDP, NON_EXT_VALUE);
-    } catch (StackAccessException e) {
+    } catch (StackAccessException ignored) {
     }
   }
 
@@ -546,7 +532,7 @@ public class AmbariMetaInfoTest {
 
     try {
       metaInfo.getPropertiesByName(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS, NON_EXT_VALUE);
-    } catch (StackAccessException e) {
+    } catch (StackAccessException ignored) {
     }
 
   }
@@ -576,7 +562,7 @@ public class AmbariMetaInfoTest {
 
     try {
       metaInfo.getOperatingSystem(STACK_NAME_HDP, STACK_VERSION_HDP, NON_EXT_VALUE);
-    } catch (StackAccessException e) {
+    } catch (StackAccessException ignored) {
     }
   }
 
@@ -726,18 +712,15 @@ public class AmbariMetaInfoTest {
 
   @Test
   public void testBadStack() throws Exception {
-    File stackRoot = new File("src/test/resources/bad-stacks");
-    File version = new File("src/test/resources/version");
-    if (System.getProperty("os.name").contains("Windows")) {
-      stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("bad-stacks").getPath());
-      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
-    }
-    LOG.info("Stacks file " + stackRoot.getAbsolutePath());
+    MockedProperties properties = new MockedPropertiesBuilder()
+      .stacksDir("src/test/resources/bad-stacks")
+      .build();
 
+    LOG.info("Stacks file " + properties.getStacksDir().getAbsolutePath());
 
-    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRoot, version, new File(""));
+    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(properties);
     Assert.assertEquals(1, ambariMetaInfo.getStackManager().getStacks().size());
-    Assert.assertEquals(false, ambariMetaInfo.getStackManager().getStack("HDP", "0.1").isValid());
+    Assert.assertFalse(ambariMetaInfo.getStackManager().getStack("HDP", "0.1").isValid());
     Assert.assertEquals(2, ambariMetaInfo.getStackManager().getStack("HDP", "0.1").getErrors().size());
 
   }
@@ -770,23 +753,12 @@ public class AmbariMetaInfoTest {
 
   @Test
   public void testCrossCheckJmxToGangliaMetrics() throws Exception {
-
-    File stacks = new File("src/main/resources/stacks");
-    File version = new File("src/test/resources/version");
-    File commonServicesRoot = new File("src/main/resources/common-services");
-    if (System.getProperty("os.name").contains("Windows")) {
-      stacks = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
-      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
-      commonServicesRoot = new File(ClassLoader.getSystemClassLoader().getResource("common-services").getPath());
-    }
-
-    Properties properties = new Properties();
-    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stacks.getPath());
-    properties.setProperty(Configuration.COMMON_SERVICES_DIR_PATH.getKey(), commonServicesRoot.getPath());
-    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), version.getPath());
+    MockedProperties properties = new MockedPropertiesBuilder()
+      .useRealPath()
+      .build();
     Configuration configuration = new Configuration(properties);
-
     TestAmbariMetaInfo ambariMetaInfo = new TestAmbariMetaInfo(configuration);
+
     ambariMetaInfo.replayAllMocks();
 
     try {
@@ -1985,23 +1957,9 @@ public class AmbariMetaInfoTest {
     return new File(buildDir + "/ambari-metaInfo");
   }
 
-  private File getVersion() {
-    File version = new File("src/test/resources/version");
-
-    if (System.getProperty("os.name").contains("Windows")) {
-      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
-    }
-
-    return version;
-  }
-
   private void setupTempAmbariMetaInfoDirs(String buildDir) throws Exception {
     File stackRootTmp = getStackRootTmp(buildDir);
-    File stackRoot = new File("src/test/resources/stacks");
-
-    if (System.getProperty("os.name").contains("Windows")) {
-      stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
-    }
+    File stackRoot = MockedProperties.getDefaultStackDir();
 
     stackRootTmp.mkdir();
     FileUtils.copyDirectory(stackRoot, stackRootTmp);
@@ -2009,26 +1967,19 @@ public class AmbariMetaInfoTest {
 
   private TestAmbariMetaInfo setupTempAmbariMetaInfo(String buildDir) throws Exception {
     setupTempAmbariMetaInfoDirs(buildDir);
-    TestAmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfoExistingDirs(buildDir);
-    return ambariMetaInfo;
+    return setupTempAmbariMetaInfoExistingDirs(buildDir);
   }
 
   private TestAmbariMetaInfo setupTempAmbariMetaInfoExistingDirs(String buildDir) throws Exception {
-    File version = getVersion();
-    File stackRootTmp = getStackRootTmp(buildDir);
-    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, new File(""));
-    return ambariMetaInfo;
+    MockedPropertiesBuilder builder = new MockedPropertiesBuilder()
+      .stacksDir(getStackRootTmp(buildDir).getPath());
+
+    return createAmbariMetaInfo(builder.build());
   }
 
-  private static TestAmbariMetaInfo createAmbariMetaInfo(File stackRoot,
-    File versionFile, File resourcesRoot) throws Exception {
-
-    Properties properties = new Properties();
-    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stackRoot.getPath());
-    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), versionFile.getPath());
-    properties.setProperty(Configuration.RESOURCES_DIR.getKey(), resourcesRoot.getPath());
+  public static TestAmbariMetaInfo createAmbariMetaInfo(@Nullable MockedProperties props) throws Exception {
+    MockedProperties properties = (props == null) ?  new MockedProperties() : props;
     Configuration configuration = new Configuration(properties);
-
     TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(configuration);
 
     metaInfo.replayAllMocks();
