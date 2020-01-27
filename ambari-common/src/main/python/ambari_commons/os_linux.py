@@ -84,3 +84,7 @@ def os_set_open_files_limit(maxOpenFiles):
 
 def os_getpass(prompt):
   return getpass.unix_getpass(prompt)
+
+def os_is_service_exist(serviceName):
+  status = os.system("service %s status >/dev/null 2>&1" % serviceName)
+  return status != 256

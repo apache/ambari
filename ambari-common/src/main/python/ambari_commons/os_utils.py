@@ -33,11 +33,11 @@ else:
 
 if OSCheck.is_windows_family():
   from ambari_commons.os_windows import os_change_owner, os_getpass, os_is_root, os_run_os_command, \
-    os_set_open_files_limit, os_set_file_permissions
+    os_set_open_files_limit, os_set_file_permissions, os_is_service_exist
 else:
   # MacOS not supported
   from ambari_commons.os_linux import os_change_owner, os_getpass, os_is_root, os_run_os_command, \
-    os_set_open_files_limit, os_set_file_permissions
+    os_set_open_files_limit, os_set_file_permissions, os_is_service_exist
   pass
 
 from ambari_commons.exceptions import FatalException
@@ -130,6 +130,9 @@ def set_open_files_limit(maxOpenFiles):
 
 def get_password(prompt):
   return os_getpass(prompt)
+
+def is_service_exist(serviceName):
+  return os_is_service_exist(serviceName)
 
 def find_in_path(file):
   full_path = _search_file(file, os.environ["PATH"], os.pathsep)
