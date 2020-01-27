@@ -75,6 +75,7 @@ class ClusterCache(dict):
       # Example: hostname change and restart causes old topology loading to fail with exception
       logger.exception("Loading saved cache for {0} failed".format(self.__class__.__name__))
       self.rewrite_cache({}, None)
+      os.remove(self.__current_cache_hash_file)
 
   def get_cluster_indepedent_data(self):
     return self[ClusterCache.COMMON_DATA_CLUSTER]
@@ -99,7 +100,7 @@ class ClusterCache(dict):
         del self[cache_id_to_delete]
 
     self.on_cache_update()
-    self.persist_cache()
+    self.persist_cache(cache_hash)
 
     # if all of above are sucessful finally set the hash
     self.hash = cache_hash
@@ -131,7 +132,7 @@ class ClusterCache(dict):
     with self._cache_lock:
       self[cluster_id] = immutable_cache
 
-  def persist_cache(self):
+  def persist_cache(self, cache_hash):
     # ensure that our cache directory exists
     if not os.path.exists(self.cluster_cache_dir):
       os.makedirs(self.cluster_cache_dir)
@@ -140,9 +141,9 @@ class ClusterCache(dict):
       with open(self.__current_cache_json_file, 'w') as f:
         json.dump(self, f, indent=2)
 
-      if self.hash is not None:
+      if cache_hash is not None:
         with open(self.__current_cache_hash_file, 'w') as fp:
-          fp.write(self.hash)
+          fp.write(cache_hash)
 
   def _get_mutable_copy(self):
     with self._cache_lock:
