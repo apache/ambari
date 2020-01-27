@@ -98,7 +98,6 @@ class RecoveryManager:
     self.active_command_count = 0
     self.cluster_id = None
     self.initializer_module = initializer_module
-    self.host_level_params_cache = initializer_module.host_level_params_cache
 
     self.actions = {}
     self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, auto_install_start)
@@ -113,7 +112,7 @@ class RecoveryManager:
 
   def is_blueprint_provisioning_for_component(self, component_name):
     try:
-      blueprint_state = self.host_level_params_cache[self.cluster_id]['blueprint_provisioning_state'][component_name]
+      blueprint_state = self.initializer_module.host_level_params_cache[self.cluster_id]['blueprint_provisioning_state'][component_name]
     except KeyError:
       blueprint_state = 'NONE'
 
@@ -481,7 +480,7 @@ class RecoveryManager:
           
         self.enabled_components = enabled_components_list
 
-  def on_config_update(self):
+  def on_config_update(self, cluster_cache):
     recovery_enabled = False
     auto_start_only = False
     auto_install_start = False
@@ -489,8 +488,6 @@ class RecoveryManager:
     window_in_min = 60
     retry_gap = 5
     max_lifetime_count = 12
-
-    cluster_cache = self.initializer_module.configurations_cache[self.cluster_id]
 
     if 'configurations' in cluster_cache and 'cluster-env' in cluster_cache['configurations']:
       config = cluster_cache['configurations']['cluster-env']

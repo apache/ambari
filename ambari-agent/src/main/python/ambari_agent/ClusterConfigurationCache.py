@@ -30,13 +30,20 @@ class ClusterConfigurationCache(ClusterCache):
   configuration properties.
   """
 
-  def __init__(self, cluster_cache_dir):
+  def __init__(self, cluster_cache_dir, initializer_module):
     """
     Initializes the configuration cache.
     :param cluster_cache_dir: directory the changed json are saved
     :return:
     """
+    self.initializer_module = initializer_module
     super(ClusterConfigurationCache, self).__init__(cluster_cache_dir)
+  
+  def on_cache_update(self):
+    for cluster_id, configurations in self.iteritems():
+      # FIXME: Recovery manager does not support multiple cluster as of now.
+      self.initializer_module.recovery_manager.cluster_id = cluster_id
+      self.initializer_module.recovery_manager.on_config_update(configurations)
 
   def get_cache_name(self):
     return 'configurations'
