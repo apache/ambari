@@ -45,6 +45,7 @@ class RecoveryManager:
   HAS_STALE_CONFIG = "hasStaleConfigs"
   EXECUTION_COMMAND_DETAILS = "executionCommandDetails"
   ROLE_COMMAND = "roleCommand"
+  IS_RECOVERY_COMMAND = "isRecoveryCommand"
   COMMAND_ID = "commandId"
   PAYLOAD_LEVEL_DEFAULT = "DEFAULT"
   PAYLOAD_LEVEL_MINIMAL = "MINIMAL"
@@ -101,6 +102,7 @@ class RecoveryManager:
 
     self.actions = {}
     self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, auto_install_start)
+    self.statuses_computed_at_least_once = False
 
   def on_execution_command_start(self):
     with self.__active_command_lock:
@@ -274,6 +276,10 @@ class RecoveryManager:
     INSTALLED_FAILED --> INSTALLED
     INSTALLED_FAILED --> STARTED
     """
+    # wait until all component statuses are computed
+    if not self.statuses_computed_at_least_once:
+      return []
+
     commands = []
     for component in self.statuses.keys():
       if self.configured_for_recovery(component) and self.requires_recovery(component) and self.may_execute(component):
@@ -659,7 +665,8 @@ class RecoveryManager:
         self.COMMAND_TYPE: AgentCommand.auto_execution,
         self.TASK_ID: command_id,
         self.ROLE: component,
-        self.COMMAND_ID: command_id
+        self.COMMAND_ID: command_id,
+        self.IS_RECOVERY_COMMAND: True
       }
 
       if component in self.__component_to_service_map:

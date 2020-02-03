@@ -58,6 +58,9 @@ class ActionQueue(threading.Thread):
   # How much time(in seconds) we need wait for new incoming execution command before checking status command queue
   EXECUTION_COMMAND_WAIT_TIME = 2
 
+  # key name in command dictionary
+  IS_RECOVERY_COMMAND = "isRecoveryCommand"
+
   def __init__(self, initializer_module):
     super(ActionQueue, self).__init__()
     self.commandQueue = Queue.Queue()
@@ -134,7 +137,11 @@ class ActionQueue(threading.Thread):
             if command is None:
               break
 
-            self.process_command(command)
+            # Recovery commands should be run in parallel (since we don't know the ordering on agent)
+            if self.IS_RECOVERY_COMMAND in command and command[self.IS_RECOVERY_COMMAND]:
+              self.start_parallel_command(command)
+            else:
+              self.process_command(command)
           else:
             # If parallel execution is enabled, just kick off all available
             # commands using separate threads
@@ -150,10 +157,7 @@ class ActionQueue(threading.Thread):
               if 'commandParams' in command and 'command_retry_enabled' in command['commandParams']:
                 retry_able = command['commandParams']['command_retry_enabled'] == "true"
               if retry_able:
-                logger.info("Kicking off a thread for the command, id={} taskId={}".format(command['commandId'], command['taskId']))
-                t = threading.Thread(target=self.process_command, args=(command,))
-                t.daemon = True
-                t.start()
+                self.start_parallel_command(command)
               else:
                 self.process_command(command)
                 break
@@ -164,6 +168,12 @@ class ActionQueue(threading.Thread):
       except Exception:
         logger.exception("ActionQueue thread failed with exception. Re-running it")
     logger.info("ActionQueue thread has successfully finished")
+
+  def start_parallel_command(self, command):
+    logger.info("Kicking off a thread for the command, id={} taskId={}".format(command['commandId'], command['taskId']))
+    t = threading.Thread(target=self.process_command, args=(command,))
+    t.daemon = True
+    t.start()
 
   def fill_recovery_commands(self):
     if self.recovery_manager.enabled() and not self.tasks_in_progress_or_pending():
