@@ -86,8 +86,7 @@ def os_getpass(prompt):
   return getpass.unix_getpass(prompt)
 
 def os_is_service_exist(serviceName):
-  systemManager = os.popen('ps --no-headers -o comm 1').read().strip()
-  if systemManager == 'systemd':
+  if os.path.exists('/run/systemd/system/'):
     return os.popen('systemctl list-units --full -all | grep "%s.service"' % serviceName).read().strip() != ''
 
   status = os.system("service %s status >/dev/null 2>&1" % serviceName)
