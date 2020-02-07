@@ -509,6 +509,11 @@ def upgrade_solr_clients(options, accessor, parser, config):
   host = socket.gethostname()
   if host in solr_client_hosts:
     solr_client_hosts.remove(host)
+
+  if not len(solr_client_hosts):
+    print 'The Solr Clients upgrade request has been aborted because no other host can be upgraded.'
+    sys.exit(0)
+
   context = "Upgrade Solr Clients"
   sys.stdout.write("Sending upgrade request: [{0}] ".format(context))
   sys.stdout.flush()
