@@ -65,6 +65,11 @@ public class MetricsPaddingMethod {
     long dataStartTime = longToMillis(values.firstKey());
     long dataEndTime = longToMillis(values.lastKey());
 
+    // in the case we have invalid end time, replace it with last available timestamp
+    if (intervalEndTime < 0) {
+      intervalEndTime = values.lastKey();
+    }
+
     long dataInterval = getTimelineMetricInterval(values, intervalStartTime, intervalEndTime);
 
     if (dataInterval == -1 || dataInterval < MINIMUM_STEP_INTERVAL) {
