@@ -67,7 +67,12 @@ public class MetricsPaddingMethod {
 
     // in the case we have invalid end time, replace it with last available timestamp
     if (intervalEndTime < 0) {
-      intervalEndTime = values.lastKey();
+      intervalEndTime = dataEndTime;
+    }
+
+    // if the start time is after the end time it is an invalid request
+    if (intervalStartTime > intervalEndTime) {
+      return;
     }
 
     long dataInterval = getTimelineMetricInterval(values, intervalStartTime, intervalEndTime);

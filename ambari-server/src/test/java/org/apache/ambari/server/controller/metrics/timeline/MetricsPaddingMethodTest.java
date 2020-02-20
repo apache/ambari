@@ -251,7 +251,7 @@ public class MetricsPaddingMethodTest {
   @Test
   public void testEndTimeMissedPaddingRequested() throws Exception {
     MetricsPaddingMethod paddingMethod =
-      new MetricsPaddingMethod(MetricsPaddingMethod.PADDING_STRATEGY.NONE);
+      new MetricsPaddingMethod(MetricsPaddingMethod.PADDING_STRATEGY.ZEROS);
 
     long now = System.currentTimeMillis();
 
@@ -267,6 +267,32 @@ public class MetricsPaddingMethodTest {
     timelineMetric.setMetricValues(inputValues);
 
     TemporalInfo temporalInfo = getTemporalInfo(now - 1000, -1000L, 10l);
+    paddingMethod.applyPaddingStrategy(timelineMetric, temporalInfo);
+    TreeMap<Long, Double> values = (TreeMap<Long, Double>) timelineMetric.getMetricValues();
+
+    // (1000 - 300) / 10 + 3
+    Assert.assertEquals(73, values.size());
+  }
+
+  @Test
+  public void testInvalidStartTimePaddingRequested() throws Exception {
+    MetricsPaddingMethod paddingMethod =
+      new MetricsPaddingMethod(MetricsPaddingMethod.PADDING_STRATEGY.ZEROS);
+
+    long now = System.currentTimeMillis();
+
+    TimelineMetric timelineMetric = new TimelineMetric();
+    timelineMetric.setMetricName("m1");
+    timelineMetric.setHostName("h1");
+    timelineMetric.setAppId("a1");
+    timelineMetric.setStartTime(now);
+    TreeMap<Long, Double> inputValues = new TreeMap<>();
+    inputValues.put(now - 100, 1.0d);
+    inputValues.put(now - 200, 2.0d);
+    inputValues.put(now - 300, 3.0d);
+    timelineMetric.setMetricValues(inputValues);
+
+    TemporalInfo temporalInfo = getTemporalInfo(now + 1000, -1000L, 10l);
     paddingMethod.applyPaddingStrategy(timelineMetric, temporalInfo);
     TreeMap<Long, Double> values = (TreeMap<Long, Double>) timelineMetric.getMetricValues();
 
