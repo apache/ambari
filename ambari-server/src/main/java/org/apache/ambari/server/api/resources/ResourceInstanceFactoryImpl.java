@@ -481,6 +481,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new RemoteClusterResourceDefinition();
         break;
 
+      case Auth:
+        resourceDefinition = new AuthResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }
