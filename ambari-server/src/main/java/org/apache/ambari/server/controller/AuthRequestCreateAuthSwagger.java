@@ -18,20 +18,10 @@
 
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.controller.internal.AuthResourceProvider;
-
-import io.swagger.annotations.ApiModelProperty;
-
 /**
- * Interface to help correct Swagger documentation generation
+ * Interface to help correct Swagger documentation generation.
+ * Class is empty because not input/output fields are assumed.
  */
 public interface AuthRequestCreateAuthSwagger extends ApiModel {
 
-  @ApiModelProperty(name = AuthResourceProvider.AUTH_RESOURCE_CATEGORY)
-  CreateAuthInfo getCreateAuthRequest();
-
-  interface CreateAuthInfo {
-    @ApiModelProperty(name = AuthResourceProvider.USERNAME_PROPERTY_ID)
-    String getUsername();
-  }
 }

@@ -243,8 +243,6 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return resourceProviderFactory.getAlertTargetResourceProvider();
       case ViewInstance:
         return resourceProviderFactory.getViewInstanceResourceProvider();
-      case UserPrivilege:
-        return new UserPrivilegeResourceProvider();
       case Auth:
         return resourceProviderFactory.getAuthResourceProvider(managementController);
       default:

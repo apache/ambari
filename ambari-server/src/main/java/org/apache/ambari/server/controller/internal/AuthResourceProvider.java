@@ -17,28 +17,21 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
-import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourcePredicateEvaluator;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
@@ -47,33 +40,12 @@ import com.google.inject.assistedinject.AssistedInject;
  */
 public class AuthResourceProvider extends AbstractControllerResourceProvider implements ResourcePredicateEvaluator {
 
-  private static final Logger LOG = LoggerFactory.getLogger(AuthResourceProvider.class);
-
-  // ----- Property ID constants ---------------------------------------------
-
-  public static final String AUTH_RESOURCE_CATEGORY = "Auth";
-
-  public static final String USERNAME_PROPERTY_ID = "user_name";
-
-  public static final String AUTH_USERNAME_PROPERTY_ID = AUTH_RESOURCE_CATEGORY + "/" + USERNAME_PROPERTY_ID;
-
-  /**
-   * The key property ids for a User resource.
-   */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
-      .put(Resource.Type.Auth, AUTH_USERNAME_PROPERTY_ID)
-      .build();
-
-  private static Set<String> propertyIds = Sets.newHashSet(
-      AUTH_USERNAME_PROPERTY_ID
-  );
-
   /**
    * Create a new resource provider for the given management controller.
    */
   @AssistedInject
   AuthResourceProvider(@Assisted AmbariManagementController managementController) {
-    super(Resource.Type.Auth, propertyIds, keyPropertyIds, managementController);
+    super(Resource.Type.Auth, Collections.emptySet(), Collections.emptyMap(), managementController);
   }
 
   @Override
@@ -83,59 +55,8 @@ public class AuthResourceProvider extends AbstractControllerResourceProvider imp
       ResourceAlreadyExistsException,
       NoSuchParentResourceException {
 
-    Set<Resource> resources = new HashSet<>();
-
-    ResourceProvider userResourceProvider =
-        AbstractControllerResourceProvider.getResourceProvider(Resource.Type.User,
-            getManagementController());
-    ResourceProvider privilegeResourceProvider =
-        AbstractControllerResourceProvider.getResourceProvider(Resource.Type.UserPrivilege,
-            getManagementController());
-    ResourceProvider userAuthenticationSourceResourceProvider =
-        AbstractControllerResourceProvider.getResourceProvider(Resource.Type.UserAuthenticationSource,
-            getManagementController());
-    ResourceProvider activeWidgetLayoutResourceProvider =
-        AbstractControllerResourceProvider.getResourceProvider(Resource.Type.ActiveWidgetLayout,
-            getManagementController());
-
-    for (Map<String, Object> requestProperties : request.getProperties()) {
-
-      if (userResourceProvider != null) {
-        try {
-          Predicate predicate = getPredicate(requestProperties, UserResourceProvider.USER_USERNAME_PROPERTY_ID);
-          resources.addAll(userResourceProvider.getResources(request, predicate));
-        } catch (NoSuchResourceException e) {
-          throw new SystemException("Error during users retrieving", e);
-        }
-      }
-      if (privilegeResourceProvider != null) {
-        try {
-          Predicate predicate = getPredicate(requestProperties, UserPrivilegeResourceProvider.USER_NAME);
-          resources.addAll(privilegeResourceProvider.getResources(request, predicate));
-        } catch (NoSuchResourceException e) {
-          throw new SystemException("Error during privileges retrieving", e);
-        }
-      }
-      if (userAuthenticationSourceResourceProvider != null) {
-        try {
-          Predicate predicate = getPredicate(requestProperties,
-              UserAuthenticationSourceResourceProvider.AUTHENTICATION_USER_NAME_PROPERTY_ID);
-          resources.addAll(userAuthenticationSourceResourceProvider.getResources(request, predicate));
-        } catch (NoSuchResourceException e) {
-          throw new SystemException("Error during user authentication sources retrieving", e);
-        }
-      }
-      if (activeWidgetLayoutResourceProvider != null) {
-        try {
-          Predicate predicate = getPredicate(requestProperties,
-              ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID);
-          resources.addAll(activeWidgetLayoutResourceProvider.getResources(request, predicate));
-        } catch (NoSuchResourceException e) {
-          throw new SystemException("Error during active widgets layouts retrieving", e);
-        }
-      }
-    }
-    return getRequestStatus(null, resources);
+    // do nothing
+    return getRequestStatus(null);
   }
 
   /**
@@ -149,29 +70,11 @@ public class AuthResourceProvider extends AbstractControllerResourceProvider imp
    */
   @Override
   public boolean evaluate(Predicate predicate, Resource resource) {
-    if (predicate instanceof EqualsPredicate) {
-      EqualsPredicate equalsPredicate = (EqualsPredicate) predicate;
-      String propertyId = equalsPredicate.getPropertyId();
-      if (propertyId.equals(AUTH_USERNAME_PROPERTY_ID)) {
-        return equalsPredicate.evaluateIgnoreCase(resource);
-      }
-    }
-    return predicate.evaluate(resource);
+    return true;
   }
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return new HashSet<>(keyPropertyIds.values());
-  }
-
-  private Predicate getPredicate(Map<String, Object> properties, String userNamePropertyId) {
-    if (properties == null) {
-      return null;
-    }
-    String userName = (String) properties.get(AUTH_USERNAME_PROPERTY_ID);
-    if (userName == null) {
-      return null;
-    }
-    return new EqualsPredicate<>(userNamePropertyId, userName);
+    return new HashSet<>();
   }
 }

@@ -76,7 +76,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
   protected static final String INSTANCE_NAME = ViewPrivilegeResourceProvider.INSTANCE_NAME;
   protected static final String CLUSTER_NAME = ClusterPrivilegeResourceProvider.CLUSTER_NAME;
   protected static final String TYPE = AmbariPrivilegeResourceProvider.TYPE;
-  public static final String USER_NAME = PrivilegeResourceProvider.PRIVILEGE_INFO + PropertyHelper.EXTERNAL_PATH_SEP + USER_NAME_PROPERTY_ID;
+  protected static final String USER_NAME = PrivilegeResourceProvider.PRIVILEGE_INFO + PropertyHelper.EXTERNAL_PATH_SEP + USER_NAME_PROPERTY_ID;
 
   /**
    * Data access object used to obtain user entities.
