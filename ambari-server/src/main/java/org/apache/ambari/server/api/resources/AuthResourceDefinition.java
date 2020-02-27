@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.api.resources;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Resource;
@@ -43,12 +43,7 @@ public class AuthResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    final Set<SubResourceDefinition> subResourceDefinitions = new HashSet<>();
-    subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.UserAuthenticationSource));
-    subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.UserPrivilege));
-    subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.ActiveWidgetLayout));
-    subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.User));
-    return subResourceDefinitions;
+    return Collections.emptySet();
   }
 
 }
