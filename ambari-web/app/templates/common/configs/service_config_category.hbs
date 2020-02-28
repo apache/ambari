@@ -30,7 +30,7 @@
 
   <div class="panel-body collapse in" {{bindAttr style="view.isCategoryBodyVisible"}} {{QAAttr "panel-body"}}>
   <div class="service-config-section">
-    <form class="form-horizontal" autocomplete="off">
+    <form autocomplete="off" class="form-horizontal">
       {{#each configData in view.categoryConfigs}}
         {{#unless configData.isInDefaultTheme}} {{! configs related to default themes should not be shown on the Advanced tab }}
           {{#if configData.isComparison}}

@@ -24,7 +24,7 @@
     {{errorMessage}}
   </div>
   {{/if}}
-  <form autocomplete="off">
+  <form>
     <div class="form-group">
       <label {{QAAttr "username-label"}}>{{t login.username}}</label>
       {{view view.loginTextField valueBinding="loginName" class="form-control" disabledBinding="isSubmitDisabled" data-qa="username-input"}}
