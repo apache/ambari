@@ -220,10 +220,6 @@ angular.module('ambariAdminConsole')
             $scope.osList.push(stackOs);
           }
         });
-        if ($scope.selectedOption.index == $scope.localOption.index) {
-          $scope.clearRepoVersions();
-          $scope.validateRepoUrl();
-        }
       })
       .catch(function (data) {
         Alert.error($t('versions.alerts.osListError'), data.message);
