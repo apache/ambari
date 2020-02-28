@@ -2350,6 +2350,20 @@ var urls = {
     }
   },
   'router.login': {
+    'real': '/auth',
+    'mock': '/data/users/user_{usr}.json',
+    'type': 'POST',
+    'format': function (data) {
+      var statusCode = jQuery.extend({}, require('data/statusCodes'));
+      statusCode['403'] = function () {
+        console.log("Error code 403: Forbidden.");
+      };
+      return {
+        statusCode: statusCode
+      };
+    }
+  },
+  'router.afterLogin': {
     'real': '/users/{loginName}?fields=*,privileges/PrivilegeInfo/cluster_name,privileges/PrivilegeInfo/permission_name',
     'mock': '/data/users/user_{usr}.json',
     'format': function (data) {
