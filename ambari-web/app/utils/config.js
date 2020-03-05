@@ -240,7 +240,7 @@ App.config = Em.Object.create({
       });
 
     for (var index in properties) {
-      var serviceConfigObj = this.getDefaultConfig(index, filename);
+      var serviceConfigObj = this.getDefaultConfig(index, filename, {value: properties[index]});
 
       if (serviceConfigObj.isRequiredByAgent !== false) {
         serviceConfigObj.value = serviceConfigObj.savedValue = this.formatPropertyValue(serviceConfigObj, properties[index]);
@@ -285,7 +285,7 @@ App.config = Em.Object.create({
   getDefaultConfig: function(name, fileName, coreObject) {
     name = JSON.parse('"' + name + '"');
     var cfg = App.configsCollection.getConfigByName(name, fileName) ||
-      App.config.createDefaultConfig(name, fileName, false);
+      App.config.createDefaultConfig(name, fileName, false, coreObject);
     if (Em.typeOf(coreObject) === 'object') {
       Em.setProperties(cfg, coreObject);
     }
