@@ -410,8 +410,11 @@ public class StageUtils {
       TreeSet<Integer> sortedSet = new TreeSet<>(entry.getValue());
 
       Set<String> replacedRangesSet = replaceRanges(sortedSet);
-
-      clusterHostInfo.put(entry.getKey(), replacedRangesSet);
+      //risk of passing empty hosts for component array to agent
+      if(!replacedRangesSet.isEmpty())
+      {
+        clusterHostInfo.put(entry.getKey(), replacedRangesSet);
+      }
     }
 
     clusterHostInfo.put(HOSTS_LIST, hostsSet);
