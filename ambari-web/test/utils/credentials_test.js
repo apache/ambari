@@ -270,7 +270,7 @@ describe('credentials utils', function () {
         {
           data: null,
           callbackCallCount: 1,
-          callbackArgument: null,
+          callbackArgument: '',
           title: 'no data passed'
         },
         {
@@ -308,9 +308,9 @@ describe('credentials utils', function () {
           expect(params.callback.callCount).to.equal(item.callbackCallCount);
         });
 
-        if (item.callbackCallCount) {
+        if (item.callbackCallCount && item.callbackArgument) {
           it('callback argument', function () {
-            expect(params.callback.firstCall.args).to.eql([item.callbackArgument]);
+            expect(params.callback.firstCall.args).to.be.eql([item.callbackArgument]);
           });
         }
 
