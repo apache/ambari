@@ -32,3 +32,8 @@ createDDL.jdbc
 /dist
 /build
 ambari_python.egg-info
+contrib/views/hawq/src/main/resources/ui/bower_components
+contrib/views/hawq/src/main/resources/ui/node
+contrib/views/hawq/src/main/resources/ui/node_modules
+contrib/views/hive-next/src/main/resources/ui/hive-web/bower_components
+contrib/views/hive-next/src/main/resources/ui/hive-web/node_modules
