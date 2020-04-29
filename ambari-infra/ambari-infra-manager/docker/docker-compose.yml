@@ -28,7 +28,7 @@ services:
       ZOO_SERVERS: server.1=zookeeper:2888:3888
   solr:
 #  TODO: use infra-solr
-    image: solr:${SOLR_VERSION:-7.7.0}
+    image: solr:${SOLR_VERSION:-7.7.3}
     container_name: solr
     restart: always
     hostname: solr
