@@ -544,6 +544,31 @@ public class AmbariCustomCommandExecutionHelper {
     }
   }
 
+  private Map<String, ServiceComponentHost> findRandomServiceHostComponents(Cluster cluster, String clusterName,
+                                                                            String serviceName) throws AmbariException{
+    // TODO: This code branch looks unreliable (taking random component, should prefer the clients)
+    Map<String, ServiceComponent> serviceComponents = cluster.getService(serviceName).getServiceComponents();
+
+    // Filter components without any HOST
+    Iterator<String> serviceComponentNameIterator = serviceComponents.keySet().iterator();
+    while (serviceComponentNameIterator.hasNext()){
+      String componentToCheck = serviceComponentNameIterator.next();
+      if (serviceComponents.get(componentToCheck).getServiceComponentHosts().isEmpty()){
+        serviceComponentNameIterator.remove();
+      }
+    }
+
+    if (serviceComponents.isEmpty()) {
+      throw new AmbariException(MessageFormat.format("Did not find any hosts with components for service: " +
+              "{0} in cluster: {1}", serviceName, clusterName));
+    }
+
+    // Pick a random service component (should prefer clients).
+    ServiceComponent serviceComponent = serviceComponents.values().iterator().next();
+
+    return serviceComponent.getServiceComponentHosts();
+  }
+
   private void findHostAndAddServiceCheckAction(final ActionExecutionContext actionExecutionContext,
       final RequestResourceFilter resourceFilter, Stage stage) throws AmbariException {
 
@@ -557,53 +582,34 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     Set<String> candidateHosts;
-    final Map<String, ServiceComponentHost> serviceHostComponents;
+    Map<String, ServiceComponentHost> serviceHostComponents = new HashMap<String, ServiceComponentHost>();
 
     if (componentName != null) {
       serviceHostComponents = cluster.getService(serviceName).getServiceComponent(componentName).getServiceComponentHosts();
-
       if (serviceHostComponents.isEmpty()) {
-        throw new AmbariException(MessageFormat.format("No hosts found for service: {0}, component: {1} in cluster: {2}",
-            serviceName, componentName, clusterName));
-      }
-
-      // If specified a specific host, run on it as long as it contains the component.
-      // Otherwise, use candidates that contain the component.
-      List<String> candidateHostsList = resourceFilter.getHostNames();
-      if (candidateHostsList != null && !candidateHostsList.isEmpty()) {
-        candidateHosts = new HashSet<>(candidateHostsList);
-
-        // Get the intersection.
-        candidateHosts.retainAll(serviceHostComponents.keySet());
-
-        if (candidateHosts.isEmpty()) {
-          throw new AmbariException(MessageFormat.format("The resource filter for hosts does not contain components for " +
-                  "service: {0}, component: {1} in cluster: {2}", serviceName, componentName, clusterName));
-        }
-      } else {
+        // if there is not any client installed, try a random component
+        serviceHostComponents = findRandomServiceHostComponents(cluster, clusterName, serviceName);
         candidateHosts = serviceHostComponents.keySet();
+      } else {
+        // If specified a specific host, run on it as long as it contains the component.
+        // Otherwise, use candidates that contain the component.
+        List<String> candidateHostsList = resourceFilter.getHostNames();
+        if (candidateHostsList != null && !candidateHostsList.isEmpty()) {
+          candidateHosts = new HashSet<>(candidateHostsList);
+
+          // Get the intersection.
+          candidateHosts.retainAll(serviceHostComponents.keySet());
+
+          if (candidateHosts.isEmpty()) {
+            throw new AmbariException(MessageFormat.format("The resource filter for hosts does not contain components" +
+                    " for service: {0}, component: {1} in cluster: {2}", serviceName, componentName, clusterName));
+          }
+        } else {
+          candidateHosts = serviceHostComponents.keySet();
+        }
       }
     } else {
-      // TODO: This code branch looks unreliable (taking random component, should prefer the clients)
-      Map<String, ServiceComponent> serviceComponents = cluster.getService(serviceName).getServiceComponents();
-
-      // Filter components without any HOST
-      Iterator<String> serviceComponentNameIterator = serviceComponents.keySet().iterator();
-      while (serviceComponentNameIterator.hasNext()){
-        String componentToCheck = serviceComponentNameIterator.next();
-         if (serviceComponents.get(componentToCheck).getServiceComponentHosts().isEmpty()){
-           serviceComponentNameIterator.remove();
-         }
-      }
-
-      if (serviceComponents.isEmpty()) {
-        throw new AmbariException(MessageFormat.format("Did not find any hosts with components for service: {0} in cluster: {1}",
-            serviceName, clusterName));
-      }
-
-      // Pick a random service (should prefer clients).
-      ServiceComponent serviceComponent = serviceComponents.values().iterator().next();
-      serviceHostComponents = serviceComponent.getServiceComponentHosts();
+      serviceHostComponents = findRandomServiceHostComponents(cluster, clusterName, serviceName);
       candidateHosts = serviceHostComponents.keySet();
     }
 

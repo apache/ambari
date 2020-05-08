@@ -540,6 +540,38 @@ public class AmbariCustomCommandExecutionHelperTest {
   }
 
   @Test
+  public void testServiceCheckPicksRandomHostWithoutClient() throws Exception {
+    AmbariCustomCommandExecutionHelper ambariCustomCommandExecutionHelper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
+
+    Cluster c1 = clusters.getCluster("c1");
+    Service s = c1.getService("HDFS");
+    ServiceComponent sc = s.getServiceComponent("NAMENODE");
+    Assert.assertTrue(sc.getServiceComponentHosts().keySet().size() > 1);
+
+    // There are multiple hosts with ZK Client.
+    List<RequestResourceFilter> requestResourceFilter = new ArrayList<RequestResourceFilter>() {{
+      add(new RequestResourceFilter("HDFS", "NAMENODE", null));
+    }};
+    ActionExecutionContext actionExecutionContext = new ActionExecutionContext("c1", "SERVICE_CHECK", requestResourceFilter);
+    Stage stage = EasyMock.niceMock(Stage.class);
+    ExecutionCommandWrapper execCmdWrapper = EasyMock.niceMock(ExecutionCommandWrapper.class);
+    ExecutionCommand execCmd = EasyMock.niceMock(ExecutionCommand.class);
+
+    EasyMock.expect(stage.getClusterName()).andReturn("c1");
+    //
+    EasyMock.expect(stage.getExecutionCommandWrapper(EasyMock.eq("c1-c6401"), EasyMock.anyString())).andReturn(execCmdWrapper);
+    EasyMock.expect(stage.getExecutionCommandWrapper(EasyMock.eq("c1-c6402"), EasyMock.anyString())).andReturn(execCmdWrapper);
+    EasyMock.expect(execCmdWrapper.getExecutionCommand()).andReturn(execCmd);
+    EasyMock.expect(execCmd.getForceRefreshConfigTagsBeforeExecution()).andReturn(true);
+
+    HashSet<String> localComponents = new HashSet<>();
+    EasyMock.expect(execCmd.getLocalComponents()).andReturn(localComponents).anyTimes();
+    EasyMock.replay(configHelper, stage, execCmdWrapper, execCmd);
+
+    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<>(), null);
+  }
+
+  @Test
   public void testIsTopologyRefreshRequired() throws Exception {
     AmbariCustomCommandExecutionHelper helper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
 
@@ -769,25 +801,30 @@ public class AmbariCustomCommandExecutionHelperTest {
     createService(clusterName, "GANGLIA", repositoryVersion);
     createService(clusterName, "ZOOKEEPER", repositoryVersion);
     createService(clusterName, "FLUME", repositoryVersion);
+    createService(clusterName, "HDFS", repositoryVersion);
 
     createServiceComponent(clusterName, "YARN", "RESOURCEMANAGER", State.INIT);
     createServiceComponent(clusterName, "YARN", "NODEMANAGER", State.INIT);
     createServiceComponent(clusterName, "GANGLIA", "GANGLIA_SERVER", State.INIT);
     createServiceComponent(clusterName, "GANGLIA", "GANGLIA_MONITOR", State.INIT);
     createServiceComponent(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", State.INIT);
+    createServiceComponent(clusterName, "HDFS", "NAMENODE", State.INIT);
 
     // this component should be not installed on any host
     createServiceComponent(clusterName, "FLUME", "FLUME_HANDLER", State.INIT);
+    createServiceComponent(clusterName, "HDFS", "HDFS_CLIENT", State.INIT);
 
     createServiceComponentHost(clusterName, "YARN", "RESOURCEMANAGER", hostC6401, null);
     createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6401, null);
     createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_SERVER", hostC6401, State.INIT);
     createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostC6401, State.INIT);
     createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6401, State.INIT);
+    createServiceComponentHost(clusterName, "HDFS", "NAMENODE", hostC6401, State.INIT);
 
     createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6402, null);
     createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostC6402, State.INIT);
     createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6402, State.INIT);
+    createServiceComponentHost(clusterName, "HDFS", "NAMENODE", hostC6402, State.INIT);
   }
   private void addHost(String hostname, String clusterName) throws AmbariException {
     clusters.addHost(hostname);
