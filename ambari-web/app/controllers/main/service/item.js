@@ -1355,6 +1355,52 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.executeCustomCommand.error'), error);
   },
 
+  switchHBaseBalancer: function(event) {
+    var controller = this;
+    var command = null;
+    if (event === Em.I18n.t('services.service.actions.run.enableHBaseBalancer')) {
+      command = 'ENABLE_HBASE_BALANCER';
+    } else if (event === Em.I18n.t('services.service.actions.run.disableHBaseBalancer')) {
+      command = 'DISABLE_HBASE_BALANCER';
+    }
+    var component = 'HBASE_MASTER';
+    var host = App.HostComponent.find().findProperty('componentName', component).get('hostName');
+    var serviceName = 'HBASE';
+
+    return App.showConfirmationPopup(function() {
+      App.ajax.send({
+        name : 'service.item.executeCustomCommand',
+        sender: controller,
+        data : {
+          command : command,
+          context : Em.I18n.t('services.service.actions.run.switchHBaseBalancer.context').format(command),
+          hosts : host,
+          serviceName : serviceName,
+          componentName : component
+        },
+        success : 'switchHBaseBalancerSuccessCallback',
+        error : 'switchHBaseBalancerErrorCallback'
+      });
+    });
+  },
+
+  switchHBaseBalancerSuccessCallback  : function(data, ajaxOptions, params) {
+    if (data.Requests.id) {
+      App.router.get('backgroundOperationsController').showPopup();
+    }
+  },
+
+  switchHBaseBalancerErrorCallback : function(data) {
+    var error = Em.I18n.t('services.service.actions.run.switchHBaseBalancer.error');
+    if(data && data.responseText){
+      try {
+        var json = $.parseJSON(data.responseText);
+        error += json.message;
+      } catch (err) {}
+    }
+    App.showAlertPopup(Em.I18n.t('services.service.actions.run.switchHBaseBalancer.error'), error);
+  },
+
   /**
    * find dependent services
    * @param {string[]} serviceNamesToDelete

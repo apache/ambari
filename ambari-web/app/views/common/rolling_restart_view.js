@@ -65,6 +65,48 @@ App.RollingRestartView = Em.View.extend({
   skipMaintenance: false,
 
   /**
+   * Restart region servers gracefully
+   * @type {bool}
+   */
+  gracefulRSRestart: false,
+
+  /**
+   * Checkbox message for graceful region server restart
+   * @type {String}
+   */
+  gracefulRSRestartMessage : Em.I18n.t('rollingrestart.dialog.msg.gracefulRSRestart'),
+
+  /**
+   * Disable HBase balancer before region servers rolling restart
+   * @type {bool}
+   */
+  disableHBaseBalancerBeforeRR : false,
+
+  /**
+   * Checkbox message for disable HBase balancer before region servers rolling restart
+   * @type {String}
+   */
+  disableHBaseBalancerBeforeRRMsg : Em.I18n.t('rollingrestart.dialog.msg.disableHBaseBalancerBeforeRR'),
+
+  /**
+   * Enable HBase balancer after region servers rolling restart
+   * @type {bool}
+   */
+  enableHBaseBalancerAfterRR: false,
+
+  /**
+   * Checkbox message for enable HBase balancer after region servers rolling restart
+   * @type {String}
+   */
+  enableHBaseBalancerAfterRRMsg : Em.I18n.t('rollingrestart.dialog.msg.enableHBaseBalancerAfterRR'),
+
+  /**
+   * Thread pool size of region mover
+   * @type {Number}
+   */
+  regionMoverThreadPoolSize: -1,
+
+  /**
    * Count of host components in one batch
    * @type {Number}
    */
@@ -100,7 +142,7 @@ App.RollingRestartView = Em.View.extend({
    * Set initial values for batch-request properties
    */
   initialize : function() {
-    if (this.get('batchSize') == -1 && this.get('interBatchWaitTimeSeconds') == -1 && this.get('tolerateSize') == -1) {
+    if (this.get('batchSize') == -1 && this.get('interBatchWaitTimeSeconds') == -1 && this.get('tolerateSize') == -1 && this.get('regionMoverThreadPoolSize') == -1) {
       var restartCount = this.get('restartHostComponents.length');
       var batchSize = 1;
       if (restartCount > 10 && this.get('hostComponentName') !== 'DATANODE') {
@@ -111,6 +153,7 @@ App.RollingRestartView = Em.View.extend({
       this.set('tolerateSize', tolerateCount);
       this.set('interBatchWaitTimeSeconds', 120);
       this.set('isLoaded', true);
+      this.set('regionMoverThreadPoolSize', 1);
     }
   },
 
@@ -125,9 +168,10 @@ App.RollingRestartView = Em.View.extend({
     var bs = this.get('batchSize');
     var ts = this.get('tolerateSize');
     var wait = this.get('interBatchWaitTimeSeconds');
+    var threadPoolSize = this.get('regionMoverThreadPoolSize');
     var errors = [];
     var warnings = [];
-    var bsError, tsError, waitError;
+    var bsError, tsError, waitError, threadPoolSizeError;
     if (totalCount < 1) {
       errors.push(Em.I18n.t('rollingrestart.dialog.msg.noRestartHosts').format(displayName));
     } else {
@@ -152,15 +196,46 @@ App.RollingRestartView = Em.View.extend({
     if (waitError != null) {
       errors.push(Em.I18n.t('rollingrestart.dialog.err.invalid.waitTime').format(waitError));
     }
+    threadPoolSizeError = numberUtils.validateInteger(threadPoolSize, 0, NaN);
+    if (threadPoolSizeError != null) {
+      errors.push(Em.I18n.t('rollingrestart.dialog.err.invalid.threadPoolSize').format(threadPoolSizeError));
+    }
     this.set('errors', errors);
     this.set('warnings', warnings);
-  }.observes('batchSize', 'interBatchWaitTimeSeconds', 'tolerateSize', 'restartHostComponents', 'hostComponentDisplayName'),
+  }.observes('batchSize', 'interBatchWaitTimeSeconds', 'tolerateSize', 'restartHostComponents', 'hostComponentDisplayName', 'regionMoverThreadPoolSize'),
+
+  /**
+   * Observe gracefulRSRestart changed
+   */
+  observeGracefulRSRestart : function() {
+    if (this.get('isRegionServer') === true && this.get('gracefulRSRestart') === true) {
+      // Set interBatchWaitTimeSeconds 0 when gracefulRSRestart is true, because of no reason to wait
+      this.set('interBatchWaitTimeSeconds', 0);
+      this.set('disableHBaseBalancerBeforeRR', true);
+      this.set('enableHBaseBalancerAfterRR', true);
+      this.set('regionMoverThreadPoolSize', 10);
+    } else {
+      this.set('gracefulRSRestart', false);
+      this.set('interBatchWaitTimeSeconds', 120);
+      this.set('disableHBaseBalancerBeforeRR', false);
+      this.set('enableHBaseBalancerAfterRR', false);
+      this.set('regionMoverThreadPoolSize', 1);
+    }
+  }.observes('gracefulRSRestart'),
 
   /**
    * Formatted <code>hostComponentName</code>
    * @type {String}
    */
   hostComponentDisplayName: Em.computed.formatRole('hostComponentName', false),
+
+  /**
+   * If it is rolling restarting of region servers
+   * @type {bool}
+   */
+  isRegionServer: function() {
+    return this.get('hostComponentName') === 'HBASE_REGIONSERVER';
+  }.property('hostComponentName'),
 
   /**
    * List of all host components

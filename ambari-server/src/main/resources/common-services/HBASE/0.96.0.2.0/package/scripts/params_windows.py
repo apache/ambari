@@ -36,6 +36,8 @@ region_drainer = os.path.join(hbase_bin_dir,"draining_servers.rb")
 region_mover = os.path.join(hbase_bin_dir,"region_mover.rb")
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
 hbase_drain_only = config['commandParams']['mark_draining_only']
+region_mover_thread_pool_size = config['commandParams']['region_mover_thread_pool_size'] if 'region_mover_thread_pool_size' in config['commandParams'] else 1
+graceful_rs_restart = config['commandParams']['graceful_rs_restart'] if 'graceful_rs_restart' in config['commandParams'] else False
 
 service_map = {
   'master' : status_params.hbase_master_win_service_name,

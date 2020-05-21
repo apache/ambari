@@ -318,10 +318,17 @@ module.exports = {
    * @param {Number} batchSize size of each batch
    * @param {Number} intervalTimeSeconds delay between two batches
    * @param {Number} tolerateSize task failure tolerance
+   * @param {bool} gracefulRSRestart restart region servers gracefully
+   * @param {Number} regionMoverThreadPoolSize thread pool size of region mover
+   * @param {bool} disableHBaseBalancerBeforeRR disable HBase balancer before region servers rolling restart
+   * @param {bool} enableHBaseBalancerAfterRR enable HBase balancer after region servers rolling restart
    * @param {callback} [successCallback]
    * @param {callback} [errorCallback]
    */
-  _doPostBatchRollingRestartRequest: function(restartHostComponents, batchSize, intervalTimeSeconds, tolerateSize, successCallback, errorCallback) {
+  _doPostBatchRollingRestartRequest: function(restartHostComponents, batchSize, intervalTimeSeconds, tolerateSize,
+                                              gracefulRSRestart, regionMoverThreadPoolSize,
+                                              disableHBaseBalancerBeforeRR, enableHBaseBalancerAfterRR,
+                                              successCallback, errorCallback) {
     successCallback = successCallback || defaultSuccessCallback;
     errorCallback = errorCallback || defaultErrorCallback;
 
@@ -337,7 +344,8 @@ module.exports = {
       data: {
         intervalTimeSeconds: intervalTimeSeconds,
         tolerateSize: tolerateSize,
-        batches: this.getBatchesForRollingRestartRequest(restartHostComponents, batchSize)
+        batches: this.getBatchesForRollingRestartRequest(restartHostComponents, batchSize, gracefulRSRestart,
+            regionMoverThreadPoolSize, disableHBaseBalancerBeforeRR, enableHBaseBalancerAfterRR)
       },
       success: 'successCallback',
       error: 'errorCallback',
@@ -349,38 +357,65 @@ module.exports = {
    * Create list of batches for rolling restart request
    * @param {Array} restartHostComponents list host components should be restarted
    * @param {Number} batchSize size of each batch
+   * @param {bool} gracefulRSRestart restart region servers gracefully
+   * @param {Number} regionMoverThreadPoolSize thread pool size of region mover
+   * @param {bool} disableHBaseBalancerBeforeRR disable HBase balancer before region servers rolling restart
+   * @param {bool} enableHBaseBalancerAfterRR enable HBase balancer after region servers rolling restart
    * @returns {Array} list of batches
    */
-  getBatchesForRollingRestartRequest: function(restartHostComponents, batchSize) {
+  getBatchesForRollingRestartRequest: function(restartHostComponents, batchSize, gracefulRSRestart,
+                                               regionMoverThreadPoolSize, disableHBaseBalancerBeforeRR,
+                                               enableHBaseBalancerAfterRR) {
     var hostIndex = 0,
         batches = [],
         batchCount = Math.ceil(restartHostComponents.length / batchSize),
         sampleHostComponent = restartHostComponents.objectAt(0),
         componentName = sampleHostComponent.get('componentName'),
-        serviceName = sampleHostComponent.get('serviceName');
+        serviceName = sampleHostComponent.get('serviceName'),
+        hostName = sampleHostComponent.get('hostName'),
+        clusterName = App.get('clusterName');
+
+    if (disableHBaseBalancerBeforeRR) batchCount++;
+    if (enableHBaseBalancerAfterRR) batchCount++;
+
+    function getBatch(command) {
+      return {
+        "order_id": count + 1,
+        "type": "POST",
+        "uri": "/clusters/" + clusterName + "/requests",
+        "RequestBodyInfo": {
+          "RequestInfo": {
+            "context": "_PARSE_.ROLLING-RESTART." + componentName + "." + (count + 1) + "." + batchCount,
+            "command": command,
+            "parameters": {
+              "graceful_rs_restart": gracefulRSRestart,
+              "region_mover_thread_pool_size": regionMoverThreadPoolSize
+            }
+          },
+          "Requests/resource_filters": [{
+            "service_name": serviceName,
+            "component_name": componentName,
+            "hosts": hostNames.join(",")
+          }]
+        }
+      };
+    }
 
     for ( var count = 0; count < batchCount; count++) {
       var hostNames = [];
-      for ( var hc = 0; hc < batchSize && hostIndex < restartHostComponents.length; hc++) {
-        hostNames.push(restartHostComponents.objectAt(hostIndex++).get('hostName'));
-      }
-      if (hostNames.length) {
-        batches.push({
-          "order_id" : count + 1,
-          "type" : "POST",
-          "uri" : "/clusters/" + App.get('clusterName') + "/requests",
-          "RequestBodyInfo" : {
-            "RequestInfo" : {
-              "context" : "_PARSE_.ROLLING-RESTART." + componentName + "." + (count + 1) + "." + batchCount,
-              "command" : "RESTART"
-            },
-            "Requests/resource_filters": [{
-              "service_name" : serviceName,
-              "component_name" : componentName,
-              "hosts" : hostNames.join(",")
-            }]
-          }
-        });
+      if (disableHBaseBalancerBeforeRR && count === 0) {
+        hostNames.push(hostName);
+        batches.push(getBatch("DISABLE_HBASE_BALANCER"));
+      } else if (enableHBaseBalancerAfterRR && count === batchCount - 1) {
+        hostNames.push(hostName);
+        batches.push(getBatch("ENABLE_HBASE_BALANCER"));
+      } else {
+        for (var hc = 0; hc < batchSize && hostIndex < restartHostComponents.length; hc++) {
+          hostNames.push(restartHostComponents.objectAt(hostIndex++).get('hostName'));
+        }
+        if (hostNames.length) {
+          batches.push(getBatch("RESTART"));
+        }
       }
     }
     return batches;
@@ -484,10 +519,16 @@ module.exports = {
         var batchSize = this.get('innerView.batchSize');
         var waitTime = this.get('innerView.interBatchWaitTimeSeconds');
         var tolerateSize = this.get('innerView.tolerateSize');
+        var gracefulRSRestart = this.get('innerView.gracefulRSRestart');
+        var regionMoverThreadPoolSize = this.get('innerView.regionMoverThreadPoolSize');
+        var disableHBaseBalancerBeforeRR = this.get('innerView.disableHBaseBalancerBeforeRR');
+        var enableHBaseBalancerAfterRR = this.get('innerView.enableHBaseBalancerAfterRR');
         if (this.get('innerView.turnOnMm')) {
           self.turnOnOffPassiveRequest('ON', Em.I18n.t('passiveState.turnOnFor').format(serviceName), serviceName.toUpperCase());
         }
-        self._doPostBatchRollingRestartRequest(restartComponents, batchSize, waitTime, tolerateSize, function(data, ajaxOptions, params) {
+        self._doPostBatchRollingRestartRequest(restartComponents, batchSize, waitTime, tolerateSize,
+            gracefulRSRestart, regionMoverThreadPoolSize, disableHBaseBalancerBeforeRR, enableHBaseBalancerAfterRR,
+            function(data, ajaxOptions, params) {
           dialog.hide();
           defaultSuccessCallback(data, ajaxOptions, params);
         });

@@ -106,6 +106,8 @@ phx_daemon_script = format('{stack_root}/current/phoenix-server/bin/queryserver.
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
 hbase_drain_only = default("/commandParams/mark_draining_only",False)
 hbase_included_hosts = config['commandParams']['included_hosts']
+region_mover_thread_pool_size = config['commandParams']['region_mover_thread_pool_size'] if 'region_mover_thread_pool_size' in config['commandParams'] else 1
+graceful_rs_restart = config['commandParams']['graceful_rs_restart'] if 'graceful_rs_restart' in config['commandParams'] else False
 
 hbase_user = status_params.hbase_user
 hbase_principal_name = config['configurations']['hbase-env']['hbase_principal_name']

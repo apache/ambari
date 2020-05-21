@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.source import StaticFile
 from resource_management.libraries.functions.format import format
@@ -37,8 +38,10 @@ def hbase_decommission(env):
         regiondrainer_cmd = format("cmd /c {hbase_executable} org.jruby.Main {region_drainer} remove {host}")
         Execute(regiondrainer_cmd, user=params.hbase_user, logoutput=True)
       else:
+        region_mover_thread_pool_size = params.region_mover_thread_pool_size
         regiondrainer_cmd = format("cmd /c {hbase_executable} org.jruby.Main {region_drainer} add {host}")
-        regionmover_cmd = format("cmd /c {hbase_executable} org.jruby.Main {region_mover} unload {host}")
+        regionmover_cmd = format("cmd /c {hbase_executable} org.jruby.Main {region_mover}"
+                                 " -m {region_mover_thread_pool_size} unload {host}")
         Execute(regiondrainer_cmd, user=params.hbase_user, logoutput=True)
         Execute(regionmover_cmd, user=params.hbase_user, logoutput=True)
 
@@ -64,7 +67,9 @@ def hbase_decommission(env):
     for host in hosts:
       if host:
         regiondrainer_cmd = format(
-          "{kinit_cmd} HBASE_OPTS=\"$HBASE_OPTS {master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} org.jruby.Main {region_drainer} remove {host}")
+          "{kinit_cmd} HBASE_OPTS=\"$HBASE_OPTS {master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} org.jruby.Main {region_drainer} list"
+          " | grep {host}"
+          " | xargs -r {hbase_cmd} --config {hbase_conf_dir} org.jruby.Main {region_drainer} remove")
         Execute(regiondrainer_cmd,
                 user=params.hbase_user,
                 logoutput=True
@@ -75,10 +80,13 @@ def hbase_decommission(env):
   else:
     for host in hosts:
       if host:
+        region_mover_thread_pool_size = params.region_mover_thread_pool_size
         regiondrainer_cmd = format(
           "{kinit_cmd} HBASE_OPTS=\"$HBASE_OPTS {master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} org.jruby.Main {region_drainer} add {host}")
         regionmover_cmd = format(
-          "{kinit_cmd} HBASE_OPTS=\"$HBASE_OPTS {master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} org.jruby.Main {region_mover} unload {host}")
+          "{kinit_cmd} HBASE_OPTS=\"$HBASE_OPTS {master_security_config}\" {hbase_cmd}"
+          " --config {hbase_conf_dir} org.jruby.Main {region_mover}"
+          " -m {region_mover_thread_pool_size} unload {host}")
 
         Execute(regiondrainer_cmd,
                 user=params.hbase_user,
@@ -91,4 +99,54 @@ def hbase_decommission(env):
         )
       pass
     pass
+  pass
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def hbase_load_regions(env):
+  import params
+
+  if params.hostname and params.hbase_user and params.region_mover_thread_pool_size:
+    region_mover_thread_pool_size = params.region_mover_thread_pool_size
+    regionmover_cmd = format("cmd /c {hbase_executable} org.jruby.Main {region_mover}"
+                             " -m {region_mover_thread_pool_size} load {params.hostname}")
+    Execute(regionmover_cmd, user=params.hbase_user, logoutput=True)
+  pass
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def hbase_load_regions(env):
+  import params
+
+  if params.hostname and params.hbase_user and params.region_mover_thread_pool_size:
+    kinit_cmd = params.kinit_cmd_master
+    region_mover_thread_pool_size = params.region_mover_thread_pool_size
+    regionmover_cmd = format("{kinit_cmd} HBASE_OPTS=\"$HBASE_OPTS {master_security_config}\" {hbase_cmd}"
+                             " --config {hbase_conf_dir} org.jruby.Main {region_mover}"
+                             " -m {region_mover_thread_pool_size} load {params.hostname}")
+    Execute(regionmover_cmd, user=params.hbase_user, logoutput=True)
+  pass
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def balance_switch(env, enable):
+  import params
+
+  if params.hbase_user and isinstance(enable, bool):
+    enable_str = str(enable).lower()
+    enable_balancer_cmd = format("cmd /c echo 'balance_switch {enable_str}' | {hbase_executable} shell -n")
+    Execute(enable_balancer_cmd, user=params.hbase_user, logoutput=True)
+  else:
+    Logger.error("balance_switch failed - params.hbase_user = " + params.hbase_user + ", enable = " + enable)
+  pass
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def balance_switch(env, enable):
+  import params
+
+  if params.hbase_user and isinstance(enable, bool):
+    enable_str = str(enable).lower()
+    enable_balancer_cmd = format("{kinit_cmd} echo 'balance_switch {enable_str}'"
+                                 " | HBASE_OPTS=\"$HBASE_OPTS {master_security_config}\" {hbase_cmd}"
+                                 " --config {hbase_conf_dir} shell -n")
+    Execute(enable_balancer_cmd, user=params.hbase_user, logoutput=True)
+  else:
+    Logger.error("balance_switch failed - params.hbase_user = " + params.hbase_user + ", enable = " + enable)
   pass

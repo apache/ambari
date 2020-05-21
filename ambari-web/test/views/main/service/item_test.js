@@ -369,6 +369,8 @@ describe('App.MainServiceItemView', function () {
           result: [
             {"action": "startService", "label": "Start", "cssClass": "glyphicon glyphicon-play enabled", "disabled": false},
             {"action": "stopService", "label": "Stop", "cssClass": "glyphicon glyphicon-stop enabled", "disabled": false},
+            {"action": "switchHBaseBalancer", "context": "Disable HBase Balancer", "label": "Disable HBase Balancer", "cssClass": "glyphicon glyphicon-stop", "disabled": false},
+            {"action": "switchHBaseBalancer", "context": "Enable HBase Balancer", "label": "Enable HBase Balancer", "cssClass": "glyphicon glyphicon-play", "disabled": false},
             {"action": "restartAllHostComponents", "context": "HBASE", "label": "Restart All", "cssClass": "glyphicon glyphicon-time", "disabled": false},
             {"action": "rollingRestart", "label": "Restart RegionServers", "cssClass": "glyphicon glyphicon-time", "disabled": false, "context": "HBASE_REGIONSERVER"},
             {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "glyphicon glyphicon-thumbs-up", "disabled": false},

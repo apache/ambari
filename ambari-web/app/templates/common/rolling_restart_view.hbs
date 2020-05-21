@@ -68,6 +68,39 @@
         </td>
       </tr>
 
+      {{#if view.isRegionServer}}
+        <tr>
+          <td>&nbsp;</td>
+          <td colspan="2">
+            {{view App.CheckboxView
+              labelBinding="view.gracefulRSRestartMessage"
+              checkedBinding="view.gracefulRSRestart"}}
+          </td>
+        </tr>
+        {{#if view.gracefulRSRestart}}
+        <tr>
+          <td>{{t rollingrestart.dialog.msg.regionMoverThreadPoolSize.prefix}}</td>
+          <td>{{view Ember.TextField valueBinding="view.regionMoverThreadPoolSize" class="form-control input-sm"}}</td>
+          <td>{{t rollingrestart.dialog.msg.regionMoverThreadPoolSize.suffix}}</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td colspan="2">
+            {{view App.CheckboxView
+              labelBinding="view.disableHBaseBalancerBeforeRRMsg"
+              checkedBinding="view.disableHBaseBalancerBeforeRR"}}
+          </td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td colspan="2">
+            {{view App.CheckboxView
+              labelBinding="view.enableHBaseBalancerAfterRRMsg"
+              checkedBinding="view.enableHBaseBalancerAfterRR"}}
+          </td>
+        </tr>
+        {{/if}}
+      {{/if}}
     </table>
   {{else}}
     {{view App.SpinnerView}}
