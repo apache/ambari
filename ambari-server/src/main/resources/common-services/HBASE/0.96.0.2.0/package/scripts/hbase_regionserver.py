@@ -21,6 +21,7 @@ limitations under the License.
 import sys
 
 from resource_management.core import shell
+from resource_management.core.resources.system import Execute
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
@@ -29,12 +30,14 @@ from resource_management.libraries.functions.security_commons import build_expec
   FILE_TYPE_XML
 
 from ambari_commons import OSCheck, OSConst
+from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from ambari_commons.os_family_impl import OsFamilyImpl
 
 from hbase import hbase
 from hbase_service import hbase_service
 import upgrade
 from setup_ranger_hbase import setup_ranger_hbase
+from hbase_decommission import hbase_decommission
 
 
 class HbaseRegionServer(Script):
@@ -50,6 +53,42 @@ class HbaseRegionServer(Script):
 
   def decommission(self, env):
     print "Decommission not yet implemented!"
+
+  def graceful_stop(self, env, upgrade_type=None):
+    import params
+
+    # Mark Draining ZNode
+    params.hbase_drain_only = False
+    params.hbase_excluded_hosts = params.hostname
+    env.set_params(params)
+    hbase_decommission(env)
+
+    # Stop RegionServer
+    hbase_service('regionserver', action='stop')
+
+    # Remove from Draining ZNode to make host useable on restarting regionserver
+    params.hbase_drain_only = True
+    env.set_params(params)
+    hbase_decommission(env)
+
+  def graceful_start(self, env, upgrade_type=None):
+    import params
+    env.set_params(params)
+
+    #Start RegionServer
+    hbase_service('regionserver', action='start')
+
+    # Load Regions back
+    kinit_cmd = params.kinit_cmd_master
+    host = params.hostname
+
+    regionmover_cmd = format(
+      "{kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} {client_security_config} org.jruby.Main {region_mover} load {host}")
+
+    Execute(regionmover_cmd,
+            user=params.hbase_user,
+            logoutput=True
+            )
 
 
 
@@ -90,15 +129,23 @@ class HbaseRegionServerDefault(HbaseRegionServer):
     self.configure(env) # for security
     setup_ranger_hbase(upgrade_type=upgrade_type, service_name="hbase-regionserver")
 
-    hbase_service('regionserver', action='start')
+    if upgrade_type == UPGRADE_TYPE_ROLLING and len(params.rs_hosts) > 5:
+      self.graceful_start(env)
+    else:
+      hbase_service('regionserver',
+                    action='start'
+                    )
 
   def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
-    hbase_service( 'regionserver',
-      action = 'stop'
-    )
+    if upgrade_type == UPGRADE_TYPE_ROLLING and len(params.rs_hosts) > 5:
+      self.graceful_stop(env)
+    else:
+      hbase_service('regionserver',
+                    action='stop'
+                    )
 
   def status(self, env):
     import status_params
