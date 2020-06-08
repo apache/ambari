@@ -445,6 +445,7 @@ public class HostInfo {
     return ret.toString();
   }
 
+  @Override
   public String toString() {
     return "[" +
         "hostname=" + this.hostname + "," +

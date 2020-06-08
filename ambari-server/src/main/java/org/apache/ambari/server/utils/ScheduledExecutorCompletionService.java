@@ -35,6 +35,7 @@ public class ScheduledExecutorCompletionService<V> extends ExecutorCompletionSer
       super(task, null);
       this.task = task;
     }
+    @Override
     protected void done() { queue.add(task); }
     private final Future<V> task;
   }

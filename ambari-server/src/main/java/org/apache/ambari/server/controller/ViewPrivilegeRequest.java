@@ -36,6 +36,7 @@ public class ViewPrivilegeRequest extends ViewPrivilegeResponse implements ApiMo
    * Hide privilege id in request body schema
    * @return privilege id
    */
+  @Override
   @ApiModelProperty(name = PrivilegeResourceProvider.PRIVILEGE_ID_PROPERTY_ID, hidden = true)
   public Integer getPrivilegeId() {
     return privilegeId;
@@ -45,6 +46,7 @@ public class ViewPrivilegeRequest extends ViewPrivilegeResponse implements ApiMo
    * Hide permission label in request body schema
    * @return permission label
    */
+  @Override
   @ApiModelProperty(name = PrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID, hidden = true)
   public String getPermissionLabel() {
     return permissionLabel;
@@ -54,6 +56,7 @@ public class ViewPrivilegeRequest extends ViewPrivilegeResponse implements ApiMo
    * Hide view name in request body schema
    * @return view name
    */
+  @Override
   @ApiModelProperty(name = ViewPrivilegeResourceProvider.VIEW_NAME_PROPERTY_ID, hidden = true)
   public String getViewName() {
     return viewName;
@@ -63,6 +66,7 @@ public class ViewPrivilegeRequest extends ViewPrivilegeResponse implements ApiMo
    * Hide view version in request body schema
    * @return view version
    */
+  @Override
   @ApiModelProperty(name = ViewPrivilegeResourceProvider.VERSION_PROPERTY_ID, hidden = true)
   public String getVersion() {
     return version;
@@ -72,6 +76,7 @@ public class ViewPrivilegeRequest extends ViewPrivilegeResponse implements ApiMo
    * Hide view instance name in request body schema
    * @return view instance name
    */
+  @Override
   @ApiModelProperty(name = ViewPrivilegeResourceProvider.INSTANCE_NAME_PROPERTY_ID, hidden = true)
   public String getInstanceName() {
     return instanceName;

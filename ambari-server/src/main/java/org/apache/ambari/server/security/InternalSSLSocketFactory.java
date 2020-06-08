@@ -99,14 +99,17 @@ public class InternalSSLSocketFactory extends SSLSocketFactory {
    * chain of trust or hostname.
    */
   public static class LenientTrustManager extends X509ExtendedTrustManager implements X509TrustManager {
+    @Override
     public void checkClientTrusted(X509Certificate[] xcs, String string) throws CertificateException {
       // do nothing
     }
 
+    @Override
     public void checkServerTrusted(X509Certificate[] xcs, String string) throws CertificateException {
       // do nothing
     }
 
+    @Override
     public X509Certificate[] getAcceptedIssuers() {
       return new X509Certificate[0];
     }

@@ -290,6 +290,7 @@ public class AmbariLdapBindAuthenticator extends AbstractLdapAuthenticator {
     LOG.debug("LDAP login - set admin attr filter: {}", setAmbariAdminAttrFilter);
 
     AttributesMapper attributesMapper = new AttributesMapper() {
+      @Override
       public Object mapFromAttributes(Attributes attrs)
           throws NamingException {
         return attrs.get(groupNamingAttribute).get();

@@ -99,6 +99,7 @@ public class AmbariSNMPDispatcher extends SNMPDispatcher {
      * {@inheritDoc}
      * Uses default Ambari OIDs
      */
+    @Override
     protected PDU prepareTrap(Notification notification, SnmpVersion snmpVersion) throws InvalidSnmpConfigurationException {
         AlertNotification alertNotification;
         PDU pdu = DefaultPDUFactory.createPDU(snmpVersion.getTargetVersion());

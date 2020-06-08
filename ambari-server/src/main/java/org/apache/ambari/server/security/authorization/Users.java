@@ -1373,6 +1373,7 @@ public class Users {
         UserAuthenticationType.JWT,
         key,
         new Validator() {
+          @Override
           public void validate(UserEntity userEntity, String key) throws AmbariException {
             List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
 
@@ -1415,6 +1416,7 @@ public class Users {
         UserAuthenticationType.KERBEROS,
         principalName,
         new Validator() {
+          @Override
           public void validate(UserEntity userEntity, String key) throws AmbariException {
             // Ensure no other authentication entries exist for the same principal...
             if (!CollectionUtils.isEmpty(userAuthenticationDAO.findByTypeAndKey(UserAuthenticationType.KERBEROS, key))) {
@@ -1463,6 +1465,7 @@ public class Users {
         UserAuthenticationType.LOCAL,
         encodedPassword,
         new Validator() {
+          @Override
           public void validate(UserEntity userEntity, String key) throws AmbariException {
             List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
 
@@ -1504,6 +1507,7 @@ public class Users {
         UserAuthenticationType.PAM,
         userName,
         new Validator() {
+          @Override
           public void validate(UserEntity userEntity, String key) throws AmbariException {
             List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
 
@@ -1545,6 +1549,7 @@ public class Users {
         UserAuthenticationType.LDAP,
         StringUtils.lowerCase(dn), // DNs are case-insensitive and are stored internally as the bytes of lowercase characters
         new Validator() {
+          @Override
           public void validate(UserEntity userEntity, String key) throws AmbariException {
             List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
 

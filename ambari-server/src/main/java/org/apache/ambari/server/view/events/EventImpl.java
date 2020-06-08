@@ -92,6 +92,7 @@ public class EventImpl implements Event {
    *
    * @return the id
    */
+  @Override
   public String getId() {
     return id;
   }
@@ -101,6 +102,7 @@ public class EventImpl implements Event {
    *
    * @return the properties
    */
+  @Override
   public Map<String, String> getProperties() {
     return properties;
   }
@@ -110,6 +112,7 @@ public class EventImpl implements Event {
    *
    * @return the view subject
    */
+  @Override
   public ViewDefinition getViewSubject() {
     return viewSubject;
   }
@@ -119,6 +122,7 @@ public class EventImpl implements Event {
    *
    * @return the instance subject; null if this is a view level event
    */
+  @Override
   public ViewInstanceDefinition getViewInstanceSubject() {
     return viewInstanceSubject;
   }
