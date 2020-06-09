@@ -68,7 +68,7 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
 
   # append url according to ssl configuration
   if ssl and ssl_keystore is not None and ssl_password is not None:
-    beeline_url.extend(['ssl={ssl_str}', 'sslTrustStore={ssl_keystore}', 'trustStorePassword={ssl_password!p}'])
+    beeline_url.extend(['ssl={ssl_str}', 'sslTrustStore={ssl_keystore}', "trustStorePassword='{ssl_password!p}'"])
 
   # append url according to principal and execute kinit
   if kinitcmd and hive_auth != "LDAP":
