@@ -33,6 +33,8 @@ import javax.persistence.OneToOne;
 
 import org.apache.ambari.server.state.HostState;
 
+import java.util.Objects;
+
 @javax.persistence.Table(name = "hoststate")
 @Entity
 @NamedQueries({
@@ -136,24 +138,16 @@ public class HostStateEntity {
     if (o == null || getClass() != o.getClass()) return false;
 
     HostStateEntity that = (HostStateEntity) o;
-
-    if (hostId != null ? hostId != that.hostId : that.hostId != null) return false;
-    if (availableMem != null ? !availableMem.equals(that.availableMem) : that.availableMem != null) return false;
-    if (timeInState != null ? !timeInState.equals(that.timeInState) : that.timeInState!= null) return false;
-    if (agentVersion != null ? !agentVersion.equals(that.agentVersion) : that.agentVersion != null) return false;
-    if (currentState != null ? !currentState.equals(that.currentState) : that.currentState != null) return false;
-
-    return true;
+    return Objects.equals(hostId, that.hostId) &&
+            Objects.equals(availableMem, that.availableMem) &&
+            Objects.equals(timeInState, that.timeInState) &&
+            Objects.equals(agentVersion, that.agentVersion) &&
+            currentState == that.currentState;
   }
 
   @Override
   public int hashCode() {
-    int result = hostId != null ? hostId.intValue() : 0;
-    result = 31 * result + (availableMem != null ? availableMem.intValue() : 0);
-    result = 31 * result + (timeInState != null ? timeInState.intValue() : 0);
-    result = 31 * result + (agentVersion != null ? agentVersion.hashCode() : 0);
-    result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
-    return result;
+    return Objects.hash(hostId, availableMem, timeInState, agentVersion, currentState);
   }
 
   public HostEntity getHostEntity() {
