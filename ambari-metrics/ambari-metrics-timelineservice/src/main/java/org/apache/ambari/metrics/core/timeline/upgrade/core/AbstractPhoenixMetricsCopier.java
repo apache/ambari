@@ -49,6 +49,7 @@ public abstract class AbstractPhoenixMetricsCopier implements Runnable {
     this.processedMetricsFile = outputStream;
   }
 
+  @Override
   public void run(){
     LOG.info(String.format("Copying %s metrics from %s to %s", metricNames, inputTable, outputTable));
     long startTimer = System.currentTimeMillis();

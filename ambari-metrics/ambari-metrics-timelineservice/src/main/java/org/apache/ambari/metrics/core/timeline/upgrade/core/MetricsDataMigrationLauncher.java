@@ -306,15 +306,13 @@ public class MetricsDataMigrationLauncher {
     try {
       //Setup shutdown hook for metadata save.
       MetricsDataMigrationLauncher finalDataMigrationLauncher = dataMigrationLauncher;
-      Runtime.getRuntime().addShutdownHook(new Thread() {
-        public void run() {
-          try {
-            finalDataMigrationLauncher.saveMetadata();
-          } catch (SQLException e) {
-            LOG.error("Exception during metadata saving, exiting...", e);
-          }
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        try {
+          finalDataMigrationLauncher.saveMetadata();
+        } catch (SQLException e) {
+          LOG.error("Exception during metadata saving, exiting...", e);
         }
-      });
+      }));
 
       dataMigrationLauncher.runMigration(timeoutInMinutes);
     } catch (IOException e) {

@@ -68,12 +68,10 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   // Cache the rpc port used and the suffix to use if the port tag is found
   private Map<String, String> rpcPortSuffixes = new HashMap<>(10);
 
-  private final ExecutorService executorService = Executors.newSingleThreadExecutor(new ThreadFactory() {
-    public Thread newThread(Runnable r) {
-      Thread t = Executors.defaultThreadFactory().newThread(r);
-      t.setDaemon(true);
-      return t;
-    }
+  private final ExecutorService executorService = Executors.newSingleThreadExecutor(r -> {
+    Thread t = Executors.defaultThreadFactory().newThread(r);
+    t.setDaemon(true);
+    return t;
   });
   private int hostInMemoryAggregationPort;
   private boolean hostInMemoryAggregationEnabled;

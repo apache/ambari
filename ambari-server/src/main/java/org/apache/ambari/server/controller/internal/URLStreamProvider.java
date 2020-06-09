@@ -299,16 +299,22 @@ public class URLStreamProvider implements StreamProvider {
 
   public static class TrustAllHostnameVerifier implements HostnameVerifier
   {
-    public boolean verify(String hostname, SSLSession session) { return true; }
+    @Override
+    public boolean verify(String hostname, SSLSession session) {
+      return true;
+    }
   }
 
   public static class TrustAllManager implements X509TrustManager
   {
+    @Override
     public X509Certificate[] getAcceptedIssuers()
     {
       return new X509Certificate[0];
     }
+    @Override
     public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+    @Override
     public void checkServerTrusted(X509Certificate[] certs, String authType) {}
   }
 

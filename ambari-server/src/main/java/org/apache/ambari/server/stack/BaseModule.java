@@ -45,6 +45,7 @@ public abstract class BaseModule<T, I> implements StackDefinitionModule<T, I> {
    *
    * @return the module's state
    */
+  @Override
   public ModuleState getModuleState() {
     return moduleState;
   }

@@ -42,6 +42,7 @@ public class ManagedThreadPoolExecutor extends ThreadPoolExecutor {
     isStopped = true;
   }
 
+  @Override
   protected void beforeExecute(Thread t, Runnable r) {
     super.beforeExecute(t, r);
     pauseLock.lock();

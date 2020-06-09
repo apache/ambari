@@ -765,6 +765,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   /**
    * {@inheritDoc}
    */
+  @Override
   public TopologyUpdateEvent getAddedComponentsTopologyEvent(Set<ServiceComponentHostRequest> requests)
     throws AmbariException {
     TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();

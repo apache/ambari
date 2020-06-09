@@ -88,10 +88,12 @@ public class ResultImpl implements Result {
     m_status = status;
   }
 
+  @Override
   public void setResultMetadata(ResultMetadata resultMetadata) {
     m_resultMetadata = resultMetadata;
   }
 
+  @Override
   public ResultMetadata getResultMetadata() {
     return m_resultMetadata;
   }
