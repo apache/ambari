@@ -617,17 +617,15 @@ App.CheckHostMixin = Em.Mixin.create({
             warning.hosts.push(hostName);
             warning.hostsLong.push(hostName);
           } else {
+            var command = 'pid=' + process.pid + ', user=' + process.user;
             warningCategories.processesWarnings[process.pid] = warning = {
-              name: (process.command.substr(0, 35) + '...'),
+              name: command.length > 36 ? (command.substr(0, 35) + '...') : command,
               hosts: [hostName],
               hostsLong: [hostName],
               category: 'processes',
               user: process.user,
               pid: process.pid,
-              command: '<table><tr><td style="word-break: break-all;">' +
-              ((process.command.length < 500) ? process.command : process.command.substr(0, 230) + '...' +
-              '<p style="text-align: center">................</p>' +
-              '...' + process.command.substr(-230)) + '</td></tr></table>'
+              command: command
             };
           }
           host.warnings.push(warning);
@@ -851,17 +849,15 @@ App.CheckHostMixin = Em.Mixin.create({
             warning.hosts.push(_host.Hosts.host_name);
             warning.hostsLong.push(_host.Hosts.host_name);
           } else {
+            var command = 'pid=' + process.pid + ', user=' + process.user;
             warningCategories.processesWarnings[process.pid] = warning = {
-              name: (process.command.substr(0, 35) + '...'),
+              name: command.length > 36 ? (command.substr(0, 35) + '...') : command,
               hosts: [_host.Hosts.host_name],
               hostsLong: [_host.Hosts.host_name],
               category: 'processes',
               user: process.user,
               pid: process.pid,
-              command: '<table><tr><td style="word-break: break-all;">' +
-              ((process.command.length < 500) ? process.command : process.command.substr(0, 230) + '...' +
-              '<p style="text-align: center">................</p>' +
-              '...' + process.command.substr(-230)) + '</td></tr></table>'
+              command: command
             };
           }
           host.warnings.push(warning);

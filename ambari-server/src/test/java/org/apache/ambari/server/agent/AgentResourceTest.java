@@ -228,8 +228,8 @@ public class AgentResourceTest extends RandomPortJerseyTest {
     String PackageDetailJSON = "[{name:'abc', version:'2.3', repoName:'HDP'},{name:'abc', version:'3.3', repoName:'HDP-epel'}]";
     String ExistingUserJSON = "[{name:'hdfs', homeDir:'/var/lib/hadoop', status:''}, " +
             "{name:'ambari_qa', homeDir:'/var/home/ambari_qa',status:'None'}]";
-    String JavaProcJSON = "[{user:'root', pid:'355', hadoop:'True', command:'cmd'}, " +
-            "{user:'hdfs', pid:'325', hadoop:'False', command:'cmd = 2'}]";
+    String JavaProcJSON = "[{user:'root', pid:'355', hadoop:'True'}, " +
+            "{user:'hdfs', pid:'325', hadoop:'False'}]";
     String AlternativeJSON = "[{name:'/etc/alternatives/hdfs-conf', target:'/etc/hadoop/conf.dist'}, " +
             "{name:'abc', target:'def'}]";
     String AgentEnvJSON = "{\"alternatives\": " + AlternativeJSON +
@@ -258,7 +258,6 @@ public class AgentResourceTest extends RandomPortJerseyTest {
         JavaProcJSON, AgentEnv.JavaProc[].class);
     Assert.assertEquals("root", procs[0].getUser());
     Assert.assertEquals(355, procs[0].getPid());
-    Assert.assertEquals("cmd = 2", procs[1].getCommand());
     Assert.assertEquals(false, procs[1].isHadoop());
 
     AgentEnv.Alternative[] alternatives = getJsonFormString(
