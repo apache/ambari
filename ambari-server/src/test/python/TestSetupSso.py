@@ -64,14 +64,15 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
       with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
         with patch("platform.linux_distribution", return_value = os_distro_value):
           with patch("os.symlink"):
-            with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
-              _ambari_server_ = __import__('ambari-server')
-              with patch("__builtin__.open"):
-                from ambari_commons.exceptions import FatalException, NonFatalException
-                from ambari_server.properties import Properties
-                from ambari_server.setupSso import setup_sso, AMBARI_SSO_AUTH_ENABLED, \
-                  SSO_PROVIDER_URL, SSO_CERTIFICATE, JWT_COOKIE_NAME, JWT_AUDIENCES, \
-                  SSO_ENABLED_SERVICES, SSO_MANAGE_SERVICES
+            with patch.object(os_utils, "is_service_exist", return_value = True):
+              with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
+                _ambari_server_ = __import__('ambari-server')
+                with patch("__builtin__.open"):
+                  from ambari_commons.exceptions import FatalException, NonFatalException
+                  from ambari_server.properties import Properties
+                  from ambari_server.setupSso import setup_sso, AMBARI_SSO_AUTH_ENABLED, \
+                    SSO_PROVIDER_URL, SSO_CERTIFICATE, JWT_COOKIE_NAME, JWT_AUDIENCES, \
+                    SSO_ENABLED_SERVICES, SSO_MANAGE_SERVICES
 
 class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.is_server_runing")
