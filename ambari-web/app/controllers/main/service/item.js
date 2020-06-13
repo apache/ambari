@@ -950,7 +950,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     App.ModalPopup.show({
       classNames: ['sixty-percent-width-modal', 'service-params-popup'],
       header: Em.I18n.t('services.service.actions.run.updateHBaseReplication.context'),
-      primary: Em.I18n.t('common.start'),
+      primary: Em.I18n.t('common.enable'),
       secondary: Em.I18n.t('common.cancel'),
       peerId: '',
       parentzkey: '/hbase',
@@ -1029,7 +1029,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     App.ModalPopup.show({
       classNames: ['forty-percent-width-modal'],
       header: Em.I18n.t('services.service.actions.run.stopHBaseReplication.context'),
-      primary: Em.I18n.t('common.start'),
+      primary: Em.I18n.t('common.disable'),
       secondary: Em.I18n.t('common.cancel'),
       inputValue: '',
       errorMessage: Em.I18n.t('services.service.actions.run.stopHBaseReplication.promptError'),

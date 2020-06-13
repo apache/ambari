@@ -253,10 +253,7 @@ public class BackgroundCustomCommandExecutionTest {
     ExecutionCommand command = commands.get(0).getExecutionCommand();
     Assert.assertEquals(AgentCommandType.EXECUTION_COMMAND, command.getCommandType());
     Assert.assertEquals("UPDATE_REPLICATION", command.getCommandParams().get("custom_command"));
-
   }
-
-
 
   @SuppressWarnings("serial")
   @Test
@@ -294,11 +291,7 @@ public class BackgroundCustomCommandExecutionTest {
     ExecutionCommand command = commands.get(0).getExecutionCommand();
     Assert.assertEquals(AgentCommandType.EXECUTION_COMMAND, command.getCommandType());
     Assert.assertEquals("STOP_REPLICATION", command.getCommandParams().get("custom_command"));
-
   }
-
-
-
 
   private void createCluster(String clusterName) throws AmbariException, AuthorizationException {
     ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(),

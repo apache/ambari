@@ -65,6 +65,9 @@ def getConfiguration()
 end
 
 def removePeer(options, peerId)
+    unless peerId !~ /\D/
+      raise 'peerId should be Integer ID for peer cluster'
+    end
     replAdm = ReplicationAdmin.new(getConfiguration())
     replAdm.removePeer(peerId)
 end
@@ -77,6 +80,9 @@ end
 # clusterKey:  zkquorum:port:parentzkey
 # c7007.ambari.apache.org,c7008.ambari.apache.org,c7009.ambari.apache.org:2181:/hbase
 def addPeer(options, peerId, clusterKey, tableCfs=nil, endpointClass=nil, isTemporary="false")
+    unless peerId !~ /\D/
+      raise 'peerId should be Integer ID for peer cluster'
+    end
     replAdm = ReplicationAdmin.new(getConfiguration())
     replPeerConfig = ReplicationPeerConfig.new()
     replPeerConfig.setClusterKey(clusterKey)
