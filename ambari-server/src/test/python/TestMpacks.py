@@ -39,13 +39,14 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
       with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
         with patch("platform.linux_distribution", return_value = os_distro_value):
           with patch("os.symlink"):
-            with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
-              _ambari_server_ = __import__('ambari-server')
-              os_utils.search_file = _search_file
-              with patch("__builtin__.open"):
-                from ambari_commons.exceptions import FatalException, NonFatalException
-                from ambari_server import serverConfiguration
-                serverConfiguration.search_file = _search_file
+            with patch.object(os_utils, "is_service_exist", return_value = True):
+              with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
+                _ambari_server_ = __import__('ambari-server')
+                os_utils.search_file = _search_file
+                with patch("__builtin__.open"):
+                  from ambari_commons.exceptions import FatalException, NonFatalException
+                  from ambari_server import serverConfiguration
+                  serverConfiguration.search_file = _search_file
 
 from ambari_server.setupMpacks import install_mpack, upgrade_mpack, replay_mpack_logs, \
   purge_stacks_and_mpacks, validate_purge, read_mpack_metadata, _uninstall_mpack, \
