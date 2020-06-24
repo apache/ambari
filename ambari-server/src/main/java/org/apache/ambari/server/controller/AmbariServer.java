@@ -200,6 +200,7 @@ public class AmbariServer {
    */
   public static final EnumSet<DispatcherType> DISPATCHER_TYPES = EnumSet.of(DispatcherType.REQUEST);
   private static final int DEFAULT_ACCEPTORS_COUNT = 1;
+  private static final String[] DEPRECATED_SSL_PROTOCOLS = new String[] {"TLSv1"};
 
   static {
     Velocity.setProperty("runtime.log.logsystem.log4j.logger", VELOCITY_LOG_CATEGORY);
@@ -802,9 +803,9 @@ public class AmbariServer {
    * at server properties)
    */
   private void disableInsecureProtocols(SslContextFactory factory) {
-    // by default all protocols should be available
-    factory.setExcludeProtocols();
-    factory.setIncludeProtocols(new String[] {"SSLv2Hello","SSLv3","TLSv1","TLSv1.1","TLSv1.2"});
+    // by default all protocols should be available, excluding TLSv1.0
+    factory.setExcludeProtocols(DEPRECATED_SSL_PROTOCOLS);
+    factory.setIncludeProtocols(new String[] {"SSLv2Hello","SSLv3","TLSv1.1","TLSv1.2"});
 
     if (!configs.getSrvrDisabledCiphers().isEmpty()) {
       String[] masks = configs.getSrvrDisabledCiphers().split(DISABLED_ENTRIES_SPLITTER);
