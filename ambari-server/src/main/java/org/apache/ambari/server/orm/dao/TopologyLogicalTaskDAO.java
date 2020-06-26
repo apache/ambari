@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -25,6 +26,8 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
+import org.apache.ambari.server.orm.helpers.SQLConstants;
+import org.apache.ambari.server.orm.helpers.SQLOperations;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -48,12 +51,16 @@ public class TopologyLogicalTaskDAO {
   @RequiresSession
   public Set<Long> findHostTaskIdsByPhysicalTaskIds(Set<Long> physicalTaskIds) {
     EntityManager entityManager = entityManagerProvider.get();
-    TypedQuery<Long> topologyHostTaskQuery =
-            entityManager.createNamedQuery("TopologyLogicalTaskEntity.findHostTaskIdsByPhysicalTaskIds", Long.class);
+    final Set<Long> result = new HashSet<>();
+    final TypedQuery<Long> topologyHostTaskQuery =
+      entityManager.createNamedQuery("TopologyLogicalTaskEntity.findHostTaskIdsByPhysicalTaskIds", Long.class);
 
-    topologyHostTaskQuery.setParameter("physicalTaskIds", physicalTaskIds);
-
-    return Sets.newHashSet(daoUtils.selectList(topologyHostTaskQuery));
+    SQLOperations.batch(physicalTaskIds, SQLConstants.IN_ARGUMENT_MAX_SIZE, (chunk, currentBatch, totalBatches, totalSize) -> {
+      topologyHostTaskQuery.setParameter("physicalTaskIds", chunk);
+      result.addAll(daoUtils.selectList(topologyHostTaskQuery));
+      return 0;
+    });
+    return Sets.newHashSet(result);
   }
 
   @RequiresSession
