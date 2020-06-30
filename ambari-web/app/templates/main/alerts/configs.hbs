@@ -15,7 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<form class="form-horizontal alert-configs">
+<form autocomplete="off" class="form-horizontal alert-configs">
   {{#each property in controller.configs}}
     {{#unless property.hidden}}
       <div {{bindAttr class=":form-group property.name property.isValid::has-error"}}>
