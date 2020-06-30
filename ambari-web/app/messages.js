@@ -441,7 +441,7 @@ Em.I18n.translations = {
   'question.sure.stop':'Are you sure you want to stop {0}?',
   'question.sure.move':'Are you sure you want to move {0}?',
   'question.sure.refresh':'Are you sure you want to restart {0} on {1}?',
-  'question.sure.maintenance':'Are you sure you want to turn on maintenance mode for {0}?',
+  'question.sure.maintenance':'Are you sure you want to turn {0} maintenance mode for {1}?',
   'question.sure.upgrade':'Are you sure you want to upgrade {0}?',
   'question.sure.decommission':'Are you sure you want to decommission {0}?',
   'question.sure.recommission':'Are you sure you want to recommission {0}?',
