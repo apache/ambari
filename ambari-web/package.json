@@ -27,24 +27,22 @@
     "chai": "~3.5.0",
     "express": "2.5.8",
     "karma": ">=0.11.14",
+    "karma-phantomjs-launcher": "1.0.2",
     "karma-babel-preprocessor": "^6.0.1",
     "karma-chai": "~0.1.0",
-    "karma-commonjs-require": "~0.0.1",
+    "karma-commonjs-require": "~0.0.3",
     "karma-coverage": "~0.2.0",
     "karma-ember-precompiler-brunch": "^1.0.0",
     "karma-mocha": "0.1.1",
-    "karma-phantomjs-launcher": "1.0.2",
     "karma-sinon": "~1.0.2",
     "mocha": "2.5.3",
-    "mocha-phantomjs": "~4.1.0",
-    "mocha-phantomjs-core": "~2.1.0",
     "phantomjs": "~2.1.0",
     "sinon": "=1.7.3",
     "sinon-chai": "~2.8.0"
   },
   "scripts": {
     "start": "brunch watch --server",
-    "test": "mocha-phantomjs -R min -p ./node_modules/.bin/phantomjs public/test/test.html"
+    "test": "karma start"
   },
   "engines": {
     "node": "^4.0.0"
