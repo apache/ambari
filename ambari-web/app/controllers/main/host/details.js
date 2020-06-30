@@ -2913,7 +2913,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     message = Em.I18n.t('passiveState.turn' + state.toCapital() + 'For').format(event.context.get('displayName'));
     return App.showConfirmationPopup(function () {
       self.updateComponentPassiveState(event.context, state, message);
-    }, Em.I18n.t('question.sure.maintenance').format(event.context.get('displayName')) );
+    }, Em.I18n.t('question.sure.maintenance').format(state.toLowerCase(), event.context.get('displayName')) );
   },
 
   downloadClientConfigs: function (event) {
