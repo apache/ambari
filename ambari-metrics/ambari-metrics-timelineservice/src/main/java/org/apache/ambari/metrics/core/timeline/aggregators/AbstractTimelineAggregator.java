@@ -253,6 +253,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
    * @param startTime Sample start time
    * @param endTime Sample end time
    */
+  @Override
   public boolean doWork(long startTime, long endTime) {
     LOG.info("Start aggregation cycle @ " + new Date() + ", " +
       "startTime = " + new Date(startTime) + ", endTime = " + new Date(endTime));
@@ -357,6 +358,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
 
   }
 
+  @Override
   public Long getSleepIntervalMillis() {
     return sleepIntervalMillis;
   }
@@ -373,6 +375,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     return getCheckpointCutOffMultiplier() * getSleepIntervalMillis();
   }
 
+  @Override
   public boolean isDisabled() {
     return metricsConf.getBoolean(aggregatorDisableParam, false);
   }

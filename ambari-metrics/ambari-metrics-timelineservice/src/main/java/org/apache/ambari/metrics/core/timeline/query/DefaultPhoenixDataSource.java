@@ -62,6 +62,7 @@ public class DefaultPhoenixDataSource implements PhoenixConnectionProvider {
    * @return @HBaseAdmin
    * @throws IOException
    */
+  @Override
   public HBaseAdmin getHBaseAdmin() throws IOException {
     return (HBaseAdmin) ConnectionFactory.createConnection(hbaseConf).getAdmin();
   }
@@ -75,6 +76,7 @@ public class DefaultPhoenixDataSource implements PhoenixConnectionProvider {
    *
    * @return @java.sql.Connection
    */
+  @Override
   public Connection getConnection() throws SQLException {
 
     LOG.debug("Metric store connection url: " + url);

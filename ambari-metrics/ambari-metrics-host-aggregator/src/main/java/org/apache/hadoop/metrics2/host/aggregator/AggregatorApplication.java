@@ -240,11 +240,7 @@ public class AggregatorApplication {
 
     app.startWebServerAndPublishersThreads();
 
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      public void run() {
-        app.stop();
-      }
-    });
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> app.stop()));
   }
 
   private void startWebServerAndPublishersThreads() {

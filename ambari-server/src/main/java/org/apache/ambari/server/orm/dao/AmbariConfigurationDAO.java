@@ -77,6 +77,7 @@ public class AmbariConfigurationDAO extends CrudDAO<AmbariConfigurationEntity, A
   }
 
   @Transactional
+  @Override
   public void create(AmbariConfigurationEntity entity) {
     // make sure only one entry exists per configuration type...
     AmbariConfigurationEntity foundEntity = findByPK(new AmbariConfigurationEntityPK(entity.getCategoryName(), entity.getPropertyName()));

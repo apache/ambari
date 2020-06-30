@@ -131,6 +131,7 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
     return getRequestStatus(null);
   }
 
+  @Override
   protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
         throws SystemException, UnsupportedPropertyException,
         NoSuchResourceException, NoSuchParentResourceException {

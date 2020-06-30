@@ -168,6 +168,7 @@ public class HostGroupImpl implements HostGroup {
    *
    * @return true if component was added; false if component already existed
    */
+  @Override
   public boolean addComponent(String component, ProvisionAction provisionAction) {
     boolean added;
     if (!components.containsKey(component)) {
@@ -285,6 +286,8 @@ public class HostGroupImpl implements HostGroup {
     Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
     configuration = new Configuration(config, attributes);
   }
+
+  @Override
   public String toString(){
        return  name;
   }

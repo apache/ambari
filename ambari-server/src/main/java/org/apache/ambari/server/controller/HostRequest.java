@@ -112,6 +112,7 @@ public class HostRequest implements ApiModel {
     return hostGroup;
   }
 
+  @Override
   public String toString() {
     return "{ hostname=" + hostname + ", clusterName=" + clusterName + " }";
   }

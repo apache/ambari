@@ -38,6 +38,7 @@ public class MetadataQueryCondition extends TransientMetricCondition {
     isMetricMetadataCondition = false;
   }
 
+  @Override
   public StringBuilder getConditionClause() {
     StringBuilder sb = new StringBuilder();
 

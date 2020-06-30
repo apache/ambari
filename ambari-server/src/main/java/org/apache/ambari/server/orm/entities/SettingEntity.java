@@ -118,6 +118,7 @@ public class SettingEntity {
     this.updateTimestamp = updateTimestamp;
   }
 
+  @Override
   public SettingEntity clone() {
     SettingEntity cloned = new SettingEntity();
     cloned.setId(id);

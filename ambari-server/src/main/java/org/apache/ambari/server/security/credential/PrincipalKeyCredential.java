@@ -101,6 +101,7 @@ public class PrincipalKeyCredential implements Credential {
    *
    * @return a String containing the value representation of this PrincipalKeyCredential
    */
+  @Override
   public char[] toValue() {
     StringBuilder builder = new StringBuilder();
     builder.append("PrincipalKeyCredential");
