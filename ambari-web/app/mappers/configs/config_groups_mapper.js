@@ -120,7 +120,13 @@ App.configGroupsMapper = App.QuickDataMapper.create({
    * @private
    */
   _getAllHosts: function() {
-    return App.get('allHostNames.length') ? App.get('allHostNames') : Object.keys(App.get('router.installerController.content.hosts'));
+    var hosts;
+    try {
+      hosts = App.get('allHostNames.length') ? App.get('allHostNames') : Object.keys(App.get('router.installerController.content.hosts'));
+    } catch (e){
+      hosts = [];
+    }
+    return hosts;
   },
 
   /**
