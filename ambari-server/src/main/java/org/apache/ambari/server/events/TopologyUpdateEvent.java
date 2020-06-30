@@ -81,10 +81,12 @@ public class TopologyUpdateEvent extends STOMPEvent implements Hashable {
     return eventType;
   }
 
+  @Override
   public String getHash() {
     return hash;
   }
 
+  @Override
   public void setHash(String hash) {
     this.hash = hash;
   }

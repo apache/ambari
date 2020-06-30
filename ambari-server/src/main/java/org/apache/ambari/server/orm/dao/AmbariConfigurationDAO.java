@@ -76,6 +76,7 @@ public class AmbariConfigurationDAO extends CrudDAO<AmbariConfigurationEntity, A
     return query.executeUpdate();
   }
 
+  @Override
   @Transactional
   public void create(AmbariConfigurationEntity entity) {
     // make sure only one entry exists per configuration type...

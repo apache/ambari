@@ -116,6 +116,7 @@ public class DefaultQuickLinkVisibilityController implements QuickLinkVisibility
    * @param quickLink the quicklink
    * @return a boolean indicating whether the link in the parameter should be visible
    */
+  @Override
   public boolean isVisible(@Nonnull String service, @Nonnull Link quickLink) {
     // First, component rules are evaluated if exist and applicable
     Optional<Boolean> componentResult = evaluateComponentRules(service, quickLink);

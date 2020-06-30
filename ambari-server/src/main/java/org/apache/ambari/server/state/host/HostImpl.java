@@ -903,10 +903,12 @@ public class HostImpl implements Host {
     this.lastHeartbeatTime = lastHeartbeatTime;
   }
 
+  @Override
   public long getLastAgentStartTime() {
     return lastAgentStartTime;
   }
 
+  @Override
   public void setLastAgentStartTime(long lastAgentStartTime) {
     this.lastAgentStartTime = lastAgentStartTime;
   }

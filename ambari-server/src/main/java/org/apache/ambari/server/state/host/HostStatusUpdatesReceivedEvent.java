@@ -36,6 +36,7 @@ public class HostStatusUpdatesReceivedEvent extends HostEvent {
   /**
    * @return the timestamp
    */
+  @Override
   public long getTimestamp() {
     return timestamp;
   }
