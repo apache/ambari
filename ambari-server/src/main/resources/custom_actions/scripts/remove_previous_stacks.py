@@ -64,7 +64,7 @@ class RemovePreviousStacks(Script):
 
       Logger.info("Removing {0}/{1}".format(stack_root, version))
       try:
-        Execute(('rm', '-f', stack_root + version),
+        Execute(('rm', '-f', stack_root + '/' + version),
                 sudo=True)
       finally:
         structured_output["remove_previous_stacks"] = {"exit_code": -1,
