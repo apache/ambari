@@ -129,4 +129,47 @@ describe('App.MainDashboardServiceYARNView', function () {
     });
   });
 
+  describe('#isNodeManagerCreated', function () {
+
+    beforeEach(function () {
+      sinon.stub(view, 'isServiceComponentCreated').withArgs('NODEMANAGER').returns(true);
+    });
+
+    afterEach(function () {
+      view.isServiceComponentCreated.restore();
+    });
+
+    it('should return true', function () {
+      view.propertyDidChange('isNodeManagerCreated');
+      expect(view.get('isNodeManagerCreated')).to.be.true;
+    });
+  });
+
+  describe('#allocatedMemoryFormatted', function () {
+
+    it('should return number', function () {
+      view.set('service.allocatedMemory', 1000000);
+      view.propertyDidChange('allocatedMemoryFormatted');
+      expect(view.get('allocatedMemoryFormatted')).to.equal('976.6 GB');
+    });
+  });
+
+  describe('#reservedMemoryFormatted', function () {
+
+    it('should return number', function () {
+      view.set('service.reservedMemory', 1000000);
+      view.propertyDidChange('reservedMemoryFormatted');
+      expect(view.get('reservedMemoryFormatted')).to.equal('976.6 GB');
+    });
+  });
+
+  describe('#availableMemory', function () {
+
+    it('should return number', function () {
+      view.set('service.availableMemory', 1000000);
+      view.propertyDidChange('availableMemoryFormatted');
+      expect(view.get('availableMemoryFormatted')).to.equal('976.6 GB');
+    });
+  });
+
 });

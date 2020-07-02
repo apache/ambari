@@ -101,7 +101,7 @@ describe('App.MainDashboardServiceFlumeView', function () {
     });
 
     it("setDropdownPosition should be called", function() {
-      expect(view.filter.calledOnce).to.be.true;
+      expect(mock.on.calledOnce).to.be.true;
     });
   });
 
@@ -181,6 +181,30 @@ describe('App.MainDashboardServiceFlumeView', function () {
 
     it('proper row should be highlighted', function() {
       expect(Em.get(host, 'isActive')).to.be.true;
+    });
+  });
+
+  describe("#selectHost()", function() {
+
+    beforeEach(function() {
+      sinon.stub(view, 'showAgentInfo');
+    });
+    afterEach(function() {
+      view.showAgentInfo.restore();
+    });
+
+    it("should execute showAgentInfo function", function() {
+      var e = {context:{}};
+      view.set('pageContent', Em.Object.create());
+      view.selectHost(e);
+      expect(view.showAgentInfo.calledOnce).to.be.true;
+    });
+
+    it("should not execute showAgentInfo function", function() {
+      var e = {};
+      view.set('pageContent', Em.Object.create());
+      view.selectHost(e);
+      expect(view.showAgentInfo.calledOnce).to.be.false;
     });
   });
 });

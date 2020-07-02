@@ -66,7 +66,9 @@ function testCounterOrNa(propertyName, dependentKey) {
 describe('App.DataNodeUpView', function() {
 
   beforeEach(function () {
-    view = App.DataNodeUpView.create();
+    view = App.DataNodeUpView.create({
+      model: Em.Object.create()
+    });
   });
 
   testCounterOrNa('dataNodesLive', 'liveDataNodes');
@@ -74,5 +76,92 @@ describe('App.DataNodeUpView', function() {
   testCounterOrNa('dataNodesDead', 'deadDataNodes');
 
   testCounterOrNa('dataNodesDecom', 'decommissionDataNodes');
+
+  describe('#hiddenInfo()', function () {
+
+    it('should return not available statuses', function () {
+      view.set('model.liveDataNodes', [1,2,3]);
+      view.set('model.deadDataNodes', [1,2]);
+      view.set('model.decommissionDataNodes', [1]);
+      view.set('model.metricsNotAvailable', true);
+      expect(view.get('hiddenInfo')).to.eql(
+        [
+          Em.I18n.t('services.service.summary.notAvailable') + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.live'),
+          Em.I18n.t('services.service.summary.notAvailable') + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.dead'),
+          Em.I18n.t('services.service.summary.notAvailable') + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.decom')
+        ]
+      );
+    });
+
+    it('should return nodes statuses', function () {
+      view.set('model.liveDataNodes', [1,2,3]);
+      view.set('model.deadDataNodes', [1,2]);
+      view.set('model.decommissionDataNodes', [1]);
+      view.set('model.metricsNotAvailable', false);
+      expect(view.get('hiddenInfo')).to.eql(
+        [
+          3 + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.live'),
+          2 + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.dead'),
+          1 + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.decom')
+        ]
+      );
+    });
+  });
+
+  describe('#data()', function () {
+
+    it('should return null', function () {
+      view.set('model.liveDataNodes', [1,2,3]);
+      view.set('model.metricsNotAvailable', true);
+      expect(view.get('data')).to.equal(null);
+    });
+
+    it('should return string data', function () {
+      view.set('model.liveDataNodes', [1,2,3]);
+      view.set('model.dataNodesTotal', 5);
+      view.set('model.metricsNotAvailable', false);
+      expect(view.get('data')).to.equal(60);
+    });
+  });
+
+  describe('#content()', function () {
+
+    it('should return n/a', function () {
+      view.set('model.liveDataNodes', [1,2,3]);
+      view.set('model.metricsNotAvailable', true);
+      expect(view.get('content')).to.equal(Em.I18n.t('services.service.summary.notAvailable'));
+    });
+
+    it('should return string content', function () {
+      view.set('model.liveDataNodes', [1,2,3]);
+      view.set('model.dataNodesTotal', 5);
+      view.set('model.metricsNotAvailable', false);
+      expect(view.get('content')).to.equal('3/5');
+    });
+  });
+
+  describe('#someMetricsNA()', function () {
+
+    it('should return true', function () {
+      view.set('model.liveDataNodes', [1,2,3]);
+      view.set('model.metricsNotAvailable', true);
+      expect(view.get('someMetricsNA')).to.be.true;
+    });
+
+    it('should return false', function () {
+      view.set('model.liveDataNodes', [1,2,3]);
+      view.set('model.dataNodesTotal', 5);
+      view.set('model.metricsNotAvailable', false);
+      expect(view.get('someMetricsNA')).to.be.false;
+    });
+  });
+
+  describe('#hintInfo()', function () {
+
+    it('should return formatted value', function () {
+      view.set('maxValue', 150);
+      expect(view.get('hintInfo')).to.equal(Em.I18n.t('dashboard.widgets.hintInfo.hint1').format('150'));
+    });
+  });
 
 });

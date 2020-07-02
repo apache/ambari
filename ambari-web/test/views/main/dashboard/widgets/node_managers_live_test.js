@@ -35,4 +35,76 @@ describe('App.NodeManagersLiveView', function() {
 
   App.TestAliases.testAsComputedAlias(getView(), 'nodeManagersLive', 'model.nodeManagersCountActive');
 
+  var view;
+
+  beforeEach(function () {
+    view = getView();
+  });
+
+  describe('#hiddenInfo()', function () {
+
+    it('should return not available statuses', function () {
+      expect(view.get('hiddenInfo')).to.eql(
+        [
+          Em.I18n.t('services.service.summary.notAvailable') + " active",
+          Em.I18n.t('services.service.summary.notAvailable') + " lost",
+          Em.I18n.t('services.service.summary.notAvailable') + " unhealthy",
+          Em.I18n.t('services.service.summary.notAvailable') + " rebooted",
+          Em.I18n.t('services.service.summary.notAvailable') + " decommissioned"
+        ]
+      );
+    });
+
+    it('should return statuses', function () {
+      view.set('model.nodeManagersCountActive', 6);
+      view.set('model.nodeManagersCountLost', 3);
+      view.set('model.nodeManagersCountUnhealthy', 3);
+      view.set('model.nodeManagersCountRebooted', 1);
+      view.set('model.nodeManagersCountDecommissioned', 1);
+      expect(view.get('hiddenInfo')).to.eql(
+        [
+          6 + " active",
+          3 + " lost",
+          3 + " unhealthy",
+          1 + " rebooted",
+          1 + " decommissioned"
+        ]
+      );
+    });
+  });
+
+  describe('#data()', function () {
+
+    it('should return null', function () {
+      expect(view.get('data')).to.equal(null);
+    });
+
+    it('should return string with data', function () {
+      view.set('model.nodeManagersCountActive', 3);
+      view.set('model.nodeManagersTotal', 6);
+      expect(view.get('data')).to.equal(50);
+    });
+  });
+
+  describe('#content()', function () {
+
+    it('should return not available', function () {
+      expect(view.get('content')).to.equal(Em.I18n.t('services.service.summary.notAvailable'));
+    });
+
+    it('should return string content', function () {
+      view.set('model.nodeManagersCountActive', 3);
+      view.set('model.nodeManagersTotal', 6);
+      expect(view.get('content')).to.equal('3/6');
+    });
+  });
+
+  describe('#hintInfo()', function () {
+
+    it('should return formatted value', function () {
+      view.set('maxValue', 150);
+      expect(view.get('hintInfo')).to.equal(Em.I18n.t('dashboard.widgets.hintInfo.hint1').format('150'));
+    });
+  });
+
 });

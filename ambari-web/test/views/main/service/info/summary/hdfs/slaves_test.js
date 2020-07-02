@@ -76,4 +76,36 @@ describe('App.HDFSSlaveComponentsView', function () {
     });
   });
 
+  describe('#isDataNodeCreated', function () {
+
+    it('no summaryView', function () {
+      view.propertyDidChange('isDataNodeCreated');
+      expect(view.get('isDataNodeCreated')).to.be.false;
+    });
+
+    it('summaryView present', function () {
+      view.set('summaryView', Em.Object.create({
+        isServiceComponentCreated: function() { return true }
+      }))
+      view.propertyDidChange('isDataNodeCreated');
+      expect(view.get('isDataNodeCreated')).to.be.true;
+    });
+  });
+
+  describe('#isJournalNodeCreated', function () {
+
+    it('no summaryView', function () {
+      view.propertyDidChange('isJournalNodeCreated');
+      expect(view.get('isJournalNodeCreated')).to.be.false;
+    });
+
+    it('summaryView present', function () {
+      view.set('summaryView', Em.Object.create({
+        isServiceComponentCreated: function() { return true }
+      }))
+      view.propertyDidChange('isJournalNodeCreated');
+      expect(view.get('isJournalNodeCreated')).to.be.true;
+    });
+  });
+
 });
