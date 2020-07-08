@@ -1,0 +1,14 @@
+{
+  "BGTP": {
+    "stack_selector": [
+      "distro-select",
+      "/usr/bin/distro-select",
+      "distro-select"
+    ],
+    "conf_selector": [
+      "conf-select",
+      "/usr/bin/conf-select",
+      "conf-select"
+    ]
+  }
+}
