@@ -36,7 +36,8 @@ describe('App.HBaseAverageLoadView', function() {
       },
       e: {
         isNA: false,
-        content: '1'
+        content: '1',
+        hiddenInfo: 1
       }
     },
     {
@@ -45,7 +46,8 @@ describe('App.HBaseAverageLoadView', function() {
       },
       e: {
         isNA: false,
-        content: '10'
+        content: '10',
+        hiddenInfo: 10
       }
     },
     {
@@ -54,7 +56,8 @@ describe('App.HBaseAverageLoadView', function() {
       },
       e: {
         isNA: false,
-        content: '0'
+        content: '0',
+        hiddenInfo: 0
       }
     },
     {
@@ -63,7 +66,8 @@ describe('App.HBaseAverageLoadView', function() {
       },
       e: {
         isNA: true,
-        content: Em.I18n.t('services.service.summary.notAvailable')
+        content: Em.I18n.t('services.service.summary.notAvailable'),
+        hiddenInfo: null
       }
     }
   ];
@@ -71,6 +75,9 @@ describe('App.HBaseAverageLoadView', function() {
   tests.forEach(function(test) {
     describe('averageLoad - ' + test.model.averageLoad, function() {
       var hBaseAverageLoadView = App.HBaseAverageLoadView.create({model_type:null, model: test.model});
+      it('hiddenInfo', function() {
+        expect(hBaseAverageLoadView.get('hiddenInfo')).to.eql([Em.I18n.t('dashboard.services.hbase.averageLoadPerServer').format(test.e.hiddenInfo)]);
+      });
       it('content', function() {
         expect(hBaseAverageLoadView.get('content')).to.equal(test.e.content);
       });

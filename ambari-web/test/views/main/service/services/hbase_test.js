@@ -17,9 +17,43 @@
  */
 
 var App = require('app');
+var date = require('utils/date/date');
 require('/views/main/service/services/hbase');
 
 var view;
+
+function testGetMasterTime(propertyName, key) {
+  describe('#' + propertyName, function () {
+
+    beforeEach(function () {
+      view.reopen({
+        service: Em.Object.create()
+      });
+      sinon.stub(App, 'dateTime').returns(1591168735997);
+    });
+
+    afterEach(function () {
+      App.dateTime.restore();
+    });
+
+    it('uptime is not defined', function () {
+      view.propertyDidChange(propertyName);
+      expect(view.get(propertyName)).to.equal(Em.I18n.t('services.service.summary.notRunning'));
+    });
+
+    it('uptime >= current time', function () {
+      view.set('service.' + key, 1591178735997);
+      view.propertyDidChange(propertyName);
+      expect(view.get(propertyName)).to.equal(Em.I18n.t('dashboard.services.uptime').format(date.timingFormat(0)));
+    });
+
+    it('uptime < current time', function () {
+      view.set('service.' + key, 1591158735997);
+      view.propertyDidChange(propertyName);
+      expect(view.get(propertyName)).to.equal(Em.I18n.t('dashboard.services.uptime').format(date.timingFormat(10000000)));
+    });
+  });
+}
 
 function getView() {
   return App.MainDashboardServiceHbaseView.create();
@@ -30,6 +64,9 @@ describe('App.MainDashboardServiceHbaseView', function () {
   beforeEach(function () {
     view = getView();
   });
+
+  testGetMasterTime('masterStartedTime', 'masterStartTime');
+  testGetMasterTime('masterActivatedTime', 'masterActiveTime');
 
   App.TestAliases.testAsComputedFilterBy(getView(), 'masters', 'service.hostComponents', 'isMaster', true);
 
@@ -83,6 +120,38 @@ describe('App.MainDashboardServiceHbaseView', function () {
       }));
       view.propertyDidChange('summaryHeader');
       expect(view.get('summaryHeader')).to.be.equal(view.t("dashboard.services.hbase.summary").format(1, 99));
+    });
+  });
+
+  describe('#isPhoenixQueryServerCreated', function () {
+
+    beforeEach(function () {
+      sinon.stub(view, 'isServiceComponentCreated').withArgs('PHOENIX_QUERY_SERVER').returns(true);
+    });
+
+    afterEach(function () {
+      view.isServiceComponentCreated.restore();
+    });
+
+    it('should return true', function () {
+      view.propertyDidChange('isPhoenixQueryServerCreated');
+      expect(view.get('isPhoenixQueryServerCreated')).to.be.true;
+    });
+  });
+
+  describe('#isRegionServerCreated', function () {
+
+    beforeEach(function () {
+      sinon.stub(view, 'isServiceComponentCreated').withArgs('HBASE_REGIONSERVER').returns(true);
+    });
+
+    afterEach(function () {
+      view.isServiceComponentCreated.restore();
+    });
+
+    it('should return true', function () {
+      view.propertyDidChange('isRegionServerCreated');
+      expect(view.get('isRegionServerCreated')).to.be.true;
     });
   });
 
