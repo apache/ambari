@@ -113,7 +113,7 @@ class PortAlert(BaseAlert):
 
 
     host = get_host_from_url(uri_value)
-    if host is None or host == "localhost" or host == "0.0.0.0":
+    if host is None or host == "localhost" or host == "0.0.0.0" or host == "{{hostname}}":
       host = self.host_name
       host_not_specified = True
 
