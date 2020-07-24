@@ -56,7 +56,6 @@ import org.apache.commons.lang.StringUtils;
  */
 public class AmbariHttpWebRequest extends WebRequest {
     private static final Log LOG = LogFactory.getLog(AmbariHttpWebRequest.class);
-    private static String SERVER_URL_FORMAT = "http://%s:%d";
     private static String SERVER_SSL_URL_FORMAT = "https://%s:%d";
 
     private String content;
@@ -245,7 +244,7 @@ public class AmbariHttpWebRequest extends WebRequest {
      * @return - Ambari server URL.
      */
     protected String getServerApiUrl() {
-        return String.format(SERVER_URL_FORMAT, getServerName(), getServerApiPort());
+        return String.format(SERVER_SSL_URL_FORMAT, getServerName(), getServerApiPort());
     }
 
     /**
@@ -254,7 +253,7 @@ public class AmbariHttpWebRequest extends WebRequest {
      * @return - Agent server URL.
      */
     protected String getServerAgentUrl() {
-        return String.format(SERVER_URL_FORMAT, getServerName(), getServerAgentPort());
+        return String.format(SERVER_SSL_URL_FORMAT, getServerName(), getServerAgentPort());
     }
 
     /**
