@@ -487,7 +487,7 @@ public class RequestDAO implements Cleanable {
     });
 
     if (!partialHostRequestIds.isEmpty()) {
-      topologyRequestIds.addAll(topologyHostTaskDAO.findHostRequestIdsByHostTaskIds(partialHostRequestIds));
+      topologyRequestIds.addAll(topologyLogicalRequestDAO.findRequestIdsByIds(partialHostRequestIds));
     }
     return topologyRequestIds;
   }
