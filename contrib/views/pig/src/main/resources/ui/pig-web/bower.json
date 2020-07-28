@@ -36,7 +36,7 @@
       "main": "plurals.js"
     },
     "file-saver": {
-      "main": "FileSaver.js"
+      "main": "./dist/FileSaver.js"
     }
   }
 }
