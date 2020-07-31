@@ -49,6 +49,20 @@ describe('App.ManageJournalNodeWizardStep4Controller', function () {
     });
   });
 
+  describe('#stopAllServices', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'stopServices');
+    });
+    afterEach(function() {
+      controller.stopServices.restore();
+    });
+
+    it('stopAllServices should be called', function() {
+      controller.stopAllServices();
+      expect(controller.stopServices.calledWith([], true, true)).to.be.true;
+    });
+  });
+
   describe('#installJournalNodes', function() {
     var wizardController = {
       getJournalNodesToAdd: Em.K

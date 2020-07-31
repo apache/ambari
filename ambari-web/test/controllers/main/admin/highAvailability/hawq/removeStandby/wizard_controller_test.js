@@ -65,7 +65,7 @@ describe('App.RemoveHawqStandbyWizardController', function () {
       });
     });
 
-    describe ('should load service hosts', function() {
+    describe('should load service hosts', function() {
       var loadServicesFromServer = false;
       var loadMasterComponentHosts = false;
       var loadHawqHosts = false;
@@ -100,7 +100,7 @@ describe('App.RemoveHawqStandbyWizardController', function () {
       });
     });
 
-    describe ('should load tasks', function() {
+    describe('should load tasks', function() {
       var loadConfigs = false;
       var loadTasksStatuses = false;
       var loadTasksRequestIds = false;

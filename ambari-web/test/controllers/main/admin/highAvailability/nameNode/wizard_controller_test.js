@@ -413,4 +413,151 @@ describe('App.HighAvailabilityWizardController', function() {
       expect(mock.updateAll.calledOnce).to.be.true;
     });
   });
+
+  describe('#loadMap', function() {
+
+    describe('should load hdfs user', function() {
+      var saveHdfsUser = false;
+      var loadHdfsUserFromServer = false;
+      var loadCluster = false;
+
+      var checker = {
+        saveHdfsUser: function () {
+          saveHdfsUser = true;
+        },
+        load: function () {
+          loadCluster = true;
+        },
+        loadHdfsUserFromServer: function () {
+          saveHdfsUser = true;
+          loadCluster = true;
+          return $.Deferred().done().promise();
+        }
+      };
+
+      beforeEach(function() {
+        sinon.stub(App.db, 'getHighAvailabilityWizardHdfsUser').returns('hdfs');
+        controller.loadMap['1'][0].callback.call(checker);
+      });
+      afterEach(function() {
+        App.db.getHighAvailabilityWizardHdfsUser.restore();
+      });
+
+      it('hdfs user is saved', function () {
+        expect(saveHdfsUser).to.be.true;
+      });
+
+      it('hdfs users are loaded', function () {
+        expect(loadHdfsUserFromServer).to.be.false;
+      });
+
+      it('cluster is loaded', function () {
+        expect(loadCluster).to.be.true;
+      });
+    });
+
+    describe('should load service hosts', function() {
+      var loadServicesFromServer = false;
+      var loadMasterComponentHosts = false;
+      var loadHosts = false;
+      var loadHdfsUser = false;
+
+      var checker = {
+        loadServicesFromServer: function () {
+          loadServicesFromServer = true;
+        },
+        loadMasterComponentHosts: function () {
+          loadMasterComponentHosts = true;
+          return $.Deferred().resolve().promise();
+        },
+        loadHosts: function () {
+          loadHosts = true;
+          return $.Deferred().resolve().promise();
+        },
+        loadHdfsUser: function () {
+          loadHdfsUser = true;
+        }
+      };
+
+      beforeEach(function () {
+        controller.loadMap['2'][0].callback.call(checker);
+      });
+
+      it('services from server are loaded', function () {
+        expect(loadServicesFromServer).to.be.true;
+      });
+
+      it('master component hosts are loaded', function () {
+        expect(loadMasterComponentHosts).to.be.true;
+      });
+
+      it('hosts are loaded', function () {
+        expect(loadHosts).to.be.true;
+      });
+
+      it('hdfs user is loaded', function () {
+        expect(loadHdfsUser).to.be.true;
+      });
+    });
+
+    describe('should service config properties', function() {
+      var loadNameServiceId = false;
+      var loadServiceConfigProperties = false;
+
+      var checker = {
+        loadServiceConfigProperties: function () {
+          loadServiceConfigProperties = true;
+        },
+        loadNameServiceId: function () {
+          loadNameServiceId = true;
+        }
+      };
+
+      beforeEach(function () {
+        controller.loadMap['3'][0].callback.call(checker);
+      });
+
+      it('name service ids are loaded', function () {
+        expect(loadNameServiceId).to.be.true;
+      });
+
+      it('service config properties are loaded', function () {
+        expect(loadServiceConfigProperties).to.be.true;
+      });
+    });
+
+    describe('should load tasks', function() {
+      var loadTasksStatuses = false;
+      var loadTasksRequestIds = false;
+      var loadRequestIds = false;
+
+      var checker = {
+        loadTasksStatuses: function () {
+          loadTasksStatuses = true;
+        },
+        loadTasksRequestIds: function () {
+          loadTasksRequestIds = true;
+        },
+        loadRequestIds: function () {
+          loadRequestIds = true;
+        }
+      };
+
+      beforeEach(function () {
+        controller.loadMap['5'][0].callback.call(checker);
+      });
+
+      it('task statuses are loaded', function () {
+        expect(loadTasksStatuses).to.be.true;
+      });
+
+      it('task request ids are loaded', function () {
+        expect(loadTasksRequestIds).to.be.true;
+      });
+
+      it('request ids are loaded', function () {
+        expect(loadRequestIds).to.be.true;
+      });
+    });
+  });
 });

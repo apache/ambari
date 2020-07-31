@@ -65,7 +65,7 @@ describe('App.ActivateHawqStandbyWizardController', function () {
       });
     });
 
-    describe ('should load service hosts', function() {
+    describe('should load service hosts', function() {
       var loadServicesFromServer = false;
       var loadMasterComponentHosts = false;
       var loadHawqHosts = false;
@@ -100,7 +100,7 @@ describe('App.ActivateHawqStandbyWizardController', function () {
       });
     });
 
-    describe ('should load tasks', function() {
+    describe('should load tasks', function() {
       var loadConfigs = false;
       var loadTasksStatuses = false;
       var loadTasksRequestIds = false;
@@ -141,22 +141,6 @@ describe('App.ActivateHawqStandbyWizardController', function () {
       it('request ids are loaded', function () {
         expect(loadRequestIds).to.be.true;
       });
-    });
-  });
-
-  describe("#setCurrentStep()", function () {
-
-    beforeEach(function() {
-      sinon.stub(App.clusterStatus, 'setClusterStatus');
-    });
-
-    afterEach(function() {
-      App.clusterStatus.setClusterStatus.restore();
-    });
-
-    it("App.clusterStatus.setClusterStatus should be called", function() {
-      controller.setCurrentStep();
-      expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
     });
   });
 
