@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.api.AmbariPersistFilter;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.security.AmbariViewsSecurityHeaderFilter;
@@ -103,6 +104,9 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
 
   @Inject
   SessionHandlerConfigurer sessionHandlerConfigurer;
+
+  @Inject
+  Configuration configuration;
 
   /**
    * Mapping of view instance entities to handlers.
@@ -252,7 +256,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     webAppContext.setAllowNullPathInfo(true);
 
     if (webAppContext.getErrorHandler() != null) {
-      webAppContext.getErrorHandler().setShowStacks(false);
+      webAppContext.getErrorHandler().setShowStacks(configuration.isServerShowErrorStacks());
     }
 
     return webAppContext;
