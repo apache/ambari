@@ -102,7 +102,7 @@
               <workingDirectory>${basedir}/src/main/resources/ui/admin-web</workingDirectory>
               <executable>${basedir}/src/main/resources/ui/admin-web/node/${executable.node}</executable>
               <arguments>
-                <argument>${basedir}/src/main/resources/ui/admin-web/node_modules/bower/bin/bower</argument>
+                <argument>bower</argument>
                 <argument>install</argument>
                 <argument>--allow-root</argument>
               </arguments>
