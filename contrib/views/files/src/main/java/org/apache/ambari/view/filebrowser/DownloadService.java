@@ -62,6 +62,7 @@ import java.util.Queue;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import java.net.URLEncoder;
 
 /**
  * Service for download and aggregate files
@@ -228,7 +229,7 @@ public class DownloadService extends HdfsService {
         }
       };
       return Response.ok(result)
-          .header("Content-Disposition", "inline; filename=\"" + name +"\"").build();
+          .header("Content-Disposition", "inline; filename=\"" + URLEncoder.encode(name, "UTF-8") +"\"").build();
     } catch (WebApplicationException ex) {
       LOG.error("Error occurred : ",ex);
       throw ex;
