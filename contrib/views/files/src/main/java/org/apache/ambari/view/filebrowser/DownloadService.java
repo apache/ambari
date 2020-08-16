@@ -114,12 +114,12 @@ public class DownloadService extends HdfsService {
       ResponseBuilder result = Response.ok(fs);
       if (download) {
         result.header("Content-Disposition",
-          "attachment; filename=\"" + URLEncoder(status.getPath().getName(), "UTF-8") + "\"").type(MediaType.APPLICATION_OCTET_STREAM);
+          "attachment; filename=\"" + URLEncoder.encode(status.getPath().getName(), "UTF-8") + "\"").type(MediaType.APPLICATION_OCTET_STREAM);
       } else {
         FileNameMap fileNameMap = URLConnection.getFileNameMap();
         String mimeType = fileNameMap.getContentTypeFor(status.getPath().getName());
         result.header("Content-Disposition",
-          "filename=\"" + URLEncoder(status.getPath().getName(), "UTF-8") + "\"").type(mimeType);
+          "filename=\"" + URLEncoder.encode(status.getPath().getName(), "UTF-8") + "\"").type(mimeType);
       }
       return result.build();
     } catch (WebApplicationException ex) {
