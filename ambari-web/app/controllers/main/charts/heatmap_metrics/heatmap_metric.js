@@ -93,7 +93,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
    * 
    */
   slotDefinitions: function () {
-    var max = this.get('maximumValue') ? parseFloat(this.get('maximumValue')) : 0;
+    var max = this.getMaximumValue();
     var slotCount = this.get('numberOfSlots');
     var units = this.get('units');
     var delta = (max - this.get('minimumValue')) / slotCount;
@@ -155,6 +155,15 @@ App.MainChartHeatmapMetric = Em.Object.extend({
     });
   },
 
+  /**
+   * compatible with special input value, such as negative float number or string
+   * @return {float}
+   */
+  getMaximumValue: function getMaximumValue() {
+    var max = this.get('maximumValue') ? parseFloat(this.get('maximumValue')) : 0;
+    return isNaN(max) ? 0 : Math.max(0, max);
+  },
+  
   /**
    * calculate hatch style of slot according to browser version used
    * @return {String}
