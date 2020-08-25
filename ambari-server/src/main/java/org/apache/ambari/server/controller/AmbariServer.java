@@ -827,7 +827,11 @@ public class AmbariServer {
     configureHandlerCompression(root);
     configureAdditionalContentTypes(root);
     root.setContextPath(CONTEXT_PATH);
-    root.setErrorHandler(injector.getInstance(AmbariErrorHandler.class));
+
+    AmbariErrorHandler ambariErrorHandler = injector.getInstance(AmbariErrorHandler.class);
+    ambariErrorHandler.setShowStacks(configs.isServerShowErrorStacks());
+    root.setErrorHandler(ambariErrorHandler);
+
     root.setMaxFormContentSize(-1);
 
     /* Configure web app context */
