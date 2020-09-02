@@ -28,9 +28,12 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
@@ -204,6 +207,41 @@ public class AbstractTimelineMetricSinkTest {
     verifyAll();
   }
 
+  @Test
+  public void testGetCurrentCollectorHostMultiThreaded() {
+    final int threadPoolSize = 32;
+    final int numberOfThreads = threadPoolSize * 8;
+    final AtomicBoolean stop = new AtomicBoolean(false);
+    final TestTimelineMetricsThreadingSink sink = new TestTimelineMetricsThreadingSink();
+    final ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
+    int threadCount = 0;
+
+    try {
+      while (!stop.get() && threadCount < numberOfThreads) {
+        executorService.execute(() -> {
+          try {
+            String host = sink.getCurrentCollectorHost();
+          } catch (Exception e) {
+            e.printStackTrace();
+            stop.set(true);
+            executorService.shutdownNow();
+          }
+        });
+
+        threadCount++;
+      }
+
+      executorService.awaitTermination(30, TimeUnit.SECONDS);
+      if(stop.get()) {
+        Assert.fail("Unexpected exception(s) has been thrown! See the stack traces above!");
+      }
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    } finally {
+      executorService.shutdown();
+    }
+  }
+
   private class TestTimelineMetricsSink extends AbstractTimelineMetricsSink {
     @Override
     protected String getCollectorUri(String host) {
@@ -253,6 +291,32 @@ public class AbstractTimelineMetricSinkTest {
     @Override
     protected String getHostInMemoryAggregationProtocol() {
       return "http";
+    }
+
+  }
+
+  private class TestTimelineMetricsThreadingSink extends TestTimelineMetricsSink {
+    private final AtomicInteger counter = new AtomicInteger(0);
+    private final Collection<String> hosts = Collections.singletonList("host1");
+
+    @Override
+    protected Collection<String> findLiveCollectorHostsFromKnownCollector(String host, String port) throws MetricCollectorUnavailableException {
+      failedCollectorConnectionsCounter.set(4);
+      int c = counter.getAndIncrement();
+      if (c % 2 == 0 || c % 3 == 0) {
+        throw new MetricCollectorUnavailableException("MetricCollectorUnavailable");
+      }
+      return hosts;
+    }
+
+    @Override
+    protected Collection<String> getConfiguredCollectorHosts() {
+      return hosts;
+    }
+
+    @Override
+    protected SupplierExpiry getSupplierExpiry() {
+      return new SupplierExpiry(128, TimeUnit.MILLISECONDS);
     }
   }
 }
