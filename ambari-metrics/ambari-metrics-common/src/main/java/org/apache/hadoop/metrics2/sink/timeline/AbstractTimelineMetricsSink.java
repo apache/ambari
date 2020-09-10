@@ -154,7 +154,7 @@ public abstract class AbstractTimelineMetricsSink {
     @Override
     public String get() {
       //shardExpired flag is used to determine if the Supplier.get() is invoked through the
-      // findPreferredCollectHost method (No need to refresh collector hosts
+      // findPreferredCollectHost method (No need to refresh collector hosts)
       // OR
       // through Expiry (Refresh needed to pick up dead collectors that might have not become alive).
       if (shardExpired) {
