@@ -309,7 +309,7 @@ public abstract class AbstractTimelineMetricsSink {
     if (collectorHost == null) {
       if (nullCollectorCounter.getAndIncrement() == 0) {
         LOG.info("No live collector to send metrics to. Metrics to be sent will be discarded. " +
-                "This message will be skipped for the next " + NUMBER_OF_NULL_COLLECTOR_EXCEPTIONS + " times.");
+          "This message will be skipped for the next " + NUMBER_OF_NULL_COLLECTOR_EXCEPTIONS + " times.");
       } else {
         nullCollectorCounter.compareAndSet(NUMBER_OF_NULL_COLLECTOR_EXCEPTIONS, 0);
       }
@@ -614,7 +614,7 @@ public abstract class AbstractTimelineMetricsSink {
     }
   }
 
-  protected Collection<String> findLiveCollectorHostsFromKnownCollector(String host, String port) throws MetricCollectorUnavailableException {
+  Collection<String> findLiveCollectorHostsFromKnownCollector(String host, String port) throws MetricCollectorUnavailableException {
     List<String> collectors = new ArrayList<>();
     HttpURLConnection connection = null;
     StringBuilder sb = new StringBuilder(getCollectorProtocol());
