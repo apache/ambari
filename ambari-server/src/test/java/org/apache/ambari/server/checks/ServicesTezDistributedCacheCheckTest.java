@@ -247,6 +247,15 @@ public class ServicesTezDistributedCacheCheckTest {
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
     properties.put("fs.defaultFS", "anything");
+    properties.put("tez.lib.uris", "viewfs://some/path/to/archive.tar.gz");
+    properties.put("tez.use.cluster.hadoop-libs", "false");
+    request = new PrereqCheckRequest("cluster");
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
+    check = new PrerequisiteCheck(null, null);
+    servicesTezDistributedCacheCheck.perform(check, request);
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+
+    properties.put("fs.defaultFS", "anything");
     properties.put("tez.lib.uris", "abfs://some/path/to/archive.tar.gz");
     properties.put("tez.use.cluster.hadoop-libs", "false");
     request = new PrereqCheckRequest("cluster");
@@ -283,6 +292,15 @@ public class ServicesTezDistributedCacheCheckTest {
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
     properties.put("fs.defaultFS", "wasb://ha");
+    properties.put("tez.lib.uris", "/some/path/to/archive.tar.gz");
+    properties.put("tez.use.cluster.hadoop-libs", "false");
+    request = new PrereqCheckRequest("cluster");
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
+    check = new PrerequisiteCheck(null, null);
+    servicesTezDistributedCacheCheck.perform(check, request);
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+
+    properties.put("fs.defaultFS", "viewfs://ha");
     properties.put("tez.lib.uris", "/some/path/to/archive.tar.gz");
     properties.put("tez.use.cluster.hadoop-libs", "false");
     request = new PrereqCheckRequest("cluster");

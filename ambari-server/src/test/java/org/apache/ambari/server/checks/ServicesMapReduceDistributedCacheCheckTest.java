@@ -238,6 +238,15 @@ public class ServicesMapReduceDistributedCacheCheckTest {
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
     properties.put("fs.defaultFS", "anything");
+    properties.put("mapreduce.application.framework.path", "viewfs://some/path");
+    properties.put("mapreduce.application.classpath", "anything");
+    request = new PrereqCheckRequest("cluster");
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
+    check = new PrerequisiteCheck(null, null);
+    servicesMapReduceDistributedCacheCheck.perform(check, request);
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+
+    properties.put("fs.defaultFS", "anything");
     properties.put("mapreduce.application.framework.path", "ecs://some/path");
     properties.put("mapreduce.application.classpath", "anything");
     request = new PrereqCheckRequest("cluster");
@@ -274,6 +283,15 @@ public class ServicesMapReduceDistributedCacheCheckTest {
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
     properties.put("fs.defaultFS", "abfs://ha");
+    properties.put("mapreduce.application.framework.path", "/some/path");
+    properties.put("mapreduce.application.classpath", "anything");
+    request = new PrereqCheckRequest("cluster");
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
+    check = new PrerequisiteCheck(null, null);
+    servicesMapReduceDistributedCacheCheck.perform(check, request);
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+
+    properties.put("fs.defaultFS", "viewfs://ha");
     properties.put("mapreduce.application.framework.path", "/some/path");
     properties.put("mapreduce.application.classpath", "anything");
     request = new PrereqCheckRequest("cluster");
