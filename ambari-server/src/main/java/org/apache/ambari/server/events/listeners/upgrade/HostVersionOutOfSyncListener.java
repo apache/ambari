@@ -137,8 +137,14 @@ public class HostVersionOutOfSyncListener {
               hostStackId.getStackName(), hostStackId.getStackVersion(), serviceName, componentName);
           continue;
         }
-        ComponentInfo component = ami.get().getComponent(hostStackId.getStackName(),
-                hostStackId.getStackVersion(), serviceName, componentName);
+
+        ComponentInfo component = ami.get().getService(hostStackId.getStackName(), hostStackId.getStackVersion(),
+                                                        serviceName).getComponentByName(componentName);
+
+        // Skip lookup if stack does not contain the component
+        if (component == null) {
+          continue;
+        }
 
         if (!component.isVersionAdvertised()) {
           RepositoryVersionState state = checkAllHostComponents(hostStackId, hostVersionEntity.getHostEntity());
