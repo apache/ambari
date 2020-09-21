@@ -45,8 +45,8 @@
   <property>
     <name>num_llap_nodes</name>
     <value>1</value>
-    <description>Number of nodes used by Hive's LLAP, which includes nodes running : LLAP daemon, Slider and Tez App Master(s).</description>
-    <display-name>Number of nodes used by Hive's LLAP</display-name>
+    <description>Number of nodes used by Hive's LLAP, which includes nodes running : LLAP daemon, Slider and Tez App Master(s). Depends on memory settings</description>
+    <display-name>Desired number of nodes used by Hive's LLAP</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>1</minimum>
