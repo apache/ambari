@@ -28,6 +28,7 @@ import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.HostsAddedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
@@ -137,8 +138,14 @@ public class HostVersionOutOfSyncListener {
               hostStackId.getStackName(), hostStackId.getStackVersion(), serviceName, componentName);
           continue;
         }
-        ComponentInfo component = ami.get().getComponent(hostStackId.getStackName(),
-                hostStackId.getStackVersion(), serviceName, componentName);
+
+        ComponentInfo component = ami.get().getService(hostStackId.getStackName(), hostStackId.getStackVersion(),
+                                                        serviceName).getComponentByName(componentName);
+
+        // Skip lookup if stack does not contain the component
+        if (component == null) {
+          continue;
+        }
 
         if (!component.isVersionAdvertised()) {
           RepositoryVersionState state = checkAllHostComponents(hostStackId, hostVersionEntity.getHostEntity());
