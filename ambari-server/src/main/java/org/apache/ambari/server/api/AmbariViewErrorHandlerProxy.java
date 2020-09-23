@@ -52,12 +52,9 @@ public class AmbariViewErrorHandlerProxy extends ErrorHandler implements MethodH
   @Override
   public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-    Throwable th = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
-    if (null != th && response.getStatus() == HttpStatus.SC_INTERNAL_SERVER_ERROR) {
-
+    if (isInternalError(request, response)) {
       //invoke the ambari error handler
       ambariErrorHandler.handle(target, baseRequest, request, response);
-
     } else {
       //invoke the original errorhandler
       webAppErrorHandler.handle(target, baseRequest, request, response);
@@ -67,16 +64,18 @@ public class AmbariViewErrorHandlerProxy extends ErrorHandler implements MethodH
   @Override
   public void doError(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-    Throwable th = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
-    if (null != th && response.getStatus() == HttpStatus.SC_INTERNAL_SERVER_ERROR) {
-
+    if (isInternalError(request, response)) {
       //invoke the ambari error handler
       ambariErrorHandler.handle(target, baseRequest, request, response);
-
     } else {
       //invoke the original errorhandler
       webAppErrorHandler.doError(target, baseRequest, request, response);
     }
+  }
+
+  private boolean isInternalError(HttpServletRequest request, HttpServletResponse response) {
+    Throwable th = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
+    return null != th && response.getStatus() == HttpStatus.SC_INTERNAL_SERVER_ERROR;
   }
 
   @Override
