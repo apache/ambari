@@ -18,98 +18,137 @@
 
 package org.apache.ambari.server.api;
 
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import java.io.IOException;
-import java.util.Map;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.UUID;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationPropertiesProvider;
+import org.apache.http.HttpStatus;
+import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.server.HttpChannel;
+import org.eclipse.jetty.server.HttpConnection;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({AmbariErrorHandler.class, LoggerFactory.class, HttpConnection.class, UUID.class})
 public class AmbariErrorHandlerTest extends EasyMockSupport {
-  Gson gson = new Gson();
+  private Gson gson = new Gson();
 
+  private Logger logger = createNiceMock(Logger.class);
+
+  private HttpConnection httpConnection = createNiceMock(HttpConnection.class);
+  private HttpChannel httpChannel = createNiceMock(HttpChannel.class);
+
+  private Response response = createNiceMock(Response.class);
+  private Request request = createNiceMock(Request.class);
+
+  private HttpServletResponse httpServletResponse = createNiceMock(HttpServletResponse.class);
+  private HttpServletRequest httpServletRequest = createNiceMock(HttpServletRequest.class);
+
+  private JwtAuthenticationPropertiesProvider propertiesProvider = createNiceMock(JwtAuthenticationPropertiesProvider.class);
+
+  final String target = "target";
 
   @Test
-  public void testHandle() throws Exception {
+  public void testHandleInternalServerError() throws IOException {
+    //given
+    final UUID requestId = UUID.fromString("4db659b2-7902-477b-b8e6-c35261d3334a");
 
-  }
+    mockStatic(HttpConnection.class, UUID.class, LoggerFactory.class);
+    when(HttpConnection.getCurrentConnection()).thenReturn(httpConnection);
+    when(UUID.randomUUID()).thenReturn(requestId);
+    when(LoggerFactory.getLogger(AmbariErrorHandler.class)).thenReturn(logger);
 
-  @Test
-  public void testErrorWithJetty() throws Exception {
-    Server server = new Server(0);
-    JwtAuthenticationPropertiesProvider propertiesProvider = createNiceMock(JwtAuthenticationPropertiesProvider.class);
+    Throwable th = createNiceMock(Throwable.class);
+
+    Capture<String> captureLogMessage = EasyMock.newCapture();
+    logger.error(capture(captureLogMessage), eq(th));
+    expectLastCall();
+
+    expect(httpConnection.getHttpChannel()).andReturn(httpChannel);
+    expect(httpChannel.getRequest()).andReturn(request);
+    expect(httpChannel.getResponse()).andReturn(response).times(2);
+    expect(response.getStatus()).andReturn(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+
+    final String requestUri = "/path/to/target";
+    expect(httpServletRequest.getRequestURI()).andReturn(requestUri);
+    expect(httpServletRequest.getAttribute(RequestDispatcher.ERROR_EXCEPTION)).andReturn(th);
+
+    final StringWriter writer = new StringWriter();
+    expect(httpServletResponse.getWriter()).andReturn(new PrintWriter(writer));
+
     expect(propertiesProvider.get()).andReturn(null).anyTimes();
 
     replayAll();
 
-    ServletContextHandler root = new ServletContextHandler(server, "/",
-      ServletContextHandler.SECURITY | ServletContextHandler.SESSIONS);
+    final String expectedResponse = "{\"status\":500,\"message\":\"Internal server error, please refer the exception by " + requestId + " in the server log file\"}";
+    final String expectedErrorMessage = "Internal server error, please refer the exception by " + requestId + " in the server log file, requestURI: " + requestUri;
 
-    root.addServlet(HelloServlet.class, "/hello");
-    root.addServlet(DefaultServlet.class, "/");
-    root.setErrorHandler(new AmbariErrorHandler(gson, propertiesProvider));
+    AmbariErrorHandler ambariErrorHandler = new AmbariErrorHandler(gson, propertiesProvider);
+    ambariErrorHandler.setShowStacks(false);
 
-    server.start();
+    //when
+    ambariErrorHandler.handle(target, request, httpServletRequest, httpServletResponse);
 
-    int localPort = ((ServerConnector)server.getConnectors()[0]).getLocalPort();
-
-    Client client = new Client();
-    WebResource resource = client.resource("http://localhost:" + localPort + "/");
-
-
-    ClientResponse successResponse = resource.path("hello").get(ClientResponse.class);
-    assertEquals(HttpServletResponse.SC_OK, successResponse.getStatus());
-
-    ClientResponse failResponse = resource.path("fail").get(ClientResponse.class);
-
-    assertEquals(HttpServletResponse.SC_NOT_FOUND, failResponse.getStatus());
-
-    try {
-      String response = failResponse.getEntity(String.class);
-      System.out.println(response);
-      Map map;
-      map = gson.fromJson(response, Map.class);
-      System.out.println(map);
-      assertNotNull("Incorrect response status", map.get("status"));
-      assertNotNull("Incorrect response message", map.get("message"));
-    } catch (JsonSyntaxException e1) {
-      fail("Incorrect response");
-    }
-
-     server.stop();
-
+    //then
+    assertEquals(expectedResponse, writer.toString());
+    assertEquals(expectedErrorMessage, captureLogMessage.getValue());
     verifyAll();
   }
 
+  @Test
+  public void testHandleGeneralError() throws Exception {
 
-  @SuppressWarnings("serial")
-  public static class HelloServlet extends HttpServlet {
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-      response.setContentType("text/html");
-      response.setStatus(HttpServletResponse.SC_OK);
-      response.getWriter().println("hello");
-    }
+    //given
+    mockStatic(HttpConnection.class);
+    when(HttpConnection.getCurrentConnection()).thenReturn(httpConnection);
 
+    expect(httpConnection.getHttpChannel()).andReturn(httpChannel);
+    expect(httpChannel.getRequest()).andReturn(request);
+    expect(httpChannel.getResponse()).andReturn(response).anyTimes();
+    expect(response.getStatus()).andReturn(HttpStatus.SC_BAD_REQUEST);
+
+    final StringWriter writer = new StringWriter();
+    expect(httpServletResponse.getWriter()).andReturn(new PrintWriter(writer));
+
+    expect(propertiesProvider.get()).andReturn(null).anyTimes();
+
+    replayAll();
+
+    final String expectedResponse = "{\"status\":400,\"message\":\"Bad Request\"}";
+
+    AmbariErrorHandler ambariErrorHandler = new AmbariErrorHandler(gson, propertiesProvider);
+
+    //when
+    ambariErrorHandler.handle(target, request, httpServletRequest, httpServletResponse);
+    System.out.println(writer.toString());
+
+    //then
+    assertEquals(expectedResponse, writer.toString());
+    verifyAll();
   }
 }
