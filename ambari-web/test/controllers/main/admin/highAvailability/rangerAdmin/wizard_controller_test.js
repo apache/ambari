@@ -17,13 +17,12 @@
  */
 
 var App = require('app');
-require('controllers/main/admin/highAvailability/hawq/addStandby/wizard_controller');
 
 function getController() {
-  return App.AddHawqStandbyWizardController.create({});
+  return App.RAHighAvailabilityWizardController.create({});
 }
 
-describe('App.AddHawqStandbyWizardController', function () {
+describe('App.RAHighAvailabilityWizardController', function () {
   var controller;
 
   beforeEach(function () {
@@ -50,9 +49,11 @@ describe('App.AddHawqStandbyWizardController', function () {
 
     describe('should load cluster', function() {
       var loadCluster = false;
+      var loadBalancerURL = false;
       var checker = {
         load: function() {
           loadCluster = true;
+          loadBalancerURL = true;
         }
       };
 
@@ -60,35 +61,36 @@ describe('App.AddHawqStandbyWizardController', function () {
         controller.loadMap['1'][0].callback.call(checker);
       });
 
-      it('cluster info is loaded', function () {
+      it('cluster info and loadBalancerURL are loaded', function () {
         expect(loadCluster).to.be.true;
       });
     });
 
     describe('should load service hosts', function() {
+      var loadHosts = false;
       var loadServicesFromServer = false;
       var loadMasterComponentHosts = false;
-      var loadHawqHosts = false;
-      var loadConfirmedHosts = false;
 
       var checker = {
+        loadHosts: function () {
+          loadHosts = true;
+          return $.Deferred().resolve().promise();
+        },
         loadServicesFromServer: function () {
           loadServicesFromServer = true;
         },
         loadMasterComponentHosts: function () {
           loadMasterComponentHosts = true;
           return $.Deferred().resolve().promise();
-        },
-        loadHawqHosts: function () {
-          loadHawqHosts = true;
-        },
-        loadConfirmedHosts: function () {
-          loadConfirmedHosts = true;
         }
       };
 
       beforeEach(function () {
         controller.loadMap['2'][0].callback.call(checker);
+      });
+
+      it('hosts are loaded', function () {
+        expect(loadHosts).to.be.true;
       });
 
       it('services from server are loaded', function () {
@@ -98,26 +100,31 @@ describe('App.AddHawqStandbyWizardController', function () {
       it('master component hosts are loaded', function () {
         expect(loadMasterComponentHosts).to.be.true;
       });
+    });
 
-      it('Hawq hosts are loaded', function () {
-        expect(loadHawqHosts).to.be.true;
+    describe('should load cluster', function() {
+      var loadRaHosts = false;
+      var checker = {
+        load: function() {
+          loadRaHosts = true;
+        }
+      };
+
+      beforeEach(function () {
+        controller.loadMap['3'][0].callback.call(checker);
       });
 
-      it('confirmed hosts are loaded', function () {
-        expect(loadConfirmedHosts).to.be.true;
+      it('raHosts are loaded', function () {
+        expect(loadRaHosts).to.be.true;
       });
     });
 
     describe('should load tasks', function() {
-      var loadConfigs = false;
       var loadTasksStatuses = false;
       var loadTasksRequestIds = false;
       var loadRequestIds = false;
 
       var checker = {
-        loadConfigs: function () {
-          loadConfigs = true;
-        },
         loadTasksStatuses: function () {
           loadTasksStatuses = true;
           return $.Deferred().resolve().promise();
@@ -134,10 +141,6 @@ describe('App.AddHawqStandbyWizardController', function () {
         controller.loadMap['4'][0].callback.call(checker);
       });
 
-      it('service config properties are loaded', function () {
-        expect(loadConfigs).to.be.true;
-      });
-
       it('task statuses are loaded', function () {
         expect(loadTasksStatuses).to.be.true;
       });
@@ -149,96 +152,6 @@ describe('App.AddHawqStandbyWizardController', function () {
       it('request ids are loaded', function () {
         expect(loadRequestIds).to.be.true;
       });
-    });
-  });
-
-  describe("#setCurrentStep()", function () {
-
-    beforeEach(function() {
-      sinon.stub(App.clusterStatus, 'setClusterStatus');
-    });
-
-    afterEach(function() {
-      App.clusterStatus.setClusterStatus.restore();
-    });
-
-    it("App.clusterStatus.setClusterStatus should be called", function() {
-      controller.setCurrentStep();
-      expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
-    });
-  });
-
-  describe("#saveHawqHosts()", function () {
-
-    beforeEach(function() {
-      sinon.stub(controller, 'setDBProperty');
-    });
-
-    afterEach(function() {
-      controller.setDBProperty.restore();
-    });
-
-    it("hawqHosts should be set", function() {
-      controller.saveHawqHosts(['host1']);
-      expect(controller.get('content.hawqHosts')).to.be.eql(['host1']);
-    });
-
-    it("setDBProperty should be called", function() {
-      controller.saveHawqHosts(['host1']);
-      expect(controller.setDBProperty.calledWith('hawqHosts', ['host1'])).to.be.true;
-    });
-  });
-
-  describe("#loadHawqHosts()", function () {
-
-    beforeEach(function() {
-      sinon.stub(controller, 'getDBProperty').returns(['host1']);
-    });
-
-    afterEach(function() {
-      controller.getDBProperty.restore();
-    });
-
-    it("hawqHosts should be set", function() {
-      controller.loadHawqHosts();
-      expect(controller.get('content.hawqHosts')).to.be.eql(['host1']);
-    });
-  });
-
-  describe("#saveConfigs()", function () {
-
-    beforeEach(function() {
-      sinon.stub(controller, 'setDBProperty');
-    });
-
-    afterEach(function() {
-      controller.setDBProperty.restore();
-    });
-
-    it("configs should be set", function() {
-      controller.saveConfigs([{}]);
-      expect(controller.get('content.configs')).to.be.eql([{}]);
-    });
-
-    it("setDBProperty should be called", function() {
-      controller.saveConfigs([{}]);
-      expect(controller.setDBProperty.calledWith('configs', [{}])).to.be.true;
-    });
-  });
-
-  describe("#loadConfigs()", function () {
-
-    beforeEach(function() {
-      sinon.stub(controller, 'getDBProperty').returns([{}]);
-    });
-
-    afterEach(function() {
-      controller.getDBProperty.restore();
-    });
-
-    it("configs should be set", function() {
-      controller.loadConfigs();
-      expect(controller.get('content.configs')).to.be.eql([{}]);
     });
   });
 

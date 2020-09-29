@@ -419,17 +419,35 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
 
   describe('#onLoadConfigsTags', function () {
 
-    var data = {Clusters: {desired_configs: {
-      'hdfs-site': {tag: 'v1'},
-      'core-site': {tag: 'v2'},
-      'zoo.cfg': {tag: 'v3'},
-      'hbase-site': {tag: 'v4'},
-      'accumulo-site': {tag: 'v5'},
-      'ams-hbase-site': {tag: 'v6'},
-      'hawq-site': {tag: 'v7'},
-      'hdfs-client': {tag: 'v8'},
-      'ranger-env': {tag: 'v9'}
-    }}};
+    var data = {
+      Clusters: {
+        desired_configs: {
+          'hdfs-site': {tag: 'v1'},
+          'core-site': {tag: 'v2'},
+          'zoo.cfg': {tag: 'v3'},
+          'hbase-site': {tag: 'v4'},
+          'accumulo-site': {tag: 'v5'},
+          'ams-hbase-site': {tag: 'v6'},
+          'hawq-site': {tag: 'v7'},
+          'hdfs-client': {tag: 'v8'},
+          'ranger-env': {tag: 'v9'},
+          'ranger-hdfs-plugin-properties': {tag: 'v10'},
+          'ranger-hdfs-audit': {tag: 'v11'},
+          'ranger-yarn-audit': {tag: 'v12'},
+          'ranger-hbase-audit': {tag: 'v13'},
+          'ranger-hbase-plugin-properties': {tag: 'v14'},
+          'ranger-kafka-audit': {tag: 'v15'},
+          'ranger-knox-audit': {tag: 'v16'},
+          'ranger-knox-plugin-properties': {tag: 'v17'},
+          'ranger-storm-audit': {tag: 'v18'},
+          'ranger-storm-plugin-properties': {tag: 'v19'},
+          'ranger-atlas-audit': {tag: 'v20'},
+          'ranger-hive-audit': {tag: 'v21'},
+          'ranger-hive-plugin-properties': {tag: 'v22'},
+          'ranger-kms-audit': {tag: 'v23'}
+        }
+      }
+    };
 
     beforeEach(function () {
       sinon.stub(App.Service, 'find', function () {
@@ -438,7 +456,13 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
           Em.Object.create({serviceName: 'ACCUMULO'}),
           Em.Object.create({serviceName: 'AMBARI_METRICS'}),
           Em.Object.create({serviceName: 'HAWQ'}),
-          Em.Object.create({serviceName: 'RANGER'})
+          Em.Object.create({serviceName: 'RANGER'}),
+          Em.Object.create({serviceName: 'RANGER_KMS'}),
+          Em.Object.create({serviceName: 'HIVE'}),
+          Em.Object.create({serviceName: 'ATLAS'}),
+          Em.Object.create({serviceName: 'STORM'}),
+          Em.Object.create({serviceName: 'KNOX'}),
+          Em.Object.create({serviceName: 'KAFKA'})
         ];
       });
       controller.onLoadConfigsTags(data);
@@ -450,9 +474,31 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
     });
 
     it('urlParams are valid', function () {
-      expect(this.args[0].data.urlParams).to.be.equal('(type=hdfs-site&tag=v1)|(type=core-site&tag=v2)|(type=zoo.cfg&tag=v3)|(type=hbase-site&tag=v4)|(type=accumulo-site&tag=v5)|(type=ams-hbase-site&tag=v6)|(type=hawq-site&tag=v7)|(type=hdfs-client&tag=v8)|(type=ranger-env&tag=v9)');
+      expect(this.args[0].data.urlParams).to.be.equal('(type=hdfs-site&tag=v1)' +
+        '|(type=core-site&tag=v2)' +
+        '|(type=zoo.cfg&tag=v3)' +
+        '|(type=hbase-site&tag=v4)' +
+        '|(type=accumulo-site&tag=v5)' +
+        '|(type=ams-hbase-site&tag=v6)' +
+        '|(type=hawq-site&tag=v7)' +
+        '|(type=hdfs-client&tag=v8)' +
+        '|(type=ranger-env&tag=v9)' +
+        '|(type=ranger-hdfs-plugin-properties&tag=v10)' +
+        '|(type=ranger-hdfs-audit&tag=v11)' +
+        '|(type=ranger-yarn-audit&tag=v12)' +
+        '|(type=ranger-hbase-audit&tag=v13)' +
+        '|(type=ranger-hbase-plugin-properties&tag=v14)' +
+        '|(type=ranger-kafka-audit&tag=v15)' +
+        '|(type=ranger-knox-audit&tag=v16)' +
+        '|(type=ranger-knox-plugin-properties&tag=v17)' +
+        '|(type=ranger-storm-audit&tag=v18)' +
+        '|(type=ranger-storm-plugin-properties&tag=v19)' +
+        '|(type=ranger-atlas-audit&tag=v20)' +
+        '|(type=ranger-hive-audit&tag=v21)' +
+        '|(type=ranger-hive-plugin-properties&tag=v22)' +
+        '|(type=ranger-kms-audit&tag=v23)'
+      );
     });
-
   });
 
   describe('#clearStep', function() {

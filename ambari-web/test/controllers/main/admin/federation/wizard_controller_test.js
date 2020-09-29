@@ -226,7 +226,7 @@ describe('App.NameNodeFederationWizardController', function() {
       });
     });
 
-    describe ('should load service hosts', function() {
+    describe('should load service hosts', function() {
       var loadServicesFromServer = false;
       var loadMasterComponentHosts = false;
       var loadConfirmedHosts = false;
@@ -278,7 +278,7 @@ describe('App.NameNodeFederationWizardController', function() {
       });
     });
 
-    describe ('should load tasks', function() {
+    describe('should load tasks', function() {
       var loadServiceConfigProperties = false;
       var loadTasksStatuses = false;
       var loadTasksRequestIds = false;
