@@ -903,6 +903,7 @@
         "options": [
         ],
         "label": "Hosts",
+        "refresh": true,
         "query": "hosts.$cluster",
         "type": "query"
       }
