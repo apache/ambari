@@ -1776,7 +1776,7 @@
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-serviceadvisor</artifactId>
-      <version>${project.version}</version>
+      <version>1.0.0.0-SNAPSHOT</version>
       <exclusions>
         <exclusion>
           <groupId>commons-httpclient</groupId>
