@@ -564,12 +564,12 @@
           "values": [
             {
               "name": "DataNode Process Disk I/O Utilization",
-              "value": "${((dfs.datanode.BytesRead/dfs.datanode.TotalReadTime)+(dfs.datanode.BytesWritten/dfs.datanode.TotalWriteTime))*50}"
+              "value": "${((dfs.datanode.BytesRead/dfs.datanode.TotalReadTime)+(dfs.datanode.BytesWritten/dfs.datanode.TotalWriteTime))*0.9766}"
             }
           ],
           "properties": {
-            "display_unit": "%",
-            "max_limit": "100"
+            "display_unit": "KB/s",
+            "max_limit": "50000"
           }
         },
         {
@@ -606,12 +606,12 @@
           "values": [
             {
               "name": "DataNode Process Network I/O Utilization",
-              "value": "${((dfs.datanode.RemoteBytesRead/dfs.datanode.ReadsFromRemoteClient)+(dfs.datanode.RemoteBytesWritten/dfs.datanode.WritesFromRemoteClient))*50}"
+              "value": "${((dfs.datanode.BytesRead/dfs.datanode.TotalReadTime)+(dfs.datanode.BytesWritten/dfs.datanode.TotalWriteTime))*0.9766}"
             }
           ],
           "properties": {
-            "display_unit": "%",
-            "max_limit": "100"
+            "display_unit": "KB/s",
+            "max_limit": "50000"
           }
         },
         {
