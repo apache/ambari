@@ -2044,16 +2044,20 @@ public class ConfigHelper {
       }
       Map<String, Map<String, String>> configurations = new HashMap<>();
       Map<String, Map<String, Map<String, String>>> configurationAttributes = new HashMap<>();
-      if (LOG.isInfoEnabled()) {
-        LOG.info("For configs update on host {} will be used cluster entity {}", hostId, cl.getClusterEntity().toString());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("For configs update on host {} will be used cluster entity {}", hostId, cl.getClusterEntity().toString());
       }
       Map<String, DesiredConfig> clusterDesiredConfigs = cl.getDesiredConfigs(false);
-      LOG.info("For configs update on host {} will be used following cluster desired configs {}", hostId,
-          clusterDesiredConfigs.toString());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("For configs update on host {} will be used following cluster desired configs {}", hostId,
+            clusterDesiredConfigs.toString());
+      }
 
       Map<String, Map<String, String>> configTags =
           getEffectiveDesiredTags(cl, host.getHostName(), clusterDesiredConfigs);
-      LOG.info("For configs update on host {} will be used following effective desired tags {}", hostId, configTags.toString());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("For configs update on host {} will be used following effective desired tags {}", hostId, configTags.toString());
+      }
 
       getAndMergeHostConfigs(configurations, configTags, cl);
       configurations = unescapeConfigNames(configurations);
