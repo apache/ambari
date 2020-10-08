@@ -9704,7 +9704,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_min" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Pute_min"
+                          "name" : "regionserver.Server.Put_min"
                         },
                         "metrics/hbase/regionserver/storefileIndexSizeMB" : {
                           "pointInTime" : false,

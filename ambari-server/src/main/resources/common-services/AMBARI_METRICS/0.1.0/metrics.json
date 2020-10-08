@@ -831,7 +831,7 @@
               "temporal": true
             },
             "metrics/hbase/regionserver/Put_max": {
-              "metric": "regionserver.Server.Pute_max",
+              "metric": "regionserver.Server.Put_max",
               "pointInTime": true,
               "temporal": true
             },
