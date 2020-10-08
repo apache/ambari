@@ -3133,7 +3133,7 @@
               "temporal": false
             },
             "metrics/hbase/regionserver/putRequestLatency_num_ops": {
-              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server/Put_num_ops",
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_num_ops",
               "pointInTime": true,
               "temporal": false
             },

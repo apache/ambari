@@ -132,7 +132,7 @@
           "values": [
             {
               "name": "Cluster wide maximum of 95% Mutate Latency",
-              "value": "${regionserver.Server.Put._max}"
+              "value": "${regionserver.Server.Put_95th_percentile._max}"
             },
             {
               "name": "Cluster wide maximum of 95% Increment Latency",
