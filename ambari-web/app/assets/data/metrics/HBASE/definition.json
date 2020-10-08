@@ -9524,7 +9524,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_75th_percentile" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_75th_percentile"
+                          "name" : "regionserver.Server.Put_75th_percentile"
                         },
                         "metrics/rpc/getFromOnlineRegions/aboveOneSec/_num_ops" : {
                           "pointInTime" : true,
@@ -9629,7 +9629,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_num_ops" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_num_ops"
+                          "name" : "regionserver.Server.Put_num_ops"
                         },
                         "metrics/jvm/threadsBlocked" : {
                           "pointInTime" : true,
@@ -9654,7 +9654,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_median" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_median"
+                          "name" : "regionserver.Server.Put_median"
                         },
                         "metrics/hbase/regionserver/fsReadLatencyHistogram_num_ops" : {
                           "pointInTime" : true,
@@ -9704,7 +9704,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_min" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_min"
+                          "name" : "regionserver.Server.Pute_min"
                         },
                         "metrics/hbase/regionserver/storefileIndexSizeMB" : {
                           "pointInTime" : false,
@@ -9741,20 +9741,20 @@
                           "temporal" : true,
                           "name" : "regionserver.Server.Delete_num_ops"
                         },
-                        "metrics/hbase/regionserver/Server/Mutate_num_ops" : {
+                        "metrics/hbase/regionserver/Server/Put_num_ops" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_num_ops"
+                          "name" : "regionserver.Server.Put_num_ops"
                         },
                         "metrics/hbase/regionserver/Server/Get_95th_percentile" : {
                           "pointInTime" : false,
                           "temporal" : true,
                           "name" : "regionserver.Server.Get_95th_percentile"
                         },
-                        "metrics/hbase/regionserver/Server/Mutate_95th_percentile" : {
+                        "metrics/hbase/regionserver/Server/Put_95th_percentile" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_95th_percentile"
+                          "name" : "regionserver.Server.Put_95th_percentile"
                         },
                         "metrics/hbase/regionserver/Server/Increment_95th_percentile" : {
                           "pointInTime" : false,
@@ -9804,7 +9804,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_mean" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_mean"
+                          "name" : "regionserver.Server.Put_mean"
                         },
                         "metrics/rpc/incrementColumnValue/aboveOneSec/_avg_time" : {
                           "pointInTime" : true,
@@ -10049,7 +10049,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_99th_percentile" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_99th_percentile"
+                          "name" : "regionserver.Server.Put_99th_percentile"
                         },
                         "metrics/load/load_fifteen" : {
                           "pointInTime" : true,
@@ -10214,7 +10214,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_95th_percentile" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_95th_percentile"
+                          "name" : "regionserver.Server.Put_95th_percentile"
                         },
                         "metrics/hbase/regionserver/compactionQueueSize" : {
                           "pointInTime" : false,
@@ -10454,7 +10454,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_max" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_max"
+                          "name" : "regionserver.Server.Put_max"
                         },
                         "metrics/rpc/openRegion/aboveOneSec/_avg_time" : {
                           "pointInTime" : true,
@@ -11097,7 +11097,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_num_ops" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_num_ops"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_num_ops"
                         },
                         "metrics/hbase/regionserver/slowIncrementCount" : {
                           "pointInTime" : true,
@@ -11112,7 +11112,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_95th_percentile" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_95th_percentile"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_95th_percentile"
                         },
                         "metrics/hbase/regionserver/compactionQueueSize" : {
                           "pointInTime" : true,
@@ -11122,7 +11122,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_median" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_median"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_median"
                         },
                         "metrics/hbase/regionserver/deleteRequestLatency_mean" : {
                           "pointInTime" : true,
@@ -11152,7 +11152,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_min" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_min"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_min"
                         },
                         "metrics/hbase/regionserver/storefileIndexSizeMB" : {
                           "pointInTime" : true,
@@ -11167,7 +11167,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_max" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_max"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_max"
                         },
                         "metrics/hbase/regionserver/totalStaticIndexSizeKB" : {
                           "pointInTime" : true,
@@ -11182,7 +11182,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_mean" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_mean"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_mean"
                         },
                         "metrics/hbase/regionserver/requests" : {
                           "pointInTime" : true,
@@ -11217,7 +11217,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_99th_percentile" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_99th_percentile"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_99th_percentile"
                         },
                         "metrics/hbase/regionserver/stores" : {
                           "pointInTime" : true,
@@ -11267,7 +11267,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_75th_percentile" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_75th_percentile"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_75th_percentile"
                         },
                         "metrics/hbase/regionserver/regions" : {
                           "pointInTime" : true,
@@ -11422,7 +11422,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_95th_percentile" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_95th_percentile"
+                          "name" : "regionserver.Server.Put_95th_percentile"
                         },
                         "metrics/rpc/openRegions/aboveOneSec/_num_ops" : {
                           "pointInTime" : true,
@@ -11927,7 +11927,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_max" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_max"
+                          "name" : "regionserver.Server.Put_max"
                         },
                         "metrics/hbase/regionserver/deleteRequestLatency_num_ops" : {
                           "pointInTime" : false,
@@ -12087,7 +12087,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_75th_percentile" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_75th_percentile"
+                          "name" : "regionserver.Server.Put_75th_percentile"
                         },
                         "metrics/rpc/getFromOnlineRegions/aboveOneSec/_num_ops" : {
                           "pointInTime" : true,
@@ -12297,7 +12297,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_num_ops" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_num_ops"
+                          "name" : "regionserver.Server.Put_num_ops"
                         },
                         "metrics/rpc/getConfiguration_num_ops" : {
                           "pointInTime" : true,
@@ -12347,7 +12347,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_median" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_median"
+                          "name" : "regionserver.Server.Put_median"
                         },
                         "metrics/rpc/isStopped_num_ops" : {
                           "pointInTime" : true,
@@ -12407,7 +12407,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_min" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_min"
+                          "name" : "regionserver.Server.Put_min"
                         },
                         "metrics/rpc/execCoprocessor/aboveOneSec/_avg_time" : {
                           "pointInTime" : true,
@@ -12452,7 +12452,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_mean" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_mean"
+                          "name" : "regionserver.Server.Put_mean"
                         },
                         "metrics/rpc/incrementColumnValue/aboveOneSec/_avg_time" : {
                           "pointInTime" : true,
@@ -12917,7 +12917,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_99th_percentile" : {
                           "pointInTime" : false,
                           "temporal" : true,
-                          "name" : "regionserver.Server.Mutate_99th_percentile"
+                          "name" : "regionserver.Server.Put_99th_percentile"
                         },
                         "metrics/load/load_fifteen" : {
                           "pointInTime" : true,
@@ -13155,7 +13155,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_num_ops" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_num_ops"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_num_ops"
                         },
                         "metrics/hbase/regionserver/slowIncrementCount" : {
                           "pointInTime" : true,
@@ -13170,7 +13170,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_95th_percentile" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_95th_percentile"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_95th_percentile"
                         },
                         "metrics/hbase/regionserver/compactionQueueSize" : {
                           "pointInTime" : true,
@@ -13180,7 +13180,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_median" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_median"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_median"
                         },
                         "metrics/hbase/regionserver/deleteRequestLatency_mean" : {
                           "pointInTime" : true,
@@ -13210,7 +13210,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_min" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_min"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_min"
                         },
                         "metrics/hbase/regionserver/storefileIndexSizeMB" : {
                           "pointInTime" : true,
@@ -13225,7 +13225,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_max" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_max"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_max"
                         },
                         "metrics/hbase/regionserver/totalStaticIndexSizeKB" : {
                           "pointInTime" : true,
@@ -13240,7 +13240,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_mean" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_mean"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_mean"
                         },
                         "metrics/hbase/regionserver/requests" : {
                           "pointInTime" : true,
@@ -13275,7 +13275,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_99th_percentile" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_99th_percentile"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_99th_percentile"
                         },
                         "metrics/hbase/regionserver/stores" : {
                           "pointInTime" : true,
@@ -13325,7 +13325,7 @@
                         "metrics/hbase/regionserver/putRequestLatency_75th_percentile" : {
                           "pointInTime" : true,
                           "temporal" : false,
-                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_75th_percentile"
+                          "name" : "Hadoop:service=HBase,name=RegionServer,sub=Server.Put_75th_percentile"
                         },
                         "metrics/hbase/regionserver/regions" : {
                           "pointInTime" : true,

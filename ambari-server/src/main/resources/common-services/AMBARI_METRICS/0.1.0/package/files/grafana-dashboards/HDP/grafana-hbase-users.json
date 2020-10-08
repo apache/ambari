@@ -237,7 +237,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Users.*_metric_mutate_num_ops",
+              "metric": "regionserver.Users.*_metric_Put_num_ops",
               "precision": "default",
               "refId": "A",
               "templatedHost": "",
