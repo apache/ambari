@@ -34,6 +34,7 @@ from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions import stack_features
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import conf_select
+from resource_management.core.utils import PasswordString
 
 # used for faking out stack features when the config files used by unit tests use older stacks
 def mock_stack_feature(stack_feature, stack_version):
@@ -99,12 +100,18 @@ class TestHiveServer(RMFTestCase):
         user = 'hive',
         path = ['/bin:/usr/hdp/current/hive-server2/bin:mock_hadoop_dir'],
     )
-    self.assertResourceCalled('Execute',
-                              '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
-                              path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                              tries=5,
-                              try_sleep=10
-    )
+    self.assertResourceCalled('Execute', (u'/usr/jdk64/jdk1.7.0_45/bin/java',
+                                          '-cp',
+                                          '/usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
+                                          'org.apache.ambari.server.DBConnectionVerification',
+                                          u'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true',
+                                          u'hive',
+                                          PasswordString("!`\"' 1"),
+                                          u'com.mysql.jdbc.Driver'),
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              tries = 5,
+                              try_sleep = 10,
+                              )
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
@@ -129,12 +136,18 @@ class TestHiveServer(RMFTestCase):
                               user = 'hive',
                               path = ['/bin:/usr/hdp/current/hive-server2/bin:mock_hadoop_dir'],
                               )
-    self.assertResourceCalled('Execute',
-                              '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
-                              path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                              tries=5,
-                              try_sleep=10
-    )
+    self.assertResourceCalled('Execute', (u'/usr/jdk64/jdk1.7.0_45/bin/java',
+                                          '-cp',
+                                          '/usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
+                                          'org.apache.ambari.server.DBConnectionVerification',
+                                          u'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true',
+                                          u'hive',
+                                          PasswordString("!`\"' 1"),
+                                          u'com.mysql.jdbc.Driver'),
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              tries = 5,
+                              try_sleep = 10,
+                              )
     self.assertNoMoreResources()
 
   def test_start_default_no_copy(self):
@@ -160,9 +173,18 @@ class TestHiveServer(RMFTestCase):
         path = ['/bin:/usr/hdp/current/hive-server2/bin:mock_hadoop_dir'],
     )
 
-    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
-                              path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
-    )
+    self.assertResourceCalled('Execute', (u'/usr/jdk64/jdk1.7.0_45/bin/java',
+                                          '-cp',
+                                          '/usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
+                                          'org.apache.ambari.server.DBConnectionVerification',
+                                          u'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true',
+                                          u'hive',
+                                          PasswordString("!`\"' 1"),
+                                          u'com.mysql.jdbc.Driver'),
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              tries = 5,
+                              try_sleep = 10,
+                              )
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
@@ -190,9 +212,18 @@ class TestHiveServer(RMFTestCase):
         path = ['/bin:/usr/hdp/current/hive-server2/bin:mock_hadoop_dir'],
     )
 
-    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
-                              path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
-    )
+    self.assertResourceCalled('Execute', (u'/usr/jdk64/jdk1.7.0_45/bin/java',
+                                          '-cp',
+                                          '/usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
+                                          'org.apache.ambari.server.DBConnectionVerification',
+                                          u'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true',
+                                          u'hive',
+                                          PasswordString("!`\"' 1"),
+                                          u'com.mysql.jdbc.Driver'),
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              tries = 5,
+                              try_sleep = 10,
+                              )
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
@@ -220,9 +251,18 @@ class TestHiveServer(RMFTestCase):
         path = ['/bin:/usr/hdp/current/hive-server2/bin:mock_hadoop_dir'],
     )
 
-    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
-                              path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
-    )
+    self.assertResourceCalled('Execute', (u'/usr/jdk64/jdk1.7.0_45/bin/java',
+                                          '-cp',
+                                          '/usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
+                                          'org.apache.ambari.server.DBConnectionVerification',
+                                          u'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true',
+                                          u'hive',
+                                          PasswordString("!`\"' 1"),
+                                          u'com.mysql.jdbc.Driver'),
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              tries = 5,
+                              try_sleep = 10,
+                              )
     self.assertNoMoreResources()
 
   def test_stop_default(self):
@@ -291,12 +331,18 @@ class TestHiveServer(RMFTestCase):
         user = 'hive',
         path = ['/bin:/usr/hdp/current/hive-server2/bin:mock_hadoop_dir'],
     )
-    self.assertResourceCalled('Execute',
-                              '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
-                              path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                              tries=5,
-                              try_sleep=10,
-    )
+    self.assertResourceCalled('Execute', (u'/usr/jdk64/jdk1.7.0_45/bin/java',
+                                          '-cp',
+                                          '/usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
+                                          'org.apache.ambari.server.DBConnectionVerification',
+                                          u'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true',
+                                          u'hive',
+                                          PasswordString("!`\"' 1"),
+                                          u'com.mysql.jdbc.Driver'),
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              tries = 5,
+                              try_sleep = 10,
+                              )
     self.assertNoMoreResources()
 
     self.assertTrue(check_fs_root_mock.called)
