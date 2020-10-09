@@ -33,6 +33,7 @@ from resource_management.libraries.functions import get_user_call_output
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.core.utils import PasswordString
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -149,8 +150,10 @@ def validate_connection(target_path_to_jdbc, hive_lib_path):
                       " in hive lib dir. So, db connection check can fail. Please run 'ambari-server setup --jdbc-db={db_name} --jdbc-driver={path_to_jdbc} on server host.'"
       Logger.error(error_message)
 
-  db_connection_check_command = format(
-    "{java64_home}/bin/java -cp {check_db_connection_jar}:{path_to_jdbc} org.apache.ambari.server.DBConnectionVerification '{hive_jdbc_connection_url}' {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_jdbc_driver}")
+  db_connection_check_command = (format('{java64_home}/bin/java'), '-cp',
+                                 format('{check_db_connection_jar}:{path_to_jdbc}'), 'org.apache.ambari.server.DBConnectionVerification',
+                                 params.hive_jdbc_connection_url, params.hive_metastore_user_name,
+                                 PasswordString(params.hive_metastore_user_passwd), params.hive_jdbc_driver)
 
   try:
     Execute(db_connection_check_command,
