@@ -37,8 +37,8 @@
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Put_num_ops._rate",
-              "metric_path": "metrics/hbase/regionserver/Server/Put_num_ops._rate",
+              "name": "regionserver.Server.Mutate_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Mutate_num_ops._rate",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
@@ -50,7 +50,7 @@
             },
             {
               "name": "Write Requests",
-              "value": "${regionserver.Server.Append_num_ops._rate + regionserver.Server.Delete_num_ops._rate + regionserver.Server.Increment_num_ops._rate + regionserver.Server.Put_num_ops._rate}"
+              "value": "${regionserver.Server.Append_num_ops._rate + regionserver.Server.Delete_num_ops._rate + regionserver.Server.Increment_num_ops._rate + regionserver.Server.Mutate_num_ops._rate}"
             }
           ],
           "properties": {
@@ -92,8 +92,8 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "regionserver.Server.Put_95th_percentile._max",
-              "metric_path": "metrics/hbase/regionserver/Server/Put_95th_percentile._max",
+              "name": "regionserver.Server.Mutate_95th_percentile._max",
+              "metric_path": "metrics/hbase/regionserver/Server/Mutate_95th_percentile._max",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
@@ -119,7 +119,7 @@
           "values": [
             {
               "name": "Cluster wide maximum of 95% Mutate Latency",
-              "value": "${regionserver.Server.Put_95th_percentile._max}"
+              "value": "${regionserver.Server.Mutate_95th_percentile._max}"
             },
             {
               "name": "Cluster wide maximum of 95% Increment Latency",
