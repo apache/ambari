@@ -87,6 +87,7 @@ import org.junit.Test;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.inject.Provider;
 
 /**
  * AmbariContext unit tests
@@ -126,6 +127,8 @@ public class AmbariContextTest {
   private static final Host host2 = createNiceMock(Host.class);
   private static final ConfigFactory configFactory = createNiceMock(ConfigFactory.class);
   private static final Service mockService1 = createStrictMock(Service.class);
+  private static final Provider<ConfigHelper> mockConfigHelperProvider = createNiceMock(Provider.class);
+  private static final ConfigHelper mockConfigHelper = createNiceMock(ConfigHelper.class);
 
   private static final Collection<String> blueprintServices = new HashSet<>();
   private static final Map<String, Service> clusterServices = new HashMap<>();
@@ -163,6 +166,10 @@ public class AmbariContextTest {
     f = clazz.getDeclaredField("hostComponentResourceProvider");
     f.setAccessible(true);
     f.set(null, hostComponentResourceProvider);
+
+    f = clazz.getDeclaredField("configHelper");
+    f.setAccessible(true);
+    f.set(context, mockConfigHelperProvider);
 
     // bp configuration
     Map<String, Map<String, String>> bpProperties = new HashMap<>();
@@ -272,23 +279,27 @@ public class AmbariContextTest {
     expect(configGroup1.getName()).andReturn(String.format("%s:%s", BP_NAME, HOST_GROUP_1)).anyTimes();
     expect(configGroup2.getName()).andReturn(String.format("%s:%s", BP_NAME, HOST_GROUP_2)).anyTimes();
 
+    expect(mockConfigHelperProvider.get()).andReturn(mockConfigHelper).anyTimes();
   }
 
   @After
   public void tearDown() throws Exception {
     verify(controller, clusterController, hostResourceProvider, serviceResourceProvider, componentResourceProvider,
         hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
-        cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
+        cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory,
+        mockConfigHelperProvider, mockConfigHelper);
 
     reset(controller, clusterController, hostResourceProvider, serviceResourceProvider, componentResourceProvider,
         hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
-        cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
+        cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory,
+        mockConfigHelperProvider, mockConfigHelper);
   }
 
   private void replayAll() {
     replay(controller, clusterController, hostResourceProvider, serviceResourceProvider, componentResourceProvider,
       hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
-      cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
+      cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory,
+      mockConfigHelperProvider, mockConfigHelper);
   }
 
   @Test
