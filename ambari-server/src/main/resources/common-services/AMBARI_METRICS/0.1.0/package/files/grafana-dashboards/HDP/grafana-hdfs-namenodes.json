@@ -986,10 +986,10 @@
           "targets": [
             {
               "aggregator": "avg",
-              "app": "namenode",
+              "app": "datanode",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "rpc.rpc.datanode.RpcQueueTimeAvgTime",
+              "metric": "rpc.rpc.RpcQueueTimeAvgTime",
               "precision": "default",
               "refId": "A",
               "templatedHost": ""
@@ -1056,10 +1056,10 @@
           "targets": [
             {
               "aggregator": "avg",
-              "app": "namenode",
+              "app": "datanode",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "rpc.rpc.datanode.RpcQueueTimeNumOps",
+              "metric": "rpc.rpc.RpcQueueTimeNumOps",
               "precision": "default",
               "refId": "A",
               "transform": "rate",
@@ -1136,10 +1136,10 @@
           "targets": [
             {
               "aggregator": "avg",
-              "app": "namenode",
+              "app": "datanode",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "rpc.rpc.datanode.RpcProcessingTimeAvgTime",
+              "metric": "rpc.rpc.RpcProcessingTimeAvgTime",
               "precision": "default",
               "refId": "A",
               "templatedHost": ""
@@ -1206,10 +1206,10 @@
           "targets": [
             {
               "aggregator": "avg",
-              "app": "namenode",
+              "app": "datanode",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "rpc.rpc.datanode.RpcProcessingTimeNumOps",
+              "metric": "rpc.rpc.RpcProcessingTimeNumOps",
               "precision": "default",
               "refId": "A",
               "transform": "rate",
@@ -1286,10 +1286,10 @@
           "targets": [
             {
               "aggregator": "avg",
-              "app": "namenode",
+              "app": "datanode",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "rpc.rpc.datanode.CallQueueLength",
+              "metric": "rpc.rpc.CallQueueLength",
               "precision": "default",
               "refId": "A",
               "templatedHost": ""
@@ -1356,10 +1356,10 @@
           "targets": [
             {
               "aggregator": "avg",
-              "app": "namenode",
+              "app": "datanode",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "rpc.rpc.datanode.RpcSlowCalls",
+              "metric": "rpc.rpc.RpcSlowCalls",
               "precision": "default",
               "refId": "A",
               "templatedHost": ""
