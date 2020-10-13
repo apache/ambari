@@ -116,11 +116,13 @@ public abstract class AbstractPhoenixMetricsCopier implements Runnable {
       LOG.info("Skipping metrics progress save as the file is null");
       return;
     }
-    for (String metricName : metricNames) {
-      try {
-        this.processedMetricsFile.append(inputTable).append(":").append(metricName).append(System.lineSeparator());
-      } catch (IOException e) {
-        LOG.error(e);
+    synchronized (this.processedMetricsFile) {
+      for (String metricName : metricNames) {
+        try {
+          this.processedMetricsFile.append(inputTable).append(":").append(metricName).append(System.lineSeparator());
+        } catch (IOException e) {
+          LOG.error(e);
+        }
       }
     }
   }
