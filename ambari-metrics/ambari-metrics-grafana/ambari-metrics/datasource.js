@@ -273,7 +273,7 @@ define([
             }
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            var templatedComponent = (_.isEmpty(tComponent)) ? target.app : tComponent;
+            var templatedComponent = (_.isEmpty(target.app)) ? tComponent : target.app;
             return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
               + metricAggregator + '&hostname=' + target.templatedHost + '&appId=' + templatedComponent + instanceId
               + '&startTime=' + from + '&endTime=' + to + precision + topN + seriesAggregator }).then(
