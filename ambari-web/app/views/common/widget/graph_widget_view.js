@@ -369,13 +369,13 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
     var data,
       isCSV = !!event.context,
       fileType = isCSV ? 'csv' : 'json',
-      fileName = 'data.' + fileType,
       metrics = this.get('data'),
       hasData = Em.isArray(metrics) && metrics.some(function (item) {
         return Em.isArray(item.data);
       });
     if (hasData) {
       data = isCSV ? this.prepareCSV(metrics) : JSON.stringify(metrics, this.jsonReplacer(), 4);
+      var fileName = (Em.isEmpty(metrics) ? 'data.' : this.get('content.widgetName').replace(/ /g, '') + ".") + fileType;
       fileUtils.downloadTextFile(data, fileType, fileName);
     } else {
       App.showAlertPopup(Em.I18n.t('graphs.noData.title'), Em.I18n.t('graphs.noData.tooltip.title'));
