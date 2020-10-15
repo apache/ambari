@@ -69,8 +69,8 @@ App.ExportMetricsMixin = Em.Mixin.create({
       App.showAlertPopup(Em.I18n.t('graphs.noData.title'), Em.I18n.t('graphs.noData.tooltip.title'));
     } else {
       var fileType = params.isCSV ? 'csv' : 'json',
-        fileName = 'data.' + fileType,
         data = params.isCSV ? this.prepareCSV(seriesData) : JSON.stringify(seriesData, this.jsonReplacer(), 4);
+       var fileName = (Em.isEmpty(data) ? 'data.' : this.get('content.widgetName').replace(/ /g, '') + ".") + fileType;
       fileUtils.downloadTextFile(data, fileType, fileName);
     }
   },
