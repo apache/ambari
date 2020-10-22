@@ -1350,7 +1350,7 @@
             "targets": [
               {
                 "aggregator": "avg",
-                "app": "namenode",
+                "app": "datanode",
                 "downsampleAggregator": "avg",
                 "errors": {},
                 "metric": "rpc.rpc.datanode.RpcQueueTimeAvgTime",
@@ -1420,7 +1420,7 @@
             "targets": [
               {
                 "aggregator": "avg",
-                "app": "namenode",
+                "app": "datanode",
                 "downsampleAggregator": "avg",
                 "errors": {},
                 "metric": "rpc.rpc.datanode.RpcQueueTimeNumOps",
@@ -1500,7 +1500,7 @@
             "targets": [
               {
                 "aggregator": "avg",
-                "app": "namenode",
+                "app": "datanode",
                 "downsampleAggregator": "avg",
                 "errors": {},
                 "metric": "rpc.rpc.datanode.RpcProcessingTimeAvgTime",
@@ -1570,7 +1570,7 @@
             "targets": [
               {
                 "aggregator": "avg",
-                "app": "namenode",
+                "app": "datanode",
                 "downsampleAggregator": "avg",
                 "errors": {},
                 "metric": "rpc.rpc.datanode.RpcProcessingTimeNumOps",
@@ -1650,7 +1650,7 @@
             "targets": [
               {
                 "aggregator": "avg",
-                "app": "namenode",
+                "app": "datanode",
                 "downsampleAggregator": "avg",
                 "errors": {},
                 "metric": "rpc.rpc.datanode.CallQueueLength",
@@ -1720,7 +1720,7 @@
             "targets": [
               {
                 "aggregator": "avg",
-                "app": "namenode",
+                "app": "datanode",
                 "downsampleAggregator": "avg",
                 "errors": {},
                 "metric": "rpc.rpc.datanode.RpcSlowCalls",
@@ -1755,7 +1755,7 @@
   },
   "refresh": false,
   "schemaVersion": 8,
-  "version": 6,
+  "version": 7,
   "links": [
     {
       "asDropdown": true,
