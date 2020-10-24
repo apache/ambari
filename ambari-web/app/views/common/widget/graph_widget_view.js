@@ -364,22 +364,28 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
     }.observes('parentView.data')
   }),
 
-  exportGraphData: function (event) {
-    this.set('isExportMenuHidden', true);
-    var data,
-      isCSV = !!event.context,
-      fileType = isCSV ? 'csv' : 'json',
-      metrics = this.get('data'),
-      hasData = Em.isArray(metrics) && metrics.some(function (item) {
-        return Em.isArray(item.data);
-      });
-    if (hasData) {
-      var fileName = (Em.isEmpty(this.get('content.widgetName')) ? 'data' :this.get('content.widgetName').replace(/ /g, '_').toLowerCase()) + "." +fileType;
-      data = isCSV ? this.prepareCSV(metrics) : JSON.stringify(metrics, this.jsonReplacer(), 4);
+    getCustomFileName: function () {
+        // get current service name if it exists.
+        var currentServiceName = Em.isEmpty(this.get('controller.content.serviceName')) ? "" : this.get('controller.content.serviceName') + '_';
+        // serviceName_widgetName_metricName
+        return (currentServiceName + this.get('content.widgetName').replace(/ /g, '_')).toLowerCase();
+    },
 
-      fileUtils.downloadTextFile(data, fileType, fileName);
-    } else {
-      App.showAlertPopup(Em.I18n.t('graphs.noData.title'), Em.I18n.t('graphs.noData.tooltip.title'));
+    exportGraphData: function (event) {
+        this.set('isExportMenuHidden', true);
+        var data,
+            isCSV = !!event.context,
+            fileType = isCSV ? 'csv' : 'json',
+            fileName = (Em.isEmpty(this.get('content.widgetName')) ? 'data' : this.getCustomFileName()) + '.' + fileType,
+            metrics = this.get('data'),
+            hasData = Em.isArray(metrics) && metrics.some(function (item) {
+                return Em.isArray(item.data);
+            });
+        if (hasData) {
+            data = isCSV ? this.prepareCSV(metrics) : JSON.stringify(metrics, this.jsonReplacer(), 4);
+            fileUtils.downloadTextFile(data, fileType, fileName);
+        } else {
+            App.showAlertPopup(Em.I18n.t('graphs.noData.title'), Em.I18n.t('graphs.noData.tooltip.title'));
+        }
     }
-  }
 });
