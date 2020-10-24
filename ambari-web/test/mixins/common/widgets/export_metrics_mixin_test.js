@@ -149,7 +149,7 @@ describe('App.ExportMetricsMixin', function () {
         downloadTextFileCallCount: 1,
         data: '0,1',
         fileType: 'csv',
-        fileName: 'empty_metrics_object.csv',
+        fileName: 'data.csv',
         title: 'export to CSV'
       },
       {
@@ -165,7 +165,7 @@ describe('App.ExportMetricsMixin', function () {
         downloadTextFileCallCount: 1,
         data: '[{"name":"m0","data":[0,1]}]',
         fileType: 'json',
-        fileName: 'empty_metrics_object.json',
+        fileName: 'data.json',
         title: 'export to JSON'
       }
     ];
