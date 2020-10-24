@@ -374,8 +374,9 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
         return Em.isArray(item.data);
       });
     if (hasData) {
+      var fileName = (Em.isEmpty(this.get('content.widgetName')) ? 'data' :this.get('content.widgetName').replace(/ /g, '_').toLowerCase()) + "." +fileType;
       data = isCSV ? this.prepareCSV(metrics) : JSON.stringify(metrics, this.jsonReplacer(), 4);
-      var fileName = (Em.isEmpty(metrics) ? 'data.' : this.get('content.widgetName').replace(/ /g, '') + ".") + fileType;
+
       fileUtils.downloadTextFile(data, fileType, fileName);
     } else {
       App.showAlertPopup(Em.I18n.t('graphs.noData.title'), Em.I18n.t('graphs.noData.tooltip.title'));
