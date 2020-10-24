@@ -65,12 +65,15 @@ App.ExportMetricsMixin = Em.Mixin.create({
 
   exportGraphDataSuccessCallback: function (response, request, params) {
     var seriesData = this.get('targetView').getData(response);
+
     if (!seriesData.length) {
       App.showAlertPopup(Em.I18n.t('graphs.noData.title'), Em.I18n.t('graphs.noData.tooltip.title'));
     } else {
-      var fileType = params.isCSV ? 'csv' : 'json',
-        data = params.isCSV ? this.prepareCSV(seriesData) : JSON.stringify(seriesData, this.jsonReplacer(), 4);
-       var fileName = (Em.isEmpty(data) ? 'data.' : this.get('content.widgetName').replace(/ /g, '') + ".") + fileType;
+      var fileType = params.isCSV ? 'csv' : 'json';
+      var fileName = (Em.isEmpty(this.get('targetView') || Em.isEmpty(this.get('targetView').title)) ?
+          'data' : this.get('targetView').title.replace(/ /g, '_').toLowerCase()) + "." + fileType;
+      var data = params.isCSV ? this.prepareCSV(seriesData) : JSON.stringify(seriesData, this.jsonReplacer(), 4);
+
       fileUtils.downloadTextFile(data, fileType, fileName);
     }
   },
