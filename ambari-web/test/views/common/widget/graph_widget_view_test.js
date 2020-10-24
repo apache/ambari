@@ -245,7 +245,7 @@ describe('App.GraphWidgetView', function () {
               downloadArgs = fileUtils.downloadTextFile.firstCall.args;
             expect(downloadArgs[0].replace(/\s/g, '')).to.equal(item.fileData);
             expect(downloadArgs[1]).to.equal(fileType);
-            expect(downloadArgs[2]).to.equal(item.titile.replace(/ /g, '') + "." + fileType);
+            expect(downloadArgs[2]).to.equal(item.title.replace(/ /g, '_').toLowerCase() + fileType);
           });
         }
 
