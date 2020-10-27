@@ -64,7 +64,7 @@ App.ExportMetricsMixin = Em.Mixin.create({
   },
 
   getCustomFileName: function () {
-    return this.get('targetView').title.replace(/ /g, '_').toLowerCase();
+    return this.get('targetView').title.replace(/\s+/g, '_').toLowerCase();
   },
 
   exportGraphDataSuccessCallback: function (response, request, params) {
