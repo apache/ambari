@@ -368,7 +368,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
         // get current service name if it exists.
         var currentServiceName = Em.isEmpty(this.get('controller.content.serviceName')) ? "" : this.get('controller.content.serviceName') + '_';
         // serviceName_widgetName_metricName
-        return (currentServiceName + this.get('content.widgetName').replace(/ /g, '_')).toLowerCase();
+        return (currentServiceName + this.get('content.widgetName').replace(/\s+/g, '_')).toLowerCase();
     },
 
     exportGraphData: function (event) {
