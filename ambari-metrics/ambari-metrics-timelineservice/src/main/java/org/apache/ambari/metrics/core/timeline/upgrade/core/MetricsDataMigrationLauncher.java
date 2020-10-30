@@ -68,6 +68,7 @@ public class MetricsDataMigrationLauncher {
   private static final Long DEFAULT_TIMEOUT_MINUTES = 60*24L;
   private static final String PATTERN_PREFIX = "._p_";
   private static final int DEFAULT_BATCH_SIZE = 5;
+  private static final String MIGRATE_ALL_METRICS_ARG = "--allmetrics";
   public static final Map<String, String> CLUSTER_AGGREGATE_TABLES_MAPPING = new HashMap<>();
   public static final Map<String, String> HOST_AGGREGATE_TABLES_MAPPING = new HashMap<>();
   public static final String DEFAULT_PROCESSED_METRICS_FILE_LOCATION = "/var/log/ambari-metrics-collector/ambari-metrics-migration-state.txt";
@@ -115,7 +116,14 @@ public class MetricsDataMigrationLauncher {
   }
 
   private Set<String> getMetricNames(String whitelistedFilePath) throws MalformedURLException, URISyntaxException, SQLException {
-    if(whitelistedFilePath != null) {
+    if(StringUtils.isNotEmpty(whitelistedFilePath) && whitelistedFilePath.equalsIgnoreCase(MIGRATE_ALL_METRICS_ARG)) {
+      LOG.info("Migration of all metrics has been requested by the " + MIGRATE_ALL_METRICS_ARG + " argument.");
+      LOG.info("Looking for all the metric names in the Metrics Database...");
+      return this.hBaseAccessor.getTimelineMetricMetadataV1().keySet().stream()
+          .map(TimelineMetricMetadataKey::getMetricName).collect(Collectors.toSet());
+    }
+
+    if(StringUtils.isNotEmpty(whitelistedFilePath)) {
       LOG.info(String.format("Whitelist file %s has been provided.", whitelistedFilePath));
       LOG.info("Looking for whitelisted metric names based on the file content...");
       return readMetricWhitelistFromFile(whitelistedFilePath);
@@ -279,6 +287,8 @@ public class MetricsDataMigrationLauncher {
    *                                               file location will be used if configured
    *                                               if not provided and AMS whitelisting is disabled then no whitelisting
    *                                               will be used and all the metrics will be migrated
+   *                                               if --allmetrics switch is provided then all the metrics will be migrated
+   *                                               regardless to other settings
    *          args[2] - startTime                - default value is set to the last 30 days
    *          args[3] - numberOfThreads          - default value is 3
    *          args[4] - batchSize                - default value is 5
