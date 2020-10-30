@@ -24,6 +24,7 @@ import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -34,14 +35,14 @@ public abstract class AbstractPhoenixMetricsCopier implements Runnable {
   private static final Log LOG = LogFactory.getLog(AbstractPhoenixMetricsCopier.class);
   private static final Long DEFAULT_NATIVE_TIME_RANGE_DELAY = 120000L;
   private final Long startTime;
-  protected final FileWriter processedMetricsFile;
+  protected final Writer processedMetricsFile;
   protected String inputTable;
   protected String outputTable;
   protected Set<String> metricNames;
   protected PhoenixHBaseAccessor hBaseAccessor;
 
   public AbstractPhoenixMetricsCopier(String inputTableName, String outputTableName, PhoenixHBaseAccessor hBaseAccessor,
-                                      Set<String> metricNames, Long startTime, FileWriter outputStream) {
+                                      Set<String> metricNames, Long startTime, Writer outputStream) {
     this.inputTable = inputTableName;
     this.outputTable = outputTableName;
     this.hBaseAccessor = hBaseAccessor;
@@ -116,13 +117,14 @@ public abstract class AbstractPhoenixMetricsCopier implements Runnable {
       LOG.info("Skipping metrics progress save as the file is null");
       return;
     }
-    synchronized (this.processedMetricsFile) {
-      for (String metricName : metricNames) {
-        try {
+
+    for (String metricName : metricNames) {
+      try {
+        synchronized (this.processedMetricsFile) {
           this.processedMetricsFile.append(inputTable).append(":").append(metricName).append(System.lineSeparator());
-        } catch (IOException e) {
-          LOG.error(e);
         }
+      } catch (IOException e) {
+        LOG.error(e);
       }
     }
   }

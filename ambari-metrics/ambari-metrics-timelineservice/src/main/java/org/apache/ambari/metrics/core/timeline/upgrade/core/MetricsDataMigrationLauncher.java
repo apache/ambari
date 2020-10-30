@@ -28,11 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -172,7 +168,7 @@ public class MetricsDataMigrationLauncher {
   }
 
   public void runMigration(Long timeoutInMinutes) throws IOException {
-    try (FileWriter processedMetricsFileWriter = new FileWriter(this.processedMetricsFilePath, true)) {
+    try (Writer processedMetricsFileWriter = new BufferedWriter(new FileWriter(this.processedMetricsFilePath, true))) {
       LOG.info("Setting up copiers...");
       Set<AbstractPhoenixMetricsCopier> copiers = new HashSet<>();
       for (Set<String> batch : metricNamesBatches) {
