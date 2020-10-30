@@ -1194,22 +1194,18 @@ public class AlertsDAO implements Cleanable {
    * Writes all cached {@link AlertCurrentEntity} instances to the database and
    * clears the cache.
    */
-  public synchronized void flushCachedEntitiesToJPA() {
+  public void flushCachedEntitiesToJPA() {
     if (m_configuration.isAlertCacheEnabled()) {
       synchronized (this) {
         flushCachedEntitiesToJPATransactional();
       }
     } else {
-      flushCachedEntitiesToJPATransactional();
+      LOG.warn("Unable to flush cached alerts to JPA because caching is not enabled");
     }
   }
 
   @Transactional
   protected void flushCachedEntitiesToJPATransactional() {
-    if (!m_configuration.isAlertCacheEnabled()) {
-      LOG.warn("Unable to flush cached alerts to JPA because caching is not enabled");
-      return;
-    }
 
     // capture for logging purposes
     long cachedEntityCount = m_currentAlertCache.size();
