@@ -113,7 +113,17 @@ public class MetricsDataMigrationLauncher {
   }
 
   private long calculateStartEpochTime(Long startDay) {
-    return LocalDateTime.now().minusDays((startDay == null) ? DEFAULT_START_DAYS : startDay).toEpochSecond(ZoneOffset.UTC);
+    final long days;
+    if (startDay == null) {
+      LOG.info("No starting day have been provided.");
+      days = DEFAULT_START_DAYS;
+    } else {
+      LOG.info(String.format("%s days have been provided as migration starting day.", startDay));
+      days = startDay;
+    }
+    LOG.info(String.format("The last %s days' data will be migrated.", days));
+
+    return LocalDateTime.now().minusDays(days).toEpochSecond(ZoneOffset.UTC);
   }
 
   private Set<String> getMetricNames(String whitelistedFilePath) throws MalformedURLException, URISyntaxException, SQLException {
