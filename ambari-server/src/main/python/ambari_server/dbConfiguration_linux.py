@@ -1045,8 +1045,8 @@ class MySQLConfig(LinuxDBMSConfig):
     self.database_port = DBMSConfig._init_member_with_prop_default(options, "database_port",
                                                                    properties, JDBC_PORT_PROPERTY, "3306")
 
-    self.database_url_pattern = "jdbc:mysql://{0}:{1}/{2}"
-    self.database_url_pattern_alt = "jdbc:mysql://{0}:{1}/{2}"
+    self.database_url_pattern = "jdbc:mysql://{0}:{1}/{2}?useUnicode=true&characterEncoding=utf-8"
+    self.database_url_pattern_alt = "jdbc:mysql://{0}:{1}/{2}?useUnicode=true&characterEncoding=utf-8"
 
     self.JDBC_DRIVER_INSTALL_MSG = 'Before starting Ambari Server, ' \
                                      'you must copy the {0} JDBC driver JAR file to {1} and set property "server.jdbc.driver.path=[path/to/custom_jdbc_driver]" in ambari.properties.'.format(
