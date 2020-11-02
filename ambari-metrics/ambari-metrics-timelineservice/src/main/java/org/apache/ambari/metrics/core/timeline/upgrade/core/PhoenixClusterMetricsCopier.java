@@ -34,7 +34,7 @@ public class PhoenixClusterMetricsCopier extends AbstractPhoenixMetricsCopier {
   private static final Log LOG = LogFactory.getLog(PhoenixClusterMetricsCopier.class);
   private final Map<TimelineClusterMetric, MetricHostAggregate> aggregateMap = new HashMap<>();
 
-  PhoenixClusterMetricsCopier(String inputTableName, String outputTableName, PhoenixHBaseAccessor hBaseAccessor, Set<String> metricNames, Long startTime, Writer processedMetricsFileWriter) {
+  PhoenixClusterMetricsCopier(String inputTableName, String outputTableName, PhoenixHBaseAccessor hBaseAccessor, Set<String> metricNames, long startTime, Writer processedMetricsFileWriter) {
     super(inputTableName, outputTableName, hBaseAccessor, metricNames, startTime, processedMetricsFileWriter);
   }
 

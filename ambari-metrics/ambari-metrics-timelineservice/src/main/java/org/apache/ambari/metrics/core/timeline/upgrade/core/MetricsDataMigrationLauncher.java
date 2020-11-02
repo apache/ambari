@@ -35,6 +35,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,8 +71,7 @@ public class MetricsDataMigrationLauncher {
   public static final Map<String, String> HOST_AGGREGATE_TABLES_MAPPING = new HashMap<>();
   public static final String DEFAULT_PROCESSED_METRICS_FILE_LOCATION = "/var/log/ambari-metrics-collector/ambari-metrics-migration-state.txt";
   public static final int DEFAULT_NUMBER_OF_THREADS = 3;
-  public static final long ONE_MONTH_MILLIS = 2592000000L;
-  public static final long DEFAULT_START_TIME = System.currentTimeMillis() - ONE_MONTH_MILLIS; //Last month
+  public static final int DEFAULT_START_DAYS = 30; // 30 Days, Last month
 
   static {
     CLUSTER_AGGREGATE_TABLES_MAPPING.put(METRICS_CLUSTER_AGGREGATE_MINUTE_V1_TABLE_NAME, METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME);
@@ -85,15 +86,15 @@ public class MetricsDataMigrationLauncher {
   private final Set<Set<String>> metricNamesBatches;
   private final String processedMetricsFilePath;
 
-  private final Long startTime;
-  private final Integer numberOfThreads;
+  private final long startTimeEpoch;
+  private final int numberOfThreads;
   private TimelineMetricConfiguration timelineMetricConfiguration;
   private PhoenixHBaseAccessor hBaseAccessor;
   private TimelineMetricMetadataManager timelineMetricMetadataManager;
   private Map<String, Set<String>> processedMetrics;
 
-  public MetricsDataMigrationLauncher(String whitelistedFilePath, String processedMetricsFilePath, Long startTime, Integer numberOfThreads, Integer batchSize) throws Exception {
-    this.startTime = (startTime == null) ? DEFAULT_START_TIME : startTime;
+  public MetricsDataMigrationLauncher(String whitelistedFilePath, String processedMetricsFilePath, Long startDay, Integer numberOfThreads, Integer batchSize) throws Exception {
+    this.startTimeEpoch = calculateStartEpochTime(startDay);
     this.numberOfThreads = (numberOfThreads == null) ? DEFAULT_NUMBER_OF_THREADS : numberOfThreads;
     this.processedMetricsFilePath = (processedMetricsFilePath == null) ? DEFAULT_PROCESSED_METRICS_FILE_LOCATION : processedMetricsFilePath;
 
@@ -109,6 +110,10 @@ public class MetricsDataMigrationLauncher {
     Iterables.partition(metricNames, batchSize)
       .forEach(batch -> metricNamesBatches.add(new HashSet<>(batch)));
     LOG.info(String.format("Split metric names into %s batches with size of %s", metricNamesBatches.size(), batchSize));
+  }
+
+  private long calculateStartEpochTime(Long startDay) {
+    return LocalDateTime.now().minusDays((startDay == null) ? DEFAULT_START_DAYS : startDay).toEpochSecond(ZoneOffset.UTC);
   }
 
   private Set<String> getMetricNames(String whitelistedFilePath) throws MalformedURLException, URISyntaxException, SQLException {
@@ -176,7 +181,7 @@ public class MetricsDataMigrationLauncher {
           Set<String> filteredMetrics = filterProcessedMetrics(batch, this.processedMetrics, entry.getKey());
           if (!filteredMetrics.isEmpty()) {
             copiers.add(new PhoenixClusterMetricsCopier(entry.getKey(), entry.getValue(), this.hBaseAccessor,
-                filteredMetrics, this.startTime, processedMetricsFileWriter));
+                filteredMetrics, this.startTimeEpoch, processedMetricsFileWriter));
           }
         }
 
@@ -184,7 +189,7 @@ public class MetricsDataMigrationLauncher {
           Set<String> filteredMetrics = filterProcessedMetrics(batch, this.processedMetrics, entry.getKey());
           if (!filteredMetrics.isEmpty()) {
             copiers.add(new PhoenixHostMetricsCopier(entry.getKey(), entry.getValue(), this.hBaseAccessor,
-                filteredMetrics, this.startTime, processedMetricsFileWriter));
+                filteredMetrics, this.startTimeEpoch, processedMetricsFileWriter));
           }
         }
       }
@@ -285,7 +290,7 @@ public class MetricsDataMigrationLauncher {
    *                                               will be used and all the metrics will be migrated
    *                                               if --allmetrics switch is provided then all the metrics will be migrated
    *                                               regardless to other settings
-   *          args[2] - startTime                - default value is set to the last 30 days
+   *          args[2] - startDay                 - default value is set to the last 30 days
    *          args[3] - numberOfThreads          - default value is 3
    *          args[4] - batchSize                - default value is 5
    *          args[5] - timeoutInMinutes         - default value is set to the equivalent of 24 hours
@@ -293,7 +298,7 @@ public class MetricsDataMigrationLauncher {
   public static void main(String[] args) {
     String processedMetricsFilePath = null;
     String whitelistedFilePath = null;
-    Long startTime = null;
+    Long startDay = null;
     Integer numberOfThreads = null;
     Integer batchSize = null;
     Long timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
@@ -305,7 +310,7 @@ public class MetricsDataMigrationLauncher {
       whitelistedFilePath = args[1];
     }
     if (args.length>2) {
-      startTime = Long.valueOf(args[2]);
+      startDay = Long.valueOf(args[2]);
     }
     if (args.length>3) {
       numberOfThreads = Integer.valueOf(args[3]);
@@ -320,7 +325,7 @@ public class MetricsDataMigrationLauncher {
     MetricsDataMigrationLauncher dataMigrationLauncher = null;
     try {
       LOG.info("Initializing system...");
-      dataMigrationLauncher = new MetricsDataMigrationLauncher(whitelistedFilePath, processedMetricsFilePath, startTime, numberOfThreads, batchSize);
+      dataMigrationLauncher = new MetricsDataMigrationLauncher(whitelistedFilePath, processedMetricsFilePath, startDay, numberOfThreads, batchSize);
     } catch (Exception e) {
       LOG.error("Exception during system setup, exiting...", e);
       System.exit(1);
