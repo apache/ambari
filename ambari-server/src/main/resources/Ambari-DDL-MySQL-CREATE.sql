@@ -119,7 +119,7 @@ CREATE TABLE serviceconfig (
   stack_id BIGINT NOT NULL,
   user_name VARCHAR(255) NOT NULL DEFAULT '_db',
   group_id BIGINT,
-  note LONGTEXT,
+  note LONGTEXT CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   CONSTRAINT PK_serviceconfig PRIMARY KEY (service_config_id),
   CONSTRAINT FK_serviceconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
   CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_name, version));
