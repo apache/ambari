@@ -25,10 +25,13 @@ import org.apache.ambari.server.events.listeners.alerts.AlertMaintenanceModeList
 import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
 import org.apache.ambari.server.events.listeners.alerts.AlertServiceStateListener;
 import org.apache.ambari.server.events.listeners.alerts.AlertStateChangedListener;
+import org.apache.ambari.server.events.listeners.services.ServiceUpdateListener;
 import org.apache.ambari.server.events.listeners.upgrade.DistributeRepositoriesActionListener;
 import org.apache.ambari.server.events.listeners.upgrade.HostVersionOutOfSyncListener;
+import org.apache.ambari.server.events.listeners.upgrade.UpgradeUpdateListener;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
@@ -98,6 +101,24 @@ public class EventBusSynchronizer {
   }
 
   /**
+   * Force both {@link EventBus} from {@link STOMPUpdatePublisher} to be serial
+   * and synchronous. Also register the known listeners. Registering known
+   * listeners is necessary since the event bus was replaced.
+   *
+   * @param injector
+   */
+  public static void synchronizeSTOMPUpdatePublisher(Injector injector) {
+    EventBus agentEventBus = new EventBus();
+    EventBus apiEventBus = new EventBus();
+    STOMPUpdatePublisher publisher = injector.getInstance(STOMPUpdatePublisher.class);
+
+    replaceSTOMPEventBuses(STOMPUpdatePublisher.class, publisher, agentEventBus, apiEventBus);
+
+    // register common agent event listeners
+    registerSTOMPApiListeners(injector, apiEventBus);
+  }
+
+  /**
    * Register the normal listeners with the replaced synchronous bus.
    *
    * @param injector
@@ -125,6 +146,18 @@ public class EventBusSynchronizer {
     synchronizedBus.register(injector.getInstance(AlertStateChangedListener.class));
   }
 
+  /**
+   * Register the normal listeners with the replaced synchronous bus.
+   *
+   * @param injector
+   * @param synchronizedBus
+   */
+  private static void registerSTOMPApiListeners(Injector injector,
+      EventBus synchronizedBus) {
+    synchronizedBus.register(injector.getInstance(ServiceUpdateListener.class));
+    synchronizedBus.register(injector.getInstance(UpgradeUpdateListener.class));
+  }
+
   private static void replaceEventBus(Class<?> eventPublisherClass,
       Object instance, EventBus eventBus) {
 
@@ -132,6 +165,22 @@ public class EventBusSynchronizer {
       Field field = eventPublisherClass.getDeclaredField("m_eventBus");
       field.setAccessible(true);
       field.set(instance, eventBus);
+    } catch (Exception exception) {
+      throw new RuntimeException(exception);
+    }
+  }
+
+  private static void replaceSTOMPEventBuses(Class<?> eventPublisherClass,
+      Object instance, EventBus agentEventBus, EventBus apiEventBus) {
+
+    try {
+      Field agentEventBusField = eventPublisherClass.getDeclaredField("agentEventBus");
+      agentEventBusField.setAccessible(true);
+      agentEventBusField.set(instance, agentEventBus);
+
+      Field apiEventBusField = eventPublisherClass.getDeclaredField("apiEventBus");
+      apiEventBusField.setAccessible(true);
+      apiEventBusField.set(instance, apiEventBus);
     } catch (Exception exception) {
       throw new RuntimeException(exception);
     }
