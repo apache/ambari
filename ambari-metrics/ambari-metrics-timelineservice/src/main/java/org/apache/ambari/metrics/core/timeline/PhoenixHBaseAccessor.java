@@ -1960,7 +1960,7 @@ public class PhoenixHBaseAccessor {
 
         TimelineMetricMetadataKey key = new TimelineMetricMetadataKey(metricName, appId, instanceId);
         metadata.setIsPersisted(true); // Always true on retrieval
-        metadata.setUuid(rs.getBytes("UUID"));
+        metadata.setUuid(checkForNull(rs.getBytes("UUID")));
         metadataMap.put(key, metadata);
       }
 
@@ -2016,7 +2016,7 @@ public class PhoenixHBaseAccessor {
             true
           );
 
-          metadata.setUuid(rs.getBytes("UUID"));
+          metadata.setUuid(checkForNull(rs.getBytes("UUID")));
           metadataList.add(metadata);
         }
       }
@@ -2152,4 +2152,19 @@ public class PhoenixHBaseAccessor {
     this.metadataManagerInstance = metadataManager;
     TIMELINE_METRIC_READ_HELPER = new TimelineMetricReadHelper(this.metadataManagerInstance);
   }
+
+  /**
+   * Null value are being saved to DB as array of zero bytes, so we need to make back converting
+   */
+  private byte[] checkForNull(byte[] uuid) {
+    if (uuid != null) {
+      for (byte b : uuid) {
+        if (b != 0) {
+          return uuid;
+        }
+      }
+    }
+    return null;
+  }
+
 }

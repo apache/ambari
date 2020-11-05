@@ -19,6 +19,7 @@
 package org.apache.ambari.metrics.core.timeline.uuid;
 
 import org.apache.ambari.metrics.core.timeline.aggregators.TimelineClusterMetric;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -111,6 +112,19 @@ public class MetricUuidGenStrategyTest {
   @Test
   public void testMurmur3ConsistentHashing() throws SQLException, InterruptedException {
     testConsistencyForUuidGenStrategy(new Murmur3HashUuidGenStrategy(), 4);
+  }
+
+  @Test
+  public void testNotNullCheckForHashing() {
+    MetricUuidGenNullRestrictedStrategy strategy = EasyMock.createMockBuilder(Murmur3HashUuidGenStrategy.class)
+        .addMockedMethod("computeUuidInternal", String.class, int.class).createStrictMock();
+
+    EasyMock.expect(strategy.computeUuidInternal(EasyMock.anyString(), EasyMock.anyInt()))
+        .andReturn(new byte[]{0,0,0,0}).times(MetricUuidGenNullRestrictedStrategy.RETRY_NUMBER);
+
+    EasyMock.replay(strategy);
+    strategy.computeUuid("", 0);
+    EasyMock.verify(strategy);
   }
 
   private void testMetricCollisionsForUuidGenStrategy(MetricUuidGenStrategy strategy, int uuidLength) {
