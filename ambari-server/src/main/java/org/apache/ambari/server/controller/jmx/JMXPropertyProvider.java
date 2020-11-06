@@ -85,6 +85,9 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
   private static final String PORT_KEY = "tag.port";
   private static final String DOT_REPLACEMENT_CHAR = "#";
 
+  private static final String HBASE_JMX_KEY = "Hadoop:service=HBase,name=Master,sub=Server";
+  private static final String HBASE_IS_ACTIVE_MASTER_KEY = "tag.isActiveMaster";
+
   private static final Map<String, String> DEFAULT_JMX_PORTS = new HashMap<>();
 
   /**
@@ -433,6 +436,11 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
     Map<String, Object> properties = categories.get(category);
     if (property.contains(DOT_REPLACEMENT_CHAR)) {
       property = dotReplacementCharPattern.matcher(property).replaceAll(".");
+    }
+    if (category.equals(HBASE_JMX_KEY)){
+      if (!Boolean.parseBoolean((String) properties.get(HBASE_IS_ACTIVE_MASTER_KEY))){
+        return;
+      }
     }
     if (properties != null && properties.containsKey(property)) {
       Object value = properties.get(property);
