@@ -28,7 +28,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 
-import java.io.*;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -115,13 +122,13 @@ public class MetricsDataMigrationLauncher {
   private long calculateStartEpochTime(Long startDay) {
     final long days;
     if (startDay == null) {
-      LOG.info("No starting day have been provided.");
+      LOG.info(String.format("No starting day have been provided, using default: %d", DEFAULT_START_DAYS));
       days = DEFAULT_START_DAYS;
     } else {
-      LOG.info(String.format("%s days have been provided as migration starting day.", startDay));
+      LOG.info(String.format("%d days have been provided as migration starting day.", startDay));
       days = startDay;
     }
-    LOG.info(String.format("The last %s days' data will be migrated.", days));
+    LOG.info(String.format("The last %d days' data will be migrated.", days));
 
     return LocalDateTime.now().minusDays(days).toEpochSecond(ZoneOffset.UTC);
   }
@@ -210,7 +217,7 @@ public class MetricsDataMigrationLauncher {
       }
 
       LOG.info("Running the copy threads...");
-      long startTimer = System.currentTimeMillis();
+      long timerStart = System.currentTimeMillis();
       ExecutorService executorService = null;
       try {
         executorService = Executors.newFixedThreadPool(this.numberOfThreads);
@@ -228,8 +235,8 @@ public class MetricsDataMigrationLauncher {
         }
       }
 
-      long estimatedTime = System.currentTimeMillis() - startTimer;
-      LOG.info(String.format("Copying took %s seconds", estimatedTime / 1000.0));
+      long timerDelta = System.currentTimeMillis() - timerStart;
+      LOG.info(String.format("Copying took %s seconds", timerDelta / 1000.0));
     }
   }
 

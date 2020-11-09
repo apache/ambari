@@ -53,8 +53,8 @@ public abstract class AbstractPhoenixMetricsCopier implements Runnable {
   @Override
   public void run(){
     LOG.info(String.format("Copying %s metrics from %s to %s", metricNames, inputTable, outputTable));
-    final long st = System.currentTimeMillis();
-    final String query = String.format("SELECT %s %s FROM %s WHERE %s AND SERVER_TIME > %s ORDER BY METRIC_NAME, SERVER_TIME",
+    long timerStart = System.currentTimeMillis();
+    String query = String.format("SELECT %s %s FROM %s WHERE %s AND SERVER_TIME > %s ORDER BY METRIC_NAME, SERVER_TIME",
       getQueryHint(startTime), getColumnsClause(), inputTable, getMetricNamesLikeClause(), startTime);
 
     runPhoenixQueryAndAddToResults(query);
@@ -64,8 +64,8 @@ public abstract class AbstractPhoenixMetricsCopier implements Runnable {
     } catch (SQLException e) {
       LOG.error(e);
     } finally {
-      final long estimatedTime = System.currentTimeMillis() - st;
-      LOG.debug(String.format("Copying took %s seconds from table %s to table %s for metric names %s", estimatedTime/ 1000.0, inputTable, outputTable, metricNames));
+      long timerDelta = System.currentTimeMillis() - timerStart;
+      LOG.debug(String.format("Copying took %s seconds from table %s to table %s for metric names %s", timerDelta/ 1000.0, inputTable, outputTable, metricNames));
 
       saveMetricsProgress();
     }
@@ -76,12 +76,7 @@ public abstract class AbstractPhoenixMetricsCopier implements Runnable {
     sb.append('(');
     int i = 0;
     for (String metricName : metricNames) {
-      sb.append("METRIC_NAME");
-      sb.append(" LIKE ");
-      sb.append("'");
-      sb.append(metricName);
-      sb.append("'");
-
+      sb.append("METRIC_NAME LIKE '").append(metricName).append("'");
       if (i < metricNames.size() - 1) {
           sb.append(" OR ");
         }
@@ -129,13 +124,7 @@ public abstract class AbstractPhoenixMetricsCopier implements Runnable {
   }
 
   protected String getQueryHint(long startTime) {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("/*+ ");
-    sb.append("NATIVE_TIME_RANGE(");
-    sb.append(startTime - DEFAULT_NATIVE_TIME_RANGE_DELAY);
-    sb.append(") ");
-    sb.append("*/");
-    return sb.toString();
+    return new StringBuilder().append("/*+ NATIVE_TIME_RANGE(").append(startTime - DEFAULT_NATIVE_TIME_RANGE_DELAY).append(") */").toString();
   }
 
   protected MetricHostAggregate extractMetricHostAggregate(ResultSet rs) throws SQLException {
