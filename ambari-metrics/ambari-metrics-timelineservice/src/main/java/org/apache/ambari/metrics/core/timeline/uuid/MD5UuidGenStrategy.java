@@ -24,13 +24,13 @@ import java.util.UUID;
 import org.apache.ambari.metrics.core.timeline.aggregators.TimelineClusterMetric;
 import org.apache.commons.lang.StringUtils;
 
-public class MD5UuidGenStrategy implements MetricUuidGenStrategy {
+public class MD5UuidGenStrategy extends MetricUuidGenNullRestrictedStrategy {
 
   public MD5UuidGenStrategy() {
   }
 
   @Override
-  public byte[] computeUuid(TimelineClusterMetric timelineClusterMetric, int maxLength) {
+  protected byte[] computeUuidInternal(TimelineClusterMetric timelineClusterMetric, int maxLength) {
 
     String metricString = timelineClusterMetric.getMetricName() + timelineClusterMetric.getAppId();
     if (StringUtils.isNotEmpty(timelineClusterMetric.getInstanceId())) {
@@ -47,7 +47,7 @@ public class MD5UuidGenStrategy implements MetricUuidGenStrategy {
   }
 
   @Override
-  public byte[] computeUuid(String value, int maxLength) {
+  protected byte[] computeUuidInternal(String value, int maxLength) {
 
     byte[] valueBytes = value.getBytes();
     UUID uuid = UUID.nameUUIDFromBytes(valueBytes);

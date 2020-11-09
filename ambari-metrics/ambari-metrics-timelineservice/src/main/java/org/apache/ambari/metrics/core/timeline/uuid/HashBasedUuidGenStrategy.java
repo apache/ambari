@@ -27,7 +27,7 @@ import org.apache.ambari.metrics.core.timeline.aggregators.TimelineClusterMetric
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
-public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
+public class HashBasedUuidGenStrategy extends MetricUuidGenNullRestrictedStrategy {
 
   /**
    * Computes the UUID for a timelineClusterMetric.
@@ -36,7 +36,7 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
    * @return byte array of length 'maxlength'
    */
   @Override
-  public byte[] computeUuid(TimelineClusterMetric timelineClusterMetric, int maxLength) {
+  protected byte[] computeUuidInternal(TimelineClusterMetric timelineClusterMetric, int maxLength) {
 
     int metricNameUuidLength = 12;
     String instanceId = timelineClusterMetric.getInstanceId();
@@ -173,7 +173,7 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
    * @return byte array of length 'maxlength'
    */
   @Override
-  public byte[] computeUuid(String value, int maxLength) {
+  protected byte[] computeUuidInternal(String value, int maxLength) {
 
     if (StringUtils.isEmpty(value)) {
       return null;
