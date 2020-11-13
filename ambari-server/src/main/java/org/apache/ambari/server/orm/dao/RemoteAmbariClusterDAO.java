@@ -100,7 +100,13 @@ public class RemoteAmbariClusterDAO {
   @Transactional
   public void update(RemoteAmbariClusterEntity entity) {
     entityManagerProvider.get().merge(entity);
-
+    if(maxHistoryServiceId != null) {
+      TypedQuery<RemoteAmbariClusterServiceEntity> query = entityManagerProvider.get().createNamedQuery(
+                "deleteRemoteClusterOldService", RemoteAmbariClusterServiceEntity.class);
+      query.setParameter("id", maxHistoryServiceId);
+      query.setParameter("clusterId", entity.getId());
+      daoUtils.executeUpdate(query);
+    }
   }
 
   /**
