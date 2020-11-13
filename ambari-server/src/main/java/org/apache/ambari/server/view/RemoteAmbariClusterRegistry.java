@@ -76,8 +76,8 @@ public class RemoteAmbariClusterRegistry {
    *
    * @param entity
    */
-  public void update(RemoteAmbariClusterEntity entity) {
-    remoteAmbariClusterDAO.update(entity);
+  public void update(RemoteAmbariClusterEntity entity, Long lastMaxHistoryServiceId) {
+    remoteAmbariClusterDAO.update(entity, lastMaxHistoryServiceId);
     clusterMap.remove(entity.getId());
   }
 
@@ -103,7 +103,6 @@ public class RemoteAmbariClusterRegistry {
 
     RemoteAmbariCluster cluster = new RemoteAmbariCluster(entity, configuration);
     Set<String> services = cluster.getServices();
-
     if (!cluster.isAmbariOrClusterAdmin()) {
       throw new AmbariException("User must be Ambari or Cluster Adminstrator.");
     }
@@ -117,10 +116,16 @@ public class RemoteAmbariClusterRegistry {
       serviceEntities.add(serviceEntity);
     }
 
+    Collection<RemoteAmbariClusterServiceEntity> historyServices = entity.getServices();
     entity.setServices(serviceEntities);
 
     if (update) {
-      update(entity);
+      Long lastMaxHistoryServiceId = null;
+      for(RemoteAmbariClusterServiceEntity historyServiceEntity : historyServices) {
+        lastMaxHistoryServiceId = lastMaxHistoryServiceId == null ? historyServiceEntity.getId() :
+            Math.max(lastMaxHistoryServiceId, historyServiceEntity.getId());
+      }
+      update(entity, lastMaxHistoryServiceId);
     } else {
       remoteAmbariClusterDAO.save(entity);
     }
