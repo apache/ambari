@@ -25,6 +25,7 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
+import org.apache.ambari.server.orm.entities.RemoteAmbariClusterServiceEntity;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
