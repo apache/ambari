@@ -774,15 +774,28 @@ define([
           if(interpolated === "kafka-topics") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var kafkaTopics = getMetrics(allMetrics, "kafka_broker");
-                var extractTopics = kafkaTopics.filter(/./.test.bind(new RegExp("\\b.log.Log.\\b", 'g')));
-                var topics =_.map(extractTopics, function (topic) {
-                  var topicPrefix = "topic.";
-                  return topic.substring(topic.lastIndexOf(topicPrefix)+topicPrefix.length, topic.length);
+                // patterns to check possible kafka topics
+                var kafkaTopicPatterns = ['^kafka\\.server.*\\.topic\\.(.*)\\.[\\d\\w]*$',
+                  '^kafka\\.log\\.Log\\..*.topic\\.(.*)$',
+                  '^kafka\\.cluster.*\\.topic\\.(.*)$'];
+
+                var kafkaMetrics = getMetrics(allMetrics, "kafka_broker");
+                var topics = []
+
+                // filter metrics that can contain topic name
+                var topicMetrics = kafkaMetrics.filter(function(metric) {
+                  return metric.indexOf(".topic.") > 0;
                 });
-                topics = _.sortBy(_.uniq(topics));
-                var i = topics.indexOf("ambari_kafka_service_check");
-                if(i != -1) { topics.splice(i, 1);}
+
+                _.forEach(kafkaTopicPatterns, function(topicPattern) {
+                  _.forEach(topicMetrics, function(checkTopic) {
+                      var topicMatch = checkTopic.match(RegExp(topicPattern));
+                      var topicName = topicMatch ? topicMatch[1] : null;
+                      if (topicName && topicName != "ambari_kafka_service_check" && topics.indexOf(topicName) < 0) {
+                        topics.push(topicName);
+                      }
+                  })
+                })
                 return _.map(topics, function (topics) {
                   return {
                     text: topics
