@@ -777,7 +777,7 @@ define([
                 // patterns to check possible kafka topics
                 var kafkaTopicPatterns = ['^kafka\\.server.*\\.topic\\.(.*)\\.[\\d\\w]*$',
                   '^kafka\\.log\\.Log\\..*.topic\\.(.*)$',
-                  '^kafka\\.cluster.*\\.topic\\.(.*)$']
+                  '^kafka\\.cluster.*\\.topic\\.(.*)$'];
 
                 var kafkaMetrics = getMetrics(allMetrics, "kafka_broker");
                 var topics = []
@@ -789,8 +789,7 @@ define([
 
                 _.forEach(kafkaTopicPatterns, function(topicPattern) {
                   _.forEach(topicMetrics, function(checkTopic) {
-                      var re=RegExp(topicPattern);
-                      var match = checkTopic.match(re);
+                      var match = checkTopic.match(RegExp(topicPattern));
                       var topicName = match ? match[1] : null;
                       if (topicName != null && topicName != "ambari_kafka_service_check" && topics.indexOf(topicName) < 0) {
                         topics.push(topicName);
