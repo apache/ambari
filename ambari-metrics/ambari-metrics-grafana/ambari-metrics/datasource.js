@@ -789,9 +789,9 @@ define([
 
                 _.forEach(kafkaTopicPatterns, function(topicPattern) {
                   _.forEach(topicMetrics, function(checkTopic) {
-                      var match = checkTopic.match(RegExp(topicPattern));
-                      var topicName = match ? match[1] : null;
-                      if (topicName != null && topicName != "ambari_kafka_service_check" && topics.indexOf(topicName) < 0) {
+                      var topicMatch = checkTopic.match(RegExp(topicPattern));
+                      var topicName = topicMatch ? topicMatch[1] : null;
+                      if (topicName && topicName != "ambari_kafka_service_check" && topics.indexOf(topicName) < 0) {
                         topics.push(topicName);
                       }
                   })
