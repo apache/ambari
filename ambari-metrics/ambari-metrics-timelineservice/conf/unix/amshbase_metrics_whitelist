@@ -4,6 +4,10 @@ jvm.Master.JvmMetrics.ThreadsRunnable
 jvm.Master.JvmMetrics.ThreadsTerminated
 jvm.Master.JvmMetrics.ThreadsTimedWaiting
 jvm.Master.JvmMetrics.ThreadsWaiting
+jvm.RegionServer.JvmMetrics.GcCountG1 Old Generation
+jvm.RegionServer.JvmMetrics.GcCountG1 Young Generation
+jvm.RegionServer.JvmMetrics.GcTimeMillisG1 Young Generation
+jvm.RegionServer.JvmMetrics.GcTimeMillisG1 Old Generation
 jvm.RegionServer.JvmMetrics.GcCount
 jvm.RegionServer.JvmMetrics.GcCountConcurrentMarkSweep
 jvm.RegionServer.JvmMetrics.GcCountParNew
