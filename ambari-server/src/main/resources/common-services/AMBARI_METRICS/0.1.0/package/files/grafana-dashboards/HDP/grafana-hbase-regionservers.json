@@ -8572,11 +8572,22 @@
               "refId": "A",
               "transform": "rate",
               "templatedHost": ""
+            },
+            {
+              "aggregator": "avg",
+              "app": "hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "jvm.RegionServer.JvmMetrics.GcCountG1 Young Generation",
+              "precision": "default",
+              "refId": "B",
+              "transform": "rate",
+              "templatedHost": ""
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Count ParNew /s",
+          "title": "GC Count(ParNew/G1 Young Generation) /s",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -8642,11 +8653,22 @@
               "refId": "A",
               "transform": "rate",
               "templatedHost": ""
+            },
+            {
+              "aggregator": "max",
+              "app": "hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "jvm.RegionServer.JvmMetrics.GcCountG1 Old Generation",
+              "precision": "minutes",
+              "refId": "B",
+              "transform": "rate",
+              "templatedHost": ""
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Count CMS /s",
+          "title": "GC Count(CMS/G1 Old Generation) /s",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -8791,11 +8813,22 @@
               "refId": "A",
               "transform": "rate",
               "templatedHost": ""
+            },
+            {
+              "aggregator": "avg",
+              "app": "hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "jvm.RegionServer.JvmMetrics.GcTimeMillisG1 Young Generation",
+              "precision": "default",
+              "refId": "B",
+              "transform": "rate",
+              "templatedHost": ""
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Times ParNew /s",
+          "title": "GC Times(ParNew/G1 Young Generation) /s",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -8861,11 +8894,22 @@
               "refId": "A",
               "transform": "rate",
               "templatedHost": ""
+            },
+            {
+              "aggregator": "avg",
+              "app": "hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "jvm.RegionServer.JvmMetrics.GcTimeMillisG1 Old Generation",
+              "precision": "default",
+              "refId": "B",
+              "transform": "rate",
+              "templatedHost": ""
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Times CMS /s",
+          "title": "GC Times(CMS/G1 Old Generation) /s",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
