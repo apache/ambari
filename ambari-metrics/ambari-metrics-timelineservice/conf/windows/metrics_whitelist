@@ -223,6 +223,10 @@ jvm.JvmMetrics.ThreadsRunnable
 jvm.JvmMetrics.ThreadsTerminated
 jvm.JvmMetrics.ThreadsTimedWaiting
 jvm.JvmMetrics.ThreadsWaiting
+jvm.JvmMetrics.GcCountG1 Old Generation
+jvm.JvmMetrics.GcCountG1 Young Generation
+jvm.JvmMetrics.GcTimeMillisG1 Young Generation
+jvm.JvmMetrics.GcTimeMillisG1 Old Generation
 jvm.LlapDaemonJVMMetrics.LlapDaemonDirectBufferMemoryUsed
 jvm.LlapDaemonJVMMetrics.LlapDaemonDirectBufferTotalCapacity
 jvm.LlapDaemonJVMMetrics.LlapDaemonMappedBufferMemoryUsed
@@ -251,6 +255,10 @@ jvm.RegionServer.JvmMetrics.ThreadsRunnable
 jvm.RegionServer.JvmMetrics.ThreadsTerminated
 jvm.RegionServer.JvmMetrics.ThreadsTimedWaiting
 jvm.RegionServer.JvmMetrics.ThreadsWaiting
+jvm.RegionServer.JvmMetrics.GcTimeMillisG1 Young Generation
+jvm.RegionServer.JvmMetrics.GcTimeMillisG1 Old Generation
+jvm.RegionServer.JvmMetrics.GcCountG1 Old Generation
+jvm.RegionServer.JvmMetrics.GcCountG1 Young Generation
 jvm.daemon_thread_count
 jvm.file_descriptor_usage
 jvm.gc.ConcurrentMarkSweep.count
