@@ -25,10 +25,6 @@ ipc.IPC.QueueCallTime_num_ops
 ipc.IPC.queueSize 
 ipc.IPC.receivedBytes 
 ipc.IPC.sentBytes 
-jvm.RegionServer.JvmMetrics.GcTimeMillisG1 Young Generation
-jvm.RegionServer.JvmMetrics.GcTimeMillisG1 Old Generation
-jvm.RegionServer.JvmMetrics.GcCountG1 Old Generation
-jvm.RegionServer.JvmMetrics.GcCountG1 Young Generation
 jvm.RegionServer.JvmMetrics.GcCount
 jvm.RegionServer.JvmMetrics.GcCountConcurrentMarkSweep
 jvm.RegionServer.JvmMetrics.GcCountParNew
