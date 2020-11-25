@@ -264,7 +264,7 @@ module.exports = {
       return true;
     };
     if (/^[\?\|\*\!,]/.test(value)) return false;
-    return /^((\.\*?)?([\w\s\[\]\/\?\-_,\|\*\!\{\}\(\)]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]]*)?)+(\.\*?)?$/g.test(value) && (checkPair(['[',']'])) && (checkPair(['{','}']));
+    return /^((\.\*?)?([\w\s\[\]\/\?\-_,\|\*\!\{\}\(\)]|[\u1100-\u11FF\u2E80-\u2FDF\u3000-\u4DBF\u4E00-\u9FEF\uA960-\uA97F\uAC00-\uD7A3\uD7B0-\uD7FF\uF900-\uFAFF\uFE30-\uFE4F\uFF00-\uFFEF\u1B000-\u1B16F\u1F200-\u1F2FF\u20000-\u2EBEF\u2F800-\u2FA1F\u30000-\u3134F]]*)?)+(\.\*?)?$/g.test(value) && (checkPair(['[',']'])) && (checkPair(['{','}']));
   },
 
   /**
