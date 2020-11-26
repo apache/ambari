@@ -24,7 +24,6 @@ import traceback
 import copy
 import re
 from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
-from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent import Constants
 from ambari_agent.Utils import Utils
 from resource_management.core.utils import PasswordString
