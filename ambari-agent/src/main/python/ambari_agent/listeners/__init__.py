@@ -7,7 +7,9 @@ regarding copyright ownership.  The ASF licenses this file
 to you under the Apache License, Version 2.0 (the
 "License"); you may not use this file except in compliance
 with the License.  You may obtain a copy of the License at
+
     http://www.apache.org/licenses/LICENSE-2.0
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -79,6 +81,7 @@ class EventListener(ambari_stomp.ConnectionListener):
   def on_message(self, headers, message):
     """
     This method is triggered by stomp when message from serve is received.
+
     Here we handle some decode the message to json and check if it addressed to this specific event listener.
     """
     if not 'destination' in headers:
@@ -120,6 +123,7 @@ class EventListener(ambari_stomp.ConnectionListener):
   def report_status_to_sender(self, headers, message, ex=None):
     """
     Reports the status of delivery of the message to a sender
+
     @param headers: headers dictionary
     @param message: message payload dictionary
     @params ex: optional exception object for errors
@@ -146,6 +150,7 @@ class EventListener(ambari_stomp.ConnectionListener):
   def on_event(self, headers, message):
     """
     Is triggered when an event for specific listener is received:
+
     @param headers: headers dictionary
     @param message: message payload dictionary
     """
