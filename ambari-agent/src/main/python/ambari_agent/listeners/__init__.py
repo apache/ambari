@@ -23,8 +23,8 @@ import logging
 import traceback
 import copy
 import re
-import AmbariConfig
 from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
+from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent import Constants
 from ambari_agent.Utils import Utils
 from resource_management.core.utils import PasswordString
@@ -49,11 +49,11 @@ class EventListener(ambari_stomp.ConnectionListener):
     self.event_queue_lock = threading.RLock()
 
   @staticmethod
-  def hide_sensitive_config(config):
+  def hide_secret_config(config):
     if type(config) is dict:
       for attr_name, attr_value in config.items():
         if type(attr_value) is dict:
-          config[attr_name] = EventListener.hide_sensitive_config(attr_value)
+          config[attr_name] = EventListener.hide_secret_config(attr_value)
         elif type(attr_value) is unicode:
           if secret_hidden_pattern.match(attr_name):
             config[attr_name] = PasswordString(attr_value)
@@ -92,7 +92,7 @@ class EventListener(ambari_stomp.ConnectionListener):
     if destination.rstrip('/') == self.get_handled_path().rstrip('/'):
       try:
         message_json = json.loads(message)
-        insensitive_message_str = self.get_log_message(headers, EventListener.hide_sensitive_config(copy.deepcopy(message_json)))
+        insensitive_message_str = self.get_log_message(headers, EventListener.hide_secret_config(copy.deepcopy(message_json)))
       except ValueError as ex:
         logger.exception("Received from server event is not a valid message json. Message is:\n{0}".format(insensitive_message_str))
         self.report_status_to_sender(headers, message, ex)
