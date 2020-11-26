@@ -25,9 +25,9 @@ import copy
 import re
 from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 from ambari_agent import Constants
+from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.Utils import Utils
 from resource_management.core.utils import PasswordString
-from ambari_agent.AmbariConfig import AmbariConfig
 from Queue import Queue
 import threading
 
@@ -52,6 +52,7 @@ class EventListener(ambari_stomp.ConnectionListener):
     if type(config) is dict:
       for attr_name, attr_value in config.items():
         if type(attr_value) is dict:
+          # Recursive processing of nested type
           config[attr_name] = EventListener.hide_secret_config(attr_value)
         elif type(attr_value) is unicode:
           if secret_hidden_pattern.match(attr_name):
