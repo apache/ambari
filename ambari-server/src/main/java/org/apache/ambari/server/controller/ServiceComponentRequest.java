@@ -137,6 +137,6 @@ public class ServiceComponentRequest {
   @Override
   public String toString() {
     return String.format("[clusterName=%s, serviceName=%s, componentName=%s, desiredState=%s, recoveryEnabled=%s, componentCategory=%s]",
-        clusterName, serviceName, clusterName, desiredState, recoveryEnabled, componentCategory);
+        clusterName, serviceName, componentName, desiredState, recoveryEnabled, componentCategory);
   }
 }
