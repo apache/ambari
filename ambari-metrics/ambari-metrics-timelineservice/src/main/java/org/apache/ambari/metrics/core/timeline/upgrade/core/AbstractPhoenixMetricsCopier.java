@@ -22,8 +22,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
 
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,16 +32,16 @@ import java.util.Set;
 
 public abstract class AbstractPhoenixMetricsCopier implements Runnable {
   private static final Log LOG = LogFactory.getLog(AbstractPhoenixMetricsCopier.class);
-  private static final Long DEFAULT_NATIVE_TIME_RANGE_DELAY = 120000L;
-  private final Long startTime;
-  protected final FileWriter processedMetricsFile;
+  private static final long DEFAULT_NATIVE_TIME_RANGE_DELAY = 120000L;
+  private final long startTime;
+  protected final Writer processedMetricsFile;
   protected String inputTable;
   protected String outputTable;
   protected Set<String> metricNames;
   protected PhoenixHBaseAccessor hBaseAccessor;
 
   public AbstractPhoenixMetricsCopier(String inputTableName, String outputTableName, PhoenixHBaseAccessor hBaseAccessor,
-                                      Set<String> metricNames, Long startTime, FileWriter outputStream) {
+                                      Set<String> metricNames, long startTime, Writer outputStream) {
     this.inputTable = inputTableName;
     this.outputTable = outputTableName;
     this.hBaseAccessor = hBaseAccessor;
@@ -53,8 +53,8 @@ public abstract class AbstractPhoenixMetricsCopier implements Runnable {
   @Override
   public void run(){
     LOG.info(String.format("Copying %s metrics from %s to %s", metricNames, inputTable, outputTable));
-    final long startTimer = System.currentTimeMillis();
-    final String query = String.format("SELECT %s %s FROM %s WHERE %s AND SERVER_TIME > %s ORDER BY METRIC_NAME, SERVER_TIME",
+    long timerStart = System.currentTimeMillis();
+    String query = String.format("SELECT %s %s FROM %s WHERE %s AND SERVER_TIME > %s ORDER BY METRIC_NAME, SERVER_TIME",
       getQueryHint(startTime), getColumnsClause(), inputTable, getMetricNamesLikeClause(), startTime);
 
     runPhoenixQueryAndAddToResults(query);
@@ -64,24 +64,19 @@ public abstract class AbstractPhoenixMetricsCopier implements Runnable {
     } catch (SQLException e) {
       LOG.error(e);
     } finally {
-      final long estimatedTime = System.currentTimeMillis() - startTimer;
-      LOG.debug(String.format("Copying took %s seconds from table %s to table %s for metric names %s", estimatedTime/ 1000.0, inputTable, outputTable, metricNames));
+      long timerDelta = System.currentTimeMillis() - timerStart;
+      LOG.debug(String.format("Copying took %s seconds from table %s to table %s for metric names %s", timerDelta/ 1000.0, inputTable, outputTable, metricNames));
 
       saveMetricsProgress();
     }
   }
 
   private String getMetricNamesLikeClause() {
-    StringBuilder sb = new StringBuilder();
+    StringBuilder sb = new StringBuilder(256);
     sb.append('(');
     int i = 0;
     for (String metricName : metricNames) {
-      sb.append("METRIC_NAME");
-      sb.append(" LIKE ");
-      sb.append("'");
-      sb.append(metricName);
-      sb.append("'");
-
+      sb.append("METRIC_NAME LIKE '").append(metricName).append("'");
       if (i < metricNames.size() - 1) {
           sb.append(" OR ");
         }
@@ -116,25 +111,20 @@ public abstract class AbstractPhoenixMetricsCopier implements Runnable {
       LOG.info("Skipping metrics progress save as the file is null");
       return;
     }
-    synchronized (this.processedMetricsFile) {
-      for (String metricName : metricNames) {
-        try {
+
+    for (String metricName : metricNames) {
+      try {
+        synchronized (this.processedMetricsFile) {
           this.processedMetricsFile.append(inputTable).append(":").append(metricName).append(System.lineSeparator());
-        } catch (IOException e) {
-          LOG.error(e);
         }
+      } catch (IOException e) {
+        LOG.error(e);
       }
     }
   }
 
-  protected String getQueryHint(Long startTime) {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("/*+ ");
-    sb.append("NATIVE_TIME_RANGE(");
-    sb.append(startTime - DEFAULT_NATIVE_TIME_RANGE_DELAY);
-    sb.append(") ");
-    sb.append("*/");
-    return sb.toString();
+  protected String getQueryHint(long startTime) {
+    return new StringBuilder().append("/*+ NATIVE_TIME_RANGE(").append(startTime - DEFAULT_NATIVE_TIME_RANGE_DELAY).append(") */").toString();
   }
 
   protected MetricHostAggregate extractMetricHostAggregate(ResultSet rs) throws SQLException {

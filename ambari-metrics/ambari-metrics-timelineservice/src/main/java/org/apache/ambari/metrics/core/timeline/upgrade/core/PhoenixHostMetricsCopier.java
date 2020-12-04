@@ -23,7 +23,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 
-import java.io.FileWriter;
+
+import java.io.Writer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -34,7 +35,7 @@ public class PhoenixHostMetricsCopier extends AbstractPhoenixMetricsCopier {
   private static final Log LOG = LogFactory.getLog(PhoenixHostMetricsCopier.class);
   private final Map<TimelineMetric, MetricHostAggregate> aggregateMap = new HashMap<>();
 
-  PhoenixHostMetricsCopier(String inputTableName, String outputTableName, PhoenixHBaseAccessor hBaseAccessor, Set<String> metricNames, Long startTime, FileWriter processedMetricsFileWriter) {
+  PhoenixHostMetricsCopier(String inputTableName, String outputTableName, PhoenixHBaseAccessor hBaseAccessor, Set<String> metricNames, long startTime, Writer processedMetricsFileWriter) {
     super(inputTableName, outputTableName, hBaseAccessor, metricNames, startTime, processedMetricsFileWriter);
   }
 
