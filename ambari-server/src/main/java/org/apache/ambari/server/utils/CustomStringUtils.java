@@ -67,4 +67,53 @@ public class CustomStringUtils {
       iterator.set(iterator.next().toUpperCase());
     }
   }
+
+
+  /**
+   * Insert a string after a substring
+   * @param toInsertInto the base string to be changed
+   * @param addAfter insert a string after this if found in <code>toInsertInto</code>
+   * @param toInsert insert this string
+   * @return if the <code>addAfter</code> argument occurs as a substring within this <code>toInsertInto</code>,
+   * then the index of the first character of the first such substring is returned; if it does not occur as a substring, -1 is returned.
+   */
+  public static int insertAfter(StringBuilder toInsertInto, String addAfter, String toInsert) {
+    int index = toInsertInto.indexOf(addAfter);
+    if (index > -1) {
+      toInsertInto.insert(index + addAfter.length() -1 , toInsert);
+    }
+    return index;
+  }
+
+
+  /**
+   * Delete a substring
+   * @param toDeleteFrom the base string to be changed
+   * @param toDelete delete this string from <code>toDeleteFrom</code> if found
+   * @return if the <code>toDelete</code> argument occurs as a substring within this <code>toDeleteFrom</code>,
+   * then the index of the first character of the first such substring is returned; if it does not occur as a substring, -1 is returned.
+   */
+  public static  int deleteSubstring(StringBuilder toDeleteFrom, String toDelete) {
+    int index = toDeleteFrom.indexOf(toDelete);
+    if (index > -1) {
+      toDeleteFrom.delete(index, toDelete.length() - 1);
+    }
+    return index;
+  }
+
+  /**
+   * Replace a substring
+   * @param replaceIn the base string to be changed
+   * @param toFind replace this string with <code>toReplace</code> if found
+   * @param toReplace replace <code>toFind</code> string with this
+   * @returnif if the <code>toFind</code> argument occurs as a substring within this <code>replaceIn</code>,
+   * then the index of the first character of the first such substring is returned; if it does not occur as a substring, -1 is returned.
+   */
+  public static  int replace(StringBuilder replaceIn, String toFind, String toReplace) {
+    int index = replaceIn.indexOf(toFind);
+    if (index > -1) {
+      replaceIn.replace(index, index + toFind.length() - 1, toReplace);
+    }
+    return index;
+  }
 }
