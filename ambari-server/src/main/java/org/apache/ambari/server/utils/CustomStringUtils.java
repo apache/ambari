@@ -106,7 +106,7 @@ public class CustomStringUtils {
    * @param replaceIn the base string to be changed
    * @param toFind replace this string with <code>toReplace</code> if found
    * @param toReplace replace <code>toFind</code> string with this
-   * @returnif if the <code>toFind</code> argument occurs as a substring within this <code>replaceIn</code>,
+   * @return if the <code>toFind</code> argument occurs as a substring within this <code>replaceIn</code>,
    * then the index of the first character of the first such substring is returned; if it does not occur as a substring, -1 is returned.
    */
   public static  int replace(StringBuilder replaceIn, String toFind, String toReplace) {

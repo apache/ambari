@@ -144,14 +144,14 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
         for (final Cluster cluster : clusterMap.values()) {
           Set<String> installedServices = cluster.getServices().keySet();
           if (installedServices.contains("AMBARI_METRICS")) {
-            Config amsGrafanaIni = cluster.getDesiredConfigByType("ams-grafana-ini");
-            StringBuilder content = new StringBuilder(amsGrafanaIni.getProperties().get("content"));
+            String contentText = cluster.getDesiredConfigByType("ams-grafana-ini").getProperties().get("content");
 
-            if (content != null) {
+            if (contentText != null) {
               String addAfter;
               String toInsert;
               String toFind;
               String toReplace;
+              StringBuilder content = new StringBuilder(contentText);
 
               addAfter = "; app_mode = production";
               toInsert = "\n" +
@@ -181,7 +181,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
               insertAfter(content, addAfter, toInsert);
 
               toFind = ";password =";
-              toReplace = "# If the password contains # or ; you have to wrap it with trippel quotes. Ex \"\"\"#password;\"\"\"" +
+              toReplace = "# If the password contains # or ; you have to wrap it with triple quotes. Ex \"\"\"#password;\"\"\"" +
                   "\n;password =" +
                   "\n" +
                   "\n# Use either URL or the previous fields to configure the database" +
@@ -201,7 +201,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
 
               toFind = "# Google Analytics universal tracking code, only enabled if you specify an id here";
               toReplace = "# Set to false to disable all checks to https://grafana.net" +
-                  "\n# for new vesions (grafana itself and plugins), check is used" +
+                  "\n# for new versions (grafana itself and plugins), check is used" +
                   "\n# in some UI views to notify that grafana or plugin update exists" +
                   "\n# This option does not cause any auto updates, nor send any information" +
                   "\n# only a GET request to http://grafana.com to get latest versions" +
@@ -227,7 +227,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
               replace(content, toFind, toReplace);
 
               toFind = "#################################### Anonymous Auth ##########################";
-              toReplace = "# Default UI theme (&quot;dark&quot; or &quot;light&quot;)" +
+              toReplace = "# Default UI theme (\"dark\" or \"light\")" +
                   "\n;default_theme = dark" +
                   "\n" +
                   "\n# External user management, these options affect the organization users view" +
