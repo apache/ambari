@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.upgrade;
 
+import static org.apache.ambari.server.utils.CustomStringUtils.deleteSubstring;
+import static org.apache.ambari.server.utils.CustomStringUtils.insertAfter;
+import static org.apache.ambari.server.utils.CustomStringUtils.replace;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,10 +44,6 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-
-import static org.apache.ambari.server.utils.CustomStringUtils.deleteSubstring;
-import static org.apache.ambari.server.utils.CustomStringUtils.insertAfter;
-import static org.apache.ambari.server.utils.CustomStringUtils.replace;
 
 
 /**
