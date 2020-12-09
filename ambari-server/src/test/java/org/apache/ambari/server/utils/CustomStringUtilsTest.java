@@ -18,6 +18,7 @@
 package org.apache.ambari.server.utils;
 
 import static junit.framework.Assert.assertEquals;
+
 import org.junit.Test;
 
 public class CustomStringUtilsTest {
