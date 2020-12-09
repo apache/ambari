@@ -80,7 +80,7 @@ public class CustomStringUtils {
   public static int insertAfter(StringBuilder toInsertInto, String addAfter, String toInsert) {
     int index = toInsertInto.indexOf(addAfter);
     if (index > -1) {
-      toInsertInto.insert(index + addAfter.length() -1 , toInsert);
+      toInsertInto.insert(index + addAfter.length(), toInsert);
     }
     return index;
   }
@@ -96,7 +96,7 @@ public class CustomStringUtils {
   public static  int deleteSubstring(StringBuilder toDeleteFrom, String toDelete) {
     int index = toDeleteFrom.indexOf(toDelete);
     if (index > -1) {
-      toDeleteFrom.delete(index, toDelete.length() - 1);
+      toDeleteFrom.delete(index, index + toDelete.length());
     }
     return index;
   }
@@ -112,7 +112,7 @@ public class CustomStringUtils {
   public static  int replace(StringBuilder replaceIn, String toFind, String toReplace) {
     int index = replaceIn.indexOf(toFind);
     if (index > -1) {
-      replaceIn.replace(index, index + toFind.length() - 1, toReplace);
+      replaceIn.replace(index, index + toFind.length(), toReplace);
     }
     return index;
   }
