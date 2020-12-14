@@ -155,23 +155,20 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
               addAfter = "; app_mode = production";
               toInsert = "\n" +
                   "\n# instance name, defaults to HOSTNAME environment variable value or hostname if HOSTNAME var is empty" +
-                  "\n; instance_name = ${HOSTNAME}" +
-                  "\n";
+                  "\n; instance_name = ${HOSTNAME}";
               insertAfter(content, addAfter, toInsert);
 
               addAfter = "logs = {{ams_grafana_log_dir}}";
               toInsert = "\n" +
                   "\n# Directory where grafana will automatically scan and look for plugins" +
-                  "\n#" +
-                  "\nplugins = /var/lib/ambari-metrics-grafana/plugins" +
-                  "\n";
+                  "\nplugins = /var/lib/ambari-metrics-grafana/plugins";
               insertAfter(content, addAfter, toInsert);
 
-              deleteSubstring(content, ";protocol = http");
-              deleteSubstring(content, ";http_port = 3000");
-              deleteSubstring(content, ";static_root_path = public");
-              deleteSubstring(content, ";cert_file =");
-              deleteSubstring(content, ";cert_key =");
+              deleteSubstring(content, ";protocol = http\n");
+              deleteSubstring(content, ";http_port = 3000\n");
+              deleteSubstring(content, ";static_root_path = public\n");
+              deleteSubstring(content, ";cert_file =\n");
+              deleteSubstring(content, ";cert_key =\n");
 
               addAfter = "cert_key = {{ams_grafana_cert_key}}";
               toInsert = "\n" +
@@ -194,8 +191,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
                   "\n[dataproxy]" +
                   "\n" +
                   "\n# This enables data proxy logging, default is false" +
-                  "\n;logging = false" +
-                  "\n";
+                  "\n;logging = false";
               insertAfter(content, addAfter, toInsert);
 
               toFind = "# Google Analytics universal tracking code, only enabled if you specify an id here";
@@ -238,7 +234,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
                   "\n# Set to true to disable (hide) the login form, useful if you use OAuth, defaults to false" +
                   "\n;disable_login_form = false" +
                   "\n" +
-                  "\n# Set to true to disable the signout link in the side menu. useful if you use auth.proxy, defaults to false" +
+                  "\n# Set to true to disable the sign out link in the side menu. useful if you use auth.proxy, defaults to false" +
                   "\n;disable_signout_menu = false" +
                   "\n" +
                   "\n#################################### Anonymous Auth ##########################";
