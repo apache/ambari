@@ -218,8 +218,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
     // only request commands which actually need to be aborted; requesting all
     // commands here can cause OOM problems during large requests like upgrades
+    List<HostRoleStatus> statusesToAbort = new ArrayList<>(HostRoleStatus.SCHEDULED_STATES);
+    statusesToAbort.addAll(HostRoleStatus.HOLDING_STATES);
     List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByRequestIdAndStatuses(requestId,
-        HostRoleStatus.SCHEDULED_STATES);
+        statusesToAbort);
 
     for (HostRoleCommandEntity command : commands) {
       command.setStatus(HostRoleStatus.ABORTED);

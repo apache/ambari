@@ -81,7 +81,7 @@ public enum HostRoleStatus {
   private static List<HostRoleStatus> COMPLETED_STATES = Arrays.asList(FAILED, TIMEDOUT, ABORTED,
       COMPLETED, SKIPPED_FAILED);
 
-  private static List<HostRoleStatus> HOLDING_STATES = Arrays.asList(HOLDING, HOLDING_FAILED,
+  public static List<HostRoleStatus> HOLDING_STATES = Arrays.asList(HOLDING, HOLDING_FAILED,
       HOLDING_TIMEDOUT);
 
   public static List<HostRoleStatus> SCHEDULED_STATES = Arrays.asList(PENDING, QUEUED, IN_PROGRESS);
