@@ -57,8 +57,8 @@ public interface ActionDBAccessor {
 
   /**
    * Abort all outstanding operations associated with the given request. This
-   * method uses the {@link HostRoleStatus#SCHEDULED_STATES} to determine which
-   * {@link HostRoleCommand} instances to abort.
+   * method uses the {@link HostRoleStatus#SCHEDULED_STATES} and {@link HostRoleStatus#HOLDING_STATES}
+   * to determine which {@link HostRoleCommand} instances to abort.
    *
    * Returns the list of the aborted operations.
    */
