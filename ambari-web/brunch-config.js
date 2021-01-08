@@ -77,7 +77,7 @@ module.exports.config = {
           'vendor/scripts/diffview.js',
           'vendor/scripts/visualsearch.js',
           'vendor/scripts/moment.min.js',
-          'vendor/scripts/moment-timezone-with-data-2010-2020.js',
+          'vendor/scripts/moment-timezone-with-data-2020-2030.js',
           'vendor/scripts/workflow_visualization.js',
           'vendor/scripts/rickshaw.js',
           'vendor/scripts/spin.js',

@@ -82,7 +82,7 @@ module.exports = function(config) {
       'vendor/scripts/FileSaver.js',
       'vendor/scripts/Blob.js',
       'vendor/scripts/moment.min.js',
-      'vendor/scripts/moment-timezone-with-data-2010-2020.js',
+      'vendor/scripts/moment-timezone-with-data-2020-2030.js',
       'vendor/**/*.js',
       'app/templates/**/*.hbs',
       'app!(assets)/**/!(karma_setup|tests).js',
