@@ -18,14 +18,16 @@
 
 package org.apache.ambari.server.bootstrap;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.spi.container.servlet.ServletContainer;
-import com.sun.jersey.test.framework.WebAppDescriptor;
-import junit.framework.Assert;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.ArrayList;
+
+import javax.ws.rs.core.MediaType;
+
 import org.apache.ambari.server.RandomPortJerseyTest;
 import org.apache.ambari.server.api.rest.BootStrapResource;
 import org.apache.ambari.server.bootstrap.BSResponse.BSRunStat;
@@ -36,17 +38,18 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.MediaType;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.util.ArrayList;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.spi.container.servlet.ServletContainer;
+import com.sun.jersey.test.framework.WebAppDescriptor;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import junit.framework.Assert;
 
 /**
- * Testing bootstrap API.
+ *  Testing bootstrap API.
  */
 public class BootStrapResourceTest extends RandomPortJerseyTest {
 
@@ -57,7 +60,7 @@ public class BootStrapResourceTest extends RandomPortJerseyTest {
 
   public BootStrapResourceTest() {
     super(new WebAppDescriptor.Builder(PACKAGE_NAME).servletClass(ServletContainer.class)
-            .build());
+        .build());
   }
 
   public class MockModule extends AbstractModule {
@@ -115,10 +118,10 @@ public class BootStrapResourceTest extends RandomPortJerseyTest {
   public void bootStrapGet() throws UniformInterfaceException, JSONException {
     WebResource webResource = resource();
     BootStrapStatus status = webResource.path("/bootstrap/0").type(
-            MediaType.APPLICATION_JSON)
-            .get(BootStrapStatus.class);
+        MediaType.APPLICATION_JSON)
+        .get(BootStrapStatus.class);
     LOG.info("GET Response from the API " + status.getLog() + " " +
-            status.getStatus());
+        status.getStatus());
     Assert.assertEquals(status.getStatus(), BSStat.ERROR);
   }
 
@@ -126,7 +129,7 @@ public class BootStrapResourceTest extends RandomPortJerseyTest {
   public void bootStrapPost() throws UniformInterfaceException, JSONException {
     WebResource webResource = resource();
     JSONObject object = webResource.path("/bootstrap").type(
-            MediaType.APPLICATION_JSON).post(JSONObject.class, createDummySshInfo());
+        MediaType.APPLICATION_JSON).post(JSONObject.class, createDummySshInfo());
 
     Assert.assertEquals("OK", object.get("status"));
   }
