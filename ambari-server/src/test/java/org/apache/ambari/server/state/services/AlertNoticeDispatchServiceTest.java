@@ -101,6 +101,10 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
   final static String HOSTNAME = "c6401.ambari.apache.org";
   final static Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
+  // the requirement to this test value is to be greater than 2^32-1
+  final static long UPTIME_MILLIS = 8589934592L;
+  final static long UPTIME_HUNDREDTHS_OF_SECOND = UPTIME_MILLIS / 10;
+
   private AmbariMetaInfo m_metaInfo = null;
   private DispatchFactory m_dispatchFactory = null;
   private AlertDispatchDAO m_dao = null;
@@ -170,7 +174,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
     PowerMock.mockStatic(ManagementFactory.class);
     expect(ManagementFactory.getRuntimeMXBean()).andReturn(m_runtimeMXBean).atLeastOnce();
     PowerMock.replay(ManagementFactory.class);
-    expect(m_runtimeMXBean.getUptime()).andReturn(360000L).atLeastOnce();
+    expect(m_runtimeMXBean.getUptime()).andReturn(UPTIME_MILLIS).atLeastOnce();
 
     replay( m_runtimeMXBean);
     }
@@ -404,7 +408,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
 
     List<Vector> expectedTrapVectors = new LinkedList<>();
     Vector firstVector = new Vector();
-    firstVector.add(new VariableBinding(SnmpConstants.sysUpTime, new TimeTicks(360000L)));
+    firstVector.add(new VariableBinding(SnmpConstants.sysUpTime, new TimeTicks(UPTIME_HUNDREDTHS_OF_SECOND)));
     firstVector.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(AmbariSNMPDispatcher.AMBARI_ALERT_TRAP_OID)));    
     firstVector.add(new VariableBinding(new OID(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_ID_OID), new Integer32(new BigDecimal(1L).intValueExact())));
     firstVector.add(new VariableBinding(new OID(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_NAME_OID), new OctetString("alert-definition-1")));
