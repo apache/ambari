@@ -369,8 +369,8 @@ angular.module('ambariAdminConsole')
               ).then(function () {
                 totalCalls--;
                 if (totalCalls === 0) deferred.resolve(invalidUrls);
-              }, function (response, status, callback, params) {
-                invalidUrls.push(params.repo);
+              }, function (response) {
+                invalidUrls.push(response.config.repo);
                 totalCalls--;
                 if (totalCalls === 0) deferred.resolve(invalidUrls);
               });
