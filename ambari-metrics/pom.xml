@@ -40,14 +40,14 @@
     <python.ver>python &gt;= 2.6</python.ver>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <!--TODO change to HDP URL-->
-    <hbase.tar>https://private-repo-1.hortonworks.com/HDP/centos7/3.x/updates/3.1.4.1-1/tars/hbase/hbase-2.0.2.3.1.4.1-1-bin.tar.gz</hbase.tar>
-    <hbase.folder>hbase-2.0.2.3.1.4.1-1</hbase.folder>
-    <hadoop.tar>https://private-repo-1.hortonworks.com/HDP/centos7/3.x/updates/3.1.4.1-1/tars/hadoop/hadoop-3.1.1.3.1.4.1-1.tar.gz</hadoop.tar>
-    <hadoop.folder>hadoop-3.1.1.3.1.4.1-1</hadoop.folder>
+    <hbase.tar>https://archive.apache.org/dist/hbase/2.0.2/hbase-2.0.2-bin.tar.gz</hbase.tar>
+    <hbase.folder>hbase-2.0.2</hbase.folder>
+    <hadoop.tar>https://archive.apache.org/dist/hadoop/common/hadoop-3.1.1/hadoop-3.1.1.tar.gz</hadoop.tar>
+    <hadoop.folder>hadoop-3.1.1</hadoop.folder>
     <grafana.folder>grafana-6.7.4</grafana.folder>
     <grafana.tar>https://dl.grafana.com/oss/release/grafana-6.7.4.linux-amd64.tar.gz</grafana.tar>
-    <phoenix.tar>https://private-repo-1.hortonworks.com/HDP/centos7/3.x/updates/3.1.4.1-1/tars/phoenix/phoenix-5.0.0.3.1.4.1-1.tar.gz</phoenix.tar>
-    <phoenix.folder>phoenix-5.0.0.3.1.4.1-1</phoenix.folder>
+    <phoenix.tar>https://downloads.apache.org/phoenix/apache-phoenix-5.0.0-HBase-2.0/bin/apache-phoenix-5.0.0-HBase-2.0-bin.tar.gz</phoenix.tar>
+    <phoenix.folder>apache-phoenix-5.0.0-HBase-2.0-bin</phoenix.folder>
     <resmonitor.install.dir>/usr/lib/python2.6/site-packages/resource_monitoring</resmonitor.install.dir>
     <powermock.version>1.6.2</powermock.version>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
