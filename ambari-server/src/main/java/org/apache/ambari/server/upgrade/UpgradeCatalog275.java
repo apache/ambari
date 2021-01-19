@@ -135,167 +135,162 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
   }
 
   protected void updateAmsGrafanaIniConfig() throws AmbariException {
-    SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
-    String sourceVersion = schemaUpgradeHelper.readSourceVersion();
-    if (sourceVersion.startsWith("2.6")) {
-      AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-      Clusters clusters = ambariManagementController.getClusters();
-      if (clusters != null) {
-        Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
-        if (clusterMap != null && !clusterMap.isEmpty()) {
-          for (final Cluster cluster : clusterMap.values()) {
-            Set<String> installedServices = cluster.getServices().keySet();
-            if (installedServices.contains("AMBARI_METRICS")) {
-              String contentText = cluster.getDesiredConfigByType("ams-grafana-ini").getProperties().get("content");
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Set<String> installedServices = cluster.getServices().keySet();
+          if (installedServices.contains("AMBARI_METRICS")) {
+            String contentText = cluster.getDesiredConfigByType("ams-grafana-ini").getProperties().get("content");
+            if (contentText != null) {
+              String addAfter;
+              String toInsert;
+              String toFind;
+              String toReplace;
+              StringBuilder content = new StringBuilder(contentText);
 
-              if (contentText != null) {
-                String addAfter;
-                String toInsert;
-                String toFind;
-                String toReplace;
-                StringBuilder content = new StringBuilder(contentText);
+              addAfter = "; app_mode = production";
+              toInsert = "\n" +
+                  "\n# instance name, defaults to HOSTNAME environment variable value or hostname if HOSTNAME var is empty" +
+                  "\n; instance_name = ${HOSTNAME}";
+              insertAfter(content, addAfter, toInsert);
 
-                addAfter = "; app_mode = production";
-                toInsert = "\n" +
-                    "\n# instance name, defaults to HOSTNAME environment variable value or hostname if HOSTNAME var is empty" +
-                    "\n; instance_name = ${HOSTNAME}";
-                insertAfter(content, addAfter, toInsert);
+              addAfter = "logs = {{ams_grafana_log_dir}}";
+              toInsert = "\n" +
+                  "\n# Directory where grafana will automatically scan and look for plugins" +
+                  "\nplugins = /var/lib/ambari-metrics-grafana/plugins";
+              insertAfter(content, addAfter, toInsert);
 
-                addAfter = "logs = {{ams_grafana_log_dir}}";
-                toInsert = "\n" +
-                    "\n# Directory where grafana will automatically scan and look for plugins" +
-                    "\nplugins = /var/lib/ambari-metrics-grafana/plugins";
-                insertAfter(content, addAfter, toInsert);
+              deleteSubstring(content, ";protocol = http\n");
+              deleteSubstring(content, ";http_port = 3000\n");
+              deleteSubstring(content, ";static_root_path = public\n");
+              deleteSubstring(content, ";cert_file =\n");
+              deleteSubstring(content, ";cert_key =\n");
 
-                deleteSubstring(content, ";protocol = http\n");
-                deleteSubstring(content, ";http_port = 3000\n");
-                deleteSubstring(content, ";static_root_path = public\n");
-                deleteSubstring(content, ";cert_file =\n");
-                deleteSubstring(content, ";cert_key =\n");
+              addAfter = "cert_key = {{ams_grafana_cert_key}}";
+              toInsert = "\n" +
+                  "\n# Unix socket path" +
+                  "\n;socket =";
+              insertAfter(content, addAfter, toInsert);
 
-                addAfter = "cert_key = {{ams_grafana_cert_key}}";
-                toInsert = "\n" +
-                    "\n# Unix socket path" +
-                    "\n;socket =";
-                insertAfter(content, addAfter, toInsert);
+              toFind = ";password =";
+              toReplace = "# If the password contains # or ; you have to wrap it with triple quotes. Ex \"\"\"#password;\"\"\"" +
+                  "\n;password =" +
+                  "\n" +
+                  "\n# Use either URL or the previous fields to configure the database" +
+                  "\n# Example: mysql://user:secret@host:port/database" +
+                  "\n;url =";
+              replace(content, toFind, toReplace);
 
-                toFind = ";password =";
-                toReplace = "# If the password contains # or ; you have to wrap it with triple quotes. Ex \"\"\"#password;\"\"\"" +
-                    "\n;password =" +
-                    "\n" +
-                    "\n# Use either URL or the previous fields to configure the database" +
-                    "\n# Example: mysql://user:secret@host:port/database" +
-                    "\n;url =";
-                replace(content, toFind, toReplace);
+              addAfter = ";session_life_time = 86400";
+              toInsert = "\n" +
+                  "\n#################################### Data proxy ###########################" +
+                  "\n[dataproxy]" +
+                  "\n" +
+                  "\n# This enables data proxy logging, default is false" +
+                  "\n;logging = false";
+              insertAfter(content, addAfter, toInsert);
 
-                addAfter = ";session_life_time = 86400";
-                toInsert = "\n" +
-                    "\n#################################### Data proxy ###########################" +
-                    "\n[dataproxy]" +
-                    "\n" +
-                    "\n# This enables data proxy logging, default is false" +
-                    "\n;logging = false";
-                insertAfter(content, addAfter, toInsert);
+              toFind = "# Google Analytics universal tracking code, only enabled if you specify an id here";
+              toReplace = "# Set to false to disable all checks to https://grafana.net" +
+                  "\n# for new versions (grafana itself and plugins), check is used" +
+                  "\n# in some UI views to notify that grafana or plugin update exists" +
+                  "\n# This option does not cause any auto updates, nor send any information" +
+                  "\n# only a GET request to http://grafana.com to get latest versions" +
+                  "\n;check_for_updates = true" +
+                  "\n" +
+                  "\n# Google Analytics universal tracking code, only enabled if you specify an id here";
+              replace(content, toFind, toReplace);
 
-                toFind = "# Google Analytics universal tracking code, only enabled if you specify an id here";
-                toReplace = "# Set to false to disable all checks to https://grafana.net" +
-                    "\n# for new versions (grafana itself and plugins), check is used" +
-                    "\n# in some UI views to notify that grafana or plugin update exists" +
-                    "\n# This option does not cause any auto updates, nor send any information" +
-                    "\n# only a GET request to http://grafana.com to get latest versions" +
-                    "\n;check_for_updates = true" +
-                    "\n" +
-                    "\n# Google Analytics universal tracking code, only enabled if you specify an id here";
-                replace(content, toFind, toReplace);
+              toFind = "#################################### Users ####################################";
+              toReplace = "[snapshots]" +
+                  "\n# snapshot sharing options" +
+                  "\n;external_enabled = true" +
+                  "\n;external_snapshot_url = https://snapshots-origin.raintank.io" +
+                  "\n;external_snapshot_name = Publish to snapshot.raintank.io" +
+                  "\n" +
+                  "\n# remove expired snapshot" +
+                  "\n;snapshot_remove_expired = true" +
+                  "\n" +
+                  "\n# remove snapshots after 90 days" +
+                  "\n;snapshot_TTL_days = 90" +
+                  "\n" +
+                  "\n#################################### Users ####################################";
+              replace(content, toFind, toReplace);
 
-                toFind = "#################################### Users ####################################";
-                toReplace = "[snapshots]" +
-                    "\n# snapshot sharing options" +
-                    "\n;external_enabled = true" +
-                    "\n;external_snapshot_url = https://snapshots-origin.raintank.io" +
-                    "\n;external_snapshot_name = Publish to snapshot.raintank.io" +
-                    "\n" +
-                    "\n# remove expired snapshot" +
-                    "\n;snapshot_remove_expired = true" +
-                    "\n" +
-                    "\n# remove snapshots after 90 days" +
-                    "\n;snapshot_TTL_days = 90" +
-                    "\n" +
-                    "\n#################################### Users ####################################";
-                replace(content, toFind, toReplace);
+              toFind = "#################################### Anonymous Auth ##########################";
+              toReplace = "# Default UI theme (\"dark\" or \"light\")" +
+                  "\n;default_theme = dark" +
+                  "\n" +
+                  "\n# External user management, these options affect the organization users view" +
+                  "\n;external_manage_link_url =" +
+                  "\n;external_manage_link_name =" +
+                  "\n;external_manage_info =" +
+                  "\n" +
+                  "\n[auth]" +
+                  "\n# Set to true to disable (hide) the login form, useful if you use OAuth, defaults to false" +
+                  "\n;disable_login_form = false" +
+                  "\n" +
+                  "\n# Set to true to disable the sign out link in the side menu. useful if you use auth.proxy, defaults to false" +
+                  "\n;disable_signout_menu = false" +
+                  "\n" +
+                  "\n#################################### Anonymous Auth ##########################";
+              replace(content, toFind, toReplace);
 
-                toFind = "#################################### Anonymous Auth ##########################";
-                toReplace = "# Default UI theme (\"dark\" or \"light\")" +
-                    "\n;default_theme = dark" +
-                    "\n" +
-                    "\n# External user management, these options affect the organization users view" +
-                    "\n;external_manage_link_url =" +
-                    "\n;external_manage_link_name =" +
-                    "\n;external_manage_info =" +
-                    "\n" +
-                    "\n[auth]" +
-                    "\n# Set to true to disable (hide) the login form, useful if you use OAuth, defaults to false" +
-                    "\n;disable_login_form = false" +
-                    "\n" +
-                    "\n# Set to true to disable the sign out link in the side menu. useful if you use auth.proxy, defaults to false" +
-                    "\n;disable_signout_menu = false" +
-                    "\n" +
-                    "\n#################################### Anonymous Auth ##########################";
-                replace(content, toFind, toReplace);
+              toFind = "#################################### Auth Proxy ##########################";
+              toReplace = "#################################### Generic OAuth ##########################" +
+                  "\n[auth.generic_oauth]" +
+                  "\n;enabled = false" +
+                  "\n;name = OAuth" +
+                  "\n;allow_sign_up = true" +
+                  "\n;client_id = some_id" +
+                  "\n;client_secret = some_secret" +
+                  "\n;scopes = user:email,read:org" +
+                  "\n;auth_url = https://foo.bar/login/oauth/authorize" +
+                  "\n;token_url = https://foo.bar/login/oauth/access_token" +
+                  "\n;api_url = https://foo.bar/user" +
+                  "\n;team_ids =" +
+                  "\n;allowed_organizations =" +
+                  "\n" +
+                  "\n#################################### Grafana.com Auth ####################" +
+                  "\n[auth.grafana_com]" +
+                  "\n;enabled = false" +
+                  "\n;allow_sign_up = true" +
+                  "\n;client_id = some_id" +
+                  "\n;client_secret = some_secret" +
+                  "\n;scopes = user:email" +
+                  "\n;allowed_organizations =" +
+                  "\n" +
+                  "\n#################################### Auth Proxy ##########################";
+              replace(content, toFind, toReplace);
 
-                toFind = "#################################### Auth Proxy ##########################";
-                toReplace = "#################################### Generic OAuth ##########################" +
-                    "\n[auth.generic_oauth]" +
-                    "\n;enabled = false" +
-                    "\n;name = OAuth" +
-                    "\n;allow_sign_up = true" +
-                    "\n;client_id = some_id" +
-                    "\n;client_secret = some_secret" +
-                    "\n;scopes = user:email,read:org" +
-                    "\n;auth_url = https://foo.bar/login/oauth/authorize" +
-                    "\n;token_url = https://foo.bar/login/oauth/access_token" +
-                    "\n;api_url = https://foo.bar/user" +
-                    "\n;team_ids =" +
-                    "\n;allowed_organizations =" +
-                    "\n" +
-                    "\n#################################### Grafana.com Auth ####################" +
-                    "\n[auth.grafana_com]" +
-                    "\n;enabled = false" +
-                    "\n;allow_sign_up = true" +
-                    "\n;client_id = some_id" +
-                    "\n;client_secret = some_secret" +
-                    "\n;scopes = user:email" +
-                    "\n;allowed_organizations =" +
-                    "\n" +
-                    "\n#################################### Auth Proxy ##########################";
-                replace(content, toFind, toReplace);
+              toFind = "[emails]";
+              toReplace = ";from_name = Grafana" +
+                  "\n# EHLO identity in SMTP dialog (defaults to instance_name)" +
+                  "\n;ehlo_identity = dashboard.example.com" +
+                  "\n" +
+                  "\n[emails]";
+              replace(content, toFind, toReplace);
 
-                toFind = "[emails]";
-                toReplace = ";from_name = Grafana" +
-                    "\n# EHLO identity in SMTP dialog (defaults to instance_name)" +
-                    "\n;ehlo_identity = dashboard.example.com" +
-                    "\n" +
-                    "\n[emails]";
-                replace(content, toFind, toReplace);
+              toFind = "# Either \"Trace\", \"Debug\", \"Info\", \"Warn\", \"Error\", \"Critical\", default is \"Trace\"";
+              toReplace = "# Either \"debug\", \"info\", \"warn\", \"error\", \"critical\", default is\"info\"";
+              replace(content, toFind, toReplace);
 
-                toFind = "# Either \"Trace\", \"Debug\", \"Info\", \"Warn\", \"Error\", \"Critical\", default is \"Trace\"";
-                toReplace = "# Either \"debug\", \"info\", \"warn\", \"error\", \"critical\", default is\"info\"";
-                replace(content, toFind, toReplace);
+              toFind = ";level = Info";
+              toReplace = ";level = info";
+              replace(content, toFind, toReplace);
 
-                toFind = ";level = Info";
-                toReplace = ";level = info";
-                replace(content, toFind, toReplace);
+              toFind = "# Buffer length of channel, keep it as it is if you don't know what it is." +
+                  "\n;buffer_len = 10000";
+              toReplace = "# optional settings to set different levels for specific loggers. Ex filters = sqlstore:debug" +
+                  "\n;filters =";
+              replace(content, toFind, toReplace);
 
-                toFind = "# Buffer length of channel, keep it as it is if you don't know what it is." +
-                    "\n;buffer_len = 10000";
-                toReplace = "# optional settings to set different levels for specific loggers. Ex filters = sqlstore:debug" +
-                    "\n;filters =";
-                replace(content, toFind, toReplace);
-
-                Map<String, String> newProperties = new HashMap<>(1);
-                newProperties.put("content", content.toString());
-                updateConfigurationPropertiesForCluster(cluster, "ams-grafana-ini", newProperties, true, false);
-              }
+              Map<String, String> newProperties = new HashMap<>(1);
+              newProperties.put("content", content.toString());
+              updateConfigurationPropertiesForCluster(cluster, "ams-grafana-ini", newProperties, true, false);
             }
           }
         }
