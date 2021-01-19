@@ -76,9 +76,12 @@ public class CustomStringUtils {
    * @param toInsert insert this string
    * @return if the <code>addAfter</code> argument occurs as a substring within this <code>toInsertInto</code>,
    * then the index of the first character of the first such substring is returned; if it does not occur as a substring, -1 is returned.
+   * If the <code>toInsert</code> exists already in <code>toInsertInto</code>, -2 is returned.
    */
   public static int insertAfter(StringBuilder toInsertInto, String addAfter, String toInsert) {
-    int index = toInsertInto.indexOf(addAfter);
+    int index = toInsertInto.indexOf(toInsert);
+    if (index > -1) return -2;
+    index = toInsertInto.indexOf(addAfter);
     if (index > -1) {
       toInsertInto.insert(index + addAfter.length(), toInsert);
     }
@@ -108,9 +111,12 @@ public class CustomStringUtils {
    * @param toReplace replace <code>toFind</code> string with this
    * @return if the <code>toFind</code> argument occurs as a substring within this <code>replaceIn</code>,
    * then the index of the first character of the first such substring is returned; if it does not occur as a substring, -1 is returned.
+   * If the <code>toReplace</code> exists already in <code>replaceIn</code>, -2 is returned.
    */
   public static  int replace(StringBuilder replaceIn, String toFind, String toReplace) {
-    int index = replaceIn.indexOf(toFind);
+    int index = replaceIn.indexOf(toReplace);
+    if (index > -1) return -2;
+    index = replaceIn.indexOf(toFind);
     if (index > -1) {
       replaceIn.replace(index, index + toFind.length(), toReplace);
     }
