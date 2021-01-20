@@ -158,10 +158,11 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
               insertAfter(content, addAfter, toInsert);
 
               addAfter = "logs = {{ams_grafana_log_dir}}";
+              String pluginsConfLine = "plugins = /var/lib/ambari-metrics-grafana/plugins";
               toInsert = "\n" +
                   "\n# Directory where grafana will automatically scan and look for plugins" +
-                  "\nplugins = /var/lib/ambari-metrics-grafana/plugins";
-              insertAfter(content, addAfter, toInsert);
+                  "\n" + pluginsConfLine;
+              insertAfter(content, addAfter, toInsert, pluginsConfLine);
 
               deleteSubstring(content, ";protocol = http\n");
               deleteSubstring(content, ";http_port = 3000\n");

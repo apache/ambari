@@ -79,7 +79,21 @@ public class CustomStringUtils {
    * If the <code>toInsert</code> exists already in <code>toInsertInto</code>, -2 is returned.
    */
   public static int insertAfter(StringBuilder toInsertInto, String addAfter, String toInsert) {
-    int index = toInsertInto.indexOf(toInsert);
+    return insertAfter(toInsertInto, addAfter, toInsert, toInsert);
+  }
+
+  /**
+   * Insert a string after a substring
+   * @param toInsertInto the base string to be changed
+   * @param addAfter insert a string after this if found in <code>toInsertInto</code>
+   * @param toInsert insert this string
+   * @param ifNotThere only do the insert if this string is not found
+   * @return if the <code>addAfter</code> argument occurs as a substring within this <code>toInsertInto</code>,
+   * then the index of the first character of the first such substring is returned; if it does not occur as a substring, -1 is returned.
+   * If the <code>ifNotThere</code> exists already in <code>toInsertInto</code>, -2 is returned.
+   */
+  public static int insertAfter(StringBuilder toInsertInto, String addAfter, String toInsert, String ifNotThere) {
+    int index = toInsertInto.indexOf(ifNotThere);
     if (index > -1) return -2;
     index = toInsertInto.indexOf(addAfter);
     if (index > -1) {
