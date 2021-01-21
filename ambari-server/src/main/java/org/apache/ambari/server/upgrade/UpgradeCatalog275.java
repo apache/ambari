@@ -17,10 +17,6 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import static org.apache.ambari.server.utils.CustomStringUtils.deleteSubstring;
-import static org.apache.ambari.server.utils.CustomStringUtils.insertAfter;
-import static org.apache.ambari.server.utils.CustomStringUtils.replace;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,6 +39,11 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
+import static org.apache.ambari.server.utils.CustomStringUtils.deleteSubstring;
+import static org.apache.ambari.server.utils.CustomStringUtils.insertAfterIfNotThere;
+import static org.apache.ambari.server.utils.CustomStringUtils.replace;
+import static org.apache.ambari.server.utils.CustomStringUtils.replaceIfNotThere;
 
 
 /**
@@ -140,7 +141,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
     if (clusters != null) {
       Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
       if (clusterMap != null && !clusterMap.isEmpty()) {
-        for (final Cluster cluster : clusterMap.values()) {
+        for (Cluster cluster : clusterMap.values()) {
           Set<String> installedServices = cluster.getServices().keySet();
           if (installedServices.contains("AMBARI_METRICS")) {
             String contentText = cluster.getDesiredConfigByType("ams-grafana-ini").getProperties().get("content");
@@ -155,14 +156,14 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
               toInsert = "\n" +
                   "\n# instance name, defaults to HOSTNAME environment variable value or hostname if HOSTNAME var is empty" +
                   "\n; instance_name = ${HOSTNAME}";
-              insertAfter(content, addAfter, toInsert);
+              insertAfterIfNotThere(content, addAfter, toInsert);
 
               addAfter = "logs = {{ams_grafana_log_dir}}";
               String pluginsConfLine = "plugins = /var/lib/ambari-metrics-grafana/plugins";
               toInsert = "\n" +
                   "\n# Directory where grafana will automatically scan and look for plugins" +
                   "\n" + pluginsConfLine;
-              insertAfter(content, addAfter, toInsert, pluginsConfLine);
+              insertAfterIfNotThere(content, addAfter, toInsert, pluginsConfLine);
 
               deleteSubstring(content, ";protocol = http\n");
               deleteSubstring(content, ";http_port = 3000\n");
@@ -174,7 +175,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
               toInsert = "\n" +
                   "\n# Unix socket path" +
                   "\n;socket =";
-              insertAfter(content, addAfter, toInsert);
+              insertAfterIfNotThere(content, addAfter, toInsert);
 
               toFind = ";password =";
               toReplace = "# If the password contains # or ; you have to wrap it with triple quotes. Ex \"\"\"#password;\"\"\"" +
@@ -183,7 +184,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
                   "\n# Use either URL or the previous fields to configure the database" +
                   "\n# Example: mysql://user:secret@host:port/database" +
                   "\n;url =";
-              replace(content, toFind, toReplace);
+              replaceIfNotThere(content, toFind, toReplace);
 
               addAfter = ";session_life_time = 86400";
               toInsert = "\n" +
@@ -192,7 +193,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
                   "\n" +
                   "\n# This enables data proxy logging, default is false" +
                   "\n;logging = false";
-              insertAfter(content, addAfter, toInsert);
+              insertAfterIfNotThere(content, addAfter, toInsert);
 
               toFind = "# Google Analytics universal tracking code, only enabled if you specify an id here";
               toReplace = "# Set to false to disable all checks to https://grafana.net" +
@@ -203,7 +204,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
                   "\n;check_for_updates = true" +
                   "\n" +
                   "\n# Google Analytics universal tracking code, only enabled if you specify an id here";
-              replace(content, toFind, toReplace);
+              replaceIfNotThere(content, toFind, toReplace);
 
               toFind = "#################################### Users ####################################";
               toReplace = "[snapshots]" +
@@ -219,7 +220,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
                   "\n;snapshot_TTL_days = 90" +
                   "\n" +
                   "\n#################################### Users ####################################";
-              replace(content, toFind, toReplace);
+              replaceIfNotThere(content, toFind, toReplace);
 
               toFind = "#################################### Anonymous Auth ##########################";
               toReplace = "# Default UI theme (\"dark\" or \"light\")" +
@@ -238,7 +239,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
                   "\n;disable_signout_menu = false" +
                   "\n" +
                   "\n#################################### Anonymous Auth ##########################";
-              replace(content, toFind, toReplace);
+              replaceIfNotThere(content, toFind, toReplace);
 
               toFind = "#################################### Auth Proxy ##########################";
               toReplace = "#################################### Generic OAuth ##########################" +
@@ -273,21 +274,21 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
                   "\n;ehlo_identity = dashboard.example.com" +
                   "\n" +
                   "\n[emails]";
-              replace(content, toFind, toReplace);
+              replaceIfNotThere(content, toFind, toReplace);
 
               toFind = "# Either \"Trace\", \"Debug\", \"Info\", \"Warn\", \"Error\", \"Critical\", default is \"Trace\"";
               toReplace = "# Either \"debug\", \"info\", \"warn\", \"error\", \"critical\", default is\"info\"";
-              replace(content, toFind, toReplace);
+              replaceIfNotThere(content, toFind, toReplace);
 
               toFind = ";level = Info";
               toReplace = ";level = info";
-              replace(content, toFind, toReplace);
+              replaceIfNotThere(content, toFind, toReplace);
 
               toFind = "# Buffer length of channel, keep it as it is if you don't know what it is." +
                   "\n;buffer_len = 10000";
               toReplace = "# optional settings to set different levels for specific loggers. Ex filters = sqlstore:debug" +
                   "\n;filters =";
-              replace(content, toFind, toReplace);
+              replaceIfNotThere(content, toFind, toReplace);
 
               Map<String, String> newProperties = new HashMap<>(1);
               newProperties.put("content", content.toString());
