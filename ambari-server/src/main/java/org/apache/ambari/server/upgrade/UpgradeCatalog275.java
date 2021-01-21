@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
@@ -140,7 +141,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
     Clusters clusters = ambariManagementController.getClusters();
     if (clusters != null) {
       Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
-      if (clusterMap != null && !clusterMap.isEmpty()) {
+      if (MapUtils.isNotEmpty(clusterMap)) {
         for (Cluster cluster : clusterMap.values()) {
           Set<String> installedServices = cluster.getServices().keySet();
           if (installedServices.contains("AMBARI_METRICS")) {
