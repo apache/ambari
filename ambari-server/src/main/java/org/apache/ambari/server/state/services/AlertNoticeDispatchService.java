@@ -294,7 +294,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
         if (dispatcher.isDigestSupported()) {
           createSingleNotice(dispatcher, target, notices);
         } else {
-          createSeparatedNotices(dispatcher, target, notices);
+          createSeparateNotices(dispatcher, target, notices);
         }
       } catch (Exception e) {
         LOG.error("Caught exception during Alert Notice dispatching.", e);
@@ -383,7 +383,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
    * @param target where notifications will be sent.
    * @param notices notices should be dispatched.
    */
-  private void createSeparatedNotices(NotificationDispatcher dispatcher, AlertTargetEntity target,
+  private void createSeparateNotices(NotificationDispatcher dispatcher, AlertTargetEntity target,
                                       List<AlertNoticeEntity> notices) {
     for (AlertNoticeEntity notice : notices) {
       AlertNotification notification = buildNotificationFromTarget(target);
