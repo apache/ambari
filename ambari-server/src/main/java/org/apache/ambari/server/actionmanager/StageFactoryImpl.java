@@ -57,7 +57,8 @@ public class StageFactoryImpl implements StageFactory {
                          @Assisted("hostParamsStage") String hostParamsStage) {
     return new Stage(requestId, logDir, clusterName, clusterId, requestContext, commandParamsStage, hostParamsStage,
         injector.getInstance(HostRoleCommandFactory.class),
-        injector.getInstance(ExecutionCommandWrapperFactory.class));
+        injector.getInstance(ExecutionCommandWrapperFactory.class), injector.getInstance(HostRoleCommandDAO.class),
+        injector.getInstance(ActionDBAccessor.class));
   }
 
   /**
@@ -67,7 +68,18 @@ public class StageFactoryImpl implements StageFactory {
    */
   @Override
   public Stage createExisting(@Assisted StageEntity stageEntity) {
-    return new Stage(stageEntity, injector.getInstance(HostRoleCommandDAO.class),
+    return createExisting(stageEntity, true);
+  }
+
+  /**
+   * Constructor via the factory.
+   * @param stageEntity Existing stage entity to copy fields form.
+   * @param loadCommands determines should all associated host role commands be loaded on stage initialization.
+   * @return An instance of a Stage that is created using the provided stage as input.
+   */
+  @Override
+  public Stage createExisting(@Assisted StageEntity stageEntity, @Assisted boolean loadCommands) {
+    return new Stage(stageEntity, loadCommands, injector.getInstance(HostRoleCommandDAO.class),
         injector.getInstance(ActionDBAccessor.class), injector.getInstance(Clusters.class),
         injector.getInstance(HostRoleCommandFactory.class),
         injector.getInstance(ExecutionCommandWrapperFactory.class));

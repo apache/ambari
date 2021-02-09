@@ -27,10 +27,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleCommandMinimal;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -406,7 +408,9 @@ public class TaskStatusListener {
 
         List<HostRoleCommand> activeHostRoleCommandsOfStage = FluentIterable.from(reportedStage.getTaskIds())
             .transform(transform).toList();
-        Map<HostRoleStatus, Integer> statusCount = CalculatedStatus.calculateStatusCountsForTasks(activeHostRoleCommandsOfStage);
+        List<HostRoleCommandMinimal> activeHostRoleCommandMinimalsOfStage =
+            activeHostRoleCommandsOfStage.stream().map(o -> new HostRoleCommandMinimal(o)).collect(Collectors.toList());
+        Map<HostRoleStatus, Integer> statusCount = CalculatedStatus.calculateStatusCountsForTasks(activeHostRoleCommandMinimalsOfStage);
         if (displayStatusFromPartialSet == HostRoleStatus.PENDING) {
           // calculate and get new display status of the stage as per the new status of received host role commands
           HostRoleStatus display_status = CalculatedStatus.calculateSummaryDisplayStatus(statusCount, activeHostRoleCommandsOfStage.size(), reportedStage.getSkippable());
@@ -422,7 +426,9 @@ public class TaskStatusListener {
 
         if (statusFromPartialSet == HostRoleStatus.PENDING) {
           // calculate status of the stage as per the new status of received host role commands
-          HostRoleStatus status = CalculatedStatus.calculateStageStatus(activeHostRoleCommandsOfStage, statusCount, reportedStage.getSuccessFactors(), reportedStage.getSkippable());
+          HostRoleStatus status = CalculatedStatus.calculateStageStatus(
+              activeHostRoleCommandMinimalsOfStage,
+              statusCount, reportedStage.getSuccessFactors(), reportedStage.getSkippable());
           if (status != stageCurrentStatus) {
             reportedStage.setStatus(status);
             didAnyStatusChanged = Boolean.TRUE;

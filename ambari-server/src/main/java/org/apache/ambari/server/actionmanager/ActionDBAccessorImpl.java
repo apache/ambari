@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.annotations.TransactionalLock;
 import org.apache.ambari.annotations.TransactionalLock.LockArea;
@@ -741,6 +742,26 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       }
     }
     commands.sort((o1, o2) -> (int) (o1.getTaskId() - o2.getTaskId()));
+    return commands;
+  }
+
+  @Override
+  public List<HostRoleCommandMinimal> getTaskStatusRoles(Collection<Long> taskIds) {
+    if (taskIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    Map<Long, HostRoleCommand> cached = hostRoleCommandCache.getAllPresent(taskIds);
+    List<HostRoleCommandMinimal> commands =
+        new ArrayList<>(cached.values().stream().map(v ->
+            new HostRoleCommandMinimal(v.getTaskId(), v.getStatus(), v.getRole())).collect(Collectors.toList()));
+
+    List<Long> absent = new ArrayList<>(taskIds);
+    absent.removeAll(cached.keySet());
+
+    if (!absent.isEmpty()) {
+      commands.addAll(hostRoleCommandDAO.findStatusRolesByPKs(absent));
+    }
     return commands;
   }
 

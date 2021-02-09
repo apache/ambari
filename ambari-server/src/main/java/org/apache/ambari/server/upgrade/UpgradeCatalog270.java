@@ -42,7 +42,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleCommandMinimal;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
@@ -1387,11 +1387,11 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
             List<HostRoleStatus> stageDisplayStatuses = new ArrayList<>();
             List<HostRoleStatus> stageStatuses = new ArrayList<>();
             for (StageEntity stageEntity : stageEntities) {
-              Stage stage = stageFactory.createExisting(stageEntity);
-              List<HostRoleCommand> hostRoleCommands = stage.getOrderedHostRoleCommands();
-              Map<HostRoleStatus, Integer> statusCount = CalculatedStatus.calculateStatusCountsForTasks(hostRoleCommands);
-              HostRoleStatus stageDisplayStatus = CalculatedStatus.calculateSummaryDisplayStatus(statusCount, hostRoleCommands.size(), stage.isSkippable());
-              HostRoleStatus stageStatus = CalculatedStatus.calculateStageStatus(hostRoleCommands, statusCount, stage.getSuccessFactors(), stage.isSkippable());
+              Stage stage = stageFactory.createExisting(stageEntity, false);
+              List<HostRoleCommandMinimal> hostRoleCommandStatusRoles = stage.getOrderedHostRoleCommandStatusRoles();
+              Map<HostRoleStatus, Integer> statusCount = CalculatedStatus.calculateStatusCountsForTasks(hostRoleCommandStatusRoles);
+              HostRoleStatus stageDisplayStatus = CalculatedStatus.calculateSummaryDisplayStatus(statusCount, hostRoleCommandStatusRoles.size(), stage.isSkippable());
+              HostRoleStatus stageStatus = CalculatedStatus.calculateStageStatus(hostRoleCommandStatusRoles, statusCount, stage.getSuccessFactors(), stage.isSkippable());
               stageEntity.setStatus(stageStatus);
               stageStatuses.add(stageStatus);
               stageEntity.setDisplayStatus(stageDisplayStatus);

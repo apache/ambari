@@ -25,9 +25,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleCommandMinimal;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -39,10 +41,6 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
-
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 
 /**
  * Status of a request resource, calculated from a set of tasks or stages.
@@ -278,14 +276,14 @@ public class CalculatedStatus {
    *
    * @return a map of counts of tasks keyed by the task status
    */
-  public static Map<HostRoleStatus, Integer> calculateStatusCountsForTasks(Collection<HostRoleCommand> hostRoleCommands) {
+  public static Map<HostRoleStatus, Integer> calculateStatusCountsForTasks(Collection<HostRoleCommandMinimal> hostRoleCommands) {
     Map<HostRoleStatus, Integer> counters = new HashMap<>();
     // initialize
     for (HostRoleStatus hostRoleStatus : HostRoleStatus.values()) {
       counters.put(hostRoleStatus, 0);
     }
     // calculate counts
-    for (HostRoleCommand hrc : hostRoleCommands) {
+    for (HostRoleCommandMinimal hrc : hostRoleCommands) {
       // count tasks where isCompletedState() == true as COMPLETED
       // but don't count tasks with COMPLETED status twice
       if (hrc.getStatus().isCompletedState() && hrc.getStatus() != HostRoleStatus.COMPLETED) {
@@ -646,14 +644,15 @@ public class CalculatedStatus {
 
   /**
    *
-   * @param hostRoleCommands list of {@link HostRoleCommand} for a stage
+   * @param hostRoleCommands list of {@link HostRoleCommandMinimal} for a stage
    * @param counters counts of resources that are in various states
    * @param successFactors Map of roles to their successfactor for a stage
    * @param skippable {Boolean} <code>TRUE<code/> if failure of any of the task should not fail the stage
    * @return {@link HostRoleStatus} based on success factor
    */
-  public static HostRoleStatus calculateStageStatus(List <HostRoleCommand> hostRoleCommands, Map<HostRoleStatus, Integer> counters, Map<Role, Float> successFactors,
-                                                    boolean skippable) {
+  public static HostRoleStatus calculateStageStatus(List <HostRoleCommandMinimal> hostRoleCommands,
+                                                    Map<HostRoleStatus, Integer> counters,
+                                                    Map<Role, Float> successFactors, boolean skippable) {
 
     // when there are 0 tasks, return COMPLETED
     int total = hostRoleCommands.size();
@@ -704,7 +703,7 @@ public class CalculatedStatus {
    * @param hostRoleCommands list of {@link HostRoleCommand}
    * @return Set of {@link Role}
    */
-  protected static Set<Role> getRolesOfFailedTasks(List <HostRoleCommand> hostRoleCommands) {
+  protected static Set<Role> getRolesOfFailedTasks(List <HostRoleCommandMinimal> hostRoleCommands) {
     return getRolesOfTasks(hostRoleCommands, HostRoleStatus.FAILED);
   }
 
@@ -713,7 +712,7 @@ public class CalculatedStatus {
    * @param hostRoleCommands list of {@link HostRoleCommand}
    * @return Set of {@link Role}
    */
-  protected static Set<Role> getRolesOfTimedOutTasks(List <HostRoleCommand> hostRoleCommands) {
+  protected static Set<Role> getRolesOfTimedOutTasks(List <HostRoleCommandMinimal> hostRoleCommands) {
     return getRolesOfTasks(hostRoleCommands, HostRoleStatus.TIMEDOUT);
   }
 
@@ -722,35 +721,13 @@ public class CalculatedStatus {
    * @param hostRoleCommands list of {@link HostRoleCommand}
    * @return Set of {@link Role}
    */
-  protected static Set<Role> getRolesOfAbortedTasks(List <HostRoleCommand> hostRoleCommands) {
+  protected static Set<Role> getRolesOfAbortedTasks(List <HostRoleCommandMinimal> hostRoleCommands) {
     return getRolesOfTasks(hostRoleCommands, HostRoleStatus.ABORTED);
   }
 
-  /**
-   * Get all {@link Role} any of whose tasks are in given {@code status}
-   * @param hostRoleCommands list of {@link HostRoleCommand}
-   * @param status {@link HostRoleStatus}
-   * @return Set of {@link Role}
-   */
-  protected static Set<Role> getRolesOfTasks(List <HostRoleCommand> hostRoleCommands, final HostRoleStatus status) {
-
-    Predicate<HostRoleCommand> predicate = new Predicate<HostRoleCommand>() {
-      @Override
-      public boolean apply(HostRoleCommand hrc) {
-        return hrc.getStatus() ==  status;
-      }
-    };
-
-    Function<HostRoleCommand, Role> transform = new Function<HostRoleCommand, Role>() {
-      @Override
-      public Role apply(HostRoleCommand hrc) {
-        return hrc.getRole();
-      }
-    };
-    return FluentIterable.from(hostRoleCommands)
-        .filter(predicate)
-        .transform(transform)
-        .toSet();
+  protected static Set<Role> getRolesOfTasks(List <HostRoleCommandMinimal> hostRoleCommands, final HostRoleStatus status) {
+    return hostRoleCommands.stream().filter(hrc -> hrc.getStatus() ==  status)
+        .map(hrc -> hrc.getRole()).collect(Collectors.toSet());
   }
 
   /**
@@ -760,11 +737,11 @@ public class CalculatedStatus {
    * @param successFactors  map of role to it's success factor
    * @return {Boolean} <code>TRUE</code> if stage failed due to hostRoleCommands of any role not meeting success criteria
    */
-  protected static Boolean didStageFailed(List<HostRoleCommand> hostRoleCommands, Set<Role> roles, Map<Role, Float> successFactors) {
+  protected static Boolean didStageFailed(List<HostRoleCommandMinimal> hostRoleCommands, Set<Role> roles, Map<Role, Float> successFactors) {
     Boolean isFailed = Boolean.FALSE;
     for (Role role: roles) {
-      List <HostRoleCommand> hostRoleCommandsOfRole = getHostRoleCommandsOfRole(hostRoleCommands, role);
-      List <HostRoleCommand> failedHostRoleCommands =  getFailedHostRoleCommands(hostRoleCommandsOfRole);
+      List <HostRoleCommandMinimal> hostRoleCommandsOfRole = getHostRoleCommandsOfRole(hostRoleCommands, role);
+      List <HostRoleCommandMinimal> failedHostRoleCommands =  getFailedHostRoleCommands(hostRoleCommandsOfRole);
       float successRatioForRole = (hostRoleCommandsOfRole.size() - failedHostRoleCommands.size())/hostRoleCommandsOfRole.size();
       Float successFactorForRole =  successFactors.get(role) == null ? 1.0f : successFactors.get(role);
       if (successRatioForRole  < successFactorForRole) {
@@ -781,16 +758,9 @@ public class CalculatedStatus {
    * @param role {@link Role}
    * @return list of {@link HostRoleCommand} that belongs to {@link Role}
    */
-  protected static List<HostRoleCommand> getHostRoleCommandsOfRole(List <HostRoleCommand> hostRoleCommands, final Role role) {
-    Predicate<HostRoleCommand> predicate = new Predicate<HostRoleCommand>() {
-      @Override
-      public boolean apply(HostRoleCommand hrc) {
-        return hrc.getRole() ==  role;
-      }
-    };
-    return FluentIterable.from(hostRoleCommands)
-        .filter(predicate)
-        .toList();
+  protected static List<HostRoleCommandMinimal> getHostRoleCommandsOfRole(
+      List <HostRoleCommandMinimal> hostRoleCommands, final Role role) {
+    return hostRoleCommands.stream().filter(hrc -> hrc.getRole() ==  role).collect(Collectors.toList());
   }
 
   /**
@@ -798,16 +768,9 @@ public class CalculatedStatus {
    * @param hostRoleCommands list of {@link HostRoleCommand}
    * @return list of {@link HostRoleCommand} with failed status
    */
-  protected static List<HostRoleCommand> getFailedHostRoleCommands(List <HostRoleCommand> hostRoleCommands) {
-    Predicate<HostRoleCommand> predicate = new Predicate<HostRoleCommand>() {
-      @Override
-      public boolean apply(HostRoleCommand hrc) {
-        return hrc.getStatus().isFailedAndNotSkippableState();
-      }
-    };
-    return FluentIterable.from(hostRoleCommands)
-        .filter(predicate)
-        .toList();
+  protected static List<HostRoleCommandMinimal> getFailedHostRoleCommands(List <HostRoleCommandMinimal> hostRoleCommands) {
+    return hostRoleCommands.stream().filter(hrc -> hrc.getStatus().isFailedAndNotSkippableState())
+        .collect(Collectors.toList());
   }
 
 

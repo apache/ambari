@@ -96,6 +96,9 @@ public class Stage {
   private Map<String, List<ExecutionCommandWrapper>> commandsToSend =
     new TreeMap<>();
 
+  private HostRoleCommandDAO hostRoleCommandDAO;
+  private ActionDBAccessor dbAccessor;
+
   @Inject
   private HostRoleCommandFactory hostRoleCommandFactory;
 
@@ -110,7 +113,8 @@ public class Stage {
       @Assisted("requestContext") @Nullable String requestContext,
       @Assisted("commandParamsStage") String commandParamsStage,
       @Assisted("hostParamsStage") String hostParamsStage,
-      HostRoleCommandFactory hostRoleCommandFactory, ExecutionCommandWrapperFactory ecwFactory) {
+      HostRoleCommandFactory hostRoleCommandFactory, ExecutionCommandWrapperFactory ecwFactory,
+      HostRoleCommandDAO hostRoleCommandDAO, ActionDBAccessor dbAccessor) {
     wrappersLoaded = true;
     this.requestId = requestId;
     this.logDir = logDir;
@@ -125,14 +129,18 @@ public class Stage {
 
     this.hostRoleCommandFactory = hostRoleCommandFactory;
     this.ecwFactory = ecwFactory;
+    this.hostRoleCommandDAO = hostRoleCommandDAO;
+    this.dbAccessor = dbAccessor;
   }
 
   @AssistedInject
-  public Stage(@Assisted StageEntity stageEntity, HostRoleCommandDAO hostRoleCommandDAO,
+  public Stage(@Assisted StageEntity stageEntity, boolean loadCommands, HostRoleCommandDAO hostRoleCommandDAO,
       ActionDBAccessor dbAccessor, Clusters clusters, HostRoleCommandFactory hostRoleCommandFactory,
       ExecutionCommandWrapperFactory ecwFactory) {
     this.hostRoleCommandFactory = hostRoleCommandFactory;
     this.ecwFactory = ecwFactory;
+    this.hostRoleCommandDAO = hostRoleCommandDAO;
+    this.dbAccessor = dbAccessor;
 
     requestId = stageEntity.getRequestId();
     stageId = stageEntity.getStageId();
@@ -157,20 +165,22 @@ public class Stage {
     status = stageEntity.getStatus();
     displayStatus = stageEntity.getDisplayStatus();
 
-    List<Long> taskIds = hostRoleCommandDAO.findTaskIdsByStage(requestId, stageId);
-    Collection<HostRoleCommand> commands = dbAccessor.getTasks(taskIds);
+    if (loadCommands) {
+      List<Long> taskIds = hostRoleCommandDAO.findTaskIdsByStage(requestId, stageId);
+      Collection<HostRoleCommand> commands = dbAccessor.getTasks(taskIds);//
 
-    for (HostRoleCommand command : commands) {
-      // !!! some commands won't have a hostname, because they are server-side and
-      // don't hold that information.  In that case, use the special key to
-      // use in the map
-      String hostname = getSafeHost(command.getHostName());
+      for (HostRoleCommand command : commands) {
+        // !!! some commands won't have a hostname, because they are server-side and
+        // don't hold that information.  In that case, use the special key to
+        // use in the map
+        String hostname = getSafeHost(command.getHostName());
 
-      if (!hostRoleCommands.containsKey(hostname)) {
-        hostRoleCommands.put(hostname, new LinkedHashMap<>());
+        if (!hostRoleCommands.containsKey(hostname)) {
+          hostRoleCommands.put(hostname, new LinkedHashMap<>());
+        }
+
+        hostRoleCommands.get(hostname).put(command.getRole().toString(), command);
       }
-
-      hostRoleCommands.get(hostname).put(command.getRole().toString(), command);
     }
 
     for (RoleSuccessCriteriaEntity successCriteriaEntity : stageEntity.getRoleSuccessCriterias()) {
@@ -242,6 +252,11 @@ public class Stage {
       }
     }
     return commands;
+  }
+
+  public List<HostRoleCommandMinimal> getOrderedHostRoleCommandStatusRoles() {
+    List<Long> taskIds = hostRoleCommandDAO.findTaskIdsByStage(requestId, stageId);
+    return dbAccessor.getTaskStatusRoles(taskIds);
   }
 
   /**
