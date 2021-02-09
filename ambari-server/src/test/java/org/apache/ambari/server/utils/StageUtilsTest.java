@@ -54,6 +54,7 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -101,6 +102,7 @@ public class StageUtilsTest extends EasyMockSupport {
         bind(AmbariMetaInfo.class).toInstance(createMock(AmbariMetaInfo.class));
         bind(TopologyManager.class).toInstance(createNiceMock(TopologyManager.class));
         bind(HostDAO.class).toInstance(createNiceMock(HostDAO.class));
+        bind(StageDAO.class).toInstance(createNiceMock(StageDAO.class));
 
         install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));
         install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
