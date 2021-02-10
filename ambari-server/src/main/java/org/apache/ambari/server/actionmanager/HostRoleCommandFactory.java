@@ -92,4 +92,15 @@ public interface HostRoleCommandFactory {
    * @return An instance constructed from the input object.
    */
   HostRoleCommand createExisting(HostRoleCommandEntity hostRoleCommandEntity);
+
+  /**
+   * Constructor via factory
+   *
+   * @param hostRoleCommandEntity
+   *          Object to copy fields from.
+   * @param loadStatusRolesOnly
+   *          should we initialize only command role and status fields.
+   * @return An instance constructed from the input object.
+   */
+  HostRoleCommand createExisting(HostRoleCommandEntity hostRoleCommandEntity, boolean loadStatusRolesOnly);
 }

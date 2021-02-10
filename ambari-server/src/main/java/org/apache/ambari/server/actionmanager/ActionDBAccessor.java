@@ -191,7 +191,7 @@ public interface ActionDBAccessor {
   /**
    * Given a list of task ids, get all the host role commands with only id, status and role.
    */
-  List<HostRoleCommandMinimal> getTaskStatusRoles(Collection<Long> taskIds);
+  List<HostRoleCommand> getTaskStatusRoles(Collection<Long> taskIds);
 
   /**
    * Get a List of host role commands where the host, role and status are as specified

@@ -44,7 +44,6 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
-import org.apache.ambari.server.actionmanager.HostRoleCommandMinimal;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
@@ -317,10 +316,10 @@ public class HostRoleCommandDAO {
   /**
    * Retrieves minimal host role command columns which are required to calculate stare state.
    * @param taskIds collection of host role commands to process.
-   * @return minimized info about host role commands.
+   * @return minimized host role command entities.
    */
   @RequiresSession
-  public List<HostRoleCommandMinimal> findStatusRolesByPKs(Collection<Long> taskIds) {
+  public List<HostRoleCommandEntity> findStatusRolesByPKs(Collection<Long> taskIds) {
     if (taskIds == null || taskIds.isEmpty()) {
       return Collections.emptyList();
     }
@@ -331,16 +330,20 @@ public class HostRoleCommandDAO {
         Object[].class);
 
     if (taskIds.size() > configuration.getTaskIdListLimit()) {
-      List<HostRoleCommandMinimal> result = new ArrayList<>();
+      List<HostRoleCommandEntity> result = new ArrayList<>();
 
       List<List<Long>> lists = Lists.partition(new ArrayList<>(taskIds), configuration.getTaskIdListLimit());
       for (List<Long> list : lists) {
 
         List<Object[]> queryResult = daoUtils.selectList(query, list);
         result.addAll(queryResult.stream().map(
-            o -> new HostRoleCommandMinimal((Long) o[0],
-                HostRoleStatus.valueOf(o[1].toString()),
-                Role.valueOf(o[2].toString()))).collect(Collectors.toList()));
+            o -> {
+              HostRoleCommandEntity e = new HostRoleCommandEntity();
+              e.setTaskId((Long) o[0]);
+              e.setStatus(HostRoleStatus.valueOf(o[1].toString()));
+              e.setRole(Role.valueOf(o[2].toString()));
+              return e;
+            }).collect(Collectors.toList()));
       }
 
       return result;
@@ -348,9 +351,13 @@ public class HostRoleCommandDAO {
 
     List<Object[]> queryResult = daoUtils.selectList(query, taskIds);
     return queryResult.stream().map(
-        o -> new HostRoleCommandMinimal((Long) o[0],
-            HostRoleStatus.valueOf(o[1].toString()),
-            Role.valueOf(o[2].toString()))).collect(Collectors.toList());
+        o -> {
+          HostRoleCommandEntity e = new HostRoleCommandEntity();
+          e.setTaskId((Long) o[0]);
+          e.setStatus(HostRoleStatus.valueOf(o[1].toString()));
+          e.setRole(Role.valueOf(o[2].toString()));
+          return e;
+        }).collect(Collectors.toList());
   }
 
   @RequiresSession

@@ -254,7 +254,7 @@ public class Stage {
     return commands;
   }
 
-  public List<HostRoleCommandMinimal> getOrderedHostRoleCommandStatusRoles() {
+  public List<HostRoleCommand> getOrderedHostRoleCommandStatusRoles() {
     List<Long> taskIds = hostRoleCommandDAO.findTaskIdsByStage(requestId, stageId);
     return dbAccessor.getTaskStatusRoles(taskIds);
   }

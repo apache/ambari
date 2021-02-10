@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.HostRoleCommandMinimal;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -53,7 +52,6 @@ import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
@@ -399,18 +397,9 @@ public class TaskStatusListener {
       HostRoleStatus statusFromPartialSet = CalculatedStatus.calculateSummaryStatusFromPartialSet(receivedTaskStatusCount, reportedStage.getSkippable());
       HostRoleStatus displayStatusFromPartialSet = CalculatedStatus.calculateSummaryStatusFromPartialSet(receivedTaskStatusCount, Boolean.FALSE);
       if (statusFromPartialSet == HostRoleStatus.PENDING || displayStatusFromPartialSet == HostRoleStatus.PENDING) {
-        Function<Long,HostRoleCommand> transform = new Function<Long,HostRoleCommand>(){
-          @Override
-          public HostRoleCommand apply(Long taskId) {
-            return activeTasksMap.get(taskId);
-          }
-        };
-
-        List<HostRoleCommand> activeHostRoleCommandsOfStage = FluentIterable.from(reportedStage.getTaskIds())
-            .transform(transform).toList();
-        List<HostRoleCommandMinimal> activeHostRoleCommandMinimalsOfStage =
-            activeHostRoleCommandsOfStage.stream().map(o -> new HostRoleCommandMinimal(o)).collect(Collectors.toList());
-        Map<HostRoleStatus, Integer> statusCount = CalculatedStatus.calculateStatusCountsForTasks(activeHostRoleCommandMinimalsOfStage);
+        List<HostRoleCommand> activeHostRoleCommandsOfStage = reportedStage.getTaskIds().stream()
+            .map(taskId -> activeTasksMap.get(taskId)).collect(Collectors.toList());
+        Map<HostRoleStatus, Integer> statusCount = CalculatedStatus.calculateStatusCountsForTasks(activeHostRoleCommandsOfStage);
         if (displayStatusFromPartialSet == HostRoleStatus.PENDING) {
           // calculate and get new display status of the stage as per the new status of received host role commands
           HostRoleStatus display_status = CalculatedStatus.calculateSummaryDisplayStatus(statusCount, activeHostRoleCommandsOfStage.size(), reportedStage.getSkippable());
@@ -426,9 +415,7 @@ public class TaskStatusListener {
 
         if (statusFromPartialSet == HostRoleStatus.PENDING) {
           // calculate status of the stage as per the new status of received host role commands
-          HostRoleStatus status = CalculatedStatus.calculateStageStatus(
-              activeHostRoleCommandMinimalsOfStage,
-              statusCount, reportedStage.getSuccessFactors(), reportedStage.getSkippable());
+          HostRoleStatus status = CalculatedStatus.calculateStageStatus(activeHostRoleCommandsOfStage, statusCount, reportedStage.getSuccessFactors(), reportedStage.getSkippable());
           if (status != stageCurrentStatus) {
             reportedStage.setStatus(status);
             didAnyStatusChanged = Boolean.TRUE;
