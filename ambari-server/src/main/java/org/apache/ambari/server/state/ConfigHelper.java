@@ -2138,9 +2138,7 @@ public class ConfigHelper {
    */
   public Map<String, Map<String, String>> calculateExistingConfigurations(AmbariManagementController ambariManagementController, Cluster cluster) throws AmbariException {
     final Map<String, Map<String, String>> configurations = new HashMap<>();
-    for (Host host : cluster.getHosts()) {
-      configurations.putAll(calculateExistingConfigurations(ambariManagementController, cluster, host.getHostName()));
-    }
+    configurations.putAll(calculateExistingConfigurations(ambariManagementController, cluster, null));
     return configurations;
   }
 
@@ -2159,7 +2157,7 @@ public class ConfigHelper {
     // global:version1:{a1:A1,b1:B1,d1:D1} + global:{a1:A2,c1:C1,DELETED_d1:x} ==>
     // global:{a1:A2,b1:B1,c1:C1}
     final Map<String, Map<String, String>> configurations = new HashMap<>();
-    final Map<String, Map<String, String>> configurationTags = ambariManagementController.findConfigurationTagsWithOverrides(cluster, hostname);
+    final Map<String, Map<String, String>> configurationTags = hostname == null ? getEffectiveDesiredTags(cluster, null, cluster.getDesiredConfigs()) : ambariManagementController.findConfigurationTagsWithOverrides(cluster, hostname);
     final Map<String, Map<String, String>> configProperties = getEffectiveConfigProperties(cluster, configurationTags);
 
     // Apply the configurations saved with the Execution Cmd on top of
