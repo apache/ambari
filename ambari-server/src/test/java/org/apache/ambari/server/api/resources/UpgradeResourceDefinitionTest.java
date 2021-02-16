@@ -54,7 +54,7 @@ public class UpgradeResourceDefinitionTest {
     ResourceDefinition resourceDefinition = new UpgradeResourceDefinition();
 
     assertEquals(Sets.newHashSet(UpgradeResourceDefinition.SKIP_SERVICE_CHECKS_DIRECTIVE,
-                                 Request.DIRECTIVE_FORCE_METRICS_FETCH),
+                                  Request.DIRECTIVE_FORCE_METRICS_FETCH),
         resourceDefinition.getCreateDirectives());
   }
 }
