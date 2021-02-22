@@ -123,6 +123,7 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
@@ -2162,11 +2163,12 @@ public class ClusterImpl implements Cluster {
       if (StringUtils.isBlank(serviceComponentName)) {
         continue;
       }
-
+      ServiceComponent serviceComponent = null;
+      ServiceComponentHost serviceComponentHost = null;
       try {
         Service service = getService(serviceName);
-        ServiceComponent serviceComponent = service.getServiceComponent(serviceComponentName);
-        ServiceComponentHost serviceComponentHost = serviceComponent.getServiceComponentHost(
+        serviceComponent = service.getServiceComponent(serviceComponentName);
+        serviceComponentHost = serviceComponent.getServiceComponentHost(
             event.getHostName());
         serviceComponentHost.handleEvent(event);
       } catch (ServiceNotFoundException e) {
@@ -2199,6 +2201,18 @@ public class ClusterImpl implements Cluster {
         Enum<?> currentState = e.getCurrentState();
         Enum<?> failedEvent = e.getEvent();
 
+        if (serviceComponent != null && serviceComponentHost != null
+            && (currentState == State.STARTED || currentState == State.STARTING)
+            && failedEvent == ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL
+            && serviceComponentName.equals("NODEMANAGER") && serviceComponentHost
+                .getComponentAdminState() == HostComponentAdminState.DECOMMISSIONED) {
+          // this can happen with NodeManager. check if the NM has been decommissioned
+          LOG.warn(
+            "NodeManagers are started by ambari's Recovery manager when RM shuts it down. So getting STARTED state for a"
+                + " HOST_SVCCOMP_INSTALL is expected");
+          // Mark as not a failure
+          isFailure = false;
+        }
         // skip adding this as a failed event, to work around stack ordering
         // issues with Hive
         if (currentState == State.STARTED &&
