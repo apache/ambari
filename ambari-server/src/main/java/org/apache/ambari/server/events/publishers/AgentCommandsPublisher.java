@@ -416,52 +416,49 @@ public class AgentCommandsPublisher {
                                  ResolvedKerberosKeytab resolvedKerberosKeytab,
                                  ResolvedKerberosPrincipal resolvedPrincipal,
                                  Map<String, ? extends Collection<String>> serviceComponentFilter) {
-      ResolvedKerberosKeytab existingResolvedKeytab = kerberosKeytabController.getKeytabByFile(resolvedKerberosKeytab.getFile());
+      ResolvedKerberosPrincipal principal = kerberosKeytabController.getPrincipalByHostKeytabAndPrincipal(resolvedPrincipal.getHostId(), resolvedKerberosKeytab.getFile(), resolvedPrincipal.getPrincipal());
 
-      if (existingResolvedKeytab == null) {
+      if (principal == null) {
         return true;
       }
 
-      Set<ResolvedKerberosPrincipal> principals = existingResolvedKeytab.getPrincipals();
-      for (ResolvedKerberosPrincipal principal : principals) {
-        if (hostname.equals(principal.getHostName()) && principal.getPrincipal().equals(resolvedPrincipal.getPrincipal())) {
-          Multimap<String, String> temp = principal.getServiceMapping();
+      if (hostname.equals(principal.getHostName()) && principal.getPrincipal().equals(resolvedPrincipal.getPrincipal())) {
+        Multimap<String, String> temp = principal.getServiceMapping();
 
-          // Make a local copy so we do not edit the stored copy, since we do not know how it is stored...
-          Map<String, Collection<String>> serviceMapping = (temp == null) ? new HashMap<>() : new HashMap<>(temp.asMap());
+        // Make a local copy so we do not edit the stored copy, since we do not know how it is stored...
+        Map<String, Collection<String>> serviceMapping = (temp == null) ? new HashMap<>() : new HashMap<>(temp.asMap());
 
-          // Prune off the services in the filter, or all if the filter it none.  If there are no
-          // service mappings left, this keytab file can be removed...
-          if (serviceComponentFilter == null) {
-            serviceMapping.clear();
-          } else {
-            for (Map.Entry<String, ? extends Collection<String>> entry : serviceComponentFilter.entrySet()) {
-              String service = entry.getKey();
-              Collection<String> components = entry.getValue();
+        // Prune off the services in the filter, or all if the filter it none.  If there are no
+        // service mappings left, this keytab file can be removed...
+        if (serviceComponentFilter == null) {
+          serviceMapping.clear();
+        } else {
+          for (Map.Entry<String, ? extends Collection<String>> entry : serviceComponentFilter.entrySet()) {
+            String service = entry.getKey();
+            Collection<String> components = entry.getValue();
 
-              if (serviceMapping.containsKey(service)) {
+            if (serviceMapping.containsKey(service)) {
 
-                if (CollectionUtils.isEmpty(components) || CollectionUtils.isEmpty(serviceMapping.get(service))) {
-                  // Remove all entries for the service...
+              if (CollectionUtils.isEmpty(components) || CollectionUtils.isEmpty(serviceMapping.get(service))) {
+                // Remove all entries for the service...
+                serviceMapping.remove(service);
+              } else {
+                Collection<String> leftOver = new HashSet<String>(serviceMapping.get(service));
+                leftOver.removeAll(components);
+
+                if (CollectionUtils.isEmpty(leftOver)) {
                   serviceMapping.remove(service);
                 } else {
-                  Collection<String> leftOver = new HashSet<String>(serviceMapping.get(service));
-                  leftOver.removeAll(components);
-
-                  if (CollectionUtils.isEmpty(leftOver)) {
-                    serviceMapping.remove(service);
-                  } else {
-                    serviceMapping.put(service, leftOver);
-                  }
+                  serviceMapping.put(service, leftOver);
                 }
               }
             }
           }
+        }
 
-          // There are still service mappings for this keytab files, we cannot remove it.
-          if (serviceMapping.size() > 0) {
-            return false;
-          }
+        // There are still service mappings for this keytab files, we cannot remove it.
+        if (serviceMapping.size() > 0) {
+          return false;
         }
       }
 
