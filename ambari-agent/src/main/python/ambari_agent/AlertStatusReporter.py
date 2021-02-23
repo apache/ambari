@@ -114,7 +114,7 @@ class AlertStatusReporter(threading.Thread):
         elif self.alert_repeats[cluster_id][alert_name] < alert_tolerance and alert_state != 'OK':
           changed_alerts.append(alert)
       else:
-        logger.warn("An alert '{0}' was appeared with state '{1}' for not-existing alert definition."
+        logger.warn("Cannot find alert definition for alert='{0}', alert_state='{1}'."
                     .format(alert_name, alert_state))
 
     return changed_alerts
