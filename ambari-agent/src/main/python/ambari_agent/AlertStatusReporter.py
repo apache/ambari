@@ -96,21 +96,26 @@ class AlertStatusReporter(threading.Thread):
       alert_name = alert['name']
       alert_state = alert['state']
 
-      alert_definition = filter(lambda definition: definition['name'] == alert_name,
-                                self.alert_definitions_cache[cluster_id]['alertDefinitions'])[0]
-      definition_tolerance_enabled = alert_definition['repeat_tolerance_enabled']
-      if definition_tolerance_enabled:
-        alert_tolerance = int(alert_definition['repeat_tolerance'])
-      else:
-        alert_tolerance = int(self.initializer_module.configurations_cache[cluster_id]['configurations']['cluster-env']['alerts_repeat_tolerance'])
+      alert_definitions = filter(lambda definition: definition['name'] == alert_name,
+                                self.alert_definitions_cache[cluster_id]['alertDefinitions'])
+      if alert_definitions:
+        alert_definition = alert_definitions[0]
+        definition_tolerance_enabled = alert_definition['repeat_tolerance_enabled']
+        if definition_tolerance_enabled:
+          alert_tolerance = int(alert_definition['repeat_tolerance'])
+        else:
+          alert_tolerance = int(self.initializer_module.configurations_cache[cluster_id]['configurations']['cluster-env']['alerts_repeat_tolerance'])
 
-      # if status changed then add alert + reset counter
-      # if status not changed and counter is not satisfied then add alert (but only for not-OK)
-      if [alert[field] for field in self.FIELDS_CHANGED_RESEND_ALERT] != self.reported_alerts[cluster_id][alert_name]:
-        changed_alerts.append(alert)
-        self.alert_repeats[cluster_id][alert_name] = 0
-      elif self.alert_repeats[cluster_id][alert_name] < alert_tolerance and alert_state != 'OK':
-        changed_alerts.append(alert)
+        # if status changed then add alert + reset counter
+        # if status not changed and counter is not satisfied then add alert (but only for not-OK)
+        if [alert[field] for field in self.FIELDS_CHANGED_RESEND_ALERT] != self.reported_alerts[cluster_id][alert_name]:
+          changed_alerts.append(alert)
+          self.alert_repeats[cluster_id][alert_name] = 0
+        elif self.alert_repeats[cluster_id][alert_name] < alert_tolerance and alert_state != 'OK':
+          changed_alerts.append(alert)
+      else:
+        logger.warn("An alert '{0}' was appeared with state '{1}' for not-existing alert definition."
+                    .format(alert_name, alert_state))
 
     return changed_alerts
     
