@@ -2201,15 +2201,14 @@ public class ClusterImpl implements Cluster {
         Enum<?> currentState = e.getCurrentState();
         Enum<?> failedEvent = e.getEvent();
 
-        if (serviceComponent != null && serviceComponentHost != null
-            && (currentState == State.STARTED || currentState == State.STARTING)
-            && failedEvent == ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL
-            && serviceComponentName.equals("NODEMANAGER") && serviceComponentHost
-                .getComponentAdminState() == HostComponentAdminState.DECOMMISSIONED) {
+		if (serviceComponent != null && serviceComponentHost != null
+				&& serviceComponentHost.getComponentAdminState() == HostComponentAdminState.DECOMMISSIONED
+				&& (currentState == State.STARTED || currentState == State.STARTING)
+				&& failedEvent == ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL) {
           // this can happen with NodeManager. check if the NM has been decommissioned
           LOG.warn(
-            "NodeManagers are started by ambari's Recovery manager when RM shuts it down. So getting STARTED state for a"
-                + " HOST_SVCCOMP_INSTALL is expected");
+            "{} is started by ambari's Recovery manager when component shuts down. So getting STARTED state for a"
+                + " HOST_SVCCOMP_INSTALL is expected", serviceComponentName);
           // Mark as not a failure
           isFailure = false;
         }
