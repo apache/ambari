@@ -88,7 +88,7 @@ public class KerberosKeytabController {
    * @return found keytab or null
    */
   public ResolvedKerberosKeytab getKeytabByFile(String file, boolean resolvePrincipals) {
-    return fromKeytabEntity(kerberosKeytabDAO.find(file), resolvePrincipals);
+    return fromKeytabEntity(kerberosKeytabDAO.find(file), resolvePrincipals, false);
   }
 
   /**
@@ -97,7 +97,7 @@ public class KerberosKeytabController {
    * @return all keytabs
    */
   public Set<ResolvedKerberosKeytab> getAllKeytabs() {
-    return fromKeytabEntities(kerberosKeytabDAO.findAll());
+    return fromKeytabEntities(kerberosKeytabDAO.findAll(), false);
   }
 
   /**
@@ -107,10 +107,17 @@ public class KerberosKeytabController {
    * @return set of keytabs found
    */
   public Set<ResolvedKerberosKeytab> getFromPrincipal(ResolvedKerberosPrincipal rkp) {
-    List<KerberosKeytabEntity> keytabs = kerberosKeytabDAO.findByPrincipalAndHost(
-        rkp.getPrincipal(), rkp.getHostId());
+    return fromKeytabEntities(kerberosKeytabDAO.findByPrincipalAndHost(rkp.getPrincipal(), rkp.getHostId()), false);
+  }
 
-    return fromKeytabEntities(keytabs);
+  /**
+   * Returns all keytabs that contains given principal without service mapping.
+   *
+   * @param rkp principal to filter keytabs by
+   * @return set of keytabs found
+   */
+  public Set<ResolvedKerberosKeytab> getFromPrincipalExceptServiceMapping(ResolvedKerberosPrincipal rkp) {
+    return fromKeytabEntities(kerberosKeytabDAO.findByPrincipalAndHost(rkp.getPrincipal(), rkp.getHostId()), true);
   }
 
   /**
@@ -132,7 +139,7 @@ public class KerberosKeytabController {
       filter.setPrincipals(identityFilter);
     }
 
-    Set<ResolvedKerberosPrincipal> filteredPrincipals = fromPrincipalEntities(kerberosKeytabPrincipalDAO.findByFilters(filters));
+    Set<ResolvedKerberosPrincipal> filteredPrincipals = fromPrincipalEntities(kerberosKeytabPrincipalDAO.findByFilters(filters), false);
     HashMap<String, ResolvedKerberosKeytab> resultMap = new HashMap<>();
     for (ResolvedKerberosPrincipal principal : filteredPrincipals) {
       if (!resultMap.containsKey(principal.getKeytabPath())) {
@@ -204,8 +211,9 @@ public class KerberosKeytabController {
     return Lists.newArrayList(KerberosKeytabPrincipalDAO.KerberosKeytabPrincipalFilter.createEmptyFilter());
   }
 
-  private ResolvedKerberosKeytab fromKeytabEntity(KerberosKeytabEntity kke, boolean resolvePrincipals) {
-    Set<ResolvedKerberosPrincipal> principals = resolvePrincipals ? fromPrincipalEntities(kke.getKerberosKeytabPrincipalEntities()) : new HashSet<>();
+  private ResolvedKerberosKeytab fromKeytabEntity(KerberosKeytabEntity kke, boolean resolvePrincipals, boolean exceptServiceMapping) {
+    Set<ResolvedKerberosPrincipal> principals = resolvePrincipals ?
+        fromPrincipalEntities(kke.getKerberosKeytabPrincipalEntities(), exceptServiceMapping) : new HashSet<>();
     return new ResolvedKerberosKeytab(
       kke.getKeytabPath(),
       kke.getOwnerName(),
@@ -219,18 +227,18 @@ public class KerberosKeytabController {
   }
 
   private ResolvedKerberosKeytab fromKeytabEntity(KerberosKeytabEntity kke) {
-    return fromKeytabEntity(kke, true);
+    return fromKeytabEntity(kke, true, false);
   }
 
-  private Set<ResolvedKerberosKeytab> fromKeytabEntities(Collection<KerberosKeytabEntity> keytabEntities) {
+  private Set<ResolvedKerberosKeytab> fromKeytabEntities(Collection<KerberosKeytabEntity> keytabEntities, boolean exceptServiceMapping) {
     ImmutableSet.Builder<ResolvedKerberosKeytab> builder = ImmutableSet.builder();
     for (KerberosKeytabEntity kkpe : keytabEntities) {
-      builder.add(fromKeytabEntity(kkpe));
+      builder.add(fromKeytabEntity(kkpe, true, exceptServiceMapping));
     }
     return builder.build();
   }
 
-  private Set<ResolvedKerberosPrincipal> fromPrincipalEntities(Collection<KerberosKeytabPrincipalEntity> principalEntities) {
+  private Set<ResolvedKerberosPrincipal> fromPrincipalEntities(Collection<KerberosKeytabPrincipalEntity> principalEntities, boolean exceptServiceMapping) {
     ImmutableSet.Builder<ResolvedKerberosPrincipal> builder = ImmutableSet.builder();
     for (KerberosKeytabPrincipalEntity kkpe : principalEntities) {
       KerberosPrincipalEntity kpe = kkpe.getKerberosPrincipalEntity();
@@ -243,7 +251,7 @@ public class KerberosKeytabController {
             kpe.isService(),
             kpe.getCachedKeytabPath(),
             kkpe.getKeytabPath(),
-            kkpe.getServiceMappingAsMultimap());
+            exceptServiceMapping ? null : kkpe.getServiceMappingAsMultimap());
         builder.add(rkp);
       }
     }
