@@ -36,6 +36,8 @@ import org.apache.ambari.server.orm.entities.KerberosKeytabEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabServiceMappingEntity;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
+import org.apache.ambari.server.orm.helpers.SQLConstants;
+import org.apache.ambari.server.orm.helpers.SQLOperations;
 import org.apache.commons.collections.CollectionUtils;
 
 import com.google.inject.Inject;
@@ -242,8 +244,17 @@ public class KerberosKeytabPrincipalDAO {
       }
     }
 
+    //Split principals into batches and combine them using OR
     if (CollectionUtils.isNotEmpty(filter.getPrincipals())) {
-      predicates.add(root.get("principalName").in(filter.getPrincipals()));
+      ArrayList<Predicate> principalPredicates = new ArrayList<>();
+      SQLOperations.batch(filter.getPrincipals(), SQLConstants.IN_ARGUMENT_MAX_SIZE,
+        (chunk, currentBatch, totalBatches, totalSize) -> {
+          principalPredicates.add(root.get("principalName").in(chunk));
+          return 0;
+        });
+
+      Predicate principalCombinedPredicate = cb.or(principalPredicates.toArray(new Predicate[0]));
+      predicates.add(principalCombinedPredicate);
     }
     cq.where(cb.and(predicates.toArray(new Predicate[0])));
 
