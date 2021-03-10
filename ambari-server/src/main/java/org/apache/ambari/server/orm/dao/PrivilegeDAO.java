@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,7 +30,11 @@ import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.helpers.SQLConstants;
+import org.apache.ambari.server.orm.helpers.SQLOperations;
+import org.apache.commons.collections.CollectionUtils;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -127,12 +132,20 @@ public class PrivilegeDAO {
    */
   @RequiresSession
   public List<PrivilegeEntity> findAllByPrincipal(List<PrincipalEntity> principalList) {
-    if (principalList == null || principalList.isEmpty()) {
-      return Collections.emptyList();
+    if (CollectionUtils.isEmpty(principalList)) {
+      return Collections.<PrivilegeEntity>emptyList();
     }
+
     TypedQuery<PrivilegeEntity> query = entityManagerProvider.get().createQuery("SELECT privilege FROM PrivilegeEntity privilege WHERE privilege.principal IN :principalList", PrivilegeEntity.class);
-    query.setParameter("principalList", principalList);
-    return daoUtils.selectList(query);
+
+    List<PrivilegeEntity> result = new ArrayList<>();
+    SQLOperations.batch(principalList, SQLConstants.IN_ARGUMENT_MAX_SIZE, (chunk, currentBatch, totalBatches, totalSize) -> {
+      query.setParameter("principalList", chunk);
+      result.addAll(daoUtils.selectList(query));
+      return 0;
+    });
+
+    return Lists.newArrayList(result);
   }
 
   /**

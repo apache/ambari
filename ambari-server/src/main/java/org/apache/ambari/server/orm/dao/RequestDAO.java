@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.dao;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -48,11 +49,13 @@ import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
 import org.apache.ambari.server.orm.helpers.SQLConstants;
 import org.apache.ambari.server.orm.helpers.SQLOperations;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.commons.collections.CollectionUtils;
 import org.eclipse.persistence.config.HintValues;
 import org.eclipse.persistence.config.QueryHints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -122,8 +125,8 @@ public class RequestDAO implements Cleanable {
    */
   @RequiresSession
   public List<RequestEntity> findByPks(Collection<Long> requestIds, boolean refreshHint) {
-    if (null == requestIds || 0 == requestIds.size()) {
-      return Collections.emptyList();
+    if (CollectionUtils.isEmpty(requestIds)) {
+      return Collections.<RequestEntity>emptyList();
     }
 
     TypedQuery<RequestEntity> query = entityManagerProvider.get().createQuery("SELECT request FROM RequestEntity request " +
@@ -135,7 +138,13 @@ public class RequestDAO implements Cleanable {
       query.setHint(QueryHints.REFRESH, HintValues.TRUE);
     }
 
-    return daoUtils.selectList(query, requestIds);
+    List<RequestEntity> result = new ArrayList<>();
+    SQLOperations.batch(requestIds, SQLConstants.IN_ARGUMENT_MAX_SIZE, (chunk, currentBatch, totalBatches, totalSize) -> {
+      result.addAll(daoUtils.selectList(query, chunk));
+      return 0;
+    });
+
+    return Lists.newArrayList(result);
   }
 
   @RequiresSession
