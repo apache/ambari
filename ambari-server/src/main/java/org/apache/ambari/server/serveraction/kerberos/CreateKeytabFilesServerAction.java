@@ -158,7 +158,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
     CommandReport commandReport = null;
     String message = null;
 
-    Set<ResolvedKerberosKeytab> keytabsToCreate = kerberosKeytabController.getFromPrincipal(resolvedPrincipal);
+    Set<ResolvedKerberosKeytab> keytabsToCreate = kerberosKeytabController.getFromPrincipalExceptServiceMapping(resolvedPrincipal);
 
     try {
       String dataDirectory = getDataDirectoryPath();
