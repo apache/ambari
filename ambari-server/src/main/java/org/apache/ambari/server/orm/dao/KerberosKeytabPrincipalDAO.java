@@ -244,7 +244,7 @@ public class KerberosKeytabPrincipalDAO {
       }
     }
 
-    //split principals into batches and combine them using OR
+    //Split principals into batches and combine them using OR
     if (CollectionUtils.isNotEmpty(filter.getPrincipals())) {
       ArrayList<Predicate> principalPredicates = new ArrayList<>();
       SQLOperations.batch(filter.getPrincipals(), SQLConstants.IN_ARGUMENT_MAX_SIZE,
