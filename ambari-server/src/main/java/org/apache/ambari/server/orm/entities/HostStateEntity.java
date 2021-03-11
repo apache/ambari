@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Objects;
+
 import static org.apache.commons.lang.StringUtils.defaultString;
 
 import javax.persistence.Basic;
@@ -32,8 +34,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 
 import org.apache.ambari.server.state.HostState;
-
-import java.util.Objects;
 
 @javax.persistence.Table(name = "hoststate")
 @Entity
