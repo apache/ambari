@@ -43,14 +43,12 @@ import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
-import org.apache.ambari.server.security.encryption.EncryptionAlgorithm;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.directory.shared.kerberos.codec.types.EncryptionType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -224,7 +222,7 @@ public class ConfigurationTest {
     String encrypted = "fake-encrypted-password";
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PASSWORD.getKey(), unencrypted);
     Configuration conf = spy(new Configuration(ambariProperties));
-    PowerMock.stub(PowerMock.method(PasswordUtils.class, "readPasswordFromStore", String.class, File.class, boolean.class, File.class, EncryptionAlgorithm.class)).toReturn(null);
+    PowerMock.stub(PowerMock.method(PasswordUtils.class, "readPasswordFromStore", String.class, File.class, boolean.class, File.class)).toReturn(null);
     conf.loadSSLParams();
     Assert.assertEquals(System.getProperty(Configuration.JAVAX_SSL_TRUSTSTORE_PASSWORD, "unknown"), unencrypted);
   }
@@ -236,7 +234,7 @@ public class ConfigurationTest {
     String encrypted = "fake-encrypted-password";
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PASSWORD.getKey(), unencrypted);
     Configuration conf = spy(new Configuration(ambariProperties));
-    PowerMock.stub(PowerMock.method(PasswordUtils.class, "readPasswordFromStore", String.class, File.class, boolean.class, File.class, EncryptionAlgorithm.class)).toReturn(encrypted);
+    PowerMock.stub(PowerMock.method(PasswordUtils.class, "readPasswordFromStore", String.class, File.class, boolean.class, File.class)).toReturn(encrypted);
     conf.loadSSLParams();
     Assert.assertEquals(System.getProperty(Configuration.JAVAX_SSL_TRUSTSTORE_PASSWORD, "unknown"), encrypted);
   }
@@ -282,7 +280,7 @@ public class ConfigurationTest {
       passwordFile);
 
     Configuration conf = new Configuration(ambariProperties);
-    PowerMock.stub(PowerMock.method(PasswordUtils.class,"readPasswordFromStore", String.class, File.class, boolean.class, File.class, EncryptionAlgorithm.class)).toReturn(null);
+    PowerMock.stub(PowerMock.method(PasswordUtils.class,"readPasswordFromStore", String.class, File.class, boolean.class, File.class)).toReturn(null);
 
     Assert.assertEquals("ambaritest", conf.getDatabasePassword());
   }
