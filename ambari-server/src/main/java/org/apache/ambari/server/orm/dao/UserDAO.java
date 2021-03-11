@@ -32,7 +32,6 @@ import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.helpers.SQLConstants;
 import org.apache.ambari.server.orm.helpers.SQLOperations;
-import org.apache.commons.collections.CollectionUtils;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -78,10 +77,8 @@ public class UserDAO {
    */
   @RequiresSession
   public List<UserEntity> findUsersByPrincipal(List<PrincipalEntity> principalList) {
-    if (CollectionUtils.isEmpty(principalList)) {
-      return Collections.<UserEntity>emptyList();
-    }
-    TypedQuery<UserEntity> query = entityManagerProvider.get().createQuery("SELECT user_entity FROM UserEntity user_entity WHERE user_entity.principal IN :principalList", UserEntity.class);
+    TypedQuery<UserEntity> query = entityManagerProvider.get().createQuery(
+        "SELECT user_entity FROM UserEntity user_entity WHERE user_entity.principal IN :principalList", UserEntity.class);
 
     List<UserEntity> result = new ArrayList<>();
     SQLOperations.batch(principalList, SQLConstants.IN_ARGUMENT_MAX_SIZE, (chunk, currentBatch, totalBatches, totalSize) -> {

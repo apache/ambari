@@ -21,7 +21,6 @@ package org.apache.ambari.server.orm.dao;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -125,10 +124,6 @@ public class RequestDAO implements Cleanable {
    */
   @RequiresSession
   public List<RequestEntity> findByPks(Collection<Long> requestIds, boolean refreshHint) {
-    if (CollectionUtils.isEmpty(requestIds)) {
-      return Collections.<RequestEntity>emptyList();
-    }
-
     TypedQuery<RequestEntity> query = entityManagerProvider.get().createQuery("SELECT request FROM RequestEntity request " +
         "WHERE request.requestId IN ?1", RequestEntity.class);
 
@@ -318,7 +313,7 @@ public class RequestDAO implements Cleanable {
                                   String entityQuery, Class<T> type) {
     LOG.info(String.format("Purging %s entity records before date %s", entityName, new Date(beforeDateMillis)));
 
-    if (ids == null || ids.isEmpty()) {
+    if (CollectionUtils.isEmpty(ids)) {
       return 0;
     }
 
@@ -351,7 +346,7 @@ public class RequestDAO implements Cleanable {
                                   String entityQuery, Class<T> type) {
     LOG.info(String.format("Purging %s entity records before date %s", entityName, new Date(beforeDateMillis)));
 
-    if (ids == null || ids.isEmpty()) {
+    if (CollectionUtils.isEmpty(ids)) {
       return 0;
     }
 

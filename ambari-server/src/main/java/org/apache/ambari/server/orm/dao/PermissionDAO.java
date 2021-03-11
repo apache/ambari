@@ -19,7 +19,6 @@
 package org.apache.ambari.server.orm.dao;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -31,7 +30,6 @@ import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.helpers.SQLConstants;
 import org.apache.ambari.server.orm.helpers.SQLOperations;
-import org.apache.commons.collections.CollectionUtils;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -109,9 +107,6 @@ public class PermissionDAO {
    */
   @RequiresSession
   public List<PermissionEntity> findPermissionsByPrincipal(List<PrincipalEntity> principalList) {
-    if (CollectionUtils.isEmpty(principalList)) {
-      return Collections.<PermissionEntity>emptyList();
-    }
     TypedQuery<PermissionEntity> query = entityManagerProvider.get().createNamedQuery("PermissionEntity.findByPrincipals", PermissionEntity.class);
 
     List<PermissionEntity> result = new ArrayList<>();
