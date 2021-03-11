@@ -16,14 +16,12 @@
  * limitations under the License.
  */
 package org.apache.ambari.server.agent.stomp;
-import java.util.ArrayList;
+
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Clusters;
