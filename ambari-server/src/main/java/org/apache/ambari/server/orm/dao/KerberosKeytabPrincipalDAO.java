@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -53,6 +54,9 @@ public class KerberosKeytabPrincipalDAO {
   @Inject
   HostDAO hostDAO;
 
+  @Inject
+  DaoUtils daoUtils;
+
   @Transactional
   public void create(KerberosKeytabPrincipalEntity kerberosKeytabPrincipalEntity) {
     entityManagerProvider.get().persist(kerberosKeytabPrincipalEntity);
@@ -69,34 +73,49 @@ public class KerberosKeytabPrincipalDAO {
   }
 
   /**
-   * Find or create {@link KerberosKeytabPrincipalEntity} with specified dependecies.
+   * Find or create {@link KerberosKeytabPrincipalEntity} with specified dependencies.
    *
    * @param kerberosKeytabEntity {@link KerberosKeytabEntity} which owns this principal
    * @param hostEntity           {@link HostEntity} which owns this principal
    * @param kerberosPrincipalEntity      {@link KerberosPrincipalEntity} which related to this principal
    * @return evaluated entity
    */
-  public KeytabPrincipalFindOrCreateResult findOrCreate(KerberosKeytabEntity kerberosKeytabEntity, HostEntity hostEntity, KerberosPrincipalEntity kerberosPrincipalEntity) {
+  public KeytabPrincipalFindOrCreateResult findOrCreate(KerberosKeytabEntity kerberosKeytabEntity,
+                                                        HostEntity hostEntity, KerberosPrincipalEntity kerberosPrincipalEntity,
+                                                        @Nullable List<KerberosKeytabPrincipalEntity> keytabList) {
     KeytabPrincipalFindOrCreateResult result = new KeytabPrincipalFindOrCreateResult();
     result.created = false;
 
     Long hostId = hostEntity == null ? null : hostEntity.getHostId();
-    KerberosKeytabPrincipalEntity kkp = findByNaturalKey(hostId, kerberosKeytabEntity.getKeytabPath(), kerberosPrincipalEntity.getPrincipalName());
-    if (kkp == null) {
-      result.created = true;
+    // The DB requests should be avoided due to heavy impact on the performance
+    KerberosKeytabPrincipalEntity kkp = (keytabList == null)
+      ? findByNaturalKey(hostId, kerberosKeytabEntity.getKeytabPath(), kerberosPrincipalEntity.getPrincipalName())
+      : keytabList.stream()
+      .filter(keytab ->
+        keytab.getHostId().equals(hostId)
+          && keytab.getKeytabPath().equals(kerberosKeytabEntity.getKeytabPath())
+          && keytab.getPrincipalName().equals(kerberosPrincipalEntity.getPrincipalName())
+      )
+      .findFirst()
+      .orElse(null);
 
-      kkp = new KerberosKeytabPrincipalEntity(
-          kerberosKeytabEntity,
-          hostEntity,
-          kerberosPrincipalEntity
-      );
-      create(kkp);
-
-      kerberosKeytabEntity.addKerberosKeytabPrincipal(kkp);
-      kerberosPrincipalEntity.addKerberosKeytabPrincipal(kkp);
+    if (kkp != null) {
+      result.kkp = kkp;
+      return result;
     }
 
+    kkp = new KerberosKeytabPrincipalEntity(
+        kerberosKeytabEntity,
+        hostEntity,
+        kerberosPrincipalEntity
+    );
+    create(kkp);
+
+    kerberosKeytabEntity.addKerberosKeytabPrincipal(kkp);
+    kerberosPrincipalEntity.addKerberosKeytabPrincipal(kkp);
+
     result.kkp = kkp;
+    result.created = true;
     return result;
   }
 
@@ -121,11 +140,7 @@ public class KerberosKeytabPrincipalDAO {
     TypedQuery<KerberosKeytabPrincipalEntity> query = entityManagerProvider.get().
       createNamedQuery("KerberosKeytabPrincipalEntity.findByPrincipal", KerberosKeytabPrincipalEntity.class);
     query.setParameter("principalName", principal);
-    List<KerberosKeytabPrincipalEntity> result = query.getResultList();
-    if (result == null) {
-      return Collections.emptyList();
-    }
-    return result;
+    return daoUtils.selectList(query);
   }
 
   @RequiresSession
@@ -133,11 +148,7 @@ public class KerberosKeytabPrincipalDAO {
     TypedQuery<KerberosKeytabPrincipalEntity> query = entityManagerProvider.get().
       createNamedQuery("KerberosKeytabPrincipalEntity.findByHost", KerberosKeytabPrincipalEntity.class);
     query.setParameter("hostId", hostId);
-    List<KerberosKeytabPrincipalEntity> result = query.getResultList();
-    if (result == null) {
-      return Collections.emptyList();
-    }
-    return result;
+    return daoUtils.selectList(query);
   }
 
   @RequiresSession
@@ -146,11 +157,7 @@ public class KerberosKeytabPrincipalDAO {
       createNamedQuery("KerberosKeytabPrincipalEntity.findByHostAndKeytab", KerberosKeytabPrincipalEntity.class);
     query.setParameter("hostId", hostId);
     query.setParameter("keytabPath", keytabPath);
-    List<KerberosKeytabPrincipalEntity> result = query.getResultList();
-    if (result == null) {
-      return Collections.emptyList();
-    }
-    return result;
+    return daoUtils.selectList(query);
   }
 
   @RequiresSession
@@ -160,12 +167,7 @@ public class KerberosKeytabPrincipalDAO {
     query.setParameter("hostId", hostId);
     query.setParameter("keytabPath", keytabPath);
     query.setParameter("principalName", principalName);
-    List<KerberosKeytabPrincipalEntity> result = query.getResultList();
-    if (result == null || result.size() == 0) {
-      return null;
-    } else {
-      return result.get(0);
-    }
+    return daoUtils.selectOne(query);
   }
 
   @RequiresSession
@@ -174,12 +176,7 @@ public class KerberosKeytabPrincipalDAO {
       createNamedQuery("KerberosKeytabPrincipalEntity.findByKeytabAndPrincipalNullHost", KerberosKeytabPrincipalEntity.class);
     query.setParameter("keytabPath", keytabPath);
     query.setParameter("principalName", principal);
-    List<KerberosKeytabPrincipalEntity> result = query.getResultList();
-    if (result == null || result.size() == 0) {
-      return null;
-    } else {
-      return result.get(0);
-    }
+    return daoUtils.selectOne(query);
   }
 
   /**

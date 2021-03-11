@@ -34,6 +34,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.persistence.RollbackException;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
@@ -321,7 +322,7 @@ public class ClustersImpl implements Clusters {
     for (Long hostId : hostsById.keySet()) {
       try {
         m_agentConfigsHolder.get().initializeDataIfNeeded(hostId, true);
-      } catch (AmbariException e) {
+      } catch (AmbariRuntimeException e) {
         LOG.error("Agent configs initialization was failed", e);
       }
     }
@@ -500,7 +501,7 @@ public class ClustersImpl implements Clusters {
       // init host configs
       try {
         m_agentConfigsHolder.get().initializeDataIfNeeded(hostId, true);
-      } catch (AmbariException e) {
+      } catch (AmbariRuntimeException e) {
         LOG.error("Agent configs initialization was failed for host with id %s", hostId, e);
       }
     }

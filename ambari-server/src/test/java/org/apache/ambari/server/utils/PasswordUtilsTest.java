@@ -124,7 +124,7 @@ public class PasswordUtilsTest extends EasyMockSupport {
     expect(configuration.getMasterKeyLocation()).andReturn(masterKeyLocation).once();
     expect(configuration.isMasterKeyPersisted()).andReturn(false).once();
     expect(configuration.getMasterKeyStoreLocation()).andReturn(masterKeyStoreLocation).once();
-    PowerMock.expectNew(CredentialProvider.class, null, (String) null, masterKeyLocation, false, masterKeyStoreLocation).andReturn(credentialProvider);
+    PowerMock.expectNew(CredentialProvider.class, null, null, masterKeyLocation, false, masterKeyStoreLocation, null).andReturn(credentialProvider);
   }
 
   private Injector createInjector() {

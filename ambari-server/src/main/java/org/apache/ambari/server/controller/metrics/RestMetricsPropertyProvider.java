@@ -332,7 +332,7 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
     if (configType != null && propertyName != null) {
       try {
         Map<String, Map<String, String>> configTags =
-                amc.findConfigurationTagsWithOverrides(cluster, hostname);
+                amc.findConfigurationTagsWithOverrides(cluster, hostname, null);
         if (configTags.containsKey(configType)) {
           Map<String, Map<String, String>> properties = amc.getConfigHelper().getEffectiveConfigProperties(cluster,
                   Collections.singletonMap(configType, configTags.get(configType)));

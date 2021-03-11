@@ -531,7 +531,7 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     expect(configuration.isMasterKeyPersisted()).andReturn(false).once();
     expect(configuration.getMasterKeyStoreLocation()).andReturn(masterKeyStoreLocation).once();
     CredentialProvider credentialProvider = PowerMock.createMock(CredentialProvider.class);
-    PowerMock.expectNew(CredentialProvider.class, null, null, masterKeyLocation, false, masterKeyStoreLocation).andReturn(credentialProvider);
+    PowerMock.expectNew(CredentialProvider.class, null, null, masterKeyLocation, false, masterKeyStoreLocation, null).andReturn(credentialProvider);
     credentialProvider.addAliasToCredentialStore("currentPasswd", "newPasswd");
     PowerMock.expectLastCall().once();
     PowerMock.replay(credentialProvider, CredentialProvider.class);

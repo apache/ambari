@@ -84,6 +84,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import javax.persistence.RollbackException;
 
 import org.apache.ambari.annotations.Experimental;
@@ -2374,9 +2375,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Override
   public Map<String, Map<String,String>> findConfigurationTagsWithOverrides(
-          Cluster cluster, String hostName) throws AmbariException {
+          Cluster cluster, String hostName,
+          @Nullable Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
 
-    return configHelper.getEffectiveDesiredTags(cluster, hostName);
+    return configHelper.getEffectiveDesiredTags(cluster, hostName, desiredConfigs);
   }
 
   @Override

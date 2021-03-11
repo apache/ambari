@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -53,6 +55,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -757,13 +760,15 @@ public interface AmbariManagementController {
    *
    * @param cluster   the cluster
    * @param hostName  the host name
+   * @param desiredConfigs desired configuration map
    *
    * @return the configuration tags
    *
    * @throws AmbariException if configuration tags can not be obtained
    */
   Map<String, Map<String,String>> findConfigurationTagsWithOverrides(
-        Cluster cluster, String hostName) throws AmbariException;
+        Cluster cluster, String hostName,
+        @Nullable Map<String, DesiredConfig> desiredConfigs) throws AmbariException;
 
   /**
    * Returns parameters for RCA database

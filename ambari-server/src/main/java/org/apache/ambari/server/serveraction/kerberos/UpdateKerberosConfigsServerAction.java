@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -35,6 +36,7 @@ import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.SecurityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,17 +142,15 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
           if (!configTypes.isEmpty()) {
             String configNote = getCommandParameterValue(getCommandParameters(), KerberosServerAction.UPDATE_CONFIGURATION_NOTE);
 
-            if((configNote == null) || configNote.isEmpty()) {
+            if(configNote == null || configNote.isEmpty()) {
               configNote = cluster.getSecurityType() == SecurityType.KERBEROS
                   ? "Enabling Kerberos"
                   : "Disabling Kerberos";
             }
 
-            for (String configType : configTypes) {
-              configHelper.updateConfigType(cluster, cluster.getDesiredStackVersion(), controller,
-                  configType, propertiesToSet.get(configType), propertiesToRemove.get(configType),
-                  authenticatedUserName, configNote);
-            }
+            configHelper.updateBulkConfigType(cluster, cluster.getDesiredStackVersion(), controller,
+              configTypes, propertiesToSet, propertiesToRemove,
+              authenticatedUserName, configNote);
           }
         } catch (IOException e) {
           String message = "Could not update services configs to enable kerberos";
