@@ -165,14 +165,14 @@ public class HeartbeatControllerTest {
 
     assertEquals(-1, registrationResponse.getResponseId());
     assertEquals(RegistrationStatus.FAILED, registrationResponse.getResponseStatus());
-    assertEquals(1, registrationResponse.getExitstatus());
+    assertEquals(1, registrationResponse.getExitStatus());
 
     register.setAgentVersion(null); // Invalid agent version
     registrationResponse = heartbeatTestHelper.registerAgent(heartbeatController, register);
 
     assertEquals(-1, registrationResponse.getResponseId());
     assertEquals(RegistrationStatus.FAILED, registrationResponse.getResponseStatus());
-    assertEquals(1, registrationResponse.getExitstatus());
+    assertEquals(1, registrationResponse.getExitStatus());
   }
 
   @Test
@@ -207,7 +207,7 @@ public class HeartbeatControllerTest {
 
     assertEquals(-1, registrationResponse.getResponseId());
     assertEquals(RegistrationStatus.FAILED, registrationResponse.getResponseStatus());
-    assertEquals(1, registrationResponse.getExitstatus());
+    assertEquals(1, registrationResponse.getExitStatus());
   }
 
   @Test
@@ -221,7 +221,7 @@ public class HeartbeatControllerTest {
 
     assertEquals(-1, registrationResponse.getResponseId());
     assertEquals(RegistrationStatus.FAILED, registrationResponse.getResponseStatus());
-    assertEquals(1, registrationResponse.getExitstatus());
+    assertEquals(1, registrationResponse.getExitStatus());
   }
 
   @Test

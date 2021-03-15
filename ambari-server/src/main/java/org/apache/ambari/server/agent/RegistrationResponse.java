@@ -55,7 +55,7 @@ public class RegistrationResponse extends StompResponse {
    */
   @JsonProperty("exitstatus")
   @com.fasterxml.jackson.annotation.JsonProperty("exitstatus")
-  private int exitstatus;
+  private int exitStatus;
 
   /**
    * log - message, which will be printed to agents  log
@@ -127,12 +127,12 @@ public class RegistrationResponse extends StompResponse {
     this.responseId = responseId;
   }
 
-  public int getExitstatus() {
-    return exitstatus;
+  public int getExitStatus() {
+    return exitStatus;
   }
 
-  public void setExitstatus(int exitstatus) {
-    this.exitstatus = exitstatus;
+  public void setExitStatus(int exitStatus) {
+    this.exitStatus = exitStatus;
   }
 
   public void setLog(String log) {
