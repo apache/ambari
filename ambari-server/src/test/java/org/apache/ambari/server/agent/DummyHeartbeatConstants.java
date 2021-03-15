@@ -41,11 +41,13 @@ public interface DummyHeartbeatConstants {
 
   String HDFS = "HDFS";
   String HBASE = "HBASE";
+  String MAPREDUCE = "MAPREDUCE";
 
   String DATANODE = Role.DATANODE.name();
   String NAMENODE = Role.NAMENODE.name();
   String SECONDARY_NAMENODE = Role.SECONDARY_NAMENODE.name();
   String HBASE_MASTER = Role.HBASE_MASTER.name();
   String HDFS_CLIENT  = Role.HDFS_CLIENT.name();
+  String JOBTRACKER  = Role.JOBTRACKER.name();
 
 }

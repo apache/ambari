@@ -127,6 +127,10 @@ public class RegistrationResponse extends StompResponse {
     this.responseId = responseId;
   }
 
+  public int getExitstatus() {
+    return exitstatus;
+  }
+
   public void setExitstatus(int exitstatus) {
     this.exitstatus = exitstatus;
   }
