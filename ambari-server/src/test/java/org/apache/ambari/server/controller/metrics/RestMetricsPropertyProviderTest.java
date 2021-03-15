@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.metrics;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
@@ -160,7 +161,7 @@ public class RestMetricsPropertyProviderTest {
     ConfigHelper configHelperMock = createNiceMock(ConfigHelper.class);
     expect(amc.getClusters()).andReturn(clusters).anyTimes();
     expect(amc.getAmbariEventPublisher()).andReturn(createNiceMock(AmbariEventPublisher.class)).anyTimes();
-    expect(amc.findConfigurationTagsWithOverrides(eq(c1), anyString())).andReturn(Collections.singletonMap("storm-site",
+    expect(amc.findConfigurationTagsWithOverrides(eq(c1), anyString(), anyObject())).andReturn(Collections.singletonMap("storm-site",
         Collections.singletonMap("tag", "version1"))).anyTimes();
     expect(amc.getConfigHelper()).andReturn(configHelperMock).anyTimes();
     expect(configHelperMock.getEffectiveConfigProperties(eq(c1),

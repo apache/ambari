@@ -448,9 +448,7 @@ class ActionScheduler implements Runnable {
         // Commands that will be scheduled in current scheduler wakeup
         List<ExecutionCommand> commandsToSchedule = new ArrayList<>();
         Multimap<Long, AgentCommand> commandsToEnqueue = ArrayListMultimap.create();
-
-        Map<String, RoleStats> roleStats =
-          processInProgressStage(stage, commandsToSchedule, commandsToEnqueue);
+        Map<String, RoleStats> roleStats = processInProgressStage(stage, commandsToSchedule, commandsToEnqueue);
 
         // Check if stage is failed
         boolean failed = false;

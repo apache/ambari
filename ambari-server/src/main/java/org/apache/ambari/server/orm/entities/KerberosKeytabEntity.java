@@ -32,6 +32,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.QueryHint;
 import javax.persistence.Table;
 
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
+
 @Entity
 @Table(name = "kerberos_keytab")
 @NamedQueries({
@@ -74,6 +76,16 @@ public class KerberosKeytabEntity {
 
   public KerberosKeytabEntity(String keytabPath) {
     setKeytabPath(keytabPath);
+  }
+
+  public KerberosKeytabEntity(ResolvedKerberosKeytab resolvedKerberosKeytab) {
+    setKeytabPath(resolvedKerberosKeytab.getFile());
+    setAmbariServerKeytab(resolvedKerberosKeytab.isAmbariServerKeytab());
+    setWriteAmbariJaasFile(resolvedKerberosKeytab.isMustWriteAmbariJaasFile());
+    setOwnerName(resolvedKerberosKeytab.getOwnerName());
+    setOwnerAccess(resolvedKerberosKeytab.getOwnerAccess());
+    setGroupName(resolvedKerberosKeytab.getGroupName());
+    setGroupAccess(resolvedKerberosKeytab.getGroupAccess());
   }
 
   public String getKeytabPath() {

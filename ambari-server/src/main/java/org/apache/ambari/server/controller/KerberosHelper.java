@@ -25,8 +25,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
+import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.serveraction.kerberos.Component;
 import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticationException;
@@ -36,6 +39,7 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCreden
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
@@ -498,9 +502,37 @@ public interface KerberosHelper {
    * @param includePreconfigureData <code>true</code> to include the preconfigure data; <code>false</code> otherwise
    * @return the kerberos descriptor associated with the specified cluster
    * @throws AmbariException if unable to obtain the descriptor
-   * @see #getKerberosDescriptor(KerberosDescriptorType, Cluster, boolean, Collection, boolean)
+   * @see #getKerberosDescriptor(KerberosDescriptorType, Cluster, boolean, Collection, boolean, KerberosDescriptor, Map)
    */
   KerberosDescriptor getKerberosDescriptor(Cluster cluster, boolean includePreconfigureData) throws AmbariException;
+
+  /**
+   * Builds a composite Kerberos descriptor using the default Kerberos descriptor and a user-specified
+   * Kerberos descriptor, if it exists.
+   * <p/>
+   * The default Kerberos descriptor is built from the kerberos.json files in the stack. It can be
+   * retrieved via the <code>stacks/:stackName/versions/:version/artifacts/kerberos_descriptor</code>
+   * endpoint
+   * <p/>
+   * The user-specified Kerberos descriptor was registered to the
+   * <code>cluster/:clusterName/artifacts/kerberos_descriptor</code> endpoint.
+   * <p/>
+   * If the user-specified Kerberos descriptor exists, it is used to update the default Kerberos
+   * descriptor and the composite is returned.  If not, the default cluster descriptor is returned
+   * as-is.
+   *
+   * @param cluster                 cluster instance
+   * @param includePreconfigureData <code>true</code> to include the preconfigure data; <code>false</code> otherwise
+   * @param userDescriptor user defined Kerberos descriptor properties
+   * @param desiredConfigs desired config map
+   * @return the kerberos descriptor associated with the specified cluster
+   * @throws AmbariException if unable to obtain the descriptor
+   * @see #getKerberosDescriptor(KerberosDescriptorType, Cluster, boolean, Collection, boolean, KerberosDescriptor, Map)
+   */
+  KerberosDescriptor getKerberosDescriptor(Cluster cluster, boolean includePreconfigureData,
+                                           @Nullable KerberosDescriptor userDescriptor,
+                                           @Nullable Map<String, DesiredConfig> desiredConfigs)
+    throws AmbariException;
 
   /**
    * Gets the requested Kerberos descriptor.
@@ -525,11 +557,16 @@ public interface KerberosHelper {
    *                                services to add to the set of currently installed services to use
    *                                while evaluating <code>when</code> clauses
    * @param includePreconfigureData <code>true</code> to include the preconfigure data; <code>false</code> otherwise
+   * @param userDescriptor user defined Kerberos descriptor properties
+   * @param desiredConfigs desired config mao
    * @return a Kerberos descriptor
    * @throws AmbariException
    */
   KerberosDescriptor getKerberosDescriptor(KerberosDescriptorType kerberosDescriptorType, Cluster cluster,
-                                           boolean evaluateWhenClauses, Collection<String> additionalServices, boolean includePreconfigureData)
+                                           boolean evaluateWhenClauses, Collection<String> additionalServices,
+                                           boolean includePreconfigureData,
+                                           @Nullable KerberosDescriptor userDescriptor,
+                                           @Nullable Map<String, DesiredConfig> desiredConfigs)
       throws AmbariException;
 
   /**
@@ -550,10 +587,13 @@ public interface KerberosHelper {
    * @param cluster                 the relevant Cluster
    * @param stackId                 the relevant stack id, used for <code>COMPOSITE</code> or <code>STACK</code> Kerberos descriptor requests
    * @param includePreconfigureData <code>true</code> to include the preconfigure data; <code>false</code> otherwise
+   * @param userDescriptor user defined Kerberos descriptor properties
    * @return a Kerberos descriptor
    * @throws AmbariException
    */
-  KerberosDescriptor getKerberosDescriptor(KerberosDescriptorType kerberosDescriptorType, Cluster cluster, StackId stackId, boolean includePreconfigureData)
+  KerberosDescriptor getKerberosDescriptor(KerberosDescriptorType kerberosDescriptorType, Cluster cluster,
+                                           StackId stackId, boolean includePreconfigureData,
+                                           @Nullable KerberosDescriptor userDescriptor)
       throws AmbariException;
 
   /**
@@ -633,13 +673,63 @@ public interface KerberosHelper {
    * @param kerberosDescriptor a map of general Kerberos descriptor properties
    * @param includePreconfigureData <code>true</code> to include the preconfigure data; otherwise false
    * @param calculateClusterHostInfo
+   * @param componentHosts map of cached cluster host info
+   * @param desiredConfigs desired configuration map
    * @return a Map of calculated configuration types
    * @throws AmbariException
    */
   Map<String, Map<String, String>> calculateConfigurations(Cluster cluster, String hostname,
                                                            KerberosDescriptor kerberosDescriptor,
                                                            boolean includePreconfigureData,
-                                                           boolean calculateClusterHostInfo)
+                                                           boolean calculateClusterHostInfo,
+                                                           Map<String, String> componentHosts,
+                                                           @Nullable Map<String, DesiredConfig> desiredConfigs)
+      throws AmbariException;
+
+  /**
+   * Calculates the map of configurations relative to the cluster and host.
+   * <p/>
+   * Most of this was borrowed from {@link org.apache.ambari.server.actionmanager.ExecutionCommandWrapper#getExecutionCommand()}
+   *
+   * @param cluster                      the relevant Cluster
+   * @param hostname                     the relevant hostname
+   * @param kerberosDescriptor a map of general Kerberos descriptor properties
+   * @param userDescriptor a map of user defined Kerberos descriptor properties
+   * @param includePreconfigureData <code>true</code> to include the preconfigure data; otherwise false
+   * @param calculateClusterHostInfo
+   * @param componentHosts map of cached cluster host info
+   * @param desiredConfigs desired configuration map
+   * @return a Map of calculated configuration types
+   * @throws AmbariException
+   */
+  Map<String, Map<String, String>> calculateConfigurations(Cluster cluster, String hostname,
+                                                           KerberosDescriptor kerberosDescriptor,
+                                                           KerberosDescriptor userDescriptor,
+                                                           boolean includePreconfigureData,
+                                                           boolean calculateClusterHostInfo,
+                                                           Map<String, String> componentHosts,
+                                                           @Nullable Map<String, DesiredConfig> desiredConfigs)
+    throws AmbariException;
+
+  /**
+   * Calculates the map of configurations relative to the cluster and host.
+   * <p/>
+   * Most of this was borrowed from {@link org.apache.ambari.server.actionmanager.ExecutionCommandWrapper#getExecutionCommand()}
+   *
+   * @param cluster                      the relevant Cluster
+   * @param hostname                     the relevant hostname
+   * @param kerberosDescriptor a map of general Kerberos descriptor properties
+   * @param includePreconfigureData <code>true</code> to include the preconfigure data; otherwise false
+   * @param calculateClusterHostInfo
+   * @param desiredConfigs desired configuration map
+   * @return a Map of calculated configuration types
+   * @throws AmbariException
+   */
+  Map<String, Map<String, String>> calculateConfigurations(Cluster cluster, String hostname,
+                                                           KerberosDescriptor kerberosDescriptor,
+                                                           boolean includePreconfigureData,
+                                                           boolean calculateClusterHostInfo,
+                                                           @Nullable Map<String, DesiredConfig> desiredConfigs)
       throws AmbariException;
 
   /**
@@ -739,6 +829,7 @@ public interface KerberosHelper {
    *          the kerberos descriptor to use when looking up identities. If
    *          {@code null}, then this method will deserialize the descriptor
    *          inside of a loop at considerable cost.
+   * @param desiredConfigs desired configuration map
    * @return a map of host names to kerberos identities
    * @throws AmbariException
    *           if an error occurs processing the cluster's active identities
@@ -749,7 +840,8 @@ public interface KerberosHelper {
                                                                           String componentName,
                                                                           boolean replaceHostNames,
                                                                           Map<String, Map<String, Map<String, String>>> hostConfigurations,
-                                                                          KerberosDescriptor kerberosDescriptor)
+                                                                          KerberosDescriptor kerberosDescriptor,
+                                                                          @Nullable Map<String, DesiredConfig> desiredConfigs)
       throws AmbariException;
 
   /**
@@ -783,8 +875,10 @@ public interface KerberosHelper {
    * Saves underlying entities in persistent storage.
    *
    * @param resolvedKerberosKeytab kerberos keytab to be persisted
+   * @param keytabList all available keytab
    */
-  void createResolvedKeytab(ResolvedKerberosKeytab resolvedKerberosKeytab);
+   void createResolvedKeytab(ResolvedKerberosKeytab resolvedKerberosKeytab,
+                             List<KerberosKeytabPrincipalEntity> keytabList);
 
   /**
    * Removes existent persisted keytabs if they are not in {@code expectedKeytabs} collection.
@@ -848,6 +942,14 @@ public interface KerberosHelper {
    */
   KerberosDetails getKerberosDetails(Cluster cluster, Boolean manageIdentities)
     throws KerberosInvalidConfigurationException, AmbariException;
+
+  /**
+   * Get the user-supplied Kerberos descriptor from the set of cluster artifacts
+   *
+   * @param cluster the cluster
+   * @return a Kerberos descriptor
+   */
+  KerberosDescriptor getKerberosDescriptorUpdates(Cluster cluster);
 
   /**
    * Types of Kerberos descriptors related to where the data is stored.

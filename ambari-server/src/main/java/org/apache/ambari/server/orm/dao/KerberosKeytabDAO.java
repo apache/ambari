@@ -29,6 +29,7 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.KerberosKeytabEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,6 +87,16 @@ public class KerberosKeytabDAO {
   @RequiresSession
   public KerberosKeytabEntity find(String keytabPath) {
     return entityManagerProvider.get().find(KerberosKeytabEntity.class, keytabPath);
+  }
+
+  @RequiresSession
+  public KerberosKeytabEntity findOrCreate(ResolvedKerberosKeytab resolvedKerberosKeytab) {
+    KerberosKeytabEntity result = find(resolvedKerberosKeytab.getFile());
+    if (result == null) {
+      result = new KerberosKeytabEntity(resolvedKerberosKeytab);
+      create(result);
+    }
+    return result;
   }
 
   @RequiresSession

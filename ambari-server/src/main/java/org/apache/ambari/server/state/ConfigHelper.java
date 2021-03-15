@@ -33,7 +33,10 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.agent.stomp.dto.ClusterConfigs;
@@ -184,7 +187,7 @@ public class ConfigHelper {
    * @throws AmbariException
    */
   public Map<String, Map<String, String>> getEffectiveDesiredTags(Cluster cluster, String hostName,
-      Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
+      @Nullable Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
 
     Host host = (hostName == null) ? null : clusters.getHost(hostName);
     Map<String, HostConfig> desiredHostConfigs = (host == null) ? null
@@ -209,9 +212,8 @@ public class ConfigHelper {
    *          penality.
    * @return a map of tag type to tag names with overrides
    */
-  private Map<String, Map<String, String>> getEffectiveDesiredTags(
-      Cluster cluster, Map<String, DesiredConfig> clusterDesired,
-      Map<String, HostConfig> hostConfigOverrides) {
+  private Map<String, Map<String, String>> getEffectiveDesiredTags(Cluster cluster, Map<String,
+    DesiredConfig> clusterDesired, Map<String, HostConfig> hostConfigOverrides) {
 
     if (null == cluster) {
       clusterDesired = new HashMap<>();
@@ -258,7 +260,6 @@ public class ConfigHelper {
             }
           }
         }
-
         resolved.put(type, tags);
       }
     }
@@ -1117,6 +1118,52 @@ public class ConfigHelper {
     return propertySets;
   }
 
+  public void updateConfigType(Cluster cluster, StackId stackId, AmbariManagementController controller,
+                               String configType, Map<String, String> updates,
+                               Collection<String> removals,
+                               String authenticatedUserName,
+                               String serviceVersionNote)  throws AmbariException {
+    updateConfigType(cluster, stackId, controller, configType, updates, removals, authenticatedUserName,
+      serviceVersionNote, null, true);
+  }
+
+  public void updateBulkConfigType(Cluster cluster, StackId stackId, AmbariManagementController controller,
+                                   Iterable<String> configTypes,
+                                   Map<String, Map<String, String>> updates,
+                                   Map<String, Collection<String>> removals,
+                                   String authenticatedUserName,
+                                   String serviceVersionNote) throws AmbariException, AmbariRuntimeException {
+
+    Map<String, DesiredConfig> desiredConfig =  cluster.getDesiredConfigs();
+
+    Boolean[] doUpdateAgentConfigs = {false};
+    LOG.info("Bulk config update. Starting...");
+    configTypes.forEach(configType -> {
+      try {
+        Boolean updated = updateConfigType(
+          cluster, stackId, controller,
+          configType,
+          updates.get(configType),
+          removals.get(configType),
+          authenticatedUserName,
+          serviceVersionNote,
+          desiredConfig,
+          false
+        );
+        LOG.info("Bulk config update. Working with {}...{}", configType, updated ? "updated" : "not updated");
+        doUpdateAgentConfigs[0] = doUpdateAgentConfigs[0] || updated;
+      } catch (AmbariException e) {
+        throw new AmbariRuntimeException(e);
+      }
+    });
+
+    LOG.info("Bulk config update, agent update is {} required", (doUpdateAgentConfigs[0]) ? "" : "not");
+
+    if (doUpdateAgentConfigs[0]) {
+      updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
+    }
+  }
+
   /**
    * A helper method to create a new {@link Config} for a given configuration
    * type and updates to the current values, if any. This method will perform the following tasks:
@@ -1129,32 +1176,29 @@ public class ConfigHelper {
    * <li>Create an entry in the configuration history with a note and username.</li>
    * <ul>
    *
-   * @param cluster
-   * @param controller
-   * @param configType
-   * @param updates
-   * @param removals a collection of property names to remove from the configuration type
-   * @param authenticatedUserName
-   * @param serviceVersionNote
    * @throws AmbariException
    */
-  public void updateConfigType(Cluster cluster, StackId stackId,
-      AmbariManagementController controller, String configType, Map<String, String> updates,
-      Collection<String> removals, String authenticatedUserName, String serviceVersionNote)
-      throws AmbariException {
+  public Boolean updateConfigType(Cluster cluster, StackId stackId, AmbariManagementController controller,
+                                  String configType, Map<String, String> updates,
+                                  Collection<String> removals,
+                                  String authenticatedUserName,
+                                  String serviceVersionNote,
+                                  @Nullable Map<String, DesiredConfig> desiredConfig,
+                                  Boolean doUpdateAgentConfigs) throws AmbariException {
 
     // Nothing to update or remove
     if (configType == null ||
       (updates == null || updates.isEmpty()) &&
       (removals == null || removals.isEmpty())) {
-      return;
+      return false;
     }
 
-    Config oldConfig = cluster.getDesiredConfigByType(configType);
+    Config oldConfig = (desiredConfig != null && desiredConfig.containsKey(configType))
+      ? cluster.getConfig(configType, desiredConfig.get(configType).getTag())
+      : cluster.getDesiredConfigByType(configType);
     Map<String, String> oldConfigProperties;
     Map<String, String> properties = new HashMap<>();
-    Map<String, Map<String, String>> propertiesAttributes =
-      new HashMap<>();
+    Map<String, Map<String, String>> propertiesAttributes = new HashMap<>();
 
     if (oldConfig == null) {
       oldConfigProperties = null;
@@ -1182,14 +1226,15 @@ public class ConfigHelper {
       }
     }
 
-    if ((oldConfigProperties == null)
-      || !Maps.difference(oldConfigProperties, properties).areEqual()) {
-      if (createConfigType(cluster, stackId, controller, configType, properties,
-        propertiesAttributes, authenticatedUserName, serviceVersionNote)) {
-
+    if ((oldConfigProperties == null || !Maps.difference(oldConfigProperties, properties).areEqual())
+      && createConfigType(cluster, stackId, controller, configType, properties, propertiesAttributes,
+      authenticatedUserName, serviceVersionNote)) {
+      if (doUpdateAgentConfigs) {
         updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
       }
+        return true;
     }
+    return false;
   }
 
   public void createConfigType(Cluster cluster, StackId stackId,
@@ -2044,21 +2089,15 @@ public class ConfigHelper {
       }
       Map<String, Map<String, String>> configurations = new HashMap<>();
       Map<String, Map<String, Map<String, String>>> configurationAttributes = new HashMap<>();
+      Map<String, DesiredConfig> clusterDesiredConfigs = cl.getDesiredConfigs(false);
+      Map<String, Map<String, String>> configTags = getEffectiveDesiredTags(cl, host.getHostName(), clusterDesiredConfigs);
+
+      // Logging below creating too much spam and slowing down operations
       if (LOG.isDebugEnabled()) {
         LOG.debug("For configs update on host {} will be used cluster entity {}", hostId, cl.getClusterEntity().toString());
-      }
-      Map<String, DesiredConfig> clusterDesiredConfigs = cl.getDesiredConfigs(false);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("For configs update on host {} will be used following cluster desired configs {}", hostId,
-            clusterDesiredConfigs.toString());
-      }
-
-      Map<String, Map<String, String>> configTags =
-          getEffectiveDesiredTags(cl, host.getHostName(), clusterDesiredConfigs);
-      if (LOG.isDebugEnabled()) {
+        LOG.debug("For configs update on host {} will be used following cluster desired configs {}", hostId, clusterDesiredConfigs.toString());
         LOG.debug("For configs update on host {} will be used following effective desired tags {}", hostId, configTags.toString());
       }
-
       getAndMergeHostConfigs(configurations, configTags, cl);
       configurations = unescapeConfigNames(configurations);
       getAndMergeHostConfigAttributes(configurationAttributes, configTags, cl);
@@ -2067,12 +2106,12 @@ public class ConfigHelper {
       SortedMap<String, SortedMap<String, String>> configurationsTreeMap = sortConfigutations(configurations);
       SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurationAttributesTreeMap =
           sortConfigurationAttributes(configurationAttributes);
-      clustersConfigs.put(Long.toString(cl.getClusterId()),
-          new ClusterConfigs(configurationsTreeMap, configurationAttributesTreeMap));
+      clustersConfigs.put(
+        Long.toString(cl.getClusterId()),
+        new ClusterConfigs(configurationsTreeMap, configurationAttributesTreeMap)
+      );
     }
-
-    AgentConfigsUpdateEvent agentConfigsUpdateEvent = new AgentConfigsUpdateEvent(hostId, clustersConfigs);
-    return agentConfigsUpdateEvent;
+    return new AgentConfigsUpdateEvent(hostId, clustersConfigs);
   }
 
   private Map<String, Map<String, String>> unescapeConfigNames(Map<String, Map<String, String>> configurations) {
@@ -2092,34 +2131,23 @@ public class ConfigHelper {
       Map<String, Map<String, Map<String, String>>> configurationAttributes) {
     Map<String, Map<String, Map<String, String>>> unescapedConfigAttributes = new HashMap<>();
 
-    for (Entry<String, Map<String, Map<String, String>>> configAttrTypeEntry : configurationAttributes.entrySet()) {
-      unescapedConfigAttributes.put(configAttrTypeEntry.getKey(), unescapeConfigNames(configAttrTypeEntry.getValue()));
-    }
-
+    configurationAttributes.forEach((key, value) ->  unescapedConfigAttributes.put(key, unescapeConfigNames(value)));
     return unescapedConfigAttributes;
   }
 
   public SortedMap<String, SortedMap<String, String>> sortConfigutations(Map<String, Map<String, String>> configurations) {
     SortedMap<String, SortedMap<String, String>> configurationsTreeMap = new TreeMap<>();
-    configurations.forEach((k, v) -> {
-      TreeMap<String, String> c = new TreeMap<>();
-      c.putAll(v);
-      configurationsTreeMap.put(k, c);
-    });
-
+    configurations.forEach((k, v) -> configurationsTreeMap.put(k, new TreeMap<>(v)));
     return configurationsTreeMap;
   }
 
   public SortedMap<String, SortedMap<String, SortedMap<String, String>>> sortConfigurationAttributes(
       Map<String, Map<String, Map<String, String>>> configurationAttributes) {
+
     SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurationAttributesTreeMap = new TreeMap<>();
     configurationAttributes.forEach((k, v) -> {
       SortedMap<String, SortedMap<String, String>> c = new TreeMap<>();
-      v.forEach((k1, v1) -> {
-        SortedMap<String, String> c1 = new TreeMap<>();
-        c1.putAll(v1);
-        c.put(k1, c1);
-      });
+      v.forEach((k1, v1) -> c.put(k1, new TreeMap<>(v1)));
       configurationAttributesTreeMap.put(k, c);
     });
 
@@ -2136,10 +2164,17 @@ public class ConfigHelper {
    * @return a map of the existing configurations
    * @throws AmbariException
    */
-  public Map<String, Map<String, String>> calculateExistingConfigurations(AmbariManagementController ambariManagementController, Cluster cluster) throws AmbariException {
+  public Map<String, Map<String, String>> calculateExistingConfigurations(
+    AmbariManagementController ambariManagementController, Cluster cluster) throws AmbariException {
+
     final Map<String, Map<String, String>> configurations = new HashMap<>();
     for (Host host : cluster.getHosts()) {
-      configurations.putAll(calculateExistingConfigurations(ambariManagementController, cluster, host.getHostName()));
+      configurations.putAll(calculateExistingConfigurations(
+        ambariManagementController,
+        cluster,
+        host.getHostName(),
+        null
+      ));
     }
     return configurations;
   }
@@ -2150,16 +2185,21 @@ public class ConfigHelper {
    * @param ambariManagementController the Ambari management controller
    * @param cluster  the cluster
    * @param hostname a hostname
+   * @param desiredConfigs desired configuration map
    * @return a map of the existing configurations
    * @throws AmbariException
    */
-  public Map<String, Map<String, String>> calculateExistingConfigurations(AmbariManagementController ambariManagementController, Cluster cluster, String hostname) throws AmbariException {
+  public Map<String, Map<String, String>> calculateExistingConfigurations(
+    AmbariManagementController ambariManagementController, Cluster cluster,  String hostname,
+    @Nullable Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
+
     // For a configuration type, both tag and an actual configuration can be stored
     // Configurations from the tag is always expanded and then over-written by the actual
     // global:version1:{a1:A1,b1:B1,d1:D1} + global:{a1:A2,c1:C1,DELETED_d1:x} ==>
     // global:{a1:A2,b1:B1,c1:C1}
     final Map<String, Map<String, String>> configurations = new HashMap<>();
-    final Map<String, Map<String, String>> configurationTags = ambariManagementController.findConfigurationTagsWithOverrides(cluster, hostname);
+    final Map<String, Map<String, String>> configurationTags = ambariManagementController
+      .findConfigurationTagsWithOverrides(cluster, hostname, desiredConfigs);
     final Map<String, Map<String, String>> configProperties = getEffectiveConfigProperties(cluster, configurationTags);
 
     // Apply the configurations saved with the Execution Cmd on top of

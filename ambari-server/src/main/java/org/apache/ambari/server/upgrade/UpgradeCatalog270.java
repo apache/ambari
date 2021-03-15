@@ -1627,7 +1627,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
             Map<String, Map<String, String>> kerberosConfigurations = new HashMap<>();
             Map<String, Set<String>> propertiesToIgnore = new HashMap<>();
             List<ServiceComponentHost> schToProcess = kerberosHelper.getServiceComponentHostsToProcess(cluster, kerberosDescriptor, null, null);
-            Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, false, false);
+            Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, false, false, null);
             boolean includeAmbariIdentity = true;
             String dataDirectory = kerberosHelper.createTemporaryDirectory().getAbsolutePath();
             try {

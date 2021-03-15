@@ -140,17 +140,15 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
           if (!configTypes.isEmpty()) {
             String configNote = getCommandParameterValue(getCommandParameters(), KerberosServerAction.UPDATE_CONFIGURATION_NOTE);
 
-            if((configNote == null) || configNote.isEmpty()) {
+            if(configNote == null || configNote.isEmpty()) {
               configNote = cluster.getSecurityType() == SecurityType.KERBEROS
                   ? "Enabling Kerberos"
                   : "Disabling Kerberos";
             }
 
-            for (String configType : configTypes) {
-              configHelper.updateConfigType(cluster, cluster.getDesiredStackVersion(), controller,
-                  configType, propertiesToSet.get(configType), propertiesToRemove.get(configType),
-                  authenticatedUserName, configNote);
-            }
+            configHelper.updateBulkConfigType(cluster, cluster.getDesiredStackVersion(), controller,
+              configTypes, propertiesToSet, propertiesToRemove,
+              authenticatedUserName, configNote);
           }
         } catch (IOException e) {
           String message = "Could not update services configs to enable kerberos";

@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.state.kerberos.VariableReplacementHelper;
@@ -342,26 +341,22 @@ public class MITKerberosOperationHandler extends KDCKerberosOperationHandler {
   @Override
   protected String[] getKinitCommand(String executableKinit, PrincipalKeyCredential credentials, String credentialsCache, Map<String, String> kerberosConfiguration) throws KerberosOperationException {
     // kinit -c <path> -S kadmin/`hostname -f` <principal>
-    try {
-      String kadminPrincipalName = variableReplacementHelper.replaceVariables(kerberosConfiguration.get(KERBEROS_ENV_KADMIN_PRINCIPAL_NAME), buildReplacementsMap(kerberosConfiguration));
-      if (kadminPrincipalName == null) {
-        kadminPrincipalName = String.format("kadmin/%s", getAdminServerHost(false));
-      }
-      String [] command = new String[]{
-          executableKinit,
-          "-c",
-          credentialsCache,
-          "-S",
-          kadminPrincipalName,
-          credentials.getPrincipal()
-      };
-      if (Arrays.asList(command).contains(null)){
-        throw new KerberosOperationException("Got a null value, can not create 'kinit' command");
-      }
-      return command;
-    } catch (AmbariException e) {
-      throw new KerberosOperationException("Error while getting 'kinit' command", e);
+    String kadminPrincipalName = variableReplacementHelper.replaceVariables(kerberosConfiguration.get(KERBEROS_ENV_KADMIN_PRINCIPAL_NAME), buildReplacementsMap(kerberosConfiguration));
+    if (kadminPrincipalName == null) {
+      kadminPrincipalName = String.format("kadmin/%s", getAdminServerHost(false));
     }
+    String [] command = new String[]{
+        executableKinit,
+        "-c",
+        credentialsCache,
+        "-S",
+        kadminPrincipalName,
+        credentials.getPrincipal()
+    };
+    if (Arrays.asList(command).contains(null)){
+      throw new KerberosOperationException("Got a null value, can not create 'kinit' command");
+    }
+    return command;
   }
 
   private Map<String, Map<String, String>> buildReplacementsMap(Map<String, String> kerberosConfiguration) {

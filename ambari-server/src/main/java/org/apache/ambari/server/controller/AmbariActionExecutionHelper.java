@@ -445,7 +445,7 @@ public class AmbariActionExecutionHelper {
       // time - if it's not needed, then don't do it
       Map<String, Map<String, String>> configTags = new TreeMap<>();
       if (!execCmd.getForceRefreshConfigTagsBeforeExecution()) {
-        configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
+        configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName, null);
       }
 
       execCmd.setConfigurationTags(configTags);

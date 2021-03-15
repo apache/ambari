@@ -276,7 +276,7 @@ public class KerberosServerActionTest extends EasyMockSupport {
     expectLastCall().atLeastOnce();
 
     KerberosOperationHandlerFactory factory = injector.getInstance(KerberosOperationHandlerFactory.class);
-    expect(factory.getKerberosOperationHandler(KDCType.MIT_KDC)).andReturn(kerberosOperationHandler).once();
+    expect(factory.getKerberosOperationHandler(KDCType.MIT_KDC)).andReturn(kerberosOperationHandler).anyTimes();
 
     replayAll();
 

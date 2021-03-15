@@ -292,7 +292,7 @@ class DeleteIdentityHandler {
      * The service configuration is needed because principal names may contain placeholder variables which are replaced based on the service configuration.
      */
     private Map<String, Map<String, String>> calculateConfig(KerberosDescriptor kerberosDescriptor, Set<String> serviceNames) throws AmbariException {
-      Map<String, Map<String, String>> actualConfig = getKerberosHelper().calculateConfigurations(getCluster(), null, kerberosDescriptor, false, false);
+      Map<String, Map<String, String>> actualConfig = getKerberosHelper().calculateConfigurations(getCluster(), null, kerberosDescriptor, false, false, null);
       extendWithDeletedConfigOfService(actualConfig, serviceNames);
       return actualConfig;
     }
@@ -358,7 +358,7 @@ class DeleteIdentityHandler {
     Stage stage = createNewStage(id, cluster, requestId, requestContext,  commandParams, hostParams);
     stage.addServerActionCommand(actionClass.getName(), null, Role.AMBARI_SERVER_ACTION,
       RoleCommand.EXECUTE, cluster.getClusterName(), event, commandParameters, commandDetail,
-      ambariManagementController.findConfigurationTagsWithOverrides(cluster, null), timeout,
+      ambariManagementController.findConfigurationTagsWithOverrides(cluster, null, null), timeout,
       false, false);
 
     return stage;

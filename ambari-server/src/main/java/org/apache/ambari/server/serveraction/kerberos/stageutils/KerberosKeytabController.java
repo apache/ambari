@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.orm.dao.KerberosKeytabDAO;
@@ -36,6 +38,7 @@ import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
@@ -290,37 +293,36 @@ public class KerberosKeytabController {
     return adjustedFilter;
   }
 
-  public Collection<KerberosIdentityDescriptor> getServiceIdentities(String clusterName, Collection<String> services) throws AmbariException {
+  public Collection<KerberosIdentityDescriptor> getServiceIdentities(String clusterName, Collection<String> services,
+                                                                     @Nullable Map<String, DesiredConfig> desiredConfigs)
+    throws AmbariException {
+
     final Collection<KerberosIdentityDescriptor> serviceIdentities = new ArrayList<>();
     Cluster cluster = clusters.getCluster(clusterName);
+
+    if (desiredConfigs == null) {
+      desiredConfigs = cluster.getDesiredConfigs();
+    }
+
     KerberosDescriptor kerberosDescriptor = kerberosHelper.getKerberosDescriptor(cluster, false);
+    KerberosDescriptor userDescriptor = kerberosHelper.getKerberosDescriptorUpdates(cluster);
     Map<String, Map<String, Map<String, String>>> hostConfigurations = new HashMap<>();
     Map<String, Host> hostMap = clusters.getHostsForCluster(clusterName);
     Set<String> hosts = new HashSet<>(hostMap.keySet());
+    Map<String, String> componentHosts = new HashMap<>();
 
-    String ambariServerHostname = StageUtils.getHostName();
-    if (!hosts.contains(ambariServerHostname)) {
-      hosts.add(ambariServerHostname);
-    }
-    for( String hostName : hosts ) {
-      Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(
-        cluster, hostName, kerberosDescriptor, false, false);
-      hostConfigurations.put(hostName, configurations);
-    }
-    for (String service : services) {
-      Collection<Collection<KerberosIdentityDescriptor>> identities = kerberosHelper.getActiveIdentities(
-        clusterName,
-       null,
-        service,
-       null,
-       true,
-        hostConfigurations,
-        kerberosDescriptor
-      ).values();
+    hosts.add(StageUtils.getHostName());
 
-      for (Collection<KerberosIdentityDescriptor> activeIdentities : identities) {
-        serviceIdentities.addAll(activeIdentities);
-      }
+    for(String hostName: hosts) {
+      hostConfigurations.put(
+        hostName,
+        kerberosHelper.calculateConfigurations(cluster, hostName, kerberosDescriptor, userDescriptor,
+          false,false, componentHosts, desiredConfigs)
+      );
+    }
+    for (String service: services) {
+      kerberosHelper.getActiveIdentities(clusterName,null, service, null,true,
+        hostConfigurations,kerberosDescriptor, desiredConfigs).values().forEach(serviceIdentities::addAll);
     }
     return serviceIdentities;
   }

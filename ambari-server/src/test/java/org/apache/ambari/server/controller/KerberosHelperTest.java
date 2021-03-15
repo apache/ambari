@@ -1103,7 +1103,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     }
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
+    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null, null))
         .andReturn(Collections.emptyMap())
         .once();
     expect(ambariManagementController.getRoleCommandOrder(cluster))
@@ -1263,7 +1263,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         .once();
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
+    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null, null))
         .andReturn(Collections.emptyMap())
         .once();
     expect(ambariManagementController.getRoleCommandOrder(cluster))
@@ -1462,7 +1462,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         .once();
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
+    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null, null))
         .andReturn(Collections.emptyMap())
         .once();
     expect(ambariManagementController.getRoleCommandOrder(cluster))
@@ -2390,6 +2390,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     final Cluster cluster = createMockCluster("c1", hosts, SecurityType.KERBEROS, krb5ConfConfig, kerberosEnvConfig);
     expect(cluster.getServices()).andReturn(services).anyTimes();
     expect(cluster.getServiceComponentHostMap(EasyMock.anyObject(), EasyMock.anyObject())).andReturn(serviceComponentHostMap).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.2")).anyTimes();
 
     final Map<String, Map<String, String>> existingConfigurations = new HashMap<String, Map<String, String>>() {
       {
@@ -2628,6 +2629,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     Cluster cluster = createMockCluster(clusterName, Arrays.asList(host1, host2, host3), SecurityType.KERBEROS, configKrb5Conf, configKerberosEnv);
     expect(cluster.getServices()).andReturn(servicesMap).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.2")).anyTimes();
 
     Map<String, String> kerberosDescriptorProperties = new HashMap<>();
     kerberosDescriptorProperties.put("additional_realms", "");
@@ -2762,7 +2764,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     }
 
     CreateKeytabFilesServerAction createKeytabFilesServerAction = injector.getInstance(CreateKeytabFilesServerAction.class);
-    expect(createKeytabFilesServerAction.createKeytab(capture(capturePrincipalForKeytab), eq("password"), eq(1), anyObject(KerberosOperationHandler.class), eq(true), eq(true), isNull(ActionLog.class)))
+    expect(createKeytabFilesServerAction.createKeytab(capture(capturePrincipalForKeytab),anyObject(), eq("password"), eq(1), anyObject(KerberosOperationHandler.class), eq(true), eq(true), isNull(ActionLog.class)))
         .andReturn(new Keytab())
         .times(createAmbariIdentities ? 5 : 3);
 
@@ -2841,6 +2843,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     servicesMap.put("SERVICE1", service1);
 
     Cluster cluster = createMockCluster("c1", Collections.singletonList(host1), SecurityType.KERBEROS, configKrb5Conf, configKerberosEnv);
+    expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.2")).anyTimes();
     expect(cluster.getServices()).andReturn(servicesMap).anyTimes();
 
     Map<String, String> kerberosDescriptorProperties = new HashMap<>();
@@ -3114,7 +3117,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     }
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
+    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null, null))
         .andReturn(Collections.emptyMap())
         .times(3);
     expect(ambariManagementController.getRoleCommandOrder(cluster))
@@ -3325,7 +3328,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
+    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null, null))
         .andReturn(Collections.emptyMap())
         .once();
     expect(ambariManagementController.getRoleCommandOrder(cluster))
@@ -3435,7 +3438,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     result.created = true;
     result.kkp = kkp;
 
-    expect(kerberosKeytabPrincipalDAO.findOrCreate(anyObject(), anyObject(), anyObject())).andReturn(result).anyTimes();
+    expect(kerberosKeytabPrincipalDAO.findOrCreate(anyObject(), anyObject(), anyObject(), anyObject())).andReturn(result).anyTimes();
     boolean managingIdentities = !Boolean.FALSE.equals(manageIdentities);
 
     final Map<String, String> kerberosEnvProperties = new HashMap<>();
@@ -3543,7 +3546,7 @@ public class KerberosHelperTest extends EasyMockSupport {
           .anyTimes();
 
       final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-      expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
+      expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null, null))
           .andReturn(Collections.emptyMap())
           .once();
       expect(ambariManagementController.getRoleCommandOrder(cluster))
@@ -3551,7 +3554,7 @@ public class KerberosHelperTest extends EasyMockSupport {
           .once();
 
       final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-      expect(configHelper.calculateExistingConfigurations(eq(ambariManagementController), anyObject(Cluster.class), EasyMock.anyObject()))
+      expect(configHelper.calculateExistingConfigurations(eq(ambariManagementController), anyObject(Cluster.class), anyObject(), anyObject()))
           .andReturn(new HashMap<String, Map<String, String>>() {
             {
               put("cluster-env", new HashMap<String, String>() {{
@@ -3631,7 +3634,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     result.created = true;
     result.kkp = kkp;
 
-    expect(kerberosKeytabPrincipalDAO.findOrCreate(anyObject(), anyObject(), anyObject())).andReturn(result).anyTimes();
+    expect(kerberosKeytabPrincipalDAO.findOrCreate(anyObject(), anyObject(), anyObject(), anyObject())).andReturn(result).anyTimes();
     Host host1 = createMock(Host.class);
     expect(host1.getHostId()).andReturn(1l).anyTimes();
 
@@ -3721,7 +3724,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         .once();
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
+    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null, null))
         .andReturn(Collections.emptyMap())
         .once();
     expect(ambariManagementController.getRoleCommandOrder(cluster))
@@ -3729,7 +3732,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         .once();
 
     final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    expect(configHelper.calculateExistingConfigurations(eq(ambariManagementController), anyObject(Cluster.class), EasyMock.anyObject()))
+    expect(configHelper.calculateExistingConfigurations(eq(ambariManagementController), anyObject(Cluster.class), anyObject(), anyObject()))
         .andReturn(new HashMap<String, Map<String, String>>() {
           {
             put("cluster-env", new HashMap<String, String>() {
@@ -3866,6 +3869,8 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(cluster.getSecurityType()).andReturn(clusterSecurityType).anyTimes();
     expect(cluster.getClusterName()).andReturn(clusterName).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.2")).anyTimes();
+    expect(cluster.getDesiredConfigByType(anyString(), anyObject())).andReturn(EasyMock.createNiceMock(Config.class)).anyTimes();
     expect(cluster.getServiceComponentHosts("host1"))
         .andReturn(new ArrayList<ServiceComponentHost>() {
           {
@@ -3940,18 +3945,18 @@ public class KerberosHelperTest extends EasyMockSupport {
     }
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "host1"))
+    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "host1", null))
         .andReturn(Collections.emptyMap())
         .anyTimes();
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "host2"))
+    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "host2", null))
         .andReturn(Collections.emptyMap())
         .anyTimes();
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
+    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null, null))
         .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    expect(configHelper.calculateExistingConfigurations(eq(ambariManagementController), anyObject(Cluster.class), EasyMock.anyObject()))
+    expect(configHelper.calculateExistingConfigurations(eq(ambariManagementController), anyObject(Cluster.class), anyObject(), anyObject()))
         .andReturn(new HashMap<String, Map<String, String>>() {
           {
             put("cluster-env", new HashMap<String, String>() {{
@@ -4053,6 +4058,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosDescriptor.getService("KERBEROS")).andReturn(null).anyTimes();
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).anyTimes();
     expect(kerberosDescriptor.getService("SERVICE2")).andReturn(serviceDescriptor2).anyTimes();
+    expect(kerberosDescriptor.getService("AMBARI")).andReturn(null).anyTimes();
 
     setupKerberosDescriptor(kerberosDescriptor);
 
@@ -4063,7 +4069,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     Map<String, Collection<KerberosIdentityDescriptor>> identities;
     identities = kerberosHelper.getActiveIdentities(clusterName, hostName, serviceName,
-        componentName, replaceHostNames, null, null);
+        componentName, replaceHostNames, null, null, null);
 
     verifyAll();
 

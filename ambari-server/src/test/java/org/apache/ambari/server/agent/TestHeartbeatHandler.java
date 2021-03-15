@@ -1500,10 +1500,10 @@ public class TestHeartbeatHandler {
     replay(am);
 
     Method injectKeytabMethod = agentCommandsPublisher.getClass().getDeclaredMethod("injectKeytab",
-        ExecutionCommand.class, String.class, String.class);
+        ExecutionCommand.class, String.class, String.class, Map.class);
     injectKeytabMethod.setAccessible(true);
     commandparams.put(KerberosServerAction.DATA_DIRECTORY, createTestKeytabData(agentCommandsPublisher, false).getAbsolutePath());
-    injectKeytabMethod.invoke(agentCommandsPublisher, executionCommand, "SET_KEYTAB", targetHost);
+    injectKeytabMethod.invoke(agentCommandsPublisher, executionCommand, "SET_KEYTAB", targetHost, null);
 
     return executionCommand.getKerberosCommandParams();
   }
@@ -1533,10 +1533,10 @@ public class TestHeartbeatHandler {
     replay(am);
 
     Method injectKeytabMethod = agentCommandsPublisher.getClass().getDeclaredMethod("injectKeytab",
-        ExecutionCommand.class, String.class, String.class);
+        ExecutionCommand.class, String.class, String.class, Map.class);
     injectKeytabMethod.setAccessible(true);
     commandparams.put(KerberosServerAction.DATA_DIRECTORY, createTestKeytabData(agentCommandsPublisher, true).getAbsolutePath());
-    injectKeytabMethod.invoke(agentCommandsPublisher, executionCommand, "REMOVE_KEYTAB", targetHost);
+    injectKeytabMethod.invoke(agentCommandsPublisher, executionCommand, "REMOVE_KEYTAB", targetHost, null);
 
     return executionCommand.getKerberosCommandParams();
   }
@@ -1594,7 +1594,7 @@ public class TestHeartbeatHandler {
       )
     ).once();
 
-    expect(kerberosKeytabControllerMock.getServiceIdentities(EasyMock.anyString(), EasyMock.anyObject())).andReturn(Collections.emptySet()).anyTimes();
+    expect(kerberosKeytabControllerMock.getServiceIdentities(EasyMock.anyString(), EasyMock.anyObject(), EasyMock.anyObject())).andReturn(Collections.emptySet()).anyTimes();
 
     replay(kerberosKeytabControllerMock);
 

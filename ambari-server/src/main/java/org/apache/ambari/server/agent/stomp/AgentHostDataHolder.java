@@ -53,12 +53,8 @@ public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> e
     return !Objects.equals(agentHash, hostData.getHash()) ? hostData : getEmptyData();
   }
 
-  public T initializeDataIfNeeded(Long hostId, boolean regenerateHash) throws AmbariException {
-    try {
-      return data.computeIfAbsent(hostId, id -> initializeData(hostId, regenerateHash));
-    } catch (AmbariRuntimeException e) {
-      throw new AmbariException(e.getMessage(), e);
-    }
+  public T initializeDataIfNeeded(Long hostId, boolean regenerateHash) throws AmbariRuntimeException {
+    return data.computeIfAbsent(hostId, id -> initializeData(hostId, regenerateHash));
   }
 
   private T initializeData(Long hostId, boolean regenerateHash) {
