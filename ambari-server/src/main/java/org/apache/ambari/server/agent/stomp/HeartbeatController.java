@@ -106,7 +106,7 @@ public class HeartbeatController {
           response = new RegistrationResponse();
           response.setResponseId(-1);
           response.setResponseStatus(RegistrationStatus.FAILED);
-          response.setExitstatus(1);
+          response.setExitStatus(1);
           response.setLog(ex.getMessage());
           completableFuture.complete(response);
           return response;
