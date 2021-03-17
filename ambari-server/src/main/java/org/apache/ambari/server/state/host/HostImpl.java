@@ -957,18 +957,24 @@ public class HostImpl implements Host {
     }
   }
 
-
   @Override
   public String getStatus() {
     return status;
   }
 
+  /**
+   * Sets the Host's status.
+   *
+   * @param status Host Status string representation of the Host's status
+   * @throws IllegalArgumentException if <code>status</code> is <code>null</code> or {@link HealthStatus} enum has no such constant name.
+   */
   @Override
   public void setStatus(String status) {
-    if (this.status != status) {
-      ambariEventPublisher.publish(new HostStatusUpdateEvent(getHostName(), status));
+    String newStatus = HealthStatus.valueOf(status).name();
+    if (!newStatus.equals(this.status)) {
+      ambariEventPublisher.publish(new HostStatusUpdateEvent(getHostName(), newStatus));
+      this.status = newStatus;
     }
-    this.status = status;
   }
 
   @Override
