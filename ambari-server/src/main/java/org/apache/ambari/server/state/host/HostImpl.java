@@ -85,6 +85,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
@@ -318,6 +319,12 @@ public class HostImpl implements Host {
 
     // populate the maintenance map
     maintMap = ensureMaintMap(hostEntity.getHostStateEntity());
+  }
+
+  @VisibleForTesting
+  HostImpl(HostEntity hostEntity, Gson gson, HostDAO hostDAO, HostStateDAO hostStateDAO, AmbariEventPublisher publisher) {
+    this(hostEntity, gson, hostDAO, hostStateDAO);
+    this.ambariEventPublisher = publisher;
   }
 
   @Override
@@ -970,6 +977,9 @@ public class HostImpl implements Host {
    */
   @Override
   public void setStatus(String status) {
+    if (status == null) {
+      throw new IllegalArgumentException("Host status cannot be null");
+    }
     String newStatus = HealthStatus.valueOf(status).name();
     if (!newStatus.equals(this.status)) {
       ambariEventPublisher.publish(new HostStatusUpdateEvent(getHostName(), newStatus));
@@ -1329,8 +1339,8 @@ public class HostImpl implements Host {
     // for every host component, if it matches the desired repo and has reported
     // the correct version then we're good
     for (HostComponentStateEntity hostComponentState : hostComponentStates) {
-      ServiceComponentDesiredStateEntity desiredComponmentState = hostComponentState.getServiceComponentDesiredStateEntity();
-      RepositoryVersionEntity desiredRepositoryVersion = desiredComponmentState.getDesiredRepositoryVersion();
+      ServiceComponentDesiredStateEntity desiredComponentState = hostComponentState.getServiceComponentDesiredStateEntity();
+      RepositoryVersionEntity desiredRepositoryVersion = desiredComponentState.getDesiredRepositoryVersion();
 
       ComponentInfo componentInfo = ambariMetaInfo.getComponent(
           desiredRepositoryVersion.getStackName(), desiredRepositoryVersion.getStackVersion(),
