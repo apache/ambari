@@ -20,13 +20,14 @@ package org.apache.ambari.server.state.alert;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.range;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.ambari.server.controller.jmx.JMXMetricHolder;
 import org.apache.ambari.server.state.UriInfo;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.ListUtils;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
@@ -137,18 +138,22 @@ public class MetricSource extends Source {
 
     @Override
     public boolean equals(Object object) {
-      if (!JmxInfo.class.isInstance(object)) {
-        return false;
+      if (object instanceof JmxInfo) {
+        JmxInfo other = (JmxInfo) object;
+        if (propertyList == null) {
+          return other.propertyList == null;
+        } else {
+          // !!! even if out of order, this is enough to fail
+          return other.propertyList != null &&
+              CollectionUtils.isEqualCollection(ListUtils.unmodifiableList(propertyList), ListUtils.unmodifiableList(other.propertyList));
+        }
       }
+      return false;
+    }
 
-      JmxInfo other = (JmxInfo)object;
-
-      List<String> list1 = new ArrayList<>(propertyList);
-      List<String> list2 = new ArrayList<>(other.propertyList);
-
-      // !!! even if out of order, this is enough to fail
-      return list1.equals(list2);
-
+    @Override
+    public int hashCode() {
+      return Objects.hash(propertyList);
     }
 
     public String getUrlSuffix() {
