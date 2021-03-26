@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.servlet.ServletContext;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentSessionManager;
 import org.apache.ambari.server.agent.stomp.AmbariSubscriptionRegistry;
 import org.apache.ambari.server.api.AmbariSendToMethodReturnValueHandler;
@@ -116,12 +117,9 @@ public class RootStompConfig {
     @MessageExceptionHandler(Exception.class)
     @SendToUser("/")
     public ErrorMessage handle(Exception e) {
-
-      //LOG.error("Exception caught while processing message: " + e.getMessage(), e);
-      return new ErrorMessage(e);
+      LOG.error("Exception caught while processing a message: " + e.getMessage(), e);
+      return new ErrorMessage(new AmbariException(e.getMessage()));
     }
-
-
   }
 
 }
