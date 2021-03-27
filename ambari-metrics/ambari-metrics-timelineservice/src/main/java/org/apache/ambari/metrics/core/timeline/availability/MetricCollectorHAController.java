@@ -49,8 +49,6 @@ import org.apache.helix.model.ExternalView;
 import org.apache.helix.model.InstanceConfig;
 import org.apache.helix.model.LiveInstance;
 import org.apache.helix.model.OnlineOfflineSMD;
-import org.apache.helix.model.StateModelDefinition;
-import org.apache.helix.tools.StateModelConfigGenerator;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -164,8 +162,7 @@ public class MetricCollectorHAController {
     // Add a state model
     if (admin.getStateModelDef(CLUSTER_NAME, DEFAULT_STATE_MODEL) == null) {
       LOG.info("Adding ONLINE-OFFLINE state model to the cluster");
-      admin.addStateModelDef(CLUSTER_NAME, DEFAULT_STATE_MODEL, new StateModelDefinition(
-        StateModelConfigGenerator.generateConfigForOnlineOffline()));
+      admin.addStateModelDef(CLUSTER_NAME, DEFAULT_STATE_MODEL, OnlineOfflineSMD.build());
     }
 
     // Add resources with 1 cluster-wide replica
