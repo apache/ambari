@@ -31,7 +31,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.I0Itec.zkclient.exception.ZkNoNodeException;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -64,6 +63,8 @@ public class MetricCollectorHAController {
   @VisibleForTesting
   static final String DEFAULT_STATE_MODEL = OnlineOfflineSMD.name;
   private static final String INSTANCE_NAME_DELIMITER = "_";
+  private static final int PARTITION_NUMBER = 2;
+  private static final int REPLICATION_FACTOR = 1;
 
   @VisibleForTesting
   final String zkConnectUrl;
@@ -119,8 +120,9 @@ public class MetricCollectorHAController {
    * Initialize the instance with zookeeper via Helix
    */
   public void initializeHAController() throws Exception {
+    // Create setup tool instance
     admin = new ZKHelixAdmin(zkConnectUrl);
-    // create cluster
+    // Create cluster namespace in zookeeper. Don't recreate if exists.
     LOG.info(String.format("Creating zookeeper cluster node: %s", CLUSTER_NAME));
     boolean clusterAdded = admin.addCluster(CLUSTER_NAME, false);
     LOG.info(String.format("Was cluster added successfully? %s", clusterAdded));
@@ -133,7 +135,7 @@ public class MetricCollectorHAController {
     for (int i = 0; i < tries && !success; i++) {
       try {
         List<String> nodes = admin.getInstancesInCluster(CLUSTER_NAME);
-        if (CollectionUtils.isEmpty(nodes) || !nodes.contains(instanceConfig.getInstanceName())) {
+        if (!nodes.contains(instanceConfig.getInstanceName())) {
           LOG.info(String.format("Adding participant instance %s", instanceConfig));
           admin.addInstance(CLUSTER_NAME, instanceConfig);
         }
@@ -153,13 +155,13 @@ public class MetricCollectorHAController {
       LOG.info(String.format("Trying to create %s again since waiting for the creation did not help.", CLUSTER_NAME));
       admin.addCluster(CLUSTER_NAME, true);
       List<String> nodes = admin.getInstancesInCluster(CLUSTER_NAME);
-      if (CollectionUtils.isEmpty(nodes) || !nodes.contains(instanceConfig.getInstanceName())) {
+      if (!nodes.contains(instanceConfig.getInstanceName())) {
         LOG.info(String.format("Adding participant instance %s", instanceConfig));
         admin.addInstance(CLUSTER_NAME, instanceConfig);
       }
     }
 
-    // Add a state model
+    // Add an ONLINE-OFFLINE state model
     if (admin.getStateModelDef(CLUSTER_NAME, DEFAULT_STATE_MODEL) == null) {
       LOG.info("Adding ONLINE-OFFLINE state model to the cluster");
       admin.addStateModelDef(CLUSTER_NAME, DEFAULT_STATE_MODEL, OnlineOfflineSMD.build());
@@ -168,15 +170,14 @@ public class MetricCollectorHAController {
     // Add resources with 1 cluster-wide replica
     // Since our aggregators are unbalanced in terms of work distribution we
     // only need to distribute writes to METRIC_AGGREGATE and
-    // METRIC_RECORD_MINUTE
+    // METRIC_RECORD_MINUTE, i.e. the Host level and Cluster level aggregations
     List<String> resources = admin.getResourcesInCluster(CLUSTER_NAME);
     if (!resources.contains(METRIC_AGGREGATORS)) {
-      LOG.info(String.format("Adding resource %s with 2 partitions and 1 replicas", METRIC_AGGREGATORS));
-      admin.addResource(CLUSTER_NAME, METRIC_AGGREGATORS, 2, DEFAULT_STATE_MODEL, FULL_AUTO.toString());
+      LOG.info(String.format("Adding resource %s with %d partitions and %d replicas", METRIC_AGGREGATORS, PARTITION_NUMBER, REPLICATION_FACTOR));
+      admin.addResource(CLUSTER_NAME, METRIC_AGGREGATORS, PARTITION_NUMBER, DEFAULT_STATE_MODEL, FULL_AUTO.toString());
     }
-    // this will set up the ideal state, it calculates the preference list for
-    // each partition similar to consistent hashing
-    admin.rebalance(CLUSTER_NAME, METRIC_AGGREGATORS, 1);
+    // This will set up the ideal state, it calculates the preference list for each partition similar to consistent hashing.
+    admin.rebalance(CLUSTER_NAME, METRIC_AGGREGATORS, REPLICATION_FACTOR);
 
     // Start participant
     startAggregators();
