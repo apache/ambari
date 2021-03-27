@@ -81,8 +81,7 @@ public class MetricCollectorHAController {
   @VisibleForTesting
   HelixAdmin admin;
   // Helix Manager
-  @VisibleForTesting
-  HelixManager manager;
+  private HelixManager manager;
 
   private volatile boolean isInitialized = false;
 

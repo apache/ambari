@@ -100,7 +100,6 @@ public class MetricCollectorHAControllerTest extends AbstractMiniHBaseClusterTes
     // Re-assigned partitions
     Assert.assertEquals(2, partitionInstanceMap.size());
 
-    haController.getAggregationTaskRunner().stop();
-    haController.manager.disconnect();
+    haController.shutdownHAController();
   }
 }
