@@ -43,6 +43,7 @@ import org.apache.helix.HelixManagerFactory;
 import org.apache.helix.InstanceType;
 import org.apache.helix.LiveInstanceChangeListener;
 import org.apache.helix.NotificationContext;
+import org.apache.helix.PropertyKey;
 import org.apache.helix.manager.zk.ZKHelixAdmin;
 import org.apache.helix.model.ExternalView;
 import org.apache.helix.model.InstanceConfig;
@@ -187,8 +188,7 @@ public class MetricCollectorHAController {
     startController();
 
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      aggregationTaskRunner.stop();
-      manager.disconnect();
+      shutdownHAController();
     }));
 
     isInitialized = true;
@@ -215,6 +215,29 @@ public class MetricCollectorHAController {
 
     manager.connect();
     manager.addLiveInstanceChangeListener(liveInstanceTracker);
+  }
+
+  public void shutdownHAController() {
+    if (isInitialized) {
+      LOG.info("Shooting down Metrics Collector's HAController.");
+
+      PropertyKey.Builder keyBuilder = new PropertyKey.Builder(CLUSTER_NAME);
+      manager.removeListener(keyBuilder.liveInstances(), liveInstanceTracker);
+      liveInstanceTracker.shutdown();
+
+      aggregationTaskRunner.stop();
+      manager.disconnect();
+
+      try {
+        admin.dropInstance(CLUSTER_NAME, instanceConfig);
+      } catch (HelixException e) {
+        LOG.error(String.format("Could not drop instance: %s due to: %s", instanceConfig.getInstanceName(), e.getMessage()));
+      }
+      admin.close();
+
+      isInitialized = false;
+      LOG.info("Shutdown of Metrics Collector's HAController finished.");
+    }
   }
 
   public AggregationTaskRunner getAggregationTaskRunner() {
@@ -245,6 +268,10 @@ public class MetricCollectorHAController {
       LOG.info(String.format("Detected change in liveliness of Collector instances. LiveInstances = %s", joiner.join(liveInstanceNames)));
       // Print HA state - after some delay
       executorService.schedule(() -> printClusterState(), 30, TimeUnit.SECONDS);
+    }
+
+    public void shutdown() {
+      executorService.shutdown();
     }
   }
 
