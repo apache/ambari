@@ -41,8 +41,8 @@ import org.apache.helix.HelixException;
 import org.apache.helix.HelixManager;
 import org.apache.helix.HelixManagerFactory;
 import org.apache.helix.InstanceType;
+import org.apache.helix.LiveInstanceChangeListener;
 import org.apache.helix.NotificationContext;
-import org.apache.helix.controller.GenericHelixController;
 import org.apache.helix.manager.zk.ZKHelixAdmin;
 import org.apache.helix.model.ExternalView;
 import org.apache.helix.model.InstanceConfig;
@@ -74,6 +74,7 @@ public class MetricCollectorHAController {
 
   // Cache list of known live instances
   private final List<String> liveInstanceNames = new ArrayList<>(2);
+  private final LiveInstanceTracker liveInstanceTracker = new LiveInstanceTracker();
 
   // Helix Admin
   @VisibleForTesting
@@ -213,8 +214,7 @@ public class MetricCollectorHAController {
     manager = HelixManagerFactory.getZKHelixManager(CLUSTER_NAME, instanceHostname, InstanceType.CONTROLLER, zkConnectUrl);
 
     manager.connect();
-    HelixController controller = new HelixController();
-    manager.addLiveInstanceChangeListener(controller);
+    manager.addLiveInstanceChangeListener(liveInstanceTracker);
   }
 
   public AggregationTaskRunner getAggregationTaskRunner() {
@@ -231,14 +231,12 @@ public class MetricCollectorHAController {
     return liveInstanceHostNames;
   }
 
-  public final class HelixController extends GenericHelixController {
+  public final class LiveInstanceTracker implements LiveInstanceChangeListener {
     private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private final Joiner joiner = Joiner.on(", ").skipNulls();
 
     @Override
     public void onLiveInstanceChange(List<LiveInstance> liveInstances, NotificationContext changeContext) {
-      super.onLiveInstanceChange(liveInstances, changeContext);
-
       liveInstanceNames.clear();
       for (LiveInstance instance : liveInstances) {
         liveInstanceNames.add(instance.getInstanceName());
