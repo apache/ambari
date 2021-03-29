@@ -294,21 +294,23 @@ public class AmbariSubscriptionRegistry extends AbstractSubscriptionRegistry {
            this.accessCache.entrySet().iterator(); iterator.hasNext(); ) {
         Map.Entry<String, LinkedMultiValueMap<String, String>> entry = iterator.next();
         String destination = entry.getKey();
-        LinkedMultiValueMap<String, String> sessionMap = entry.getValue();
-        List<String> subscriptions = sessionMap.get(sessionId);
-        if (subscriptions != null) {
-          subscriptions.remove(subsId);
-          if (subscriptions.isEmpty()) {
-            sessionMap.remove(sessionId);
+        accessCache.computeIfPresent(destination, (key, sessionMap)-> {
+          List<String> subscriptions = sessionMap.get(sessionId);
+          if (subscriptions != null) {
+            subscriptions.remove(subsId);
+            if (subscriptions.isEmpty()) {
+              sessionMap.remove(sessionId);
+            }
+            if (sessionMap.isEmpty()) {
+              return null;
+            }
+            else {
+              this.notSubscriptionCache.invalidate(destination);
+              return sessionMap.deepCopy();
+            }
           }
-          if (sessionMap.isEmpty()) {
-            iterator.remove();
-          }
-          else {
-            this.notSubscriptionCache.invalidate(destination);
-            this.accessCache.put(destination, sessionMap.deepCopy());
-          }
-        }
+          return sessionMap;
+        });
       }
     }
 
@@ -317,16 +319,18 @@ public class AmbariSubscriptionRegistry extends AbstractSubscriptionRegistry {
            this.accessCache.entrySet().iterator(); iterator.hasNext(); ) {
         Map.Entry<String, LinkedMultiValueMap<String, String>> entry = iterator.next();
         String destination = entry.getKey();
-        LinkedMultiValueMap<String, String> sessionMap = entry.getValue();
-        if (sessionMap.remove(info.getSessionId()) != null) {
-          if (sessionMap.isEmpty()) {
-            iterator.remove();
+        accessCache.computeIfPresent(destination, (key, sessionMap)-> {
+          if (sessionMap.remove(info.getSessionId()) != null) {
+            if (sessionMap.isEmpty()) {
+              return null;
+            }
+            else {
+              this.notSubscriptionCache.invalidate(destination);
+              return sessionMap.deepCopy();
+            }
           }
-          else {
-            this.notSubscriptionCache.invalidate(destination);
-            this.accessCache.put(destination, sessionMap.deepCopy());
-          }
-        }
+          return sessionMap;
+        });
       }
     }
 
