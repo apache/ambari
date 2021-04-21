@@ -227,17 +227,20 @@ public class KerberosKeytabPrincipalDAO {
         }
       }
 
-      Predicate hostIDPredicate = (hostIds.isEmpty()) ? null : root.get("hostId").in(hostIds);
-      Predicate hostNullIDPredicate = (hasNull) ? root.get("hostId").isNull() : null;
+      //split hostIDs into batches and combine them using OR
+      if (CollectionUtils.isNotEmpty(hostIds)) {
+        List<Predicate> hostPredicates = new ArrayList<>();
+        SQLOperations.batch(hostIds, SQLConstants.IN_ARGUMENT_MAX_SIZE, (chunk, currentBatch, totalBatches, totalSize) -> {
+          hostPredicates.add(root.get("hostId").in(chunk));
+          return 0;
+        });
 
-      if (hostIDPredicate != null) {
-        if (hostNullIDPredicate != null) {
-          predicates.add(cb.or(hostIDPredicate, hostNullIDPredicate));
-        } else {
-          predicates.add(hostIDPredicate);
-        }
-      } else if (hostNullIDPredicate != null) {
-        predicates.add(hostNullIDPredicate);
+        Predicate hostCombinedPredicate = cb.or(hostPredicates.toArray(new Predicate[hostPredicates.size()]));
+        predicates.add(hostCombinedPredicate);
+      }
+
+      if (hasNull) {
+        predicates.add(root.get("hostId").isNull());
       }
     }
 

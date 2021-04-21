@@ -2470,16 +2470,6 @@ public class Configuration {
       "metrics.retrieval-service.request.ttl", 5);
 
   /**
-   * The number of tasks that can be queried from the database at once In the
-   * case of more tasks, multiple queries are issued
-   *
-   * @return
-   */
-  @Markdown(description = "The maximum number of tasks which can be queried by ID from the database.")
-  public static final ConfigurationProperty<Integer> TASK_ID_LIST_LIMIT = new ConfigurationProperty<>(
-      "task.query.parameterlist.size", 999);
-
-  /**
    * Indicates whether the current ambari server instance is the active instance.
    * If this property is missing, the value will be considered to be true.
    * If present, it should be explicitly set to "true" to set this as the active instance.
@@ -5516,16 +5506,6 @@ public class Configuration {
    */
   public boolean isMetricsServiceRequestTTLCacheEnabled() {
     return Boolean.parseBoolean(getProperty(METRIC_RETRIEVAL_SERVICE_REQUEST_TTL_ENABLED));
-  }
-
-  /**
-   * Returns the number of tasks that can be queried from the database at once
-   * In the case of more tasks, multiple queries are issued
-   *
-   * @return
-   */
-  public int getTaskIdListLimit() {
-    return Integer.parseInt(getProperty(TASK_ID_LIST_LIMIT));
   }
 
   /**
