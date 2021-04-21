@@ -266,7 +266,42 @@
                             <exclude>lib/*tests.jar</exclude>
                             <exclude>lib/findbugs*.jar</exclude>
                             <exclude>lib/jdk.tools*.jar</exclude>
+                            <exclude>lib/hadoop*.jar</exclude>
+                            <exclude>lib/guava-11.0.2.jar</exclude>
+                            <exclude>lib/commons-beanutils-core-1.8.0.jar</exclude>
                           </excludes>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
+                      <!--embedded applications-->
+                      <directory>/usr/lib/ams-hbase/lib/</directory>
+                      <directoryIncluded>false</directoryIncluded>
+                      <sources>
+                        <source>
+                          <location>${project.build.directory}/embedded/${hadoop.folder}/share/hadoop/hdfs</location>
+                          <includes>
+                            <include>hadoop-hdfs-${hadoop.version}.jar</include>
+                            <include>hadoop-hdfs-client-${hadoop.version}.jar</include>
+                          </includes>
+                        </source>
+                        <source>
+                          <location>${project.build.directory}/embedded/${hadoop.folder}/share/hadoop/tools/lib</location>
+                          <includes>
+                            <include>hadoop-aws*.jar</include>
+                            <include>hadoop-distcp-*.jar</include>
+                          </includes>
+                        </source>
+                        <source>
+                          <location>${project.build.directory}/embedded/${hadoop.folder}/share/hadoop/mapreduce</location>
+                          <includes>
+                              <include>hadoop-mapreduce-client-app-${hadoop.version}.jar</include>
+                              <include>hadoop-mapreduce-client-common-${hadoop.version}.jar</include>
+                              <include>hadoop-mapreduce-client-core-${hadoop.version}.jar</include>
+                              <include>hadoop-mapreduce-client-hs-${hadoop.version}.jar</include>
+                              <include>hadoop-mapreduce-client-jobclient-${hadoop.version}.jar</include>
+                              <include>hadoop-mapreduce-client-shuffle-${hadoop.version}.jar</include>
+                          </includes>
                         </source>
                       </sources>
                     </mapping>
@@ -287,6 +322,28 @@
                           <includes>
                             <include>phoenix*.jar</include>
                             <include>antlr*.jar</include>
+                            <include>re2j*.jar</include>
+                            <include>failureaccess*.jar</include>
+                            <include>guava-28*.jar</include>
+                            <include>stax2-api*.jar</include>
+                            <include>woodstox-core*.jar</include>
+                            <include>hadoop-annotations-${hadoop.version}.jar</include>
+                            <include>hadoop-auth-${hadoop.version}.jar</include>
+                            <include>hadoop-common-${hadoop.version}.jar</include>
+                            <include>hadoop-client-${hadoop.version}.jar</include>
+                            <include>hadoop-minicluster-${hadoop.version}.jar</include>
+                            <include>commons-configuration2-*.jar</include>
+                            <include>hadoop-yarn-api-${hadoop.version}.jar</include>
+                            <include>hadoop-yarn-client-${hadoop.version}.jar</include>
+                            <include>hadoop-yarn-common-${hadoop.version}.jar</include>
+                            <include>hadoop-yarn-registry-${hadoop.version}.jar</include>
+                            <include>hadoop-yarn-server-applicationhistoryservice-${hadoop.version}.jar</include>
+                            <include>hadoop-yarn-server-common-${hadoop.version}.jar</include>
+                            <include>hadoop-yarn-server-nodemanager-${hadoop.version}.jar</include>
+                            <include>hadoop-yarn-server-resourcemanager-${hadoop.version}.jar</include>
+                            <include>hadoop-yarn-server-timelineservice-${hadoop.version}.jar</include>
+                            <include>hadoop-yarn-server-web-proxy-${hadoop.version}.jar</include>
+                            <include>commons-beanutils-1.9.4.jar </include>
                           </includes>
                         </source>
                       </sources>
@@ -837,10 +894,40 @@
                 <data>
                   <src>${collector.dir}/target/embedded/${hbase.folder}</src>
                   <type>directory</type>
-                  <excludes>bin/**,bin/*,lib/*tests.jar</excludes>
+                  <excludes>bin/**,bin/*,lib/*tests.jar,lib/hadoop*jar,lib/guava-11.0.2.jar,lib/commons-beanutils-core-1.8.0.jar</excludes>
                   <mapper>
                     <type>perm</type>
                     <prefix>/usr/lib/ams-hbase</prefix>
+                    <filemode>644</filemode>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${project.build.directory}/embedded/${hadoop.folder}/share/hadoop/hdfs</src>
+                  <type>directory</type>
+                  <includes>hadoop-hdfs-${hadoop.version}.jar,hadoop-hdfs-client-${hadoop.version}.jar</includes>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>/usr/lib/ams-hbase/lib</prefix>
+                    <filemode>644</filemode>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${project.build.directory}/embedded/${hadoop.folder}/share/hadoop/tools/lib</src>
+                  <type>directory</type>
+                  <includes>hadoop-aws*.jar,hadoop-distcp-*.jar</includes>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>/usr/lib/ams-hbase/lib</prefix>
+                    <filemode>644</filemode>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${project.build.directory}/embedded/${hadoop.folder}/share/hadoop/mapreduce</src>
+                  <type>directory</type>
+                  <includes>hadoop-mapreduce-client-app-${hadoop.version}.jar,hadoop-mapreduce-client-common-${hadoop.version}.jar,hadoop-mapreduce-client-core-${hadoop.version}.jar,hadoop-mapreduce-client-hs-${hadoop.version}.jar,hadoop-mapreduce-client-jobclient-${hadoop.version}.jar,hadoop-mapreduce-client-shuffle-${hadoop.version}.jar</includes>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>/usr/lib/ams-hbase/lib</prefix>
                     <filemode>644</filemode>
                   </mapper>
                 </data>
@@ -865,7 +952,7 @@
                 <data>
                   <src>${collector.dir}/target/lib</src>
                   <type>directory</type>
-                  <includes>phoenix*.jar,antlr*.jar</includes>
+                  <includes>phoenix*.jar,antlr*.jar,re2j*.jar,failureaccess*.jar,guava-28*.jar,stax2-api*.jar,woodstox-core*.jar,hadoop-annotations*.jar,hadoop-auth*.jar,hadoop-common*.jar,hadoop-client*.jar,hadoop-minicluster*.jar,commons-configuration2*.jar,hadoop-yarn-api-*.jar,hadoop-yarn-client-*.jar,hadoop-yarn-common-*.jar,hadoop-yarn-registry-*.jar,hadoop-yarn-server-applicationhistoryservice-*.jar,hadoop-yarn-server-common-*.jar,hadoop-yarn-server-nodemanager-*.jar,hadoop-yarn-server-resourcemanager-*.jar,hadoop-yarn-server-timelineservice-*.jar,hadoop-yarn-server-web-proxy-*.jar,commons-beanutils-1.9*.jar</includes>
                   <mapper>
                     <type>perm</type>
                     <filemode>644</filemode>
