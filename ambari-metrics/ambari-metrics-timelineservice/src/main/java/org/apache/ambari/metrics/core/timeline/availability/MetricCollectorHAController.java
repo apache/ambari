@@ -223,15 +223,8 @@ public class MetricCollectorHAController {
       PropertyKey.Builder keyBuilder = new PropertyKey.Builder(CLUSTER_NAME);
       manager.removeListener(keyBuilder.liveInstances(), liveInstanceTracker);
       liveInstanceTracker.shutdown();
-
       aggregationTaskRunner.stop();
       manager.disconnect();
-
-      try {
-        admin.dropInstance(CLUSTER_NAME, instanceConfig);
-      } catch (HelixException e) {
-        LOG.error(String.format("Could not drop instance: %s due to: %s", instanceConfig.getInstanceName(), e.getMessage()));
-      }
       admin.close();
 
       isInitialized = false;
