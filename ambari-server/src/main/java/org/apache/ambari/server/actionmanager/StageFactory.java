@@ -33,4 +33,6 @@ public interface StageFactory {
       @Assisted("hostParamsStage") String hostParamsStage);
 
   Stage createExisting(StageEntity stageEntity);
+
+  Stage createExisting(StageEntity stageEntity, boolean loadCommands);
 }

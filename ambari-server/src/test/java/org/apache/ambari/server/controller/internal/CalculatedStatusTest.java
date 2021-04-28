@@ -39,6 +39,7 @@ import javax.persistence.EntityManager;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
@@ -46,6 +47,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
@@ -70,6 +72,12 @@ public class CalculatedStatusTest {
 
   @Inject
   ExecutionCommandWrapperFactory ecwFactory;
+
+  @Inject
+  HostRoleCommandDAO hostRoleCommandDAO;
+
+  @Inject
+  ActionDBAccessor dbAccessor;
 
   private static long taskId = 0L;
   private static long stageId = 0L;
@@ -743,7 +751,7 @@ public class CalculatedStatusTest {
     private final List<HostRoleCommand> hostRoleCommands = new LinkedList<>();
 
     private TestStage() {
-      super(1L, "", "", 1L, "", "", "", hostRoleCommandFactory, ecwFactory);
+      super(1L, "", "", 1L, "", "", "", hostRoleCommandFactory, ecwFactory, hostRoleCommandDAO, dbAccessor);
     }
 
     void setHostRoleCommands(Collection<HostRoleCommandEntity> tasks) {

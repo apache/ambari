@@ -143,13 +143,24 @@ public class HostRoleCommand {
   }
 
   @AssistedInject
-  public HostRoleCommand(@Assisted HostRoleCommandEntity hostRoleCommandEntity, HostDAO hostDAO,
-      ExecutionCommandDAO executionCommandDAO, ExecutionCommandWrapperFactory ecwFactory) {
+  public HostRoleCommand(@Assisted HostRoleCommandEntity hostRoleCommandEntity, @Assisted boolean loadStatusRolesOnly,
+                         HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO, ExecutionCommandWrapperFactory ecwFactory) {
     this.hostDAO = hostDAO;
     this.executionCommandDAO = executionCommandDAO;
     this.ecwFactory = ecwFactory;
 
     taskId = hostRoleCommandEntity.getTaskId();
+    status = hostRoleCommandEntity.getStatus();
+    role = hostRoleCommandEntity.getRole();
+
+    // mandatory fields
+    retryAllowed = hostRoleCommandEntity.isRetryAllowed();
+    autoSkipFailure = hostRoleCommandEntity.isFailureAutoSkipped();
+    event = new ServiceComponentHostEventWrapper(hostRoleCommandEntity.getEvent());
+
+    if (loadStatusRolesOnly) {
+      return;
+    }
 
     stageId = null != hostRoleCommandEntity.getStageId() ? hostRoleCommandEntity.getStageId()
         : hostRoleCommandEntity.getStage().getStageId();
@@ -162,8 +173,6 @@ public class HostRoleCommand {
     }
 
     hostName = hostRoleCommandEntity.getHostName();
-    role = hostRoleCommandEntity.getRole();
-    status = hostRoleCommandEntity.getStatus();
     stdout = hostRoleCommandEntity.getStdOut() != null ? new String(hostRoleCommandEntity.getStdOut()) : "";
     stderr = hostRoleCommandEntity.getStdError() != null ? new String(hostRoleCommandEntity.getStdError()) : "";
     outputLog = hostRoleCommandEntity.getOutputLog();
@@ -175,14 +184,17 @@ public class HostRoleCommand {
     endTime = hostRoleCommandEntity.getEndTime() != null ? hostRoleCommandEntity.getEndTime() : -1L;
     lastAttemptTime = hostRoleCommandEntity.getLastAttemptTime() != null ? hostRoleCommandEntity.getLastAttemptTime() : -1L;
     attemptCount = hostRoleCommandEntity.getAttemptCount();
-    retryAllowed = hostRoleCommandEntity.isRetryAllowed();
-    autoSkipFailure = hostRoleCommandEntity.isFailureAutoSkipped();
     roleCommand = hostRoleCommandEntity.getRoleCommand();
-    event = new ServiceComponentHostEventWrapper(hostRoleCommandEntity.getEvent());
     commandDetail = hostRoleCommandEntity.getCommandDetail();
     opsDisplayName = hostRoleCommandEntity.getOpsDisplayName();
     customCommandName = hostRoleCommandEntity.getCustomCommandName();
     isBackgroundCommand = hostRoleCommandEntity.isBackgroundCommand();
+  }
+
+  @AssistedInject
+  public HostRoleCommand(@Assisted HostRoleCommandEntity hostRoleCommandEntity,
+                         HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO, ExecutionCommandWrapperFactory ecwFactory) {
+    this(hostRoleCommandEntity, false, hostDAO, executionCommandDAO, ecwFactory);
   }
 
   //todo: why is this not symmetrical with the constructor which takes an entity
