@@ -1,3 +1,29 @@
+jvm.JvmMetrics.GcCount
+jvm.JvmMetrics.GcCountConcurrentMarkSweep
+jvm.JvmMetrics.GcCountParNew
+jvm.JvmMetrics.GcNumWarnThresholdExceeded
+jvm.JvmMetrics.GcTimeMillis
+jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep
+jvm.JvmMetrics.GcTimeMillisParNew
+jvm.JvmMetrics.GcTotalExtraSleepTime
+jvm.JvmMetrics.LogError
+jvm.JvmMetrics.LogFatal
+jvm.JvmMetrics.MemHeapCommittedM
+jvm.JvmMetrics.MemHeapMaxM
+jvm.JvmMetrics.MemHeapUsedM
+jvm.JvmMetrics.MemNonHeapCommittedM
+jvm.JvmMetrics.MemNonHeapMaxM
+jvm.JvmMetrics.MemNonHeapUsedM
+jvm.JvmMetrics.ThreadsBlocked
+jvm.JvmMetrics.ThreadsNew
+jvm.JvmMetrics.ThreadsRunnable
+jvm.JvmMetrics.ThreadsTerminated
+jvm.JvmMetrics.ThreadsTimedWaiting
+jvm.JvmMetrics.ThreadsWaiting
+jvm.JvmMetrics.GcTimeMillisG1 Young Generation
+jvm.JvmMetrics.GcTimeMillisG1 Old Generation
+jvm.JvmMetrics.GcCountG1 Old Generation
+jvm.JvmMetrics.GcCountG1 Young Generation
 jvm.Master.JvmMetrics.ThreadsBlocked
 jvm.Master.JvmMetrics.ThreadsNew
 jvm.Master.JvmMetrics.ThreadsRunnable
@@ -22,6 +48,10 @@ jvm.RegionServer.JvmMetrics.ThreadsRunnable
 jvm.RegionServer.JvmMetrics.ThreadsTerminated
 jvm.RegionServer.JvmMetrics.ThreadsTimedWaiting
 jvm.RegionServer.JvmMetrics.ThreadsWaiting
+jvm.RegionServer.JvmMetrics.GcCountG1 Old Generation
+jvm.RegionServer.JvmMetrics.GcCountG1 Young Generation
+jvm.RegionServer.JvmMetrics.GcTimeMillisG1 Young Generation
+jvm.RegionServer.JvmMetrics.GcTimeMillisG1 Old Generation
 master.AssignmentManager.ritCount
 master.AssignmentManager.ritCountOverThreshold
 master.AssignmentManager.ritOldestAge
