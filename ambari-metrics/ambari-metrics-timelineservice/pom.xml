@@ -34,7 +34,6 @@
     <!-- Needed for generating FindBugs warnings using parent pom -->
     <!--<yarn.basedir>${project.parent.parent.basedir}</yarn.basedir>-->
     <protobuf.version>2.5.0</protobuf.version>
-    <hadoop.version>3.1.1</hadoop.version>
     <phoenix.version>5.0.0-HBase-2.0</phoenix.version>
     <hbase.version>2.0.2</hbase.version>
   </properties>
@@ -738,6 +737,7 @@
       <version>3.2</version>
       <scope>test</scope>
     </dependency>
+
     <!-- for unit tests only -->
     <dependency>
       <groupId>org.apache.phoenix</groupId>
