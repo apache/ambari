@@ -301,8 +301,8 @@
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Server/ScanNext_num_ops": {
-              "metric": "regionserver.Server.ScanNext_num_ops",
+            "metrics/hbase/regionserver/Server/ScanSize_num_ops": {
+              "metric": "regionserver.Server.ScanSize_num_ops",
               "pointInTime": false,
               "temporal": true
             },
@@ -332,8 +332,8 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Server/ScanNext_95th_percentile": {
-              "metric": "regionserver.Server.ScanNext_95th_percentile",
+            "metrics/hbase/regionserver/Server/ScanSize_95th_percentile": {
+              "metric": "regionserver.Server.ScanSize_95th_percentile",
               "unit": "ms",
               "pointInTime": true,
               "temporal": true
@@ -1098,33 +1098,33 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/regionserver/Server/ScanNext_75th_percentile": {
-              "metric": "regionserver.Server.ScanNext_75th_percentile",
+            "metrics/regionserver/Server/ScanSize_75th_percentile": {
+              "metric": "regionserver.Server.ScanSize_75th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/regionserver/Server/ScanNext_99th_percentile": {
-              "metric": "regionserver.Server.ScanNext_99th_percentile",
+            "metrics/regionserver/Server/ScanSize_99th_percentile": {
+              "metric": "regionserver.Server.ScanSize_99th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/regionserver/Server/ScanNext_max": {
-              "metric": "regionserver.Server.ScanNext_max",
+            "metrics/regionserver/Server/ScanSize_max": {
+              "metric": "regionserver.Server.ScanSize_max",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/regionserver/Server/ScanNext_mean": {
-              "metric": "regionserver.Server.ScanNext_mean",
+            "metrics/regionserver/Server/ScanSize_mean": {
+              "metric": "regionserver.Server.ScanSize_mean",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/regionserver/Server/ScanNext_median": {
-              "metric": "regionserver.Server.ScanNext_median",
+            "metrics/regionserver/Server/ScanSize_median": {
+              "metric": "regionserver.Server.ScanSize_median",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/regionserver/Server/ScanNext_min": {
-              "metric": "regionserver.Server.ScanNext_min",
+            "metrics/regionserver/Server/ScanSize_min": {
+              "metric": "regionserver.Server.ScanSize_min",
               "pointInTime": true,
               "temporal": true
             },
@@ -1390,8 +1390,8 @@
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/hbase/regionserver/ScanNext_num_ops": {
-              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.ScanNext_num_ops",
+            "metrics/hbase/regionserver/ScanSize_num_ops": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.ScanSize_num_ops",
               "pointInTime": true,
               "temporal": false
             },
@@ -1405,8 +1405,8 @@
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/hbase/regionserver/ScanNext_95th_percentile": {
-              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.ScanNext_95th_percentile",
+            "metrics/hbase/regionserver/ScanSize_95th_percentile": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.ScanSize_95th_percentile",
               "pointInTime": true,
               "temporal": false
             },
@@ -2754,44 +2754,44 @@
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/regionserver/Server/ScanNext_75th_percentile": {
-              "metric": "regionserver.Server.ScanNext_75th_percentile",
+            "metrics/regionserver/Server/ScanSize_75th_percentile": {
+              "metric": "regionserver.Server.ScanSize_75th_percentile",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/regionserver/Server/ScanNext_95th_percentile": {
-              "metric": "regionserver.Server.ScanNext_95th_percentile",
+            "metrics/regionserver/Server/ScanSize_95th_percentile": {
+              "metric": "regionserver.Server.ScanSize_95th_percentile",
               "unit": "ms",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/regionserver/Server/ScanNext_99th_percentile": {
-              "metric": "regionserver.Server.ScanNext_99th_percentile",
+            "metrics/regionserver/Server/ScanSize_99th_percentile": {
+              "metric": "regionserver.Server.ScanSize_99th_percentile",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/regionserver/Server/ScanNext_max": {
-              "metric": "regionserver.Server.ScanNext_max",
+            "metrics/regionserver/Server/ScanSize_max": {
+              "metric": "regionserver.Server.ScanSize_max",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/regionserver/Server/ScanNext_mean": {
-              "metric": "regionserver.Server.ScanNext_mean",
+            "metrics/regionserver/Server/ScanSize_mean": {
+              "metric": "regionserver.Server.ScanSize_mean",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/regionserver/Server/ScanNext_median": {
-              "metric": "regionserver.Server.ScanNext_median",
+            "metrics/regionserver/Server/ScanSize_median": {
+              "metric": "regionserver.Server.ScanSize_median",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/regionserver/Server/ScanNext_min": {
-              "metric": "regionserver.Server.ScanNext_min",
+            "metrics/regionserver/Server/ScanSize_min": {
+              "metric": "regionserver.Server.ScanSize_min",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/regionserver/Server/ScanNext_num_ops": {
-              "metric": "regionserver.Server.ScanNext_num_ops",
+            "metrics/regionserver/Server/ScanSize_num_ops": {
+              "metric": "regionserver.Server.ScanSize_num_ops",
               "pointInTime": false,
               "temporal": true
             },
@@ -3072,8 +3072,8 @@
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/hbase/regionserver/ScanNext_num_ops": {
-              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.ScanNext_num_ops",
+            "metrics/hbase/regionserver/ScanSize_num_ops": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.ScanSize_num_ops",
               "pointInTime": true,
               "temporal": false
             },
@@ -3087,8 +3087,8 @@
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/hbase/regionserver/ScanNext_95th_percentile": {
-              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.ScanNext_95th_percentile",
+            "metrics/hbase/regionserver/ScanSize_95th_percentile": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.ScanSize_95th_percentile",
               "pointInTime": true,
               "temporal": false
             },

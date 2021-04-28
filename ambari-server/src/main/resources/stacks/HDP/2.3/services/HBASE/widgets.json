@@ -18,8 +18,8 @@
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.ScanNext_num_ops._rate",
-              "metric_path": "metrics/hbase/regionserver/Server/ScanNext_num_ops._rate",
+              "name": "regionserver.Server.ScanSize_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/ScanSize_num_ops._rate",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
@@ -51,7 +51,7 @@
           "values": [
             {
               "name": "Read Requests",
-              "value": "${regionserver.Server.Get_num_ops._rate + regionserver.Server.ScanNext_num_ops._rate}"
+              "value": "${regionserver.Server.Get_num_ops._rate + regionserver.Server.ScanSize_num_ops._rate}"
             },
             {
               "name": "Write Requests",
@@ -76,8 +76,8 @@
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.ScanNext_95th_percentile._max",
-              "metric_path": "metrics/hbase/regionserver/Server/ScanNext_95th_percentile._max",
+              "name": "regionserver.Server.ScanSize_95th_percentile._max",
+              "metric_path": "metrics/hbase/regionserver/Server/ScanSize_95th_percentile._max",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
@@ -89,7 +89,7 @@
             },
             {
               "name": "Cluster wide maximum of 95% ScanNext Latency",
-              "value": "${regionserver.Server.ScanNext_95th_percentile._max}"
+              "value": "${regionserver.Server.ScanSize_95th_percentile._max}"
             }
           ],
           "properties": {

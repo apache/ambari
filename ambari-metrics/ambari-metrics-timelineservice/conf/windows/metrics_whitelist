@@ -432,7 +432,9 @@ regionserver.Server.Replay_median
 regionserver.Server.Replay_min
 regionserver.Server.Replay_num_ops
 regionserver.Server.ScanNext_95th_percentile
+regionserver.Server.ScanSize_95th_percentile
 regionserver.Server.ScanNext_num_ops
+regionserver.Server.ScanSize_num_ops
 regionserver.Server.ScanTime_75th_percentile
 regionserver.Server.ScanTime_95th_percentile
 regionserver.Server.ScanTime_99th_percentile
