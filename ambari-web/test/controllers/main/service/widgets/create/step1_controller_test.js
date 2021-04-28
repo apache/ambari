@@ -86,6 +86,30 @@ describe('App.WidgetWizardStep1Controller', function () {
     });
   });
 
+  describe("#options()", function () {
 
+    before(function () {
+      sinon.stub(App.WidgetType, 'find').returns([
+        Em.Object.create({
+          name: 'w1',
+          displayName: 'w1',
+          iconPath: '/icon',
+          description: 'some description'
+        })
+      ]);
+    });
+    after(function () {
+      App.WidgetType.find.restore();
+    });
 
+    it("should return options", function () {
+      controller.propertyDidChange('options');
+      expect(controller.get('options')).to.eql([{
+        name: 'w1',
+        displayName: 'w1',
+        iconPath: '/icon',
+        description: 'some description'
+      }]);
+    });
+  });
 });

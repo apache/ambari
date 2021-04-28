@@ -181,4 +181,244 @@ describe('App.MainServiceInfoSummaryController', function () {
 
   });
 
+  describe('#updateRangerPluginsStatus', function () {
+
+    it('should call ajax send request', function () {
+      controller.updateRangerPluginsStatus();
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#getRangerPluginsStatus', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.Service, 'find').returns([
+        {
+          serviceName: 'HDFS'
+        }
+      ]);
+    });
+
+    afterEach(function () {
+      App.Service.find.restore();
+    });
+
+    it('should call ajax send request', function () {
+      var data = {
+        Clusters: {
+          desired_configs: {
+            'ranger-hdfs-plugin-properties': {
+              tag: 1
+            }
+          }
+        }
+      };
+      controller.getRangerPluginsStatus(data);
+      expect(controller.get('rangerPlugins').filterProperty('isDisplayed').length).to.equal(1);
+      expect(controller.get('rangerPlugins').filterProperty('isDisplayed', false).length).to.equal(8);
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#startFlumeAgent', function () {
+
+    beforeEach(function () {
+      sinon.stub(App, 'showConfirmationPopup', function (callback) {
+          return callback()
+        }
+      );
+      sinon.stub(controller, 'sendFlumeAgentCommandToServer');
+    });
+
+    afterEach(function () {
+      App.showConfirmationPopup.restore();
+    });
+
+    it('should show confirmation popup', function () {
+
+      controller.startFlumeAgent({context: Em.Object.create({
+        status: 'NOT_RUNNING'
+      })});
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      expect(controller.sendFlumeAgentCommandToServer.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#stopFlumeAgent', function () {
+
+    beforeEach(function () {
+      sinon.stub(App, 'showConfirmationPopup', function (callback) {
+          return callback()
+        }
+      );
+      sinon.stub(controller, 'sendFlumeAgentCommandToServer');
+    });
+
+    afterEach(function () {
+      App.showConfirmationPopup.restore();
+    });
+
+    it('should show confirmation popup', function () {
+
+      controller.stopFlumeAgent({context: Em.Object.create({
+          status: 'RUNNING'
+        })});
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      expect(controller.sendFlumeAgentCommandToServer.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#sendFlumeAgentCommandToServer', function () {
+
+    it('should call ajax send request', function () {
+      controller.sendFlumeAgentCommandToServer('', '', Em.Object.create({name: 'n', hostName: 'h'}));
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#commandSuccessCallback", function () {
+    var mock = Em.Object.create({
+      showPopup: Em.K,
+      dataLoading: function () {
+        return {
+          done: function (callback) {
+            return callback(1)
+          }
+        }
+      }
+    });
+
+    beforeEach(function () {
+      sinon.stub(App.router, 'get').returns(mock);
+      sinon.spy(mock, 'showPopup');
+    });
+
+    afterEach(function () {
+      App.router.get.restore();
+    });
+
+    it("should show popup", function () {
+      controller.commandSuccessCallback();
+      expect(mock.showPopup.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#gotoConfigs', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.router, 'get').returns(Em.Object.create({routeToConfigs: false}));
+      sinon.stub(App.router, 'transitionTo');
+    });
+
+    afterEach(function () {
+      App.router.get.restore();
+      App.router.transitionTo.restore();
+    });
+
+    it('should go to configs route', function () {
+      controller.gotoConfigs();
+      expect(App.router.get.calledTwice).to.be.true;
+      expect(App.router.transitionTo.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#goToView', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.router, 'route');
+    });
+
+    afterEach(function () {
+      App.router.route.restore();
+    });
+
+    it('should go to view', function () {
+      controller.goToView({context: Em.Object.create({internalAmbariUrl: 'url'})});
+      expect(App.router.route.calledWith('url')).to.be.true;
+    });
+  });
+
+  describe('#showServiceAlertsPopup', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.ModalPopup, 'show');
+    });
+
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+    });
+
+    it('should show modal popup', function () {
+      controller.showServiceAlertsPopup({
+        context: Em.Object.create({
+          displayName: 'n',
+          componentName: 'c'
+        })
+      });
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#setHiveEndPointsValue", function () {
+    var configs = [
+      {
+        type: 'hive-interactive-site',
+        properties: {
+          'hive.server2.active.passive.ha.registry.namespace': 'ns1'
+        }
+      },
+      {
+        type: 'hive-site',
+        properties: {
+          'hive.server2.support.dynamic.service.discovery': true,
+          'hive.zookeeper.quorum': 'zc',
+          'hive.server2.zookeeper.namespace': 'ns1'
+        }
+      }
+    ];
+    var mock = Em.Object.create({
+      getCurrentConfigsBySites: function () {
+        return {
+          done: function (callback) {
+            return callback(configs)
+          }
+        }
+      }
+    });
+
+    beforeEach(function () {
+      sinon.stub(App.router, 'get').returns(mock);
+      sinon.stub(App.MasterComponent, 'find').returns([
+        Em.Object.create({
+          totalCount: 1,
+          componentName: 'HIVE_SERVER',
+          displayName: 'HIVE_SERVER_INTERACTIVE'
+        }),
+        Em.Object.create({
+          totalCount: 1,
+          componentName: 'HIVE_SERVER_INTERACTIVE',
+          displayName: 'HIVE_SERVER_INTERACTIVE'
+        })
+      ]);
+      sinon.stub(App.HostComponent, 'find').returns([
+        Em.Object.create({
+          componentName: 'HIVE_SERVER_INTERACTIVE'
+        }),
+        Em.Object.create({
+          componentName: 'HIVE_SERVER_INTERACTIVE'
+        })
+      ]);
+    });
+
+    afterEach(function () {
+      App.router.get.restore();
+      App.MasterComponent.find.restore();
+      App.HostComponent.find.restore();
+    });
+
+    it("should set hive endpoints value", function () {
+      controller.setHiveEndPointsValue();
+      expect(JSON.stringify(controller.get('hiveServerEndPoints'))).to.equal('[{"isVisible":true,"componentName":"HIVE_SERVER","label":"HIVE_SERVER_INTERACTIVE JDBC URL","value":"jdbc:hive2://zc/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=ns1","tooltipText":"JDBC connection string for HIVE_SERVER_INTERACTIVE"},{"isVisible":true,"componentName":"HIVE_SERVER_INTERACTIVE","label":"HIVE_SERVER_INTERACTIVE JDBC URL","value":"jdbc:hive2://zc/;serviceDiscoveryMode=zooKeeperHA;zooKeeperNamespace=ns1","tooltipText":"JDBC connection string for HIVE_SERVER_INTERACTIVE"}]');
+    });
+  });
 });

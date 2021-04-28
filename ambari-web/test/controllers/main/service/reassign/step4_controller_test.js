@@ -259,11 +259,17 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     after(function () {
       controller.stopServices.restore();
     });
-    it('stopServices is called with valid list of services', function() {
+    it('stopServices is called with valid list of services{1}', function() {
       controller.set('content.reassign.component_name', 'HISTORYSERVER');
       controller.set('content.componentsToStopAllServices', ['NAMENODE', 'SECONDARY_NAMENODE'])
       controller.stopRequiredServices();
       expect(controller.stopServices.calledWith(['MAPREDUCE2', 'HIVE', 'PIG', 'OOZIE'], true)).to.be.true;
+    });
+    it('stopServices is called with valid list of services{2}', function() {
+      controller.set('content.reassign.component_name', 'HISTORYSERVER');
+      controller.set('content.componentsToStopAllServices', ['NAMENODE', 'SECONDARY_NAMENODE', 'HISTORYSERVER'])
+      controller.stopRequiredServices();
+      expect(controller.stopServices.calledWith(['MAPREDUCE2', 'HIVE', 'PIG', 'OOZIE'], true, true)).to.be.true;
     });
   });
 
@@ -1129,6 +1135,344 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     it('should set dependentHostComponents', function() {
       controller.setDependentHostComponents();
       expect(controller.get('dependentHostComponents')).to.be.eql(['C2']);
+    });
+  });
+
+  describe("#getWebAddressPort()", function () {
+    var configs = {
+        'yarn-site': {
+          'yarn.resourcemanager.webapp.address.rm1': 'host1:8088'
+        }
+      },
+      webAddressKey = 'yarn.resourcemanager.webapp.address.rm1';
+
+    it('should return web address port', function () {
+      expect(controller.getWebAddressPort(configs, webAddressKey)).to.equal('8088');
+    });
+
+    it('should return null', function () {
+      expect(controller.getWebAddressPort(configs, 'key')).to.equal(null);
+    });
+  });
+
+  describe("#connectionProperties()", function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'getConnectionProperty').returns('prop');
+    });
+    afterEach(function () {
+      controller.getConnectionProperty.restore();
+    });
+
+    it('should return property object', function () {
+      expect(controller.get('connectionProperties')).to.eql({
+        user_name: 'prop',
+        user_passwd: 'prop',
+        db_connection_url: 'prop',
+        driver_class: 'prop',
+        schema_name: 'prop'
+      });
+    });
+  });
+
+  describe("#getConnectionProperty()", function () {
+
+    it('should return property object', function () {
+      controller.set('content.configs', Em.Object.create({
+        'hive-site': {
+          'javax.jdo.option.ConnectionUserName': 'user'
+        }
+      }));
+      controller.set('content.reassign', { service_id: 'HIVE' });
+      controller.propertyDidChange('requiredProperties');
+      expect(controller.getConnectionProperty(/(username|dblogin)$/ig)).to.equal('user');
+    });
+  });
+
+  describe("#requiredProperties()", function () {
+
+    it('should return required properties', function () {
+      controller.set('content.reassign', { service_id: 'HIVE' });
+      expect(controller.get('requiredProperties')).to.eql({
+        type: 'hive-site',
+        names: ['ambari.hive.db.schema.name', 'javax.jdo.option.ConnectionUserName', 'javax.jdo.option.ConnectionPassword', 'javax.jdo.option.ConnectionDriverName', 'javax.jdo.option.ConnectionURL']
+      });
+    });
+  });
+
+  describe("#onCreateActionSuccess()", function() {
+
+    it('valid request is sent', function() {
+      var data = {
+        Requests: {
+          id: 1
+        }
+      };
+      controller.onCreateActionSuccess(data);
+      var args = testHelpers.findAjaxRequest('name', 'custom_action.request');
+      expect(args[0].data).to.be.eql({ requestId: 1 });
+    });
+  });
+
+  describe("#setCheckDBTaskId()", function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'startDBCheckPolling');
+    });
+    afterEach(function () {
+      controller.startDBCheckPolling.restore();
+    });
+
+    it('should set "checkDBTaskId"', function () {
+      var data = {
+        items: [
+          {
+            Tasks: {
+              id: 1
+            }
+          }
+        ]
+      };
+
+      controller.setCheckDBTaskId(data);
+      expect(controller.get('checkDBTaskId')).to.equal(1);
+      expect(controller.startDBCheckPolling.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#startDBCheckPolling()", function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'getDBConnTaskInfo');
+    });
+    afterEach(function () {
+      controller.getDBConnTaskInfo.restore();
+    });
+
+    it('should call "getDBConnTaskInfo"', function () {
+      controller.startDBCheckPolling();
+      expect(controller.getDBConnTaskInfo.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#connectionProperties()", function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'getConnectionProperty').returns('prop');
+    });
+    afterEach(function () {
+      controller.getConnectionProperty.restore();
+    });
+
+    it('should return property object', function () {
+      expect(controller.get('connectionProperties')).to.eql({
+        user_name: 'prop',
+        user_passwd: 'prop',
+        db_connection_url: 'prop',
+        driver_class: 'prop',
+        schema_name: 'prop'
+      });
+    });
+  });
+
+  describe("#getConnectionProperty()", function () {
+
+    it('should return property object', function () {
+      controller.set('content.configs', Em.Object.create({
+        'hive-site': {
+          'javax.jdo.option.ConnectionUserName': 'user'
+        }
+      }));
+      controller.set('content.reassign', { service_id: 'HIVE' });
+      controller.propertyDidChange('requiredProperties');
+      expect(controller.getConnectionProperty(/(username|dblogin)$/ig)).to.equal('user');
+    });
+  });
+
+  describe('#getDBConnTaskInfo()', function() {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'setTaskStatus');
+    });
+
+    afterEach(function () {
+      controller.setTaskStatus.restore();
+    });
+
+    it('should set task status and send ajax request', function () {
+      controller.reopen(Em.Object.create({
+        tasks: [
+          Em.Object.create({
+            id: 'task1',
+            progress: 0
+          })
+        ],
+        currentTaskId: 'task1'
+      }));
+      controller.getDBConnTaskInfo();
+      var args = testHelpers.findAjaxRequest('name', 'custom_action.request');
+      expect(args).to.exists;
+      expect(controller.setTaskStatus.calledWith('task1', 'IN_PROGRESS')).to.be.true;
+      expect(controller.get('tasks')[0].progress).to.equal(100);
+    });
+  });
+
+  describe('#getDBConnTaskInfoSuccess()', function() {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'showConnectionErrorPopup');
+      sinon.stub(controller, 'onTaskError');
+      sinon.stub(controller, 'onTaskCompleted');
+      sinon.stub(controller, 'startDBCheckPolling');
+      sinon.stub(Em.run, 'later', Em.K);
+    });
+
+    afterEach(function () {
+      controller.showConnectionErrorPopup.restore();
+      controller.onTaskError.restore();
+      controller.onTaskCompleted.restore();
+      controller.startDBCheckPolling.restore();
+      Em.run.later.restore();
+    });
+
+    it('should show error popup and call "onTaskError"', function () {
+      var data = {
+        Tasks: {
+          status: 'COMPLETED',
+          structured_out: {
+            db_connection_check: {
+              exit_code: 1,
+              message: 'error'
+            }
+          }
+        }
+      };
+      controller.getDBConnTaskInfoSuccess(data);
+      expect(controller.showConnectionErrorPopup.calledWith('error')).to.be.true;
+      expect(controller.onTaskError.calledOnce).to.be.true;
+    });
+
+    it('should call "onTaskCompleted"', function () {
+      var data = {
+        Tasks: {
+          status: 'COMPLETED',
+          structured_out: {
+            db_connection_check: {
+              exit_code: 0
+            }
+          }
+        }
+      };
+      controller.getDBConnTaskInfoSuccess(data);
+      expect(controller.onTaskCompleted.calledOnce).to.be.true;
+    });
+
+    it('should call "onTaskError"', function () {
+      var data = {
+        Tasks: {
+          status: 'FAILED'
+        }
+      };
+      controller.getDBConnTaskInfoSuccess(data);
+      expect(controller.onTaskError.calledOnce).to.be.true;
+    });
+
+    it('should call "Em.run.later"', function () {
+      var data = {
+        Tasks: {
+          status: 'IN_PROGRESS'
+        }
+      };
+      controller.getDBConnTaskInfoSuccess(data);
+      expect(Em.run.later.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#showConnectionErrorPopup()", function () {
+
+    beforeEach(function () {
+      sinon.stub(App, 'showAlertPopup').returns(Em.Object.create({body: {}}));
+    });
+    afterEach(function () {
+      App.showAlertPopup.restore();
+    });
+
+    it('should call "showAlertPopup"', function () {
+      controller.showConnectionErrorPopup('error');
+      expect(App.showAlertPopup.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#testDBRetryTooltip()", function () {
+
+    it('should return string', function () {
+      controller.reopen(Em.Object.create({
+        content: Em.Object.create(
+          {
+            serviceProperties: {
+              database_hostname: 'host1'
+            },
+            databaseType: 'type1'
+          }
+        ),
+        preparedDBProperties: {
+          schema_name: 'scheme1',
+          user_name: 'user1',
+          user_passwd: 'passwd1',
+          driver_class: 'dr1',
+          db_connection_url: '/dbUrl'
+        }
+      }));
+      controller.propertyDidChange('testDBRetryTooltip');
+      expect(controller.get('testDBRetryTooltip')).to.equal('Database Host: host1\nDatabase Type: type1\nDatabase Name: scheme1\nUsername: user1\nPassword: passwd1\nJDBC Driver Class: dr1\nDatabase URL: /dbUrl');
+    });
+  });
+
+  describe("#saveServiceProperties()", function () {
+    var mock = {
+      saveServiceProperties: Em.K
+    };
+
+    beforeEach(function () {
+      sinon.stub(App.router, 'get').returns(mock);
+      sinon.spy(mock, 'saveServiceProperties');
+    });
+    afterEach(function () {
+      App.router.get.restore();
+      mock.saveServiceProperties.restore();
+    });
+
+    it('should call "saveServiceProperties"', function () {
+      controller.saveServiceProperties({});
+      expect(mock.saveServiceProperties.calledWith({})).to.be.true;
+    });
+  });
+
+  describe("#stopHostComponentsInMaintenanceMode()", function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'updateComponentsState');
+    });
+    afterEach(function () {
+      controller.updateComponentsState.restore();
+    });
+
+    it('should call "updateComponentsState"', function () {
+
+      controller.reopen({
+        content: Em.Object.create({
+          reassignComponentsInMM: ['c1'],
+          reassign: Em.Object.create({
+            service_id: 's1'
+          }),
+          reassignHosts: Em.Object.create({
+            source: 'host1'
+          })
+        })
+      });
+      controller.stopHostComponentsInMaintenanceMode();
+      expect(controller.get('multiTaskCounter')).to.equal(1);
+      expect(controller.updateComponentsState.calledOnce).to.be.true;
     });
   });
 });

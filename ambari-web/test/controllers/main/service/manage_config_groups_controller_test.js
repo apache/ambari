@@ -18,6 +18,8 @@
 
 var App = require('app');
 var c;
+var testHelpers = require('test/helpers');
+var hostsManagement = require('utils/hosts');
 
 describe('App.ManageConfigGroupsController', function() {
 
@@ -675,4 +677,491 @@ describe('App.ManageConfigGroupsController', function() {
     });
   });
 
+  describe('#isDeleteHostsDisabled', function () {
+
+    it('should return true{1}', function () {
+      c.propertyDidChange('isDeleteHostsDisabled');
+      expect(c.get('isDeleteHostsDisabled')).to.be.true;
+    });
+
+    it('should return true{2}', function () {
+      c.set('selectedConfigGroup', Em.Object.create({isDefault: true}));
+      c.set('selectedHosts', []);
+      c.propertyDidChange('isDeleteHostsDisabled');
+      expect(c.get('isDeleteHostsDisabled')).to.be.true;
+    });
+
+    it('should return false', function () {
+      c.set('selectedConfigGroup', Em.Object.create({isDefault: false}));
+      c.set('selectedHosts', ['host1']);
+      c.propertyDidChange('isDeleteHostsDisabled');
+      expect(c.get('isDeleteHostsDisabled')).to.be.false;
+    });
+  });
+
+  describe('#tooltipText', function () {
+    var text1 = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam sit amet felis quam. Sed facilisis efficitur urna, a gravida augue. Morbi non justo gravida, congue eros eu, lacinia sem. Nam dolor mauris, pellentesque quis arcu ac, hendrerit efficitur nisl. Nullam feugiat vulputate nibh, eu vulputate est tempus suscipit. Donec at erat sit amet nisl vulputate gravida. Nullam ultricies dignissim arcu. Fusce mattis libero vel nunc ultrices, sit amet cursus libero lacinia. Praesent non imperdiet orci. Proin vitae placerat lorem.';
+
+    var text2 = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam sit amet felis quam. Sed facilisis efficitur urna, a gravida augue. Morbi non justo gravida, congue eros eu, lacinia sem. Nam dolor mauris, pellentesque quis arcu ac, hendrerit efficitur nisl. Nullam feugiat vulputate nibh, eu vulputate est tempus suscipit. Donec at erat sit amet nisl vulputate gravida. Nullam ultricies dignissim arcu. Fusce mattis libero vel nunc ultrices, sit amet cursus libero lacinia. Praesent non imperdiet<br/> orci.<br/> Proin vitae placerat lorem.';
+
+    it('should return text', function () {
+      c.set('selectedConfigGroup', Em.Object.create({propertiesList: 'some text'}));
+      c.propertyDidChange('tooltipText');
+      expect(c.get('tooltipText')).to.equal('some text');
+    });
+
+    it('should return trimmed text{1}', function () {
+      c.set('selectedConfigGroup', Em.Object.create({propertiesList: text1}));
+      c.propertyDidChange('tooltipText');
+      expect(c.get('tooltipText')).to.equal('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam sit amet felis quam. Sed facilisis efficitur urna, a gravida augue. Morbi non justo gravida, congue eros eu, lacinia sem. Nam dolor mauris, pellentesque quis arcu ac, hendrerit efficitur nisl. Nullam feugiat vulputate nibh, eu vulputate est tempus suscipit. Donec at erat sit amet nisl vulputate gravida. Nullam ultricies dignissim arcu. Fusce mattis libero vel nunc ultrices, sit amet cursus libero lacinia. Praesent non imperdiet orc ...');
+    });
+
+    it('should return trimmed text{2}', function () {
+      c.set('selectedConfigGroup', Em.Object.create({propertiesList: text2}));
+      c.propertyDidChange('tooltipText');
+      expect(c.get('tooltipText')).to.equal('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam sit amet felis quam. Sed facilisis efficitur urna, a gravida augue. Morbi non justo gravida, congue eros eu, lacinia sem. Nam dolor mauris, pellentesque quis arcu ac, hendrerit efficitur nisl. Nullam feugiat vulputate nibh, eu vulputate est tempus suscipit. Donec at erat sit amet nisl vulputate gravida. Nullam ultricies dignissim arcu. Fusce mattis libero vel nunc ultrices, sit amet cursus libero lacinia. Praesent non imperdiet<br/> and 1 more property');
+    });
+  });
+
+  describe('#hostsModifiedConfigGroupsObsOnce', function () {
+    var groups = [Em.Object.create({
+      id: 123,
+      name: 'group1',
+      description: 'group description',
+      hosts: ['host1'],
+      serviceName: 's1',
+      desiredConfigs: [],
+      properties: [],
+      is_default: false
+    })];
+
+    beforeEach(function () {
+      this.mock = sinon.stub(App.ServiceConfigGroup, 'find');
+    });
+    afterEach(function () {
+      this.mock.restore();
+    });
+
+    it('should return false', function () {
+      c.set('isLoaded', false);
+      expect(c.hostsModifiedConfigGroupsObsOnce()).to.be.false;
+    });
+
+    it('should set hostsModifiedConfigGroups{1}', function () {
+      c.set('isLoaded', true);
+      c.set('configGroups', [Em.Object.create({
+        id: 123,
+        name: 'group1',
+        description: 'group description',
+        hosts: ['host1', 'host2'],
+        serviceName: 's1',
+        desired_configs: [],
+        properties: [],
+        is_default: false
+      })]);
+      c.set('originalConfigGroups', groups);
+      c.hostsModifiedConfigGroupsObsOnce();
+      expect(c.get('hostsModifiedConfigGroups').initialGroups[0]).to.eql(groups[0]);
+    });
+
+    it('should set hostsModifiedConfigGroups{2}', function () {
+      c.set('isLoaded', true);
+      c.set('configGroups', [Em.Object.create({
+        id: 123,
+        name: 'group2',
+        description: 'group2 description',
+        hosts: ['host1'],
+        serviceName: 's1',
+        desired_configs: [],
+        properties: [],
+        is_default: false
+      })]);
+      c.set('originalConfigGroups', groups);
+      c.hostsModifiedConfigGroupsObsOnce();
+      expect(c.get('hostsModifiedConfigGroups').initialGroups[0]).to.eql(groups[0]);
+      expect(c.get('hostsModifiedConfigGroups').toSetHosts[0]).to.eql(Em.Object.create({
+        id: 123,
+        name: 'group2',
+        description: 'group2 description',
+        hosts: ['host1'],
+        serviceName: 's1',
+        desired_configs: [],
+        properties: [],
+        is_default: false
+      }));
+    });
+
+    it('should set hostsModifiedConfigGroups{3}', function () {
+      c.set('isLoaded', true);
+      c.set('configGroups', groups);
+      c.set('originalConfigGroups', groups);
+      c.hostsModifiedConfigGroupsObsOnce();
+      expect(c.get('hostsModifiedConfigGroups').initialGroups[0]).to.eql(groups[0]);
+    });
+
+    it('should set hostsModifiedConfigGroups{4}', function () {
+      c.set('isLoaded', true);
+      c.set('configGroups', groups);
+      c.hostsModifiedConfigGroupsObsOnce();
+      expect(JSON.stringify(c.get('hostsModifiedConfigGroups').toCreate[0])).to.equal(JSON.stringify({
+          id: 123,
+          name: 'group1',
+          description: 'group description',
+          hosts: ['host1'],
+          service_id: 's1',
+          desired_configs: [],
+          properties: []
+        })
+      );
+    });
+  });
+
+  describe('#resortConfigGroup', function () {
+
+    it('should resort config groups', function () {
+      c.set('configGroups', [
+        Em.Object.create({
+          name: 'group1'
+        }),
+        Em.Object.create({
+          name: 'group2',
+          isDefault: true
+        })
+      ]);
+      c.resortConfigGroup();
+      expect(JSON.stringify(c.get('configGroups'))).to.equal(JSON.stringify([
+        Em.Object.create({
+          isDefault: true,
+          name: 'group2',
+        }),
+        Em.Object.create({
+          name: 'group1',
+        })
+      ]));
+    });
+  });
+
+  describe('#loadHosts', function () {
+
+    beforeEach(function () {
+      sinon.stub(c, 'loadInstallerHostsFromServer');
+      sinon.stub(c, 'loadHostsFromServer');
+      sinon.stub(c, 'loadConfigGroups');
+      sinon.stub(App.router, 'get').withArgs('installerController').returns(Em.Object.create({
+          allHosts: [
+            {
+              hostName: 'host1'
+            }
+          ]
+        })
+      )
+    });
+    afterEach(function () {
+      c.loadInstallerHostsFromServer.restore();
+      c.loadHostsFromServer.restore();
+      c.loadConfigGroups.restore();
+      App.router.get.restore();
+    });
+
+    it('should load config groups{1}', function () {
+      c.set('isInstaller', true);
+      c.set('isAddService', false);
+      c.loadHosts();
+      expect(c.loadInstallerHostsFromServer.calledOnce).to.be.true;
+      expect(c.loadConfigGroups.calledOnce).to.be.true;
+    });
+
+    it('should load config groups{2}', function () {
+      c.set('isInstaller', true);
+      c.set('isAddService', true);
+      c.loadHosts();
+      expect(c.loadHostsFromServer.calledOnce).to.be.true;
+      expect(c.loadConfigGroups.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#_loadHostsFromServerSuccessCallback', function () {
+    var data = {
+      items: [
+        {
+          id: 'host1',
+          ip: '0.0.0.0',
+          osType: 'os',
+          osArch: 'arch',
+          host_name: 'host1',
+          public_host_name: 'phost1',
+          cpu_count: 4,
+          total_mem: 6044,
+          host_components: [
+            {
+              HostRoles: {
+                component_name: 'host1'
+              },
+            }
+          ],
+          Hosts: {
+            host_name: 'host1',
+            disk_info: [
+              {
+                type: 'ext',
+                available: 2048,
+                size: 1024
+              },
+              {
+                type: 'ext',
+                available: 4096,
+                size: 2048
+              }
+            ]
+          }
+        }
+      ]
+    };
+
+    beforeEach(function () {
+      sinon.stub(c, 'getNewlyAddedHostComponentsMap').returns({host1: {}});
+    });
+    afterEach(function () {
+      c.getNewlyAddedHostComponentsMap.restore();
+    });
+
+    it('should set cluster hosts', function () {
+      c.set('isAddService', true);
+      c._loadHostsFromServerSuccessCallback(data);
+      expect(JSON.stringify(c.get('clusterHosts'))).to.equal('[{"id":"host1","hostName":"host1","diskTotal":"3 MB","diskFree":"6 MB","disksMounted":2,"hostComponents":[{"componentName":"host1","displayName":"Host1"},{}]}]');
+    });
+  });
+
+  describe('#loadConfigGroups', function () {
+
+    beforeEach(function () {
+      sinon.stub(c, 'generateOriginalConfigGroups').returns([]);
+      sinon.stub(c, 'setProperties');
+      sinon.stub(App.router, 'get').returns([]);
+    });
+    afterEach(function () {
+      c.generateOriginalConfigGroups.restore();
+      c.setProperties.restore();
+      App.router.get.restore();
+    });
+
+    it('should set properties', function () {
+      c.set('isInstaller', true);
+      c.loadConfigGroups('s1');
+      expect(c.setProperties.calledOnce).to.be.true;
+    });
+
+    it('should send ajax request', function () {
+      var args = testHelpers.findAjaxRequest('name', 'service.load_config_groups');
+      c.set('isInstaller', false);
+      c.loadConfigGroups('s1');
+      expect(args).to.exists;
+    });
+  });
+
+  describe('#_onLoadConfigGroupsSuccess', function () {
+
+    beforeEach(function () {
+      sinon.stub(c, 'generateOriginalConfigGroups').returns([
+        {
+          name: 'group1',
+          desired_configs: [{}]
+        }
+      ]);
+      sinon.stub(c, 'loadProperties');
+      sinon.stub(App.ServiceConfigGroup, 'find').returns([{serviceName: 's1'}]);
+      sinon.stub(App.configGroupsMapper, 'map');
+    });
+    afterEach(function () {
+      c.generateOriginalConfigGroups.restore();
+      c.loadProperties.restore();
+      App.ServiceConfigGroup.find.restore();
+      App.configGroupsMapper.map.restore();
+    });
+
+    it('should load properties', function () {
+      c.set('isInstaller', true);
+      c._onLoadConfigGroupsSuccess({});
+      expect(App.configGroupsMapper.map.calledOnce).to.be.true;
+      expect(c.loadProperties.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#generateOriginalConfigGroups', function () {
+
+    var groups = ['group1', 'group2'];
+
+    beforeEach(function () {
+      sinon.stub(c, 'createOriginalRecord');
+    });
+    afterEach(function () {
+      c.createOriginalRecord.restore();
+    });
+
+    it('should generate original config groups', function () {
+      c.generateOriginalConfigGroups(groups);
+      expect(c.createOriginalRecord.callCount).to.equal(groups.length);
+    });
+  });
+
+  describe('#createOriginalRecord', function () {
+    var group = Em.Object.create({
+      id: 123,
+      name: 'group1',
+      description: 'group description',
+      hosts: ['host1'],
+      serviceName: 's1',
+      desiredConfigs: [],
+      properties: [],
+      is_default: false
+    });
+
+    it('should create original config group record', function () {
+      expect(JSON.stringify(c.createOriginalRecord(group))).to.equal('{"id":123,"name":"group1","service_name":"s1","description":"group description","hosts":["host1"],"service_id":"s1","desired_configs":[],"child_config_groups":[],"properties":[]}');
+    });
+  });
+
+  describe('#loadProperties', function () {
+    var group = {
+      group: {
+        type: 'type'
+      }
+    };
+
+    it('should send ajax request', function () {
+      c.loadProperties(group);
+      var args = testHelpers.findAjaxRequest('name', 'config.host_overrides');
+      expect(args).to.exists;
+    });
+  });
+
+  describe('#showProperties', function () {
+
+    beforeEach(function () {
+      sinon.stub(App, 'showAlertPopup');
+    });
+    afterEach(function () {
+      App.showAlertPopup.restore();
+    });
+
+    it('should show alert popup', function () {
+      c.set('selectedConfigGroup', {propertiesList: '123'});
+      c.showProperties();
+      expect(App.showAlertPopup.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#addHosts', function () {
+
+    beforeEach(function () {
+      sinon.stub(hostsManagement, 'launchHostsSelectionDialog');
+    });
+    afterEach(function () {
+      hostsManagement.launchHostsSelectionDialog.restore();
+    });
+
+    it('should launch host selection dialog', function () {
+      c.set('selectedConfigGroup', {availableHosts: ['host1'], displayName: 'group1'});
+      c.addHosts();
+      expect(hostsManagement.launchHostsSelectionDialog.calledOnce).to.be.true;
+    });
+
+    it('should return false', function () {
+      c.set('selectedConfigGroup', {isAddHostsDisabled: true});
+      expect(c.addHosts()).to.be.false;
+    });
+  });
+
+  describe('#deleteHosts', function () {
+
+    it('should set new hosts', function () {
+      c.set('selectedHosts', ['host1']);
+      c.set('selectedConfigGroup', Em.Object.create({parentConfigGroup: Em.Object.create({hosts: ['host1']}), hosts: ['host1', 'host2']}));
+      c.deleteHosts();
+      expect(c.get('selectedHosts')).to.eql([]);
+      expect(c.get('selectedConfigGroup.hosts')[0]).to.equal('host2');
+    });
+
+    it('should return false', function () {
+      c.set('isDeleteHostsDisabled', true);
+      expect(c.deleteHosts()).to.be.undefined;
+    });
+  });
+
+  describe('#confirmDelete', function () {
+
+    beforeEach(function () {
+      sinon.stub(App, 'showConfirmationPopup');
+    });
+    afterEach(function () {
+      App.showConfirmationPopup.restore();
+    });
+
+    it('should show show confirmation popup', function () {
+      c.confirmDelete();
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#duplicateConfigGroup', function () {
+
+    beforeEach(function () {
+      sinon.stub(c, 'addConfigGroup');
+    });
+    afterEach(function () {
+      c.addConfigGroup.restore();
+    });
+
+    it('should add config group', function () {
+      c.duplicateConfigGroup();
+      expect(c.addConfigGroup.calledWith(true)).to.be.true;
+    });
+  });
+
+  describe('#loadInstallerHostsFromServer', function () {
+
+    it('should send ajax request', function () {
+      var hosts = ['host1', 'host2'];
+      c.loadInstallerHostsFromServer(hosts);
+      var args = testHelpers.findAjaxRequest('name', 'hosts.info.install');
+      expect(args[0].data.hostNames).to.eql(hosts);
+    });
+  });
+
+  describe('#loadInstallerHostsSuccessCallback', function () {
+    var data = {
+      items: [
+        {
+          Hosts: {
+            id: 'host1',
+            ip: '0.0.0.0',
+            osType: 'os',
+            osArch: 'arch',
+            host_name: 'host1',
+            public_host_name: 'phost1',
+            cpu_count: 4,
+            total_mem: 6044,
+            disk_info: [
+              {
+                size: 2048,
+                available: 1024
+              }
+            ]
+          }
+        }
+      ]
+    };
+
+    it('should set cluster hosts', function () {
+      App.router.installerController.reopen(Em.Object.create({
+        allHosts: [{hostName: 'host1'}],
+        content: Em.Object.create({
+          slaveComponentHosts: [{hosts: [{hostName: 'host1'}], componentName: 'CLIENT'}],
+          clients: [{component_name: 'c1', display_name: 'c1'}]
+        })
+      }))
+      c.loadInstallerHostsSuccessCallback(data);
+      expect(JSON.stringify(c.get('clusterHosts')[0])).to.equal('{"id":"host1","ip":"0.0.0.0","hostName":"host1","publicHostName":"phost1","cpu":4,"memory":"6044.00","diskInfo":[{"size":2048,"available":1024}],"diskTotal":0.001953125,"diskFree":0.0009765625,"hostComponents":[{"componentName":"c1","displayName":"c1"}]}');
+    });
+  });
 });

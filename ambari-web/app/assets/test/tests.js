@@ -129,6 +129,7 @@ var files = [
   'test/controllers/main/service/reassign/step4_controller_test',
   'test/controllers/main/service/reassign/step6_controller_test',
   'test/controllers/main/service/reassign/step7_controller_test',
+  'test/controllers/main/service/widgets/edit_controller_test',
   'test/controllers/main/service/widgets/create/wizard_controller_test',
   'test/controllers/main/service/widgets/create/step1_controller_test',
   'test/controllers/main/service/widgets/create/step2_controller_test',
