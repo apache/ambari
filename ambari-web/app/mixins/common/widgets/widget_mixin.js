@@ -48,7 +48,7 @@ App.WidgetMixin = Ember.Mixin.create({
    * @type {string}
    * @const
    */
-  CLONE_SUFFIX: '(Copy)',
+  CLONE_SUFFIX: '-Copy',
 
   /**
    * @type {number|null}
