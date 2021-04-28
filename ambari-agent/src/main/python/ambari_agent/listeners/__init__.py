@@ -22,13 +22,18 @@ import ambari_stomp
 import logging
 import traceback
 import copy
+import re
 from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 from ambari_agent import Constants
+from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.Utils import Utils
+from resource_management.core.utils import PasswordString
 from Queue import Queue
 import threading
 
 logger = logging.getLogger(__name__)
+ambari_config = AmbariConfig.get_resolved_config()
+secret_hidden_pattern = re.compile(ambari_config.get('agent','secret_hidden_pattern', default='(?i).*password.*'))
 
 class EventListener(ambari_stomp.ConnectionListener):
 
@@ -41,6 +46,19 @@ class EventListener(ambari_stomp.ConnectionListener):
     self.initializer_module = initializer_module
     self.enabled = True
     self.event_queue_lock = threading.RLock()
+
+  @staticmethod
+  def hide_secret_config(config):
+    if type(config) is dict:
+      for attr_name, attr_value in config.items():
+        if type(attr_value) is dict:
+          # Recursive processing of nested type
+          config[attr_name] = EventListener.hide_secret_config(attr_value)
+        elif type(attr_value) is unicode:
+          if secret_hidden_pattern.match(attr_name):
+            config[attr_name] = PasswordString(attr_value)
+
+    return config
 
   def dequeue_unprocessed_events(self):
     while not self.unprocessed_messages_queue.empty():
@@ -74,12 +92,13 @@ class EventListener(ambari_stomp.ConnectionListener):
     if destination.rstrip('/') == self.get_handled_path().rstrip('/'):
       try:
         message_json = json.loads(message)
+        insensitive_message_str = self.get_log_message(headers, EventListener.hide_secret_config(copy.deepcopy(message_json)))
       except ValueError as ex:
-        logger.exception("Received from server event is not a valid message json. Message is:\n{0}".format(message))
+        logger.exception("Received from server event is not a valid message json. Message is:\n{0}".format(insensitive_message_str))
         self.report_status_to_sender(headers, message, ex)
         return
 
-      logger.info("Event from server at {0}{1}".format(destination, self.get_log_message(headers, copy.deepcopy(message_json))))
+      logger.info("Event from server at {0}{1}".format(destination, insensitive_message_str))
 
       if not self.enabled:
         with self.event_queue_lock:
@@ -90,13 +109,13 @@ class EventListener(ambari_stomp.ConnectionListener):
               self.unprocessed_messages_queue.put_nowait((destination, headers, message_json, message))
             except Exception as ex:
               logger.warning("Cannot queue any more unprocessed events since "
-                           "queue is full! {0} {1}".format(destination, message))
+                             "queue is full! {0} {1}".format(destination, insensitive_message_str))
             return
 
       try:
         self.on_event(headers, message_json)
       except Exception as ex:
-        logger.exception("Exception while handing event from {0} {1} {2}".format(destination, headers, message))
+        logger.exception("Exception while handing event from {0} {1} {2}".format(destination, headers, insensitive_message_str))
         self.report_status_to_sender(headers, message, ex)
       else:
         self.report_status_to_sender(headers, message)
