@@ -57,6 +57,6 @@ public class CredentialResourceDefinitionTest {
   public void testGetCreateDirectives() {
     CredentialResourceDefinition definition = new CredentialResourceDefinition();
     Collection<String> directives = definition.getCreateDirectives();
-    Assert.assertEquals(0, directives.size());
+    Assert.assertEquals(1, directives.size());
   }
 }

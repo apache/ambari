@@ -53,19 +53,11 @@ public class SimpleResourceDefinitionTest {
   public void testDirectives() {
     ResourceDefinition resourceDefinition;
 
-    resourceDefinition = new SimpleResourceDefinition(Resource.Type.Stage, "stage", "stages",
-        Resource.Type.Task);
-
-    validateDirectives(Collections.emptySet(), resourceDefinition.getCreateDirectives());
-    validateDirectives(Collections.emptySet(), resourceDefinition.getReadDirectives());
-    validateDirectives(Collections.emptySet(), resourceDefinition.getUpdateDirectives());
-    validateDirectives(Collections.emptySet(), resourceDefinition.getDeleteDirectives());
-
     HashMap<BaseResourceDefinition.DirectiveType, Collection<String>> directives = new HashMap<>();
-    directives.put(BaseResourceDefinition.DirectiveType.CREATE, Arrays.asList("POST1", "POST2"));
-    directives.put(BaseResourceDefinition.DirectiveType.READ, Arrays.asList("GET1", "GET2"));
-    directives.put(BaseResourceDefinition.DirectiveType.UPDATE, Arrays.asList("PUT1", "PUT2"));
-    directives.put(BaseResourceDefinition.DirectiveType.DELETE, Arrays.asList("DEL1", "DEL2"));
+    directives.put(BaseResourceDefinition.DirectiveType.CREATE, Arrays.asList("force_metrics_fetch", "POST1", "POST2"));
+    directives.put(BaseResourceDefinition.DirectiveType.READ, Arrays.asList("force_metrics_fetch", "GET1", "GET2"));
+    directives.put(BaseResourceDefinition.DirectiveType.UPDATE, Arrays.asList("force_metrics_fetch", "PUT1", "PUT2"));
+    directives.put(BaseResourceDefinition.DirectiveType.DELETE, Arrays.asList("force_metrics_fetch", "DEL1", "DEL2"));
 
     resourceDefinition = new SimpleResourceDefinition(Resource.Type.Stage, "stage", "stages",
         Collections.singleton(Resource.Type.Task), directives);
