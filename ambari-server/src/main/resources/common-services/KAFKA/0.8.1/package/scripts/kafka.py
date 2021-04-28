@@ -62,10 +62,11 @@ def kafka(upgrade_type=None):
          Logger.info(format("Kafka advertised listeners: {listeners}"))
        else:
          kafka_server_config['listeners'] = listeners
-         if 'advertised.listeners' in kafka_server_config:
-           advertised_listeners = kafka_server_config['advertised.listeners'].replace("localhost", params.hostname)
-           kafka_server_config['advertised.listeners'] = advertised_listeners
-           Logger.info(format("Kafka advertised listeners: {advertised_listeners}"))
+
+       if 'advertised.listeners' in kafka_server_config:
+         advertised_listeners = kafka_server_config['advertised.listeners'].replace("localhost", params.hostname)
+         kafka_server_config['advertised.listeners'] = advertised_listeners
+         Logger.info(format("Kafka advertised listeners: {advertised_listeners}"))
     else:
       kafka_server_config['host.name'] = params.hostname
 
