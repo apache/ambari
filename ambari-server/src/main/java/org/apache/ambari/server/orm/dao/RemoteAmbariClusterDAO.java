@@ -25,6 +25,7 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
+import org.apache.ambari.server.orm.entities.RemoteAmbariClusterServiceEntity;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -98,9 +99,15 @@ public class RemoteAmbariClusterDAO {
    * @param entity
      */
   @Transactional
-  public void update(RemoteAmbariClusterEntity entity) {
+  public void update(RemoteAmbariClusterEntity entity, Long maxHistoryServiceId) {
     entityManagerProvider.get().merge(entity);
-
+    if(maxHistoryServiceId != null) {
+      TypedQuery<RemoteAmbariClusterServiceEntity> query = entityManagerProvider.get().createNamedQuery(
+                "deleteRemoteClusterOldService", RemoteAmbariClusterServiceEntity.class);
+      query.setParameter("id", maxHistoryServiceId);
+      query.setParameter("clusterId", entity.getId());
+      daoUtils.executeUpdate(query);
+    }
   }
 
   /**

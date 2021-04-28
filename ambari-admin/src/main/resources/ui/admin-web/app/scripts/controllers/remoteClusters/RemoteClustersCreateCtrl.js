@@ -50,7 +50,7 @@ angular.module('ambariAdminConsole')
           $location.path('/remoteClusters/'+ $scope.cluster.cluster_name +'/edit')
         })
         .catch(function(resp) {
-          console.log(data);
+          console.log(resp);
           Alert.error(resp.data.message);
        });
 
