@@ -815,43 +815,43 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_75th_percentile": {
-              "metric": "regionserver.Server.Mutate_75th_percentile",
+            "metrics/hbase/regionserver/Put_75th_percentile": {
+              "metric": "regionserver.Server.Put_75th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_95th_percentile": {
-              "metric": "regionserver.Server.Mutate_95th_percentile",
+            "metrics/hbase/regionserver/Put_95th_percentile": {
+              "metric": "regionserver.Server.Put_95th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_99th_percentile": {
-              "metric": "regionserver.Server.Mutate_99th_percentile",
+            "metrics/hbase/regionserver/Put_99th_percentile": {
+              "metric": "regionserver.Server.Put_99th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_max": {
-              "metric": "regionserver.Server.Mutate_max",
+            "metrics/hbase/regionserver/Put_max": {
+              "metric": "regionserver.Server.Put_max",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_mean": {
-              "metric": "regionserver.Server.Mutate_mean",
+            "metrics/hbase/regionserver/Put_mean": {
+              "metric": "regionserver.Server.Put_mean",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_median": {
-              "metric": "regionserver.Server.Mutate_median",
+            "metrics/hbase/regionserver/Put_median": {
+              "metric": "regionserver.Server.Put_median",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_min": {
-              "metric": "regionserver.Server.Mutate_min",
+            "metrics/hbase/regionserver/Put_min": {
+              "metric": "regionserver.Server.Put_min",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_num_ops": {
-              "metric": "regionserver.Server.Mutate_num_ops",
+            "metrics/hbase/regionserver/Put_num_ops": {
+              "metric": "regionserver.Server.Put_num_ops",
               "pointInTime": true,
               "temporal": true
             },
@@ -2049,43 +2049,43 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_75th_percentile": {
-              "metric": "regionserver.Server.Mutate_75th_percentile",
+            "metrics/hbase/regionserver/Put_75th_percentile": {
+              "metric": "regionserver.Server.Put_75th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_95th_percentile": {
-              "metric": "regionserver.Server.Mutate_95th_percentile",
+            "metrics/hbase/regionserver/Put_95th_percentile": {
+              "metric": "regionserver.Server.Put_95th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_99th_percentile": {
-              "metric": "regionserver.Server.Mutate_99th_percentile",
+            "metrics/hbase/regionserver/Put_99th_percentile": {
+              "metric": "regionserver.Server.Put_99th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_max": {
-              "metric": "regionserver.Server.Mutate_max",
+            "metrics/hbase/regionserver/Put_max": {
+              "metric": "regionserver.Server.Put_max",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_mean": {
-              "metric": "regionserver.Server.Mutate_mean",
+            "metrics/hbase/regionserver/Put_mean": {
+              "metric": "regionserver.Server.Put_mean",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_median": {
-              "metric": "regionserver.Server.Mutate_median",
+            "metrics/hbase/regionserver/Put_median": {
+              "metric": "regionserver.Server.Put_median",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_min": {
-              "metric": "regionserver.Server.Mutate_min",
+            "metrics/hbase/regionserver/Put_min": {
+              "metric": "regionserver.Server.Put_min",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/regionserver/Mutate_num_ops": {
-              "metric": "regionserver.Server.Mutate_num_ops",
+            "metrics/hbase/regionserver/Put_num_ops": {
+              "metric": "regionserver.Server.Put_num_ops",
               "pointInTime": true,
               "temporal": true
             },

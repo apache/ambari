@@ -15,7 +15,7 @@
             "href": "http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/widgets/29",
             "WidgetInfo": {
               "id": 29,
-              "metrics": "[{\"name\":\"regionserver.Server.Get_num_ops\",\"metric_path\":\"metrics/jvm/gcCount\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.ScanNext_num_ops\",\"metric_path\":\"metrics/hbase/regionserver/Server/ScanNext_num_ops\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.Append_num_ops\",\"metric_path\":\"metrics/hbase/regionserver/Server/Append_num_ops\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.Delete_num_ops\",\"metric_path\":\"metrics/hbase/regionserver/Server/Delete_num_ops\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.Increment_num_ops\",\"metric_path\":\"metrics/hbase/regionserver/Server/Increment_num_ops\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.Mutate_num_ops\",\"metric_path\":\"metrics/hbase/regionserver/Server/Mutate_num_ops\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"}]",
+              "metrics": "[{\"name\":\"regionserver.Server.Get_num_ops\",\"metric_path\":\"metrics/jvm/gcCount\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.ScanNext_num_ops\",\"metric_path\":\"metrics/hbase/regionserver/Server/ScanNext_num_ops\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.Append_num_ops\",\"metric_path\":\"metrics/hbase/regionserver/Server/Append_num_ops\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.Delete_num_ops\",\"metric_path\":\"metrics/hbase/regionserver/Server/Delete_num_ops\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.Increment_num_ops\",\"metric_path\":\"metrics/hbase/regionserver/Server/Increment_num_ops\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.Put_num_ops\",\"metric_path\":\"metrics/hbase/regionserver/Server/Put_num_ops\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"}]",
               "author": "ambari",
               "description": "This widget shows all the read requests and write requests on all regions for a RegionServer",
               "scope": "CLUSTER",
@@ -49,7 +49,7 @@
             "href": "http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/widgets/31",
             "WidgetInfo": {
               "id": 31,
-              "metrics": "[{\"name\":\"regionserver.Server.Mutate_95th_percentile\",\"metric_path\":\"metrics/hbase/regionserver/Server/Mutate_95th_percentile\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.Increment_95th_percentile\",\"metric_path\":\"metrics/hbase/regionserver/Server/Increment_95th_percentile\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.Append_95th_percentile\",\"metric_path\":\"metrics/hbase/regionserver/Server/Append_95th_percentile\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.Delete_95th_percentile\",\"metric_path\":\"metrics/hbase/regionserver/Server/Delete_95th_percentile\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"}]",
+              "metrics": "[{\"name\":\"regionserver.Server.Put_95th_percentile\",\"metric_path\":\"metrics/hbase/regionserver/Server/Put_95th_percentile\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.Increment_95th_percentile\",\"metric_path\":\"metrics/hbase/regionserver/Server/Increment_95th_percentile\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.Append_95th_percentile\",\"metric_path\":\"metrics/hbase/regionserver/Server/Append_95th_percentile\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.Delete_95th_percentile\",\"metric_path\":\"metrics/hbase/regionserver/Server/Delete_95th_percentile\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"}]",
               "author": "ambari",
               "description": "This widget shows 95th percentile of the write latency.",
               "scope": "CLUSTER",
@@ -58,7 +58,7 @@
               "widget_type": "NUMBER",
               "time_created": 1428990958952,
               "display_name": "95% Write Latency",
-              "values": "[{\"name\":\"95% Write Latency\",\"value\":\"${regionserver.Server.Mutate_95th_percentile+regionserver.Server.Increment_95th_percentile+regionserver.Server.Append_95th_percentile+regionserver.Server.Delete_95th_percentile}\"}]",
+              "values": "[{\"name\":\"95% Write Latency\",\"value\":\"${regionserver.Server.Put_95th_percentile+regionserver.Server.Increment_95th_percentile+regionserver.Server.Append_95th_percentile+regionserver.Server.Delete_95th_percentile}\"}]",
               "cluster_name": "c1"
             }
           },

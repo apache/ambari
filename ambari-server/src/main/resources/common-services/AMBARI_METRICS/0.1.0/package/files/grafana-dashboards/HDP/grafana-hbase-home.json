@@ -661,7 +661,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_num_ops",
+              "metric": "regionserver.Server.Put_num_ops",
               "precision": "default",
               "refId": "C",
               "transform": "rate"
@@ -1493,7 +1493,7 @@
           "renderer": "flot",
           "seriesOverrides": [
             {
-              "alias": "regionserver.Server.Mutate_num_ops",
+              "alias": "regionserver.Server.Put_num_ops",
               "yaxis": 2
             }
           ],
@@ -1507,17 +1507,17 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_mean",
+              "metric": "regionserver.Server.Put_mean",
               "precision": "default",
               "refId": "A"
             },
             {
               "aggregator": "avg",
-              "alias": "Mutate_median",
+              "alias": "Put_median",
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_median",
+              "metric": "regionserver.Server.Put_median",
               "precision": "default",
               "refId": "B"
             },
@@ -1527,7 +1527,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_75th_percentile",
+              "metric": "regionserver.Server.Put_75th_percentile",
               "precision": "default",
               "refId": "E"
             },
@@ -1537,7 +1537,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_95th_percentile",
+              "metric": "regionserver.Server.Put_95th_percentile",
               "precision": "default",
               "refId": "D"
             },
@@ -1547,7 +1547,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_99th_percentile",
+              "metric": "regionserver.Server.Put_99th_percentile",
               "precision": "default",
               "refId": "C"
             },
@@ -1557,7 +1557,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_max",
+              "metric": "regionserver.Server.Put_max",
               "precision": "default",
               "refId": "G"
             },
@@ -1567,7 +1567,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_min",
+              "metric": "regionserver.Server.Put_min",
               "precision": "default",
               "refId": "F"
             },
@@ -1577,7 +1577,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_num_ops",
+              "metric": "regionserver.Server.Put_num_ops",
               "precision": "default",
               "refId": "H",
               "transform": "rate"
