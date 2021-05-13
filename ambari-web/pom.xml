@@ -219,7 +219,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <skip>${skipTests}</skip>
+                            <skip>${ambari.web.skip}</skip>
                             <executable>${executable.npm}</executable>
                             <workingDirectory>${basedir}</workingDirectory>
                             <commandlineArgs>${args.npm} test</commandlineArgs>

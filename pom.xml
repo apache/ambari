@@ -89,7 +89,7 @@
     <deb.priority>extra</deb.priority>
     <stack.distribution>HDP</stack.distribution>
     <ambari.dir>${project.basedir}</ambari.dir>
-    <ambari.web.skip>false</ambari.web.skip>
+    <ambari.web.skip>${skipTests}</ambari.web.skip>
     <frontend-maven-plugin.version>1.12.0</frontend-maven-plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
@@ -567,6 +567,18 @@
         <module>ambari-serviceadvisor</module>
         <module>ambari-utility</module>
         </modules>
+    </profile>
+    <profile>
+      <id>non-x86_64</id>
+      <activation>
+        <os>
+          <arch>!amd64</arch>
+        </os>
+      </activation>
+      <properties>
+        <!-- AMBARI-25607 Do not build frontend for non-x86_64 because there is no PhantomJS for other architectures -->
+        <ambari.web.skip>true</ambari.web.skip>
+      </properties>
     </profile>
     <profile>
       <id>ambari-serviceadvisor</id>
