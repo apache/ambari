@@ -89,6 +89,8 @@
     <deb.priority>extra</deb.priority>
     <stack.distribution>HDP</stack.distribution>
     <ambari.dir>${project.basedir}</ambari.dir>
+    <ambari.web.skip>false</ambari.web.skip>
+    <frontend-maven-plugin.version>1.12.0</frontend-maven-plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
     <distMgmtSnapshotsName>Apache Development Snapshot Repository</distMgmtSnapshotsName>
