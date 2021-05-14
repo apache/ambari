@@ -92,8 +92,8 @@
                 <version>${frontend-maven-plugin.version}</version>
                 <configuration>
                     <skip>${ambari.web.skip}</skip>
-                    <nodeVersion>v4.5.0</nodeVersion>
-                    <yarnVersion>v0.23.2</yarnVersion>
+                    <nodeVersion>${node.version}</nodeVersion>
+                    <yarnVersion>${yarn.version}</yarnVersion>
                     <workingDirectory>${basedir}</workingDirectory>
                     <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
                     <!-- setting npm_config_tmp environment variable is a workaround for

@@ -1,7 +1,7 @@
 {
   "name": "Ambari",
   "description": "Front-end package for the Apache Ambari Project",
-  "version": "2.4.0",
+  "version": "3.0.0",
   "homepage": "http://ambari.apache.org/",
   "repository": {
     "type": "git",
@@ -29,24 +29,23 @@
     "karma": ">=0.11.14",
     "karma-babel-preprocessor": "^6.0.1",
     "karma-chai": "~0.1.0",
+    "karma-chrome-launcher": "^3.1.0",
     "karma-commonjs-require": "~0.0.1",
     "karma-coverage": "~0.2.0",
     "karma-ember-precompiler-brunch": "^1.0.0",
+    "mocha-chrome": "^2.2.0",
     "karma-mocha": "0.1.1",
-    "karma-phantomjs-launcher": "1.0.2",
     "karma-sinon": "~1.0.2",
     "mocha": "2.5.3",
-    "mocha-phantomjs": "~4.1.0",
-    "mocha-phantomjs-core": "~2.1.0",
-    "phantomjs": "~2.1.0",
     "sinon": "=1.7.3",
     "sinon-chai": "~2.8.0"
   },
   "scripts": {
     "start": "brunch watch --server",
-    "test": "mocha-phantomjs -R min -p ./node_modules/.bin/phantomjs public/test/test.html"
+    "build": "brunch build",
+    "test": "mocha-chrome ./public/test/test.html"
   },
   "engines": {
-    "node": "^4.0.0"
+    "node": "^14.0.0"
   }
 }

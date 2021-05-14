@@ -92,7 +92,7 @@ module.exports.config = {
       }
     },
     stylesheets: {
-      defaultExtension: 'css',
+      defaultExtensions: 'css',
       joinTo: {
         'stylesheets/app.css': /^app/,
         'stylesheets/vendor.css': /^vendor/
@@ -134,7 +134,7 @@ module.exports.config = {
   server: {
     port: 3333,
     base: '/',
-    run: 'no'
+    run: false
   },
 
   sourceMaps: false

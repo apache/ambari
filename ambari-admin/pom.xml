@@ -63,8 +63,8 @@
         <version>${frontend-maven-plugin.version}</version>
         <configuration>
           <skip>${ambari.web.skip}</skip>
-          <nodeVersion>v4.5.0</nodeVersion>
-          <npmVersion>2.15.0</npmVersion>
+          <nodeVersion>${node.version}</nodeVersion>
+          <npmVersion>${npm.version}</npmVersion>
           <workingDirectory>src/main/resources/ui/admin-web/</workingDirectory>
           <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
         </configuration>
