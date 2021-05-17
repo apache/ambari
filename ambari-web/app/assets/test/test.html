@@ -41,17 +41,16 @@
 <script>
     $.mocho = true;
     $.hostName = 'localhost:3333';
-    window.initMochaPhantomJS && window.initMochaPhantomJS();
     mocha.ui('bdd');
     mocha.reporter('html');
+    // mocha.grep('test name could be used here for debugging');
     expect = chai.expect;
     assert = chai.assert;
 </script>
 <script src="./javascripts/test.js"></script>
 <script src="./tests.js"></script>
 <script>
-    if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
-    else { mocha.run(); }
+    mocha.run();
 </script>
 </body>
 </html>
