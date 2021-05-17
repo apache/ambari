@@ -28,6 +28,11 @@
   <packaging>jar</packaging>
   <name>Ambari Admin View</name>
   <description>Admin control panel</description>
+
+  <properties>
+    <node.version>v10.24.1</node.version>
+  </properties>
+
   <build>
     <plugins>
       <plugin>
@@ -197,6 +202,7 @@
             <exclude>src/main/resources/ui/admin-web/test/bower_components/**</exclude>
             <exclude>src/main/resources/ui/admin-web/mock.js</exclude>
             <exclude>src/main/resources/ui/admin-web/bower.json</exclude>
+            <exclude>src/main/resources/ui/admin-web/package-lock.json</exclude>
             <exclude>src/main/resources/ui/admin-web/test/bower.json</exclude>
             <exclude>src/main/resources/ui/admin-web/test/.bowerrc</exclude>
             <exclude>src/main/resources/ui/admin-web/.bowerrc</exclude>
