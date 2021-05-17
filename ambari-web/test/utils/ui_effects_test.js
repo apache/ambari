@@ -29,12 +29,14 @@ describe('utils/ui_effects', function(){
 
     afterEach(function () {
       this.clb.restore();
+      $('#pulsate-test-dom').remove();
+      this.clock.restore();
     });
 
     it('opacity should be 0.2 on 5-th iteration', function() {
       var domEl = $('#pulsate-test-dom');
       uiUtils.pulsate(domEl, 1000);
-      this.clock.tick(300);
+      this.clock.tick(290);
       expect(parseFloat(domEl.css('opacity')).toFixed(1)).to.be.equal('0.2');
     });
     it('should call callback at the end', function() {
@@ -42,11 +44,6 @@ describe('utils/ui_effects', function(){
       uiUtils.pulsate(domEl, 1000, this.clb);
       this.clock.tick(2000);
       expect(this.clb.calledOnce).to.be.ok;
-    });
-
-    afterEach(function(){
-      $('#pulsate-test-dom').remove();
-      this.clock.restore();
     });
   });
 });
