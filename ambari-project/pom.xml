@@ -46,7 +46,7 @@
     <fasterxml.jackson.version>2.9.9</fasterxml.jackson.version>
     <fasterxml.jackson.databind.version>2.9.9.3</fasterxml.jackson.databind.version>
     <postgres.version>42.2.2</postgres.version>
-    <testContainers.version>1.10.2</testContainers.version>
+    <testContainers.version>1.15.3</testContainers.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
     <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>

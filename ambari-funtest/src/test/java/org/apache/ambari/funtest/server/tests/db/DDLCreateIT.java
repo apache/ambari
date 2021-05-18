@@ -29,6 +29,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessorImpl;
 import org.apache.ambari.server.orm.PersistenceType;
+import org.junit.Assume;
 import org.junit.Test;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.MariaDBContainer;
@@ -37,9 +38,14 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 public class DDLCreateIT {
 
+  private static final String CPU_ARCH = System.getProperty("os.arch");
+
   @Test
   public void mysql() {
     testSchemaCreate(() -> new MariaDBContainer("mariadb:10.2").withConfigurationOverride(null).withInitScript("Ambari-DDL-MySQL-CREATE.sql"));
+
+    // There are only linux/arm64 Docker images for 'mysql'
+    Assume.assumeTrue("amd64".equals(CPU_ARCH));
     testSchemaCreate(() -> new MySQLContainer("mysql:5.7").withConfigurationOverride(null).withInitScript("Ambari-DDL-MySQL-CREATE.sql"));
   }
 
