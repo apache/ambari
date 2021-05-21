@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+process.env.CHROME_BIN = require('puppeteer').executablePath();
+
 module.exports = function(config) {
   config.set({
 
@@ -23,7 +25,7 @@ module.exports = function(config) {
     basePath: '',
 
     plugins: [
-      'karma-phantomjs-launcher',
+      'karma-chrome-launcher',
       'karma-mocha',
       'karma-chai',
       'karma-sinon',
@@ -167,7 +169,7 @@ module.exports = function(config) {
     // - Opera (has to be installed with `npm install karma-opera-launcher`)
     // - Safari (only Mac; has to be installed with `npm install karma-safari-launcher`)
     // - IE (only Windows; has to be installed with `npm install karma-ie-launcher`)
-    browsers: ['PhantomJS'],
+    browsers: ['ChromiumHeadless'],
 
     // If browser does not capture in given timeout [ms], kill it
     captureTimeout: 60000,

@@ -137,33 +137,33 @@ describe('timezoneUtils', function () {
     });
 
     it('Detect UTC+1', function () {
-      mockTimezoneOffset(0, 60);
+      mockTimezoneOffset(60, 60);
       var tz = timezoneUtils.detectUserTimezone();
       expect(tz).to.contain('0-60|Atlantic');
     });
 
     it('Detect UTC+1 for Europe', function () {
-      mockTimezoneOffset(0, 60);
+      mockTimezoneOffset(60, 60);
       var tz = timezoneUtils.detectUserTimezone('Europe');
       expect(tz).to.contain('0-60|Europe');
     });
 
     it('Detect UTC-4', function () {
-      mockTimezoneOffset(-300, -240);
+      mockTimezoneOffset(-240, -240);
       var tz = timezoneUtils.detectUserTimezone();
-      expect(tz).to.contain('300240|America');
+      expect(tz).to.contain('240240|America');
     });
 
     it('Detect UTC+3 for Asia', function () {
-      mockTimezoneOffset(120, 180);
+      mockTimezoneOffset(180, 180);
       var tz = timezoneUtils.detectUserTimezone();
-      expect(tz).to.contain('-120-180|Asia');
+      expect(tz).to.contain('-180-180|Asia');
     });
 
     it('Detect UTC-7', function () {
-      mockTimezoneOffset(-480, -420);
+      mockTimezoneOffset(-420, -420);
       var tz = timezoneUtils.detectUserTimezone();
-      expect(tz).to.contain('480420|America');
+      expect(tz).to.contain('420420|America');
     });
 
   });
