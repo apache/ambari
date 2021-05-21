@@ -23,12 +23,16 @@
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-admin</artifactId>
   <packaging>jar</packaging>
   <name>Ambari Admin View</name>
   <version>2.7.5.0.0</version>
   <description>Admin control panel</description>
+
+  <properties>
+    <node.version>v10.24.1</node.version>
+  </properties>
+
   <build>
     <plugins>
       <plugin>
@@ -64,8 +68,8 @@
         <version>${frontend-maven-plugin.version}</version>
         <configuration>
           <skip>${ambari.web.skip}</skip>
-          <nodeVersion>v4.5.0</nodeVersion>
-          <npmVersion>2.15.0</npmVersion>
+          <nodeVersion>${node.version}</nodeVersion>
+          <npmVersion>${npm.version}</npmVersion>
           <workingDirectory>src/main/resources/ui/admin-web/</workingDirectory>
           <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
         </configuration>
@@ -202,6 +206,7 @@
             <exclude>src/main/resources/ui/admin-web/test/bower_components/**</exclude>
             <exclude>src/main/resources/ui/admin-web/mock.js</exclude>
             <exclude>src/main/resources/ui/admin-web/bower.json</exclude>
+            <exclude>src/main/resources/ui/admin-web/package-lock.json</exclude>
             <exclude>src/main/resources/ui/admin-web/test/bower.json</exclude>
             <exclude>src/main/resources/ui/admin-web/test/.bowerrc</exclude>
             <exclude>src/main/resources/ui/admin-web/.bowerrc</exclude>

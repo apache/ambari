@@ -71,7 +71,7 @@ def trim_uri(file_uri):
 def _search_file(filename, search_path, pathsep):
   for path in string.split(search_path, pathsep):
     candidate = os.path.join(path, filename)
-    if os.path.exists(candidate):
+    if os.path.lexists(candidate):
       return os.path.abspath(candidate)
   return None
 
