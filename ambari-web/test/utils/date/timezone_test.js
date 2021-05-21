@@ -139,11 +139,11 @@ describe('timezoneUtils', function () {
     it('Detect UTC+1', function () {
       mockTimezoneOffset(60, 60);
       var tz = timezoneUtils.detectUserTimezone();
-      expect(tz).to.contain('0-60|Atlantic');
+      expect(tz).to.contain('-60-60|Africa');
     });
 
     it('Detect UTC+1 for Europe', function () {
-      mockTimezoneOffset(60, 60);
+      mockTimezoneOffset(0, 60);
       var tz = timezoneUtils.detectUserTimezone('Europe');
       expect(tz).to.contain('0-60|Europe');
     });
@@ -156,7 +156,7 @@ describe('timezoneUtils', function () {
 
     it('Detect UTC+3 for Asia', function () {
       mockTimezoneOffset(180, 180);
-      var tz = timezoneUtils.detectUserTimezone();
+      var tz = timezoneUtils.detectUserTimezone('Asia');
       expect(tz).to.contain('-180-180|Asia');
     });
 
