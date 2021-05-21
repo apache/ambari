@@ -3,8 +3,8 @@
   "private": true,
   "dependencies": {
     "bootstrap": "3.3.7",
-    "angular": "*",
-    "angular-route": "*",
+    "angular": "1.8.2",
+    "angular-route": "1.8.2",
     "angular-bootstrap": "0.11.0",
     "underscore": "1.7.0",
     "restangular": "1.4.0",
@@ -21,6 +21,6 @@
     "sinon": "1.10.3"
   },
   "resolutions": {
-    "angular": "1.8.0"
+    "angular": "1.8.2"
   }
 }
