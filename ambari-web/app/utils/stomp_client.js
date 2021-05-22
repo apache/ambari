@@ -215,6 +215,9 @@ module.exports = Em.Object.extend({
       subscription.destination = destination;
       subscription.handlers = handlers;
       this.get('subscriptions')[destination] = subscription;
+      if(subscription.message && subscription.message === 'Session closed.'){
+        window.location.href = '#/login'
+      }
       return subscription;
     }
   },
