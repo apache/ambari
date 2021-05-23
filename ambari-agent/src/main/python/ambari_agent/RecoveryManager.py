@@ -638,7 +638,8 @@ class RecoveryManager:
       logger.info("Received EXECUTION_COMMAND (START), desired state of {} to {}".format(
         command[self.ROLE], self.get_desired_status(command[self.ROLE])))
 
-    elif 'custom_command' in command and command['custom_command'] == CustomCommand.restart \
+    elif 'commandParams' in command and command['commandParams'].has_key('custom_command') \
+            and command['commandParams']['custom_command'] == CustomCommand.restart \
             and self.configured_for_recovery(command[self.ROLE]):
 
       self.update_desired_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
