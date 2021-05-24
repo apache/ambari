@@ -67,7 +67,7 @@ class PercentageAdjustmentTransferMethod extends MetricsDataTransferMethod {
 
   @Override
   public Double getData(Double data) {
-    return data < 100 ? data : data / 100 ;
+    return data < 100 ? data : 100;
   }
 }
 
