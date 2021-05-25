@@ -29,8 +29,6 @@
 
   <properties>
     <logsearch.npm.config.tmp>/tmp/logsearch_npm_config_tmp</logsearch.npm.config.tmp>
-    <node.version>v8.6.0</node.version>
-    <yarn.version>v1.1.0</yarn.version>
   </properties>
 
   <build>
