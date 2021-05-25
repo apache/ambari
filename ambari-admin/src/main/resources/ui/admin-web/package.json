@@ -1,7 +1,6 @@
 {
   "name": "adminconsole",
-  "version": "0.0.0",
-  "dependencies": {},
+  "version": "2.7.0",
   "devDependencies": {
     "bower": "1.8.8",
     "gulp": "^3.8.8",
@@ -19,13 +18,12 @@
     "gulp-uglify": "0.2.1",
     "gulp-useref": "0.4.2",
     "http-server": ">=0.6.1",
-    "karma": "0.12.16",
-    "karma-chrome-launcher": "0.1.4",
+    "karma": "^6.3.2",
+    "karma-chrome-launcher": "^3.1.0",
     "karma-jasmine": "0.1.5",
     "karma-ng-html2js-preprocessor": "^0.1.0",
-    "karma-phantomjs-launcher": "0.1",
-    "phantomjs": "^2.1.7",
-    "protractor": "1.0.0"
+    "protractor": "^7.0.0",
+    "puppeteer": "^9.1.1"
   },
   "scripts": {
     "prestart": "npm install",

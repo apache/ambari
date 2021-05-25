@@ -88,10 +88,10 @@ describe('App.Router', function () {
 
   describe('#adminViewInfoSuccessCallback', function () {
     beforeEach(function () {
-      sinon.stub(window.location, 'replace', Em.K);
+      sinon.stub(App, 'locationReplace', Em.K);
     });
     afterEach(function () {
-      window.location.replace.restore();
+      App.locationReplace.restore();
     });
 
     var tests = [{
@@ -138,7 +138,7 @@ describe('App.Router', function () {
     tests.forEach(function (data, index) {
       it('should redirect to the latest version of admin view ("' + data.expected + '") #' + (index + 1), function () {
         router.adminViewInfoSuccessCallback(data.mockData);
-        expect(window.location.replace.calledWith(data.expected)).to.be.true;
+        expect(App.locationReplace.calledWith(data.expected)).to.be.true;
       });
     });
   });

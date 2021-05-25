@@ -90,6 +90,15 @@ module.exports = Em.Application.create({
   upgradeCompleted: Em.computed.equal('upgradeState', 'COMPLETED'),
 
   /**
+   * A wrapper around Location.replace() function.
+   * This way tests could stub/mock it
+   * @param target
+   */
+  locationReplace: function(target) {
+    window.location.replace(target);
+  },
+
+  /**
    * flag is true when upgrade process is waiting for user action
    * to proceed, retry, perform manual steps etc.
    * @returns {boolean}
