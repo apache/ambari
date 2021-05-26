@@ -274,53 +274,14 @@ class CheckHost(Script):
   
     ambari_server_hostname = config['commandParams']['ambari_server_host']
     check_db_connection_jar_name = "DBConnectionVerification.jar"
-    jdk_location = config['commandParams']['jdk_location']
+    jdk_locations = [ config['commandParams']['jdk_location'] ]
+    if 'ambariLevelParams' in config and 'jdk_location' in config['ambariLevelParams']:
+      jdk_locations.append(config['ambariLevelParams']['jdk_location'])
+
     java_home = config['commandParams']['java_home']
     db_name = config['commandParams']['db_name']
-    no_jdbc_error_message = None
 
-    if db_name == DB_MYSQL:
-      jdbc_driver_mysql_name = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
-      if not jdbc_driver_mysql_name:
-        no_jdbc_error_message = "The MySQL JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=mysql --jdbc-driver=/path/to/jdbc_driver'."
-      else:
-        jdbc_url = CheckHost.build_url(jdk_location, jdbc_driver_mysql_name)
-        jdbc_driver_class = JDBC_DRIVER_CLASS_MYSQL
-        jdbc_name = jdbc_driver_mysql_name
-    elif db_name == DB_ORACLE:
-      jdbc_driver_oracle_name = default("/ambariLevelParams/custom_oracle_jdbc_name", None)
-      if not jdbc_driver_oracle_name:
-        no_jdbc_error_message = "The Oracle JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=oracle --jdbc-driver=/path/to/jdbc_driver'."
-      else:
-        jdbc_url = CheckHost.build_url(jdk_location, jdbc_driver_oracle_name)
-        jdbc_driver_class = JDBC_DRIVER_CLASS_ORACLE
-        jdbc_name = jdbc_driver_oracle_name
-    elif db_name == DB_POSTGRESQL:
-      jdbc_driver_postgres_name = default("/ambariLevelParams/custom_postgres_jdbc_name", None)
-      if not jdbc_driver_postgres_name:
-        no_jdbc_error_message = "The Postgres JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=postgres --jdbc-driver=/path/to/jdbc_driver'."
-      else:
-        jdbc_url = CheckHost.build_url(jdk_location, jdbc_driver_postgres_name)
-        jdbc_driver_class = JDBC_DRIVER_CLASS_POSTGRESQL
-        jdbc_name = jdbc_driver_postgres_name
-    elif db_name == DB_MSSQL:
-      jdbc_driver_mssql_name = default("/ambariLevelParams/custom_mssql_jdbc_name", None)
-      if not jdbc_driver_mssql_name:
-        no_jdbc_error_message = "The MSSQL JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=mssql --jdbc-driver=/path/to/jdbc_driver'."
-      else:
-        jdbc_url = CheckHost.build_url(jdk_location, jdbc_driver_mssql_name)
-        jdbc_driver_class = JDBC_DRIVER_CLASS_MSSQL
-        jdbc_name = jdbc_driver_mssql_name
-    elif db_name == DB_SQLA:
-      jdbc_driver_sqla_name = default("/ambariLevelParams/custom_sqlanywhere_jdbc_name", None)
-      if not jdbc_driver_sqla_name:
-        no_jdbc_error_message = "The SQLAnywhere JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=sqlanywhere --jdbc-driver=/path/to/jdbc_driver'."
-      else:
-        jdbc_url = CheckHost.build_url(jdk_location, jdbc_driver_sqla_name)
-        jdbc_driver_class = JDBC_DRIVER_CLASS_SQLA
-        jdbc_name = jdbc_driver_sqla_name
-    else: no_jdbc_error_message = format("'{db_name}' database type not supported.")
-
+    jdbc_urls, jdbc_driver_class, jdbc_name, no_jdbc_error_message = CheckHost.get_jdbc_driver_info(db_name, jdk_locations)
     if no_jdbc_error_message:
       Logger.warning(no_jdbc_error_message)
       db_connection_check_structured_output = {"exit_code" : 1, "message": no_jdbc_error_message}
@@ -330,7 +291,7 @@ class CheckHost(Script):
     user_name = config['commandParams']['user_name']
     user_passwd = config['commandParams']['user_passwd']
     agent_cache_dir = os.path.abspath(config["agentLevelParams"]["agentCacheDir"])
-    check_db_connection_url = CheckHost.build_url(jdk_location, check_db_connection_jar_name)
+    check_db_connection_urls = [ CheckHost.build_url(loc, check_db_connection_jar_name) for loc in jdk_locations ]
     jdbc_path = os.path.join(agent_cache_dir, jdbc_name)
     class_path_delimiter = ":"
     if db_name == DB_SQLA:
@@ -362,11 +323,11 @@ class CheckHost(Script):
     # download and install java if it doesn't exists
     if not os.path.isfile(java_exec):
       jdk_name = config['commandParams']['jdk_name']
-      jdk_url = CheckHost.build_url(jdk_location, jdk_name)
+      jdk_urls = [ CheckHost.build_url(loc, jdk_name) for loc in jdk_locations ]
       jdk_download_target = os.path.join(agent_cache_dir, jdk_name)
       java_dir = os.path.dirname(java_home)
       try:
-        download_file(jdk_url, jdk_download_target)
+        CheckHost.try_download_file_from_urls(jdk_urls, jdk_download_target)
       except Exception, e:
         message = "Error downloading JDK from Ambari Server resources. Check network access to " \
                   "Ambari Server.\n" + str(e)
@@ -412,7 +373,7 @@ class CheckHost(Script):
 
     # download DBConnectionVerification.jar from ambari-server resources
     try:
-      download_file(check_db_connection_url, check_db_connection_path)
+      CheckHost.try_download_file_from_urls(check_db_connection_urls, check_db_connection_path)
 
     except Exception, e:
       message = "Error downloading DBConnectionVerification.jar from Ambari Server resources. Check network access to " \
@@ -423,11 +384,11 @@ class CheckHost(Script):
   
     # download jdbc driver from ambari-server resources
     try:
-      download_file(jdbc_url, jdbc_path)
+      CheckHost.try_download_file_from_urls(jdbc_urls, jdbc_path)
       if db_name == DB_MSSQL and OSCheck.is_windows_family():
         jdbc_auth_path = os.path.join(agent_cache_dir, JDBC_AUTH_SYMLINK_MSSQL)
-        jdbc_auth_url = CheckHost.build_url(jdk_location, JDBC_AUTH_SYMLINK_MSSQL)
-        download_file(jdbc_auth_url, jdbc_auth_path)
+        jdbc_auth_urls = [ CheckHost.build_url(loc, JDBC_AUTH_SYMLINK_MSSQL) for loc in jdk_locations ]
+        CheckHost.try_download_file_from_urls(jdbc_auth_urls, jdbc_auth_path)
       elif db_name == DB_SQLA:
         # unpack tar.gz jdbc which was donaloaded
         untar_sqla_type2_driver = ('tar', '-xvf', jdbc_path, '-C', agent_cache_dir)
@@ -541,6 +502,78 @@ class CheckHost(Script):
     url = url + '/'
     url = url + (path[1:] if path and path.startswith('/') else path)
     return url
+
+  @staticmethod
+  def get_jdbc_driver_info(db_name, jdk_locations):
+    jdbc_urls = None
+    jdbc_driver_class = None
+    jdbc_name = None
+    no_jdbc_error_message = None
+
+    if db_name == DB_MYSQL:
+      jdbc_driver_mysql_name = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
+      if not jdbc_driver_mysql_name:
+        no_jdbc_error_message = "The MySQL JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=mysql --jdbc-driver=/path/to/jdbc_driver'."
+      else:
+        jdbc_urls = [ CheckHost.build_url(loc, jdbc_driver_mysql_name) for loc in jdk_locations ]
+        jdbc_driver_class = JDBC_DRIVER_CLASS_MYSQL
+        jdbc_name = jdbc_driver_mysql_name
+    elif db_name == DB_ORACLE:
+      jdbc_driver_oracle_name = default("/ambariLevelParams/custom_oracle_jdbc_name", None)
+      if not jdbc_driver_oracle_name:
+        no_jdbc_error_message = "The Oracle JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=oracle --jdbc-driver=/path/to/jdbc_driver'."
+      else:
+        jdbc_urls = [ CheckHost.build_url(loc, jdbc_driver_oracle_name) for loc in jdk_locations ]
+        jdbc_driver_class = JDBC_DRIVER_CLASS_ORACLE
+        jdbc_name = jdbc_driver_oracle_name
+    elif db_name == DB_POSTGRESQL:
+      jdbc_driver_postgres_name = default("/ambariLevelParams/custom_postgres_jdbc_name", None)
+      if not jdbc_driver_postgres_name:
+        no_jdbc_error_message = "The Postgres JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=postgres --jdbc-driver=/path/to/jdbc_driver'."
+      else:
+        jdbc_urls = [ CheckHost.build_url(loc, jdbc_driver_postgres_name) for loc in jdk_locations ]
+        jdbc_driver_class = JDBC_DRIVER_CLASS_POSTGRESQL
+        jdbc_name = jdbc_driver_postgres_name
+    elif db_name == DB_MSSQL:
+      jdbc_driver_mssql_name = default("/ambariLevelParams/custom_mssql_jdbc_name", None)
+      if not jdbc_driver_mssql_name:
+        no_jdbc_error_message = "The MSSQL JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=mssql --jdbc-driver=/path/to/jdbc_driver'."
+      else:
+        jdbc_urls = [ CheckHost.build_url(loc, jdbc_driver_mssql_name) for loc in jdk_locations ]
+        jdbc_driver_class = JDBC_DRIVER_CLASS_MSSQL
+        jdbc_name = jdbc_driver_mssql_name
+    elif db_name == DB_SQLA:
+      jdbc_driver_sqla_name = default("/ambariLevelParams/custom_sqlanywhere_jdbc_name", None)
+      if not jdbc_driver_sqla_name:
+        no_jdbc_error_message = "The SQLAnywhere JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=sqlanywhere --jdbc-driver=/path/to/jdbc_driver'."
+      else:
+        jdbc_urls = [ CheckHost.build_url(loc, jdbc_driver_sqla_name) for loc in jdk_locations ]
+        jdbc_driver_class = JDBC_DRIVER_CLASS_SQLA
+        jdbc_name = jdbc_driver_sqla_name
+    else:
+      no_jdbc_error_message = format("'{db_name}' database type not supported.")
+
+    return jdbc_urls, jdbc_driver_class, jdbc_name, no_jdbc_error_message
+
+  @staticmethod
+  def try_download_file_from_urls(urls, target):
+    if os.path.exists(target):
+      Logger.warning("File {0} already exists, assuming it was downloaded before".format(target))
+      return
+
+    err_message_builder = []
+
+    for url in urls:
+      try:
+        download_file(url, target)
+        Logger.debug('Downloaded file from {0} to {1}'.format(url, target))
+        return
+      except Exception as e:
+        err_message = 'url {0} got error {1}: {2}'.format(url, type(e).__name__, str(e))
+        err_message_builder.append(err_message)
+        Logger.debug('Failed to download to {0}; {1}'.format(target, err_message))
+
+    raise RuntimeError(str.join('; ', err_message_builder))
 
 
 if __name__ == "__main__":
