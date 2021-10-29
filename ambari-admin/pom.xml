@@ -67,6 +67,11 @@
           <yarnVersion>v0.23.2</yarnVersion>
           <workingDirectory>src/main/resources/ui/admin-web/</workingDirectory>
           <yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
+          <!-- setting npm_config_tmp environment variable is a workaround for
+                         https://github.com/Medium/phantomjs/issues/673 -->
+          <environmentVariables>
+            <npm_config_tmp>/tmp/npm_config_tmp</npm_config_tmp>
+          </environmentVariables>
         </configuration>
         <executions>
           <execution>
