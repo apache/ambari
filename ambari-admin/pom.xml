@@ -259,7 +259,7 @@
         <dirsep>/</dirsep>
         <executable.shell>sh</executable.shell>
         <fileextension.shell>sh</fileextension.shell>
-        <args.shell></args.shell>
+        <args.shell/>
       </properties>
     </profile>
       <profile>
