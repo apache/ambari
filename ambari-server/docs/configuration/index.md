@@ -115,6 +115,7 @@ The following are the properties which can be used to configure Ambari.
 | heartbeat.monitoring.interval | Interval for heartbeat presence checks.<br/><br/>The following are examples of valid values:<ul><li>`60000`<li>`600000`</ul> |`60000` | 
 | http.cache-control | The value that will be used to set the `Cache-Control` HTTP response header. |`no-store` | 
 | http.charset | The value that will be used to set the Character encoding to HTTP response header. |`utf-8` | 
+| http.content-security-policy | The value that will be used to set the `Content-Security-Policy` HTTP response header. | | 
 | http.pragma | The value that will be used to set the `PRAGMA` HTTP response header. |`no-cache` | 
 | http.strict-transport-security | When using SSL, this will be used to set the `Strict-Transport-Security` response header. |`max-age=31536000` | 
 | http.x-content-type-options | The value that will be used to set the `X-CONTENT-TYPE` HTTP response header. |`nosniff` | 
@@ -239,6 +240,8 @@ The following are the properties which can be used to configure Ambari.
 | server.os_family | The operating system family for all hosts in the cluster. This is used when bootstrapping agents and when enabling Kerberos.<br/><br/>The following are examples of valid values:<ul><li>`redhat`<li>`ubuntu`</ul> | | 
 | server.os_type | The operating system version for all hosts in the cluster. This is used when bootstrapping agents and when enabling Kerberos.<br/><br/>The following are examples of valid values:<ul><li>`6`<li>`7`</ul> | | 
 | server.persistence.type | The type of database connection being used. Unless using an embedded PostgresSQL server, then this should be `remote`.<br/><br/>The following are examples of valid values:<ul><li>`local`<li>`remote`</ul> |`local` | 
+| server.pools.agent.command.publisher.size | The Agent command publisher pool. Affects degree of parallelization for generating the commands. |`5` | 
+| server.pools.default.size | Configures size of the default JOIN Fork pool used for Streams. |`5` | 
 | server.property-provider.threadpool.completion.timeout | The maximum time, in milliseconds, that federated requests for data can execute before being terminated. Increasing this value could result in degraded performanc from the REST APIs. |`5000` | 
 | server.property-provider.threadpool.size.core | The core number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`8` | 
 | server.property-provider.threadpool.size.max | The maximum number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`16` | 
@@ -248,6 +251,7 @@ The following are the properties which can be used to configure Ambari.
 | server.requestlogs.retaindays | The number of days that request log would be retained. |`15` | 
 | server.script.threads | The number of threads that should be allocated to run external script. |`20` | 
 | server.script.timeout | The time, in milliseconds, until an external script is killed. |`10000` | 
+| server.show.error.stacks | Show or hide the error stacks on the error page |`false` | 
 | server.stage.command.execution_type | How to execute commands in one stage |`STAGE` | 
 | server.stages.parallel | Determines whether operations in different execution requests can be run concurrently. |`true` | 
 | server.startup.web.timeout | The time, in seconds, that the ambari-server Python script will wait for Jetty to startup before returning an error code. |`50` | 
@@ -285,7 +289,6 @@ The following are the properties which can be used to configure Ambari.
 | stomp.max_buffer.message.size | The maximum size of a buffer for stomp message sending. Default is 5 MB. |`5242880` | 
 | stomp.max_incoming.message.size | The maximum size of an incoming stomp text message. Default is 2 MB. |`2097152` | 
 | subscription.registry.cache.size | Maximal cache size for spring subscription registry. |`1500` | 
-| task.query.parameterlist.size | The maximum number of tasks which can be queried by ID from the database. |`999` | 
 | topology.task.creation.parallel | Indicates whether parallel topology task creation is enabled |`false` | 
 | topology.task.creation.parallel.threads | The number of threads to use for parallel topology task creation if enabled |`10` | 
 | view.extract-after-cluster-config | Drives view extraction in case of blueprint deployments; non-system views are deployed when cluster configuration is successful |`false` | 
@@ -301,6 +304,7 @@ The following are the properties which can be used to configure Ambari.
 | views.directory.watcher.disable | Determines whether the view directory watcher service should be disabled. |`false` | 
 | views.http.cache-control | The value that will be used to set the `Cache-Control` HTTP response header for Ambari View requests. |`no-store` | 
 | views.http.charset | The value that will be used to set the Character encoding to HTTP response header for Ambari View requests. |`utf-8` | 
+| views.http.content-security-policy | The value that will be used to set the `Content-Security-Policy` HTTP response header for Ambari View requests. | | 
 | views.http.pragma | The value that will be used to set the `PRAGMA` HTTP response header for Ambari View requests. |`no-cache` | 
 | views.http.strict-transport-security | The value that will be used to set the `Strict-Transport-Security` HTTP response header for Ambari View requests. |`max-age=31536000` | 
 | views.http.x-content-type-options | The value that will be used to set the `X-CONTENT-TYPE` HTTP response header for Ambari View requests. |`nosniff` | 
