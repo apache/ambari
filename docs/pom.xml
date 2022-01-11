@@ -28,7 +28,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.apache.ambari</groupId>
-    <version>2.7.6.0.0</version>
+    <version>2.7.6</version>
     <artifactId>ambari</artifactId>
     <packaging>pom</packaging>
 
@@ -203,10 +203,10 @@
             <email>aonishuk@apache.org</email>
             <timezone>+2</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks
+                Cloudera
             </organization>
         </developer>
         <developer>
@@ -522,10 +522,10 @@
             <email>hapylestat@apache.org</email>
             <timezone>+2</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks
+                Cloudera
             </organization>
         </developer>
         <developer>
@@ -617,10 +617,10 @@
             <email>jluniya@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>PMC</role>
+                <role>PMC Chair</role>
             </roles>
             <organization>
-                Hortonworks
+                Cloudera
             </organization>
         </developer>
         <developer>
@@ -1284,7 +1284,7 @@
             <email>yusaku@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>PMC Chair</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -1299,6 +1299,30 @@
                 <role>Committer</role>
             </roles>
             <organization>
+            </organization>
+        </developer>
+        <developer>
+            <id>payert</id>
+            <name>Tamas Payer</name>
+            <email>payert@apache.org</email>
+            <timezone>+1</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Cloudera
+            </organization>
+        </developer>
+        <developer>
+            <id>szabi</id>
+            <name>Szabolcs Beki</name>
+            <email>szabi@apache.org</email>
+            <timezone>+1</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                Cloudera
             </organization>
         </developer>
       </developers>
@@ -1574,6 +1598,38 @@
         <contributor>
           <name>Hayat Behlim</name>
           <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Szilard Antal</name>
+          <organization>Cloudera</organization>
+        </contributor>
+        <contributor>
+          <name>Peter Eberhardt</name>
+          <organization>Cloudera</organization>
+        </contributor>
+        <contributor>
+          <name>Mariann Varga-Vakula</name>
+          <organization>Cloudera</organization>
+        </contributor>
+        <contributor>
+          <name>Dmytro Vitiuk</name>
+          <organization>Cloudera</organization>
+        </contributor>
+        <contributor>
+          <name>Dmytro Pidhaiets</name>
+          <organization>Cloudera</organization>
+        </contributor>
+        <contributor>
+          <name>David Sutta</name>
+          <organization>Cloudera</organization>
+        </contributor>
+        <contributor>
+          <name>Szabolcs Borbely</name>
+          <organization>Cloudera</organization>
+        </contributor>
+        <contributor>
+          <name>Imre Sos</name>
+          <organization>Cloudera</organization>
         </contributor>
       </contributors>
 
