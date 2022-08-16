@@ -20,8 +20,6 @@ package org.apache.ambari.server.orm.entities;
 
 import java.util.Objects;
 
-import static org.apache.commons.lang.StringUtils.defaultString;
-
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -34,6 +32,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 
 import org.apache.ambari.server.state.HostState;
+import org.apache.commons.lang.StringUtils;
 
 @javax.persistence.Table(name = "hoststate")
 @Entity
@@ -109,7 +108,7 @@ public class HostStateEntity {
   }
 
   public String getAgentVersion() {
-    return defaultString(agentVersion);
+    return StringUtils.defaultString(agentVersion);
   }
 
   public void setAgentVersion(String agentVersion) {
