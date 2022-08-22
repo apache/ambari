@@ -40,15 +40,15 @@
     <python.ver>python &gt;= 2.6</python.ver>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <!--TODO change to HDP URL-->
-    <hbase.tar>https://archive.apache.org/dist/hbase/2.0.2/hbase-2.0.2-bin.tar.gz</hbase.tar>
-    <hbase.folder>hbase-2.0.2</hbase.folder>
+    <hbase.tar>https://archive.apache.org/dist/hbase/2.4.2/hbase-2.4.2-bin.tar.gz</hbase.tar>
+    <hbase.folder>hbase-2.4.2</hbase.folder>
     <hadoop.tar>https://archive.apache.org/dist/hadoop/common/hadoop-3.1.1/hadoop-3.1.1.tar.gz</hadoop.tar>
     <hadoop.folder>hadoop-3.1.1</hadoop.folder>
     <hadoop.version>3.1.1</hadoop.version>
     <grafana.folder>grafana-6.7.4</grafana.folder>
     <grafana.tar>https://dl.grafana.com/oss/release/grafana-6.7.4.linux-amd64.tar.gz</grafana.tar>
-    <phoenix.tar>https://downloads.apache.org/phoenix/apache-phoenix-5.0.0-HBase-2.0/bin/apache-phoenix-5.0.0-HBase-2.0-bin.tar.gz</phoenix.tar>
-    <phoenix.folder>apache-phoenix-5.0.0-HBase-2.0-bin</phoenix.folder>
+    <phoenix.tar>https://downloads.apache.org/phoenix/phoenix-5.1.2/phoenix-hbase-2.4-5.1.2-bin.tar.gz</phoenix.tar>
+    <phoenix.folder>phoenix-hbase-2.4-5.1.2-bin</phoenix.folder>
     <resmonitor.install.dir>/usr/lib/python2.6/site-packages/resource_monitoring</resmonitor.install.dir>
     <powermock.version>1.6.2</powermock.version>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
