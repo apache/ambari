@@ -45,6 +45,12 @@ public enum KDCType {
   ACTIVE_DIRECTORY,
 
   /**
+   * Indicates an Apache Directory Server
+   */
+  @XmlEnumValue("directory-server")
+  DIRECTORY_SERVER,
+
+  /**
    * Indicates an IPA KDC
    */
   @XmlEnumValue("ipa")

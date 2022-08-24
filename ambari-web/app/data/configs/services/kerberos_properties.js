@@ -173,6 +173,13 @@ module.exports = [
     "serviceName": "KERBEROS"
   },
   {
+    "category": "Advanced kerberos-env",
+    "filename": "kerberos-env.xml",
+    "index": 16,
+    "name": "ds_create_attributes_template",
+    "serviceName": "KERBEROS"
+  },
+  {
     "category": "Kadmin",
     "filename": "kerberos-env.xml",
     "index": 0,
