@@ -37,6 +37,7 @@ import javax.annotation.Nullable;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.AmbariRuntimeException;
+import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.agent.stomp.dto.ClusterConfigs;
@@ -188,8 +189,14 @@ public class ConfigHelper {
    */
   public Map<String, Map<String, String>> getEffectiveDesiredTags(Cluster cluster, String hostName,
       @Nullable Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
-
-    Host host = (hostName == null) ? null : clusters.getHost(hostName);
+    Host host = null;
+    if (hostName != null) {
+      try {
+        host = clusters.getHost(hostName);
+      } catch (HostNotFoundException e) {
+        LOG.error("Cannot get desired config for unknown host {}", hostName, e);
+      }
+    }
     Map<String, HostConfig> desiredHostConfigs = (host == null) ? null
         : host.getDesiredHostConfigs(cluster, desiredConfigs);
 

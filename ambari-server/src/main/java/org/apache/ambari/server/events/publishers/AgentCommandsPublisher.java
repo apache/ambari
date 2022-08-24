@@ -120,7 +120,10 @@ public class AgentCommandsPublisher {
             populateExecutionCommandsClusters(executionCommandsClusters, hostId, ac, desiredConfigs);
           });
         }).get();
-      } catch (InterruptedException|ExecutionException ignored) {}
+      } catch (InterruptedException|ExecutionException e) {
+        LOG.error("Exception on sendAgentCommand", e);
+        throw new RuntimeException(e);
+      }
 
       try {
         threadPools.getAgentPublisherCommandsPool().submit(() -> {
@@ -132,7 +135,10 @@ public class AgentCommandsPublisher {
             ));
           });
         }).get();
-      } catch (InterruptedException|ExecutionException ignored) {}
+      } catch (InterruptedException|ExecutionException e) {
+        LOG.error("Exception on sendAgentCommand", e);
+        throw new RuntimeException(e);
+      }
     }
   }
 
