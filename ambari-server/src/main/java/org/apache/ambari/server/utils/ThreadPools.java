@@ -98,7 +98,10 @@ public class ThreadPools {
       agentPublisherCommandsPool = new ForkJoinPool(
         configuration.getAgentCommandPublisherThreadPoolSize(),
         createNamedFactory(AGENT_COMMAND_PUBLISHER_POOL_NAME),
-        null,
+        (t, e) -> {
+          LOG.error("Unexpected exception in thread: " + t, e);
+          throw new RuntimeException(e);
+        },
         false
       );
     }
@@ -111,7 +114,10 @@ public class ThreadPools {
       defaultForkJoinPool = new ForkJoinPool(
         configuration.getDefaultForkJoinPoolSize(),
         createNamedFactory(DEFAULT_FORK_JOIN_POOL_NAME),
-        null,
+        (t, e) -> {
+          LOG.error("Unexpected exception in thread: " + t, e);
+          throw new RuntimeException(e);
+        },
         false
       );
     }
