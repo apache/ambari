@@ -88,11 +88,15 @@ public class KerberosKeytabPrincipalDAO {
 
     Long hostId = hostEntity == null ? null : hostEntity.getHostId();
     // The DB requests should be avoided due to heavy impact on the performance
-    KerberosKeytabPrincipalEntity kkp = (keytabList == null)
+    KerberosKeytabPrincipalEntity kkp = (keytabList == null || keytabList.isEmpty())
       ? findByNaturalKey(hostId, kerberosKeytabEntity.getKeytabPath(), kerberosPrincipalEntity.getPrincipalName())
       : keytabList.stream()
       .filter(keytab ->
-        keytab.getHostId().equals(hostId)
+        keytab != null
+          && keytab.getHostId() != null
+          && keytab.getKeytabPath() != null
+          && keytab.getPrincipalName() != null
+          && keytab.getHostId().equals(hostId)
           && keytab.getKeytabPath().equals(kerberosKeytabEntity.getKeytabPath())
           && keytab.getPrincipalName().equals(kerberosPrincipalEntity.getPrincipalName())
       )
