@@ -89,7 +89,7 @@ public class IPAKerberosOperationHandlerTest extends KDCKerberosOperationHandler
 
 
     Map<String,String> config = new HashMap<>();
-    config.put("encryption_types", "aes des3-cbc-sha1 rc4 des-cbc-md5");
+    config.put("encryption_types", "aes des3-cbc-sha1 des-cbc-md5");
 
     replayAll();
 

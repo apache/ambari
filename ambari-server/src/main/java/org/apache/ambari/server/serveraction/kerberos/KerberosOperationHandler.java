@@ -75,6 +75,11 @@ public abstract class KerberosOperationHandler {
   public final static String KERBEROS_ENV_AD_CREATE_ATTRIBUTES_TEMPLATE = "ad_create_attributes_template";
 
   /**
+   * Kerberos-env configuration property name: ds_create_attributes_template
+   */
+  public final static String KERBEROS_ENV_DS_CREATE_ATTRIBUTES_TEMPLATE = "ds_create_attributes_template";
+
+  /**
    * Kerberos-env configuration property name: kdc_create_attributes
    */
   public final static String KERBEROS_ENV_KDC_CREATE_ATTRIBUTES = "kdc_create_attributes";

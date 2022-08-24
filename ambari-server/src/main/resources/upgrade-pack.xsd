@@ -70,6 +70,7 @@
       <xs:enumeration value="none" />
       <xs:enumeration value="mit-kdc" />
       <xs:enumeration value="active-directory" />
+      <xs:enumeration value="directory-server" />
       <xs:enumeration value="ipa" />
     </xs:restriction>
   </xs:simpleType>
