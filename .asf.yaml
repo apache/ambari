@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 github:
-  description: "The mission of Apache Ambari is the creation and maintenance of software related to Hadoop cluster management"
+  description: "Apache Ambari simplifies provisioning, managing, and monitoring of Apache Hadoop clusters."
   homepage: https://ambari.apache.org
   labels:
     - javascript
@@ -25,3 +25,5 @@ github:
     squash:  true
     merge:   false
     rebase:  false
+notifications:
+  commits:      commits@ambari.apache.org
