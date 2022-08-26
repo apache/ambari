@@ -111,7 +111,10 @@ public class AgentCommandsPublisher {
                 if (!clusterDesiredConfigs.containsKey(clusterId)) {
                   clusterDesiredConfigs.put(clusterId, clusters.getCluster(clusterId).getDesiredConfigs());
                 }
-              } catch (NumberFormatException|AmbariException ignored) {}
+              } catch (NumberFormatException|AmbariException e) {
+                LOG.error("Exception on sendAgentCommand", e);
+                throw new RuntimeException(e);
+              }
             }
 
             Map<String, DesiredConfig> desiredConfigs = (clusterId != null && clusterDesiredConfigs.containsKey(clusterId))
