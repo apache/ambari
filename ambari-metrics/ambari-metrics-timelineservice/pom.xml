@@ -311,6 +311,10 @@
           <artifactId>zookeeper</artifactId>
           <groupId>org.apache.zookeeper</groupId>
         </exclusion>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <!-- zkclient is helix-core dependency but it need to be 0.9 in order for AMS HA to work on secure cluster-->
@@ -697,13 +701,13 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.20</version>
+      <version>1.7.35</version>
     </dependency>
 
     <dependency>
       <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.20</version>
+      <artifactId>slf4j-reload4j</artifactId>
+      <version>1.7.35</version>
     </dependency>
 
     <dependency>
