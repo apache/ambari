@@ -113,7 +113,6 @@ public class AgentCommandsPublisher {
                 }
               } catch (NumberFormatException|AmbariException e) {
                 LOG.error("Exception on sendAgentCommand", e);
-                throw new AmbariRuntimeException(e);
               }
             }
 
@@ -125,7 +124,6 @@ public class AgentCommandsPublisher {
         }).get();
       } catch (InterruptedException|ExecutionException e) {
         LOG.error("Exception on sendAgentCommand", e);
-        throw new AmbariRuntimeException(e);
       }
 
       try {
@@ -140,7 +138,6 @@ public class AgentCommandsPublisher {
         }).get();
       } catch (InterruptedException|ExecutionException e) {
         LOG.error("Exception on sendAgentCommand", e);
-        throw new AmbariRuntimeException(e);
       }
     }
   }
