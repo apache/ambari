@@ -184,4 +184,11 @@
     <description>The maximum number of executor failures before failing the application.</description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>spark.hadoop.yarn.timeline-service.enabled</name>
+    <value>false</value>
+    <description>
+      disable metrics of spark job upload timeline service
+    </description>
+  </property>
 </configuration>

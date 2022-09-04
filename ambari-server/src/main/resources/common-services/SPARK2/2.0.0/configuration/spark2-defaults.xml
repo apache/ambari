@@ -114,4 +114,11 @@
     <description>The address of the Spark history server (i.e. host.com:18081). The address should not contain a scheme (http://). Defaults to not being set since the history server is an optional service. This address is given to the YARN ResourceManager when the Spark application finishes to link the application from the ResourceManager UI to the Spark history server UI.</description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>spark.hadoop.yarn.timeline-service.enabled</name>
+    <value>false</value>
+    <description>
+      disable metrics of spark job upload timeline service
+    </description>
+  </property>
 </configuration>
