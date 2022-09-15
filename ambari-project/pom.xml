@@ -36,7 +36,7 @@
     <checkstyle.version>6.19</checkstyle.version> <!-- last version that does not require Java 8 -->
     <swagger.version>1.5.19</swagger.version>
     <swagger.maven.plugin.version>3.1.4</swagger.maven.plugin.version>
-    <slf4j.version>1.7.35</slf4j.version>
+    <slf4j.version>2.0.0</slf4j.version>
     <reload4j.version>1.2.22</reload4j.version>
     <logback.version>1.2.10</logback.version>
     <guice.version>4.1.0</guice.version>
