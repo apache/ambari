@@ -545,6 +545,9 @@ class HdfsResourceWebHDFS:
 
     self.util.run_command(target, 'CREATE', method='PUT', overwrite=True, assertable_result=False, file_to_put=source, **kwargs)
 
+    # Get file status again after file reupload
+    self.target_status = self._get_file_status(target)
+
     if mode and file_status:
       file_status['permission'] = mode
 
