@@ -524,32 +524,33 @@ class HdfsResourceWebHDFS:
     file_status = self._get_file_status(target) if target!=self.main_resource.resource.target else self.target_status
     mode = "" if not mode else mode
 
+    kwargs = {'permission': mode} if mode else {}
     if file_status:
+      # Target file exists
       if source:
+        # Upload target file
         length = file_status['length']
         local_file_size = os.stat(source).st_size # TODO: os -> sudo
 
         # TODO: re-implement this using checksums
         if local_file_size == length:
           Logger.info(format("DFS file {target} is identical to {source}, skipping the copying"))
-          return
         elif not self.main_resource.resource.replace_existing_files:
           Logger.info(format("Not replacing existing DFS file {target} which is different from {source}, due to replace_existing_files=False"))
-          return
+        else:
+          Logger.info(format("Reupload file {target} in DFS"))
+
+          self.util.run_command(target, 'CREATE', method='PUT', overwrite=True, assertable_result=False, file_to_put=source, **kwargs)
+          # Get file status again after file reupload
+          self.target_status = self._get_file_status(target)
       else:
+        # Create target file
         Logger.info(format("File {target} already exists in DFS, skipping the creation"))
-        return
+    else:
+      # Target file is not exists
+      Logger.info(format("Creating new file {target} in DFS"))
 
-    Logger.info(format("Creating new file {target} in DFS"))
-    kwargs = {'permission': mode} if mode else {}
-
-    self.util.run_command(target, 'CREATE', method='PUT', overwrite=True, assertable_result=False, file_to_put=source, **kwargs)
-
-    # Get file status again after file reupload
-    self.target_status = self._get_file_status(target)
-
-    if mode and file_status:
-      file_status['permission'] = mode
+      self.util.run_command(target, 'CREATE', method='PUT', overwrite=True, assertable_result=False, file_to_put=source, **kwargs)
 
 
   def _delete_resource(self):
