@@ -56,7 +56,7 @@ docker exec ambari-server bash -c "ambari-server setup --jdbc-db=mysql --jdbc-dr
 docker exec ambari-server bash -c "ambari-server setup --java-home=/usr/lib/jvm/java --database=mysql --databasehost=localhost --databaseport=3306 --databasename=ambari --databaseusername=root --databasepassword=root -s"
 
 echo -e "\033[32mCreating container ambari-agent-01\033[0m"
-docker run -d -p 9995:9995 -p 18081:18081 --name ambari-agent-01 --hostname ambari-agent-01 --network ambari --privileged -e "container=docker" -v /sys/fs/cgroup:/sys/fs/cgroup:ro ambari/develop:trunk-centos-7 /usr/sbin/init
+docker run -d -p 9995:9995 --name ambari-agent-01 --hostname ambari-agent-01 --network ambari --privileged -e "container=docker" -v /sys/fs/cgroup:/sys/fs/cgroup:ro ambari/develop:trunk-centos-7 /usr/sbin/init
 docker cp ../../../ambari-agent/target/rpm/ambari-agent/RPMS/x86_64/ambari-agent*.rpm ambari-agent-01:/root/ambari-agent.rpm
 docker exec ambari-agent-01 bash -c "yum -y install /root/ambari-agent.rpm"
 docker exec ambari-agent-01 bash -c "echo '$SERVER_PUB_KEY' > /root/.ssh/authorized_keys"

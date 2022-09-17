@@ -235,4 +235,16 @@ gpgcheck=0</value>
     <description>For properties handled by handle_mounted_dirs this will make Ambari </description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>sysprep_skip_create_users_and_groups</name>
+    <display-name>Use Ambari to Manage Service Accounts and Groups</display-name>
+    <value>false</value>
+    <property-type>ADDITIONAL_USER_PROPERTY</property-type>
+    <description>Ambari will create the service accounts and groups that are required for each service if they do not exist in the /etc/password, and /etc/group of the Ambari Managed hosts.</description>
+    <value-attributes>
+      <overridable>true</overridable>
+      <type>boolean-inverted</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>
