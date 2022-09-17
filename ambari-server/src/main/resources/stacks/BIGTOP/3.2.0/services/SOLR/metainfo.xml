@@ -22,7 +22,7 @@
       <name>SOLR</name>
       <displayName>Solr</displayName>
       <comment>Solr is the popular, blazing-fast, open source enterprise search platform built on Apache Lucene.</comment>
-      <version>Bigtop+3.1</version>
+      <version>8.11.2-1</version>
       <components>
         <component>
           <name>SOLR</name>

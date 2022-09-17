@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,13 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM centos:7
+echo -e "\033[32mRemoving image ambari:trunk-centos-7\033[0m"
+docker rmi ambari/develop:trunk-centos-7
 
-RUN yum -y install sudo wget openssh-clients openssh-server vim mariadb mariadb-server java-1.8.0-openjdk* net-tools chrony krb5-server krb5-libs krb5-workstation
-RUN wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.47/mysql-connector-java-5.1.47.jar -O /usr/share/java/mysql-connector-java.jar
-
-RUN /bin/sed -i 's,#   StrictHostKeyChecking ask,StrictHostKeyChecking no,g' /etc/ssh/ssh_config
-
-RUN ssh-keygen -f "/root/.ssh/id_rsa" -N ""
-
-EXPOSE 1-65535
+echo -e "\033[32mBuilding image ambari:trunk-centos-7\033[0m"
+docker build -t ambari/develop:trunk-centos-7 .

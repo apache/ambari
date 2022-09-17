@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,13 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM centos:7
+echo -e "\033[32mRemoving container ambari-server\033[0m"
+docker rm -f ambari-server
 
-RUN yum -y install sudo wget openssh-clients openssh-server vim mariadb mariadb-server java-1.8.0-openjdk* net-tools chrony krb5-server krb5-libs krb5-workstation
-RUN wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.47/mysql-connector-java-5.1.47.jar -O /usr/share/java/mysql-connector-java.jar
+echo -e "\033[32mRemoving container ambari-agent-01\033[0m"
+docker rm -f ambari-agent-01
 
-RUN /bin/sed -i 's,#   StrictHostKeyChecking ask,StrictHostKeyChecking no,g' /etc/ssh/ssh_config
+echo -e "\033[32mRemoving container ambari-agent-02\033[0m"
+docker rm -f ambari-agent-02
 
-RUN ssh-keygen -f "/root/.ssh/id_rsa" -N ""
-
-EXPOSE 1-65535
+echo -e "\033[32mRemoving network ambari\033[0m"
+docker network rm ambari

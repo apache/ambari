@@ -24,7 +24,7 @@
             <comment>Data warehouse system for ad-hoc queries &amp; analysis of large datasets and table &amp; storage
                 management service
             </comment>
-            <version>Bigtop+3.1</version>
+            <version>3.1.3-1</version>
             <credential-store>
                 <supported>true</supported>
                 <enabled>true</enabled>

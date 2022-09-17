@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>zk_user</name>
+    <display-name>ZooKeeper User</display-name>
+    <value>zookeeper</value>
+    <property-type>USER</property-type>
+    <description>ZooKeeper User.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>zk_log_dir</name>
+    <value>/var/log/zookeeper</value>
+    <display-name>ZooKeeper Log Dir</display-name>
+    <description>ZooKeeper Log Dir</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>zk_pid_dir</name>
+    <value>/var/run/zookeeper</value>
+    <display-name>ZooKeeper PID Dir</display-name>
+    <description>ZooKeeper Pid Dir</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>zk_server_heapsize</name>
+    <value>1024</value>
+    <description>Maximum amount of memory each Zookeeper Server can use.</description>
+    <display-name>Zookeeper Server Maximum Memory</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>256</minimum>
+      <maximum>32768</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>zookeeper_principal_name</name>
+    <description>ZooKeeper principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>zookeeper_keytab_path</name>
+    <description>ZooKeeper keytab path</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- zookeeper-env.sh -->
+  <property>
+    <name>content</name>
+    <display-name>zookeeper-env template</display-name>
+    <description>This is the jinja template for zookeeper-env.sh file</description>
+    <value>
+export JAVA_HOME={{java64_home}}
+export ZOOKEEPER_HOME={{zk_home}}
+export ZOO_LOG_DIR={{zk_log_dir}}
+export ZOOPIDFILE={{zk_pid_file}}
+export SERVER_JVMFLAGS={{zk_server_heapsize}}
+export JAVA=$JAVA_HOME/bin/java
+export CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*
+
+{% if security_enabled %}
+export SERVER_JVMFLAGS="$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_server_jaas_file}}"
+export CLIENT_JVMFLAGS="$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}} -Dzookeeper.sasl.client.username={{zk_principal_user}}"
+{% endif %}
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>
