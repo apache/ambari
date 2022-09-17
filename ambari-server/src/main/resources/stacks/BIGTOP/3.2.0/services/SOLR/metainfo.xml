@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>SOLR</name>
+      <displayName>Solr</displayName>
+      <comment>Solr is the popular, blazing-fast, open source enterprise search platform built on Apache Lucene.</comment>
+      <version>Bigtop+3.1</version>
+      <components>
+        <component>
+          <name>SOLR</name>
+          <displayName>Solr Instance</displayName>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <rollingRestartSupported>true</rollingRestartSupported>
+          <timelineAppid>solr</timelineAppid>
+          <commandScript>
+            <script>scripts/solr.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1800</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>solr</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+          <dependencies>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+
+          <configuration-dependencies>
+            <config-type>solr-env</config-type>
+            <config-type>solr-xml</config-type>
+            <config-type>solr-log4j</config-type>
+            <config-type>solr-security-json</config-type>
+          </configuration-dependencies>
+        </component>
+      </components>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>solr</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <requiredServices>
+        <service>ZOOKEEPER</service>
+      </requiredServices>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+    </service>
+  </services>
+</metainfo>

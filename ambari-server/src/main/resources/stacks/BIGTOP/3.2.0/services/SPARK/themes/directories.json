@@ -1,0 +1,128 @@
+{
+  "name": "default",
+  "description": "Directories theme for SPARK service",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "directories",
+        "tabs": [
+          {
+            "name": "directories",
+            "display-name": "Directories",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "4",
+              "sections": [
+                {
+                  "name": "subsection-log-dirs",
+                  "display-name": "LOG DIRS",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-log-dirs",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "subsection-pid-dirs",
+                  "display-name": "PID DIRS",
+                  "row-index": "1",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-pid-dirs",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "spark-defaults/spark.eventLog.dir",
+          "subsection-name": "subsection-log-dirs"
+        },
+        {
+          "config": "spark-defaults/spark.history.fs.logDirectory",
+          "subsection-name": "subsection-log-dirs"
+        },
+        {
+          "config": "spark-thrift-sparkconf/spark.eventLog.dir",
+          "subsection-name": "subsection-log-dirs"
+        },
+        {
+          "config": "spark-thrift-sparkconf/spark.history.fs.logDirectory",
+          "subsection-name": "subsection-log-dirs"
+        },
+        {
+          "config": "spark-env/spark_log_dir",
+          "subsection-name": "subsection-log-dirs"
+        },
+        {
+          "config": "spark-env/spark_pid_dir",
+          "subsection-name": "subsection-pid-dirs"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "spark-defaults/spark.eventLog.dir",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "spark-defaults/spark.history.fs.logDirectory",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "spark-thrift-sparkconf/spark.eventLog.dir",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "spark-thrift-sparkconf/spark.history.fs.logDirectory",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "spark-env/spark_log_dir",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "spark-env/spark_pid_dir",
+        "widget": {
+          "type": "text-field"
+        }
+      }
+    ]
+  }
+}

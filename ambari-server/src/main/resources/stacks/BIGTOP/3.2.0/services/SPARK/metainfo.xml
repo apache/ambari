@@ -1,0 +1,243 @@
+<?xml version="1.0"?>
+<!--Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>SPARK</name>
+      <displayName>Spark</displayName>
+      <comment>Apache Spark is a unified analytics engine for large-scale data processing.</comment>
+      <version>Bigtop+3.1</version>
+      <components>
+        <component>
+          <name>SPARK_JOBHISTORYSERVER</name>
+          <displayName>Spark History Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>HIVE/HIVE_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/job_history_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>spark_jobhistory_server</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+        <component>
+          <name>SPARK_THRIFTSERVER</name>
+          <displayName>Spark Thrift Server</displayName>
+          <category>SLAVE</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>HIVE/HIVE_METASTORE</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/spark_thrift_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>spark_thriftserver</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+        <component>
+          <name>SPARK_CLIENT</name>
+          <displayName>Spark Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/spark_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>env</type>
+              <fileName>spark-log4j.properties</fileName>
+              <dictionaryName>-log4j-properties</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>spark-env.sh</fileName>
+              <dictionaryName>spark-env</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>spark-metrics.properties</fileName>
+              <dictionaryName>spark-metrics-properties</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>properties</type>
+              <fileName>spark-defaults.conf</fileName>
+              <dictionaryName>spark-defaults</dictionaryName>
+            </configFile>
+          </configFiles>
+        </component>
+      </components>
+
+      <configuration-dependencies>
+        <config-type>core-site</config-type>
+        <config-type>spark-defaults</config-type>
+        <config-type>spark-env</config-type>
+        <config-type>spark-log4j-properties</config-type>
+        <config-type>spark-metrics-properties</config-type>
+        <config-type>spark-hive-site-override</config-type>
+        <config-type>spark-thrift-fairscheduler</config-type>
+      </configuration-dependencies>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <requiredServices>
+        <service>HDFS</service>
+        <service>YARN</service>
+        <service>HIVE</service>
+      </requiredServices>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>spark-core</name>
+            </package>
+            <package>
+              <name>spark-python</name>
+            </package>
+            <package>
+              <name>spark-history-server</name>
+            </package>
+            <package>
+              <name>spark-thriftserver</name>
+            </package>
+            <package>
+              <name>spark-datanucleus</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+
+      <themes>
+        <theme>
+          <fileName>directories.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
+    </service>
+  </services>
+</metainfo>
