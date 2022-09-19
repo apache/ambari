@@ -82,6 +82,7 @@
     <revision>3.0.0.0-SNAPSHOT</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <clover.license>${user.home}/clover.license</clover.license>
+    <jdk.version>1.8</jdk.version>
     <buildnumber-maven-plugin-version>1.2</buildnumber-maven-plugin-version>
     <deb.publisher>Hortonworks</deb.publisher>
     <deb.section>universe/admin</deb.section>
@@ -225,8 +226,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.2</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>${jdk.version}</source>
+          <target>${jdk.version}</target>
         </configuration>
       </plugin>
       <plugin>
