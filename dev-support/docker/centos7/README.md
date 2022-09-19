@@ -18,3 +18,5 @@ limitations under the License.
 4、Ambari UI、Ambari Server Debug Port、MariaDB Server are also exposed to local ports: 8080、5005、3306
 5、Docker host names are: ambari-server、ambari-agent-01、ambari-agent-02
 6、Extra configurations are in `build-containers.sh` last few lines, eg. Kerberos Configuration、Hive DB Configuration
+7、Re-build Ambari without re-creating clusters when code updates(build-ambari.sh)
+8、Distribute stack scripts without restarting ambari and containers(distribute-scripts.sh)
