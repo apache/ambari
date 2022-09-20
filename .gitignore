@@ -2,6 +2,7 @@
 .project
 .settings
 .idea/
+.vscode/
 .iml/
 .DS_Store
 **/target/

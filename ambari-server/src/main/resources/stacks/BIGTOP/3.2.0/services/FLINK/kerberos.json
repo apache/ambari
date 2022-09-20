@@ -1,0 +1,50 @@
+{
+  "services": [
+    {
+      "name": "FLINK",
+      "identities": [
+        {
+          "name": "flink_service_identity",
+          "principal": {
+            "value": "${flink-env/flink_user}${principal_suffix}@${realm}",
+            "type": "user",
+            "local_username": "${flink-env/flink_user}",
+            "configuration": "flink-conf/security.kerberos.login.principal"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/flink.headless.keytab",
+            "configuration": "flink-conf/security.kerberos.login.keytab",
+            "owner": {
+              "name": "${flink-env/flink_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": "r"
+            }
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "FLINK_HISTORYSERVER",
+          "identities": [
+            {
+              "name": "flink_historyserver_identity",
+              "reference": "/FLINK/flink_service_identity"
+            }
+          ]
+        },
+        {
+          "name": "FLINK_CLIENT",
+          "identities": [
+            {
+              "name": "flink_client_identity",
+              "reference": "/FLINK/flink_service_identity"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

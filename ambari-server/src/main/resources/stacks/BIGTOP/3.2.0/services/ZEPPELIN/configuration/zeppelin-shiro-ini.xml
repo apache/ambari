@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<configuration>
+  <property>
+    <name>shiro_ini_content</name>
+    <description>This is the jinja template for shiro.ini file</description>
+      <value>
+[users]
+# List of users with their password allowed to access Zeppelin.
+# To use a different strategy (LDAP / Database / ...) check the shiro doc at http://shiro.apache.org/configuration.html#Configuration-INISections
+admin = $shiro1$SHA-256$500000$p6Be9+t2hdUXJQj2D0b1fg==$bea5JIMqcVF3J6eNZGWQ/3eeDByn5iEZDuGsEip06+M=, admin
+user1 = $shiro1$SHA-256$500000$G2ymy/qmuZnGY6or4v2KfA==$v9fabqWgCNCgechtOUqAQenGDs0OSLP28q2wolPT4wU=, role1, role2
+user2 = $shiro1$SHA-256$500000$aHBgiuwSgAcP3Xt5mEzeFw==$KosBnN2BNKA9/KHBL0hnU/woJFl+xzJFj12NQ0fnjCU=, role3
+user3 = $shiro1$SHA-256$500000$nf0GzH10GbYVoxa7DOlOSw==$ov/IA5W8mRWPwvAoBjNYxg3udJK0EmrVMvFCwcr9eAs=, role2
+
+# Sample LDAP configuration, for user Authentication, currently tested for single Realm
+[main]
+### A sample for configuring Active Directory Realm
+#activeDirectoryRealm = org.apache.zeppelin.realm.ActiveDirectoryGroupRealm
+#activeDirectoryRealm.systemUsername = userNameA
+
+#use either systemPassword or hadoopSecurityCredentialPath, more details in http://zeppelin.apache.org/docs/latest/security/shiroauthentication.html
+#activeDirectoryRealm.systemPassword = passwordA
+#activeDirectoryRealm.hadoopSecurityCredentialPath = jceks://file/user/zeppelin/zeppelin.jceks
+#activeDirectoryRealm.searchBase = CN=Users,DC=SOME_GROUP,DC=COMPANY,DC=COM
+#activeDirectoryRealm.url = ldap://ldap.test.com:389
+#activeDirectoryRealm.groupRolesMap = "CN=admin,OU=groups,DC=SOME_GROUP,DC=COMPANY,DC=COM":"admin","CN=finance,OU=groups,DC=SOME_GROUP,DC=COMPANY,DC=COM":"finance","CN=hr,OU=groups,DC=SOME_GROUP,DC=COMPANY,DC=COM":"hr"
+#activeDirectoryRealm.authorizationCachingEnabled = false
+
+### A sample for configuring LDAP Directory Realm
+#ldapRealm = org.apache.zeppelin.realm.LdapGroupRealm
+## search base for ldap groups (only relevant for LdapGroupRealm):
+#ldapRealm.contextFactory.environment[ldap.searchBase] = dc=COMPANY,dc=COM
+#ldapRealm.contextFactory.url = ldap://ldap.test.com:389
+#ldapRealm.userDnTemplate = uid={0},ou=Users,dc=COMPANY,dc=COM
+#ldapRealm.contextFactory.authenticationMechanism = SIMPLE
+
+### A sample PAM configuration
+#pamRealm=org.apache.zeppelin.realm.PamRealm
+#pamRealm.service=sshd
+
+## To be commented out when not using [user] block / paintext
+passwordMatcher = org.apache.shiro.authc.credential.PasswordMatcher
+iniRealm.credentialsMatcher = $passwordMatcher
+
+sessionManager = org.apache.shiro.web.session.mgt.DefaultWebSessionManager
+### If caching of user is required then uncomment below lines
+cacheManager = org.apache.shiro.cache.MemoryConstrainedCacheManager
+securityManager.cacheManager = $cacheManager
+
+cookie = org.apache.shiro.web.servlet.SimpleCookie
+cookie.name = JSESSIONID
+#Uncomment the line below when running Zeppelin-Server in HTTPS mode
+#cookie.secure = true
+cookie.httpOnly = true
+sessionManager.sessionIdCookie = $cookie
+
+securityManager.sessionManager = $sessionManager
+# 86,400,000 milliseconds = 24 hour
+securityManager.sessionManager.globalSessionTimeout = 86400000
+shiro.loginUrl = /api/login
+
+[roles]
+role1 = *
+role2 = *
+role3 = *
+admin = *
+
+[urls]
+# This section is used for url-based security.
+# You can secure interpreter, configuration and credential information by urls. Comment or uncomment the below urls that you want to hide.
+# anon means the access is anonymous.
+# authc means Form based Auth Security
+# To enfore security, comment the line below and uncomment the next one
+/api/version = anon
+#/api/interpreter/** = authc, roles[admin]
+#/api/configurations/** = authc, roles[admin]
+#/api/credential/** = authc, roles[admin]
+#/** = anon
+/** = authc
+      </value>
+    <depends-on>
+      <property>
+        <type>zeppelin-site</type>
+        <name>zeppelin.ssl</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

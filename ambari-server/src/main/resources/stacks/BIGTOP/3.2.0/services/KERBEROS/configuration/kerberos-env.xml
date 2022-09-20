@@ -1,0 +1,406 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false" supports_adding_forbidden="true">
+  <property require-input="true">
+    <name>kdc_type</name>
+    <description>
+      The type of KDC being used. Either mit-kdc, ipa, or active-directory
+    </description>
+    <value>mit-kdc</value>
+    <display-name>KDC type</display-name>
+    <value-attributes>
+      <type>componentHost</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property require-input="false">
+    <name>kadmin_principal_name</name>
+    <value>kadmin/${admin_server_host|stripPort()}</value>
+    <description>
+      The principal name of kAdmin service principal
+    </description>
+    <display-name>kAdmin Service Principal Name</display-name>
+    <on-ambari-upgrade add="true" delete="false" update="false"/>
+    <on-stack-upgrade merge="true"/>
+    <value-attributes>
+      <visible>true</visible>
+      <overridable>false</overridable>
+      <keystore>false</keystore>
+    </value-attributes>
+  </property>
+  <property>
+    <name>manage_identities</name>
+    <description>
+      Indicates whether the Ambari user and service Kerberos identities (principals and keytab files)
+      should be managed (created, deleted, updated, etc...) by Ambari or managed manually.
+    </description>
+    <value>true</value>
+    <display-name>Manage Kerberos Identities</display-name>
+    <value-attributes>
+      <visible>false</visible>
+      <overridable>false</overridable>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>manage_auth_to_local</name>
+    <description>
+      Indicates whether the hadoop auth_to_local rules should be managed by Ambari or managed manually.
+    </description>
+    <value>true</value>
+    <display-name>Manage Hadoop auth_to_local rules</display-name>
+    <value-attributes>
+      <visible>true</visible>
+      <overridable>false</overridable>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>install_packages</name>
+    <display-name>Install OS-specific Kerberos client package(s)</display-name>
+    <description>
+      Indicates whether Ambari should install the Kerberos client package(s) or not. If not, it is
+      expected that Kerberos utility programs (such as kadmin, kinit, klist, and kdestroy) are
+      compatible with MIT Kerberos 5 version 1.10.3 in command line options and behaviors.
+    </description>
+    <value>true</value>
+    <value-attributes>
+      <type>boolean</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ldap_url</name>
+    <display-name>LDAP url</display-name>
+    <description>
+      The URL to the Active Directory LDAP Interface
+      Example: ldaps://ad.example.com:636
+    </description>
+    <value/>
+    <value-attributes>
+      <visible>false</visible>
+      <overridable>false</overridable>
+      <type>ldap_url</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>container_dn</name>
+    <display-name>Container DN</display-name>
+    <description>
+      The distinguished name (DN) of the container used store service principals
+    </description>
+    <value-attributes>
+      <visible>false</visible>
+      <overridable>false</overridable>
+    </value-attributes>
+    <value/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>encryption_types</name>
+    <display-name>Encryption Types</display-name>
+    <description>
+      The supported list of session key encryption types that should be returned by the KDC.
+    </description>
+    <value>aes des3-cbc-sha1 rc4 des-cbc-md5</value>
+    <value-attributes>
+      <type>multiLine</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property require-input="true">
+    <name>realm</name>
+    <description>
+      The default realm to use when creating service principals
+    </description>
+    <display-name>Realm name</display-name>
+    <value/>
+    <value-attributes>
+      <type>host</type>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>kdc_hosts</name>
+    <description>
+      A comma-delimited list of IP addresses or FQDNs declaring the KDC hosts.
+      Optionally a port number may be included in each entry by separating each host and port by a
+      colon (:). Example:  kdc1.example.com:88, kdc2.example.com:88
+    </description>
+    <display-name>KDC hosts</display-name>
+    <value/>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>master_kdc</name>
+    <description>
+      The IP address or FQDN of the master KDC host in a master-slave KDC deployment.
+      Optionally a port number may be included.
+      Example:  kdc1.example.com:88
+    </description>
+    <display-name>Master KDC host</display-name>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>admin_server_host</name>
+    <display-name>Kadmin host</display-name>
+    <description>
+      The FQDN for the KDC Kerberos administrative host. Optionally a port number may be included.
+    </description>
+    <value/>
+    <value-attributes>
+      <type>host</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>executable_search_paths</name>
+    <display-name>Executable Search Paths</display-name>
+    <description>
+      A comma-delimited list of search paths to use to find Kerberos utilities like kadmin, kinit and ipa.
+    </description>
+    <value>/usr/bin, /usr/kerberos/bin, /usr/sbin, /usr/lib/mit/bin, /usr/lib/mit/sbin</value>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>multiLine</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>password_length</name>
+    <display-name>Password Length</display-name>
+    <description>
+      The length required length for generated passwords.
+    </description>
+    <value>20</value>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>password_min_lowercase_letters</name>
+    <display-name>Password Minimum # Lowercase Letters</display-name>
+    <description>
+      The minimum number of lowercase letters (a-z) required in generated passwords
+    </description>
+    <value>1</value>
+    <value-attributes>
+      <type>int</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>password_min_uppercase_letters</name>
+    <display-name>Password Minimum # Uppercase Letters</display-name>
+    <description>
+      The minimum number of uppercase letters (A-Z) required in generated passwords
+    </description>
+    <value>1</value>
+    <value-attributes>
+      <type>int</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>password_min_digits</name>
+    <display-name>Password Minimum # Digits</display-name>
+    <description>
+      The minimum number of digits (0-9) required in generated passwords
+    </description>
+    <value>1</value>
+    <value-attributes>
+      <type>int</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>password_min_punctuation</name>
+    <display-name>Password Minimum # Punctuation Characters</display-name>
+    <description>
+      The minimum number of punctuation characters (?.!$%^*()-_+=~) required in generated passwords
+    </description>
+    <value>1</value>
+    <value-attributes>
+      <type>int</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>password_min_whitespace</name>
+    <display-name>Password Minimum # Whitespace Characters</display-name>
+    <description>
+      The minimum number of whitespace characters required in generated passwords
+    </description>
+    <value>0</value>
+    <value-attributes>
+      <type>int</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>service_check_principal_name</name>
+    <display-name>Test Kerberos Principal</display-name>
+    <description>
+      The principal name to use when executing the Kerberos service check
+    </description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <value>${cluster_name|toLower()}-${short_date}</value>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>case_insensitive_username_rules</name>
+    <display-name>Enable case insensitive username rules</display-name>
+    <description>
+      Force principal names to resolve to lowercase local usernames in auth-to-local rules
+    </description>
+    <value>false</value>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ad_create_attributes_template</name>
+    <display-name>Account Attribute Template</display-name>
+    <description>
+      A Velocity template to use to generate a JSON-formatted document containing the set of
+      attribute names and values needed to create a new Kerberos identity in the relevant
+      Active Directory.
+      Variables include:
+      principal_name, principal_primary, principal_instance, realm, realm_lowercase,
+      normalized_principal, principal digest, password, is_service, container_dn
+    </description>
+    <value>
+{
+  "objectClass": ["top", "person", "organizationalPerson", "user"],
+  "cn": "$principal_name",
+  #if( $is_service )
+  "servicePrincipalName": "$principal_name",
+  #end
+  "userPrincipalName": "$normalized_principal",
+  "unicodePwd": "$password",
+  "accountExpires": "0",
+  "userAccountControl": "66048"
+}
+    </value>
+    <value-attributes>
+      <type>content</type>
+      <empty-value-valid>true</empty-value-valid>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>create_ambari_principal</name>
+    <description>
+    Indicates whether Ambari should create the principal, keytab for itself, used by different views.
+  </description>
+    <value>true</value>
+    <display-name>Create Ambari Principal &amp; Keytab</display-name>
+    <value-attributes>
+      <visible>true</visible>
+      <overridable>false</overridable>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>kdc_create_attributes</name>
+    <display-name>Principal Attributes</display-name>
+    <description>
+      The set of attributes to use when creating a new Kerberos identity in the relevant (MIT) KDC.
+    </description>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ipa_user_group</name>
+    <display-name>IPA User Group</display-name>
+    <description>
+      The group in IPA user principals should be member of
+    </description>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <visible>false</visible>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>preconfigure_services</name>
+    <display-name>Pre-configure services</display-name>
+    <description>
+      Indicates whether to pre-configure services or not. If pre-configuring services, indicates
+      whether to pre-configure all or those explicitly flagged to be pre-configured.  Possible values
+      are DEFAULT, NONE, or ALL
+    </description>
+    <value>DEFAULT</value>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <selection-cardinality>1</selection-cardinality>
+      <entries>
+        <entry>
+          <value>NONE</value>
+        </entry>
+        <entry>
+          <value>DEFAULT</value>
+        </entry>
+        <entry>
+          <value>ALL</value>
+        </entry>
+      </entries>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

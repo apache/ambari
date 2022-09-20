@@ -1,0 +1,534 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+  <property>
+    <name>tez.lib.uris.classpath</name>
+    <display-name>TEZ Lib URIs Classpath</display-name>
+    <value>{{yarn_application_classpath}},{{tez_home}}/*,{{tez_home}}/lib/*</value>
+    <description>Comma-delimited list of the location of the Tez libraries Classpath which will be localized for DAGs.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.lib.uris</name>
+    <display-name>TEZ Lib URIs</display-name>
+    <value>{{tez_lib_uris}}</value>
+    <description>Comma-delimited list of the location of the Tez libraries which will be localized for DAGs.
+      Specifying a single .tar.gz or .tgz assumes that a compressed version of the tez libs is being used. This is uncompressed into a tezlibs directory when running containers, and tezlibs/;tezlibs/lib/ are added to the classpath (after . and .*).
+      If multiple files are specified - files are localized as regular files, contents of directories are localized as regular files (non-recursive).
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.cluster.additional.classpath.prefix</name>
+    <value>/etc/hadoop/conf/secure</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.log.level</name>
+    <value>INFO</value>
+    <description>Root Logging level passed to the Tez app master</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.generate.debug.artifacts</name>
+    <value>false</value>
+    <description>Generate debug artifacts such as a text representation of the submitted DAG plan</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.staging-dir</name>
+    <display-name>TEZ Staging directory</display-name>
+    <value>/tmp/${user.name}/staging</value>
+    <description>The staging dir used while submitting DAGs</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.resource.memory.mb</name>
+    <value>2048</value>
+    <description>The amount of memory to be used by the AppMaster.
+      Used only if the value is not specified explicitly by the DAG definition.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.launch.cmd-opts</name>
+    <value>-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB{{heap_dump_opts}}</value>
+    <description>Java options for the Tez AppMaster process. The Xmx value is derived based on tez.am.resource.memory.mb and is 80% of the value by default.
+      Used only if the value is not specified explicitly by the DAG definition.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.launch.cluster-default.cmd-opts</name>
+    <value>-server -Djava.net.preferIPv4Stack=true</value>
+    <description>Cluster default Java options for the Tez AppMaster process. These will be prepended to the properties specified via tez.am.launch.cmd-opts</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.launch.env</name>
+    <value>LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native</value>
+    <description>
+        Additional execution environment entries for tez. This is not an additive property. You must preserve the original value if
+        you want to have access to native libraries.
+      Used only if the value is not specified explicitly by the DAG definition.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.task.resource.memory.mb</name>
+    <value>1536</value>
+    <description>The amount of memory to be used by launched tasks.
+      Used only if the value is not specified explicitly by the DAG definition.
+    </description>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.scheduler.minimum-allocation-mb</name>
+      </property>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.scheduler.maximum-allocation-mb</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.task.launch.cmd-opts</name>
+    <value>-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB{{heap_dump_opts}}</value>
+    <description>Java options for tasks. The Xmx value is derived based on tez.task.resource.memory.mb and is 80% of this value by default.
+      Used only if the value is not specified explicitly by the DAG definition.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.task.launch.cluster-default.cmd-opts</name>
+    <value>-server -Djava.net.preferIPv4Stack=true</value>
+    <description>Cluster default Java options for tasks. These will be prepended to the properties specified via tez.task.launch.cmd-opts</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.task.launch.env</name>
+    <value>LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native</value>
+    <description>
+      Additional execution environment entries for tez. This is not an additive property. You must preserve the original value if
+      you want to have access to native libraries.
+      Used only if the value is not specified explicitly by the DAG definition.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.shuffle-vertex-manager.min-src-fraction</name>
+    <value>0.2</value>
+    <description>In case of a ScatterGather connection, the fraction of source tasks which should
+      complete before tasks for the current vertex are schedule
+    </description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.shuffle-vertex-manager.max-src-fraction</name>
+    <value>0.4</value>
+    <description>In case of a ScatterGather connection, once this fraction of source tasks have
+      completed, all tasks on the current vertex can be scheduled. Number of tasks ready for
+      scheduling on the current vertex scales linearly between min-fraction and max-fraction
+    </description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.am-rm.heartbeat.interval-ms.max</name>
+    <value>250</value>
+    <description>The maximum heartbeat interval between the AM and RM in milliseconds</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.grouping.split-waves</name>
+    <value>1.7</value>
+    <description>The multiplier for available queue capacity when determining number of tasks for
+      a Vertex. 1.7 with 100% queue available implies generating a number of tasks roughly equal
+      to 170% of the available containers on the queue
+    </description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.grouping.min-size</name>
+    <value>16777216</value>
+    <description>Lower bound on the size (in bytes) of a grouped split, to avoid generating
+      too many splits
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>Bytes</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.grouping.max-size</name>
+    <value>1073741824</value>
+    <description>Upper bound on the size (in bytes) of a grouped split, to avoid generating
+      excessively large split
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>Bytes</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.container.reuse.enabled</name>
+    <value>true</value>
+    <description>Configuration to specify whether container should be reused</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.container.reuse.rack-fallback.enabled</name>
+    <value>true</value>
+    <description>Whether to reuse containers for rack local tasks. Active only if reuse is enabled
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.container.reuse.non-local-fallback.enabled</name>
+    <value>false</value>
+    <description>Whether to reuse containers for non-local tasks. Active only if reuse is enabled
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.container.idle.release-timeout-min.millis</name>
+    <value>10000</value>
+    <description>The minimum amount of time to hold on to a container that is idle. Only active when reuse is enabled.</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.container.idle.release-timeout-max.millis</name>
+    <value>20000</value>
+    <description>The maximum amount of time to hold on to a container if no task can be assigned to it immediately. Only active when reuse is enabled.</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.container.reuse.locality.delay-allocation-millis</name>
+    <value>250</value>
+    <description>The amount of time to wait before assigning a container to the next level of
+      locality. NODE -&gt; RACK -&gt; NON_LOCAL
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.max.app.attempts</name>
+    <value>2</value>
+    <description>Specifies the total number of time the app master will run in case recovery is triggered</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.maxtaskfailures.per.node</name>
+    <value>10</value>
+    <description>The maximum number of allowed task attempt failures on a node before
+      it gets marked as blacklisted
+    </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.task.am.heartbeat.counter.interval-ms.max</name>
+    <value>4000</value>
+    <description>Time interval at which task counters are sent to the AM</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.task.get-task.sleep.interval-ms.max</name>
+    <value>200</value>
+    <description>The maximum amount of time, in seconds, to wait before a task asks an AM for
+      another task
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.task.max-events-per-heartbeat</name>
+    <value>500</value>
+    <description>Maximum number of of events to fetch from the AM by the tasks in a single heartbeat.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.session.client.timeout.secs</name>
+    <value>-1</value>
+    <description>Time (in seconds) to wait for AM to come up when trying to submit a DAG from
+      the client
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>seconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.session.am.dag.submit.timeout.secs</name>
+    <value>300</value>
+    <description>Time (in seconds) for which the Tez AM should wait for a DAG to be submitted
+      before shutting down
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>seconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.compress</name>
+    <value>true</value>
+    <description>Whether intermediate data should be compressed or not</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.compress.codec</name>
+    <value>org.apache.hadoop.io.compress.SnappyCodec</value>
+    <description>The coded to be used if compressing intermediate data. Only
+      applicable if tez.runtime.compress is enabled
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.unordered.output.buffer.size-mb</name>
+    <value>100</value>
+    <description>The size of the buffer when output does not require to be sorted</description>
+    <depends-on>
+      <property>
+        <type>tez-site</type>
+        <name>tez.task.resource.memory.mb</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.convert.user-payload.to.history-text</name>
+    <value>false</value>
+    <description>Whether to publish configuration information to History logger</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.use.cluster.hadoop-libs</name>
+    <value>false</value>
+    <description>This being true implies that the deployment is relying on hadoop jars being available on the cluster on all nodes.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.tez-ui.history-url.template</name>
+    <value>__HISTORY_URL_BASE__?viewPath=%2F%23%2Ftez-app%2F__APPLICATION_ID__</value>
+    <description>Template to generate the History URL for a particular Tez Application.
+       Template replaces __APPLICATION_ID__ with the actual applicationId and
+       __HISTORY_URL_BASE__ with the value from the tez.tez-ui.history-url.base config property
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.tez-ui.history-url.base</name>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.view-acls</name>
+    <value>*</value>
+    <description>AM view ACLs. This allows the specified users/groups to view the status of the AM and all DAGs that run within this AM.
+      Value format: Comma separated list of users, followed by whitespace, followed by a comma separated list of groups.
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.optimize.local.fetch</name>
+    <value>true</value>
+    <description>If the shuffle input is on the local host bypass the http fetch and access the files directly.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.task.generate.counters.per.io</name>
+    <value>true</value>
+    <description>Whether to generate counters on a per-edge basis for a Tez DAG. Helpful for in-depth analysis.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.sorter.class</name>
+    <value>PIPELINED</value>
+    <description>Which sorter implementation to use</description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>PIPELINED</value>
+          <label>Pipelined Sorter</label>
+        </entry>
+        <entry>
+          <value>LEGACY</value>
+          <label>Legacy Sorter</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.pipelined.sorter.sort.threads</name>
+    <value>2</value>
+    <description>Tez runtime pipelined sorter sort threads</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>tez-site</type>
+        <name>tez.runtime.sorter.class</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.io.sort.mb</name>
+    <value>272</value>
+    <description>The size of the sort buffer when output needs to be sorted</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>tez-site</type>
+        <name>tez.runtime.sorter.class</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.counters.max</name>
+    <value>10000</value>
+    <description>The number of allowed counters for the executing DAG</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.counters.max.groups</name>
+    <value>3000</value>
+    <description>The number of allowed counter groups for the executing DAG</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.shuffle.fetch.buffer.percent</name>
+    <value>0.6</value>
+    <description>Fraction (0-1) of the available memory which can be used to
+      retain shuffled data</description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.shuffle.memory.limit.percent</name>
+    <value>0.25</value>
+    <description>This property determines the maximum size of a shuffle segment
+      which can be fetched to memory. Fraction (0-1) of shuffle memory
+      (after applying tez.runtime.shuffle.fetch.buffer.percent)</description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.history.logging.timeline-cache-plugin.old-num-dags-per-group</name>
+    <value>5</value>
+    <description>DAGs per group</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.enabled</name>
+    <value>false</value>
+    <description>Timeline service version we&#x2019;re currently using.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>
