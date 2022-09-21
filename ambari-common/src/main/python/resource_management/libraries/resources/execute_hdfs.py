@@ -20,13 +20,18 @@ Ambari Agent
 
 """
 
-from resource_management.libraries.resources.execute_hadoop import *
-from resource_management.libraries.resources.execute_hdfs import *
-from resource_management.libraries.resources.template_config import *
-from resource_management.libraries.resources.xml_config import *
-from resource_management.libraries.resources.properties_file import *
-from resource_management.libraries.resources.repository import *
-from resource_management.libraries.resources.monitor_webserver import *
-from resource_management.libraries.resources.hdfs_resource import *
-from resource_management.libraries.resources.msi import *
-from resource_management.libraries.resources.modify_properties_file import *
+_all__ = ["ExecuteHDFS"]
+from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument
+
+
+class ExecuteHDFS(Resource):
+    action = ForcedListArgument(default="run")
+    command = ResourceArgument(default=lambda obj: obj.name)
+    tries = ResourceArgument(default=1)
+    try_sleep = ResourceArgument(default=0)
+    user = ResourceArgument()
+    logoutput = ResourceArgument()
+    bin_dir = ResourceArgument(default=[])
+    environment = ResourceArgument(default={})
+    conf_dir = ResourceArgument()
+    actions = Resource.actions + ["run"]
