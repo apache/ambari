@@ -658,7 +658,6 @@
             <exclude>**/*.json</exclude>
             <exclude>**/*.pydevproject</exclude>
             <exclude>src/main/package/choco/ambari-agent.nuspec</exclude>
-            <exclude>**/dependency-reduced-pom.xml</exclude>
           </excludes>
         </configuration>
         <executions>
