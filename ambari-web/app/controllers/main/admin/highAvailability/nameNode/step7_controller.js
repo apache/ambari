@@ -32,11 +32,11 @@ App.HighAvailabilityWizardStep7Controller = App.HighAvailabilityProgressPageCont
       tasksToRemove.push('startAmbariInfra');
     }
 
-    if (App.ClientComponent.getModelByComponentName('RANGER_ADMIN').get('installedCount') === 0) {
+    if (App.ClientComponent.getModelByComponentName('RANGER_ADMIN') == null || App.ClientComponent.getModelByComponentName('RANGER_ADMIN').get('installedCount') === 0) {
       tasksToRemove.push('startRanger');
     }
 
-    if (App.ClientComponent.getModelByComponentName('MYSQL_SERVER').get('installedCount') === 0) {
+    if (App.ClientComponent.getModelByComponentName('MYSQL_SERVER') == null || App.ClientComponent.getModelByComponentName('MYSQL_SERVER').get('installedCount') === 0) {
       tasksToRemove.push('startMysqlServer');
     }
 
