@@ -15,6 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+echo -e "\033[32mInstall mvn\033[0m"
+if [ ! "$(command -v mvn)" ]; then
+  echo "mvn not found and will be installed" >&2
+  yum install -y maven
+fi
+
 echo -e "\033[32mCompiling ambari\033[0m"
 cd ../../../
 mvn clean install rpm:rpm -DskipTests -Drat.skip=true
