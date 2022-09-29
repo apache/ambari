@@ -103,7 +103,8 @@ App.componentsStateMapper = App.QuickDataMapper.create({
       ranger_tagsyncs_total: 'TOTAL_PATH'
     },
     'MAPREDUCE2_CLIENT': {
-      map_reduce2_clients: 'INSTALLED_PATH'
+      map_reduce2_clients: 'INSTALLED_PATH',
+      installed_clients: 'INSTALLED_PATH'
     },
     'FLUME_HANDLER': {
       flume_handlers_total: 'TOTAL_PATH'
