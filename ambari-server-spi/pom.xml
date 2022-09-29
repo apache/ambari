@@ -30,7 +30,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <xlint>none</xlint>
-    <jdk.version>1.8</jdk.version>
   </properties>
 
   <build>

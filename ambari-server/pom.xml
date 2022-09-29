@@ -53,7 +53,6 @@
     <empty.dir>src/main/package</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
     <el.log>ALL</el.log> <!-- log level for EclipseLink eclipselink-staticweave-maven-plugin -->
     <xlint>none</xlint> <!-- passed to Java compiler -Xlint: flag -->
-    <jdk.version>1.8</jdk.version>
   </properties>
   <build>
     <plugins>
