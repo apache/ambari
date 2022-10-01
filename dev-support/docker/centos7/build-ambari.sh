@@ -16,9 +16,14 @@
 # limitations under the License.
 
 echo -e "\033[32mCompiling ambari\033[0m"
-cd ../../../
-mvn clean install rpm:rpm -DskipTests -Drat.skip=true
-cd -
+if [[ -z $(docker ps -a --format "table {{.Names}}" | grep "ambari-rpm-build") ]];then
+  docker run -it --name ambari-rpm-build --privileged=true -e "container=docker" \
+    -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v $PWD/../../../:/opt/ambari/ \
+    -w /opt/ambari \
+    ambari/develop:trunk-centos-7 bash -c "mvn clean install rpm:rpm -DskipTests -Drat.skip=true"
+else
+  docker start -i ambari-rpm-build
+fi
 
 echo -e "\033[32mRestarting ambari-server\033[0m"
 docker exec ambari-server bash -c "ambari-server stop"
