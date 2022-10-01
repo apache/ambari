@@ -15,16 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-echo -e "\033[32mInstall mvn\033[0m"
-if [ ! "$(command -v mvn)" ]; then
-  echo "mvn not found and will be installed" >&2
-  yum install -y maven
-fi
-
 echo -e "\033[32mCompiling ambari\033[0m"
-cd ../../../
-mvn clean install rpm:rpm -DskipTests -Drat.skip=true
-cd -
+docker run -it --rm --name ambari-rpm-build --privileged=true -e "container=docker" \
+  -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v /root/.m2:/root/.m2 -v $PWD/../../../:/opt/ambari/ \
+  ambari/develop:trunk-centos-7 bash -c "cd /opt/ambari && mvn clean install rpm:rpm -DskipTests -Drat.skip=true"
 
 echo -e "\033[32mCreating network ambari\033[0m"
 docker network create --driver bridge ambari
