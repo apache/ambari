@@ -15,6 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+echo -e "\033[32mRemoving container ambari-rpm-build\033[0m"
+docker rm -f ambari-rpm-build
+
 echo -e "\033[32mRemoving container ambari-server\033[0m"
 docker rm -f ambari-server
 
