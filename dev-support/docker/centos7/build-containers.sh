@@ -15,15 +15,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-echo -e "\033[32mCompiling ambari\033[0m"
+echo -e "\033[32mStarting container ambari-rpm-build\033[0m"
 if [[ -z $(docker ps -a --format "table {{.Names}}" | grep "ambari-rpm-build") ]];then
-  docker run -it --name ambari-rpm-build --privileged=true -e "container=docker" \
+  docker run -it -d --name ambari-rpm-build --privileged=true -e "container=docker" \
     -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v $PWD/../../../:/opt/ambari/ \
     -w /opt/ambari \
-    ambari/develop:trunk-centos-7 bash -c "mvn clean install rpm:rpm -DskipTests -Drat.skip=true"
+    ambari/develop:trunk-centos-7
 else
-  docker start -i ambari-rpm-build
+  docker start ambari-rpm-build
 fi
+
+echo -e "\033[32mCompiling ambari\033[0m"
+docker exec ambari-rpm-build bash -c "mvn clean install rpm:rpm -DskipTests -Drat.skip=true"
+docker stop ambari-rpm-build
 
 echo -e "\033[32mCreating network ambari\033[0m"
 docker network create --driver bridge ambari
