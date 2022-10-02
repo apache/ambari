@@ -81,12 +81,13 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
     params.HdfsResource(None, action="execute")
 
     if params.has_journalnode_hosts:
+      journalnode_web_path = "/journalnode.html"
       if params.security_enabled:
         for host in params.journalnode_hosts:
           if params.https_only:
-            uri = format("https://{host}:{journalnode_port}")
+            uri = format("https://{host}:{journalnode_port}{journalnode_web_path}")
           else:
-            uri = format("http://{host}:{journalnode_port}")
+            uri = format("http://{host}:{journalnode_port}{journalnode_web_path}")
           response, errmsg, time_millis = curl_krb_request(params.tmp_dir, params.smoke_user_keytab,
                                                            params.smokeuser_principal, uri, "jn_service_check",
                                                            params.kinit_path_local, False, None, params.smoke_user)
@@ -99,7 +100,7 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
         checkWebUIFilePath = format("{tmp_dir}/{checkWebUIFileName}")
         comma_sep_jn_hosts = ",".join(params.journalnode_hosts)
 
-        checkWebUICmd = format("ambari-python-wrap {checkWebUIFilePath} -m {comma_sep_jn_hosts} -p {journalnode_port} -s {https_only} -o {script_https_protocol}")
+        checkWebUICmd = format("ambari-python-wrap {checkWebUIFilePath} -m {comma_sep_jn_hosts} -p {journalnode_port} -s {https_only} -o {script_https_protocol} -a {journalnode_web_path}")
         File(checkWebUIFilePath,
              content=StaticFile(checkWebUIFileName),
              mode=0775)
