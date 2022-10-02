@@ -16,11 +16,8 @@
 # limitations under the License.
 
 echo -e "\033[32mStarting container ambari-rpm-build\033[0m"
-if [[ -z $(docker ps -a --format "table {{.Names}}" | grep "ambari-rpm-build") ]];then
-  docker run -it -d --name ambari-rpm-build --privileged=true -e "container=docker" \
-    -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v $PWD/../../../:/opt/ambari/ \
-    -w /opt/ambari \
-    ambari/develop:trunk-centos-7
+if [ `docker inspect --format '{{.State.Running}}' ambari-rpm-build` == true ];then
+  docker exec ambari-rpm-build bash -c "pkill -KILL -f maven"
 else
   docker start ambari-rpm-build
 fi
