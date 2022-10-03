@@ -29,9 +29,9 @@ def install_packages():
     return
 
   packages = ['unzip', 'curl']
-  # if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.2') >= 0:
-  #   stack_selector_package = stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME)
-  #   packages.append(stack_selector_package)
+  if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '3.2.0') >= 0:
+    stack_selector_package = stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME)
+    packages.append(stack_selector_package)
   Package(packages,
           retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
           retry_count=params.agent_stack_retry_count)

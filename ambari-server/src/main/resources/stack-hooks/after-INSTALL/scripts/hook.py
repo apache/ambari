@@ -32,7 +32,7 @@ class AfterInstallHook(Hook):
     setup_stack_symlinks(self.stroutfile)
     setup_config()
 
-    link_configs(self.stroutfile)
+    # link_configs(self.stroutfile)
 
 
 if __name__ == "__main__":

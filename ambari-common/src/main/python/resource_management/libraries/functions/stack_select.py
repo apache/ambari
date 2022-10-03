@@ -242,6 +242,22 @@ def get_packages(scope, service_name = None, component_name = None):
 
   return packages
 
+def setup_stack_symlinks(version):
+    """
+  Invokes <stack-selector-tool> set all against a calculated fully-qualified, "normalized" version based on a
+  stack version, such as "2.3". This should always be called after a component has been
+  installed to ensure that all HDP pointers are correct. The stack upgrade logic does not
+  interact with this since it's done via a custom command and will not trigger this hook.
+  :return:
+  """
+    # get the packages which the stack-select tool should be used on
+    stack_packages = get_packages(PACKAGE_SCOPE_INSTALL)
+    if stack_packages is None:
+        return
+
+        # On parallel command execution this should be executed by a single process at a time.
+    for package in stack_packages:
+        select(package, version)
 
 def select_all(version_to_select):
   """
@@ -479,7 +495,8 @@ def get_stack_version_before_install(component_name):
   component_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, "current", component_name)
   stack_selector_name = stack_tools.get_stack_tool_name(stack_tools.STACK_SELECTOR_NAME)
   if os.path.islink(component_dir):
-    stack_version = os.path.basename(os.path.dirname(os.readlink(component_dir)))
+    # stack_version = os.path.basename(os.path.dirname(os.readlink(component_dir)))
+    stack_version = os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(os.readlink(component_dir)))))
     match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', stack_version)
     if match is None:
       Logger.info('Failed to get extracted version with {0} in method get_stack_version_before_install'.format(stack_selector_name))
