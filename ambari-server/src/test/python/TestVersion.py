@@ -37,8 +37,8 @@ class TestVersion(TestCase):
         self.version_module = imp.load_module('version', fp, test_file_path, ('.py', 'rb', imp.PY_SOURCE))
 
   def test_format(self):
-    l = [("2.2",   "2.2.0.0"),
-         ("2.2.1", "2.2.1.0"),
+    l = [("2.2",   "2.2.0"),
+         ("2.2.1", "2.2.1"),
          ("2.2.1.3", "2.2.1.3")]
     
     for input, expected in l:
@@ -51,13 +51,13 @@ class TestVersion(TestCase):
 
   def test_format_with_hyphens(self):
     actual = self.version_module.format_stack_version("FOO-1.0")
-    self.assertEqual("1.0.0.0", actual)
+    self.assertEqual("1.0.0", actual)
 
     actual = self.version_module.format_stack_version("1.0.0-1234")
-    self.assertEqual("1.0.0.0", actual)
+    self.assertEqual("1.0.0", actual)
 
     actual = self.version_module.format_stack_version("FOO-1.0-9999")
-    self.assertEqual("1.0.0.0", actual)
+    self.assertEqual("1.0.0", actual)
 
 
   def test_comparison(self):
