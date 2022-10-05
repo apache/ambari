@@ -15,7 +15,7 @@ limitations under the License.
 Dev support is used to quickly develop and test ambari, which runs on the docker containers.
 
 ### **Step 1**: Install build tools: Git、Docker
-The scripts requires docker to be installed, since the compile process will run in a docker container and Ambari cluster also deploys on containers.
+The scripts require docker to be installed, since the compile process will run in a docker container and Ambari cluster also deploys on containers.
 
 **RHEL (CentOS 7) :**
 ```shell
