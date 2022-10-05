@@ -12,10 +12,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 ## Build and install Ambari by dev-support
-Dev-support is used to quickly compile and test ambari, which runs on the docker. The official version has not been released yet, so it is not recommended to deploy to the production environment.
+Dev support is used to quickly develop and test ambari, which runs on the docker containers.
 
 ### **Step 1**: Install build tools: Git、Docker
-You need to install Docker, because of compile in Docker and Ambari cluster run on it.
+The scripts requires docker to be installed, since the compile process will run in a docker container and Ambari cluster also deploys on containers.
 
 **RHEL (CentOS 7) :**
 ```shell
@@ -31,7 +31,7 @@ git clone https://github.com/apache/ambari.git
 cd ambari/dev-support/docker/centos7/
 ```
 ### **Step 4**: Build develop basic image
-Run the setup command, you will get `ambari/develop:trunk-centos-7` image. It has the tools needed to compile ambari and run servers such as Ambari-server, Ambari-agent, Mysql, etc.
+Run the setup command, you will get `ambari/develop:trunk-centos-7` image. It has the enviroment needed to compile Ambari and run servers such as Ambari Server, Ambari Agent, Mysql, etc.
 
 **RHEL (CentOS 7) :**
 ```shell
@@ -41,8 +41,7 @@ Run the setup command, you will get `ambari/develop:trunk-centos-7` image. It ha
 * The first compilation will take about 1 hour to download resources, and the next compilation will directly use the maven cache.
 * Ambari UI、Ambari Server Debug Port、MariaDB Server are also exposed to local ports: 8080、5005、3306.
 * Docker host names are: ambari-server、ambari-agent-01、ambari-agent-02.
-* Script execution end, log will be print Ambari Server RSA Private Key.
-* Open up a web browser and go to http://localhost:8080. Log in with username `admin` and password `admin`.
+* Access admin page via http://localhost:8080 on your web browser. Log in with username `admin` and password `admin`.
 * Extra configurations are in `build-containers.sh` last few lines, eg. Kerberos Configuration、Hive DB Configuration.
 
 **RHEL (CentOS 7) :**
@@ -50,7 +49,7 @@ Run the setup command, you will get `ambari/develop:trunk-centos-7` image. It ha
 ./build-containers.sh
 ```
 ### **Step 6**: Re-build Ambari Server
-This operation without re-creating clusters when you only to update code of Ambari.
+Re-compile Ambari without re-create and deploy clusters.
 
 **RHEL (CentOS 7) :**
 ```shell
@@ -58,20 +57,20 @@ This operation without re-creating clusters when you only to update code of Amba
 ```
 
 ### **Step 7**: Redistribution stack
-This operation without re-creating clusters when you only to redistribute stack.
+Re-distribute stack scripts without re-create clusters.
 
 **RHEL (CentOS 7) :**
 ```shell
 ./distribute-scripts.sh
 ```
 ### **Step 8**: Clean Ambari cluster
-Clear containers of Ambari cluster after tests done.
+Clean up the containers of Ambari cluster when you are done developing or testing.
 
 **RHEL (CentOS 7) :**
 ```shell
 ./clear-containers.sh
 ```
-### Step 9: Clean build environment
+### Step 9: Clean up the build environment
 **Note :** This operation will completely delete maven cache.
 
 **RHEL (CentOS 7) :**
