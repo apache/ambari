@@ -214,8 +214,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.0</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>${jdk.version}</source>
+          <target>${jdk.version}</target>
         </configuration>
       </plugin>
       <plugin>
@@ -439,7 +439,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.3</version>
+        <configuration>
+          <createDependencyReducedPom>false</createDependencyReducedPom>
+        </configuration>
+        <version>3.4.0</version>
         <executions>
           <execution>
             <id>shade-zkmigrator</id>
@@ -655,7 +658,6 @@
             <exclude>**/*.json</exclude>
             <exclude>**/*.pydevproject</exclude>
             <exclude>src/main/package/choco/ambari-agent.nuspec</exclude>
-            <exclude>**/dependency-reduced-pom.xml</exclude>
           </excludes>
         </configuration>
         <executions>

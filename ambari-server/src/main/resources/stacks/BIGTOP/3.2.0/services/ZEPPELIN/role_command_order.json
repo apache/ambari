@@ -1,0 +1,8 @@
+{
+    "general_deps" : {
+      "_comment" : "dependencies for ZEPPELIN",
+      "ZEPPELIN_MASTER-START" : ["NAMENODE-START"],
+      "ZEPPELIN_SERVICE_CHECK-SERVICE_CHECK" : ["ZEPPELIN_MASTER-START"]
+    }
+  }
+  

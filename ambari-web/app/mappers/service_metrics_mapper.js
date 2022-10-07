@@ -134,7 +134,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     active_resource_manager_id: 'active_resource_manager_id'
   },
   mapReduce2Config: {
-    map_reduce2_clients: 'map_reduce2_clients',
     job_history_server_id: 'job_history_server_id'
   },
   hbaseConfig: {

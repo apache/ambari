@@ -82,12 +82,13 @@
     <revision>3.0.0.0-SNAPSHOT</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <clover.license>${user.home}/clover.license</clover.license>
+    <jdk.version>1.8</jdk.version>
     <buildnumber-maven-plugin-version>1.2</buildnumber-maven-plugin-version>
     <deb.publisher>Hortonworks</deb.publisher>
     <deb.section>universe/admin</deb.section>
     <deb.architecture>i386 amd64</deb.architecture>
     <deb.priority>extra</deb.priority>
-    <stack.distribution>HDP</stack.distribution>
+    <stack.distribution>BIGTOP</stack.distribution>
     <ambari.dir>${project.basedir}</ambari.dir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
@@ -225,8 +226,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.2</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>${jdk.version}</source>
+          <target>${jdk.version}</target>
         </configuration>
       </plugin>
       <plugin>
@@ -286,7 +287,6 @@
             <exclude>CHANGES.txt</exclude>
             <exclude>pass.txt</exclude>
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
-            <exclude>contrib/fast-hdfs-resource/dependency-reduced-pom.xml</exclude>
             <exclude>contrib/agent-simulator/docker_image/package_list.txt</exclude>
             <exclude>contrib/agent-simulator/config/cluster.txt</exclude>
             <exclude>version</exclude>
@@ -343,6 +343,7 @@
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
             <exclude>contrib/ambari-scom/ambari-scom-server/pass.txt</exclude>
             <exclude>contrib/ambari-scom/*/rat.txt</exclude>
+            <exclude>contrib/views/capacity-scheduler/src/main/resources/ui/node_modules/**</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/.bowerrc</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/bower_components/**</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/node/**</exclude>

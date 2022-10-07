@@ -182,7 +182,10 @@ def get_packages(scope, service_name = None, component_name = None):
 
   stack_packages_config = default("/configurations/cluster-env/stack_packages", None)
   if stack_packages_config is None:
-    raise Fail("The stack packages are not defined on the command. Unable to load packages for the stack-select tool")
+    # TODO temporary disabled, we need to re-enable the error after bigtop-select is provided.
+    Logger.error("Temporary disable: The stack packages are not defined on the command. Unable to load packages for the stack-select tool")
+    return None
+    # raise Fail("The stack packages are not defined on the command. Unable to load packages for the stack-select tool")
 
   data = json.loads(stack_packages_config)
 
