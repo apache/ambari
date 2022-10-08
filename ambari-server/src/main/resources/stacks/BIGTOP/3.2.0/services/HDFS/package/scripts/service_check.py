@@ -81,13 +81,14 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
     params.HdfsResource(None, action="execute")
 
     if params.has_journalnode_hosts:
-      journalnode_web_path = "/journalnode.html"
+      journalnode_web_path = "/index.html"
       if params.security_enabled:
         for host in params.journalnode_hosts:
           if params.https_only:
-            uri = format("https://{host}:{journalnode_port}{journalnode_web_path}")
+            uri = format("https://{host}:{journalnode_port}")
           else:
-            uri = format("http://{host}:{journalnode_port}{journalnode_web_path}")
+            uri = format("http://{host}:{journalnode_port}")
+          uri += journalnode_web_path
           response, errmsg, time_millis = curl_krb_request(params.tmp_dir, params.smoke_user_keytab,
                                                            params.smokeuser_principal, uri, "jn_service_check",
                                                            params.kinit_path_local, False, None, params.smoke_user)
@@ -95,7 +96,6 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
             Logger.error("Cannot access WEB UI on: {0}. Error : {1}", uri, errmsg)
             return 1
       else:
-        journalnode_port = params.journalnode_port
         checkWebUIFileName = "checkWebUI.py"
         checkWebUIFilePath = format("{tmp_dir}/{checkWebUIFileName}")
         comma_sep_jn_hosts = ",".join(params.journalnode_hosts)
