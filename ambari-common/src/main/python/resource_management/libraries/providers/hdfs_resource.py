@@ -422,16 +422,25 @@ class HdfsResourceWebHDFS:
     
   def _create_resource(self):
     is_create = (self.main_resource.resource.source == None)
+    source = self.main_resource.resource.source
+    type = self.main_resource.resource.type
+    target = self.main_resource.resource.target
+    refresh_status = True
     
-    if is_create and self.main_resource.resource.type == "directory":
-      self._create_directory(self.main_resource.resource.target)
-    elif is_create and self.main_resource.resource.type == "file":
-      self._create_file(self.main_resource.target, mode=self.mode)
-    elif not is_create and self.main_resource.resource.type == "file":
-      self._create_file(self.main_resource.resource.target, source=self.main_resource.resource.source, mode=self.mode)
-    elif not is_create and self.main_resource.resource.type == "directory":
-      self._create_directory(self.main_resource.resource.target)
-      self._copy_from_local_directory(self.main_resource.resource.target, self.main_resource.resource.source)
+    if is_create and type == "directory":
+      self._create_directory(target)
+    elif is_create and type == "file":
+      self._create_file(target, mode=self.mode)
+    elif not is_create and type == "file":
+      self._create_file(target, source=source, mode=self.mode)
+    elif not is_create and type == "directory":
+      self._create_directory(target)
+      self._copy_from_local_directory(target, source)
+    else:
+      refresh_status = False
+
+    if refresh_status:
+      self.target_status = self._get_file_status(target)
     
   def _copy_from_local_directory(self, target, source):
     for next_path_part in sudo.listdir(source):
