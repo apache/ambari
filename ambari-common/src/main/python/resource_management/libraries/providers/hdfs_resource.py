@@ -422,16 +422,25 @@ class HdfsResourceWebHDFS:
     
   def _create_resource(self):
     is_create = (self.main_resource.resource.source == None)
+    source = self.main_resource.resource.source
+    type = self.main_resource.resource.type
+    target = self.main_resource.resource.target
+    refresh_status = True
     
-    if is_create and self.main_resource.resource.type == "directory":
-      self._create_directory(self.main_resource.resource.target)
-    elif is_create and self.main_resource.resource.type == "file":
-      self._create_file(self.main_resource.target, mode=self.mode)
-    elif not is_create and self.main_resource.resource.type == "file":
-      self._create_file(self.main_resource.resource.target, source=self.main_resource.resource.source, mode=self.mode)
-    elif not is_create and self.main_resource.resource.type == "directory":
-      self._create_directory(self.main_resource.resource.target)
-      self._copy_from_local_directory(self.main_resource.resource.target, self.main_resource.resource.source)
+    if is_create and type == "directory":
+      self._create_directory(target)
+    elif is_create and type == "file":
+      self._create_file(target, mode=self.mode)
+    elif not is_create and type == "file":
+      self._create_file(target, source=source, mode=self.mode)
+    elif not is_create and type == "directory":
+      self._create_directory(target)
+      self._copy_from_local_directory(target, source)
+    else:
+      refresh_status = False
+
+    if refresh_status:
+      self.target_status = self._get_file_status(target)
     
   def _copy_from_local_directory(self, target, source):
     for next_path_part in sudo.listdir(source):
@@ -524,33 +533,29 @@ class HdfsResourceWebHDFS:
     file_status = self._get_file_status(target) if target!=self.main_resource.resource.target else self.target_status
     mode = "" if not mode else mode
 
-    kwargs = {'permission': mode} if mode else {}
     if file_status:
-      # Target file exists
       if source:
-        # Upload target file
         length = file_status['length']
         local_file_size = os.stat(source).st_size # TODO: os -> sudo
 
         # TODO: re-implement this using checksums
         if local_file_size == length:
           Logger.info(format("DFS file {target} is identical to {source}, skipping the copying"))
+          return
         elif not self.main_resource.resource.replace_existing_files:
           Logger.info(format("Not replacing existing DFS file {target} which is different from {source}, due to replace_existing_files=False"))
-        else:
-          Logger.info(format("Reupload file {target} in DFS"))
-
-          self.util.run_command(target, 'CREATE', method='PUT', overwrite=True, assertable_result=False, file_to_put=source, **kwargs)
-          # Get file status again after file reupload
-          self.target_status = self._get_file_status(target)
+          return
       else:
-        # Create target file
         Logger.info(format("File {target} already exists in DFS, skipping the creation"))
-    else:
-      # Target file is not exists
-      Logger.info(format("Creating new file {target} in DFS"))
+        return
 
-      self.util.run_command(target, 'CREATE', method='PUT', overwrite=True, assertable_result=False, file_to_put=source, **kwargs)
+    Logger.info(format("Creating new file {target} in DFS"))
+    kwargs = {'permission': mode} if mode else {}
+
+    self.util.run_command(target, 'CREATE', method='PUT', overwrite=True, assertable_result=False, file_to_put=source, **kwargs)
+
+    if mode and file_status:
+      file_status['permission'] = mode
 
 
   def _delete_resource(self):
