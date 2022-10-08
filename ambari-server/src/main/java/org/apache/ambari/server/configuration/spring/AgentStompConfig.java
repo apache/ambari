@@ -72,7 +72,7 @@ public class AgentStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/v1").setHandshakeHandler(getHandshakeHandler())
-        .setAllowedOrigins("*");
+        .setAllowedOriginPatterns("*");
 
   }
 
