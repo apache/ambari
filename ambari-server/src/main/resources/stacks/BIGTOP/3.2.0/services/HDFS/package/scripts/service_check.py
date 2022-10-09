@@ -81,7 +81,6 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
     params.HdfsResource(None, action="execute")
 
     if params.has_journalnode_hosts:
-      journalnode_web_path = "/index.html"
       if params.security_enabled:
         for host in params.journalnode_hosts:
           if params.https_only:
