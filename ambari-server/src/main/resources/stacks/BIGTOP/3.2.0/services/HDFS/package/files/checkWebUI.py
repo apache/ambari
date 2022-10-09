@@ -39,16 +39,16 @@ class ForcedProtocolHTTPSConnection(httplib.HTTPSConnection):
       self._tunnel()
     self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=getattr(ssl, self.force_protocol))
 
-def make_connection(host, port, https, force_protocol=None, path="/"):
+def make_connection(host, port, https, force_protocol=None):
   try:
     conn = httplib.HTTPConnection(host, port) if not https else httplib.HTTPSConnection(host, port)
-    conn.request("GET", path)
+    conn.request("GET", "/")
     return conn.getresponse().status
   except ssl.SSLError:
     # got ssl error, lets try to use TLS1 protocol, maybe it will work
     try:
       tls1_conn = ForcedProtocolHTTPSConnection(host, port, force_protocol)
-      tls1_conn.request("GET", path)
+      tls1_conn.request("GET", "/")
       return tls1_conn.getresponse().status
     except Exception as e:
       print e
@@ -67,7 +67,6 @@ def main():
   parser.add_option("-p", "--port", dest="port", help="Port of WEB UI to check it availability")
   parser.add_option("-s", "--https", dest="https", help="\"True\" if value of dfs.http.policy is \"HTTPS_ONLY\"")
   parser.add_option("-o", "--protocol", dest="protocol", help="Protocol to use when executing https request")
-  parser.add_option("-a", "--path", dest="path", help="Path of WEB UI")
 
   (options, args) = parser.parse_args()
   
@@ -75,13 +74,12 @@ def main():
   port = options.port
   https = options.https
   protocol = options.protocol
-  path = options.path
 
   for host in hosts:
-    httpCode = make_connection(host, port, https.lower() == "true", protocol, path)
+    httpCode = make_connection(host, port, https.lower() == "true", protocol)
 
-    if httpCode != 200:
-      print "Cannot access WEB UI on: http://" + host + ":" + port + path if not https.lower() == "true" else "Cannot access WEB UI on: https://" + host + ":" + port + path
+    if httpCode != 200 and httpCode != 302:
+      print "Cannot access WEB UI on: http://" + host + ":" + port if not https.lower() == "true" else "Cannot access WEB UI on: https://" + host + ":" + port
       exit(1)
 
 if __name__ == "__main__":
