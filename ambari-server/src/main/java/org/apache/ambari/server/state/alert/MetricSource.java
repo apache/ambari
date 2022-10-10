@@ -17,9 +17,6 @@
  */
 package org.apache.ambari.server.state.alert;
 
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.IntStream.range;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
