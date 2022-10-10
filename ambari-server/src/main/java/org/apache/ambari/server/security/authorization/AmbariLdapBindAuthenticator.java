@@ -85,7 +85,7 @@ public class AmbariLdapBindAuthenticator extends AbstractLdapAuthenticator {
       LOG.warn("The user data does not contain a value for {}.", ldapServerProperties.getUsernameAttribute());
     } else if (ldapUserName.isEmpty()) {
       LOG.warn("The user data contains an empty value for {}.", ldapServerProperties.getUsernameAttribute());
-    } else if (!ldapUserName.equals(loginName)) {
+    } else {
       // if authenticated user name is different from ldap user name than user has logged in
       // with a login name that is different (e.g. user principal name) from the ambari user name stored in
       // ambari db. In this case add the user login name  as login alias for ambari user name.
@@ -100,8 +100,10 @@ public class AmbariLdapBindAuthenticator extends AbstractLdapAuthenticator {
       } else {
         processedLdapUserName = ldapUserName;
       }
-
-      AuthorizationHelper.addLoginNameAlias(processedLdapUserName, loginName);
+      if (!processedLdapUserName.equals(loginName.toLowerCase()))
+      {
+        AuthorizationHelper.addLoginNameAlias(processedLdapUserName, loginName.toLowerCase());
+      }
     }
 
     return user;
@@ -289,12 +291,7 @@ public class AmbariLdapBindAuthenticator extends AbstractLdapAuthenticator {
     String setAmbariAdminAttrFilter = resolveAmbariAdminAttrFilter(ldapServerProperties, memberValue);
     LOG.debug("LDAP login - set admin attr filter: {}", setAmbariAdminAttrFilter);
 
-    AttributesMapper attributesMapper = new AttributesMapper() {
-      public Object mapFromAttributes(Attributes attrs)
-          throws NamingException {
-        return attrs.get(groupNamingAttribute).get();
-      }
-    };
+    AttributesMapper attributesMapper = attrs -> attrs.get(groupNamingAttribute).get();
 
     LdapTemplate ldapTemplate = new LdapTemplate((getContextSource()));
     ldapTemplate.setIgnorePartialResultException(true);

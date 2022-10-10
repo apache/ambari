@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -531,6 +533,11 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  public ConfigGroup getConfigGroupsById(Long configId) {
+    return clusterConfigGroups.get(configId);
+  }
+
+  @Override
   public void addRequestExecution(RequestExecution requestExecution) throws AmbariException {
     LOG.info("Adding a new request schedule" + ", clusterName = " + getClusterName() + ", id = "
         + requestExecution.getId() + ", description = " + requestExecution.getDescription());
@@ -588,6 +595,7 @@ public class ClusterImpl implements Cluster {
     return serviceComponentHosts.get(serviceName).get(serviceComponentName).get(hostname);
   }
 
+  @Override
   public List<ServiceComponentHost> getServiceComponentHosts() {
     List<ServiceComponentHost> serviceComponentHosts = new ArrayList<>();
     if (!serviceComponentHostsByHost.isEmpty()) {
@@ -800,7 +808,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public Map<String, Set<String>> getServiceComponentHostMap(Set<String> hostNames, Set<String> serviceNames) {
-    Map<String, Set<String>> componentHostMap = new HashMap<>();
+    Map<String, Set<String>> componentHostMap = new TreeMap<>();
 
     Collection<Host> hosts = getHosts();
 
@@ -820,7 +828,7 @@ public class ClusterImpl implements Cluster {
                 Set<String> componentHosts = componentHostMap.get(component);
 
                 if (componentHosts == null) {
-                  componentHosts = new HashSet<>();
+                  componentHosts = new TreeSet<>();
                   componentHostMap.put(component, componentHosts);
                 }
 
@@ -930,7 +938,7 @@ public class ClusterImpl implements Cluster {
       ClusterEntity clusterEntity = getClusterEntity();
 
       clusterEntity.setDesiredStack(stackEntity);
-      clusterEntity = clusterDAO.merge(clusterEntity);
+      clusterDAO.merge(clusterEntity);
 
       loadServiceConfigTypes();
     } finally {
@@ -953,7 +961,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public State getProvisioningState() {
-    State provisioningState = null;
+    State provisioningState;
     ClusterEntity clusterEntity = getClusterEntity();
     provisioningState = clusterEntity.getProvisioningState();
 
@@ -968,7 +976,7 @@ public class ClusterImpl implements Cluster {
   public void setProvisioningState(State provisioningState) {
     ClusterEntity clusterEntity = getClusterEntity();
     clusterEntity.setProvisioningState(provisioningState);
-    clusterEntity = clusterDAO.merge(clusterEntity);
+    clusterDAO.merge(clusterEntity);
   }
 
   private boolean setBlueprintProvisioningState(BlueprintProvisioningState blueprintProvisioningState) {
@@ -1007,7 +1015,7 @@ public class ClusterImpl implements Cluster {
   public void setSecurityType(SecurityType securityType) {
     ClusterEntity clusterEntity = getClusterEntity();
     clusterEntity.setSecurityType(securityType);
-    clusterEntity = clusterDAO.merge(clusterEntity);
+    clusterDAO.merge(clusterEntity);
   }
 
   /**
@@ -1136,11 +1144,11 @@ public class ClusterImpl implements Cluster {
         clusterStateDAO.create(clusterStateEntity);
         clusterStateEntity = clusterStateDAO.merge(clusterStateEntity);
         clusterEntity.setClusterStateEntity(clusterStateEntity);
-        clusterEntity = clusterDAO.merge(clusterEntity);
+        clusterDAO.merge(clusterEntity);
       } else {
         clusterStateEntity.setCurrentStack(stackEntity);
-        clusterStateEntity = clusterStateDAO.merge(clusterStateEntity);
-        clusterEntity = clusterDAO.merge(clusterEntity);
+        clusterStateDAO.merge(clusterStateEntity);
+        clusterDAO.merge(clusterEntity);
       }
     } catch (RollbackException e) {
       LOG.warn("Unable to set version " + stackId + " for cluster "
@@ -1178,6 +1186,14 @@ public class ClusterImpl implements Cluster {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
+  }
+
+  @Override
+  public Config getDesiredConfigByType(String configType, @Nullable Map<String, DesiredConfig> desiredConfigs) {
+    DesiredConfig desiredConfig = (desiredConfigs == null) ? null : desiredConfigs.get(configType);
+    return (desiredConfig == null)
+      ? getDesiredConfigByType(configType)
+      : getConfig(configType, desiredConfig.getTag());
   }
 
   @Override
@@ -1232,9 +1248,7 @@ public class ClusterImpl implements Cluster {
     try {
       List<Config> list = new ArrayList<>();
       for (Entry<String, ConcurrentMap<String, Config>> entry : allConfigs.entrySet()) {
-        for (Config config : entry.getValue().values()) {
-          list.add(config);
-        }
+        list.addAll(entry.getValue().values());
       }
       return Collections.unmodifiableList(list);
     } finally {
@@ -1308,6 +1322,20 @@ public class ClusterImpl implements Cluster {
       }
       STOMPComponentsDeleteHandler.processDeleteCluster(getClusterId());
       services.clear();
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
+    }
+  }
+
+  @Override
+  @Transactional
+  public void deleteAllClusterConfigs() {
+    clusterGlobalLock.writeLock().lock();
+    try {
+      Collection<ClusterConfigEntity> clusterConfigs = getClusterEntity().getClusterConfigEntities();
+      for (ClusterConfigEntity clusterConfigEntity : clusterConfigs) {
+        clusterDAO.removeConfig(clusterConfigEntity);
+      }
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
@@ -1391,6 +1419,7 @@ public class ClusterImpl implements Cluster {
     try {
       refresh();
       deleteAllServices();
+      deleteAllClusterConfigs();
       resetHostVersions();
 
       refresh(); // update one-to-many clusterServiceEntities
@@ -1482,13 +1511,8 @@ public class ClusterImpl implements Cluster {
   public Map<String, DesiredConfig> getDesiredConfigs(boolean cachedConfigEntities) {
     Map<String, Set<DesiredConfig>> activeConfigsByType = getDesiredConfigs(false, cachedConfigEntities);
     return Maps.transformEntries(
-        activeConfigsByType,
-        new Maps.EntryTransformer<String, Set<DesiredConfig>, DesiredConfig>() {
-          @Override
-          public DesiredConfig transformEntry(@Nullable String key, @Nullable Set<DesiredConfig> value) {
-            return value.iterator().next();
-          }
-        });
+      activeConfigsByType,
+      (key, value) -> value.iterator().next());
   }
 
   /**
@@ -2005,7 +2029,7 @@ public class ClusterImpl implements Cluster {
       }
     }
 
-    clusterEntity = clusterDAO.merge(clusterEntity);
+    clusterDAO.merge(clusterConfigs);
 
     if (serviceName == null) {
       ArrayList<String> configTypes = new ArrayList<>();
@@ -2521,7 +2545,7 @@ public class ClusterImpl implements Cluster {
       // since the entities which were modified came from the cluster entity's
       // list to begin with, we can just save them right back - no need for a
       // new collection since the entity instances were modified directly
-      clusterEntity = clusterDAO.merge(clusterEntity, true);
+      clusterDAO.merge(configEntities, true);
 
       cacheConfigurations();
 
@@ -2692,6 +2716,7 @@ public class ClusterImpl implements Cluster {
    *
    * @return
    */
+  @Override
   public ClusterEntity getClusterEntity() {
     return clusterDAO.findById(clusterId);
   }
@@ -2892,5 +2917,18 @@ public class ClusterImpl implements Cluster {
     }
 
     return componentVersionMap;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    ClusterImpl cluster = (ClusterImpl) o;
+    return clusterId == cluster.clusterId;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(clusterId);
   }
 }

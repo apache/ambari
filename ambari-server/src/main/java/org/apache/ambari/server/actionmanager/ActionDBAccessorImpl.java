@@ -20,7 +20,6 @@ package org.apache.ambari.server.actionmanager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -220,7 +219,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     // only request commands which actually need to be aborted; requesting all
     // commands here can cause OOM problems during large requests like upgrades
     List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByRequestIdAndStatuses(requestId,
-        HostRoleStatus.SCHEDULED_STATES);
+        HostRoleStatus.STATES_TO_ABORT);
 
     for (HostRoleCommandEntity command : commands) {
       command.setStatus(HostRoleStatus.ABORTED);
@@ -717,13 +716,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       return Collections.emptyList();
     }
 
-    List<HostRoleCommand> commands = new ArrayList<>();
-
     Map<Long, HostRoleCommand> cached = hostRoleCommandCache.getAllPresent(taskIds);
-    commands.addAll(cached.values());
+    List<HostRoleCommand> commands = new ArrayList<>(cached.values());
 
-    List<Long> absent = new ArrayList<>();
-    absent.addAll(taskIds);
+    List<Long> absent = new ArrayList<>(taskIds);
     absent.removeAll(cached.keySet());
 
     if (!absent.isEmpty()) {
@@ -744,12 +740,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         }
       }
     }
-    Collections.sort(commands, new Comparator<HostRoleCommand>() {
-      @Override
-      public int compare(HostRoleCommand o1, HostRoleCommand o2) {
-        return (int) (o1.getTaskId()-o2.getTaskId());
-      }
-    });
+    commands.sort((o1, o2) -> (int) (o1.getTaskId() - o2.getTaskId()));
     return commands;
   }
 
@@ -903,20 +894,22 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       RequestDetails requestDetails = new RequestDetails();
       requestDetails.setNumberOfTasks(numberOfTasks);
       requestDetails.setUserName(AuthorizationHelper.getAuthenticatedName());
+      requestDetails.setProxyUserName(AuthorizationHelper.getProxyUserName());
       auditlogRequestCache.put(request.getRequestId(), requestDetails);
     }
   }
 
   /**
    * AuditLog operation status change
+   *
    * @param requestId
    */
   private void auditLog(HostRoleCommandEntity commandEntity, Long requestId) {
-    if(!auditLogger.isEnabled()) {
+    if (!auditLogger.isEnabled()) {
       return;
     }
 
-    if(requestId != null) {
+    if (requestId != null) {
       HostRoleStatus lastTaskStatus = updateAuditlogCache(commandEntity, requestId);
 
       // details must not be null
@@ -928,12 +921,13 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
           RequestEntity request = requestDAO.findByPK(requestId);
           String context = request != null ? request.getRequestContext() : null;
           AuditEvent auditEvent = OperationStatusAuditEvent.builder()
-            .withRequestId(String.valueOf(requestId))
-            .withStatus(String.valueOf(calculatedStatus))
-            .withRequestContext(context)
-            .withUserName(details.getUserName())
-            .withTimestamp(System.currentTimeMillis())
-            .build();
+              .withRequestId(String.valueOf(requestId))
+              .withStatus(String.valueOf(calculatedStatus))
+              .withRequestContext(context)
+              .withUserName(details.getUserName())
+              .withProxyUserName(details.getProxyUserName())
+              .withTimestamp(System.currentTimeMillis())
+              .build();
           auditLogger.log(auditEvent);
 
           details.setLastStatus(calculatedStatus);
@@ -978,6 +972,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         .withTaskId(String.valueOf(commandEntity.getTaskId()))
         .withHostName(commandEntity.getHostName())
         .withUserName(details.getUserName())
+        .withProxyUserName(details.getProxyUserName())
         .withOperation(commandEntity.getRoleCommand() + " " + commandEntity.getRole())
         .withDetails(commandEntity.getCommandDetail())
         .withStatus(commandEntity.getStatus().toString())
@@ -1014,6 +1009,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
      */
     Map<Component, HostRoleStatus> tasks = new HashMap<>();
 
+    /**
+     * Name of the proxy user if proxied
+     */
+    private String proxyUserName;
+
     public HostRoleStatus getLastStatus() {
       return lastStatus;
     }
@@ -1048,6 +1048,14 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
      */
     public Collection<HostRoleStatus> getTaskStatuses() {
       return getTasks().values();
+    }
+
+    public String getProxyUserName() {
+      return proxyUserName;
+    }
+
+    public void setProxyUserName(String proxyUserName) {
+      this.proxyUserName = proxyUserName;
     }
 
     /**

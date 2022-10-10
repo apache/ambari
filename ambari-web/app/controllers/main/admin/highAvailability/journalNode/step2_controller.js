@@ -82,7 +82,7 @@ App.ManageJournalNodeWizardStep2Controller = Em.Controller.extend({
 
   onLoadConfigs: function (data) {
     this.set('serverConfigData', data);
-    this.set('content.nameServiceId', data.items[0].properties['dfs.nameservices']);
+    this.set('content.nameServiceIds', data.items[0].properties['dfs.nameservices'].split(','));
     this.tweakServiceConfigs(this.get('moveJNConfig.configs'));
     this.renderServiceConfigs(this.get('moveJNConfig'));
     this.set('isLoaded', true);
@@ -91,10 +91,10 @@ App.ManageJournalNodeWizardStep2Controller = Em.Controller.extend({
   /**
    * Generate set of data used to correctly initialize config values and names
    */
-  _prepareDependencies: function () {
+  _prepareDependencies: function (nameServiceId) {
     var ret = {};
     var configsFromServer = this.get('serverConfigData.items');
-    ret.namespaceId = this.get('content.nameServiceId');
+    ret.namespaceId = nameServiceId || this.get('content.nameServiceIds')[0];
     ret.serverConfigs = configsFromServer;
     return ret;
   },
@@ -113,16 +113,45 @@ App.ManageJournalNodeWizardStep2Controller = Em.Controller.extend({
     return localDB;
   },
 
-  tweakServiceConfigs: function (configs) {
+  tweakServiceConfigs: function (allConfigsDescriptor) {
+    var hasNameNodeFederation = App.get('hasNameNodeFederation');
+    var configs = hasNameNodeFederation
+      ? allConfigsDescriptor.filterProperty('presentForFederatedHDFS')
+      : allConfigsDescriptor.filterProperty('presentForNonFederatedHDFS');
+    var nameSpaceDependentConfigs = configs.filterProperty('dependsOnNameServiceId');
+    var nameSpaceIndependentConfigs = configs.rejectProperty('dependsOnNameServiceId');
     var localDB = this._prepareLocalDB();
-    var dependencies = this._prepareDependencies();
+    var commonDependencies = this._prepareDependencies();
+    var generatedConfigs = [];
+    var wizardController = App.router.get(this.get('content.controllerName'));
+    var journalNodes = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE');
 
-    configs.forEach(function (config) {
-      App.NnHaConfigInitializer.initialValue(config, localDB, dependencies);
+    nameSpaceIndependentConfigs.forEach(function (config) {
+      App.NnHaConfigInitializer.initialValue(config, localDB, commonDependencies);
       config.isOverridable = false;
+      generatedConfigs.push(config);
     });
 
-    return configs;
+    this.get('content.nameServiceIds').forEach(function (nameServiceId) {
+      var dependencies = this._prepareDependencies(nameServiceId);
+      dependencies.journalnodes = journalNodes.map(function (c) {
+        return c.hostName + ':8485';
+      }).join(';');
+      nameSpaceDependentConfigs.forEach(function (config) {
+        var generatedConfig = $.extend({}, config, {
+          isOverridable: false,
+          name: wizardController.replaceDependencies(config.name, dependencies),
+          displayName: wizardController.replaceDependencies(config.displayName, dependencies),
+          value: wizardController.replaceDependencies(config.value, dependencies),
+          recommendedValue: wizardController.replaceDependencies(config.recommendedValue, dependencies)
+        });
+        generatedConfigs.push(generatedConfig);
+      }, this);
+    }, this);
+
+    this.set('moveJNConfig.configs', generatedConfigs);
+
+    return generatedConfigs;
   },
 
   renderServiceConfigs: function (_serviceConfig) {

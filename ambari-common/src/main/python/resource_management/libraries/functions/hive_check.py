@@ -22,12 +22,13 @@ from resource_management.core import global_lock
 from resource_management.core.resources import Execute
 from resource_management.libraries.functions import format
 from resource_management.core.signal_utils import TerminateStrategy
+from resource_management.core.shell import quote_bash_args
 
 
 def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd=None, smokeuser='ambari-qa',
                            hive_user='hive', transport_mode="binary", http_endpoint="cliservice",
                            ssl=False, ssl_keystore=None, ssl_password=None, check_command_timeout=30,
-                           ldap_username="", ldap_password=""):
+                           ldap_username="", ldap_password="", pam_username="", pam_password=""):
   """
   Hive thrift SASL port check
   """
@@ -51,14 +52,23 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
   if hive_auth == "NOSASL":
     beeline_url.append('auth=noSasl')
 
-  credential_str = ""
+  credential_str = "-n {hive_user}"
+
   # append username and password for LDAP
   if hive_auth == "LDAP":
-    credential_str = "-n '{ldap_username}' -p '{ldap_password!p}'"
+    # password might contain special characters that need to be escaped
+    quoted_ldap_password = quote_bash_args(ldap_password)
+    credential_str = "-n {ldap_username} -p {quoted_ldap_password!p}"
+
+  # append username and password for PAM
+  if hive_auth == "PAM":
+    # password might contain special characters that need to be escaped
+    quoted_pam_password = quote_bash_args(pam_password)
+    credential_str = "-n '{pam_username}' -p '{quoted_pam_password!p}'"
 
   # append url according to ssl configuration
   if ssl and ssl_keystore is not None and ssl_password is not None:
-    beeline_url.extend(['ssl={ssl_str}', 'sslTrustStore={ssl_keystore}', 'trustStorePassword={ssl_password!p}'])
+    beeline_url.extend(['ssl={ssl_str}', 'sslTrustStore={ssl_keystore}', "trustStorePassword='{ssl_password!p}'"])
 
   # append url according to principal and execute kinit
   if kinitcmd and hive_auth != "LDAP":
@@ -74,8 +84,9 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
 
   # -n the user to connect as (ignored when using the hive principal in the URL, can be different from the user running the beeline command)
   # -e ';' executes a SQL commmand of NOOP
-  cmd = "beeline -n %s -u '%s' %s -e ';' 2>&1 | awk '{print}' | grep -i -e 'Connected to:' -e 'Transaction isolation:'" % \
-        (format(hive_user), format(";".join(beeline_url)), format(credential_str))
+  cmd = ("! (beeline -u '%s' %s -e ';' 2>&1 | awk '{print}' | grep -vz -i " + \
+         "-e 'Connected to:' -e 'Transaction isolation:' -e 'inactive HS2 instance; use service discovery')") % \
+        (format(";".join(beeline_url)), format(credential_str))
 
   Execute(cmd,
     user=smokeuser,

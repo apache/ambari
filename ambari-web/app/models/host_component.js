@@ -372,7 +372,7 @@ App.HostComponentActionMap = {
         action: 'regenerateKeytabFileOperations',
         label: Em.I18n.t('admin.kerberos.button.regenerateKeytabs'),
         cssClass: 'glyphicon glyphicon-repeat',
-        isHidden: !App.get('isKerberosEnabled')
+        isHidden: !App.get('isKerberosEnabled') || App.get('router.mainAdminKerberosController.isManualKerberos')
       },
       REFRESHQUEUES: {
         action: 'refreshYarnQueues',
@@ -555,6 +555,22 @@ App.HostComponentActionMap = {
         label: Em.I18n.t('admin.nameNodeFederation.button.enable'),
         cssClass: 'icon icon-sitemap',
         disabled: !App.get('isHaEnabled')
+      },
+      UPDATE_REPLICATION: {
+        action: 'updateHBaseReplication',
+        customCommand: 'UPDATE_REPLICATION',
+        context: Em.I18n.t('services.service.actions.run.updateHBaseReplication.context'),
+        label: Em.I18n.t('services.service.actions.run.updateHBaseReplication.label'),
+        cssClass: 'glyphicon glyphicon-refresh',
+        disabled: false
+      },
+      STOP_REPLICATION: {
+        action: 'stopHBaseReplication',
+        customCommand: 'STOP_REPLICATION',
+        context: Em.I18n.t('services.service.actions.run.stopHBaseReplication.context'),
+        label: Em.I18n.t('services.service.actions.run.stopHBaseReplication.label'),
+        cssClass: 'glyphicon glyphicon-refresh',
+        disabled: false
       }
     };
   },

@@ -32,7 +32,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.ambari.server.api.AmbariErrorHandler;
 import org.apache.ambari.server.api.AmbariPersistFilter;
+import org.apache.ambari.server.api.AmbariViewErrorHandlerProxy;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.security.AmbariViewsSecurityHeaderFilter;
@@ -43,6 +46,7 @@ import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.ViewContext;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.session.SessionCache;
 import org.eclipse.jetty.server.session.SessionHandler;
@@ -51,6 +55,8 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.filter.DelegatingFilterProxy;
+
+import javassist.util.proxy.ProxyFactory;
 
 /**
  * An Ambari specific extension of the FailsafeHandlerList that allows for the addition
@@ -103,6 +109,13 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
 
   @Inject
   SessionHandlerConfigurer sessionHandlerConfigurer;
+
+  @Inject
+  Configuration configuration;
+
+  @Inject
+  AmbariErrorHandler ambariErrorHandler;
+
 
   /**
    * Mapping of view instance entities to handlers.
@@ -169,7 +182,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     viewHandlerMap.put(viewInstanceDefinition, handler);
     super.addHandler(handler);
     // if this is running then start the handler being added...
-    if(!isStopped() && !isStopping()) {
+    if (!isStopped() && !isStopping()) {
       try {
         handler.start();
       } catch (Exception e) {
@@ -229,17 +242,15 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
   /**
    * Get a Handler for the given view instance.
    *
-   * @param viewInstanceDefinition  the view instance definition
-   *
+   * @param viewInstanceDefinition the view instance definition
    * @return a handler
-   *
    * @throws org.apache.ambari.view.SystemException if an handler can not be obtained for the given view instance
    */
   private WebAppContext getHandler(ViewInstanceEntity viewInstanceDefinition)
     throws SystemException {
 
-    ViewEntity    viewDefinition = viewInstanceDefinition.getViewEntity();
-    WebAppContext webAppContext  = webAppContextProvider.get();
+    ViewEntity viewDefinition = viewInstanceDefinition.getViewEntity();
+    WebAppContext webAppContext = webAppContextProvider.get();
 
     webAppContext.setWar(viewDefinition.getArchive());
     webAppContext.setContextPath(viewInstanceDefinition.getContextPath());
@@ -251,14 +262,36 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     webAppContext.addFilter(new FilterHolder(springSecurityFilter), "/*", AmbariServer.DISPATCHER_TYPES);
     webAppContext.setAllowNullPathInfo(true);
 
+
+    if (webAppContext.getErrorHandler() != null) {
+      ErrorHandler errorHandlerProxy = createAmbariViewErrorHandlerProxy(webAppContext.getErrorHandler());
+      if (errorHandlerProxy != null) {
+        webAppContext.setErrorHandler(errorHandlerProxy);
+      }
+      webAppContext.getErrorHandler().setShowStacks(configuration.isServerShowErrorStacks());
+    }
+
     return webAppContext;
+  }
+
+  private ErrorHandler createAmbariViewErrorHandlerProxy(ErrorHandler errorHandler) {
+    ErrorHandler proxy = null;
+    try {
+      ProxyFactory proxyFactory = new ProxyFactory();
+      proxyFactory.setSuperclass(ErrorHandler.class);
+      proxy = (ErrorHandler) proxyFactory.create(new Class[0],
+        new Object[0],
+        new AmbariViewErrorHandlerProxy(errorHandler, ambariErrorHandler));
+    } catch (Exception e) {
+      LOG.error("An error occurred while instantiating the error handler proxy instance", e);
+    }
+    return proxy;
   }
 
   /**
    * Get the view that is the target of the request; null if not a view request.
    *
-   * @param target  the target of the request
-   *
+   * @param target the target of the request
    * @return the view target; null if none
    */
   private ViewEntity getTargetView(String target) {
@@ -281,7 +314,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     /**
      * Construct a SharedSessionHandler.
      *
-     * @param sessionHandler  the shared session manager.
+     * @param sessionHandler the shared session manager.
      */
     public SharedSessionHandler(SessionHandler sessionHandler) {
       setSessionIdManager(sessionHandler.getSessionIdManager());

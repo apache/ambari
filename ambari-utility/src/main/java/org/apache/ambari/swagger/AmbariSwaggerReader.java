@@ -253,6 +253,7 @@ public class AmbariSwaggerReader extends JaxrsReader {
 }
 
 class ParameterToName implements Function<Parameter, String> {
+  @Override
   public String apply(Parameter input) {
     return input.getName();
   }

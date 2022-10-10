@@ -81,7 +81,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     dfs_corrupt_blocks_values: 'metrics.dfs.FSNamesystem.CorruptBlocks',
     dfs_missing_blocks_values: 'metrics.dfs.FSNamesystem.MissingBlocks',
     dfs_under_replicated_blocks_values: 'metrics.dfs.FSNamesystem.UnderReplicatedBlocks',
-    dfs_total_files_values: 'metrics.dfs.namenode.TotalFiles',
+    dfs_total_files_values: 'metrics.dfs.FSNamesystem.FilesTotal',
     work_status_values: 'HostRoles.state',
     upgrade_status_values: 'metrics.dfs.namenode.UpgradeFinalized',
     safe_mode_status_values: 'metrics.dfs.namenode.Safemode',
@@ -316,16 +316,19 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     var self = this;
     App.router.get('configurationController').getCurrentConfigsBySites(['hive-site', 'hive-interactive-site']).done(function (configs) {
       var hiveWebUiPort = configs.findProperty('type', 'hive-interactive-site').properties['hive.server2.webui.port'];
+      var hiveWebUiProtoFlag = configs.findProperty('type', 'hive-interactive-site').properties['hive.server2.webui.use.ssl'] === 'true';
+      var hiveWebUiProto = hiveWebUiProtoFlag ? 'https' : 'http';
       var hostNames = hiveInteractiveServers.mapProperty('host_name');
+      var useIps = configs.findProperty('type', 'hive-interactive-site').properties['hive.server2.leadertest.use.ip'];
       var notDefinedHostIp = hostNames.find(function (hostName) {
         return !self.get('hostNameIpMap')[hostName];
       });
-      if (notDefinedHostIp) {
+      if (useIps && notDefinedHostIp) {
         self.getHostNameIpMap(hostNames).done(function () {
-          self.getHiveServersInteractiveStatus(hiveInteractiveServers, hiveWebUiPort);
+          self.getHiveServersInteractiveStatus(hiveInteractiveServers, hiveWebUiPort, hiveWebUiProto, useIps);
         });
       } else {
-        self.getHiveServersInteractiveStatus(hiveInteractiveServers, hiveWebUiPort);
+        self.getHiveServersInteractiveStatus(hiveInteractiveServers, hiveWebUiPort, hiveWebUiProto, useIps);
       }
     });
   },
@@ -347,14 +350,15 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     });
   },
 
-  getHiveServersInteractiveStatus: function(hiveInteractiveServers, hiveWebUiPort) {
+  getHiveServersInteractiveStatus: function(hiveInteractiveServers, hiveWebUiPort, hiveWebUiProto, useIps) {
     var self = this;
     hiveInteractiveServers.forEach(function (hiveInteractiveServer) {
       App.ajax.send({
         name: 'hiveServerInteractive.getStatus',
         data: {
-          hsiHost: self.hostNameIpMap[hiveInteractiveServer.host_name],
-          port: hiveWebUiPort
+          hsiHost: useIps ? self.hostNameIpMap[hiveInteractiveServer.host_name] : hiveInteractiveServer.host_name,
+          port: hiveWebUiPort,
+          proto: hiveWebUiProto
         },
         sender: self
       }).success(function (isActive) {

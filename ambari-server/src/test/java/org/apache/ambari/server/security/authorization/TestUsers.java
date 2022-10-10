@@ -17,7 +17,10 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import static org.apache.ambari.server.configuration.AmbariServerConfigurationKey.GROUP_MAPPING_RULES;
+import static java.util.Collections.emptySet;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.mock;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
@@ -32,13 +35,11 @@ import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
-import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
-import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
-import org.apache.ambari.server.events.JpaInitializedEvent;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
@@ -46,7 +47,6 @@ import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
-import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
@@ -54,13 +54,18 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authentication.AmbariUserDetailsImpl;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapGroupDto;
 import org.apache.ambari.server.security.ldap.LdapUserDto;
 import org.apache.ambari.server.security.ldap.LdapUserGroupMemberDto;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.Guice;
@@ -90,6 +95,8 @@ public class TestUsers {
   protected PrincipalDAO principalDAO;
   @Inject
   protected PasswordEncoder passwordEncoder;
+  @Inject
+  protected Configuration configuration;
 
   @Before
   public void setup() throws AmbariException {
@@ -165,6 +172,8 @@ public class TestUsers {
     users.grantAdminPrivilege(userEntity);
     users.addLocalAuthentication(userEntity, "admin");
 
+    setAuthenticatedUser(userEntity);
+
     userEntity = users.createUser("user", "user", "user");
     users.addLocalAuthentication(userEntity, "user");
 
@@ -179,7 +188,7 @@ public class TestUsers {
 
     foundUserEntity = userDAO.findUserByName("admin");
     assertNotNull(foundUserEntity);
-    users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "user_new_password", false);
+    users.modifyAuthentication(foundLocalAuthenticationEntity, "admin", "user_new_password", false);
 
     foundUserEntity = userDAO.findUserByName("user");
     assertNotNull(foundUserEntity);
@@ -205,18 +214,29 @@ public class TestUsers {
     assertTrue(passwordEncoder.matches("user", foundLocalAuthenticationEntity.getAuthenticationKey()));
 
     try {
-      users.modifyAuthentication(foundLocalAuthenticationEntity, "user", null, false);
+      users.modifyAuthentication(foundLocalAuthenticationEntity, "user", null, true);
       fail("Null password should not be allowed");
-    } catch (AmbariException e) {
-      assertEquals("The new password does not meet the Ambari password requirements", e.getLocalizedMessage());
+    } catch (IllegalArgumentException e) {
+      assertEquals("The password does not meet the password policy requirements", e.getLocalizedMessage());
     }
 
     try {
       users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "", false);
       fail("Empty password should not be allowed");
-    } catch (AmbariException e) {
-      assertEquals("The new password does not meet the Ambari password requirements", e.getLocalizedMessage());
+    } catch (IllegalArgumentException e) {
+      assertEquals("The password does not meet the password policy requirements", e.getLocalizedMessage());
     }
+
+    //Minimum eight characters, at least one letter and one number:
+    configuration.setProperty(Configuration.PASSWORD_POLICY_REGEXP, "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$");
+    configuration.setProperty(Configuration.PASSWORD_POLICY_DESCRIPTION, "test description");
+    try {
+      users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "abc123", false);
+      fail("Should not pass validation");
+    } catch (IllegalArgumentException e) {
+      assertEquals("The password does not meet the Ambari user password policy : test description", e.getLocalizedMessage());
+    }
+    users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "abcd1234", false);
   }
 
   @Test
@@ -540,16 +560,13 @@ public class TestUsers {
 
   @Test
   public void testProcessLdapSync() {
-    // Setup LDAP properties
-    AmbariConfigurationEntity entity = new AmbariConfigurationEntity();
-    entity.setCategoryName(GROUP_MAPPING_RULES.getConfigurationCategory().getCategoryName());
-    entity.setPropertyName(GROUP_MAPPING_RULES.key());
-    entity.setPropertyValue("admins");
-    injector.getInstance(AmbariConfigurationDAO.class).create(entity);
+    AmbariLdapConfiguration ambariLdapConfiguration = EasyMock.createMock(AmbariLdapConfiguration.class);
+    EasyMock.expect(ambariLdapConfiguration.groupMappingRules()).andReturn("admins").anyTimes();
 
-    AmbariEventPublisher eventPublisher = injector.getInstance(AmbariEventPublisher.class);
-    eventPublisher.publish(new JpaInitializedEvent());
-    eventPublisher.publish(new AmbariConfigurationChangedEvent(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.name()));
+    AmbariLdapConfigurationProvider ambariLdapConfigurationProvider = injector.getInstance(AmbariLdapConfigurationProvider.class);
+    EasyMock.expect(ambariLdapConfigurationProvider.get()).andReturn(ambariLdapConfiguration).anyTimes();
+
+    EasyMock.replay(ambariLdapConfigurationProvider, ambariLdapConfiguration);
 
     LdapBatchDto batchInfo = new LdapBatchDto();
     LdapUserDto userToBeCreated;
@@ -608,5 +625,15 @@ public class TestUsers {
     }
 
     return null;
+  }
+
+  private void setAuthenticatedUser(UserEntity userEntity) {
+    AmbariUserDetailsImpl principal = new AmbariUserDetailsImpl(new User(userEntity), "", emptySet());
+    Authentication auth = mock(Authentication.class);
+    expect(auth.getPrincipal()).andReturn(principal).anyTimes();
+    SecurityContext securityContext = mock(SecurityContext.class);
+    expect(securityContext.getAuthentication()).andReturn(auth).anyTimes();
+    replay(auth, securityContext);
+    SecurityContextHolder.setContext(securityContext);
   }
 }

@@ -27,6 +27,7 @@ function($scope, $http, $location, Cluster, $routeParams, $translate, $rootScope
     clusterName: null
   };
   $scope.isClusterNameEdited = false;
+  $scope.nameValidationPattern = /^\s*\w*\s*$/;
 
   $scope.$watch(function() {
     return $rootScope.cluster;
@@ -94,7 +95,7 @@ function($scope, $http, $location, Cluster, $routeParams, $translate, $rootScope
     var oldClusterName = $scope.cluster.Clusters.cluster_name,
         newClusterName = $scope.edit.clusterName;
 
-    Cluster.editName(oldClusterName, newClusterName).then(function(data) {
+    Cluster.editName(oldClusterName, newClusterName).then(function() {
       $scope.cluster.Clusters.cluster_name = newClusterName;
       $scope.edit.clusterName = newClusterName;
       $scope.toggleSaveButton();

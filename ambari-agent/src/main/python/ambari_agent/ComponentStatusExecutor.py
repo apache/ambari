@@ -112,7 +112,7 @@ class ComponentStatusExecutor(threading.Thread):
               if result:
                 cluster_reports[cluster_id].append(result)
 
-
+        self.recovery_manager.statuses_computed_at_least_once = True
         cluster_reports = self.discard_stale_reports(cluster_reports)
         self.send_updates_to_server(cluster_reports)
       except ConnectionIsAlreadyClosed: # server and agent disconnected during sending data. Not an issue

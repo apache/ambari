@@ -19,15 +19,16 @@
 package org.apache.ambari.infra;
 
 import org.springframework.boot.Banner;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.rest.RepositoryRestMvcAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.system.ApplicationPidFileWriter;
+import org.springframework.boot.context.ApplicationPidFileWriter;
 
 @SpringBootApplication(
   scanBasePackages = {"org.apache.ambari.infra"},
@@ -47,7 +48,7 @@ public class InfraManager {
     new SpringApplicationBuilder(InfraManager.class)
       .bannerMode(Banner.Mode.OFF)
       .listeners(new ApplicationPidFileWriter(pidFile))
-      .web(true)
+      .web(WebApplicationType.SERVLET)
       .run(args);
   }
 }

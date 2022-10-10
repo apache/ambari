@@ -64,6 +64,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.ManifestServiceInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
+import org.apache.ambari.server.utils.URLCredentialsHider;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -478,7 +479,8 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       for (RepoDefinitionEntity repositoryEntity : os.getRepoDefinitionEntities()) {
         String baseUrl = repositoryEntity.getBaseUrl();
         if (!skipUrlCheck && os.isAmbariManaged() && existingRepoUrls.contains(baseUrl)) {
-          throw new AmbariException("Base url " + baseUrl + " is already defined for another repository version. " +
+          throw new AmbariException("Base url " + URLCredentialsHider.hideCredentials(baseUrl) +
+                                      " is already defined for another repository version. " +
                   "Setting up base urls that contain the same versions of components will cause stack upgrade to fail.");
         }
       }

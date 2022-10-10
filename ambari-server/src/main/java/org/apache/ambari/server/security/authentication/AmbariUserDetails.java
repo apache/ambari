@@ -17,70 +17,13 @@
  */
 package org.apache.ambari.server.security.authentication;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-
-import org.apache.ambari.server.security.authorization.User;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 /**
- * AmbariUserDetails is an implementation of {@link UserDetails} that contains information about
- * an authenticated user needed specifically by Ambari.  For example, the user's <code>userId</code>.
- * <p>
- * Ideally instances of this class are used as the value returned by {@link org.springframework.security.core.Authentication#getPrincipal()}
+ * AmbariUserDetails implementations are extensions of {@link UserDetails} that contain information
+ * about the authenticated user that is needed specifically by Ambari.  For example, the user's
+ * <code>userId</code>.
  */
-public class AmbariUserDetails implements UserDetails {
-
-  private final User user;
-  private final String password;
-  private final Collection<? extends GrantedAuthority> grantedAuthorities;
-
-  public AmbariUserDetails(User user, String password, Collection<? extends GrantedAuthority> grantedAuthorities) {
-    this.user = user;
-    this.password = password;
-    this.grantedAuthorities = (grantedAuthorities == null)
-        ? Collections.emptyList()
-        : Collections.unmodifiableCollection(new ArrayList<>(grantedAuthorities));
-  }
-
-  @Override
-  public Collection<? extends GrantedAuthority> getAuthorities() {
-    return grantedAuthorities;
-  }
-
-  @Override
-  public String getPassword() {
-    return password;
-  }
-
-  @Override
-  public String getUsername() {
-    return (user == null) ? null : user.getUserName();
-  }
-
-  public Integer getUserId() {
-    return (user == null) ? null : user.getUserId();
-  }
-
-  @Override
-  public boolean isAccountNonExpired() {
-    return true;
-  }
-
-  @Override
-  public boolean isAccountNonLocked() {
-    return true;
-  }
-
-  @Override
-  public boolean isCredentialsNonExpired() {
-    return true;
-  }
-
-  @Override
-  public boolean isEnabled() {
-    return (user != null) && user.isActive();
-  }
+public interface AmbariUserDetails extends UserDetails {
+  Integer getUserId();
 }

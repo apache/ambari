@@ -119,6 +119,8 @@ public abstract class AbstractTimelineMetricsSink {
   // well as timed refresh
   protected Supplier<String> targetCollectorHostSupplier;
 
+  private final CollectorShardSupplier collectorShardSupplier = new CollectorShardSupplier();
+
   protected final SortedSet<String> allKnownLiveCollectors = new TreeSet<>();
 
   private volatile boolean isInitializedForHA = false;
@@ -146,6 +148,20 @@ public abstract class AbstractTimelineMetricsSink {
     mapper.setAnnotationIntrospector(introspector);
     mapper.getSerializationConfig()
       .withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+  }
+
+  private final class CollectorShardSupplier implements Supplier<String> {
+    @Override
+    public String get() {
+      //shardExpired flag is used to determine if the Supplier.get() is invoked through the
+      // findPreferredCollectHost method (No need to refresh collector hosts)
+      // OR
+      // through Expiry (Refresh needed to pick up dead collectors that might have not become alive).
+      if (shardExpired) {
+        refreshCollectorsFromConfigured(getConfiguredCollectorHosts());
+      }
+      return metricSinkWriteShardStrategy.findCollectorShard(new ArrayList<>(allKnownLiveCollectors));
+    }
   }
 
   public AbstractTimelineMetricsSink() {
@@ -272,18 +288,22 @@ public abstract class AbstractTimelineMetricsSink {
 
   protected String getCurrentCollectorHost() {
     String collectorHost;
-    // Get cached target
-    if (targetCollectorHostSupplier != null) {
-      collectorHost = targetCollectorHostSupplier.get();
-      // Last X attempts have failed - force refresh
-      if (failedCollectorConnectionsCounter.get() > RETRY_COUNT_BEFORE_COLLECTOR_FAILOVER) {
-        LOG.debug("Removing collector " + collectorHost + " from allKnownLiveCollectors.");
-        allKnownLiveCollectors.remove(collectorHost);
-        targetCollectorHostSupplier = null;
+    /* Using collectorShardSupplier as sync_object since the Supplier.get() is using the same
+       object under the hood to provide thread safety. */
+    synchronized (collectorShardSupplier) {
+      // Get cached target
+      if (targetCollectorHostSupplier != null) {
+        collectorHost = targetCollectorHostSupplier.get();
+        // Last X attempts have failed - force refresh
+        if (failedCollectorConnectionsCounter.get() > RETRY_COUNT_BEFORE_COLLECTOR_FAILOVER) {
+          LOG.debug("Removing collector " + collectorHost + " from allKnownLiveCollectors.");
+          allKnownLiveCollectors.remove(collectorHost);
+          targetCollectorHostSupplier = null;
+          collectorHost = findPreferredCollectHost();
+        }
+      } else {
         collectorHost = findPreferredCollectHost();
       }
-    } else {
-      collectorHost = findPreferredCollectHost();
     }
 
     if (collectorHost == null) {
@@ -360,11 +380,15 @@ public abstract class AbstractTimelineMetricsSink {
    *
    * @return the app cookie manager
    */
-  public synchronized AppCookieManager getAppCookieManager() {
-    if (appCookieManager == null) {
-      appCookieManager = new AppCookieManager();
+  public AppCookieManager getAppCookieManager() {
+    /* Using collectorShardSupplier as sync_object since the Supplier.get() is using the same
+       object under the hood to provide thread safety. */
+    synchronized (collectorShardSupplier) {
+      if (appCookieManager == null) {
+        appCookieManager = new AppCookieManager();
+      }
+      return appCookieManager;
     }
-    return appCookieManager;
   }
 
   /**
@@ -513,72 +537,59 @@ public abstract class AbstractTimelineMetricsSink {
    *
    * @return String Collector hostname
    */
-  protected synchronized String findPreferredCollectHost() {
-    if (!isInitializedForHA) {
-      init();
-    }
-
-    shardExpired = false;
-    // Auto expire and re-calculate after 1 hour
-    if (targetCollectorHostSupplier != null) {
-      String targetCollector = targetCollectorHostSupplier.get();
-      if (targetCollector != null) {
-        return targetCollector;
+  protected String findPreferredCollectHost() {
+    /* Using collectorShardSupplier as sync_object since the Supplier.get() is using the same
+       object under the hood to provide thread safety. */
+    synchronized (collectorShardSupplier) {
+      if (!isInitializedForHA) {
+        init();
       }
-    }
 
-    // Reach out to all configured collectors before Zookeeper
-    Collection<String> collectorHosts = getConfiguredCollectorHosts();
-    refreshCollectorsFromConfigured(collectorHosts);
-
-    // Lookup Zookeeper for live hosts - max 10 seconds wait time
-    long currentTime = System.currentTimeMillis();
-    if (allKnownLiveCollectors.size() == 0 && getZookeeperQuorum() != null
-      && (currentTime - lastFailedZkRequestTime) > zookeeperBackoffTimeMillis) {
-
-      LOG.debug("No live collectors from configuration. Requesting zookeeper...");
-      allKnownLiveCollectors.addAll(collectorHAHelper.findLiveCollectorHostsFromZNode());
-      boolean noNewCollectorFromZk = true;
-      for (String collectorHostFromZk : allKnownLiveCollectors) {
-        if (!collectorHosts.contains(collectorHostFromZk)) {
-          noNewCollectorFromZk = false;
-          break;
+      shardExpired = false;
+      // Auto expire and re-calculate after 1 hour
+      if (targetCollectorHostSupplier != null) {
+        String targetCollector = targetCollectorHostSupplier.get();
+        if (targetCollector != null) {
+          return targetCollector;
         }
       }
-      if (noNewCollectorFromZk) {
-        LOG.debug("No new collector was found from Zookeeper. Will not request zookeeper for " + zookeeperBackoffTimeMillis + " millis");
-        lastFailedZkRequestTime = System.currentTimeMillis();
-      }
-    }
 
-    if (allKnownLiveCollectors.size() != 0) {
-      targetCollectorHostSupplier = Suppliers.memoizeWithExpiration(
-        new Supplier<String>() {
-          @Override
-          public String get() {
-            //shardExpired flag is used to determine if the Supplier.get() is invoked through the
-            // findPreferredCollectHost method (No need to refresh collector hosts
-            // OR
-            // through Expiry (Refresh needed to pick up dead collectors that might have not become alive).
-            if (shardExpired) {
-              refreshCollectorsFromConfigured(getConfiguredCollectorHosts());
-            }
-            return metricSinkWriteShardStrategy.findCollectorShard(new ArrayList<>(allKnownLiveCollectors));
+      // Reach out to all configured collectors before Zookeeper
+      Collection<String> collectorHosts = getConfiguredCollectorHosts();
+      refreshCollectorsFromConfigured(collectorHosts);
+
+      // Lookup Zookeeper for live hosts - max 10 seconds wait time
+      long currentTime = System.currentTimeMillis();
+      if (allKnownLiveCollectors.size() == 0 && getZookeeperQuorum() != null
+              && (currentTime - lastFailedZkRequestTime) > zookeeperBackoffTimeMillis) {
+
+        LOG.debug("No live collectors from configuration. Requesting zookeeper...");
+        allKnownLiveCollectors.addAll(collectorHAHelper.findLiveCollectorHostsFromZNode());
+        boolean noNewCollectorFromZk = true;
+        for (String collectorHostFromZk : allKnownLiveCollectors) {
+          if (!collectorHosts.contains(collectorHostFromZk)) {
+            noNewCollectorFromZk = false;
+            break;
           }
-        },  // random.nextInt(max - min + 1) + min # (60 to 75 minutes)
-        rand.nextInt(COLLECTOR_HOST_CACHE_MAX_EXPIRATION_MINUTES
-          - COLLECTOR_HOST_CACHE_MIN_EXPIRATION_MINUTES + 1)
-          + COLLECTOR_HOST_CACHE_MIN_EXPIRATION_MINUTES,
-        TimeUnit.MINUTES
-      );
+        }
+        if (noNewCollectorFromZk) {
+          LOG.debug("No new collector was found from Zookeeper. Will not request zookeeper for " + zookeeperBackoffTimeMillis + " millis");
+          lastFailedZkRequestTime = System.currentTimeMillis();
+        }
+      }
 
-      String collectorHost = targetCollectorHostSupplier.get();
+      if (allKnownLiveCollectors.size() != 0) {
+        SupplierExpiry expiry = getSupplierExpiry();
+        targetCollectorHostSupplier = Suppliers.memoizeWithExpiration(collectorShardSupplier, expiry.duration, expiry.timeUnit);
+
+        String collectorHost = targetCollectorHostSupplier.get();
+        shardExpired = true;
+        return collectorHost;
+      }
+      LOG.debug("Couldn't find any live collectors. Returning null");
       shardExpired = true;
-      return collectorHost;
+      return null;
     }
-    LOG.debug("Couldn't find any live collectors. Returning null");
-    shardExpired = true;
-    return null;
   }
 
   private void refreshCollectorsFromConfigured(Collection<String> collectorHosts) {
@@ -591,14 +602,12 @@ public abstract class AbstractTimelineMetricsSink {
           try {
             Collection<String> liveHosts = findLiveCollectorHostsFromKnownCollector(hostStr, getCollectorPort());
             // Update live Hosts - current host will already be a part of this
-            for (String host : liveHosts) {
-              allKnownLiveCollectors.add(host);
-            }
+            allKnownLiveCollectors.addAll(liveHosts);
             break; // Found at least 1 live collector
           } catch (MetricCollectorUnavailableException e) {
             LOG.debug("Collector " + hostStr + " is not longer live. Removing " +
               "it from list of know live collector hosts : " + allKnownLiveCollectors);
-            allKnownLiveCollectors.remove(hostStr);
+            boolean res = allKnownLiveCollectors.remove(hostStr);
           }
         }
       }
@@ -626,18 +635,27 @@ public abstract class AbstractTimelineMetricsSink {
       connection.setReadTimeout(2000);
 
       int responseCode = connection.getResponseCode();
-      if (responseCode == 200) {
-        try (InputStream in = connection.getInputStream()) {
-          StringWriter writer = new StringWriter();
-          IOUtils.copy(in, writer);
-          try {
-            collectors = gson.fromJson(writer.toString(), new TypeToken<List<String>>(){}.getType());
-          } catch (JsonSyntaxException jse) {
-            // Swallow this at the behest of still trying to POST
-            LOG.debug("Exception deserializing the json data on live " +
-              "collector nodes.", jse);
+
+      switch (responseCode) {
+        case 200 :
+          try (InputStream in = connection.getInputStream()) {
+            StringWriter writer = new StringWriter();
+            IOUtils.copy(in, writer);
+            try {
+              collectors = gson.fromJson(writer.toString(), new TypeToken<List<String>>(){}.getType());
+            } catch (JsonSyntaxException jse) {
+              // Swallow this at the behest of still trying to POST
+              LOG.debug("Exception deserializing the json data on live " +
+                      "collector nodes.", jse);
+            }
           }
-        }
+          break;
+        case 500 :
+          String warnMsg = "Unable to connect to collector to find live nodes, Internal server error";
+          throw new MetricCollectorUnavailableException(warnMsg);
+        default :
+          String msg = String.format("Unhandled response code (%d) at requesting live collector nodes!", responseCode);
+          LOG.warn(msg);
       }
 
     } catch (IOException ioe) {
@@ -700,6 +718,23 @@ public abstract class AbstractTimelineMetricsSink {
   //for now it's used only for testing
   protected Cache<String, TimelineMetric> getMetricsPostCache() {
     return metricsPostCache;
+  }
+
+  class SupplierExpiry {
+    final long duration;
+    final TimeUnit timeUnit;
+
+    public SupplierExpiry(long duration, TimeUnit timeUnit) {
+      this.duration = duration;
+      this.timeUnit = timeUnit;
+    }
+  }
+  protected SupplierExpiry getSupplierExpiry() {
+    // random.nextInt(max - min + 1) + min # (60 to 75 minutes)
+    long duration = rand.nextInt(COLLECTOR_HOST_CACHE_MAX_EXPIRATION_MINUTES
+            - COLLECTOR_HOST_CACHE_MIN_EXPIRATION_MINUTES + 1)
+            + COLLECTOR_HOST_CACHE_MIN_EXPIRATION_MINUTES;
+    return new SupplierExpiry(duration, TimeUnit.MINUTES);
   }
 
   /**

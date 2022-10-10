@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsEditCtrl', ['$scope', '$location', 'Cluster', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', '$translate', 'AddRepositoryModal', function($scope, $location, Cluster, Stack, $routeParams, ConfirmationModal, Alert, $translate, AddRepositoryModal) {
+.controller('StackVersionsEditCtrl', ['$scope', '$rootScope', '$location', 'Cluster', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', '$translate', 'AddRepositoryModal', function($scope, $rootScope, $location, Cluster, Stack, $routeParams, ConfirmationModal, Alert, $translate, AddRepositoryModal) {
   var $t = $translate.instant;
   $scope.constants = {
     os: $t('versions.os')
@@ -241,8 +241,8 @@ angular.module('ambariAdminConsole')
     ).then(function() {
         Stack.deleteRepo($scope.upgradeStack.stack_name, $scope.upgradeStack.stack_version, $scope.id).then( function () {
           $location.path('/stackVersions');
-        }).catch(function (data) {
-            Alert.error($t('versions.alerts.versionDeleteError'), data.message);
+        }).catch(function (resp) {
+            Alert.error($t('versions.alerts.versionDeleteError'), resp.data.message);
           });
       });
   };
@@ -320,6 +320,34 @@ angular.module('ambariAdminConsole')
 
   $scope.undoChange = function(repo) {
     repo.Repositories.base_url = repo.Repositories.initial_base_url;
+  };
+
+  $scope.onRepoUrlChange = function(repo) {
+    if ($rootScope.supports.disableCredentialsAutocompleteForRepoUrls) {
+      return;
+    }
+    try {
+      var urlObject = new URL(repo.Repositories.base_url);
+      var username = urlObject.username;
+      var password = urlObject.password;
+    } catch (e) {
+      return;
+    }
+    $scope.osList.forEach(function(os) {
+      if (os.repositories) {
+        os.repositories.forEach(function (repo) {
+          var currentUrl = repo.Repositories.base_url;
+          try {
+            var currentUrlObject = new URL(currentUrl);
+          } catch (e) {
+            return;
+          }
+          currentUrlObject.username = username;
+          currentUrlObject.password = password;
+          repo.Repositories.base_url = currentUrlObject.toString();
+        });
+      }
+    });
   };
 
   $scope.clearErrors = function() {

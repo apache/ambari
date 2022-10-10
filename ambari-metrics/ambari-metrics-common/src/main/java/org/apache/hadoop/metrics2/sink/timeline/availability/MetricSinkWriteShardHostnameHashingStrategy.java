@@ -36,6 +36,7 @@ public class MetricSinkWriteShardHostnameHashingStrategy implements MetricSinkWr
 
   @Override
   public String findCollectorShard(List<String> collectorHosts) {
+    if (collectorHosts.isEmpty()) return null;
     long index = hostnameHash % collectorHosts.size();
     index = index < 0 ? index + collectorHosts.size() : index;
     String collectorHost = collectorHosts.get((int) index);

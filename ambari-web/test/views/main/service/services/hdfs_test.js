@@ -46,6 +46,13 @@ describe('App.MainDashboardServiceHdfsView', function () {
       }));
       expect(App.tooltip.calledOnce).to.be.true;
     });
+
+    it("App.tooltip should not be called", function() {
+      view.set("service", Em.Object.create({
+        metricsNotAvailable: true
+      }));
+      expect(App.tooltip.calledOnce).to.be.false;
+    });
   });
 
   describe("#willDestroyElement()", function() {

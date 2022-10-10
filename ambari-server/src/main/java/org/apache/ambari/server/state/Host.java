@@ -21,6 +21,8 @@ package org.apache.ambari.server.state;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
@@ -28,6 +30,7 @@ import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.agent.RecoveryReport;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -176,6 +179,13 @@ public interface Host extends Comparable {
    */
   String getOsFamily();
 
+  /**
+   * Gets the os family from host attributes
+   * @param hostAttributes host attributes
+   * @return the os family for host
+   */
+  String getOsFamily(Map<String, String> hostAttributes);
+
   String getOSFamilyFromHostAttributes(Map<String, String> hostAttributes);
 
   /**
@@ -200,6 +210,13 @@ public interface Host extends Comparable {
   HostHealthStatus getHealthStatus();
 
   /**
+   * Gets the health status from host attributes
+   * @param hostStateEntity host attributes
+   * @return the health status
+   */
+  HostHealthStatus getHealthStatus(HostStateEntity hostStateEntity);
+
+  /**
    * Get detailed recovery report for the host
    * @return
    */
@@ -221,6 +238,13 @@ public interface Host extends Comparable {
    * @return the hostAttributes
    */
   Map<String, String> getHostAttributes();
+
+  /**
+   * Gets host attributes from host entity
+   * @param hostEntity host entity
+   * @return the host attributes
+   */
+  Map<String, String> getHostAttributes(HostEntity hostEntity);
 
   /**
    * @param hostAttributes the hostAttributes to set
@@ -288,6 +312,13 @@ public interface Host extends Comparable {
    * @return the agentVersion
    */
   AgentVersion getAgentVersion();
+
+  /**
+   * Gets version of the ambari agent running on the host.
+   * @param hostStateEntity host state entity
+   * @return the agentVersion
+   */
+  AgentVersion getAgentVersion(HostStateEntity hostStateEntity);
 
   /**
    * @param agentVersion the agentVersion to set
@@ -392,7 +423,7 @@ public interface Host extends Comparable {
    * @throws AmbariException
    */
   Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster,
-      Map<String, DesiredConfig> clusterDesiredConfigs) throws AmbariException;
+      @Nullable Map<String, DesiredConfig> clusterDesiredConfigs) throws AmbariException;
 
   /**
    * Sets the maintenance state for the host.

@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.services.stackadvisor;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -163,7 +164,7 @@ public class StackAdvisorRunner {
   private String printMessage(String type, String file) {
     String message = null;
     try {
-      message = FileUtils.readFileToString(new File(file)).trim();
+      message = FileUtils.readFileToString(new File(file), Charset.defaultCharset()).trim();
       LOG.info("    Advisor script {}: {}", type, message);
     } catch (IOException io) {
       LOG.error("Error in reading script log files", io);

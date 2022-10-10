@@ -18,8 +18,8 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsCreateCtrl', ['$scope', 'Stack', 'Utility', '$routeParams', '$location', '$timeout' ,'Alert', '$translate', 'Cluster', 'AddRepositoryModal', 'AddVersionModal', 'ConfirmationModal',
-    function($scope, Stack, Utility, $routeParams, $location, $timeout, Alert, $translate, Cluster, AddRepositoryModal, AddVersionModal, ConfirmationModal) {
+.controller('StackVersionsCreateCtrl', ['$scope', '$rootScope', 'Stack', 'Utility', '$routeParams', '$location', '$timeout' ,'Alert', '$translate', 'Cluster', 'AddRepositoryModal', 'AddVersionModal', 'ConfirmationModal',
+    function($scope, $rootScope, Stack, Utility, $routeParams, $location, $timeout, Alert, $translate, Cluster, AddRepositoryModal, AddVersionModal, ConfirmationModal) {
   var $t = $translate.instant;
   $scope.constants = {
     os: $t('versions.os')
@@ -220,10 +220,6 @@ angular.module('ambariAdminConsole')
             $scope.osList.push(stackOs);
           }
         });
-        if ($scope.selectedOption.index == $scope.localOption.index) {
-          $scope.clearRepoVersions();
-          $scope.validateRepoUrl();
-        }
       })
       .catch(function (data) {
         Alert.error($t('versions.alerts.osListError'), data.message);
@@ -310,7 +306,11 @@ angular.module('ambariAdminConsole')
     });
 
     var skip = $scope.skipValidation || $scope.useRedhatSatellite;
-    return Stack.validateBaseUrls(skip, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
+    // Filter out repositories that are not shown in the UI
+    var osList = Object.assign([], $scope.osList).map(function(os) {
+      return Object.assign({}, os, {repositories: os.repositories.filter(function(repo) { return $scope.showRepo(repo); })});
+    });
+    return Stack.validateBaseUrls(skip, osList, $scope.upgradeStack).then(function (invalidUrls) {
       if (invalidUrls.length === 0) {
         if ($scope.isPublicVersion) {
           var data = {
@@ -352,7 +352,7 @@ angular.module('ambariAdminConsole')
             });
           }
         })
-        .catch(function (data) {
+        .catch(function (resp) {
           Alert.error($t('versions.alerts.readVersionInfoError'), data.message);
         });
       } else {
@@ -440,6 +440,35 @@ angular.module('ambariAdminConsole')
   $scope.onRepoUrlChange = function (repository) {
     $scope.clearError(repository);
     $scope.setInvalidUrlError(repository);
+    $scope.setUsernameAndPasswordsIfNeeded(repository);
+  };
+
+  $scope.setUsernameAndPasswordsIfNeeded = function(repo) {
+    if ($rootScope.supports.disableCredentialsAutocompleteForRepoUrls) {
+      return;
+    }
+    try {
+      var urlObject = new URL(repo.Repositories.base_url);
+      var username = urlObject.username;
+      var password = urlObject.password;
+    } catch (e) {
+      return;
+    }
+    $scope.osList.forEach(function(os) {
+      if (os.repositories) {
+        os.repositories.forEach(function (repo) {
+          var currentUrl = repo.Repositories.base_url;
+          try {
+            var currentUrlObject = new URL(currentUrl);
+          } catch (e) {
+            return;
+          }
+          currentUrlObject.username = username;
+          currentUrlObject.password = password;
+          repo.Repositories.base_url = currentUrlObject.toString();
+        });
+      }
+    });
   };
 
   $scope.undoChange = function(repo) {

@@ -41,6 +41,9 @@ public class RootServiceComponentConfigurationHandlerFactory {
   @Inject
   private AmbariServerSSOConfigurationHandler ssoConfigurationHandler;
 
+  @Inject
+  private AmbariServerConfigurationHandler tproxyConfigurationHandler;
+
   /**
    * Returns the internal configuration handler used to support various configuration storage facilities.
    *
@@ -56,6 +59,8 @@ public class RootServiceComponentConfigurationHandlerFactory {
           return ldapConfigurationHandler;
         } else if (AmbariServerConfigurationCategory.SSO_CONFIGURATION.getCategoryName().equals(categoryName)) {
           return ssoConfigurationHandler;
+        } else if (AmbariServerConfigurationCategory.TPROXY_CONFIGURATION.getCategoryName().equals(categoryName)) {
+          return tproxyConfigurationHandler;
         } else {
           return defaultConfigurationHandler;
         }

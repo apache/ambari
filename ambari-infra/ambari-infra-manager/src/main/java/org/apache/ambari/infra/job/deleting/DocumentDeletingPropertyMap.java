@@ -18,21 +18,21 @@
  */
 package org.apache.ambari.infra.job.deleting;
 
+import java.util.Map;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
 
 @Configuration
 @ConfigurationProperties(prefix = "infra-manager.jobs")
 public class DocumentDeletingPropertyMap {
-  private Map<String, DocumentDeletingProperties> solrDataDeleting;
+  private Map<String, DeletingProperties> solrDataDeleting;
 
-  public Map<String, DocumentDeletingProperties> getSolrDataDeleting() {
+  public Map<String, DeletingProperties> getSolrDataDeleting() {
     return solrDataDeleting;
   }
 
-  public void setSolrDataDeleting(Map<String, DocumentDeletingProperties> solrDataDeleting) {
+  public void setSolrDataDeleting(Map<String, DeletingProperties> solrDataDeleting) {
     this.solrDataDeleting = solrDataDeleting;
   }
 }

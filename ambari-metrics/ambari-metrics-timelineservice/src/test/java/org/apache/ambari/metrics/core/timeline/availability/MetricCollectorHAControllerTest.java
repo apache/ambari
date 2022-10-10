@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -100,7 +100,6 @@ public class MetricCollectorHAControllerTest extends AbstractMiniHBaseClusterTes
     // Re-assigned partitions
     Assert.assertEquals(2, partitionInstanceMap.size());
 
-    haController.getAggregationTaskRunner().stop();
-    haController.manager.disconnect();
+    haController.shutdownHAController();
   }
 }

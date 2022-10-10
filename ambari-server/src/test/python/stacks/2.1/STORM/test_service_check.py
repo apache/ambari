@@ -44,6 +44,8 @@ class TestStormServiceCheck(TestStormBase):
     self.assertResourceCalled('Execute', 'storm jar /tmp/wordCount.jar storm.starter.WordCountTopology WordCount -c nimbus.host=c6402.ambari.apache.org',
       logoutput = True,
       path = ['/usr/bin'],
+      tries = 1,
+      try_sleep = 30,
       user = 'storm'
     )
     self.assertResourceCalled('Execute', 'storm kill WordCount',

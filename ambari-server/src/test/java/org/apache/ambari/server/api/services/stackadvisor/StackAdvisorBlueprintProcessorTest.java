@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
 import org.apache.ambari.server.controller.internal.Stack;
@@ -71,7 +72,7 @@ public class StackAdvisorBlueprintProcessorTest {
   }
 
   @Test
-  public void testAdviseConfiguration() throws StackAdvisorException, ConfigurationTopologyException {
+  public void testAdviseConfiguration() throws StackAdvisorException, ConfigurationTopologyException, AmbariException {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
@@ -106,7 +107,7 @@ public class StackAdvisorBlueprintProcessorTest {
   }
 
   @Test
-  public void testAdviseConfigurationWithOnlyStackDefaultsApply() throws StackAdvisorException, ConfigurationTopologyException {
+  public void testAdviseConfigurationWithOnlyStackDefaultsApply() throws StackAdvisorException, ConfigurationTopologyException, AmbariException {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
@@ -141,7 +142,7 @@ public class StackAdvisorBlueprintProcessorTest {
   }
 
   @Test
-  public void testAdviseConfigurationWithOnlyStackDefaultsApplyWhenNoUserInputForDefault() throws StackAdvisorException, ConfigurationTopologyException {
+  public void testAdviseConfigurationWithOnlyStackDefaultsApplyWhenNoUserInputForDefault() throws StackAdvisorException, ConfigurationTopologyException, AmbariException {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     props.get("core-site").put("dummyKey3", "stackDefaultValue");
@@ -176,7 +177,7 @@ public class StackAdvisorBlueprintProcessorTest {
 
   @Test
   public void testAdviseConfigurationWith_ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES() throws StackAdvisorException,
-    ConfigurationTopologyException {
+      ConfigurationTopologyException, AmbariException {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
@@ -209,7 +210,7 @@ public class StackAdvisorBlueprintProcessorTest {
   }
 
   @Test
-  public void testAdviseConfigurationWhenConfigurationRecommendFails() throws StackAdvisorException, ConfigurationTopologyException {
+  public void testAdviseConfigurationWhenConfigurationRecommendFails() throws StackAdvisorException, ConfigurationTopologyException, AmbariException {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
@@ -238,7 +239,7 @@ public class StackAdvisorBlueprintProcessorTest {
   }
 
   @Test
-  public void testAdviseConfigurationWhenConfigurationRecommendHasInvalidResponse() throws StackAdvisorException, ConfigurationTopologyException {
+  public void testAdviseConfigurationWhenConfigurationRecommendHasInvalidResponse() throws StackAdvisorException, ConfigurationTopologyException, AmbariException {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();

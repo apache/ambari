@@ -29,7 +29,10 @@ import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.QueryHint;
 import javax.persistence.Table;
+
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 
 @Entity
 @Table(name = "kerberos_keytab")
@@ -37,8 +40,10 @@ import javax.persistence.Table;
   @NamedQuery(name = "KerberosKeytabEntity.findAll", query = "SELECT kk FROM KerberosKeytabEntity kk"),
   @NamedQuery(
     name = "KerberosKeytabEntity.findByPrincipalAndHost",
-    query = "SELECT kk FROM KerberosKeytabEntity kk JOIN kk.kerberosKeytabPrincipalEntities kkp WHERE kkp.hostId=:hostId AND kkp.principalName=:principalName"
-  ),
+        query = "SELECT kk FROM KerberosKeytabEntity kk, KerberosKeytabPrincipalEntity kkp WHERE kkp.hostId=:hostId AND kkp.principalName=:principalName AND kkp.keytabPath = kk.keytabPath",
+        hints = {
+            @QueryHint(name = "eclipselink.query-results-cache", value = "true"),
+            @QueryHint(name = "eclipselink.query-results-cache.size", value = "500") }),
   @NamedQuery(
     name = "KerberosKeytabEntity.findByPrincipalAndNullHost",
     query = "SELECT kk FROM KerberosKeytabEntity kk JOIN kk.kerberosKeytabPrincipalEntities kkp WHERE kkp.hostId IS NULL AND kkp.principalName=:principalName"
@@ -71,6 +76,16 @@ public class KerberosKeytabEntity {
 
   public KerberosKeytabEntity(String keytabPath) {
     setKeytabPath(keytabPath);
+  }
+
+  public KerberosKeytabEntity(ResolvedKerberosKeytab resolvedKerberosKeytab) {
+    setKeytabPath(resolvedKerberosKeytab.getFile());
+    setAmbariServerKeytab(resolvedKerberosKeytab.isAmbariServerKeytab());
+    setWriteAmbariJaasFile(resolvedKerberosKeytab.isMustWriteAmbariJaasFile());
+    setOwnerName(resolvedKerberosKeytab.getOwnerName());
+    setOwnerAccess(resolvedKerberosKeytab.getOwnerAccess());
+    setGroupName(resolvedKerberosKeytab.getGroupName());
+    setGroupAccess(resolvedKerberosKeytab.getGroupAccess());
   }
 
   public String getKeytabPath() {

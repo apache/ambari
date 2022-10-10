@@ -105,6 +105,8 @@ public class HostConfigMappingImpl implements HostConfigMapping {
       throw new RuntimeException("Version couldn't be null");
     this.version = version;
   }
+
+  @Override
   public String getServiceName() {
     return serviceName;
   }

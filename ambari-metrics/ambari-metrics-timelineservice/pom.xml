@@ -18,15 +18,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                      https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>ambari-metrics</artifactId>
     <groupId>org.apache.ambari</groupId>
-    <version>2.7.3.0.0</version>
+    <version>2.7.6.0.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-metrics-timelineservice</artifactId>
-  <version>2.7.3.0.0</version>
+  <version>2.7.6.0.0</version>
   <name>Ambari Metrics Collector</name>
   <packaging>jar</packaging>
 
@@ -34,9 +34,9 @@
     <!-- Needed for generating FindBugs warnings using parent pom -->
     <!--<yarn.basedir>${project.parent.parent.basedir}</yarn.basedir>-->
     <protobuf.version>2.5.0</protobuf.version>
-    <hadoop.version>3.1.0.3.0.0.0-1634</hadoop.version>
-    <phoenix.version>5.0.0.3.0.0.0-1634</phoenix.version>
-    <hbase.version>2.0.0.3.0.0.0-1634</hbase.version>
+    <phoenix.version>5.1.2</phoenix.version>
+    <hbase.version>2.4.2</hbase.version>
+    <slf4j.version>2.0.0</slf4j.version>
   </properties>
 
   <build>
@@ -88,7 +88,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.0</version>
+        <version>3.2</version>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -275,7 +275,6 @@
       <plugin>
         <groupId>org.vafer</groupId>
         <artifactId>jdeb</artifactId>
-        <version>1.0.1</version>
         <executions>
           <execution>
             <!--Stub execution on direct plugin call - workaround for ambari deb build process-->
@@ -312,6 +311,10 @@
         <exclusion>
           <artifactId>zookeeper</artifactId>
           <groupId>org.apache.zookeeper</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -375,7 +378,7 @@
     <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
-      <version>2.5</version>
+      <version>2.6</version>
     </dependency>
 
     <dependency>
@@ -553,7 +556,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>18.0</version>
+      <version>28.0-jre</version>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>
@@ -605,6 +608,18 @@
           <artifactId>commons-httpclient</artifactId>
           <groupId>commons-httpclient</groupId>
         </exclusion>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcmail-jdk15on</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcprov-jdk15on</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcpkix-jdk15on</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -639,6 +654,24 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcmail-jdk15on</artifactId>
+      <version>1.61</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <version>1.61</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpkix-jdk15on</artifactId>
+      <version>1.61</version>
+      <scope>test</scope>
+    </dependency>
     <!-- 'mvn dependency:analyze' fails to detect use of this dependency -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -669,13 +702,13 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.20</version>
+      <version>${slf4j.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.20</version>
+      <artifactId>slf4j-reload4j</artifactId>
+      <version>${slf4j.version}</version>
     </dependency>
 
     <dependency>
@@ -709,6 +742,7 @@
       <version>3.2</version>
       <scope>test</scope>
     </dependency>
+
     <!-- for unit tests only -->
     <dependency>
       <groupId>org.apache.phoenix</groupId>
@@ -897,7 +931,7 @@
                         compression="gzip"
                     />
                     <move
-                        file="${project.build.directory}/embedded/${phoenix.folder}/phoenix-${phoenix.version}-server.jar"
+                        file="${project.build.directory}/embedded/${phoenix.folder}/phoenix-server-hbase-2.4-${phoenix.version}.jar"
                         tofile="${project.build.directory}/embedded/${hbase.folder}/lib/phoenix-${phoenix.version}-server.jar"
                     />
                   </target>

@@ -1502,7 +1502,6 @@ class DefaultStackAdvisor(StackAdvisor):
       if siteProperties is not None:
         siteRecommendations = recommendedDefaults[siteName]["properties"]
         self.logger.info("SiteName: %s, method: %s" % (siteName, method.__name__))
-        self.logger.info("Site properties: %s" % str(siteProperties))
         self.logger.info("Recommendations: %s" % str(siteRecommendations))
         return method(siteProperties, siteRecommendations, configurations, services, hosts)
     return []
@@ -1849,6 +1848,9 @@ class DefaultStackAdvisor(StackAdvisor):
     componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
     component = next((component for component in componentsList
                               if component["component_name"] == componentName), None)
+
+    if component is None and componentName == 'HDFS_CLIENT':
+      component = next((component for component in componentsList if component["component_type"] == 'HCFS_CLIENT'), None)
 
     return component
 

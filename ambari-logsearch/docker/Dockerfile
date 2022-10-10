@@ -22,10 +22,11 @@ RUN yum -y install glibc-common
 ENV HOME /root
 
 #Install JAVA
-ENV JAVA_VERSION 8u131
-ENV BUILD_VERSION b11
-RUN wget --no-check-certificate --no-cookies --header "Cookie:oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/$JAVA_VERSION-$BUILD_VERSION/d54c1d3a095b4ff2b6607d096fa80163/jdk-$JAVA_VERSION-linux-x64.rpm -O jdk-8-linux-x64.rpm
-RUN rpm -ivh jdk-8-linux-x64.rpm
+ENV JAVA_VERSION 11.0.2
+ENV BUILD_VERSION 9
+
+RUN wget --no-check-certificate --no-cookies --header "Cookie:oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/${JAVA_VERSION}+${BUILD_VERSION}/f51449fcd52f4d52b93a989c5c56ed3c/jdk-${JAVA_VERSION}_linux-x64_bin.rpm -O jdk-11-linux-x64.rpm
+RUN rpm -ivh jdk-11-linux-x64.rpm
 ENV JAVA_HOME /usr/java/default/
 
 #Install Selenium server
@@ -54,7 +55,7 @@ RUN echo 'X11DisplayOffset 10\n' /etc/ssh/sshd_config
 RUN git config --global url."https://".insteadOf git://
 
 # Install Solr
-ENV SOLR_VERSION 7.5.0
+ENV SOLR_VERSION 7.7.3
 RUN wget --no-check-certificate -O /root/solr-$SOLR_VERSION.tgz http://public-repo-1.hortonworks.com/ARTIFACTS/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz
 RUN cd /root && tar -zxvf /root/solr-$SOLR_VERSION.tgz
 
@@ -62,7 +63,7 @@ RUN cd /root && tar -zxvf /root/solr-$SOLR_VERSION.tgz
 WORKDIR /
 RUN adduser knox
 ENV KNOX_VERSION 1.0.0
-RUN wget -q -O /knox-${KNOX_VERSION}.zip http://download.nextag.com/apache/knox/${KNOX_VERSION}/knox-${KNOX_VERSION}.zip && unzip /knox-${KNOX_VERSION}.zip && rm knox-${KNOX_VERSION}.zip && ln -nsf knox-${KNOX_VERSION} knox && chmod +x /knox/bin/*.sh && chown -R knox /knox/
+RUN wget -q -O /knox-${KNOX_VERSION}.zip http://archive.apache.org/dist/knox/${KNOX_VERSION}/knox-${KNOX_VERSION}.zip && unzip /knox-${KNOX_VERSION}.zip && rm knox-${KNOX_VERSION}.zip && ln -nsf knox-${KNOX_VERSION} knox && chmod +x /knox/bin/*.sh && chown -R knox /knox/
 
 ADD knox/keystores /knox-secrets
 RUN cd /knox-secrets && unzip test-secrets.zip

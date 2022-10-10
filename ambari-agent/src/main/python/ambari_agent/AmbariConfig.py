@@ -191,6 +191,14 @@ class AmbariConfig:
     return int(self.get('heartbeat', 'state_interval_seconds', '60'))
 
   @property
+  def max_ram_soft(self):
+    return int(self.get('agent', 'memory_threshold_soft_mb', default='0'))
+
+  @property
+  def max_ram_hard(self):
+    return int(self.get('agent', 'memory_threshold_hard_mb', default='0'))
+
+  @property
   def log_max_symbols_size(self):
     return int(self.get('heartbeat', 'log_max_symbols_size', '900000'))
 

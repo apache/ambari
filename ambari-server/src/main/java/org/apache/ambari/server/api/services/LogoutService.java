@@ -65,6 +65,7 @@ public class LogoutService {
       .withTimestamp(System.currentTimeMillis())
       .withRemoteIp(RequestUtils.getRemoteAddress(servletRequest))
       .withUserName(AuthorizationHelper.getAuthenticatedName())
+      .withProxyUserName(AuthorizationHelper.getProxyUserName())
       .build();
     auditLogger.log(logoutEvent);
   }

@@ -701,6 +701,57 @@ var urls = {
     }
   },
 
+  'service.item.updateHBaseReplication': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          RequestInfo: {
+            'context': Em.I18n.t('services.service.actions.run.updateHBaseReplication.context'),
+            'command': 'UPDATE_REPLICATION',
+            "parameters": {
+              "replication_cluster_keys": data.replication_cluster_keys,
+              "replication_peers": data.replication_peers
+            }
+          },
+          "Requests/resource_filters": [{
+            'service_name': 'HBASE',
+            'component_name': 'HBASE_MASTER',
+            'hosts': data.hosts
+          }]
+        })
+      }
+    }
+  },
+
+  'service.item.stopHBaseReplication': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          RequestInfo: {
+            'context': Em.I18n.t('services.service.actions.run.stopHBaseReplication.context'),
+            'command': 'STOP_REPLICATION',
+            "parameters": {
+              "replication_peers": data.replication_peers
+            }
+          },
+          "Requests/resource_filters": [{
+            'service_name': 'HBASE',
+            'component_name': 'HBASE_MASTER',
+            'hosts': data.hosts
+          }]
+        })
+      }
+    }
+  },
+
+
+
   'service.item.executeCustomCommand': {
     'real': '/clusters/{clusterName}/requests',
     'mock': '',
@@ -2350,6 +2401,20 @@ var urls = {
     }
   },
   'router.login': {
+    'real': '/auth',
+    'mock': '/data/users/user_{usr}.json',
+    'type': 'POST',
+    'format': function (data) {
+      var statusCode = jQuery.extend({}, require('data/statusCodes'));
+      statusCode['403'] = function () {
+        console.log("Error code 403: Forbidden.");
+      };
+      return {
+        statusCode: statusCode
+      };
+    }
+  },
+  'router.afterLogin': {
     'real': '/users/{loginName}?fields=*,privileges/PrivilegeInfo/cluster_name,privileges/PrivilegeInfo/permission_name',
     'mock': '/data/users/user_{usr}.json',
     'format': function (data) {
@@ -3220,7 +3285,7 @@ var urls = {
     mock: '',
     format: function (data) {
       return {
-        url: 'http://' + data.hsiHost + ':' + data.port + '/leader'
+        url: data.proto + '://' + data.hsiHost + ':' + data.port + '/leader'
       }
     }
   }
@@ -3274,6 +3339,10 @@ var formatRequest = function (data) {
 
   if (this.format) {
     jQuery.extend(opt, this.format(data, opt));
+  }
+  if (!('headers' in opt && 'Content-Type' in opt.headers) && opt.contentType === undefined) {
+    // With the default www-url-form-encoded Content-Type KNOX would corrupt the json content.
+    opt.headers['Content-Type'] = 'text/plain';
   }
   var statusCode = jQuery.extend({}, require('data/statusCodes'));
   statusCode['404'] = function () {

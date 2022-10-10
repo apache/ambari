@@ -41,10 +41,10 @@ export class FilterDropdownComponent extends DropdownButtonComponent implements 
   }
 
   set selection(items: ListItem[]) {
-    this.selectedItems = items;
+    this.selectedItems = Array.isArray(items) ? items : [items];
     if (this.isMultipleChoice && this.options) {
       this.options.forEach((option: ListItem): void => {
-        const selectionItem = items.find((item: ListItem): boolean => this.utils.isEqual(item.value, option.value));
+        const selectionItem = this.selectedItems.find((item: ListItem): boolean => this.utils.isEqual(item.value, option.value));
         option.isChecked = Boolean(selectionItem);
       });
     }

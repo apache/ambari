@@ -379,6 +379,12 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
       String username = request.getUsername();
       String displayName = StringUtils.defaultIfEmpty(request.getDisplayName(), username);
       String localUserName = StringUtils.defaultIfEmpty(request.getLocalUserName(), username);
+      String password = request.getPassword();
+      // Setting a user's the password here is to allow for backward compatibility with pre-Ambari-3.0
+      // versions so that the contract for REST API V1 is maintained.
+      if (!StringUtils.isEmpty(password)) {
+        users.validatePassword(password);
+      }
 
       UserEntity userEntity = users.createUser(username, localUserName, displayName, request.isActive());
       if (userEntity != null) {
@@ -388,7 +394,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
 
         // Setting a user's the password here is to allow for backward compatibility with pre-Ambari-3.0
         // versions so that the contract for REST API V1 is maintained.
-        if (!StringUtils.isEmpty(request.getPassword())) {
+        if (!StringUtils.isEmpty(password)) {
           // This is performed as a user administrator since the  authorization check was done prior
           // to executing #createResourcesAuthorized.
           addOrUpdateLocalAuthenticationSource(true, userEntity, request.getPassword(), null);

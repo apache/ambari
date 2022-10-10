@@ -277,6 +277,21 @@ class Configuration:
     hosts = self.get("aggregation", "ams_monitor_log_dir", "/var/log/ambari-metrics-monitor")
     return hosts
 
+  def is_metering_enabled(self):
+    return "true" == str(self.get("metering", "metering_enabled", "false")).lower()
+
+  def get_metering_appId(self):
+    return self.get("metering", "metering_appId", "metering")
+
+  def get_metering_metrics(self):
+    return self.get("metering", "metering_metrics", "").split(',')
+
+  def get_instance_type_script(self):
+    return self.get("metering", "instance_type_script", "").split(',')
+
+  def get_provider_type(self):
+    return self.get("metering", "host_provider_type", None)
+
   def ams_monitor_log_file(self):
     """
     :returns the log file

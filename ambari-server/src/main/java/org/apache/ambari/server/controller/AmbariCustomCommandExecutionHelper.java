@@ -361,7 +361,7 @@ public class AmbariCustomCommandExecutionHelper {
       // performing ugprades), fetching configuration tags can take a very long
       // time - if it's not needed, then don't do it
       if (!execCmd.getForceRefreshConfigTagsBeforeExecution()) {
-        configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
+        configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName, null);
       }
 
       HostRoleCommand cmd = stage.getHostRoleCommand(hostName, componentName);
@@ -435,7 +435,7 @@ public class AmbariCustomCommandExecutionHelper {
       commandParams.put(CUSTOM_COMMAND, commandName);
 
       boolean isInstallCommand = commandName.equals(RoleCommand.INSTALL.toString());
-      int commandTimeout = Short.valueOf(configs.getDefaultAgentTaskTimeout(isInstallCommand)).intValue();
+      int commandTimeout = Integer.valueOf(configs.getDefaultAgentTaskTimeout(isInstallCommand));
 
       ComponentInfo componentInfo = ambariMetaInfo.getComponent(
           stackId.getStackName(), stackId.getStackVersion(),
@@ -745,7 +745,7 @@ public class AmbariCustomCommandExecutionHelper {
     // performing ugprades), fetching configuration tags can take a very long
     // time - if it's not needed, then don't do it
     if (!execCmd.getForceRefreshConfigTagsBeforeExecution()) {
-      configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostname);
+      configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostname, null);
     }
 
     execCmd.setConfigurations(configurations);

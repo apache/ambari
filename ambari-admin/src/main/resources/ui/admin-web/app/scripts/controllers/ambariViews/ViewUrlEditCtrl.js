@@ -62,8 +62,8 @@ angular.module('ambariAdminConsole')
               }));
               $scope.url_form.$setPristine();
               $location.path(targetUrl);
-          }).catch(function(data) {
-              Alert.error($t('views.alerts.cannotLoadViewUrls'), data.data.message);
+          }).catch(function(resp) {
+              Alert.error($t('views.alerts.cannotLoadViewUrls'), resp.data.message);
           });
 
       }

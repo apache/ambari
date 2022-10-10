@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var validator = require('utils/validator');
 
 App.WidgetWizardStep2Controller = Em.Controller.extend({
   name: "widgetWizardStep2Controller",
@@ -174,12 +175,24 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       isMetricsIncluded = expressions.some(this.isExpressionWithMetrics);
 
     for (var i = 0; i < dataSets.length; i++) {
-      if (dataSets[i].get('label').trim() === '' || !this.isExpressionComplete(dataSets[i].get('expression'))) {
+      if (!this.checkIfIsLabelValid(dataSets[i]) || !this.isExpressionComplete(dataSets[i].get('expression'))) {
         isComplete = false;
         break;
       }
     }
     return isComplete && isMetricsIncluded;
+  },
+
+  /**
+   * if label is valid
+   * @param dataset
+   * @returns {boolean} isValid
+   */
+  checkIfIsLabelValid: function(dataset) {
+    var label = dataset.get('label');
+    var isValid = label.trim() !== '' && validator.isValidChartWidgetDatasetLabel(label);
+    dataset.set('isInvalidLabel', !isValid);
+    return isValid;
   },
 
   /**

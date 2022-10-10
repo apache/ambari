@@ -18,98 +18,101 @@
  */
 package org.apache.ambari.infra.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.apache.ambari.infra.model.wrapper.StepExecutionData;
-import org.springframework.batch.core.JobExecution;
+import static org.apache.ambari.infra.model.DateUtil.toOffsetDateTime;
+
+import java.time.Duration;
+import java.time.OffsetDateTime;
+
+import org.apache.ambari.infra.json.DurationToStringConverter;
+import org.apache.ambari.infra.json.OffsetDateTimeToStringConverter;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.StepExecution;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import io.swagger.annotations.ApiModelProperty;
 
 public class StepExecutionInfoResponse {
-  private Long id;
-  private Long jobExecutionId;
-  private String jobName;
-  private String name;
-  private String startDate = "-";
-  private String startTime = "-";
-  private String duration = "-";
-  private StepExecutionData stepExecutionData;
-  private long durationMillis;
+  private final Long stepExecutionId;
+  private final Long jobExecutionId;
+  private final String jobName;
+  private final String stepName;
+  @JsonSerialize(converter = OffsetDateTimeToStringConverter.class)
+  private final OffsetDateTime startTime;
+  @JsonSerialize(converter = OffsetDateTimeToStringConverter.class)
+  private final OffsetDateTime endTime;
+  @JsonSerialize(converter = DurationToStringConverter.class)
+  @ApiModelProperty(dataType = "java.lang.String", example = "PT5.311S")
+  private final Duration duration;
+  private final BatchStatus batchStatus;
+  @ApiModelProperty(example = "COMPLETED", allowableValues = "UNKNOWN, EXECUTING, COMPLETED, NOOP, FAILED, STOPPED")
+  private final String exitCode;
+  private final String exitDescription;
 
-  public StepExecutionInfoResponse(String jobName, Long jobExecutionId, String name, TimeZone timeZone) {
-    this.jobName = jobName;
-    this.jobExecutionId = jobExecutionId;
-    this.name = name;
-    this.stepExecutionData = new StepExecutionData(new StepExecution(name, new JobExecution(jobExecutionId)));
-  }
 
-  public StepExecutionInfoResponse(StepExecution stepExecution, TimeZone timeZone) {
-    this.stepExecutionData = new StepExecutionData(stepExecution);
-    this.id = stepExecutionData.getId();
-    this.name = stepExecutionData.getStepName();
-    this.jobName = stepExecutionData.getJobExecution() != null && stepExecutionData.getJobExecution().getJobInstance() != null? stepExecutionData.getJobExecution().getJobInstance().getJobName():"?";
-    this.jobExecutionId = stepExecutionData.getJobExecutionId();
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
-    SimpleDateFormat durationFormat = new SimpleDateFormat("HH:mm:ss");
+  public StepExecutionInfoResponse(StepExecution stepExecution) {
+    this.stepExecutionId = stepExecution.getId();
+    this.stepName = stepExecution.getStepName();
+    this.jobName = stepExecution.getJobExecution() != null && stepExecution.getJobExecution().getJobInstance() != null ? stepExecution.getJobExecution().getJobInstance().getJobName() : "?";
+    this.jobExecutionId = stepExecution.getJobExecutionId();
+    this.startTime = toOffsetDateTime(stepExecution.getStartTime());
+    this.endTime = toOffsetDateTime(stepExecution.getEndTime());
 
-    durationFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-    timeFormat.setTimeZone(timeZone);
-    dateFormat.setTimeZone(timeZone);
-    if(stepExecutionData.getStartTime() != null) {
-      this.startDate = dateFormat.format(stepExecutionData.getStartTime());
-      this.startTime = timeFormat.format(stepExecutionData.getStartTime());
-      Date endTime = stepExecutionData.getEndTime() != null? stepExecutionData.getEndTime():new Date();
-      this.durationMillis = endTime.getTime() - stepExecutionData.getStartTime().getTime();
-      this.duration = durationFormat.format(new Date(this.durationMillis));
+    if(this.startTime != null && this.endTime != null) {
+      this.duration = Duration.between(this.startTime, this.endTime);
+    }
+    else {
+      this.duration = null;
     }
 
+    this.batchStatus = stepExecution.getStatus();
+    if (stepExecution.getExitStatus() != null) {
+      this.exitCode = stepExecution.getExitStatus().getExitCode();
+      this.exitDescription = stepExecution.getExitStatus().getExitDescription();
+    }
+    else {
+      this.exitCode = null;
+      this.exitDescription = null;
+    }
   }
 
-  public Long getId() {
-    return this.id;
+  public Long getStepExecutionId() {
+    return this.stepExecutionId;
   }
 
   public Long getJobExecutionId() {
     return this.jobExecutionId;
   }
 
-  public String getName() {
-    return this.name;
+  public String getStepName() {
+    return this.stepName;
   }
 
   public String getJobName() {
     return this.jobName;
   }
 
-  public String getStartDate() {
-    return this.startDate;
+  public OffsetDateTime getStartTime() {
+    return startTime;
   }
 
-  public String getStartTime() {
-    return this.startTime;
+  public OffsetDateTime getEndTime() {
+    return endTime;
   }
 
-  public String getDuration() {
-    return this.duration;
+  public Duration getDuration() {
+    return duration;
   }
 
-  public long getDurationMillis() {
-    return this.durationMillis;
-  }
-
-  public String getStatus() {
-    return this.id != null?this.stepExecutionData.getStatus().toString():"NONE";
+  public BatchStatus getBatchStatus() {
+    return batchStatus;
   }
 
   public String getExitCode() {
-    return this.id != null?this.stepExecutionData.getExitStatus().getExitCode():"NONE";
+    return exitCode;
   }
 
-  @JsonIgnore
-  public StepExecutionData getStepExecution() {
-    return this.stepExecutionData;
+  public String getExitDescription() {
+    return exitDescription;
   }
 }

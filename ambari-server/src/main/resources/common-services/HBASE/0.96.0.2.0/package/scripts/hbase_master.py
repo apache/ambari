@@ -19,6 +19,9 @@ limitations under the License.
 """
 
 import sys
+
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.source import StaticFile
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
@@ -68,6 +71,24 @@ class HbaseMasterWindows(HbaseMaster):
     env.set_params(status_params)
     check_windows_service_status(status_params.hbase_master_win_service_name)
 
+  def stop_replication(self, env):
+    import params
+    env.set_params(params)
+    File(params.hbase_replication, content=StaticFile("hbase_replication.rb"), owner=params.hbase_user, mode="f")
+    remove_replication_values = "remove {0}".format(params.hbase_replication_peers)
+    replication_cmd = format(
+      "cmd /c {hbase_executable} org.jruby.Main {hbase_replication} " + remove_replication_values)
+    Execute(replication_cmd, user=params.hbase_user, logoutput=True)
+
+  def update_replication(self, env):
+    import params
+    env.set_params(params)
+    File(params.hbase_replication, content=StaticFile("hbase_replication.rb"), owner=params.hbase_user, mode="f")
+    update_replication_values = "update {0} {1}".format(params.hbase_replication_peers,
+                                                        params.hbase_replication_cluster_keys)
+    update_replication_cmd = format(
+      "cmd /c {hbase_executable} org.jruby.Main {hbase_replication} " + update_replication_values)
+    Execute(update_replication_cmd, user=params.hbase_user, logoutput=True)
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -94,6 +115,27 @@ class HbaseMasterDefault(HbaseMaster):
     env.set_params(status_params)
 
     check_process_status(status_params.hbase_master_pid_file)
+
+  def stop_replication(self, env, upgrade_type=None):
+    import params
+    env.set_params(params)
+    File(params.hbase_replication, content=StaticFile("hbase_replication.rb"), owner=params.hbase_user, mode=0755)
+    remove_replication_values = "remove {0}".format(params.hbase_replication_peers)
+    replication_cmd = format(
+      "{kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} {master_security_config} org.jruby.Main {hbase_replication} "
+      + remove_replication_values)
+    Execute(replication_cmd, user=params.hbase_user, logoutput=True)
+
+  def update_replication(self, env, upgrade_type=None):
+    import params
+    env.set_params(params)
+    File(params.hbase_replication, content=StaticFile("hbase_replication.rb"), owner=params.hbase_user, mode=0755)
+    update_replication_values = "update {0} {1}".format(params.hbase_replication_peers,
+                                                        params.hbase_replication_cluster_keys)
+    update_replication_cmd = format(
+      "{kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} {master_security_config} org.jruby.Main {hbase_replication} "
+      + update_replication_values)
+    Execute(update_replication_cmd, user=params.hbase_user, logoutput=True)
 
   def get_log_folder(self):
     import params

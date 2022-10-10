@@ -351,7 +351,7 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
         .andReturn(createMockServiceInfo("KNOX", knoxProperties, Collections.singletonList(createMockComponentInfo("KNOX_GATEWAY")))).anyTimes();
 
     AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
-    expect(managementController.findConfigurationTagsWithOverrides(cluster, null))
+    expect(managementController.findConfigurationTagsWithOverrides(cluster, null, null))
         .andReturn(clusterConfig).once();
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
 
@@ -612,6 +612,7 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
       @Override
       protected void configure() {
         PartialNiceMockBinder.newBuilder(PreconfigureKerberosActionTest.this)
+            .addLdapBindings()
             .addActionDBAccessorConfigsBindings().build().configure(binder());
 
         bind(EntityManager.class).toInstance(createMock(EntityManager.class));

@@ -77,7 +77,7 @@ App.HDFSSummaryWidgetsView = Em.View.extend(App.NameNodeWidgetMixin, App.HDFSSum
 
   dfsTotalFilesValue: Em.computed.getByKey('model.dfsTotalFilesValues', 'hostName'),
 
-  dfsTotalFiles: Em.computed.formatUnavailable('model.dfsTotalFilesValue'),
+  dfsTotalFiles: Em.computed.formatUnavailable('dfsTotalFilesValue'),
 
   healthStatus: Em.computed.getByKey('model.healthStatusValues', 'hostName'),
 

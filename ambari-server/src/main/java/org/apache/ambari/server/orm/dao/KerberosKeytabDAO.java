@@ -21,6 +21,7 @@ package org.apache.ambari.server.orm.dao;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -28,10 +29,12 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.KerberosKeytabEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Stopwatch;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -87,10 +90,26 @@ public class KerberosKeytabDAO {
   }
 
   @RequiresSession
-  public List<KerberosKeytabEntity> findByPrincipalAndHost(String principalName, Long hostId) {
-    if(hostId == null) {
-      return findByPrincipalAndNullHost(principalName);
+  public KerberosKeytabEntity findOrCreate(ResolvedKerberosKeytab resolvedKerberosKeytab) {
+    KerberosKeytabEntity result = find(resolvedKerberosKeytab.getFile());
+    if (result == null) {
+      result = new KerberosKeytabEntity(resolvedKerberosKeytab);
+      create(result);
     }
+    return result;
+  }
+
+  @RequiresSession
+  public List<KerberosKeytabEntity> findByPrincipalAndHost(String principalName, Long hostId) {
+    Stopwatch stopwatch = Stopwatch.createStarted();
+    if(hostId == null) {
+      List<KerberosKeytabEntity> result = findByPrincipalAndNullHost(principalName);
+      LOG.debug("Loading keytabs by principal name took {}ms",
+          stopwatch.elapsed(TimeUnit.MILLISECONDS));
+
+      return result;
+    }
+
     TypedQuery<KerberosKeytabEntity> query = entityManagerProvider.get().
       createNamedQuery("KerberosKeytabEntity.findByPrincipalAndHost", KerberosKeytabEntity.class);
     query.setParameter("hostId", hostId);
@@ -99,6 +118,10 @@ public class KerberosKeytabDAO {
     if(result == null) {
       return Collections.emptyList();
     }
+
+    LOG.debug("Loading keytabs by principal name and host took {}ms",
+        stopwatch.elapsed(TimeUnit.MILLISECONDS));
+
     return result;
   }
 

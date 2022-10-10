@@ -17,6 +17,9 @@
     "name" : "Alerts",
     "description" : "Endpoint for alert specific operations"
   }, {
+    "name" : "Auth",
+    "description" : "Endpoint for authentication operations"
+  }, {
     "name" : "Blueprints",
     "description" : "Endpoint for blueprint specific operations"
   }, {
@@ -63,10 +66,9 @@
     "description" : "Endpoint for user specific authentication source operations"
   }, {
     "name" : "Users",
-    "description" : "Endpoint for User specific operations"
+    "description" : "Endpoint for user specific operations"
   }, {
-    "name" : "Views",
-    "description" : "Endpoint for view specific operations"
+    "name" : "Views"
   } ],
   "paths" : {
     "/actions" : {
@@ -511,6 +513,40 @@
           },
           "403" : {
             "description" : "Not permitted to perform the operation"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
+    "/auth" : {
+      "post" : {
+        "tags" : [ "Auth" ],
+        "summary" : "User authorization request",
+        "description" : "",
+        "operationId" : "getUsersViaPost",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/AuthRequestCreateAuthSwagger"
+          }
+        } ],
+        "responses" : {
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "The requested resource doesn't exist."
           },
           "500" : {
             "description" : "Internal server error"
@@ -8416,6 +8452,9 @@
     "AlertGroup" : {
       "type" : "object",
       "properties" : {
+        "name" : {
+          "type" : "string"
+        },
         "default" : {
           "type" : "boolean",
           "default" : false
@@ -8423,9 +8462,6 @@
         "id" : {
           "type" : "integer",
           "format" : "int64"
-        },
-        "name" : {
-          "type" : "string"
         },
         "cluster_id" : {
           "type" : "integer",
@@ -8436,6 +8472,13 @@
     "AlertTargetInfo" : {
       "type" : "object",
       "properties" : {
+        "enabled" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "description" : {
+          "type" : "string"
+        },
         "name" : {
           "type" : "string"
         },
@@ -8449,10 +8492,13 @@
           "type" : "integer",
           "format" : "int64"
         },
-        "description" : {
-          "type" : "string"
+        "alert_states" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
         },
-        "enabled" : {
+        "global" : {
           "type" : "boolean",
           "default" : false
         },
@@ -8464,16 +8510,6 @@
           "items" : {
             "$ref" : "#/definitions/AlertGroup"
           }
-        },
-        "alert_states" : {
-          "type" : "array",
-          "items" : {
-            "type" : "string"
-          }
-        },
-        "global" : {
-          "type" : "boolean",
-          "default" : false
         }
       }
     },
@@ -8499,13 +8535,13 @@
     "Artifacts" : {
       "type" : "object",
       "properties" : {
-        "stack_name" : {
-          "type" : "string"
-        },
         "stack_version" : {
           "type" : "string"
         },
         "service_name" : {
+          "type" : "string"
+        },
+        "stack_name" : {
           "type" : "string"
         },
         "artifact_name" : {
@@ -8513,17 +8549,20 @@
         }
       }
     },
+    "AuthRequestCreateAuthSwagger" : {
+      "type" : "object"
+    },
     "BatchRequest" : {
       "type" : "object",
       "properties" : {
-        "batch_settings" : {
-          "$ref" : "#/definitions/BatchSettings"
-        },
         "requests" : {
           "type" : "array",
           "items" : {
             "$ref" : "#/definitions/BatchRequestRequest"
           }
+        },
+        "batch_settings" : {
+          "$ref" : "#/definitions/BatchSettings"
         }
       }
     },
@@ -8533,26 +8572,36 @@
         "type" : {
           "type" : "string"
         },
-        "RequestBodyInfo" : {
-          "$ref" : "#/definitions/RequestBodyInfo"
+        "uri" : {
+          "type" : "string"
         },
         "order_id" : {
           "type" : "integer",
           "format" : "int64"
         },
-        "uri" : {
-          "type" : "string"
+        "RequestBodyInfo" : {
+          "$ref" : "#/definitions/RequestBodyInfo"
         }
       }
     },
     "BatchRequestResponse" : {
       "type" : "object",
       "properties" : {
+        "request_status" : {
+          "type" : "string"
+        },
+        "request_body" : {
+          "type" : "string"
+        },
         "request_type" : {
           "type" : "string"
         },
-        "request_status" : {
+        "request_uri" : {
           "type" : "string"
+        },
+        "order_id" : {
+          "type" : "integer",
+          "format" : "int64"
         },
         "return_code" : {
           "type" : "integer",
@@ -8560,41 +8609,31 @@
         },
         "response_message" : {
           "type" : "string"
-        },
-        "order_id" : {
-          "type" : "integer",
-          "format" : "int64"
-        },
-        "request_uri" : {
-          "type" : "string"
-        },
-        "request_body" : {
-          "type" : "string"
         }
       }
     },
     "BatchResponse" : {
       "type" : "object",
       "properties" : {
-        "batch_settings" : {
-          "$ref" : "#/definitions/BatchSettings"
-        },
         "batch_requests" : {
           "type" : "array",
           "items" : {
             "$ref" : "#/definitions/BatchRequestResponse"
           }
+        },
+        "batch_settings" : {
+          "$ref" : "#/definitions/BatchSettings"
         }
       }
     },
     "BatchSettings" : {
       "type" : "object",
       "properties" : {
-        "task_failure_tolerance_limit" : {
+        "batch_separation_in_seconds" : {
           "type" : "integer",
           "format" : "int32"
         },
-        "batch_separation_in_seconds" : {
+        "task_failure_tolerance_limit" : {
           "type" : "integer",
           "format" : "int32"
         }
@@ -8603,17 +8642,17 @@
     "BlueprintInfo" : {
       "type" : "object",
       "properties" : {
-        "stack_name" : {
+        "stack_version" : {
           "type" : "string"
         },
-        "security" : {
-          "$ref" : "#/definitions/SecurityInfo"
-        },
-        "stack_version" : {
+        "stack_name" : {
           "type" : "string"
         },
         "blueprint_name" : {
           "type" : "string"
+        },
+        "security" : {
+          "$ref" : "#/definitions/SecurityInfo"
         }
       }
     },
@@ -8665,14 +8704,14 @@
     "ClusterArtifactRequest" : {
       "type" : "object",
       "properties" : {
-        "Artifacts" : {
-          "$ref" : "#/definitions/ClusterArtifactRequestInfo"
-        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
+        },
+        "Artifacts" : {
+          "$ref" : "#/definitions/ClusterArtifactRequestInfo"
         }
       }
     },
@@ -8855,14 +8894,14 @@
     "ClusterServiceArtifactRequest" : {
       "type" : "object",
       "properties" : {
-        "Artifacts" : {
-          "$ref" : "#/definitions/ClusterServiceArtifactRequestInfo"
-        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
+        },
+        "Artifacts" : {
+          "$ref" : "#/definitions/ClusterServiceArtifactRequestInfo"
         }
       }
     },
@@ -8877,14 +8916,14 @@
     "ClusterServiceArtifactResponse" : {
       "type" : "object",
       "properties" : {
-        "Artifacts" : {
-          "$ref" : "#/definitions/ClusterServiceArtifactResponseInfo"
-        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
+        },
+        "Artifacts" : {
+          "$ref" : "#/definitions/ClusterServiceArtifactResponseInfo"
         }
       }
     },
@@ -8913,7 +8952,7 @@
     "ComponentDependencyResponseInfo" : {
       "type" : "object",
       "properties" : {
-        "stack_name" : {
+        "scope" : {
           "type" : "string"
         },
         "conditions" : {
@@ -8922,22 +8961,22 @@
             "$ref" : "#/definitions/DependencyConditionInfo"
           }
         },
-        "scope" : {
-          "type" : "string"
-        },
-        "stack_version" : {
-          "type" : "string"
-        },
-        "component_name" : {
-          "type" : "string"
-        },
         "dependent_component_name" : {
           "type" : "string"
         },
         "dependent_service_name" : {
           "type" : "string"
         },
+        "stack_version" : {
+          "type" : "string"
+        },
         "service_name" : {
+          "type" : "string"
+        },
+        "stack_name" : {
+          "type" : "string"
+        },
+        "component_name" : {
           "type" : "string"
         }
       }
@@ -8945,10 +8984,10 @@
     "ComponentInfo" : {
       "type" : "object",
       "properties" : {
-        "name" : {
+        "provision_action" : {
           "type" : "string"
         },
-        "provision_action" : {
+        "name" : {
           "type" : "string"
         }
       }
@@ -8972,6 +9011,13 @@
     "Config" : {
       "type" : "object",
       "properties" : {
+        "tag" : {
+          "type" : "string"
+        },
+        "version" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
         "properties" : {
           "type" : "object",
           "additionalProperties" : {
@@ -8980,29 +9026,6 @@
         },
         "type" : {
           "type" : "string"
-        },
-        "tag" : {
-          "type" : "string"
-        },
-        "version" : {
-          "type" : "integer",
-          "format" : "int64"
-        },
-        "serviceConfigVersions" : {
-          "type" : "array",
-          "items" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        },
-        "propertiesAttributes" : {
-          "type" : "object",
-          "additionalProperties" : {
-            "type" : "object",
-            "additionalProperties" : {
-              "type" : "string"
-            }
-          }
         },
         "stackId" : {
           "$ref" : "#/definitions/StackId"
@@ -9015,6 +9038,22 @@
             "items" : {
               "type" : "string"
             }
+          }
+        },
+        "propertiesAttributes" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          }
+        },
+        "serviceConfigVersions" : {
+          "type" : "array",
+          "items" : {
+            "type" : "integer",
+            "format" : "int64"
           }
         }
       }
@@ -9195,6 +9234,9 @@
             "type" : "string"
           }
         },
+        "tag" : {
+          "type" : "string"
+        },
         "properties_attributes" : {
           "type" : "object",
           "additionalProperties" : {
@@ -9203,9 +9245,6 @@
               "type" : "string"
             }
           }
-        },
-        "tag" : {
-          "type" : "string"
         }
       }
     },
@@ -9249,59 +9288,59 @@
       "type" : "object",
       "required" : [ "authentication_type", "key" ],
       "properties" : {
-        "key" : {
-          "type" : "string"
-        },
         "authentication_type" : {
           "type" : "string",
           "enum" : [ "LOCAL", "LDAP", "JWT", "PAM", "KERBEROS" ]
+        },
+        "key" : {
+          "type" : "string"
         }
       }
     },
     "CreateUserInfo" : {
       "type" : "object",
       "properties" : {
-        "display_name" : {
-          "type" : "string"
-        },
-        "password" : {
-          "type" : "string"
-        },
         "active" : {
           "type" : "boolean",
           "default" : false
         },
-        "local_user_name" : {
+        "password" : {
           "type" : "string"
         },
         "admin" : {
           "type" : "boolean",
           "default" : false
+        },
+        "display_name" : {
+          "type" : "string"
+        },
+        "local_user_name" : {
+          "type" : "string"
         }
       }
     },
     "CreateUsersInfo" : {
       "type" : "object",
       "properties" : {
-        "display_name" : {
+        "active" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "password" : {
           "type" : "string"
         },
         "user_name" : {
           "type" : "string"
         },
-        "password" : {
-          "type" : "string"
-        },
-        "active" : {
-          "type" : "boolean",
-          "default" : false
-        },
-        "local_user_name" : {
-          "type" : "string"
-        },
         "admin" : {
           "type" : "boolean",
           "default" : false
+        },
+        "display_name" : {
+          "type" : "string"
+        },
+        "local_user_name" : {
+          "type" : "string"
         }
       }
     },
@@ -9332,10 +9371,10 @@
     "Directory" : {
       "type" : "object",
       "properties" : {
-        "name" : {
+        "type" : {
           "type" : "string"
         },
-        "type" : {
+        "name" : {
           "type" : "string"
         }
       }
@@ -9372,10 +9411,10 @@
         "userName" : {
           "type" : "string"
         },
-        "userStatus" : {
+        "userHomeDir" : {
           "type" : "string"
         },
-        "userHomeDir" : {
+        "userStatus" : {
           "type" : "string"
         },
         "name" : {
@@ -9501,11 +9540,11 @@
     "HostComponentComponent" : {
       "type" : "object",
       "properties" : {
-        "href" : {
-          "type" : "string"
-        },
         "ServiceComponentInfo" : {
           "$ref" : "#/definitions/HostComponentServiceComponentInfo"
+        },
+        "href" : {
+          "type" : "string"
         }
       }
     },
@@ -9546,13 +9585,13 @@
     "HostComponentServiceComponentInfo" : {
       "type" : "object",
       "properties" : {
-        "component_name" : {
-          "type" : "string"
-        },
         "cluster_name" : {
           "type" : "string"
         },
         "service_name" : {
+          "type" : "string"
+        },
+        "component_name" : {
           "type" : "string"
         }
       }
@@ -9560,14 +9599,14 @@
     "HostComponentSwagger" : {
       "type" : "object",
       "properties" : {
-        "host" : {
-          "$ref" : "#/definitions/HostComponentHost"
-        },
         "component" : {
           "type" : "array",
           "items" : {
             "$ref" : "#/definitions/HostComponentComponent"
           }
+        },
+        "host" : {
+          "$ref" : "#/definitions/HostComponentHost"
         },
         "HostRoles" : {
           "$ref" : "#/definitions/ServiceComponentHostResponse"
@@ -9600,6 +9639,12 @@
     "HostGroupInfo" : {
       "type" : "object",
       "properties" : {
+        "components" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/ComponentInfo"
+          }
+        },
         "configurations" : {
           "type" : "array",
           "items" : {
@@ -9607,12 +9652,6 @@
             "additionalProperties" : {
               "type" : "object"
             }
-          }
-        },
-        "components" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/definitions/ComponentInfo"
           }
         },
         "name" : {
@@ -9678,13 +9717,13 @@
         "maintenance_state" : {
           "type" : "string"
         },
-        "host_group" : {
-          "type" : "string"
-        },
         "blueprint" : {
           "type" : "string"
         },
         "public_host_name" : {
+          "type" : "string"
+        },
+        "host_group" : {
           "type" : "string"
         }
       }
@@ -9860,10 +9899,10 @@
     "LiveService" : {
       "type" : "object",
       "properties" : {
-        "name" : {
+        "status" : {
           "type" : "string"
         },
-        "status" : {
+        "name" : {
           "type" : "string"
         },
         "desc" : {
@@ -9934,10 +9973,10 @@
     "PackageDetail" : {
       "type" : "object",
       "properties" : {
-        "name" : {
+        "version" : {
           "type" : "string"
         },
-        "version" : {
+        "name" : {
           "type" : "string"
         },
         "repoName" : {
@@ -10117,13 +10156,13 @@
         "file_name" : {
           "type" : "string"
         },
-        "stack_name" : {
-          "type" : "string"
-        },
         "stack_version" : {
           "type" : "string"
         },
         "service_name" : {
+          "type" : "string"
+        },
+        "stack_name" : {
           "type" : "string"
         },
         "quicklink_data" : {
@@ -10212,6 +10251,9 @@
             "enum" : [ "GPL" ]
           }
         },
+        "baseUrl" : {
+          "type" : "string"
+        },
         "mirrorsList" : {
           "type" : "string"
         },
@@ -10219,9 +10261,6 @@
           "type" : "string"
         },
         "repoName" : {
-          "type" : "string"
-        },
-        "baseUrl" : {
           "type" : "string"
         }
       }
@@ -10403,25 +10442,25 @@
           "type" : "boolean",
           "default" : false
         },
-        "stackName" : {
-          "type" : "string"
+        "stackId" : {
+          "$ref" : "#/definitions/StackId"
+        },
+        "repositoryXml" : {
+          "$ref" : "#/definitions/VersionDefinitionXml"
         },
         "stackVersion" : {
+          "type" : "string"
+        },
+        "stackName" : {
           "type" : "string"
         },
         "legacy" : {
           "type" : "boolean",
           "default" : false
         },
-        "repositoryXml" : {
-          "$ref" : "#/definitions/VersionDefinitionXml"
-        },
         "parentId" : {
           "type" : "integer",
           "format" : "int64"
-        },
-        "stackId" : {
-          "$ref" : "#/definitions/StackId"
         }
       }
     },
@@ -10464,32 +10503,32 @@
     "Request" : {
       "type" : "object",
       "properties" : {
-        "resource_filters" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/definitions/RequestResourceFilter"
-          }
+        "cluster_name" : {
+          "type" : "string"
         },
         "exclusive" : {
           "type" : "boolean",
           "default" : false
         },
-        "cluster_name" : {
-          "type" : "string"
+        "resource_filters" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/RequestResourceFilter"
+          }
         }
       }
     },
     "RequestBodyInfo" : {
       "type" : "object",
       "properties" : {
+        "RequestInfo" : {
+          "$ref" : "#/definitions/RequestInfo"
+        },
         "Requests/resource_filters" : {
           "type" : "array",
           "items" : {
             "$ref" : "#/definitions/RequestResourceFilter"
           }
-        },
-        "RequestInfo" : {
-          "$ref" : "#/definitions/RequestInfo"
         }
       }
     },
@@ -10566,17 +10605,17 @@
     "RequestResourceFilter" : {
       "type" : "object",
       "properties" : {
-        "hosts" : {
+        "serviceName" : {
           "type" : "string"
         },
-        "component_name" : {
+        "componentName" : {
           "type" : "string"
         },
-        "hosts_predicate" : {
-          "type" : "string"
-        },
-        "service_name" : {
-          "type" : "string"
+        "hostNames" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
         }
       }
     },
@@ -10613,18 +10652,24 @@
     "RequestScheduleResponseElement" : {
       "type" : "object",
       "properties" : {
-        "id" : {
-          "type" : "integer",
-          "format" : "int64"
+        "status" : {
+          "type" : "string"
         },
         "description" : {
           "type" : "string"
         },
-        "status" : {
-          "type" : "string"
-        },
         "schedule" : {
           "$ref" : "#/definitions/ScheduleResponse"
+        },
+        "id" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "cluster_name" : {
+          "type" : "string"
+        },
+        "update_time" : {
+          "type" : "string"
         },
         "batch" : {
           "$ref" : "#/definitions/BatchResponse"
@@ -10635,18 +10680,12 @@
         "update_user" : {
           "type" : "string"
         },
-        "update_time" : {
-          "type" : "string"
-        },
         "last_execution_status" : {
           "type" : "string"
         },
         "authenticated_user" : {
           "type" : "integer",
           "format" : "int32"
-        },
-        "cluster_name" : {
-          "type" : "string"
         },
         "create_time" : {
           "type" : "string"
@@ -10664,16 +10703,13 @@
     "RequestStatusInfo" : {
       "type" : "object",
       "properties" : {
-        "type" : {
-          "type" : "string"
-        },
-        "start_time" : {
+        "request_context" : {
           "type" : "string"
         },
         "request_status" : {
           "type" : "string"
         },
-        "request_context" : {
+        "start_time" : {
           "type" : "string"
         },
         "task_count" : {
@@ -10683,10 +10719,17 @@
         "completed_task_count" : {
           "type" : "string"
         },
-        "request_schedule" : {
+        "type" : {
           "type" : "string"
         },
-        "end_time" : {
+        "cluster_name" : {
+          "type" : "string"
+        },
+        "create_time" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "request_schedule" : {
           "type" : "string"
         },
         "id" : {
@@ -10696,11 +10739,21 @@
           "type" : "integer",
           "format" : "int32"
         },
+        "end_time" : {
+          "type" : "string"
+        },
+        "exclusive" : {
+          "type" : "boolean",
+          "default" : false
+        },
         "failed_task_count" : {
           "type" : "integer",
           "format" : "int32"
         },
         "inputs" : {
+          "type" : "string"
+        },
+        "operation_level" : {
           "type" : "string"
         },
         "progress_percent" : {
@@ -10720,39 +10773,25 @@
           "items" : {
             "$ref" : "#/definitions/RequestResourceFilter"
           }
-        },
-        "exclusive" : {
-          "type" : "boolean",
-          "default" : false
-        },
-        "cluster_name" : {
-          "type" : "string"
-        },
-        "create_time" : {
-          "type" : "integer",
-          "format" : "int64"
-        },
-        "operation_level" : {
-          "type" : "string"
         }
       }
     },
     "RootServiceComponentConfigurationRequestInfo" : {
       "type" : "object",
       "properties" : {
+        "categoryName" : {
+          "type" : "string"
+        },
         "properties" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "string"
           }
         },
-        "categoryName" : {
+        "serviceName" : {
           "type" : "string"
         },
         "componentName" : {
-          "type" : "string"
-        },
-        "serviceName" : {
           "type" : "string"
         }
       }
@@ -10768,19 +10807,19 @@
     "RootServiceComponentConfigurationResponseInfo" : {
       "type" : "object",
       "properties" : {
+        "categoryName" : {
+          "type" : "string"
+        },
         "properties" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
         },
-        "categoryName" : {
+        "serviceName" : {
           "type" : "string"
         },
         "componentName" : {
-          "type" : "string"
-        },
-        "serviceName" : {
           "type" : "string"
         }
       }
@@ -11248,6 +11287,14 @@
         "sso_integration_enabled" : {
           "type" : "boolean",
           "default" : false
+        },
+        "sso_integration_requires_kerberos" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "kerberos_enabled" : {
+          "type" : "boolean",
+          "default" : false
         }
       }
     },
@@ -11313,12 +11360,12 @@
     "ShortRequestInfo" : {
       "type" : "object",
       "properties" : {
+        "status" : {
+          "type" : "string"
+        },
         "id" : {
           "type" : "integer",
           "format" : "int64"
-        },
-        "status" : {
-          "type" : "string"
         }
       }
     },
@@ -11539,12 +11586,12 @@
           "type" : "boolean",
           "default" : false
         },
+        "bulk_commands_master_component_namen" : {
+          "type" : "string"
+        },
         "is_client" : {
           "type" : "boolean",
           "default" : false
-        },
-        "bulk_commands_master_component_namen" : {
-          "type" : "string"
         },
         "decommission_allowed" : {
           "type" : "boolean",
@@ -11642,6 +11689,10 @@
           "default" : false
         },
         "sso_integration_supported" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "sso_integration_requires_kerberos" : {
           "type" : "boolean",
           "default" : false
         }
@@ -11857,13 +11908,13 @@
         "file_name" : {
           "type" : "string"
         },
-        "stack_name" : {
-          "type" : "string"
-        },
         "stack_version" : {
           "type" : "string"
         },
         "service_name" : {
+          "type" : "string"
+        },
+        "stack_name" : {
           "type" : "string"
         },
         "theme_data" : {
@@ -11890,25 +11941,25 @@
     "UpdateUserInfo" : {
       "type" : "object",
       "properties" : {
-        "display_name" : {
-          "type" : "string"
+        "active" : {
+          "type" : "boolean",
+          "default" : false
         },
         "password" : {
           "type" : "string"
         },
-        "active" : {
+        "admin" : {
           "type" : "boolean",
           "default" : false
+        },
+        "display_name" : {
+          "type" : "string"
         },
         "local_user_name" : {
           "type" : "string"
         },
         "old_password" : {
           "type" : "string"
-        },
-        "admin" : {
-          "type" : "boolean",
-          "default" : false
         }
       }
     },
@@ -12108,12 +12159,12 @@
           "type" : "integer",
           "format" : "int32"
         },
-        "user_name" : {
-          "type" : "string"
-        },
         "active" : {
           "type" : "boolean",
           "default" : false
+        },
+        "user_name" : {
+          "type" : "string"
         },
         "admin" : {
           "type" : "boolean",
@@ -12471,6 +12522,9 @@
     "ViewUrlInfo" : {
       "type" : "object",
       "properties" : {
+        "view_instance_name" : {
+          "type" : "string"
+        },
         "url_name" : {
           "type" : "string"
         },
@@ -12481,9 +12535,6 @@
           "type" : "string"
         },
         "view_instance_version" : {
-          "type" : "string"
-        },
-        "view_instance_name" : {
           "type" : "string"
         }
       }

@@ -149,8 +149,16 @@ App.BreadcrumbItem = Em.Object.extend({
   createLabel() {
     let label = this.get('label');
     let labelBindingPath = this.get('labelBindingPath');
+    let formattedLabel;
 
-    let formattedLabel = labelBindingPath ? App.get(_getLabelPathWithoutApp(labelBindingPath)) : label;
+    if (labelBindingPath) {
+      formattedLabel = Ember.Handlebars.Utils.escapeExpression(App.get(_getLabelPathWithoutApp(labelBindingPath)));
+    } else{
+      formattedLabel = label;
+    }
+
+
+
     this.set('formattedLabel', this.labelPostFormat(formattedLabel));
   },
 
@@ -216,7 +224,9 @@ App.BreadcrumbsView = Em.View.extend({
       }
       currentState = currentState.get('parentState');
     }
-    items = items.reverse().map(item => App.BreadcrumbItem.extend(item).create());
+    items.reverse();
+    items.slice(1).forEach(item => item.label = Ember.Handlebars.Utils.escapeExpression(item.label));
+    items = items.map(item => App.BreadcrumbItem.extend(item).create());
     if (items.length) {
       items.get('lastObject').setProperties({
         disabled: true,

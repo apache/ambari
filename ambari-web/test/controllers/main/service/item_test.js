@@ -462,7 +462,7 @@ describe('App.MainServiceItemController', function () {
         expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.dependent.services')).to.not.be.ok;
       });
 
-      describe ("should display dependent list if other services depend on the one to be stopped", function() {
+      describe("should display dependent list if other services depend on the one to be stopped", function() {
         beforeEach(function () {
           var _mainServiceItemController = App.MainServiceItemController.create(
             {content: {

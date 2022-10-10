@@ -37,6 +37,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -69,6 +70,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
@@ -83,6 +85,7 @@ import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.PostUserCreationHookContext;
 import org.apache.ambari.server.hooks.users.UserCreatedEvent;
 import org.apache.ambari.server.hooks.users.UserHookService;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -898,9 +901,10 @@ public class UpgradeCatalog260Test {
     replay(injector, clusters, mockAmsSslClient, cluster);
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-        .addMockedMethod("createConfiguration")
+        .addMockedMethod("createConfiguration", ConfigurationRequest.class)
         .addMockedMethod("getClusters", new Class[] { })
-        .addMockedMethod("createConfig")
+        .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
+            String.class, Map.class)
         .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
         .createNiceMock();
 
@@ -957,9 +961,10 @@ public class UpgradeCatalog260Test {
     replay(injector, clusters, mockHsiConfigs, cluster);
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-            .addMockedMethod("createConfiguration")
+            .addMockedMethod("createConfiguration", ConfigurationRequest.class)
             .addMockedMethod("getClusters", new Class[] { })
-            .addMockedMethod("createConfig")
+            .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
+                String.class, Map.class)
             .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
             .createNiceMock();
 
@@ -1019,12 +1024,12 @@ public class UpgradeCatalog260Test {
 
     File dataDirectory = temporaryFolder.newFolder();
     File file = new File(dataDirectory, "hdfs_widget.json");
-    FileUtils.writeStringToFile(file, widgetStr);
+    FileUtils.writeStringToFile(file, widgetStr, Charset.defaultCharset());
 
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addLdapBindings().addFactoriesInstallBinding().build().configure(binder());
 
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(AmbariManagementController.class).toInstance(controller);
@@ -1135,6 +1140,7 @@ public class UpgradeCatalog260Test {
         binder.install(new FactoryModuleBuilder().implement(
             Service.class, ServiceImpl.class).build(ServiceFactory.class));
         binder.install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
+        binder.bind(AmbariLdapConfigurationProvider.class).toInstance(createMock(AmbariLdapConfigurationProvider.class));
       }
     });
   }

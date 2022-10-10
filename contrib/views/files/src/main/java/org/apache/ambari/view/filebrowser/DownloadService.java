@@ -62,6 +62,7 @@ import java.util.Queue;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import java.net.URLEncoder;
 
 /**
  * Service for download and aggregate files
@@ -113,12 +114,12 @@ public class DownloadService extends HdfsService {
       ResponseBuilder result = Response.ok(fs);
       if (download) {
         result.header("Content-Disposition",
-          "attachment; filename=\"" + status.getPath().getName() + "\"").type(MediaType.APPLICATION_OCTET_STREAM);
+          "attachment; filename=\"" + URLEncoder.encode(status.getPath().getName(), "UTF-8") + "\"").type(MediaType.APPLICATION_OCTET_STREAM);
       } else {
         FileNameMap fileNameMap = URLConnection.getFileNameMap();
         String mimeType = fileNameMap.getContentTypeFor(status.getPath().getName());
         result.header("Content-Disposition",
-          "filename=\"" + status.getPath().getName() + "\"").type(mimeType);
+          "filename=\"" + URLEncoder.encode(status.getPath().getName(), "UTF-8") + "\"").type(mimeType);
       }
       return result.build();
     } catch (WebApplicationException ex) {
@@ -228,7 +229,7 @@ public class DownloadService extends HdfsService {
         }
       };
       return Response.ok(result)
-          .header("Content-Disposition", "inline; filename=\"" + name +"\"").build();
+          .header("Content-Disposition", "inline; filename=\"" + URLEncoder.encode(name, "UTF-8") +"\"").build();
     } catch (WebApplicationException ex) {
       LOG.error("Error occurred : ",ex);
       throw ex;

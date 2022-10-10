@@ -294,13 +294,13 @@ App.Router = Em.Router.extend({
         } else if (xhr.getResponseHeader('User')) {
           var user = xhr.getResponseHeader('User');
           App.ajax.send({
-            name: 'router.login',
+            name: 'router.afterLogin',
             sender: self,
             data: {
               usr: user,
               loginName: encodeURIComponent(user)
             },
-            success: 'loginSuccessCallback',
+            success: 'afterLoginSuccessCallback',
             error: 'loginErrorCallback'
           }).then(function() {
             dfd.resolve(true);
@@ -438,6 +438,19 @@ App.Router = Em.Router.extend({
   },
 
   loginSuccessCallback: function(data, opt, params) {
+    App.ajax.send({
+      name: 'router.afterLogin',
+      sender: this,
+      data: {
+        usr: params.usr,
+        loginName: params.loginName
+      },
+      success: 'afterLoginSuccessCallback',
+      error: 'loginErrorCallback'
+    });
+  },
+
+  afterLoginSuccessCallback: function(data, opt, params) {
     var self = this;
     App.usersMapper.map({"items": [data]});
     this.setUserLoggedIn(data.Users.user_name);

@@ -35,6 +35,7 @@ import org.apache.ambari.server.api.services.stackadvisor.recommendations.Recomm
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.collections.CollectionUtils;
+import org.codehaus.jackson.JsonNode;
 
 /**
  * {@link org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand} implementation for
@@ -57,8 +58,10 @@ public class ConfigurationRecommendationCommand extends StackAdvisorCommand<Reco
                                             int requestId,
                                             StackAdvisorRunner saRunner,
                                             AmbariMetaInfo metaInfo,
-                                            AmbariServerConfigurationHandler ambariServerConfigurationHandler) {
-    super(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType, requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
+                                            AmbariServerConfigurationHandler ambariServerConfigurationHandler,
+                                            Map<String, JsonNode> hostInfoCache) {
+    super(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType, requestId, saRunner, metaInfo,
+        ambariServerConfigurationHandler, hostInfoCache);
     this.commandType = commandType;
   }
 

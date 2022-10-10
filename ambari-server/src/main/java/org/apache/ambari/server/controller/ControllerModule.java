@@ -63,6 +63,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
+import org.apache.ambari.server.controller.internal.AuthResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
@@ -157,6 +158,7 @@ import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.utils.PasswordUtils;
+import org.apache.ambari.server.utils.ThreadPools;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.slf4j.Logger;
@@ -191,6 +193,7 @@ public class ControllerModule extends AbstractModule {
   private final Configuration configuration;
   private final OsFamily os_family;
   private final HostsMap hostsMap;
+  private final ThreadPools threadPools;
   private boolean dbInitNeeded;
   private final Gson prettyGson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
 
@@ -201,12 +204,14 @@ public class ControllerModule extends AbstractModule {
     configuration = new Configuration();
     hostsMap = new HostsMap(configuration);
     os_family = new OsFamily(configuration);
+    threadPools = new ThreadPools(configuration);
   }
 
   public ControllerModule(Properties properties) throws Exception {
     configuration = new Configuration(properties);
     hostsMap = new HostsMap(configuration);
     os_family = new OsFamily(configuration);
+    threadPools = new ThreadPools((configuration));
   }
 
 
@@ -330,6 +335,7 @@ public class ControllerModule extends AbstractModule {
 
     bind(Configuration.class).toInstance(configuration);
     bind(OsFamily.class).toInstance(os_family);
+    bind(ThreadPools.class).toInstance(threadPools);
     bind(HostsMap.class).toInstance(hostsMap);
     bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
     bind(DelegatingFilterProxy.class).toInstance(new DelegatingFilterProxy() {
@@ -475,6 +481,7 @@ public class ControllerModule extends AbstractModule {
         .implement(ResourceProvider.class, Names.named("alertTarget"), AlertTargetResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("viewInstance"), ViewInstanceResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("rootServiceHostComponentConfiguration"), RootServiceComponentConfigurationResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("auth"), AuthResourceProvider.class)
         .build(ResourceProviderFactory.class));
 
     install(new FactoryModuleBuilder().implement(
@@ -640,25 +647,30 @@ public class ControllerModule extends AbstractModule {
     // the dispatch factory
     for (BeanDefinition beanDefinition : beanDefinitions) {
       String className = beanDefinition.getBeanClassName();
-      Class<?> clazz = ClassUtils.resolveClassName(className,
-          ClassUtils.getDefaultClassLoader());
-
-      try {
-        NotificationDispatcher dispatcher;
-        if (clazz.equals(AmbariSNMPDispatcher.class)) {
-          dispatcher = (NotificationDispatcher) clazz.getConstructor(Integer.class).newInstance(configuration.getAmbariSNMPUdpBindPort());
-        } else if (clazz.equals(SNMPDispatcher.class)) {
-          dispatcher = (NotificationDispatcher) clazz.getConstructor(Integer.class).newInstance(configuration.getSNMPUdpBindPort());
-        } else {
-          dispatcher = (NotificationDispatcher) clazz.newInstance();
+      if (className != null) {
+        Class<?> clazz = ClassUtils.resolveClassName(className,
+                ClassUtils.getDefaultClassLoader());
+        try {
+          NotificationDispatcher dispatcher;
+          if (clazz.equals(AmbariSNMPDispatcher.class)) {
+            dispatcher = (NotificationDispatcher) clazz.getConstructor(Integer.class)
+                    .newInstance(configuration.getAmbariSNMPUdpBindPort());
+          } else if (clazz.equals(SNMPDispatcher.class)) {
+            dispatcher = (NotificationDispatcher) clazz.getConstructor(Integer.class)
+                    .newInstance(configuration.getSNMPUdpBindPort());
+          } else {
+            dispatcher = (NotificationDispatcher) clazz.newInstance();
+          }
+          dispatchFactory.register(dispatcher.getType(), dispatcher);
+          bind((Class<NotificationDispatcher>) clazz).toInstance(dispatcher);
+          LOG.info("Binding and registering notification dispatcher {}", clazz);
+        } catch (Exception exception) {
+          LOG.error("Unable to bind and register notification dispatcher {}",
+                  clazz, exception);
         }
-        dispatchFactory.register(dispatcher.getType(), dispatcher);
-        bind((Class<NotificationDispatcher>) clazz).toInstance(dispatcher);
-
-        LOG.info("Binding and registering notification dispatcher {}", clazz);
-      } catch (Exception exception) {
-        LOG.error("Unable to bind and register notification dispatcher {}",
-            clazz, exception);
+      } else {
+        LOG.error("Binding and registering notification dispatcher is not possible for" +
+            " beanDefinition: {} in the absence of className", beanDefinition);
       }
     }
 

@@ -347,6 +347,7 @@ class _TestRecoveryManager(TestCase):
       [1000, 1001, 1104, 1105, 1106, 1807, 1808, 1809, 1810, 1811, 1812]
 
     rm = RecoveryManager(MagicMock())
+    rm.statuses_computed_at_least_once = True
     rm.update_config(5, 5, 0, 11, True, False, False)
 
     command1 = copy.deepcopy(self.command)

@@ -75,6 +75,7 @@ public class AmbariAuthorizationFilter implements Filter {
   private static final String API_WIDGET_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/widgets.*";
   private static final String API_CLUSTERS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters.*";
   private static final String API_VIEWS_ALL_PATTERN = API_VERSION_PREFIX + "/views.*";
+  private static final String API_AUTH_PATTERN = API_VERSION_PREFIX + "/auth";
   private static final String API_PERSIST_ALL_PATTERN = API_VERSION_PREFIX + "/persist.*";
   private static final String API_LDAP_SYNC_EVENTS_ALL_PATTERN = API_VERSION_PREFIX + "/ldap_sync_events.*";
   private static final String API_CREDENTIALS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/credentials.*";
@@ -182,6 +183,7 @@ public class AmbariAuthorizationFilter implements Filter {
         if(auditLogger.isEnabled()) {
           LoginAuditEvent loginAuditEvent = LoginAuditEvent.builder()
             .withUserName(internalAuthenticationToken.getName())
+            .withProxyUserName(AuthorizationHelper.getProxyUserName(internalAuthenticationToken))
             .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
             .withRoles(permissionHelper.getPermissionLabels(authentication))
             .withTimestamp(System.currentTimeMillis()).build();
@@ -249,6 +251,10 @@ public class AmbariAuthorizationFilter implements Filter {
                 authorized = true;
                 break;
               }
+            } else if (requestURI.matches(API_AUTH_PATTERN) && "POST".equalsIgnoreCase(httpRequest.getMethod())) {
+              // all are able to login
+              authorized = true;
+              break;
             }
           }
         }
@@ -264,6 +270,7 @@ public class AmbariAuthorizationFilter implements Filter {
             .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
             .withResourcePath(httpRequest.getRequestURI())
             .withUserName(AuthorizationHelper.getAuthenticatedName())
+            .withProxyUserName(AuthorizationHelper.getProxyUserName())
             .withTimestamp(System.currentTimeMillis())
             .build();
           auditLogger.log(auditEvent);
@@ -283,6 +290,7 @@ public class AmbariAuthorizationFilter implements Filter {
           .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
           .withResourcePath(httpRequest.getRequestURI())
           .withUserName(AuthorizationHelper.getAuthenticatedName())
+          .withProxyUserName(AuthorizationHelper.getProxyUserName())
           .withTimestamp(System.currentTimeMillis())
           .build();
         auditLogger.log(auditEvent);

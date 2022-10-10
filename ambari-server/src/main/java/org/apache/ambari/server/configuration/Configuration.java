@@ -33,6 +33,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -49,6 +50,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
@@ -321,6 +323,12 @@ public class Configuration {
   // Ambari server log4j file name
   public static final String AMBARI_LOG_FILE = "log4j.properties";
 
+  @Markdown(
+    description = "Interval for heartbeat presence checks.",
+    examples = {"60000","600000"} )
+  public static final ConfigurationProperty<Integer> HEARTBEAT_MONITORING_INTERVAL = new ConfigurationProperty<>(
+    "heartbeat.monitoring.interval",60000);
+
   /**
    * The directory on the Ambari Server file system used for storing
    * Ambari Agent bootstrap information such as request responses.
@@ -503,6 +511,22 @@ public class Configuration {
   @Markdown(description = "Determines whether SSL is used to communicate between Ambari Server and Ambari Agents.")
   public static final ConfigurationProperty<String> AGENT_USE_SSL = new ConfigurationProperty<>(
       "agent.ssl", "true");
+
+  /**
+   * Configurable password policy for Ambari users
+   */
+  @Markdown(
+      description = "Determines Ambari user password policy. Passwords should match the regex")
+  public static final ConfigurationProperty<String> PASSWORD_POLICY_REGEXP = new ConfigurationProperty<>(
+      "security.password.policy.regexp", ".*");
+
+  /**
+   * Configurable password policy for Ambari users
+   */
+  @Markdown(
+      description = "Password policy description that is shown to users")
+  public static final ConfigurationProperty<String> PASSWORD_POLICY_DESCRIPTION = new ConfigurationProperty<>(
+      "security.password.policy.description", "");
 
   /**
    * Determines whether the Ambari Agent host names should be validated against
@@ -2199,6 +2223,13 @@ public class Configuration {
       "http.x-xss-protection", "1; mode=block");
 
   /**
+   * The value that will be used to set the {@code Content-Security-Policy} HTTP response header.
+   */
+  @Markdown(description = "The value that will be used to set the `Content-Security-Policy` HTTP response header.")
+  public static final ConfigurationProperty<String> HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE = new ConfigurationProperty<>(
+      "http.content-security-policy", "");
+
+  /**
    * The value that will be used to set the {@code X-Content-Type} HTTP response header.
    */
   @Markdown(description = "The value that will be used to set the `X-CONTENT-TYPE` HTTP response header.")
@@ -2251,6 +2282,14 @@ public class Configuration {
   @Markdown(description = "The value that will be used to set the `X-XSS-Protection` HTTP response header for Ambari View requests.")
   public static final ConfigurationProperty<String> VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE = new ConfigurationProperty<>(
       "views.http.x-xss-protection", "1; mode=block");
+
+  /**
+   * The value that will be used to set the {@code Content-Security-Policy}
+   * HTTP response header for Ambari View requests.
+   */
+  @Markdown(description = "The value that will be used to set the `Content-Security-Policy` HTTP response header for Ambari View requests.")
+  public static final ConfigurationProperty<String> VIEWS_HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE = new ConfigurationProperty<>(
+      "views.http.content-security-policy", "");
 
   /**
    * The value that will be used to set the {@code X-Content-Type} HTTP response header.
@@ -2431,16 +2470,6 @@ public class Configuration {
       "metrics.retrieval-service.request.ttl", 5);
 
   /**
-   * The number of tasks that can be queried from the database at once In the
-   * case of more tasks, multiple queries are issued
-   *
-   * @return
-   */
-  @Markdown(description = "The maximum number of tasks which can be queried by ID from the database.")
-  public static final ConfigurationProperty<Integer> TASK_ID_LIST_LIMIT = new ConfigurationProperty<>(
-      "task.query.parameterlist.size", 999);
-
-  /**
    * Indicates whether the current ambari server instance is the active instance.
    * If this property is missing, the value will be considered to be true.
    * If present, it should be explicitly set to "true" to set this as the active instance.
@@ -2591,6 +2620,35 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES = new ConfigurationProperty<>(
     "stack.upgrade.default.parallelism", 100);
 
+  /**
+   * The timeout, in seconds, when finalizing Kerberos enable/disable/regenerate commands.
+   */
+  @Markdown(description = "The timeout, in seconds, when finalizing Kerberos enable/disable/regenerate commands.")
+  public static final ConfigurationProperty<Integer> KERBEROS_SERVER_ACTION_FINALIZE_SECONDS = new ConfigurationProperty<>(
+    "server.kerberos.finalize.timeout", 600);
+
+  /**
+   * The number of threads to use when executing server-side Kerberos commands, such as generate keytabs.
+   */
+  @Markdown(description = "The number of threads to use when executing server-side Kerberos commands, such as generate keytabs.")
+  public static final ConfigurationProperty<Integer> KERBEROS_SERVER_ACTION_THREADPOOL_SIZE = new ConfigurationProperty<>(
+    "server.kerberos.action.threadpool.size", 1);
+
+  @Markdown(description = "The Agent command publisher pool. Affects degree of parallelization for generating the commands.")
+  public static final ConfigurationProperty<Integer> AGENT_COMMAND_PUBLISHER_THREADPOOL_SIZE = new ConfigurationProperty<>(
+    "server.pools.agent.command.publisher.size", 5);
+
+  @Markdown(description = "Configures size of the default JOIN Fork pool used for Streams.")
+  public static final ConfigurationProperty<Integer> DEFAULT_FORK_JOIN_THREADPOOL_SIZE = new ConfigurationProperty<>(
+    "server.pools.default.size", 5);
+
+  /**
+   * A flag to determine whether error stacks appear on the error page
+   */
+  @Markdown(description = "Show or hide the error stacks on the error page")
+  public static final ConfigurationProperty<String> SERVER_SHOW_ERROR_STACKS = new ConfigurationProperty<>(
+    "server.show.error.stacks", "false");
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -2621,6 +2679,17 @@ public class Configuration {
     else {
       DEF_ARCHIVE_EXTENSION = ".tar.gz";
       DEF_ARCHIVE_CONTENT_TYPE = "application/x-ustar";
+    }
+  }
+
+  /**
+   * Validate password policy regexp syntax
+   * @throws java.util.regex.PatternSyntaxException If the expression's syntax is invalid
+   */
+  public void validatePasswordPolicyRegexp() {
+    String regexp = getPasswordPolicyRegexp();
+    if (!StringUtils.isEmpty(regexp) && !regexp.equalsIgnoreCase(".*")) {
+      Pattern.compile(regexp);
     }
   }
 
@@ -2819,7 +2888,7 @@ public class Configuration {
       try {
         password = RandomStringUtils.randomAlphanumeric(Integer
             .parseInt(configsMap.get(SRVR_CRT_PASS_LEN.getKey())));
-        FileUtils.writeStringToFile(passFile, password);
+        FileUtils.writeStringToFile(passFile, password, Charset.defaultCharset());
         ShellCommandUtil.setUnixFilePermissions(
           ShellCommandUtil.MASK_OWNER_ONLY_RW, passFile.getAbsolutePath());
       } catch (IOException e) {
@@ -2830,7 +2899,7 @@ public class Configuration {
     } else {
       LOG.info("Reading password from existing file");
       try {
-        password = FileUtils.readFileToString(passFile);
+        password = FileUtils.readFileToString(passFile, Charset.defaultCharset());
         password = password.replaceAll("\\p{Cntrl}", "");
       } catch (IOException e) {
         e.printStackTrace();
@@ -2846,7 +2915,7 @@ public class Configuration {
       if (httpsPassFile.exists()) {
         LOG.info("Reading password from existing file");
         try {
-          password = FileUtils.readFileToString(httpsPassFile);
+          password = FileUtils.readFileToString(httpsPassFile, Charset.defaultCharset());
           password = password.replaceAll("\\p{Cntrl}", "");
         } catch (IOException e) {
           e.printStackTrace();
@@ -3005,7 +3074,7 @@ public class Configuration {
     writeConfigFile(existingProperties, false);
 
     // reloading properties
-    this.properties = readConfigFile();
+    properties = readConfigFile();
   }
 
   /**
@@ -3315,6 +3384,10 @@ public class Configuration {
     return getProperty(SYS_PREPPED_HOSTS);
   }
 
+  public Integer getHeartbeatMonitorInterval() {
+    return Integer.parseInt(getProperty(HEARTBEAT_MONITORING_INTERVAL));
+  }
+
   /**
    * Return {@code true} if we forced to work with legacy repositories
    *
@@ -3528,7 +3601,9 @@ public class Configuration {
    */
   public String getServerVersion() {
     try {
-      return FileUtils.readFileToString(new File(getServerVersionFilePath())).trim();
+      return FileUtils
+              .readFileToString(new File(getServerVersionFilePath()), Charset.defaultCharset())
+              .trim();
     } catch (IOException e) {
       LOG.error("Unable to read server version file", e);
     }
@@ -3616,6 +3691,17 @@ public class Configuration {
    */
   public String getXXSSProtectionHTTPResponseHeader() {
     return getProperty(HTTP_X_XSS_PROTECTION_HEADER_VALUE);
+  }
+
+  /**
+   * Get the value that should be set for the <code>Content-Security-Policy</code> HTTP response header for Ambari Server UI.
+   * <p/>
+   * By default this will be empty.
+   *
+   * @return the Content-Security-Policy value - null or "" indicates that the value is not set
+   */
+  public String getContentSecurityPolicyHTTPResponseHeader() {
+    return getProperty(HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE);
   }
 
   /**
@@ -3723,6 +3809,17 @@ public class Configuration {
    */
   public String getViewsXXSSProtectionHTTPResponseHeader() {
     return getProperty(VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE);
+  }
+
+  /**
+   * Get the value that should be set for the <code>Content-Security-Policy</code> HTTP response header for Ambari Views.
+   * <p/>
+   * By default this will be empty.
+   *
+   * @return the Content-Security-Policy value - null or "" indicates that the value is not set
+   */
+  public String getViewsContentSecurityPolicyHTTPResponseHeader() {
+    return getProperty(VIEWS_HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE);
   }
 
   /**
@@ -3997,6 +4094,20 @@ public class Configuration {
 
   public String getMySQLJarName() {
     return getProperty(MYSQL_JAR_NAME);
+  }
+
+  /**
+   * @return Configurable password policy for Ambari users
+   */
+  public String getPasswordPolicyRegexp() {
+    return getProperty(PASSWORD_POLICY_REGEXP);
+  }
+
+  /**
+   * @return Password policy explanation according to regexp
+   */
+  public String getPasswordPolicyDescription() {
+    return getProperty(PASSWORD_POLICY_DESCRIPTION);
   }
 
   public JPATableGenerationStrategy getJPATableGenerationStrategy() {
@@ -5398,16 +5509,6 @@ public class Configuration {
   }
 
   /**
-   * Returns the number of tasks that can be queried from the database at once
-   * In the case of more tasks, multiple queries are issued
-   *
-   * @return
-   */
-  public int getTaskIdListLimit() {
-    return Integer.parseInt(getProperty(TASK_ID_LIST_LIMIT));
-  }
-
-  /**
    * Get whether the current ambari server instance the active instance
    *
    * @return true / false
@@ -5514,6 +5615,40 @@ public class Configuration {
    */
   public int getDefaultMaxParallelismForUpgrades() {
     return Integer.parseInt(getProperty(DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES));
+  }
+
+  /**
+   * Gets the number of threads to use when executing server-side Kerberos
+   * commands, such as generate keytabs.
+   *
+   * @return the threadpool size, defaulting to 1
+   */
+  public int getKerberosServerActionThreadPoolSize() {
+    return Integer.parseInt(getProperty(KERBEROS_SERVER_ACTION_THREADPOOL_SIZE));
+  }
+
+  /**
+   * Determines the amount of threads dedicated for {@link org.apache.ambari.server.events.publishers.AgentCommandsPublisher}
+   */
+  public int getAgentCommandPublisherThreadPoolSize() {
+    return Integer.parseInt(getProperty(AGENT_COMMAND_PUBLISHER_THREADPOOL_SIZE));
+  }
+
+  /**
+   * Determines the amount of threads used by default ForJoin Pool
+   */
+  public int getDefaultForkJoinPoolSize(){
+    return Integer.parseInt(getProperty(DEFAULT_FORK_JOIN_THREADPOOL_SIZE));
+  }
+
+  /**
+   * Get the timeout, in seconds, when finalizing Kerberos
+   * enable/disable/regenerate commands.
+   *
+   * @return the timeout, in seconds, defaulting to 600.
+   */
+  public int getKerberosServerActionFinalizeTimeout() {
+    return Integer.parseInt(getProperty(KERBEROS_SERVER_ACTION_FINALIZE_SECONDS));
   }
 
   /**
@@ -5663,7 +5798,7 @@ public class Configuration {
       markdown = markdown.replace(MARKDOWN_BASELINE_VALUES_KEY, baselineBuffer.toString());
 
       File file = new File(outputFile);
-      FileUtils.writeStringToFile(file, markdown);
+      FileUtils.writeStringToFile(file, markdown, Charset.defaultCharset());
       System.out.println("Successfully created " + outputFile);
       LOG.info("Successfully created {}", outputFile);
     } finally {
@@ -6025,5 +6160,14 @@ public class Configuration {
 
   public int getAlertServiceCorePoolSize() {
     return Integer.parseInt(getProperty(SERVER_SIDE_ALERTS_CORE_POOL_SIZE));
+  }
+
+  /**
+   * Determines whether error stacks appear on the error page
+   *
+   * @return true if error stacks appear on the error page (defaults to {@code false})
+   */
+  public boolean isServerShowErrorStacks() {
+    return Boolean.parseBoolean(getProperty(SERVER_SHOW_ERROR_STACKS));
   }
 }

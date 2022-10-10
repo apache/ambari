@@ -19,28 +19,44 @@ define([
       'angular',
       'lodash',
       'jquery',
-      './directives',
-      './queryCtrl'
+      './query_ctrl'
     ],
     function (angular, _) {
       'use strict';
 
-      var module = angular.module('grafana.services');
+      /**
+       * AMS Datasource Constructor
+       */
+      function AmbariMetricsDatasource(instanceSettings, $q, backendSrv, templateSrv) {
+        this.type = 'ambari-metrics';
+        this.name = instanceSettings.name;
+        this.url = instanceSettings.url;
+        this.withCredentials = instanceSettings.withCredentials;
+        this.basicAuth = instanceSettings.basicAuth;
 
-      module.factory('AmbariMetricsDatasource', function ($q, backendSrv, templateSrv) {
-        /**
-         * AMS Datasource Constructor
-         */
-        function AmbariMetricsDatasource(datasource) {
-          this.name = datasource.name;
-          this.url = datasource.url;
-          this.initMetricAppidMapping();
-        }
         var allMetrics = {};
         var appIds = [];
 
+        /**
+         * AMS Datasource  Authentication
+         */
+        this.doAmbariRequest = function (options) {
+          if (this.basicAuth || this.withCredentials) {
+            options.withCredentials = true;
+          }
+          if (this.basicAuth) {
+            options.headers = options.headers || {};
+            options.headers.Authorization = this.basicAuth;
+          }
+
+          options.url = this.url + options.url;
+          options.inspect = {type: 'ambari-metrics'};
+
+          return backendSrv.datasourceRequest(options);
+        };
+
         //We get a list of components and their associated metrics.
-        AmbariMetricsDatasource.prototype.initMetricAppidMapping = function () {
+        this.initMetricAppidMapping = function () {
           return this.doAmbariRequest({ url: '/ws/v1/timeline/metrics/metadata' })
             .then(function (items) {
               items = items.data;
@@ -61,29 +77,12 @@ define([
               appIds = Object.keys(allMetrics);
             });
         };
-
-        /**
-         * AMS Datasource  Authentication
-         */
-        AmbariMetricsDatasource.prototype.doAmbariRequest = function (options) {
-          if (this.basicAuth || this.withCredentials) {
-            options.withCredentials = true;
-          }
-          if (this.basicAuth) {
-            options.headers = options.headers || {};
-            options.headers.Authorization = this.basicAuth;
-          }
-
-          options.url = this.url + options.url;
-          options.inspect = {type: 'ambarimetrics'};
-
-          return backendSrv.datasourceRequest(options);
-        };
+        this.initMetricAppidMapping();
 
         /**
          * AMS Datasource  Query
          */
-        AmbariMetricsDatasource.prototype.query = function (options) {
+        this.query = function (options) {
           var emptyData = function (metric) {
             var legend = metric.alias ? metric.alias : metric.metric;
             return {
@@ -99,7 +98,7 @@ define([
             if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "yarnqueues") {
               alias = alias + ' on ' + target.qmetric; }
             if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "kafka-topics") {
-            alias = alias + ' on ' + target.kbTopic; }
+              alias = alias + ' on ' + target.kbTopic; }
             return function (res) {
               res = res.data;
               console.log('processing metric ' + target.metric);
@@ -214,7 +213,7 @@ define([
             };
           };
           var getHostAppIdData = function(target) {
-            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision=' 
+            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
             var instanceId = typeof target.cluster == 'undefined'  ? '' : '&instanceId=' + target.cluster;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
@@ -257,6 +256,10 @@ define([
           // To speed up querying on templatized dashboards.
           var getAllHostData = function(target) {
             var instanceId = typeof target.templatedCluster == 'undefined'  ? '' : '&instanceId=' + target.templatedCluster;
+            var appId = target.app;
+            if ((appId === 'nifi' || appId === 'druid') && (!instanceId || instanceId === '&instanceId=')) {
+                instanceId = "&instanceId=%"
+            }
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
@@ -300,7 +303,7 @@ define([
               allHostMetricsData(target)
             );
           };
-          
+
           var getKafkaAppIdData = function(target) {
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
@@ -391,40 +394,36 @@ define([
           if (!_.isEmpty(templateSrv.variables)) {
             // YARN Queues Dashboard
             if (templateSrv.variables[0].query === "yarnqueues") {
-              var allQueues = templateSrv.variables.filter(function(variable) { return variable.query === "yarnqueues";});
-              var selectedQs = (_.isEmpty(allQueues)) ? "" : allQueues[0].options.filter(function(q)
-              { return q.selected; }).map(function(qName) { return qName.value; });
-              // All Queues
-              if (!_.isEmpty(_.find(selectedQs, function (wildcard) { return wildcard === "*"; })))  {
-                var allQueue = allQueues[0].options.filter(function(q) {
-                  return q.text !== "All"; }).map(function(queue) { return queue.value; });
-                _.forEach(allQueue, function(processQueue) {
-                  metricsPromises.push(_.map(options.targets, function(target) {
-                    target.qmetric = processQueue;
-                    target.queue = target.metric.replace('root', target.qmetric);
-                    return getYarnAppIdData(target);
-                  }));
+              var allQueues = templateSrv.variables.filter(function(variable) {
+                return variable.query === "yarnqueues";
+              });
+              var selectedQs = (_.isEmpty(allQueues)) ? "" : allQueues[0].options
+                .filter(getSelectedItems)
+                .map(function(qName) {
+                  return qName.value;
                 });
-              } else {
-                // All selected queues.
-                _.forEach(selectedQs, function(processQueue) {
-                  metricsPromises.push(_.map(options.targets, function(target) {
-                    target.qmetric = processQueue;
-                    target.queue = target.metric.replace('root', target.qmetric);
-                    return getYarnAppIdData(target);
-                  }));
-                });
-              }
+
+              _.forEach(selectedQs, function(processQueue) {
+                metricsPromises.push(_.map(options.targets, function(target) {
+                  target.qmetric = processQueue;
+                  target.queue = target.metric.replace('root', target.qmetric);
+                  return getYarnAppIdData(target);
+                }));
+              });
             }
+
             // Templatized Dashboard for per-user metrics in HBase.
             if (templateSrv.variables[0].query === "hbase-users") {
-              var allUsers = templateSrv.variables.filter(function(variable) { return variable.query === "hbase-users";});
-              var selectedUsers = (_.isEmpty(allUsers)) ? "" : allUsers[0].options.filter(function(user)
-              { return user.selected; }).map(function(uName) { return uName.value; });
-              selectedUsers = templateSrv._values.Users.lastIndexOf('}') > 0 ? templateSrv._values.Users.slice(1,-1) :
-                templateSrv._values.Users;
-              var selectedUser = selectedUsers.split(',');
-              _.forEach(selectedUser, function(processUser) {
+              var allUsers = templateSrv.variables.filter(function(variable) {
+                return variable.query === "hbase-users";
+              });
+              var selectedUsers = (_.isEmpty(allUsers)) ? "" : allUsers[0].options
+                .filter(getSelectedItems)
+                .map(function(uName) {
+                  return uName.value;
+                });
+
+              _.forEach(selectedUsers, function(processUser) {
                   metricsPromises.push(_.map(options.targets, function(target) {
                     target.hbUser = processUser;
                     var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
@@ -436,17 +435,25 @@ define([
             // Templatized Dashboard for per-table metrics in HBase.
             if (templateSrv.variables[0].query === "hbase-tables") {
               var splitTables = [];
-              var allTables = templateSrv._values.Tables.lastIndexOf('}') > 0 ? templateSrv._values.Tables.slice(1,-1) :
-                templateSrv._values.Tables;
-              var allTable = allTables.split(',');
-              while (allTable.length > 0) {
-                splitTables.push(allTable.splice(0,20));
+              let allTables = [];
+              const tables = templateSrv.index.Tables.options;
+              for (let table of tables) {
+                if (table.text.toLowerCase() === "all" && table.selected) {
+                  allTables = "";
+                  break;
+                } else if (table.selected) {
+                  allTables.push(table.value);
+                }
+              }
+
+              while (allTables.length > 0) {
+                splitTables.push(allTables.splice(0, 20));
               }
               _.forEach(splitTables, function(table) {
                 metricsPromises.push(_.map(options.targets, function(target) {
                   var hbMetric = [];
                   _.map(table, function(tableMetric) { hbMetric.push(target.metric.replace('*', tableMetric)); });
-                  var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform; 
+                  var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
                   hbMetric = _.map(hbMetric, function(tbl) { return tbl + metricTransform +'._' +  target.aggregator; });
                   target.hbMetric = _.flatten(hbMetric).join(',');
                   return getHbaseAppIdData(target);
@@ -455,13 +462,16 @@ define([
             }
             // Templatized Dashboard for per-topic metrics in Kafka.
             if (templateSrv.variables[0].query === "kafka-topics") {
-              var allTopics = templateSrv.variables.filter(function(variable) { return variable.query === "kafka-topics";});
-              var selectedTopics = (_.isEmpty(allTopics)) ? "" : allTopics[0].options.filter(function(topic)
-              { return topic.selected; }).map(function(topicName) { return topicName.value; });
-              selectedTopics = templateSrv._values.Topics.lastIndexOf('}') > 0 ? templateSrv._values.Topics.slice(1,-1) :
-                templateSrv._values.Topics;
-              var selectedTopic = selectedTopics.split(',');  
-              _.forEach(selectedTopic, function(processTopic) {
+              var allTopics = templateSrv.variables.filter(function(variable) {
+                return variable.query === "kafka-topics";
+              });
+              var selectedTopics = (_.isEmpty(allTopics)) ? "" : allTopics[0].options
+                .filter(getSelectedItems)
+                .map(function(topicName) {
+                  return topicName.value;
+                });
+
+              _.forEach(selectedTopics, function(processTopic) {
                 metricsPromises.push(_.map(options.targets, function(target) {
                   target.kbTopic = processTopic;
                   target.kbMetric = target.metric.replace('*', target.kbTopic);
@@ -472,12 +482,17 @@ define([
             //Templatized Dashboard for Call Queues
             if (templateSrv.variables[0].query === "callers") {
               var allCallers = templateSrv.variables.filter(function(variable) { return variable.query === "callers";});
-              var selectedCallers = (_.isEmpty(allCallers)) ? "" : allCallers[0].options.filter(function(user)
-              { return user.selected; }).map(function(callerName) { return callerName.value; });
-              selectedCallers = templateSrv._values.Callers.lastIndexOf('}') > 0 ? templateSrv._values.Callers.slice(1,-1) :
-                templateSrv._values.Callers;
-              var selectedCaller = selectedCallers.split(',');
-              _.forEach(selectedCaller, function(processCaller) {
+              let selectedCallers = [];
+              const callers = templateSrv.index.Callers.options;
+              for (let caller of callers) {
+                if (caller.text.toLowerCase() === "all" && caller.selected) {
+                  selectedCallers = "";
+                  break;
+                } else if (caller.selected) {
+                  selectedCallers.push(caller.text);
+                }
+              }
+              _.forEach(selectedCallers, function(processCaller) {
                   metricsPromises.push(_.map(options.targets, function(target) {
                     target.nnCaller = processCaller;
                     target.nnMetric = target.metric.replace('*', target.nnCaller);
@@ -488,47 +503,56 @@ define([
 
             //Templatized Dashboard for Infra Solr Cores
             if (templateSrv.variables[0].query === "infra_solr_core") {
-                var allCores = templateSrv.variables.filter(function(variable) { return variable.query === "infra_solr_core";});
-                var selectedCores = (_.isEmpty(allCores)) ? "" : allCores[0].options.filter(function(core)
-                { return core.selected; }).map(function(coreName) { return coreName.value; });
-                selectedCores = templateSrv._values.Cores.lastIndexOf('}') > 0 ? templateSrv._values.Cores.slice(1,-1) :
-                    templateSrv._values.Cores;
-                var selectedCore= selectedCores.split(',');
-                _.forEach(selectedCore, function(processCore) {
-                    metricsPromises.push(_.map(options.targets, function(target) {
-                        target.sCore = processCore;
-                        target.sCoreMetric = target.metric.replace('*', target.sCore);
-                        return getSolrCoreData(target);
-                    }));
+              var allCores = templateSrv.variables.filter(function(variable) {
+                return variable.query === "infra_solr_core";
+              });
+              var selectedCores = (_.isEmpty(allCores)) ? "" : allCores[0].options
+                .filter(getSelectedItems)
+                .map(function(coreName) {
+                  return coreName.value;
                 });
+
+              _.forEach(selectedCores, function(processCore) {
+                metricsPromises.push(_.map(options.targets, function(target) {
+                  target.sCore = processCore;
+                  target.sCoreMetric = target.metric.replace('*', target.sCore);
+                  return getSolrCoreData(target);
+                }));
+              });
             }
 
             //Templatized Dashboard for Infra Solr Collections
             if (templateSrv.variables[0].query === "infra_solr_collection") {
-                var allCollections = templateSrv.variables.filter(function(variable) { return variable.query === "infra_solr_collection";});
-                var selectedCollections = (_.isEmpty(allCollections)) ? "" : allCollections[0].options.filter(function(collection)
-                { return collection.selected; }).map(function(collectionsName) { return collectionsName.value; });
-                selectedCollections = templateSrv._values.Collections.lastIndexOf('}') > 0 ? templateSrv._values.Collections.slice(1,-1) :
-                    templateSrv._values.Collections;
-                var selectedCollection= selectedCollections.split(',');
-                _.forEach(selectedCollection, function(processCollection) {
-                    metricsPromises.push(_.map(options.targets, function(target) {
-                        target.sCollection = processCollection;
-                        target.sCollectionMetric = target.metric.replace('*', target.sCollection);
-                        return getSolrCollectionData(target);
-                    }));
+              var allCollections = templateSrv.variables.filter(function(variable) {
+                return variable.query === "infra_solr_collection";
+              });
+              var selectedCollections = (_.isEmpty(allCollections)) ? "" : allCollections[0].options
+                .filter(getSelectedItems)
+                .map(function(collectionsName) {
+                  return collectionsName.value;
                 });
+
+              _.forEach(selectedCollections, function(processCollection) {
+                metricsPromises.push(_.map(options.targets, function(target) {
+                  target.sCollection = processCollection;
+                  target.sCollectionMetric = target.metric.replace('*', target.sCollection);
+                  return getSolrCollectionData(target);
+                }));
+              });
             }
 
             //Templatized Dashboard for Storm Topologies
             if (templateSrv.variables[0].query === "topologies" && !templateSrv.variables[1]) {
-              var allTopologies = templateSrv.variables.filter(function(variable) { return variable.query === "topologies";});
-              var selectedTopologies = (_.isEmpty(allTopologies)) ? "" : allTopologies[0].options.filter(function(topo)
-              { return topo.selected; }).map(function(topoName) { return topoName.value; });
-              selectedTopologies = templateSrv._values.topologies.lastIndexOf('}') > 0 ? templateSrv._values.topologies.slice(1,-1) :
-                  templateSrv._values.topologies;
-              var selectedTopology= selectedTopologies.split(',');
-              _.forEach(selectedTopology, function(processTopology) {
+              var allTopologies = templateSrv.variables.filter(function(variable) {
+                return variable.query === "topologies";
+              });
+              var selectedTopologies = (_.isEmpty(allTopologies)) ? "" : allTopologies[0].options
+                .filter(getSelectedItems)
+                .map(function(topoName) {
+                  return topoName.value;
+                });
+
+              _.forEach(selectedTopologies, function(processTopology) {
                 metricsPromises.push(_.map(options.targets, function(target) {
                   target.sTopology = processTopology;
                   target.sTopoMetric = target.metric.replace('*', target.sTopology);
@@ -540,21 +564,39 @@ define([
             //Templatized Dashboards for Storm Components
             if (templateSrv.variables[0].query === "topologies" && templateSrv.variables[1] &&
                 templateSrv.variables[1].name === "component") {
-              var selectedTopology = templateSrv._values.topologies;
-              var selectedComponent = templateSrv._values.component;
+
+              var allTopologies = templateSrv.variables.filter(function(variable) {
+                return variable.name === "topologies";
+              });
+              var allComponents = templateSrv.variables.filter(function(variable) {
+                return variable.name === "component";
+              });
+
+              var selectedTopology = (_.isEmpty(allTopologies)) ? "" : allTopologies[0].current.text;
+              var selectedComponent = (_.isEmpty(allComponents)) ? "" : allComponents[0].current.text;
+
               metricsPromises.push(_.map(options.targets, function(target) {
                 target.sTopology = selectedTopology;
                 target.sComponent = selectedComponent;
                 target.sTopoMetric = target.metric.replace('*', target.sTopology).replace('*', target.sComponent);
-                  return getStormData(target);
+                    return getStormData(target);
               }));
             }
 
             //Templatized Dashboard for Storm Kafka Offset
             if (templateSrv.variables[0].query === "topologies" && templateSrv.variables[1] &&
                 templateSrv.variables[1].name === "topic") {
-              var selectedTopology = templateSrv._values.topologies;
-              var selectedTopic = templateSrv._values.topic;
+
+              var allTopologies = templateSrv.variables.filter(function(variable) {
+                return variable.name === "topologies";
+              });
+              var allTopics = templateSrv.variables.filter(function(variable) {
+                return variable.name === "topic";
+              });
+
+              var selectedTopology = (_.isEmpty(allTopologies)) ? "" : allTopologies[0].current.text;
+              var selectedTopic = (_.isEmpty(allTopics)) ? "" : allTopics[0].current.text;
+
               metricsPromises.push(_.map(options.targets, function(target) {
                 target.sTopology = selectedTopology;
                 target.sTopic = selectedTopic;
@@ -567,13 +609,16 @@ define([
 
             //Templatized Dashboards for Druid
             if (templateSrv.variables[0].query === "druidDataSources" && !templateSrv.variables[1]) {
-              var allDataSources = templateSrv.variables.filter(function(variable) { return variable.query === "druidDataSources";});
-              var selectedDataSources = (_.isEmpty(allDataSources)) ? "" : allDataSources[0].options.filter(function(dataSource)
-                            { return dataSource.selected; }).map(function(dataSourceName) { return dataSourceName.value; });
-               selectedDataSources = templateSrv._values.druidDataSources.lastIndexOf('}') > 0 ? templateSrv._values.druidDataSources.slice(1,-1) :
-                                              templateSrv._values.druidDataSources;
-              var selectedDataSource = selectedDataSources.split(',');
-              _.forEach(selectedDataSource, function(processDataSource) {
+              var allDataSources = templateSrv.variables.filter(function(variable) {
+                return variable.query === "druidDataSources";
+              });
+              var selectedDataSources = (_.isEmpty(allDataSources)) ? "" : allDataSources[0].options
+                .filter(getSelectedItems)
+                .map(function(dataSourceName) {
+                  return dataSourceName.value;
+                });
+
+              _.forEach(selectedDataSources, function(processDataSource) {
                 metricsPromises.push(_.map(options.targets, function(target) {
                   target.sDataSource = processDataSource;
                   target.sDataSourceMetric = target.metric.replace('*', target.sDataSource);
@@ -582,21 +627,44 @@ define([
               });
             }
             // To speed up querying on templatized dashboards.
-              var indexOfHosts = -1;
-              for (var i = 0; i < templateSrv.variables.length; i++) {
-                  if (templateSrv.variables[i].name == 'hosts') {
-                      indexOfHosts = i;
-                  }
+            var indexOfHosts = -1;
+            for (var i = 0; i < templateSrv.variables.length; i++) {
+              if (templateSrv.variables[i].name == 'hosts' && templateSrv.index.hosts) {
+                indexOfHosts = i;
               }
-              if (indexOfHosts >= 0) {
-              var allHosts = templateSrv._values.hosts.lastIndexOf('}') > 0 ? templateSrv._values.hosts.slice(1,-1) :
-              templateSrv._values.hosts;
-              allHosts = templateSrv._texts.hosts === "All" ? '%' : allHosts;
-              metricsPromises.push(_.map(options.targets, function(target) {
-                  target.templatedHost = allHosts? allHosts : '';
-                  target.templatedCluster = templatedCluster;
-                  return getAllHostData(target);
-              }));
+            }
+            if (indexOfHosts >= 0) {
+              let allHosts = [];
+              const hosts = templateSrv.index.hosts.options
+                for (let host of hosts) {
+                  if (host.text.toLowerCase() === "all" && host.selected) {
+                    allHosts = '%';
+                    break;
+                  } else if (host.selected) {
+                    allHosts.push(host.text);
+                  }
+                };
+
+              /* The Producer & Consumer Requests graphs on the Kafka Hosts dashboard should display metrics that are
+               * versioned, thus the value of different versions should be aggregated and grouped by hosts.
+               * In order to have a 'grouped by hosts' like view the metric results are queried for each hosts separately.
+               */
+              if (!_.isEmpty(options.targets.filter(function(target) {
+                    return target.metric.endsWith(".%.count"); }))) {
+                _.forEach(allHosts, function(host) {
+                    metricsPromises.push(_.map(options.targets, function(target) {
+                        target.templatedHost = host;
+                        target.templatedCluster = templatedCluster;
+                        return getAllHostData(target);
+                    }));
+                });
+              } else {
+                  metricsPromises.push(_.map(options.targets, function(target) {
+                      target.templatedHost = allHosts? allHosts : '';
+                      target.templatedCluster = templatedCluster;
+                      return getAllHostData(target);
+                }));
+              }
             }
             metricsPromises = _.flatten(metricsPromises);
           } else {
@@ -622,9 +690,9 @@ define([
         };
 
         /**
-         * AMS Datasource  List Series.
+         * AMS Datasource List Series.
          */
-        AmbariMetricsDatasource.prototype.listSeries = function (query) {
+        this.listSeries = function (query) {
           // wrap in regex
           if (query && query.length > 0 && query[0] !== '/') {
             query = '/' + query + '/';
@@ -635,10 +703,10 @@ define([
         /**
          * AMS Datasource Templating Variables.
          */
-        AmbariMetricsDatasource.prototype.metricFindQuery = function (query) {
+        this.metricFindQuery = function (query) {
           var interpolated;
           try {
-            interpolated = query.split('.')[0];
+            interpolated = templateSrv.replace(query);
           } catch (err) {
             return $q.reject(err);
           }
@@ -646,7 +714,7 @@ define([
           var templatedCluster = (_.isEmpty(templatedClusters)) ? '' : templatedClusters[0].options.filter(function(cluster)
           { return cluster.selected; }).map(function(clusterName) { return clusterName.value; });
 
-          var tComponents = _.isEmpty(templateSrv.variables) ? '' : templateSrv.variables.filter(function(variable) 
+          var tComponents = _.isEmpty(templateSrv.variables) ? '' : templateSrv.variables.filter(function(variable)
             { return variable.name === "components"});
           var tComponent = _.isEmpty(tComponents) ? '' : tComponents[0].current.value;
 
@@ -656,7 +724,7 @@ define([
           if(interpolated === "hbase-users") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var hbaseUsers = allMetrics["hbase"];
+                var hbaseUsers = getMetrics(allMetrics, "hbase");
                 var extractUsers = hbaseUsers.filter(/./.test.bind(new RegExp("regionserver.Users.", 'g')));
                 var removeUser = "regionserver.Users.numUsers";
                 var i = extractUsers.indexOf(removeUser);
@@ -681,7 +749,7 @@ define([
           if(interpolated === "hbase-tables") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var hbaseTables = allMetrics["hbase"];
+                var hbaseTables = getMetrics(allMetrics, "hbase");
                 var extractTables = hbaseTables.filter(/./.test.bind(new RegExp("regionserver.Tables.", 'g')));
                 var removeTable = "regionserver.Tables.numTables";
                 var i = extractTables.indexOf(removeTable);
@@ -706,15 +774,28 @@ define([
           if(interpolated === "kafka-topics") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var kafkaTopics = allMetrics["kafka_broker"];
-                var extractTopics = kafkaTopics.filter(/./.test.bind(new RegExp("\\b.log.Log.\\b", 'g')));
-                var topics =_.map(extractTopics, function (topic) {
-                  var topicPrefix = "topic.";
-                  return topic.substring(topic.lastIndexOf(topicPrefix)+topicPrefix.length, topic.length);
+                // patterns to check possible kafka topics
+                var kafkaTopicPatterns = ['^kafka\\.server.*\\.topic\\.(.*)\\.[\\d\\w]*$',
+                  '^kafka\\.log\\.Log\\..*.topic\\.(.*)$',
+                  '^kafka\\.cluster.*\\.topic\\.(.*)$'];
+
+                var kafkaMetrics = getMetrics(allMetrics, "kafka_broker");
+                var topics = []
+
+                // filter metrics that can contain topic name
+                var topicMetrics = kafkaMetrics.filter(function(metric) {
+                  return metric.indexOf(".topic.") > 0;
                 });
-                topics = _.sortBy(_.uniq(topics));
-                var i = topics.indexOf("ambari_kafka_service_check");
-                if(i != -1) { topics.splice(i, 1);}
+
+                _.forEach(kafkaTopicPatterns, function(topicPattern) {
+                  _.forEach(topicMetrics, function(checkTopic) {
+                      var topicMatch = checkTopic.match(RegExp(topicPattern));
+                      var topicName = topicMatch ? topicMatch[1] : null;
+                      if (topicName && topicName != "ambari_kafka_service_check" && topics.indexOf(topicName) < 0) {
+                        topics.push(topicName);
+                      }
+                  })
+                })
                 return _.map(topics, function (topics) {
                   return {
                     text: topics
@@ -727,10 +808,10 @@ define([
           if(interpolated === "callers") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var nnCallers = allMetrics["namenode"];
-                var extractCallers = nnCallers.filter(/./.test.bind(new 
+                var nnCallers = getMetrics(allMetrics, "namenode");
+                var extractCallers = nnCallers.filter(/./.test.bind(new
                   RegExp("ipc.client.org.apache.hadoop.ipc.DecayRpcScheduler.Caller", 'g')));
-                var callers = _.sortBy(_.uniq(_.map(extractCallers, function(caller) { 
+                var callers = _.sortBy(_.uniq(_.map(extractCallers, function(caller) {
                   return caller.substring(caller.indexOf('(')+1, caller.indexOf(')')) })));
                 return _.map(callers, function (callers) {
                   return {
@@ -743,50 +824,50 @@ define([
           var cores = [];
           //Templated Variables for Infra Solr Cores
           if (interpolated === "infra_solr_core") {
-              return this.initMetricAppidMapping()
-                  .then(function () {
-                      var solrMetrics = allMetrics["ambari-infra-solr"];
-                      var extractCores = solrMetrics.filter(/./.test.bind(new
-                      RegExp("^infra.solr.core.", 'g')));
-                      _.map(extractCores, function (core) {
-                          // Core naming convention is infra.solr.core.<collection_name>.<shard>.<replica>.<metric_name>
-                          // coreName should be <collection_name>.<shard>.<replica>
-                          core = core.split('.');
-                          var coreName = core.slice(3,6).join(".");
-                          if (cores.indexOf(coreName) < 0) {
-                              cores.push(coreName);
-                          }
+            return this.initMetricAppidMapping()
+              .then(function () {
+                var solrMetrics = getMetrics(allMetrics, "ambari-infra-solr");
+                var extractCores = solrMetrics.filter(/./.test.bind(new
+                RegExp("^infra.solr.core.", 'g')));
+                _.map(extractCores, function (core) {
+                  // Core naming convention is infra.solr.core.<collection_name>.<shard>.<replica>.<metric_name>
+                  // coreName should be <collection_name>.<shard>.<replica>
+                  core = core.split('.');
+                  var coreName = core.slice(3,6).join(".");
+                  if (cores.indexOf(coreName) < 0) {
+                    cores.push(coreName);
+                  }
+                });
+                return _.map(cores, function (cores) {
+                        return {
+                          text: cores
+                        };
                       });
-                      return _.map(cores, function (cores) {
-                              return {
-                                  text: cores
-                              };
-                          });
-                      });
+              });
           }
 
           var collections = [];
           //Templated Variables for Infra Solr Collections
           if (interpolated === "infra_solr_collection") {
-              return this.initMetricAppidMapping()
-                  .then(function () {
-                      var solrMetrics = allMetrics["ambari-infra-solr"];
-                      var extractCollections = solrMetrics.filter(/./.test.bind(new
-                      RegExp("^infra.solr.core.", 'g')));
-                      _.map(extractCollections, function (core) {
-                          // Core naming convention is infra.solr.core.<collection_name>.<shard>.<replica>.<metric_name>
-                          core = core.split('.');
-                          var collection = core[3];
-                          if (collections.indexOf(collection) < 0) {
-                              collections.push(collection);
-                          }
+            return this.initMetricAppidMapping()
+              .then(function () {
+                var solrMetrics = getMetrics(allMetrics, "ambari-infra-solr");
+                var extractCollections = solrMetrics.filter(/./.test.bind(new
+                RegExp("^infra.solr.core.", 'g')));
+                _.map(extractCollections, function (core) {
+                  // Core naming convention is infra.solr.core.<collection_name>.<shard>.<replica>.<metric_name>
+                  core = core.split('.');
+                  var collection = core[3];
+                  if (collections.indexOf(collection) < 0) {
+                    collections.push(collection);
+                  }
+                });
+                return _.map(collections, function (collections) {
+                        return {
+                          text: collections
+                        };
                       });
-                      return _.map(collections, function (collections) {
-                              return {
-                                  text: collections
-                              };
-                          });
-                      });
+              });
           }
 
           var topologies = {};
@@ -794,7 +875,7 @@ define([
           if(interpolated === "topologies") {
             return this.initMetricAppidMapping()
                 .then(function () {
-                  var storm = allMetrics["nimbus"];
+                  var storm = getMetrics(allMetrics, "nimbus");
                   var extractTopologies = storm.filter(/./.test.bind(new
                       RegExp("^topology.", 'g')));
                   _.map(extractTopologies, function(topology){
@@ -818,7 +899,7 @@ define([
             var componentName = interpolated.substring(0,interpolated.indexOf('.'));
             return this.initMetricAppidMapping()
                 .then(function () {
-                  var storm = allMetrics["nimbus"];
+                  var storm = getMetrics(allMetrics, "nimbus");
                   var extractTopologies = storm.filter(/./.test.bind(new
                       RegExp("^topology.", 'g')));
                   _.map(extractTopologies, function(topology){
@@ -842,10 +923,10 @@ define([
                 });
           }
           var stormEntities = {};
-          AmbariMetricsDatasource.prototype.getStormEntities = function () {
+          this.getStormEntities = function () {
             return this.initMetricAppidMapping()
                 .then(function () {
-                  var storm = allMetrics["nimbus"];
+                  var storm = getMetrics(allMetrics, "nimbus");
                   var extractTopologies = storm.filter(/./.test.bind(new
                       RegExp("partition", 'g')));
                   _.map(extractTopologies, function(topology){
@@ -870,24 +951,28 @@ define([
           if (interpolated.indexOf("stormTopic") >= 0) {
             var topicName = interpolated.substring(0,interpolated.indexOf('.'));
             return this.getStormEntities().then(function () {
-              var topicNames = Object.keys(stormEntities[topicName]);
-              return _.map(topicNames, function(names){
-                return {
-                  text: names
-                };
-              });
+              if(!_.isEmpty(stormEntities) && !_.isEmpty(stormEntities[topicName])) {
+                var topicNames = Object.keys(stormEntities[topicName]);
+                return _.map(topicNames, function(names){
+                  return {
+                    text: names
+                  };
+                });
+              } else return[];
             });
           }
           //Templated Variables for Storm Partitions per Topic
           if (interpolated.indexOf("stormPartition") >= 0) {
             var topicN, topologyN;
             return this.getStormEntities().then(function () {
-              var partitionNames = _.uniq(stormEntities[topologyN][topicN]);
-              return _.map(partitionNames, function(names){
-                return {
-                  text: names
-                };
-              });
+              if(!_.isEmpty(stormEntities) && !_.isEmpty(stormEntities[topologyN]) && !_.isEmpty(stormEntities[topologyN][topicN])) {
+                var partitionNames = _.uniq(stormEntities[topologyN][topicN]);
+                return _.map(partitionNames, function(names){
+                  return {
+                    text: names
+                  };
+                });
+              } else return [];
             });
           }
           // Templated Variable for YARN Queues.
@@ -895,7 +980,7 @@ define([
           if(interpolated === "yarnqueues") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var yarnqueues = allMetrics["resourcemanager"];
+                var yarnqueues = getMetrics(allMetrics, "resourcemanager");
                 var extractQueues = yarnqueues.filter(/./.test.bind(new RegExp(".=root", 'g')));
                 var queues = _.map(extractQueues, function(metric) {
                   return metric.substring("yarn.QueueMetrics.Queue=".length);
@@ -917,7 +1002,7 @@ define([
           if(interpolated === "druidServices") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var druidMetrics = allMetrics["druid"];
+                var druidMetrics = getMetrics(allMetrics, "druid");
                 // Assumption: each node always emits jvm metrics
                 var extractNodeTypes = druidMetrics.filter(/./.test.bind(new RegExp("jvm/gc/time", 'g')));
                 var nodeTypes = _.map(extractNodeTypes, function(metricName) {
@@ -937,7 +1022,7 @@ define([
           if(interpolated === "druidDataSources") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var druidMetrics = allMetrics["druid"];
+                var druidMetrics = getMetrics(allMetrics, "druid");
                 // Assumption: query/time is emitted for each datasource
                 var extractDataSources = druidMetrics.filter(/./.test.bind(new RegExp("query/time", 'g')));
                 var dataSources = _.map(extractDataSources, function(metricName) {
@@ -957,7 +1042,7 @@ define([
           if(interpolated === "druidQueryTypes") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var druidMetrics = allMetrics["druid"];
+                var druidMetrics = getMetrics(allMetrics, "druid");
                 // Assumption: query/time is emitted for each query type.
                 var extractQueryTypes = druidMetrics.filter(/./.test.bind(new RegExp("query/time", 'g')));
                 var queryTypes = _.map(extractQueryTypes, function(metricName) {
@@ -972,7 +1057,7 @@ define([
               });
           }
 
-          if (interpolated == 'hosts') {
+          if (interpolated.indexOf("hosts") >= 0) {
             return this.suggestHosts(tComponent, templatedCluster);
           } else if (interpolated == 'cluster') {
             return this.suggestClusters(tComponent)
@@ -985,7 +1070,7 @@ define([
          * Added Check to see if Datasource is working. Throws up an error in the
          * Datasources page if incorrect info is passed on.
          */
-        AmbariMetricsDatasource.prototype.testDatasource = function () {
+        this.testDatasource = function () {
           return this.doAmbariRequest({
             url: '/ws/v1/timeline/metrics/metadata',
             method: 'GET'
@@ -1002,7 +1087,7 @@ define([
          *
          * Read AppIds from cache.
          */
-        AmbariMetricsDatasource.prototype.suggestApps = function (query) {
+        this.suggestApps = function (query) {
           console.log(query);
 
           appIds = appIds.sort();
@@ -1017,7 +1102,7 @@ define([
          *
          * Read Metrics based on AppId chosen.
          */
-        AmbariMetricsDatasource.prototype.suggestMetrics = function (query, app) {
+        this.suggestMetrics = function (query, app) {
           if (!app) {
             return $q.when([]);
           }
@@ -1029,7 +1114,7 @@ define([
           return $q.when(keys);
         };
 
-        AmbariMetricsDatasource.prototype.suggestClusters = function(app) {
+        this.suggestClusters = function(app) {
           if (!app) { app = ''; }
           return this.doAmbariRequest({
             method: 'GET',
@@ -1051,7 +1136,7 @@ define([
          *
          * Query Hosts on the cluster.
          */
-        AmbariMetricsDatasource.prototype.suggestHosts = function (app, cluster) {
+        this.suggestHosts = function (app, cluster) {
           if (!app) { app = ''; }
           if (!cluster) { cluster = ''; }
           return this.doAmbariRequest({
@@ -1076,7 +1161,7 @@ define([
          * AMS Datasource Aggregators.
          */
         var aggregatorsPromise = null;
-        AmbariMetricsDatasource.prototype.getAggregators = function () {
+        this.getAggregators = function () {
           if (aggregatorsPromise) {
             return aggregatorsPromise;
           }
@@ -1085,8 +1170,22 @@ define([
           ]);
           return aggregatorsPromise;
         };
+      };
 
-        return AmbariMetricsDatasource;
-      });
-    }
-);
+      return {
+        AmbariMetricsDatasource: AmbariMetricsDatasource
+      };
+
+      function getSelectedItems(item, index, options) {
+        // When 'All' is selected return every items except that, otherwise return what is selected.
+        return index > 0 && (options[0].selected || item.selected);
+      }
+
+      function getMetrics(allmetrics, appname) {
+        var metrics = allmetrics[appname];
+        if(!metrics) {
+            metrics = [];
+        }
+        return metrics;
+      }
+    });

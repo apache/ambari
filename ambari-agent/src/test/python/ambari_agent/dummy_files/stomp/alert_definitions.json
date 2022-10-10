@@ -434,7 +434,7 @@
                 "display_name": "AMS application id",
                 "name": "appId",
                 "visibility": "HIDDEN",
-                "value": "NAMENODE",
+                "value": "namenode",
                 "type": "STRING",
                 "description": "The application id used to retrieve the metric."
               },
@@ -601,7 +601,7 @@
                 "display_name": "AMS application id",
                 "name": "appId",
                 "visibility": "HIDDEN",
-                "value": "NAMENODE",
+                "value": "namenode",
                 "type": "STRING",
                 "description": "The application id used to retrieve the metric."
               },
@@ -686,7 +686,7 @@
                 "display_name": "AMS application id",
                 "name": "appId",
                 "visibility": "HIDDEN",
-                "value": "NAMENODE",
+                "value": "namenode",
                 "type": "STRING",
                 "description": "The application id used to retrieve the metric."
               },
@@ -869,7 +869,7 @@
                 "display_name": "AMS application id",
                 "name": "appId",
                 "visibility": "HIDDEN",
-                "value": "NAMENODE",
+                "value": "namenode",
                 "type": "STRING",
                 "description": "The application id used to retrieve the metric."
               },
@@ -1018,7 +1018,7 @@
                 "display_name": "AMS application id",
                 "name": "appId",
                 "visibility": "HIDDEN",
-                "value": "NAMENODE",
+                "value": "namenode",
                 "type": "STRING",
                 "description": "The application id used to retrieve the metric."
               },
@@ -1103,7 +1103,7 @@
                 "display_name": "AMS application id",
                 "name": "appId",
                 "visibility": "HIDDEN",
-                "value": "NAMENODE",
+                "value": "namenode",
                 "type": "STRING",
                 "description": "The application id used to retrieve the metric."
               },
@@ -1220,7 +1220,7 @@
                 "display_name": "AMS application id",
                 "name": "appId",
                 "visibility": "HIDDEN",
-                "value": "NAMENODE",
+                "value": "namenode",
                 "type": "STRING",
                 "description": "The application id used to retrieve the metric."
               },
@@ -1326,7 +1326,7 @@
                 "display_name": "AMS application id",
                 "name": "appId",
                 "visibility": "HIDDEN",
-                "value": "NAMENODE",
+                "value": "namenode",
                 "type": "STRING",
                 "description": "The application id used to retrieve the metric."
               },
@@ -1411,7 +1411,7 @@
                 "display_name": "AMS application id",
                 "name": "appId",
                 "visibility": "HIDDEN",
-                "value": "NAMENODE",
+                "value": "namenode",
                 "type": "STRING",
                 "description": "The application id used to retrieve the metric."
               },
@@ -1619,7 +1619,7 @@
                 "display_name": "AMS application id",
                 "name": "appId",
                 "visibility": "HIDDEN",
-                "value": "NAMENODE",
+                "value": "namenode",
                 "type": "STRING",
                 "description": "The application id used to retrieve the metric."
               },
@@ -1704,7 +1704,7 @@
                 "display_name": "AMS application id",
                 "name": "appId",
                 "visibility": "HIDDEN",
-                "value": "NAMENODE",
+                "value": "namenode",
                 "type": "STRING",
                 "description": "The application id used to retrieve the metric."
               },
@@ -1992,7 +1992,7 @@
                 "display_name": "AMS application id",
                 "name": "appId",
                 "visibility": "HIDDEN",
-                "value": "NAMENODE",
+                "value": "namenode",
                 "type": "STRING",
                 "description": "The application id used to retrieve the metric."
               },

@@ -305,7 +305,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }, this);
     }
-
+    if (!data.items || !data.items.length) {
+      this.setSelected(true, params.dfd);
+    }
     data.items.sortProperty('VersionDefinition.stack_version').reverse().forEach(function (versionDefinition) {
       // to display repos panel, should map all available operating systems including empty ones
       var stackInfo = {};
@@ -352,7 +354,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       stacks.sortProperty('id').set('lastObject.isSelected', true);
     }
     this.set('content.stacks', App.Stack.find());
-    App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('stackNameVersion'));
+    var selected = App.Stack.find().findProperty('isSelected');
+    App.set('currentStackVersion', selected ? selected.get('stackNameVersion') : null);
     dfd.resolve();
   },
 
@@ -848,8 +851,10 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       if (!verifyBaseUrl) {
         dfd.resolve();
       }
+      //for redhat satellite/spacewalk the os urls will be empty
+      var useRedhatSatellite = wizardStep1Controller.get('selectedStack.useRedhatSatellite');
       selectedStack.get('operatingSystems').forEach(function (os) {
-        if (os.get('isSelected') && !os.get('isEmpty')) {
+        if (os.get('isSelected') && (useRedhatSatellite || !os.get('isEmpty'))) {
           os.get('repositories').forEach(function (repo) {
             if (repo.get('showRepo')) {
               repo.setProperties({
@@ -916,10 +921,12 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       var os = selectedStack.get('operatingSystems').findProperty('id', params.osId);
       var repo = os.get('repositories').findProperty('repoId', params.repoId);
       if (repo) {
+        var title = Ember.Handlebars.Utils.escapeExpression(request.status + ":" + request.statusText);
+        var content =  Ember.Handlebars.Utils.escapeExpression($.parseJSON(request.responseText) ? $.parseJSON(request.responseText).message : "");
         repo.setProperties({
           validation: 'INVALID',
-          errorTitle: request.status + ":" + request.statusText,
-          errorContent: $.parseJSON(request.responseText) ? $.parseJSON(request.responseText).message : ""
+          errorTitle: title,
+          errorContent: content
         });
       }
     }

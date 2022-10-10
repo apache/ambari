@@ -18,14 +18,6 @@
  */
 package org.apache.ambari.infra.job.dummy;
 
-import org.apache.ambari.infra.conf.InfraManagerDataConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.core.annotation.BeforeStep;
-import org.springframework.batch.item.ItemWriter;
-
-import javax.inject.Inject;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,9 +25,18 @@ import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
 
+import javax.inject.Inject;
+
+import org.apache.ambari.infra.conf.InfraManagerDataConfig;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.annotation.BeforeStep;
+import org.springframework.batch.item.ItemWriter;
+
 public class DummyItemWriter implements ItemWriter<String> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(DummyItemWriter.class);
+  private static final Logger logger = LogManager.getLogger(DummyItemWriter.class);
 
   private StepExecution stepExecution;
 
@@ -44,17 +45,17 @@ public class DummyItemWriter implements ItemWriter<String> {
 
   @Override
   public void write(List<? extends String> values) throws Exception {
-    LOG.info("DummyItem writer called (values: {})... wait 1 seconds", values.toString());
+    logger.info("DummyItem writer called (values: {})... wait 1 seconds", values.toString());
     Thread.sleep(1000);
     String outputDirectoryLocation = String.format("%s%s%s%s", infraManagerDataConfig.getDataFolder(), File.separator, "dummyOutput-", new Date().getTime());
     Path pathToDirectory = Paths.get(outputDirectoryLocation);
     Path pathToFile = Paths.get(String.format("%s%s%s", outputDirectoryLocation, File.separator, "dummyOutput.txt"));
     Files.createDirectories(pathToDirectory);
-    LOG.info("Write location to step execution context...");
+    logger.info("Write location to step execution context...");
     stepExecution.getExecutionContext().put("stepOutputLocation", pathToFile.toAbsolutePath().toString());
-    LOG.info("Write location to job execution context...");
+    logger.info("Write location to job execution context...");
     stepExecution.getJobExecution().getExecutionContext().put("jobOutputLocation", pathToFile.toAbsolutePath().toString());
-    LOG.info("Write to file: {}", pathToFile.toAbsolutePath());
+    logger.info("Write to file: {}", pathToFile.toAbsolutePath());
     Files.write(pathToFile, values.toString().getBytes());
   }
 

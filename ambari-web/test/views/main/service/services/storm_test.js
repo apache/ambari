@@ -52,4 +52,20 @@ describe('App.MainDashboardServiceStormView', function () {
       expect(view.get('nimbusUptimeFormatted')).to.be.equal(Em.I18n.t('services.service.summary.notRunning'));
     });
   });
+
+  describe('#isSupervisorCreated', function () {
+
+    beforeEach(function () {
+      sinon.stub(view, 'isServiceComponentCreated').withArgs('SUPERVISOR').returns(true);
+    });
+
+    afterEach(function () {
+      view.isServiceComponentCreated.restore();
+    });
+
+    it('should return true', function () {
+      view.propertyDidChange('isSupervisorCreated');
+      expect(view.get('isSupervisorCreated')).to.be.true;
+    });
+  });
 });

@@ -54,21 +54,11 @@ angular.module('ambariAdminConsole')
   };
 
   Group.prototype.destroy = function() {
-    var deferred = $q.defer();
-    $http.delete(Settings.baseUrl + '/groups/' +this.group_name)
-    .success(function() {
-      deferred.resolve();
-    })
-    .error(function(data) {
-      deferred.reject(data);
-    });
-
-    return deferred.promise;
+    return $http.delete(Settings.baseUrl + '/groups/' +this.group_name);
   };
 
   Group.prototype.saveMembers = function() {
     var self = this;
-    var deferred = $q.defer();
 
     var members = [];
     angular.forEach(this.members, function(member) {
@@ -78,18 +68,11 @@ angular.module('ambariAdminConsole')
       });
     });
 
-    $http({
+    return $http({
       method: 'PUT',
       url: Settings.baseUrl + '/groups/' + this.group_name + '/members',
       data: members
-    })
-    .success(function(data) {
-      deferred.resolve(data);
-    })
-    .error(function(data) {
-      deferred.reject(data);
     });
-    return deferred.promise;
   };
 
   Group.removeMemberFromGroup = function(groupName, memberName) {
@@ -103,14 +86,13 @@ angular.module('ambariAdminConsole')
   Group.all = function() {
     var deferred = $q.defer();
 
-    $http.get(Settings.baseUrl + '/groups?fields=*')
-    .success(function(data) {
-      deferred.resolve(data.items);
-    })
-    .error(function(data) {
-      deferred.reject(data);
-    });
-
+    $http.get(Settings.baseUrl + '/groups?fields=*').then(
+      function(resp) {
+        deferred.resolve(resp.data.items);
+      }, function(resp) {
+        deferred.reject(resp.data);
+      }
+    );
     return deferred.promise;
   };
 
@@ -125,6 +107,8 @@ angular.module('ambariAdminConsole')
       params:{
         'fields': '*'
       }
+    }).then(function (resp) {
+      return resp.data;
     });
   };
 
@@ -134,8 +118,8 @@ angular.module('ambariAdminConsole')
       method: 'GET',
       url: Settings.baseUrl + '/groups/' + group_name +
       '?fields=Groups,privileges/PrivilegeInfo/*,members/MemberInfo'
-    }).success(function (data) {
-      deferred.resolve(Group.makeGroup(data));
+    }).then(function (resp) {
+      deferred.resolve(Group.makeGroup(resp.data));
     });
 
     return deferred.promise;

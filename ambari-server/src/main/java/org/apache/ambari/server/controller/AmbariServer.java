@@ -39,9 +39,9 @@ import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.HeartBeatHandler;
-import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.AmbariErrorHandler;
 import org.apache.ambari.server.api.AmbariPersistFilter;
+import org.apache.ambari.server.api.ContentTypeOverrideFilter;
 import org.apache.ambari.server.api.MethodOverrideFilter;
 import org.apache.ambari.server.api.UserNameOverrideFilter;
 import org.apache.ambari.server.api.rest.BootStrapResource;
@@ -199,6 +199,7 @@ public class AmbariServer {
    */
   public static final EnumSet<DispatcherType> DISPATCHER_TYPES = EnumSet.of(DispatcherType.REQUEST);
   private static final int DEFAULT_ACCEPTORS_COUNT = 1;
+  private static final String[] DEPRECATED_SSL_PROTOCOLS = new String[] {"TLSv1"};
 
   static {
     Velocity.setProperty("runtime.log.logsystem.log4j.logger", VELOCITY_LOG_CATEGORY);
@@ -419,6 +420,7 @@ public class AmbariServer {
       // session-per-request strategy for api
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", DISPATCHER_TYPES);
       root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/api/*", DISPATCHER_TYPES);
+      root.addFilter(new FilterHolder(new ContentTypeOverrideFilter()), "/api/*", DISPATCHER_TYPES);
 
       // register listener to capture request context
       root.addEventListener(new RequestContextListener());
@@ -493,7 +495,7 @@ public class AmbariServer {
       agentroot.addServlet(agent, "/agent/v1/*");
       agent.setInitOrder(3);
 
-      AgentResource.startHeartBeatHandler();
+      injector.getInstance(HeartBeatHandler.class).start();
       LOG.info("********** Started Heartbeat handler **********");
 
       ServletHolder cert = new ServletHolder(ServletContainer.class);
@@ -509,6 +511,7 @@ public class AmbariServer {
       File resourcesDirectory = new File(configs.getResourceDirPath());
       ServletHolder resources = new ServletHolder(DefaultServlet.class);
       resources.setInitParameter("resourceBase", resourcesDirectory.getParent());
+      resources.setInitParameter("dirAllowed", "false");
       root.addServlet(resources, "/resources/*");
       resources.setInitOrder(5);
 
@@ -683,6 +686,7 @@ public class AmbariServer {
       String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS.getKey());
 
       HttpConfiguration https_config = new HttpConfiguration(http_config);
+      https_config.addCustomizer(new SecureRequestCustomizer());
       https_config.setSecurePort(configs.getClientSSLApiPort());
 
       SslContextFactory contextFactoryApi = new SslContextFactory();
@@ -798,9 +802,9 @@ public class AmbariServer {
    * at server properties)
    */
   private void disableInsecureProtocols(SslContextFactory factory) {
-    // by default all protocols should be available
-    factory.setExcludeProtocols();
-    factory.setIncludeProtocols(new String[] {"SSLv2Hello","SSLv3","TLSv1","TLSv1.1","TLSv1.2"});
+    // by default all protocols should be available, excluding TLSv1.0
+    factory.setExcludeProtocols(DEPRECATED_SSL_PROTOCOLS);
+    factory.setIncludeProtocols(new String[] {"SSLv2Hello","SSLv3","TLSv1.1","TLSv1.2"});
 
     if (!configs.getSrvrDisabledCiphers().isEmpty()) {
       String[] masks = configs.getSrvrDisabledCiphers().split(DISABLED_ENTRIES_SPLITTER);
@@ -822,7 +826,11 @@ public class AmbariServer {
     configureHandlerCompression(root);
     configureAdditionalContentTypes(root);
     root.setContextPath(CONTEXT_PATH);
-    root.setErrorHandler(injector.getInstance(AmbariErrorHandler.class));
+
+    AmbariErrorHandler ambariErrorHandler = injector.getInstance(AmbariErrorHandler.class);
+    ambariErrorHandler.setShowStacks(configs.isServerShowErrorStacks());
+    root.setErrorHandler(ambariErrorHandler);
+
     root.setMaxFormContentSize(-1);
 
     /* Configure web app context */
@@ -904,7 +912,6 @@ public class AmbariServer {
    */
   @Deprecated
   public void performStaticInjection() {
-    AgentResource.init(injector.getInstance(HeartBeatHandler.class));
     CertificateDownload.init(injector.getInstance(CertificateManager.class));
     ConnectionInfo.init(injector.getInstance(Configuration.class));
     CertificateSign.init(injector.getInstance(CertificateManager.class));
@@ -913,7 +920,7 @@ public class AmbariServer {
     KeyService.init(injector.getInstance(PersistKeyValueImpl.class));
     BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
     StackAdvisorResourceProvider.init(injector.getInstance(StackAdvisorHelper.class),
-        injector.getInstance(Configuration.class));
+        injector.getInstance(Configuration.class), injector.getInstance(Clusters.class), injector.getInstance(AmbariMetaInfo.class));
     StageUtils.setGson(injector.getInstance(Gson.class));
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
@@ -1085,6 +1092,7 @@ public class AmbariServer {
 
       // check if this instance is the active instance
       Configuration config = injector.getInstance(Configuration.class);
+      config.validatePasswordPolicyRegexp();
       if (!config.isActiveInstance()) {
         String errMsg = "This instance of ambari server is not designated as active. Cannot start ambari server." +
                             "The property active.instance is set to false in ambari.properties";
@@ -1095,7 +1103,7 @@ public class AmbariServer {
 
       // Start and Initialize JPA
       GuiceJpaInitializer jpaInitializer = injector.getInstance(GuiceJpaInitializer.class);
-      jpaInitializer.setInitialized(); // This must be called to alert Ambari that JPA is initialized.
+      jpaInitializer.setInitialized(injector.getInstance(AmbariEventPublisher.class)); // This must be called to alert Ambari that JPA is initialized.
 
       DatabaseConsistencyCheckHelper.checkDBVersionCompatible();
 

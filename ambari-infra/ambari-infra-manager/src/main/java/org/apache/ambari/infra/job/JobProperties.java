@@ -18,22 +18,14 @@
  */
 package org.apache.ambari.infra.job;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.batch.core.JobParameters;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Optional;
 
-public abstract class JobProperties<T extends JobProperties<T>> {
+import org.springframework.batch.core.JobParameters;
+
+public abstract class JobProperties<TParameters extends Validatable> {
 
   private SchedulingProperties scheduling;
-  private final Class<T> clazz;
   private boolean enabled;
-
-  protected JobProperties(Class<T> clazz) {
-    this.clazz = clazz;
-  }
 
   public SchedulingProperties getScheduling() {
     return scheduling;
@@ -49,23 +41,11 @@ public abstract class JobProperties<T extends JobProperties<T>> {
     this.scheduling = scheduling;
   }
 
-  public T deepCopy() {
-    try {
-      ObjectMapper objectMapper = new ObjectMapper();
-      String json = objectMapper.writeValueAsString(this);
-      return objectMapper.readValue(json, clazz);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  public abstract void apply(JobParameters jobParameters);
-
-  public abstract void validate();
+  public abstract TParameters merge(JobParameters jobParameters);
 
   public void validate(String jobName) {
     try {
-      validate();
+      merge(new JobParameters()).validate();
     }
     catch (Exception ex) {
       throw new JobConfigurationException(String.format("Configuration of job %s is invalid: %s!", jobName, ex.getMessage()), ex);

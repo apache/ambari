@@ -156,6 +156,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     this.logSearchReadTimeoutInMilliseconds = logSearchReadTimeoutInMilliseconds;
   }
 
+  @Override
   public LogQueryResponse sendQueryRequest(Map<String, String> queryParameters) {
     try {
       // use the Apache builder to create the correct URI
@@ -302,6 +303,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     return null;
   }
 
+  @Override
   public HostLogFilesResponse sendGetLogFileNamesRequest(String hostName) {
     try {
       // use the Apache builder to create the correct URI

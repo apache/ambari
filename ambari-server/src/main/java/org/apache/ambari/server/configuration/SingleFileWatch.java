@@ -89,6 +89,7 @@ public class SingleFileWatch {
     watchdog.interrupt();
   }
 
+  @Override
   public String toString() {
     return "SingleFileWatcher:" + file.getName();
   }

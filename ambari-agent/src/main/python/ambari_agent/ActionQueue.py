@@ -25,6 +25,7 @@ import os
 import ambari_simplejson as json
 import time
 import signal
+import re
 
 from AgentException import AgentException
 from ambari_agent.BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
@@ -36,6 +37,13 @@ logger = logging.getLogger()
 installScriptHash = -1
 
 MAX_SYMBOLS_PER_LOG_MESSAGE = 7900
+
+PASSWORD_REPLACEMENT = '[PROTECTED]'
+PASSWORD_PATTERN = re.compile(r"('\S*password':\s*u?')(\S+)(')")
+
+def hide_passwords(text):
+  """ Replaces the matching passwords with **** in the given text """
+  return None if text is None else PASSWORD_PATTERN.sub(r'\1{}\3'.format(PASSWORD_REPLACEMENT), text)
 
 
 class ActionQueue(threading.Thread):
@@ -49,6 +57,9 @@ class ActionQueue(threading.Thread):
 
   # How much time(in seconds) we need wait for new incoming execution command before checking status command queue
   EXECUTION_COMMAND_WAIT_TIME = 2
+
+  # key name in command dictionary
+  IS_RECOVERY_COMMAND = "isRecoveryCommand"
 
   def __init__(self, initializer_module):
     super(ActionQueue, self).__init__()
@@ -126,7 +137,11 @@ class ActionQueue(threading.Thread):
             if command is None:
               break
 
-            self.process_command(command)
+            # Recovery commands should be run in parallel (since we don't know the ordering on agent)
+            if self.IS_RECOVERY_COMMAND in command and command[self.IS_RECOVERY_COMMAND]:
+              self.start_parallel_command(command)
+            else:
+              self.process_command(command)
           else:
             # If parallel execution is enabled, just kick off all available
             # commands using separate threads
@@ -142,10 +157,7 @@ class ActionQueue(threading.Thread):
               if 'commandParams' in command and 'command_retry_enabled' in command['commandParams']:
                 retry_able = command['commandParams']['command_retry_enabled'] == "true"
               if retry_able:
-                logger.info("Kicking off a thread for the command, id={} taskId={}".format(command['commandId'], command['taskId']))
-                t = threading.Thread(target=self.process_command, args=(command,))
-                t.daemon = True
-                t.start()
+                self.start_parallel_command(command)
               else:
                 self.process_command(command)
                 break
@@ -156,6 +168,12 @@ class ActionQueue(threading.Thread):
       except Exception:
         logger.exception("ActionQueue thread failed with exception. Re-running it")
     logger.info("ActionQueue thread has successfully finished")
+
+  def start_parallel_command(self, command):
+    logger.info("Kicking off a thread for the command, id={} taskId={}".format(command['commandId'], command['taskId']))
+    t = threading.Thread(target=self.process_command, args=(command,))
+    t.daemon = True
+    t.start()
 
   def fill_recovery_commands(self):
     if self.recovery_manager.enabled() and not self.tasks_in_progress_or_pending():
@@ -393,12 +411,12 @@ class ActionQueue(threading.Thread):
     If logs are redirected to syslog (syslog_enabled=1), this is very useful for logging big messages.
     As syslog usually truncates long messages.
     """
-    chunks = split_on_chunks(text, MAX_SYMBOLS_PER_LOG_MESSAGE)
+    chunks = split_on_chunks(hide_passwords(text), MAX_SYMBOLS_PER_LOG_MESSAGE)
     if len(chunks) > 1:
       for i in range(len(chunks)):
         logger.info("Cmd log for taskId={0} and chunk {1}/{2} of log for command: \n".format(taskId, i+1, len(chunks)) + chunks[i])
     else:
-      logger.info("Cmd log for taskId={0}: ".format(taskId) + text)
+      logger.info("Cmd log for taskId={0}: ".format(taskId) + chunks[0])
 
   def get_retry_delay(self, last_delay):
     """

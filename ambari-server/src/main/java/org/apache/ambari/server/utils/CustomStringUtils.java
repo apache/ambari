@@ -67,4 +67,107 @@ public class CustomStringUtils {
       iterator.set(iterator.next().toUpperCase());
     }
   }
+
+  /**
+   * Insert a string after a substring
+   * @param toInsertInto the base string to be changed
+   * @param addAfter insert a string after this if found in <code>toInsertInto</code>
+   * @param toInsert insert this string
+   * @return if the <code>addAfter</code> argument occurs as a substring within this <code>toInsertInto</code>,
+   * then the index of the first character of the first such substring is returned; if it does not occur as a substring, -1 is returned.
+   */
+  public static int insertAfter(StringBuilder toInsertInto, String addAfter, String toInsert) {
+    int index = toInsertInto.indexOf(addAfter);
+    if (index > -1) {
+      toInsertInto.insert(index + addAfter.length(), toInsert);
+    }
+    return index;
+  }
+
+  /**
+   * Insert a string after a substring if a specified string is not present already.
+   * @param toInsertInto the base string to be changed
+   * @param addAfter insert a string after this if found in <code>toInsertInto</code>
+   * @param toInsert insert this string
+   * @param ifNotThere only do the insert if this string is not found
+   * @return if the <code>addAfter</code> argument occurs as a substring within this <code>toInsertInto</code>,
+   * then the index of the first character of the first such substring is returned; if it does not occur as a substring, -1 is returned.
+   * If the <code>ifNotThere</code> exists already in <code>toInsertInto</code>, -2 is returned.
+   */
+  public static int insertAfterIfNotThere(StringBuilder toInsertInto, String addAfter, String toInsert, String ifNotThere) {
+    if (toInsertInto.indexOf(ifNotThere) > -1) return -2;
+    return insertAfter(toInsertInto, addAfter, toInsert);
+  }
+
+  /**
+   * Insert a string after a substring if the string is not present already.
+   * @param toInsertInto the base string to be changed
+   * @param addAfter insert a string after this if found in <code>toInsertInto</code>
+   * @param toInsert insert this string
+   * @return if the <code>addAfter</code> argument occurs as a substring within this <code>toInsertInto</code>,
+   * then the index of the first character of the first such substring is returned; if it does not occur as a substring, -1 is returned.
+   * If the <code>toInsert</code> exists already in <code>toInsertInto</code>, -2 is returned.
+   */
+  public static int insertAfterIfNotThere(StringBuilder toInsertInto, String addAfter, String toInsert) {
+    return insertAfterIfNotThere(toInsertInto, addAfter, toInsert, toInsert);
+  }
+
+  /**
+   * Delete a substring
+   * @param toDeleteFrom the base string to be changed
+   * @param toDelete delete this string from <code>toDeleteFrom</code> if found
+   * @return if the <code>toDelete</code> argument occurs as a substring within this <code>toDeleteFrom</code>,
+   * then the index of the first character of the first such substring is returned; if it does not occur as a substring, -1 is returned.
+   */
+  public static  int deleteSubstring(StringBuilder toDeleteFrom, String toDelete) {
+    int index = toDeleteFrom.indexOf(toDelete);
+    if (index > -1) {
+      toDeleteFrom.delete(index, index + toDelete.length());
+    }
+    return index;
+  }
+
+  /**
+   * Replace a substring
+   * @param replaceIn the base string to be changed
+   * @param toFind replace this string with <code>toReplace</code> if found
+   * @param toReplace replace <code>toFind</code> string with this
+   * @return if the <code>toFind</code> argument occurs as a substring within this <code>replaceIn</code>,
+   * then the index of the first character of the first such substring is returned; if it does not occur as a substring, -1 is returned.
+   */
+  public static int replace(StringBuilder replaceIn, String toFind, String toReplace) {
+    int index = replaceIn.indexOf(toFind);
+    if (index > -1) {
+      replaceIn.replace(index, index + toFind.length(), toReplace);
+    }
+    return index;
+  }
+
+  /**
+   * Replace a substring if a specified string is not present already.
+   * @param replaceIn the base string to be changed
+   * @param toFind replace this string with <code>toReplace</code> if found
+   * @param toReplace replace <code>toFind</code> string with this
+   * @param ifNotThere only do the replace if this string is not found
+   * @return if the <code>toFind</code> argument occurs as a substring within this <code>replaceIn</code>,
+   * then the index of the first character of the first such substring is returned; if it does not occur as a substring, -1 is returned.
+   * If the <code>ifNotThere</code> exists already in <code>replaceIn</code>, -2 is returned.
+   */
+  public static int replaceIfNotThere(StringBuilder replaceIn, String toFind, String toReplace, String ifNotThere) {
+    if (replaceIn.indexOf(ifNotThere) > -1) return -2;
+    return replace(replaceIn, toFind, toReplace);
+  }
+
+  /**
+   * Replace a substring if a the string is not present already.
+   * @param replaceIn the base string to be changed
+   * @param toFind replace this string with <code>toReplace</code> if found
+   * @param toReplace replace <code>toFind</code> string with this
+   * @return if the <code>toFind</code> argument occurs as a substring within this <code>replaceIn</code>,
+   * then the index of the first character of the first such substring is returned; if it does not occur as a substring, -1 is returned.
+   * If the <code>toReplace</code> exists already in <code>replaceIn</code>, -2 is returned.
+   */
+  public static int replaceIfNotThere(StringBuilder replaceIn, String toFind, String toReplace) {
+    return replaceIfNotThere(replaceIn, toFind, toReplace, toReplace);
+  }
 }

@@ -339,4 +339,104 @@ describe('App.HighAvailabilityWizardStep9Controller', function() {
       });
     });
   });
+
+  describe('#reconfigureRanger', function () {
+
+    var data = {
+      items: [
+        {
+          type: 'ranger-yarn-audit',
+          properties: {
+            'xasecure.audit.destination.hdfs.dir': 'd1'
+          }
+        },
+        {
+          type: 'ranger-yarn-audit',
+          properties: {
+            'ranger-storm-plugin-properties': 'd2'
+          }
+        },
+        {
+          type: 'ranger-storm-plugin-properties',
+          properties: {
+            'xasecure.audit.destination.hdfs.dir': 'd3'
+          }
+        },
+        {
+          type: 'ranger-storm-audit',
+          properties: {
+            'xasecure.audit.destination.hdfs.dir': 'd4'
+          }
+        },
+        {
+          type: 'ranger-kafka-audit',
+          properties: {
+            'xasecure.audit.destination.hdfs.dir': 'd5'
+          }
+        },
+        {
+          type: 'ranger-knox-plugin-properties',
+          properties: {
+            'xasecure.audit.destination.hdfs.dir': 'd6'
+          }
+        },
+        {
+          type: 'ranger-knox-audit',
+          properties: {
+            'xasecure.audit.destination.hdfs.dir': 'd7'
+          }
+        },
+        {
+          type: 'ranger-atlas-audit',
+          properties: {
+            'xasecure.audit.destination.hdfs.dir': 'd8'
+          }
+        },
+        {
+          type: 'ranger-hive-plugin-properties',
+          properties: {
+            'xasecure.audit.destination.hdfs.dir': 'd9'
+          }
+        },
+        {
+          type: 'ranger-hive-audit',
+          properties: {
+            'xasecure.audit.destination.hdfs.dir': 'd10'
+          }
+        },
+        {
+          type: 'ranger-kms-audit',
+          properties: {
+            'xasecure.audit.destination.hdfs.dir': 'd11'
+          }
+        }
+      ]
+    };
+
+    beforeEach(function () {
+      sinon.stub(App.Service, 'find', function () {
+        return [
+          Em.Object.create({serviceName: 'YARN'}),
+          Em.Object.create({serviceName: 'RANGER_KMS'}),
+          Em.Object.create({serviceName: 'HIVE'}),
+          Em.Object.create({serviceName: 'ATLAS'}),
+          Em.Object.create({serviceName: 'STORM'}),
+          Em.Object.create({serviceName: 'KNOX'}),
+          Em.Object.create({serviceName: 'KAFKA'})
+        ];
+      });
+      controller.set('content.serviceConfigProperties', data);
+      controller.reconfigureRanger();
+      this.args = testHelpers.findAjaxRequest('name', 'common.service.multiConfigurations');
+    });
+
+    afterEach(function () {
+      App.Service.find.restore();
+    });
+
+    it('configs are valid', function () {
+      expect(this.args[0].data.configs.mapProperty('Clusters.desired_config').length).to.be.equal(8);
+    });
+  });
+
 });

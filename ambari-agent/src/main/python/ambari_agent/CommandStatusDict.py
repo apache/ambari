@@ -68,19 +68,17 @@ class CommandStatusDict():
     """
     Stores new version of report for command (replaces previous)
     """
-    from ActionQueue import ActionQueue
-
-    key = command['taskId']
-    # delete stale data about this command
-    self.delete_command_data(key)
-
-    is_sent, correlation_id = self.force_update_to_server({command['clusterId']: [report]})
-    updatable = report['status'] == CommandStatus.in_progress and self.command_update_output
-
-    if not is_sent or updatable:
+    with self.lock:
+      key = command['taskId']
+      # delete stale data about this command
+      self.delete_command_data(key)
       self.queue_report_sending(key, command, report)
-    else:
-      self.server_responses_listener.listener_functions_on_error[correlation_id] = lambda headers, message: self.queue_report_sending(key, command, report)
+
+      report_dict = {command['clusterId']: [report]}
+      is_sent, correlation_id = self.force_update_to_server(report_dict)
+
+      self.server_responses_listener.listener_functions_on_success[correlation_id] = lambda headers, message: \
+        self.clear_reported_reports(report_dict)
 
   def queue_report_sending(self, key, command, report):
     with self.lock:

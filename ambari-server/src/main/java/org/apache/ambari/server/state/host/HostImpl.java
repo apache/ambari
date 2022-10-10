@@ -29,6 +29,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
@@ -84,6 +85,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
@@ -317,6 +319,12 @@ public class HostImpl implements Host {
 
     // populate the maintenance map
     maintMap = ensureMaintMap(hostEntity.getHostStateEntity());
+  }
+
+  @VisibleForTesting
+  HostImpl(HostEntity hostEntity, Gson gson, HostDAO hostDAO, HostStateDAO hostStateDAO, AmbariEventPublisher publisher) {
+    this(hostEntity, gson, hostDAO, hostStateDAO);
+    this.ambariEventPublisher = publisher;
   }
 
   @Override
@@ -765,6 +773,11 @@ public class HostImpl implements Host {
   }
 
   @Override
+  public String getOsFamily(Map<String, String> hostAttributes) {
+	  return getOSFamilyFromHostAttributes(hostAttributes);
+  }
+
+  @Override
   public String getOSFamilyFromHostAttributes(Map<String, String> hostAttributes) {
     try {
       String majorVersion = hostAttributes.get(OS_RELEASE_VERSION).split("\\.")[0];
@@ -806,6 +819,15 @@ public class HostImpl implements Host {
   }
 
   @Override
+  public HostHealthStatus getHealthStatus(HostStateEntity hostStateEntity) {
+    if (hostStateEntity != null) {
+      return gson.fromJson(hostStateEntity.getHealthStatus(), HostHealthStatus.class);
+    }
+
+    return null;
+  }
+
+  @Override
   public void setHealthStatus(HostHealthStatus healthStatus) {
     HostStateEntity hostStateEntity = getHostStateEntity();
     if (hostStateEntity != null) {
@@ -834,6 +856,11 @@ public class HostImpl implements Host {
   @Override
   public Map<String, String> getHostAttributes() {
     return gson.fromJson(getHostEntity().getHostAttributes(), hostAttributesType);
+  }
+
+  @Override
+  public Map<String, String> getHostAttributes(HostEntity hostEntity) {
+    return gson.fromJson(hostEntity.getHostAttributes(), hostAttributesType);
   }
 
   @Override
@@ -884,10 +911,12 @@ public class HostImpl implements Host {
     this.lastHeartbeatTime = lastHeartbeatTime;
   }
 
+  @Override
   public long getLastAgentStartTime() {
     return lastAgentStartTime;
   }
 
+  @Override
   public void setLastAgentStartTime(long lastAgentStartTime) {
     this.lastAgentStartTime = lastAgentStartTime;
   }
@@ -895,6 +924,15 @@ public class HostImpl implements Host {
   @Override
   public AgentVersion getAgentVersion() {
     HostStateEntity hostStateEntity = getHostStateEntity();
+    if (hostStateEntity != null) {
+      return gson.fromJson(hostStateEntity.getAgentVersion(), AgentVersion.class);
+    }
+
+    return null;
+  }
+
+  @Override
+  public AgentVersion getAgentVersion(HostStateEntity hostStateEntity) {
     if (hostStateEntity != null) {
       return gson.fromJson(hostStateEntity.getAgentVersion(), AgentVersion.class);
     }
@@ -926,18 +964,27 @@ public class HostImpl implements Host {
     }
   }
 
-
   @Override
   public String getStatus() {
     return status;
   }
 
+  /**
+   * Sets the Host's status.
+   *
+   * @param status Host Status string representation of the Host's status
+   * @throws IllegalArgumentException if <code>status</code> is <code>null</code> or {@link HealthStatus} enum has no such constant name.
+   */
   @Override
   public void setStatus(String status) {
-    if (this.status != status) {
-      ambariEventPublisher.publish(new HostStatusUpdateEvent(getHostName(), status));
+    if (status == null) {
+      throw new IllegalArgumentException("Host status cannot be null");
     }
-    this.status = status;
+    String newStatus = HealthStatus.valueOf(status).name();
+    if (!newStatus.equals(this.status)) {
+      ambariEventPublisher.publish(new HostStatusUpdateEvent(getHostName(), newStatus));
+      this.status = newStatus;
+    }
   }
 
   @Override
@@ -963,26 +1010,33 @@ public class HostImpl implements Host {
   public HostResponse convertToResponse() {
     HostResponse r = new HostResponse(getHostName());
 
-    r.setAgentVersion(getAgentVersion());
-    r.setPhCpuCount(getPhCpuCount());
-    r.setCpuCount(getCpuCount());
+    HostEntity hostEntity = getHostEntity();
+    HostStateEntity hostStateEntity = getHostStateEntity();
+
+    Map<String, String> hostAttributes = getHostAttributes(hostEntity);
+    r.setHostAttributes(hostAttributes);
+    r.setOsFamily(getOsFamily(hostAttributes));
+
+    r.setAgentVersion(getAgentVersion(hostStateEntity));
+    r.setHealthStatus(getHealthStatus(hostStateEntity));
+
+    r.setPhCpuCount(hostEntity.getPhCpuCount());
+    r.setCpuCount(hostEntity.getCpuCount());
+    r.setIpv4(hostEntity.getIpv4());
+    r.setOsArch(hostEntity.getOsArch());
+    r.setOsType(hostEntity.getOsType());
+    r.setTotalMemBytes(hostEntity.getTotalMem());
+    r.setLastRegistrationTime(hostEntity.getLastRegistrationTime());
+    r.setPublicHostName(hostEntity.getPublicHostName());
+    r.setRackInfo(hostEntity.getRackInfo());
+
     r.setDisksInfo(getDisksInfo());
-    r.setHealthStatus(getHealthStatus());
-    r.setHostAttributes(getHostAttributes());
-    r.setIpv4(getIPv4());
+    r.setStatus(getStatus());
     r.setLastHeartbeatTime(getLastHeartbeatTime());
     r.setLastAgentEnv(lastAgentEnv);
-    r.setLastRegistrationTime(getLastRegistrationTime());
-    r.setOsArch(getOsArch());
-    r.setOsType(getOsType());
-    r.setOsFamily(getOsFamily());
-    r.setRackInfo(getRackInfo());
-    r.setTotalMemBytes(getTotalMemBytes());
-    r.setPublicHostName(getPublicHostName());
-    r.setHostState(getState());
-    r.setStatus(getStatus());
     r.setRecoveryReport(getRecoveryReport());
     r.setRecoverySummary(getRecoveryReport().getSummary());
+    r.setHostState(getState());
     return r;
   }
 
@@ -1067,9 +1121,8 @@ public class HostImpl implements Host {
   @Override
   public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster,
       Map<String, DesiredConfig> clusterDesiredConfigs) throws AmbariException {
-    Map<String, HostConfig> hostConfigMap = new HashMap<>();
 
-    if( null == cluster ){
+    if(null == cluster){
       clusterDesiredConfigs = new HashMap<>();
     }
 
@@ -1078,42 +1131,36 @@ public class HostImpl implements Host {
       clusterDesiredConfigs = cluster.getDesiredConfigs();
     }
 
-    if (clusterDesiredConfigs != null) {
-      for (Map.Entry<String, DesiredConfig> desiredConfigEntry
-          : clusterDesiredConfigs.entrySet()) {
+    Map<String, HostConfig> hostConfigMap = clusterDesiredConfigs.entrySet().stream().collect(Collectors.toMap(
+      Map.Entry::getKey,
+      desiredConfigEntry -> {
         HostConfig hostConfig = new HostConfig();
         hostConfig.setDefaultVersionTag(desiredConfigEntry.getValue().getTag());
-        hostConfigMap.put(desiredConfigEntry.getKey(), hostConfig);
+        return hostConfig;
       }
-    }
+    ));
 
     Map<Long, ConfigGroup> configGroups = (cluster == null) ? new HashMap<>() : cluster.getConfigGroupsByHostname(getHostName());
+    if (configGroups == null || configGroups.isEmpty()) {
+      return hostConfigMap;
+    }
 
-    if (configGroups != null && !configGroups.isEmpty()) {
-      for (ConfigGroup configGroup : configGroups.values()) {
-        for (Map.Entry<String, Config> configEntry : configGroup
-            .getConfigurations().entrySet()) {
-
-          String configType = configEntry.getKey();
-          // HostConfig config holds configType -> versionTag, per config group
-          HostConfig hostConfig = hostConfigMap.get(configType);
-          if (hostConfig == null) {
-            hostConfig = new HostConfig();
-            hostConfigMap.put(configType, hostConfig);
-            if (cluster != null) {
-              Config conf = cluster.getDesiredConfigByType(configType);
-              if(conf == null) {
-                LOG.error("Config inconsistency exists:"+
-                    " unknown configType="+configType);
-              } else {
-                hostConfig.setDefaultVersionTag(conf.getTag());
-              }
-            }
+    for (ConfigGroup configGroup : configGroups.values()) {
+      for (Map.Entry<String, Config> configEntry : configGroup.getConfigurations().entrySet()) {
+        String configType = configEntry.getKey();
+        // HostConfig config holds configType -> versionTag, per config group
+        HostConfig hostConfig = hostConfigMap.get(configType);
+        if (hostConfig == null) {
+          hostConfig = new HostConfig();
+          hostConfigMap.put(configType, hostConfig);
+          Config conf = cluster.getDesiredConfigByType(configType);
+          if(conf == null) {
+            LOG.error("Config inconsistency exists: unknown configType=" + configType);
+          } else {
+            hostConfig.setDefaultVersionTag(conf.getTag());
           }
-          Config config = configEntry.getValue();
-          hostConfig.getConfigGroupOverrides().put(configGroup.getId(),
-              config.getTag());
         }
+        hostConfig.getConfigGroupOverrides().put(configGroup.getId(), configEntry.getValue().getTag());
       }
     }
     return hostConfigMap;
@@ -1292,8 +1339,8 @@ public class HostImpl implements Host {
     // for every host component, if it matches the desired repo and has reported
     // the correct version then we're good
     for (HostComponentStateEntity hostComponentState : hostComponentStates) {
-      ServiceComponentDesiredStateEntity desiredComponmentState = hostComponentState.getServiceComponentDesiredStateEntity();
-      RepositoryVersionEntity desiredRepositoryVersion = desiredComponmentState.getDesiredRepositoryVersion();
+      ServiceComponentDesiredStateEntity desiredComponentState = hostComponentState.getServiceComponentDesiredStateEntity();
+      RepositoryVersionEntity desiredRepositoryVersion = desiredComponentState.getDesiredRepositoryVersion();
 
       ComponentInfo componentInfo = ambariMetaInfo.getComponent(
           desiredRepositoryVersion.getStackName(), desiredRepositoryVersion.getStackVersion(),

@@ -49,4 +49,39 @@ describe('App.ClusterMetricsDashboardWidgetView', function () {
     });
   });
 
+  describe("#didInsertElement()", function() {
+
+    beforeEach(function() {
+      sinon.stub(App, 'tooltip');
+    });
+    afterEach(function() {
+      App.tooltip.restore();
+    });
+
+    it("App.tooltip should be called", function() {
+      view.didInsertElement();
+      expect(App.tooltip.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#willDestroyElement()", function() {
+    var mock = {
+      tooltip: Em.K
+    };
+
+    beforeEach(function() {
+      sinon.stub(mock, 'tooltip');
+      sinon.stub(view, '$').returns(mock);
+    });
+    afterEach(function() {
+      mock.tooltip.restore();
+      view.$.restore();
+    });
+
+    it("tooltip destroy should be called", function() {
+      view.willDestroyElement();
+      expect(mock.tooltip.calledWith('destroy')).to.be.true;
+    });
+  });
+
 });

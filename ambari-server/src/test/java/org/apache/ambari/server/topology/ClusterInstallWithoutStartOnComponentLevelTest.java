@@ -342,6 +342,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     PowerMock.replay(AmbariServer.class);
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getClusterById(anyLong())).andReturn(cluster).anyTimes();
+    expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster).anyTimes();
     expect(cluster.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();

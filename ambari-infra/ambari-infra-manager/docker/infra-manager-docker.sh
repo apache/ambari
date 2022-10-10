@@ -41,10 +41,10 @@ function start_infra_manager_container() {
  local AMBARI_INFRA_MANAGER_LOCATION=$(pwd)
  popd
  kill_infra_manager_container
- docker run -d --name infra-manager --hostname infra-manager.apache.org \
+ docker run -d --name infra_manager --hostname infra-manager.apache.org \
    -v $AMBARI_INFRA_MANAGER_LOCATION/target/package:/root/ambari-infra-manager -p 61890:61890 -p 5007:5007 \
    ambari-infra-manager:v1.0
-  ip_address=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' logsearch)
+  ip_address=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' infra_manager)
   echo "Ambari Infra Manager container started on $ip_address (for Mac OSX route to boot2docker/docker-machine VM address, e.g.: 'sudo route add -net 172.17.0.0/16 192.168.59.103')"
   echo "You can follow Log Search logs with 'docker logs -f infra-manager' command"
 }

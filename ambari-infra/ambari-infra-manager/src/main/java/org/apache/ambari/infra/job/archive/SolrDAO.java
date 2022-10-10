@@ -18,19 +18,19 @@
  */
 package org.apache.ambari.infra.job.archive;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+
 import org.apache.ambari.infra.job.SolrDAOBase;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
 
 public class SolrDAO extends SolrDAOBase implements DocumentWiper {
-  private static final Logger LOG = LoggerFactory.getLogger(SolrDAO.class);
+  private static final Logger logger = LogManager.getLogger(SolrDAO.class);
 
   private final SolrProperties queryProperties;
 
@@ -53,7 +53,7 @@ public class SolrDAO extends SolrDAOBase implements DocumentWiper {
             .build();
     query.setRows(rows);
 
-    LOG.info("Executing solr query {}", query.toLocalParamsString());
+    logger.info("Executing solr query {}", query.toLocalParamsString());
 
     try {
       CloudSolrClient client = createClient();

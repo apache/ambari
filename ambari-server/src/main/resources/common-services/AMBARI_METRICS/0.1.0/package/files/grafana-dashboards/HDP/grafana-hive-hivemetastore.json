@@ -87,7 +87,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.api_get_all_databases_75thpercentile",
+              "metric": "default.General.api_get_databases_75thpercentile",
               "precision": "default",
               "refId": "A",
               "templatedHost": ""
@@ -98,7 +98,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.api_get_all_databases_999thpercentile",
+              "metric": "default.General.api_get_databases_999thpercentile",
               "precision": "default",
               "refId": "B",
               "templatedHost": ""
@@ -106,7 +106,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "API call times - Health Check roundtrip (get_all_databases)",
+          "title": "API call times - Health Check roundtrip (get_databases)",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -329,7 +329,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.memory.heap.max",
+              "metric": "default.General.heap.max",
               "precision": "default",
               "refId": "A",
               "templatedHost": ""
@@ -340,7 +340,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.memory.heap.used",
+              "metric": "default.General.heap.used",
               "precision": "default",
               "refId": "B",
               "templatedHost": ""
@@ -351,7 +351,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.memory.heap.committed",
+              "metric": "default.General.heap.committed",
               "precision": "default",
               "refId": "C",
               "templatedHost": ""
@@ -421,7 +421,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.memory.non-heap.max",
+              "metric": "default.General.non-heap.max",
               "precision": "default",
               "refId": "A",
               "templatedHost": ""
@@ -432,7 +432,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.memory.non-heap.used",
+              "metric": "default.General.non-heap.used",
               "precision": "default",
               "refId": "B",
               "templatedHost": ""
@@ -443,7 +443,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.memory.non-heap.committed",
+              "metric": "default.General.non-heap.committed",
               "precision": "default",
               "refId": "C",
               "templatedHost": ""
@@ -571,7 +571,7 @@
   },
   "refresh": false,
   "schemaVersion": 8,
-  "version": 18,
+  "version": 19,
   "links": [
     {
       "asDropdown": true,

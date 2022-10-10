@@ -18,17 +18,29 @@
  */
 package org.apache.ambari.infra.rest;
 
-import com.google.common.base.Splitter;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import java.util.List;
+import java.util.Set;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+
 import org.apache.ambari.infra.manager.JobManager;
 import org.apache.ambari.infra.model.ExecutionContextResponse;
-import org.apache.ambari.infra.model.JobDetailsResponse;
 import org.apache.ambari.infra.model.JobExecutionDetailsResponse;
 import org.apache.ambari.infra.model.JobExecutionInfoResponse;
 import org.apache.ambari.infra.model.JobExecutionRequest;
 import org.apache.ambari.infra.model.JobExecutionRestartRequest;
 import org.apache.ambari.infra.model.JobExecutionStopRequest;
+import org.apache.ambari.infra.model.JobInstanceDetailsResponse;
 import org.apache.ambari.infra.model.JobInstanceStartRequest;
 import org.apache.ambari.infra.model.JobRequest;
 import org.apache.ambari.infra.model.PageRequest;
@@ -36,8 +48,8 @@ import org.apache.ambari.infra.model.StepExecutionContextResponse;
 import org.apache.ambari.infra.model.StepExecutionInfoResponse;
 import org.apache.ambari.infra.model.StepExecutionProgressResponse;
 import org.apache.ambari.infra.model.StepExecutionRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.batch.admin.service.NoSuchStepExecutionException;
 import org.springframework.batch.admin.web.JobInfo;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -51,26 +63,18 @@ import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteExcep
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.context.annotation.Scope;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import java.util.List;
-import java.util.Set;
+import com.google.common.base.Splitter;
 
-@Api(value = "jobs", description = "Job operations")
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.Authorization;
+
+@Api(value = "jobs", description = "Job operations", authorizations = {@Authorization(value = "basicAuth")})
 @Path("jobs")
 @Named
 @Scope("request")
 public class JobResource {
-  private static final Logger LOG = LoggerFactory.getLogger(JobResource.class);
+  private static final Logger logger = LogManager.getLogger(JobResource.class);
 
   @Inject
   private JobManager jobManager;
@@ -94,7 +98,7 @@ public class JobResource {
     String params = request.getParams();
     JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
     if (params != null) {
-      LOG.info("Parsing parameters of job {} '{}'", jobName, params);
+      logger.info("Parsing parameters of job {} '{}'", jobName, params);
       Splitter.on(',')
               .trimResults()
               .withKeyValueSeparator(Splitter.on('=').limit(2).trimResults())
@@ -116,7 +120,7 @@ public class JobResource {
   @Produces({"application/json"})
   @Path("{jobName}/info")
   @ApiOperation("Get job details by job name.")
-  public JobDetailsResponse getJobDetails(@BeanParam @Valid JobRequest jobRequest) throws NoSuchJobException {
+  public List<JobInstanceDetailsResponse> getJobDetails(@BeanParam @Valid JobRequest jobRequest) throws NoSuchJobException {
     return jobManager.getJobDetails(jobRequest.getJobName(), jobRequest.getPage(), jobRequest.getSize());
   }
 
@@ -132,7 +136,7 @@ public class JobResource {
   @Produces({"application/json"})
   @Path("/executions/{jobExecutionId}")
   @ApiOperation("Get job and step details for job execution instance.")
-  public JobExecutionDetailsResponse getExectionInfo(@PathParam("jobExecutionId") @Valid Long jobExecutionId) throws NoSuchJobExecutionException {
+  public JobExecutionDetailsResponse getExecutionInfo(@PathParam("jobExecutionId") @Valid Long jobExecutionId) throws NoSuchJobExecutionException {
     return jobManager.getExecutionInfo(jobExecutionId);
   }
 
@@ -165,8 +169,8 @@ public class JobResource {
   @GET
   @Produces({"application/json"})
   @Path("/{jobName}/{jobInstanceId}/executions")
-  @ApiOperation("Get execution for job instance.")
-  public List<JobExecutionInfoResponse> getExecutionsForInstance(@BeanParam @Valid JobExecutionRequest request) throws
+  @ApiOperation("Get execution of job instance.")
+  public List<JobExecutionInfoResponse> getExecutionsOfInstance(@BeanParam @Valid JobExecutionRequest request) throws
           NoSuchJobException, NoSuchJobInstanceException {
     return jobManager.getExecutionsForJobInstance(request.getJobName(), request.getJobInstanceId());
   }

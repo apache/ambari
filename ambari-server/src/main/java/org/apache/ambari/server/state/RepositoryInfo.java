@@ -27,6 +27,7 @@ import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.controller.RepositoryResponse;
 import org.apache.ambari.server.state.stack.RepoTag;
+import org.apache.ambari.server.utils.URLCredentialsHider;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.base.Function;
@@ -196,7 +197,7 @@ public class RepositoryInfo {
     return "[ repoInfo: "
         + ", osType=" + osType
         + ", repoId=" + repoId
-        + ", baseUrl=" + baseUrl
+        + ", baseUrl=" + URLCredentialsHider.hideCredentials(baseUrl)
         + ", repoName=" + repoName
         + ", distribution=" + distribution
         + ", components=" + components

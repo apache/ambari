@@ -45,6 +45,7 @@ class RecoveryManager:
   HAS_STALE_CONFIG = "hasStaleConfigs"
   EXECUTION_COMMAND_DETAILS = "executionCommandDetails"
   ROLE_COMMAND = "roleCommand"
+  IS_RECOVERY_COMMAND = "isRecoveryCommand"
   COMMAND_ID = "commandId"
   PAYLOAD_LEVEL_DEFAULT = "DEFAULT"
   PAYLOAD_LEVEL_MINIMAL = "MINIMAL"
@@ -98,10 +99,10 @@ class RecoveryManager:
     self.active_command_count = 0
     self.cluster_id = None
     self.initializer_module = initializer_module
-    self.host_level_params_cache = initializer_module.host_level_params_cache
 
     self.actions = {}
     self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, auto_install_start)
+    self.statuses_computed_at_least_once = False
 
   def on_execution_command_start(self):
     with self.__active_command_lock:
@@ -113,7 +114,7 @@ class RecoveryManager:
 
   def is_blueprint_provisioning_for_component(self, component_name):
     try:
-      blueprint_state = self.host_level_params_cache[self.cluster_id]['blueprint_provisioning_state'][component_name]
+      blueprint_state = self.initializer_module.host_level_params_cache[self.cluster_id]['blueprint_provisioning_state'][component_name]
     except KeyError:
       blueprint_state = 'NONE'
 
@@ -275,6 +276,10 @@ class RecoveryManager:
     INSTALLED_FAILED --> INSTALLED
     INSTALLED_FAILED --> STARTED
     """
+    # wait until all component statuses are computed
+    if not self.statuses_computed_at_least_once:
+      return []
+
     commands = []
     for component in self.statuses.keys():
       if self.configured_for_recovery(component) and self.requires_recovery(component) and self.may_execute(component):
@@ -481,7 +486,7 @@ class RecoveryManager:
           
         self.enabled_components = enabled_components_list
 
-  def on_config_update(self):
+  def on_config_update(self, cluster_cache):
     recovery_enabled = False
     auto_start_only = False
     auto_install_start = False
@@ -489,8 +494,6 @@ class RecoveryManager:
     window_in_min = 60
     retry_gap = 5
     max_lifetime_count = 12
-
-    cluster_cache = self.initializer_module.configurations_cache[self.cluster_id]
 
     if 'configurations' in cluster_cache and 'cluster-env' in cluster_cache['configurations']:
       config = cluster_cache['configurations']['cluster-env']
@@ -662,7 +665,8 @@ class RecoveryManager:
         self.COMMAND_TYPE: AgentCommand.auto_execution,
         self.TASK_ID: command_id,
         self.ROLE: component,
-        self.COMMAND_ID: command_id
+        self.COMMAND_ID: command_id,
+        self.IS_RECOVERY_COMMAND: True
       }
 
       if component in self.__component_to_service_map:

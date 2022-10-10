@@ -505,7 +505,9 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       deferred.promise.then(function(data){
         var x2js = new X2JS();
         var workflowJson = x2js.xml_str2json(data);
-        this.set('workflowName', workflowJson["workflow-app"]._name);
+        if(workflowJson["workflow-app"] && workflowJson["workflow-app"]._name){
+          this.set('workflowName', workflowJson["workflow-app"]._name);
+        }
         var workflowProps = this.get('propertyExtractor').getDynamicProperties(data);
         var dynamicProperties = this.get('coordinatorConfigs.props');
         workflowProps.forEach((prop)=>{

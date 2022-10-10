@@ -18,12 +18,12 @@
  */
 package org.apache.ambari.infra.job.archive;
 
-import org.springframework.batch.core.JobParameters;
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.apache.commons.lang.StringUtils.isBlank;
+import org.springframework.batch.core.JobParameters;
 
 public class SolrProperties {
   private String zooKeeperConnectionString;
@@ -88,12 +88,21 @@ public class SolrProperties {
             .addSort(sortColumn);
   }
 
-  public void apply(JobParameters jobParameters) {
-    zooKeeperConnectionString = jobParameters.getString("zooKeeperConnectionString", zooKeeperConnectionString);
-    collection = jobParameters.getString("collection", collection);
-    queryText = jobParameters.getString("queryText", queryText);
-    filterQueryText = jobParameters.getString("filterQueryText", filterQueryText);
-    deleteQueryText = jobParameters.getString("deleteQueryText", deleteQueryText);
+  public void validate() {
+    if (isBlank(zooKeeperConnectionString))
+      throw new IllegalArgumentException("The property zooKeeperConnectionString can not be null or empty string!");
+
+    if (isBlank(collection))
+      throw new IllegalArgumentException("The property collection can not be null or empty string!");
+  }
+
+  public SolrProperties merge(JobParameters jobParameters) {
+    SolrProperties solrProperties = new SolrProperties();
+    solrProperties.setZooKeeperConnectionString(jobParameters.getString("zooKeeperConnectionString", zooKeeperConnectionString));
+    solrProperties.setCollection(jobParameters.getString("collection", collection));
+    solrProperties.setQueryText(jobParameters.getString("queryText", queryText));
+    solrProperties.setFilterQueryText(jobParameters.getString("filterQueryText", filterQueryText));
+    solrProperties.setDeleteQueryText(jobParameters.getString("deleteQueryText", deleteQueryText));
 
     String sortValue;
     List<String> sortColumns = new ArrayList<>();
@@ -102,16 +111,13 @@ public class SolrProperties {
       sortColumns.add(sortValue);
       ++i;
     }
+    if (!sortColumns.isEmpty()) {
+      solrProperties.setSortColumn(sortColumns.toArray(new String[0]));
+    }
+    else {
+      solrProperties.setSortColumn(sortColumn);
+    }
 
-    if (sortColumns.size() > 0)
-      sortColumn = sortColumns.toArray(new String[sortColumns.size()]);
-  }
-
-  public void validate() {
-    if (isBlank(zooKeeperConnectionString))
-      throw new IllegalArgumentException("The property zooKeeperConnectionString can not be null or empty string!");
-
-    if (isBlank(collection))
-      throw new IllegalArgumentException("The property collection can not be null or empty string!");
+    return solrProperties;
   }
 }

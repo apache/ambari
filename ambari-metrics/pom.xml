@@ -15,11 +15,11 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <groupId>org.apache.ambari</groupId>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-metrics</artifactId>
-  <version>2.7.3.0.0</version>
+  <version>2.7.6.0.0</version>
   <packaging>pom</packaging>
   <modules>
     <module>../ambari-utility</module>
@@ -40,14 +40,15 @@
     <python.ver>python &gt;= 2.6</python.ver>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <!--TODO change to HDP URL-->
-    <hbase.tar>http://dev.hortonworks.com.s3.amazonaws.com/HDP/centos7/3.x/BUILDS/3.0.0.0-1634/tars/hbase/hbase-2.0.0.3.0.0.0-1634-bin.tar.gz</hbase.tar>
-    <hbase.folder>hbase-2.0.0.3.0.0.0-1634</hbase.folder>
-    <hadoop.tar>http://dev.hortonworks.com.s3.amazonaws.com/HDP/centos7/3.x/BUILDS/3.0.0.0-1634/tars/hadoop/hadoop-3.1.0.3.0.0.0-1634.tar.gz</hadoop.tar>
-    <hadoop.folder>hadoop-3.1.0.3.0.0.0-1634</hadoop.folder>
-    <grafana.folder>grafana-2.6.0</grafana.folder>
-    <grafana.tar>https://grafanarel.s3.amazonaws.com/builds/grafana-2.6.0.linux-x64.tar.gz</grafana.tar>
-    <phoenix.tar>http://dev.hortonworks.com.s3.amazonaws.com/HDP/centos7/3.x/BUILDS/3.0.0.0-1634/tars/phoenix/phoenix-5.0.0.3.0.0.0-1634.tar.gz</phoenix.tar>
-    <phoenix.folder>phoenix-5.0.0.3.0.0.0-1634</phoenix.folder>
+    <hbase.tar>https://archive.apache.org/dist/hbase/2.4.2/hbase-2.4.2-bin.tar.gz</hbase.tar>
+    <hbase.folder>hbase-2.4.2</hbase.folder>
+    <hadoop.tar>https://archive.apache.org/dist/hadoop/common/hadoop-3.1.1/hadoop-3.1.1.tar.gz</hadoop.tar>
+    <hadoop.folder>hadoop-3.1.1</hadoop.folder>
+    <hadoop.version>3.1.1</hadoop.version>
+    <grafana.folder>grafana-6.7.4</grafana.folder>
+    <grafana.tar>https://dl.grafana.com/oss/release/grafana-6.7.4.linux-amd64.tar.gz</grafana.tar>
+    <phoenix.tar>https://downloads.apache.org/phoenix/phoenix-5.1.2/phoenix-hbase-2.4-5.1.2-bin.tar.gz</phoenix.tar>
+    <phoenix.folder>phoenix-hbase-2.4-5.1.2-bin</phoenix.folder>
     <resmonitor.install.dir>/usr/lib/python2.6/site-packages/resource_monitoring</resmonitor.install.dir>
     <powermock.version>1.6.2</powermock.version>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
@@ -56,7 +57,8 @@
     <distMgmtStagingId>apache.staging.https</distMgmtStagingId>
     <distMgmtStagingName>Apache Release Distribution Repository</distMgmtStagingName>
     <distMgmtStagingUrl>https://repository.apache.org/service/local/staging/deploy/maven2</distMgmtStagingUrl>
-    <fasterxml.jackson.version>2.9.5</fasterxml.jackson.version>
+    <fasterxml.jackson.version>2.10.0</fasterxml.jackson.version>
+    <fasterxml.jackson.databind.version>2.10.0</fasterxml.jackson.databind.version>
   </properties>
   <distributionManagement>
     <repository>
@@ -74,7 +76,7 @@
     <repository>
       <id>apache-hadoop</id>
       <name>hdp</name>
-      <url>http://nexus-private.hortonworks.com/nexus/content/groups/public</url>
+      <url>https://repo.hortonworks.com/content/groups/public/</url>
     </repository>
     <repository>
       <id>apache-snapshots</id>
@@ -97,7 +99,7 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>${fasterxml.jackson.version}</version>
+        <version>${fasterxml.jackson.databind.version}</version>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
@@ -123,185 +125,198 @@
         <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>28.0-jre</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.8</version>
-        <executions>
-          <execution>
-            <id>parse-version</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>parse-version</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>regex-property</id>
-            <goals>
-              <goal>regex-property</goal>
-            </goals>
-            <configuration>
-              <name>ambariVersion</name>
-              <value>${project.version}</value>
-              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
-              <replacement>$1.$2.$3.$4</replacement>
-              <failIfNoMatch>false</failIfNoMatch>
-            </configuration>
-          </execution>
-          <execution>
-            <id>parse-package-version</id>
-            <goals>
-              <goal>regex-property</goal>
-            </goals>
-            <configuration>
-              <name>package-version</name>
-              <value>${project.version}</value>
-              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
-              <replacement>$1.$2.$3.$4</replacement>
-              <failIfNoMatch>true</failIfNoMatch>
-            </configuration>
-          </execution>
-          <execution>
-            <id>parse-package-release</id>
-            <goals>
-              <goal>regex-property</goal>
-            </goals>
-            <configuration>
-              <name>package-release</name>
-              <value>${project.version}</value>
-              <regex>
-                ^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-)((([a-zA-Z]+)?([0-9]+))|(SNAPSHOT)).*
-              </regex>
-              <replacement>$7</replacement>
-              <failIfNoMatch>true</failIfNoMatch>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <descriptors>
-            <descriptor>../ambari-project/src/main/assemblies/empty.xml</descriptor>
-          </descriptors>
-        </configuration>
-        <executions>
-          <execution>
-            <id>build-tarball</id>
-            <phase>none</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.19</version>
-        <configuration>
-          <skip>${skipSurefireTests}</skip>
+    <build>
+      <pluginManagement>
+        <plugins>
+          <plugin>
+            <groupId>org.vafer</groupId>
+            <artifactId>jdeb</artifactId>
+            <version>1.8</version>
+          </plugin>
+        </plugins>
+      </pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>1.8</version>
+          <executions>
+            <execution>
+              <id>parse-version</id>
+              <phase>validate</phase>
+              <goals>
+                <goal>parse-version</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>regex-property</id>
+              <goals>
+                <goal>regex-property</goal>
+              </goals>
+              <configuration>
+                <name>ambariVersion</name>
+                <value>${project.version}</value>
+                <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
+                <replacement>$1.$2.$3.$4</replacement>
+                <failIfNoMatch>false</failIfNoMatch>
+              </configuration>
+            </execution>
+            <execution>
+              <id>parse-package-version</id>
+              <goals>
+                <goal>regex-property</goal>
+              </goals>
+              <configuration>
+                <name>package-version</name>
+                <value>${project.version}</value>
+                <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
+                <replacement>$1.$2.$3.$4</replacement>
+                <failIfNoMatch>true</failIfNoMatch>
+              </configuration>
+            </execution>
+            <execution>
+              <id>parse-package-release</id>
+              <goals>
+                <goal>regex-property</goal>
+              </goals>
+              <configuration>
+                <name>package-release</name>
+                <value>${project.version}</value>
+                <regex>
+                  ^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-)((([a-zA-Z]+)?([0-9]+))|(SNAPSHOT)).*
+                </regex>
+                <replacement>$7</replacement>
+                <failIfNoMatch>true</failIfNoMatch>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <configuration>
+            <descriptors>
+              <descriptor>../ambari-project/src/main/assemblies/empty.xml</descriptor>
+            </descriptors>
+          </configuration>
+          <executions>
+            <execution>
+              <id>build-tarball</id>
+              <phase>none</phase>
+              <goals>
+                <goal>single</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.19</version>
+          <configuration>
+            <skip>${skipSurefireTests}</skip>
 
-          <!-- Each profile in the top-level pom.xml defines which test group categories to run. -->
-          <groups>${testcase.groups}</groups>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.2</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-clean-plugin</artifactId>
-        <version>2.5</version>
-        <configuration>
-          <filesets>
-            <fileset>
-              <directory>${basedir}</directory>
-              <followSymlinks>false</followSymlinks>
-              <includes>
-                <include>**/*.pyc</include>
-              </includes>
-            </fileset>
-          </filesets>
-        </configuration>
-      </plugin>
-      <plugin>
-        <!--Stub execution on direct plugin call - workaround for ambari rpm build process-->
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>rpm-maven-plugin</artifactId>
-        <version>2.0.1</version>
-        <executions>
-          <execution>
-            <id>stub-execution</id>
-            <!-- unbinds rpm creation from maven lifecycle -->
-            <phase>none</phase>
-            <goals>
-              <goal>attached-rpm</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <copyright>2012, Apache Software Foundation</copyright>
-          <group>Development</group>
-          <description>Maven Recipe: RPM Package.</description>
-          <release>${package-release}</release>
-          <version>${package-version}</version>
-          <mappings/>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.vafer</groupId>
-        <artifactId>jdeb</artifactId>
-        <version>1.0.1</version>
-        <executions>
-          <execution>
-            <!--Stub execution on direct plugin call - workaround for ambari deb build process-->
-            <id>stub-execution</id>
-            <phase>none</phase>
-            <goals>
-              <goal>jdeb</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <skip>true</skip>
-          <attach>false</attach>
-          <submodules>true</submodules>
-          <controlDir>${project.basedir}/src/main/package/deb/control</controlDir>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.rat</groupId>
-        <artifactId>apache-rat-plugin</artifactId>
-        <version>0.12</version>
-        <configuration>
-          <excludes>
-            <exclude>pass.txt</exclude>
-            <exclude>derby.log</exclude>
-            <exclude>**/*.nuspec</exclude>
-            <exclude>**/*.json</exclude>
-            <exclude>**/out</exclude>
-          </excludes>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>test</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
+            <!-- Each profile in the top-level pom.xml defines which test group categories to run. -->
+            <groups>${testcase.groups}</groups>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.2</version>
+          <configuration>
+            <source>1.8</source>
+            <target>1.8</target>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>2.5</version>
+          <configuration>
+            <filesets>
+              <fileset>
+                <directory>${basedir}</directory>
+                <followSymlinks>false</followSymlinks>
+                <includes>
+                  <include>**/*.pyc</include>
+                </includes>
+              </fileset>
+            </filesets>
+          </configuration>
+        </plugin>
+        <plugin>
+          <!--Stub execution on direct plugin call - workaround for ambari rpm build process-->
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>rpm-maven-plugin</artifactId>
+          <version>2.0.1</version>
+          <executions>
+            <execution>
+              <id>stub-execution</id>
+              <!-- unbinds rpm creation from maven lifecycle -->
+              <phase>none</phase>
+              <goals>
+                <goal>attached-rpm</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <copyright>2012, Apache Software Foundation</copyright>
+            <group>Development</group>
+            <description>Maven Recipe: RPM Package.</description>
+            <release>${package-release}</release>
+            <version>${package-version}</version>
+            <mappings/>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.vafer</groupId>
+          <artifactId>jdeb</artifactId>
+          <executions>
+            <execution>
+              <!--Stub execution on direct plugin call - workaround for ambari deb build process-->
+              <id>stub-execution</id>
+              <phase>none</phase>
+              <goals>
+                <goal>jdeb</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <skip>true</skip>
+            <attach>false</attach>
+            <submodules>true</submodules>
+            <controlDir>${project.basedir}/src/main/package/deb/control</controlDir>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.rat</groupId>
+          <artifactId>apache-rat-plugin</artifactId>
+          <version>0.12</version>
+          <configuration>
+            <excludes>
+              <exclude>pass.txt</exclude>
+              <exclude>derby.log</exclude>
+              <exclude>**/*.nuspec</exclude>
+              <exclude>**/*.json</exclude>
+              <exclude>**/out</exclude>
+            </excludes>
+          </configuration>
+          <executions>
+            <execution>
+              <phase>test</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
   </build>
 
   <dependencies>

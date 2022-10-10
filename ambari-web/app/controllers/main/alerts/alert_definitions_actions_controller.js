@@ -220,7 +220,7 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
     var configProperties = App.router.get('clusterController.clusterEnv.properties');
 
     return App.ModalPopup.show({
-      classNames: ['fourty-percent-width-modal'],
+      classNames: ['forty-percent-width-modal'],
       header: Em.I18n.t('alerts.actions.manageSettings'),
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.cancel'),

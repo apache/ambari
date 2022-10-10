@@ -275,6 +275,7 @@ export FAKEHBASE_OPTS="$FAKEHBASE_OPTS -XX:+UseConcMarkSweepGC -XX:ErrorFile={{l
 export FAKEHBASE_MASTER_OPTS="$FAKEHBASE_MASTER_OPTS -Xmx{{master_heapsize}} -Djava.security.auth.login.config={{master_jaas_config_file}} $JDK_DEPENDED_OPTS"
 export FAKEHBASE_REGIONSERVER_OPTS="$FAKEHBASE_REGIONSERVER_OPTS -Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70  -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}} -Djava.security.auth.login.config={{regionserver_jaas_config_file}} $JDK_DEPENDED_OPTS"
 export PHOENIX_QUERYSERVER_OPTS="$PHOENIX_QUERYSERVER_OPTS -Djava.security.auth.login.config={{queryserver_jaas_config_file}}"
+export HBASE_SERVER_JAAS_OPTS="-Djava.security.auth.login.config={{client_jaas_config_file}}"
 {% else %}
 export FAKEHBASE_OPTS="$FAKEHBASE_OPTS -XX:+UseConcMarkSweepGC -XX:ErrorFile={{log_dir}}/hs_err_pid%p.log -Djava.io.tmpdir={{java_io_tmpdir}}"
 export FAKEHBASE_MASTER_OPTS="$FAKEHBASE_MASTER_OPTS -Xmx{{master_heapsize}} $JDK_DEPENDED_OPTS"

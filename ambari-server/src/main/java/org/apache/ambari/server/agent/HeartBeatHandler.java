@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.agent;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,13 +36,10 @@ import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.alert.AlertHelper;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -76,8 +72,6 @@ public class HeartBeatHandler {
   private final ActionManager actionManager;
   private HeartbeatMonitor heartbeatMonitor;
   private HeartbeatProcessor heartbeatProcessor;
-
-  @Inject
   private Configuration config;
 
   @Inject
@@ -109,11 +103,12 @@ public class HeartBeatHandler {
   private Map<String, HeartBeatResponse> hostResponses = new ConcurrentHashMap<>();
 
   @Inject
-  public HeartBeatHandler(Clusters fsm, ActionManager am,
+  public HeartBeatHandler(Configuration c, Clusters fsm, ActionManager am,
                           Injector injector) {
+    config = c;
     clusterFsm = fsm;
     actionManager = am;
-    heartbeatMonitor = new HeartbeatMonitor(fsm, am, 60000, injector);
+    heartbeatMonitor = new HeartbeatMonitor(fsm, am, config.getHeartbeatMonitorInterval(), injector);
     heartbeatProcessor = new HeartbeatProcessor(fsm, am, heartbeatMonitor, injector); //TODO modify to match pattern
     injector.injectMembers(this);
   }
@@ -388,39 +383,6 @@ public class HeartBeatHandler {
         break;
       }
     }
-  }
-
-  /**
-   * Response contains information about HDP Stack in use
-   * @param clusterName
-   * @return @ComponentsResponse
-   * @throws org.apache.ambari.server.AmbariException
-   */
-  public ComponentsResponse handleComponents(String clusterName)
-      throws AmbariException {
-    ComponentsResponse response = new ComponentsResponse();
-
-    Cluster cluster = clusterFsm.getCluster(clusterName);
-
-    Map<String, Map<String, String>> componentsMap = new HashMap<>();
-
-    for (org.apache.ambari.server.state.Service service : cluster.getServices().values()) {
-      componentsMap.put(service.getName(), new HashMap<>());
-
-      for (ServiceComponent component : service.getServiceComponents().values()) {
-        StackId stackId = component.getDesiredStackId();
-
-        ComponentInfo componentInfo = ambariMetaInfo.getComponent(
-            stackId.getStackName(), stackId.getStackVersion(), service.getName(), component.getName());
-
-        componentsMap.get(service.getName()).put(component.getName(), componentInfo.getCategory());
-      }
-    }
-
-    response.setClusterName(clusterName);
-    response.setComponents(componentsMap);
-
-    return response;
   }
 
   public void stop() {

@@ -90,7 +90,7 @@
               "precision": "default",
               "refId": "A",
               "templatedHost": "",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             },
             {
@@ -103,7 +103,7 @@
               "precision": "default",
               "refId": "B",
               "templatedHost": "",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],
@@ -175,7 +175,7 @@
               "precision": "default",
               "refId": "A",
               "templatedHost": "",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],
@@ -327,7 +327,7 @@
               "precision": "default",
               "refId": "A",
               "templatedHost": "",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],
@@ -399,7 +399,7 @@
               "precision": "default",
               "refId": "A",
               "templatedHost": "",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],
@@ -705,7 +705,7 @@
               "precision": "default",
               "refId": "A",
               "templatedHost": "",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],
@@ -777,7 +777,7 @@
               "precision": "default",
               "refId": "A",
               "templatedHost": "",
-              "transform": "none",
+              "transform": "rate",
               "transformData": "none"
             }
           ],

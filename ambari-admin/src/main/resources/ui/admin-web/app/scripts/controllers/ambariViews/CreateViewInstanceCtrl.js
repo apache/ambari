@@ -123,8 +123,8 @@ function($scope, View, RemoteCluster, Alert, Cluster, $routeParams, $location, U
             '/versions/' + $scope.form.instanceCreateForm.version.$viewValue.value +
             '/instances/' + instanceName + '/edit');
         })
-        .catch(function (data) {
-          var errorMessage = data.message;
+        .catch(function (resp) {
+          var errorMessage = resp.data.message;
 
           if (data.status >= 400) {
             try {

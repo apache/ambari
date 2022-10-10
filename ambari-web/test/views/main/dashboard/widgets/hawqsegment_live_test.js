@@ -55,11 +55,89 @@ function testCounterOrNa(propertyName, dependentKey) {
 describe('App.HawqSegmentUpView', function() {
 
   beforeEach(function () {
-    view = App.HawqSegmentUpView.create();
+    view = App.HawqSegmentUpView.create({
+      model: Em.Object.create()
+    });
   });
 
   testCounterOrNa('hawqSegmentsStarted', 'hawqSegmentsStarted');
   testCounterOrNa('hawqSegmentsInstalled', 'hawqSegmentsInstalled');
-  testCounterOrNa('hawqSegmentsStarted', 'hawqSegmentsStarted');
+  testCounterOrNa('hawqSegmentsTotal', 'hawqSegmentsTotal');
+
+  describe('#hiddenInfo()', function () {
+
+    it('should return not available statuses', function () {
+      expect(view.get('hiddenInfo')).to.eql(
+        [
+          Em.I18n.t('services.service.summary.notAvailable') + ' ' + Em.I18n.t('dashboard.services.components.started'),
+          Em.I18n.t('services.service.summary.notAvailable') + ' ' + Em.I18n.t('dashboard.services.components.stopped'),
+          Em.I18n.t('services.service.summary.notAvailable') + ' ' + Em.I18n.t('dashboard.services.components.total')
+        ]
+      );
+    });
+
+    it('should return components statuses', function () {
+      view.set('model.hawqSegmentsStarted', 3);
+      view.set('model.hawqSegmentsInstalled', 1);
+      view.set('model.hawqSegmentsTotal', 4);
+      expect(view.get('hiddenInfo')).to.eql(
+        [
+          3 + ' ' + Em.I18n.t('dashboard.services.components.started'),
+          1 + ' ' + Em.I18n.t('dashboard.services.components.stopped'),
+          4 + ' ' + Em.I18n.t('dashboard.services.components.total')
+        ]
+      );
+    });
+  });
+
+  describe('#data()', function () {
+
+    it('should return null', function () {
+      view.set('model.hawqSegmentsStarted', 3);
+      expect(view.get('data')).to.equal(null);
+    });
+
+    it('should return string data', function () {
+      view.set('model.hawqSegmentsStarted', 3);
+      view.set('model.hawqSegmentsTotal', 4);
+      expect(view.get('data')).to.equal(75);
+    });
+  });
+
+  describe('#content()', function () {
+
+    it('should return n/a', function () {
+      view.set('model.hawqSegmentsStarted', 3);
+      expect(view.get('content')).to.equal(Em.I18n.t('services.service.summary.notAvailable'));
+    });
+
+    it('should return string content', function () {
+      view.set('model.hawqSegmentsStarted', 3);
+      view.set('model.hawqSegmentsTotal', 4);
+      expect(view.get('content')).to.equal('3/4');
+    });
+  });
+
+  describe('#someMetricsNA()', function () {
+
+    it('should return true', function () {
+      view.set('model.hawqSegmentsStarted', 3);
+      expect(view.get('someMetricsNA')).to.be.true;
+    });
+
+    it('should return false', function () {
+      view.set('model.hawqSegmentsStarted', 3);
+      view.set('model.hawqSegmentsTotal', 4);
+      expect(view.get('someMetricsNA')).to.be.false;
+    });
+  });
+
+  describe('#hintInfo()', function () {
+
+    it('should return formatted value', function () {
+      view.set('maxValue', 150);
+      expect(view.get('hintInfo')).to.equal(Em.I18n.t('dashboard.widgets.hintInfo.hint1').format('150'));
+    });
+  });
 
 });

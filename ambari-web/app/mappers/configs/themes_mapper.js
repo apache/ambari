@@ -74,6 +74,8 @@ App.themesMapper = App.QuickDataMapper.create({
     this.get('subSectionModel').find().clear();
     this.get('subSectionTabModel').find().clear();
     this.get('themeConditionModel').find().clear();
+    App.clearModels([this.get('tabModel')]);
+    App.resetDsStoreTypeMap(this.get('tabModel'));
   },
 
   /**

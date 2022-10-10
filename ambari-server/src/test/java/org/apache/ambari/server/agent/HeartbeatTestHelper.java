@@ -19,13 +19,16 @@ package org.apache.ambari.server.agent;
 
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCluster;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyClusterId;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCurrentPingPort;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostname1;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOSRelease;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOs;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOsType;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyRepositoryVersion;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyStackId;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HBASE;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,6 +37,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
@@ -43,7 +48,10 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.stomp.AgentsRegistrationQueue;
+import org.apache.ambari.server.agent.stomp.HeartbeatController;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -53,6 +61,7 @@ import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -62,6 +71,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -80,6 +90,9 @@ public class HeartbeatTestHelper {
 
   @Inject
   Clusters clusters;
+
+  @Inject
+  Configuration configuration;
 
   @Inject
   Injector injector;
@@ -126,7 +139,7 @@ public class HeartbeatTestHelper {
 
   public HeartBeatHandler getHeartBeatHandler(ActionManager am)
       throws InvalidStateTransitionException, AmbariException {
-    HeartBeatHandler handler = new HeartBeatHandler(clusters, am, injector);
+    HeartBeatHandler handler = new HeartBeatHandler(configuration, clusters, am, injector);
     Register reg = new Register();
     HostInfo hi = new HostInfo();
     hi.setHostName(DummyHostname1);
@@ -237,4 +250,54 @@ public class HeartbeatTestHelper {
     db.persistActions(request);
   }
 
+  /**
+   * Adds the service to the cluster using the current cluster version as the
+   * repository version for the service.
+   *
+   * @param cluster
+   *          the cluster.
+   * @param serviceName
+   *          the service name.
+   * @return the newly added service.
+   * @throws AmbariException
+   */
+  public Service addService(Cluster cluster, String serviceName) throws AmbariException {
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
+    return cluster.addService(serviceName, repositoryVersion);
+  }
+
+  public Register createRegister() {
+    Register register = new Register();
+    register.setAgentEnv(new AgentEnv());
+    register.setAgentStartTime(System.currentTimeMillis());
+    register.setAgentVersion(metaInfo.getServerVersion());
+    register.setPrefix(Configuration.PREFIX_DIR);
+    register.setCurrentPingPort(DummyCurrentPingPort);
+    register.setHostname(DummyHostname1);
+
+    HostInfo hostInfo = new HostInfo();
+    hostInfo.setOS(DummyOsType);
+    hostInfo.setHostName(DummyHostname1);
+
+    register.setHardwareProfile(hostInfo);
+    register.setHostname(DummyHostname1);
+    register.setPublicHostname(DummyHostname1);
+
+    return register;
+  }
+
+  public void injectAgentsRegistrationQueue(HeartbeatController heartbeatController)
+      throws NoSuchFieldException, IllegalAccessException {
+    Field agentsRegistrationQueueField = HeartbeatController.class.getDeclaredField("agentsRegistrationQueue");
+    agentsRegistrationQueueField.setAccessible(true);
+    agentsRegistrationQueueField.set(heartbeatController, new AgentsRegistrationQueue(injector));
+  }
+
+  public RegistrationResponse registerAgent(HeartbeatController heartbeatController, Register register)
+      throws AmbariException, InvalidStateTransitionException,
+      ExecutionException, InterruptedException {
+    CompletableFuture<RegistrationResponse> registrationResponseCompletableFuture =
+        heartbeatController.register(DummyHostname1, register);
+    return registrationResponseCompletableFuture.get();
+  }
 }

@@ -33,6 +33,21 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property require-input="false">
+    <name>kadmin_principal_name</name>
+    <value>kadmin/${admin_server_host|stripPort()}</value>
+    <description>
+      The principal name of kAdmin service principal
+    </description>
+    <display-name>kAdmin Service Principal Name</display-name>
+    <on-ambari-upgrade add="true" delete="false" update="false"/>
+    <on-stack-upgrade merge="true"/>
+    <value-attributes>
+      <visible>true</visible>
+      <overridable>false</overridable>
+      <keystore>false</keystore>
+    </value-attributes>
+  </property>
   <property>
     <name>manage_identities</name>
     <description>

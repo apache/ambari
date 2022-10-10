@@ -350,7 +350,10 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     var workflowXmlDefered=this.getWorkflowFromHdfs(filePath);
     workflowXmlDefered.promise.then(function(response){
       if(response.type === 'xml'){
-        this.importWorkflowFromString(response.data);
+        var x2js = new X2JS();
+        let resData = x2js.json2xml_str(x2js.xml2json(response.data));
+
+        this.importWorkflowFromString(resData);
       }else {
         this.importWorkflowFromJSON(response.data);
       }
@@ -423,10 +426,10 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     Ember.$.ajax({
       url: url,
       method: 'GET',
-      dataType: "text",
       beforeSend: function (xhr) {
         xhr.setRequestHeader("X-XSRF-HEADER", Math.round(Math.random()*100000));
         xhr.setRequestHeader("X-Requested-By", "Ambari");
+        xhr.setRequestHeader("accept", "text/xml");
       }
     }).done(function(data, status, xhr){
       var type = xhr.getResponseHeader("response-type") === "xml" ? 'xml' : 'json';
@@ -604,9 +607,11 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   getWorkflowAsJsonJsoGImpl(){
    try{
     var json=JSOG.stringify(this.get("workflow")), self = this;
-    var actionVersions = JSOG.stringify(CommonUtils.toArray(this.get("workflow").schemaVersions.actionVersions));
+    var actionVersions = this.get("workflow").schemaVersions ? JSOG.stringify(CommonUtils.toArray(this.get("workflow").schemaVersions.actionVersions)) : [];
     var workflow = JSOG.parse(json);
-    workflow.schemaVersions.actionVersions = actionVersions
+    if(workflow.schemaVersions) {
+      workflow.schemaVersions.actionVersions = actionVersions
+    }
     return JSOG.stringify(workflow);
   }catch(err){
    console.error(err);

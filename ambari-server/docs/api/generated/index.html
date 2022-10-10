@@ -890,18 +890,18 @@ margin-bottom: 20px;
     defs.AlertGroup = {
   "type" : "object",
   "properties" : {
+    "name" : {
+      "type" : "string"
+    },
+    "cluster_id" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
     "default" : {
       "type" : "boolean",
       "default" : false
     },
     "id" : {
-      "type" : "integer",
-      "format" : "int64"
-    },
-    "name" : {
-      "type" : "string"
-    },
-    "cluster_id" : {
       "type" : "integer",
       "format" : "int64"
     }
@@ -910,6 +910,32 @@ margin-bottom: 20px;
     defs.AlertTargetInfo = {
   "type" : "object",
   "properties" : {
+    "enabled" : {
+      "type" : "boolean",
+      "default" : false
+    },
+    "description" : {
+      "type" : "string"
+    },
+    "groups" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/definitions/AlertGroup"
+      }
+    },
+    "notification_type" : {
+      "type" : "string"
+    },
+    "alert_states" : {
+      "type" : "array",
+      "items" : {
+        "type" : "string"
+      }
+    },
+    "global" : {
+      "type" : "boolean",
+      "default" : false
+    },
     "name" : {
       "type" : "string"
     },
@@ -922,32 +948,6 @@ margin-bottom: 20px;
     "id" : {
       "type" : "integer",
       "format" : "int64"
-    },
-    "description" : {
-      "type" : "string"
-    },
-    "enabled" : {
-      "type" : "boolean",
-      "default" : false
-    },
-    "notification_type" : {
-      "type" : "string"
-    },
-    "groups" : {
-      "type" : "array",
-      "items" : {
-        "$ref" : "#/definitions/AlertGroup"
-      }
-    },
-    "alert_states" : {
-      "type" : "array",
-      "items" : {
-        "type" : "string"
-      }
-    },
-    "global" : {
-      "type" : "boolean",
-      "default" : false
     }
   }
 };
@@ -973,13 +973,13 @@ margin-bottom: 20px;
     defs.Artifacts = {
   "type" : "object",
   "properties" : {
-    "stack_name" : {
-      "type" : "string"
-    },
     "stack_version" : {
       "type" : "string"
     },
     "service_name" : {
+      "type" : "string"
+    },
+    "stack_name" : {
       "type" : "string"
     },
     "artifact_name" : {
@@ -990,31 +990,31 @@ margin-bottom: 20px;
     defs.BatchRequest = {
   "type" : "object",
   "properties" : {
-    "batch_settings" : {
-      "$ref" : "#/definitions/BatchSettings"
-    },
     "requests" : {
       "type" : "array",
       "items" : {
         "$ref" : "#/definitions/BatchRequestRequest"
       }
+    },
+    "batch_settings" : {
+      "$ref" : "#/definitions/BatchSettings"
     }
   }
 };
     defs.BatchRequestRequest = {
   "type" : "object",
   "properties" : {
-    "type" : {
-      "type" : "string"
-    },
     "RequestBodyInfo" : {
       "$ref" : "#/definitions/RequestBodyInfo"
+    },
+    "uri" : {
+      "type" : "string"
     },
     "order_id" : {
       "type" : "integer",
       "format" : "int64"
     },
-    "uri" : {
+    "type" : {
       "type" : "string"
     }
   }
@@ -1022,10 +1022,13 @@ margin-bottom: 20px;
     defs.BatchRequestResponse = {
   "type" : "object",
   "properties" : {
-    "request_type" : {
+    "request_status" : {
       "type" : "string"
     },
-    "request_status" : {
+    "request_body" : {
+      "type" : "string"
+    },
+    "request_uri" : {
       "type" : "string"
     },
     "return_code" : {
@@ -1039,10 +1042,7 @@ margin-bottom: 20px;
       "type" : "integer",
       "format" : "int64"
     },
-    "request_uri" : {
-      "type" : "string"
-    },
-    "request_body" : {
+    "request_type" : {
       "type" : "string"
     }
   }
@@ -1050,25 +1050,25 @@ margin-bottom: 20px;
     defs.BatchResponse = {
   "type" : "object",
   "properties" : {
-    "batch_settings" : {
-      "$ref" : "#/definitions/BatchSettings"
-    },
     "batch_requests" : {
       "type" : "array",
       "items" : {
         "$ref" : "#/definitions/BatchRequestResponse"
       }
+    },
+    "batch_settings" : {
+      "$ref" : "#/definitions/BatchSettings"
     }
   }
 };
     defs.BatchSettings = {
   "type" : "object",
   "properties" : {
-    "task_failure_tolerance_limit" : {
+    "batch_separation_in_seconds" : {
       "type" : "integer",
       "format" : "int32"
     },
-    "batch_separation_in_seconds" : {
+    "task_failure_tolerance_limit" : {
       "type" : "integer",
       "format" : "int32"
     }
@@ -1077,13 +1077,13 @@ margin-bottom: 20px;
     defs.BlueprintInfo = {
   "type" : "object",
   "properties" : {
-    "stack_name" : {
-      "type" : "string"
-    },
     "security" : {
       "$ref" : "#/definitions/SecurityInfo"
     },
     "stack_version" : {
+      "type" : "string"
+    },
+    "stack_name" : {
       "type" : "string"
     },
     "blueprint_name" : {
@@ -1140,15 +1140,15 @@ margin-bottom: 20px;
     defs.ClusterArtifactRequest = {
   "type" : "object",
   "properties" : {
-    "Artifacts" : {
-      "$ref" : "#/definitions/ClusterArtifactRequestInfo"
-    },
     "artifact_data" : {
       "type" : "object",
       "additionalProperties" : {
         "type" : "object",
         "properties" : { }
       }
+    },
+    "Artifacts" : {
+      "$ref" : "#/definitions/ClusterArtifactRequestInfo"
     }
   }
 };
@@ -1163,15 +1163,15 @@ margin-bottom: 20px;
     defs.ClusterArtifactResponse = {
   "type" : "object",
   "properties" : {
-    "Artifacts" : {
-      "$ref" : "#/definitions/ClusterArtifactResponseInfo"
-    },
     "artifact_data" : {
       "type" : "object",
       "additionalProperties" : {
         "type" : "object",
         "properties" : { }
       }
+    },
+    "Artifacts" : {
+      "$ref" : "#/definitions/ClusterArtifactResponseInfo"
     }
   }
 };
@@ -1332,15 +1332,15 @@ margin-bottom: 20px;
     defs.ClusterServiceArtifactRequest = {
   "type" : "object",
   "properties" : {
-    "Artifacts" : {
-      "$ref" : "#/definitions/ClusterServiceArtifactRequestInfo"
-    },
     "artifact_data" : {
       "type" : "object",
       "additionalProperties" : {
         "type" : "object",
         "properties" : { }
       }
+    },
+    "Artifacts" : {
+      "$ref" : "#/definitions/ClusterServiceArtifactRequestInfo"
     }
   }
 };
@@ -1355,15 +1355,15 @@ margin-bottom: 20px;
     defs.ClusterServiceArtifactResponse = {
   "type" : "object",
   "properties" : {
-    "Artifacts" : {
-      "$ref" : "#/definitions/ClusterServiceArtifactResponseInfo"
-    },
     "artifact_data" : {
       "type" : "object",
       "additionalProperties" : {
         "type" : "object",
         "properties" : { }
       }
+    },
+    "Artifacts" : {
+      "$ref" : "#/definitions/ClusterServiceArtifactResponseInfo"
     }
   }
 };
@@ -1392,6 +1392,18 @@ margin-bottom: 20px;
     defs.ComponentDependencyResponseInfo = {
   "type" : "object",
   "properties" : {
+    "scope" : {
+      "type" : "string"
+    },
+    "stack_version" : {
+      "type" : "string"
+    },
+    "service_name" : {
+      "type" : "string"
+    },
+    "component_name" : {
+      "type" : "string"
+    },
     "stack_name" : {
       "type" : "string"
     },
@@ -1401,22 +1413,10 @@ margin-bottom: 20px;
         "$ref" : "#/definitions/DependencyConditionInfo"
       }
     },
-    "scope" : {
-      "type" : "string"
-    },
-    "stack_version" : {
-      "type" : "string"
-    },
-    "component_name" : {
-      "type" : "string"
-    },
     "dependent_component_name" : {
       "type" : "string"
     },
     "dependent_service_name" : {
-      "type" : "string"
-    },
-    "service_name" : {
       "type" : "string"
     }
   }
@@ -1451,36 +1451,18 @@ margin-bottom: 20px;
     defs.Config = {
   "type" : "object",
   "properties" : {
-    "properties" : {
-      "type" : "object",
-      "additionalProperties" : {
-        "type" : "string"
-      }
-    },
-    "type" : {
-      "type" : "string"
-    },
-    "tag" : {
-      "type" : "string"
-    },
     "version" : {
       "type" : "integer",
       "format" : "int64"
+    },
+    "tag" : {
+      "type" : "string"
     },
     "serviceConfigVersions" : {
       "type" : "array",
       "items" : {
         "type" : "integer",
         "format" : "int64"
-      }
-    },
-    "propertiesAttributes" : {
-      "type" : "object",
-      "additionalProperties" : {
-        "type" : "object",
-        "additionalProperties" : {
-          "type" : "string"
-        }
       }
     },
     "stackId" : {
@@ -1495,6 +1477,24 @@ margin-bottom: 20px;
           "type" : "string"
         }
       }
+    },
+    "propertiesAttributes" : {
+      "type" : "object",
+      "additionalProperties" : {
+        "type" : "object",
+        "additionalProperties" : {
+          "type" : "string"
+        }
+      }
+    },
+    "properties" : {
+      "type" : "object",
+      "additionalProperties" : {
+        "type" : "string"
+      }
+    },
+    "type" : {
+      "type" : "string"
     }
   }
 };
@@ -1671,11 +1671,8 @@ margin-bottom: 20px;
       "type" : "integer",
       "format" : "int64"
     },
-    "properties" : {
-      "type" : "object",
-      "additionalProperties" : {
-        "type" : "string"
-      }
+    "tag" : {
+      "type" : "string"
     },
     "properties_attributes" : {
       "type" : "object",
@@ -1686,8 +1683,11 @@ margin-bottom: 20px;
         }
       }
     },
-    "tag" : {
-      "type" : "string"
+    "properties" : {
+      "type" : "object",
+      "additionalProperties" : {
+        "type" : "string"
+      }
     }
   }
 };
@@ -1731,42 +1731,43 @@ margin-bottom: 20px;
   "type" : "object",
   "required" : [ "authentication_type", "key" ],
   "properties" : {
-    "key" : {
-      "type" : "string"
-    },
     "authentication_type" : {
       "type" : "string",
       "enum" : [ "LOCAL", "LDAP", "JWT", "PAM", "KERBEROS" ]
+    },
+    "key" : {
+      "type" : "string"
     }
   }
 };
     defs.CreateUserInfo = {
   "type" : "object",
   "properties" : {
-    "display_name" : {
-      "type" : "string"
+    "active" : {
+      "type" : "boolean",
+      "default" : false
     },
     "password" : {
       "type" : "string"
     },
-    "active" : {
+    "admin" : {
       "type" : "boolean",
       "default" : false
     },
     "local_user_name" : {
       "type" : "string"
     },
-    "admin" : {
-      "type" : "boolean",
-      "default" : false
+    "display_name" : {
+      "type" : "string"
     }
   }
 };
     defs.CreateUsersInfo = {
   "type" : "object",
   "properties" : {
-    "display_name" : {
-      "type" : "string"
+    "active" : {
+      "type" : "boolean",
+      "default" : false
     },
     "user_name" : {
       "type" : "string"
@@ -1774,16 +1775,15 @@ margin-bottom: 20px;
     "password" : {
       "type" : "string"
     },
-    "active" : {
+    "admin" : {
       "type" : "boolean",
       "default" : false
     },
     "local_user_name" : {
       "type" : "string"
     },
-    "admin" : {
-      "type" : "boolean",
-      "default" : false
+    "display_name" : {
+      "type" : "string"
     }
   }
 };
@@ -1814,10 +1814,10 @@ margin-bottom: 20px;
     defs.Directory = {
   "type" : "object",
   "properties" : {
-    "name" : {
+    "type" : {
       "type" : "string"
     },
-    "type" : {
+    "name" : {
       "type" : "string"
     }
   }
@@ -1854,10 +1854,10 @@ margin-bottom: 20px;
     "userName" : {
       "type" : "string"
     },
-    "userStatus" : {
+    "userHomeDir" : {
       "type" : "string"
     },
-    "userHomeDir" : {
+    "userStatus" : {
       "type" : "string"
     },
     "name" : {
@@ -2028,13 +2028,13 @@ margin-bottom: 20px;
     defs.HostComponentServiceComponentInfo = {
   "type" : "object",
   "properties" : {
-    "component_name" : {
-      "type" : "string"
-    },
     "cluster_name" : {
       "type" : "string"
     },
     "service_name" : {
+      "type" : "string"
+    },
+    "component_name" : {
       "type" : "string"
     }
   }
@@ -2042,13 +2042,16 @@ margin-bottom: 20px;
     defs.HostComponentSwagger = {
   "type" : "object",
   "properties" : {
-    "host" : {
-      "$ref" : "#/definitions/HostComponentHost"
-    },
     "component" : {
       "type" : "array",
       "items" : {
         "$ref" : "#/definitions/HostComponentComponent"
+      }
+    },
+    "processes" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/definitions/HostComponentProcesses"
       }
     },
     "HostRoles" : {
@@ -2057,11 +2060,8 @@ margin-bottom: 20px;
     "metrics" : {
       "$ref" : "#/definitions/HostComponentMetrics"
     },
-    "processes" : {
-      "type" : "array",
-      "items" : {
-        "$ref" : "#/definitions/HostComponentProcesses"
-      }
+    "host" : {
+      "$ref" : "#/definitions/HostComponentHost"
     }
   }
 };
@@ -2082,6 +2082,12 @@ margin-bottom: 20px;
     defs.HostGroupInfo = {
   "type" : "object",
   "properties" : {
+    "components" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/definitions/ComponentInfo"
+      }
+    },
     "configurations" : {
       "type" : "array",
       "items" : {
@@ -2092,18 +2098,12 @@ margin-bottom: 20px;
         }
       }
     },
-    "components" : {
-      "type" : "array",
-      "items" : {
-        "$ref" : "#/definitions/ComponentInfo"
-      }
-    },
-    "name" : {
-      "type" : "string"
-    },
     "cardinality" : {
       "type" : "integer",
       "format" : "int32"
+    },
+    "name" : {
+      "type" : "string"
     }
   }
 };
@@ -2135,10 +2135,10 @@ margin-bottom: 20px;
     defs.HostOverride = {
   "type" : "object",
   "properties" : {
-    "name" : {
+    "versionTag" : {
       "type" : "string"
     },
-    "versionTag" : {
+    "name" : {
       "type" : "string"
     }
   }
@@ -2161,13 +2161,13 @@ margin-bottom: 20px;
     "maintenance_state" : {
       "type" : "string"
     },
+    "public_host_name" : {
+      "type" : "string"
+    },
     "host_group" : {
       "type" : "string"
     },
     "blueprint" : {
-      "type" : "string"
-    },
-    "public_host_name" : {
       "type" : "string"
     }
   }
@@ -2343,13 +2343,13 @@ margin-bottom: 20px;
     defs.LiveService = {
   "type" : "object",
   "properties" : {
-    "name" : {
-      "type" : "string"
-    },
     "status" : {
       "type" : "string"
     },
     "desc" : {
+      "type" : "string"
+    },
+    "name" : {
       "type" : "string"
     }
   }
@@ -2417,13 +2417,13 @@ margin-bottom: 20px;
     defs.PackageDetail = {
   "type" : "object",
   "properties" : {
-    "name" : {
-      "type" : "string"
-    },
     "version" : {
       "type" : "string"
     },
     "repoName" : {
+      "type" : "string"
+    },
+    "name" : {
       "type" : "string"
     }
   }
@@ -2593,24 +2593,24 @@ margin-bottom: 20px;
     defs.QuickLinksResponseInfo = {
   "type" : "object",
   "properties" : {
-    "default" : {
-      "type" : "boolean",
-      "default" : false
-    },
-    "file_name" : {
-      "type" : "string"
-    },
-    "stack_name" : {
-      "type" : "string"
-    },
     "stack_version" : {
       "type" : "string"
     },
     "service_name" : {
       "type" : "string"
     },
+    "stack_name" : {
+      "type" : "string"
+    },
     "quicklink_data" : {
       "$ref" : "#/definitions/QuickLinksConfiguration"
+    },
+    "default" : {
+      "type" : "boolean",
+      "default" : false
+    },
+    "file_name" : {
+      "type" : "string"
     }
   }
 };
@@ -2695,16 +2695,16 @@ margin-bottom: 20px;
         "enum" : [ "GPL" ]
       }
     },
-    "mirrorsList" : {
-      "type" : "string"
-    },
-    "repoId" : {
-      "type" : "string"
-    },
     "repoName" : {
       "type" : "string"
     },
     "baseUrl" : {
+      "type" : "string"
+    },
+    "mirrorsList" : {
+      "type" : "string"
+    },
+    "repoId" : {
       "type" : "string"
     }
   }
@@ -2882,29 +2882,29 @@ margin-bottom: 20px;
         "$ref" : "#/definitions/RepositoryVersionEntity"
       }
     },
-    "hidden" : {
-      "type" : "boolean",
-      "default" : false
+    "stackVersion" : {
+      "type" : "string"
+    },
+    "stackId" : {
+      "$ref" : "#/definitions/StackId"
     },
     "stackName" : {
       "type" : "string"
     },
-    "stackVersion" : {
-      "type" : "string"
+    "repositoryXml" : {
+      "$ref" : "#/definitions/VersionDefinitionXml"
+    },
+    "hidden" : {
+      "type" : "boolean",
+      "default" : false
     },
     "legacy" : {
       "type" : "boolean",
       "default" : false
     },
-    "repositoryXml" : {
-      "$ref" : "#/definitions/VersionDefinitionXml"
-    },
     "parentId" : {
       "type" : "integer",
       "format" : "int64"
-    },
-    "stackId" : {
-      "$ref" : "#/definitions/StackId"
     }
   }
 };
@@ -2947,45 +2947,38 @@ margin-bottom: 20px;
     defs.Request = {
   "type" : "object",
   "properties" : {
-    "resource_filters" : {
-      "type" : "array",
-      "items" : {
-        "$ref" : "#/definitions/RequestResourceFilter"
-      }
+    "cluster_name" : {
+      "type" : "string"
     },
     "exclusive" : {
       "type" : "boolean",
       "default" : false
     },
-    "cluster_name" : {
-      "type" : "string"
+    "resource_filters" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/definitions/RequestResourceFilter"
+      }
     }
   }
 };
     defs.RequestBodyInfo = {
   "type" : "object",
   "properties" : {
+    "RequestInfo" : {
+      "$ref" : "#/definitions/RequestInfo"
+    },
     "Requests/resource_filters" : {
       "type" : "array",
       "items" : {
         "$ref" : "#/definitions/RequestResourceFilter"
       }
-    },
-    "RequestInfo" : {
-      "$ref" : "#/definitions/RequestInfo"
     }
   }
 };
     defs.RequestInfo = {
   "type" : "object",
   "properties" : {
-    "parameters" : {
-      "type" : "object",
-      "additionalProperties" : {
-        "type" : "object",
-        "properties" : { }
-      }
-    },
     "command" : {
       "type" : "string"
     },
@@ -2994,6 +2987,13 @@ margin-bottom: 20px;
     },
     "operation_level" : {
       "$ref" : "#/definitions/OperationLevel"
+    },
+    "parameters" : {
+      "type" : "object",
+      "additionalProperties" : {
+        "type" : "object",
+        "properties" : { }
+      }
     }
   }
 };
@@ -3050,17 +3050,17 @@ margin-bottom: 20px;
     defs.RequestResourceFilter = {
   "type" : "object",
   "properties" : {
-    "hosts" : {
+    "serviceName" : {
       "type" : "string"
     },
-    "component_name" : {
+    "componentName" : {
       "type" : "string"
     },
-    "hosts_predicate" : {
-      "type" : "string"
-    },
-    "service_name" : {
-      "type" : "string"
+    "hostNames" : {
+      "type" : "array",
+      "items" : {
+        "type" : "string"
+      }
     }
   }
 };
@@ -3097,9 +3097,8 @@ margin-bottom: 20px;
     defs.RequestScheduleResponseElement = {
   "type" : "object",
   "properties" : {
-    "id" : {
-      "type" : "integer",
-      "format" : "int64"
+    "schedule" : {
+      "$ref" : "#/definitions/ScheduleResponse"
     },
     "description" : {
       "type" : "string"
@@ -3107,8 +3106,11 @@ margin-bottom: 20px;
     "status" : {
       "type" : "string"
     },
-    "schedule" : {
-      "$ref" : "#/definitions/ScheduleResponse"
+    "cluster_name" : {
+      "type" : "string"
+    },
+    "create_time" : {
+      "type" : "string"
     },
     "batch" : {
       "$ref" : "#/definitions/BatchResponse"
@@ -3129,11 +3131,9 @@ margin-bottom: 20px;
       "type" : "integer",
       "format" : "int32"
     },
-    "cluster_name" : {
-      "type" : "string"
-    },
-    "create_time" : {
-      "type" : "string"
+    "id" : {
+      "type" : "integer",
+      "format" : "int64"
     }
   }
 };
@@ -3148,18 +3148,6 @@ margin-bottom: 20px;
     defs.RequestStatusInfo = {
   "type" : "object",
   "properties" : {
-    "type" : {
-      "type" : "string"
-    },
-    "start_time" : {
-      "type" : "string"
-    },
-    "request_status" : {
-      "type" : "string"
-    },
-    "request_context" : {
-      "type" : "string"
-    },
     "task_count" : {
       "type" : "integer",
       "format" : "int32"
@@ -3167,11 +3155,24 @@ margin-bottom: 20px;
     "completed_task_count" : {
       "type" : "string"
     },
+    "start_time" : {
+      "type" : "string"
+    },
+    "request_context" : {
+      "type" : "string"
+    },
+    "request_status" : {
+      "type" : "string"
+    },
     "request_schedule" : {
       "type" : "string"
     },
-    "end_time" : {
+    "cluster_name" : {
       "type" : "string"
+    },
+    "create_time" : {
+      "type" : "integer",
+      "format" : "int64"
     },
     "id" : {
       "type" : "string"
@@ -3180,11 +3181,21 @@ margin-bottom: 20px;
       "type" : "integer",
       "format" : "int32"
     },
+    "end_time" : {
+      "type" : "string"
+    },
+    "exclusive" : {
+      "type" : "boolean",
+      "default" : false
+    },
     "failed_task_count" : {
       "type" : "integer",
       "format" : "int32"
     },
     "inputs" : {
+      "type" : "string"
+    },
+    "operation_level" : {
       "type" : "string"
     },
     "progress_percent" : {
@@ -3205,18 +3216,7 @@ margin-bottom: 20px;
         "$ref" : "#/definitions/RequestResourceFilter"
       }
     },
-    "exclusive" : {
-      "type" : "boolean",
-      "default" : false
-    },
-    "cluster_name" : {
-      "type" : "string"
-    },
-    "create_time" : {
-      "type" : "integer",
-      "format" : "int64"
-    },
-    "operation_level" : {
+    "type" : {
       "type" : "string"
     }
   }
@@ -3224,20 +3224,20 @@ margin-bottom: 20px;
     defs.RootServiceComponentConfigurationRequestInfo = {
   "type" : "object",
   "properties" : {
-    "properties" : {
-      "type" : "object",
-      "additionalProperties" : {
-        "type" : "string"
-      }
-    },
-    "categoryName" : {
+    "serviceName" : {
       "type" : "string"
     },
     "componentName" : {
       "type" : "string"
     },
-    "serviceName" : {
+    "categoryName" : {
       "type" : "string"
+    },
+    "properties" : {
+      "type" : "object",
+      "additionalProperties" : {
+        "type" : "string"
+      }
     }
   }
 };
@@ -3252,21 +3252,21 @@ margin-bottom: 20px;
     defs.RootServiceComponentConfigurationResponseInfo = {
   "type" : "object",
   "properties" : {
+    "serviceName" : {
+      "type" : "string"
+    },
+    "componentName" : {
+      "type" : "string"
+    },
+    "categoryName" : {
+      "type" : "string"
+    },
     "properties" : {
       "type" : "object",
       "additionalProperties" : {
         "type" : "object",
         "properties" : { }
       }
-    },
-    "categoryName" : {
-      "type" : "string"
-    },
-    "componentName" : {
-      "type" : "string"
-    },
-    "serviceName" : {
-      "type" : "string"
     }
   }
 };
@@ -3391,7 +3391,7 @@ margin-bottom: 20px;
     defs.ScheduleRequest = {
   "type" : "object",
   "properties" : {
-    "startTime" : {
+    "year" : {
       "type" : "string"
     },
     "day_of_week" : {
@@ -3406,13 +3406,13 @@ margin-bottom: 20px;
     "minutes" : {
       "type" : "string"
     },
-    "year" : {
-      "type" : "string"
-    },
-    "days_of_month" : {
+    "startTime" : {
       "type" : "string"
     },
     "endTime" : {
+      "type" : "string"
+    },
+    "days_of_month" : {
       "type" : "string"
     }
   }
@@ -3420,7 +3420,7 @@ margin-bottom: 20px;
     defs.ScheduleResponse = {
   "type" : "object",
   "properties" : {
-    "start_time" : {
+    "year" : {
       "type" : "string"
     },
     "day_of_week" : {
@@ -3435,13 +3435,13 @@ margin-bottom: 20px;
     "minutes" : {
       "type" : "string"
     },
-    "year" : {
-      "type" : "string"
-    },
-    "days_of_month" : {
+    "start_time" : {
       "type" : "string"
     },
     "end_time" : {
+      "type" : "string"
+    },
+    "days_of_month" : {
       "type" : "string"
     }
   }
@@ -3495,12 +3495,12 @@ margin-bottom: 20px;
         "properties" : { }
       }
     },
-    "kerberos_descriptor_reference" : {
-      "type" : "string"
-    },
     "security_type" : {
       "type" : "string",
       "enum" : [ "NONE", "KERBEROS" ]
+    },
+    "kerberos_descriptor_reference" : {
+      "type" : "string"
     }
   }
 };
@@ -3734,6 +3734,14 @@ margin-bottom: 20px;
     "sso_integration_enabled" : {
       "type" : "boolean",
       "default" : false
+    },
+    "sso_integration_requires_kerberos" : {
+      "type" : "boolean",
+      "default" : false
+    },
+    "kerberos_enabled" : {
+      "type" : "boolean",
+      "default" : false
     }
   }
 };
@@ -3799,12 +3807,12 @@ margin-bottom: 20px;
     defs.ShortRequestInfo = {
   "type" : "object",
   "properties" : {
+    "status" : {
+      "type" : "string"
+    },
     "id" : {
       "type" : "integer",
       "format" : "int64"
-    },
-    "status" : {
-      "type" : "string"
     }
   }
 };
@@ -4027,10 +4035,6 @@ margin-bottom: 20px;
       "type" : "boolean",
       "default" : false
     },
-    "is_client" : {
-      "type" : "boolean",
-      "default" : false
-    },
     "bulk_commands_master_component_namen" : {
       "type" : "string"
     },
@@ -4039,6 +4043,10 @@ margin-bottom: 20px;
       "default" : false
     },
     "reassign_allowed" : {
+      "type" : "boolean",
+      "default" : false
+    },
+    "is_client" : {
       "type" : "boolean",
       "default" : false
     }
@@ -4130,6 +4138,10 @@ margin-bottom: 20px;
       "default" : false
     },
     "sso_integration_supported" : {
+      "type" : "boolean",
+      "default" : false
+    },
+    "sso_integration_requires_kerberos" : {
       "type" : "boolean",
       "default" : false
     }
@@ -4338,24 +4350,24 @@ margin-bottom: 20px;
     defs.ThemeInfoResponse = {
   "type" : "object",
   "properties" : {
-    "default" : {
-      "type" : "boolean",
-      "default" : false
-    },
-    "file_name" : {
-      "type" : "string"
-    },
-    "stack_name" : {
-      "type" : "string"
-    },
     "stack_version" : {
       "type" : "string"
     },
     "service_name" : {
       "type" : "string"
     },
+    "stack_name" : {
+      "type" : "string"
+    },
     "theme_data" : {
       "$ref" : "#/definitions/Theme"
+    },
+    "default" : {
+      "type" : "boolean",
+      "default" : false
+    },
+    "file_name" : {
+      "type" : "string"
     }
   }
 };
@@ -4378,13 +4390,14 @@ margin-bottom: 20px;
     defs.UpdateUserInfo = {
   "type" : "object",
   "properties" : {
-    "display_name" : {
-      "type" : "string"
+    "active" : {
+      "type" : "boolean",
+      "default" : false
     },
     "password" : {
       "type" : "string"
     },
-    "active" : {
+    "admin" : {
       "type" : "boolean",
       "default" : false
     },
@@ -4394,9 +4407,8 @@ margin-bottom: 20px;
     "old_password" : {
       "type" : "string"
     },
-    "admin" : {
-      "type" : "boolean",
-      "default" : false
+    "display_name" : {
+      "type" : "string"
     }
   }
 };
@@ -4412,10 +4424,10 @@ margin-bottom: 20px;
   "type" : "object",
   "required" : [ "key" ],
   "properties" : {
-    "key" : {
+    "old_key" : {
       "type" : "string"
     },
-    "old_key" : {
+    "key" : {
       "type" : "string"
     }
   }
@@ -4596,18 +4608,18 @@ margin-bottom: 20px;
       "type" : "integer",
       "format" : "int32"
     },
-    "user_name" : {
-      "type" : "string"
-    },
     "active" : {
       "type" : "boolean",
       "default" : false
     },
-    "admin" : {
+    "user_name" : {
+      "type" : "string"
+    },
+    "ldap_user" : {
       "type" : "boolean",
       "default" : false
     },
-    "ldap_user" : {
+    "admin" : {
       "type" : "boolean",
       "default" : false
     },
@@ -4627,12 +4639,12 @@ margin-bottom: 20px;
     defs.ValidationResult = {
   "type" : "object",
   "properties" : {
-    "detail" : {
-      "type" : "string"
-    },
     "valid" : {
       "type" : "boolean",
       "default" : false
+    },
+    "detail" : {
+      "type" : "string"
     }
   }
 };
@@ -4959,10 +4971,7 @@ margin-bottom: 20px;
     defs.ViewUrlInfo = {
   "type" : "object",
   "properties" : {
-    "url_name" : {
-      "type" : "string"
-    },
-    "url_suffix" : {
+    "view_instance_name" : {
       "type" : "string"
     },
     "view_instance_common_name" : {
@@ -4971,7 +4980,10 @@ margin-bottom: 20px;
     "view_instance_version" : {
       "type" : "string"
     },
-    "view_instance_name" : {
+    "url_suffix" : {
+      "type" : "string"
+    },
+    "url_name" : {
       "type" : "string"
     }
   }
@@ -75915,7 +75927,7 @@ except ApiException as e:
           </div>
           <div id="generator">
             <div class="content">
-              Generated 2018-05-24T17:14:06.106-07:00
+              Generated 2021-11-02T16:34:34.665+01:00
             </div>
           </div>
       </div>

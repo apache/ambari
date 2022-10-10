@@ -36,6 +36,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -181,8 +182,7 @@ public class SchemaUpgradeHelper {
     protected void configure() {
       super.configure();
       // Add binding to each newly created catalog
-      Multibinder<UpgradeCatalog> catalogBinder =
-        Multibinder.newSetBinder(binder(), UpgradeCatalog.class);
+      Multibinder<UpgradeCatalog> catalogBinder = Multibinder.newSetBinder(binder(), UpgradeCatalog.class);
       catalogBinder.addBinding().to(UpgradeCatalog251.class);
       catalogBinder.addBinding().to(UpgradeCatalog252.class);
       catalogBinder.addBinding().to(UpgradeCatalog260.class);
@@ -191,6 +191,10 @@ public class SchemaUpgradeHelper {
       catalogBinder.addBinding().to(UpgradeCatalog270.class);
       catalogBinder.addBinding().to(UpgradeCatalog271.class);
       catalogBinder.addBinding().to(UpgradeCatalog272.class);
+      catalogBinder.addBinding().to(UpgradeCatalog273.class);
+      catalogBinder.addBinding().to(UpgradeCatalog274.class);
+      catalogBinder.addBinding().to(UpgradeCatalog275.class);
+      catalogBinder.addBinding().to(UpgradeCatalog276.class);
       catalogBinder.addBinding().to(UpdateAlertScriptPaths.class);
       catalogBinder.addBinding().to(FinalUpgradeCatalog.class);
 
@@ -451,7 +455,7 @@ public class SchemaUpgradeHelper {
 
       // The DDL is expected to be updated, now send the JPA initialized event so Entity
       // implementations can be created.
-      jpaInitializer.setInitialized();
+      jpaInitializer.setInitialized(injector.getInstance(AmbariEventPublisher.class));
 
       schemaUpgradeHelper.executePreDMLUpdates(upgradeCatalogs);
 

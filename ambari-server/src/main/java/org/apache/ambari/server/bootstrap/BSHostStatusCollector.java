@@ -22,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,7 +76,7 @@ class BSHostStatusCollector {
       } else {
         status.setStatus("FAILED");
         try {
-          String statusCode = FileUtils.readFileToString(done).trim();
+          String statusCode = FileUtils.readFileToString(done, Charset.defaultCharset()).trim();
           if (statusCode.equals("0")) {
             status.setStatus("DONE");
           }

@@ -180,7 +180,7 @@ public class UserAuthenticationSourceResourceProviderTest extends EasyMockSuppor
       @Override
       protected void configure() {
         PartialNiceMockBinder.newBuilder(UserAuthenticationSourceResourceProviderTest.this)
-            .addAmbariMetaInfoBinding().build().configure(binder());
+            .addAmbariMetaInfoBinding().addLdapBindings().build().configure(binder());
 
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));

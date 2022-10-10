@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.sql.Blob;
 import java.sql.Connection;
@@ -39,6 +40,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.ambari.server.configuration.Configuration;
@@ -76,6 +78,11 @@ import com.google.inject.Singleton;
 @Singleton
 public class DBAccessorImpl implements DBAccessor {
   private static final Logger LOG = LoggerFactory.getLogger(DBAccessorImpl.class);
+  public static final String USER = "user";
+  public static final String PASSWORD = "password";
+  public static final String NULL_CATALOG_MEANS_CURRENT = "nullCatalogMeansCurrent";
+  public static final String TRUE = "true";
+  public static final int SUPPORT_CONNECTOR_VERSION = 5;
   private final DatabasePlatform databasePlatform;
   private final Connection connection;
   private final DbmsHelper dbmsHelper;
@@ -92,9 +99,7 @@ public class DBAccessorImpl implements DBAccessor {
     try {
       Class.forName(configuration.getDatabaseDriver());
 
-      connection = DriverManager.getConnection(configuration.getDatabaseUrl(),
-              configuration.getDatabaseUser(),
-              configuration.getDatabasePassword());
+      connection = getNewConnection();
 
       connection.setAutoCommit(true); //enable autocommit
 
@@ -145,6 +150,49 @@ public class DBAccessorImpl implements DBAccessor {
     }
   }
 
+  /**
+   * Map SQL datatype to Java Class type
+   *
+   * @param type  SQL datatype
+   * @return Java class or null if no mapping found
+   */
+  private static Class<?> fromSqlTypeToClass(int type) {
+    switch (type) {
+      case Types.VARCHAR:
+      case Types.CHAR:
+      case Types.LONGVARCHAR:
+        return String.class;
+      case Types.NUMERIC:
+      case Types.DECIMAL:
+        return BigDecimal.class;
+      case Types.BIT:
+        return Boolean.class;
+      case Types.TINYINT:
+        return Byte.class;
+      case Types.SMALLINT:
+        return Short.class;
+      case Types.INTEGER:
+        return Integer.class;
+      case Types.BIGINT:
+        return Long.class;
+      case Types.FLOAT:
+      case Types.REAL:
+        return Float.class;
+      case Types.DOUBLE:
+        return Double.class;
+      case Types.BINARY:
+      case Types.VARBINARY:
+      case Types.LONGVARBINARY:
+        return Byte[].class;
+      case Types.DATE:
+        return java.sql.Date.class;
+      case Types.TIME:
+        return java.sql.Timestamp.class;
+      default:
+        return null;
+    }
+  }
+
   @Override
   public Connection getConnection() {
     return connection;
@@ -153,9 +201,14 @@ public class DBAccessorImpl implements DBAccessor {
   @Override
   public Connection getNewConnection() {
     try {
-      return DriverManager.getConnection(configuration.getDatabaseUrl(),
-              configuration.getDatabaseUser(),
-              configuration.getDatabasePassword());
+      Properties properties = new Properties();
+      properties.setProperty(USER, configuration.getDatabaseUser());
+      properties.setProperty(PASSWORD, configuration.getDatabasePassword());
+      if (configuration.getDatabaseUrl().contains("mysql")
+          && DriverManager.getDriver(configuration.getDatabaseUrl()).getMajorVersion() > SUPPORT_CONNECTOR_VERSION) {
+        properties.setProperty(NULL_CATALOG_MEANS_CURRENT, TRUE);// jdbc mysql connector 8.x turn on legacy behaviour
+      }
+      return DriverManager.getConnection(configuration.getDatabaseUrl(),properties);
     } catch (SQLException e) {
       throw new RuntimeException("Unable to connect to database", e);
     }
@@ -888,6 +941,7 @@ public class DBAccessorImpl implements DBAccessor {
   /**
    {@inheritDoc}
    */
+  @Override
   public void executePreparedQuery(String query, Object...arguments) throws SQLException {
     executePreparedQuery(query, false, arguments);
   }
@@ -895,6 +949,7 @@ public class DBAccessorImpl implements DBAccessor {
   /**
    {@inheritDoc}
    */
+  @Override
   public void executePreparedQuery(String query, boolean ignoreFailure, Object...arguments) throws SQLException{
     LOG.info("Executing prepared query: {}", query);
 
@@ -920,6 +975,7 @@ public class DBAccessorImpl implements DBAccessor {
   /**
    {@inheritDoc}
    */
+  @Override
   public void executePreparedUpdate(String query, Object...arguments) throws SQLException {
     executePreparedUpdate(query, false, arguments);
   }
@@ -927,6 +983,7 @@ public class DBAccessorImpl implements DBAccessor {
   /**
    {@inheritDoc}
    */
+  @Override
   public void executePreparedUpdate(String query, boolean ignoreFailure, Object...arguments) throws SQLException{
     LOG.info("Executing prepared query: {}", query);
 
@@ -1218,6 +1275,39 @@ public class DBAccessorImpl implements DBAccessor {
     }
 
     alterColumn(tableName, new DBColumnInfo(columnName, toType, null));
+  }
+
+  /**
+   * Obtain column metadata information by given table and column name.
+   *
+   * Not able to return column default value.
+   *
+   * @param tableName  Name of the table
+   * @param columnName Name of the column
+   * @return Column information or null, if no column found
+   * @throws SQLException
+   */
+  @Override
+  public DBColumnInfo getColumnInfo(String tableName, String columnName) {
+    try {
+      String sqlQuery = String.format("SELECT %s FROM %s WHERE 1=2", columnName, convertObjectName(tableName));
+
+      try (Statement statement = getConnection().createStatement();
+           ResultSet rs = statement.executeQuery(sqlQuery)) {
+
+        ResultSetMetaData rsmd = rs.getMetaData();
+
+        return new DBColumnInfo(
+          rsmd.getColumnName(1),
+          fromSqlTypeToClass(rsmd.getColumnType(1)),
+          rsmd.getColumnDisplaySize(1),
+          null,
+          rsmd.isNullable(1) == ResultSetMetaData.columnNullable
+        );
+      }
+    } catch (SQLException e) {
+      return null;
+    }
   }
 
   @Override

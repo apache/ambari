@@ -7,22 +7,23 @@
     http://www.apache.org/licenses/LICENSE-2.0
 
   Unless required by applicable law or agreed to in writing, software
+  Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License. See accompanying LICENSE file.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari</artifactId>
-    <version>2.7.3.0.0</version>
+    <version>2.7.6.0.0</version>
   </parent>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-project</artifactId>
-  <version>2.7.3.0.0</version>
+  <version>2.7.6.0.0</version>
   <description>Apache Ambari Project POM</description>
   <name>Apache Ambari Project POM</name>
   <packaging>pom</packaging>
@@ -35,11 +36,14 @@
     <checkstyle.version>6.19</checkstyle.version> <!-- last version that does not require Java 8 -->
     <swagger.version>1.5.19</swagger.version>
     <swagger.maven.plugin.version>3.1.4</swagger.maven.plugin.version>
-    <slf4j.version>1.7.20</slf4j.version>
+    <slf4j.version>2.0.0</slf4j.version>
+    <reload4j.version>1.2.22</reload4j.version>
+    <logback.version>1.2.10</logback.version>
     <guice.version>4.1.0</guice.version>
-    <spring.version>4.3.18.RELEASE</spring.version>
-    <spring.security.version>4.2.7.RELEASE</spring.security.version>
-    <fasterxml.jackson.version>2.9.5</fasterxml.jackson.version>
+    <spring.version>5.1.18.RELEASE</spring.version>
+    <spring.security.version>5.1.13.RELEASE</spring.security.version>
+    <fasterxml.jackson.version>2.10.0</fasterxml.jackson.version>
+    <fasterxml.jackson.databind.version>2.10.0</fasterxml.jackson.databind.version>
     <postgres.version>42.2.2</postgres.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
@@ -98,7 +102,7 @@
       <dependency>
         <groupId>commons-beanutils</groupId>
         <artifactId>commons-beanutils</artifactId>
-        <version>1.9.3</version>
+        <version>1.9.4</version>
         <exclusions>
           <exclusion>
             <groupId>commons-collections</groupId>
@@ -109,7 +113,7 @@
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.5</version>
+        <version>2.8.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -119,7 +123,7 @@
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
-        <version>4.5.5</version>
+        <version>4.5.13</version>
       </dependency>
       <dependency>
         <groupId>org.codehaus.jettison</groupId>
@@ -204,8 +208,18 @@
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-log4j12</artifactId>
+        <artifactId>slf4j-reload4j</artifactId>
         <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-core</artifactId>
+        <version>${logback.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>${logback.version}</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
@@ -230,7 +244,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>18.0</version>
+        <version>28.0-jre</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.findbugs</groupId>
@@ -337,12 +351,12 @@
       <dependency>
         <groupId>org.apache.ant</groupId>
         <artifactId>ant</artifactId>
-        <version>1.7.1</version>
+        <version>1.10.11</version>
       </dependency>
       <dependency>
         <groupId>org.apache.ant</groupId>
         <artifactId>ant-launcher</artifactId>
-        <version>1.10.3</version>
+        <version>1.10.11</version>
       </dependency>
       <dependency>
         <groupId>commons-logging</groupId>
@@ -357,7 +371,7 @@
       <dependency>
         <groupId>commons-lang</groupId>
         <artifactId>commons-lang</artifactId>
-        <version>2.5</version>
+        <version>2.6</version>
       </dependency>
       <dependency>
         <groupId>javax.servlet</groupId>
@@ -466,7 +480,6 @@
         <artifactId>spring-core</artifactId>
         <version>${spring.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-context</artifactId>
@@ -532,38 +545,6 @@
             <artifactId>spring-aop</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>log4j</groupId>
-        <artifactId>log4j</artifactId>
-        <version>1.2.17</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.sun.jdmk</groupId>
-            <artifactId>jmxtools</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>com.sun.jmx</groupId>
-            <artifactId>jmxri</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>javax.mail</groupId>
-            <artifactId>mail</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>javax.jms</groupId>
-            <artifactId>jmx</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>javax.jms</groupId>
-            <artifactId>jms</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>log4j</groupId>
-        <artifactId>apache-log4j-extras</artifactId>
-        <version>1.2.17</version>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
@@ -648,13 +629,18 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>${fasterxml.jackson.version}</version>
+        <version>${fasterxml.jackson.databind.version}</version>
       </dependency>
-    <dependency>
-      <groupId>org.apache.zookeeper</groupId>
-      <artifactId>zookeeper</artifactId>
-      <version>3.4.10</version>
-    </dependency>
+      <dependency>
+        <groupId>org.apache.zookeeper</groupId>
+        <artifactId>zookeeper</artifactId>
+        <version>3.5.5</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.zookeeper</groupId>
+        <artifactId>zookeeper-jute</artifactId>
+        <version>3.5.5</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <build>
@@ -722,6 +708,11 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>2.20</version>
+        </plugin>
+        <plugin>
+          <groupId>org.vafer</groupId>
+          <artifactId>jdeb</artifactId>
+          <version>1.8</version>
         </plugin>
       </plugins>
     </pluginManagement>

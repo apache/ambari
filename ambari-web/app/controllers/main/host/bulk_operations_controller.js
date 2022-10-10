@@ -67,6 +67,9 @@ App.BulkOperationsController = Em.Controller.extend({
         else if (operationData.action === 'DELETE'){
           this._bulkOperationForHostsDelete(hosts);
         }
+        else if (operationData.action === 'CONFIGURE') {
+          this.bulkOperationForHostsRefreshConfig(operationData, hosts);
+        }
         else {
           if (operationData.action === 'PASSIVE_STATE') {
             this.bulkOperationForHostsPassiveState(operationData, hosts);
@@ -315,6 +318,41 @@ App.BulkOperationsController = Em.Controller.extend({
         }
       })
     });
+  },
+
+  /**
+   * Bulk refresh configs for selected hosts
+   * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
+   * @param {Ember.Enumerable} hosts - list of affected/selected hosts
+   */
+  bulkOperationForHostsRefreshConfig: function (operationData, hosts) {
+    return batchUtils.getComponentsFromServer({
+      passiveState: 'OFF',
+      hosts: hosts.mapProperty('hostName'),
+      displayParams: ['host_components/HostRoles/component_name']
+    }, this._getComponentsFromServerForRefreshConfigsCallback);
+  },
+
+  /**
+   *
+   * @param {object} data
+   * @private
+   * @method _getComponentsFromServerForRefreshConfigsCallback
+   */
+  _getComponentsFromServerForRefreshConfigsCallback: function (data) {
+    var hostComponents = [];
+    var clients = App.components.get('clients');
+    data.items.forEach(function (host) {
+      host.host_components.forEach(function (hostComponent) {
+        if (clients.contains((hostComponent.HostRoles.component_name))) {
+          hostComponents.push(O.create({
+            componentName: hostComponent.HostRoles.component_name,
+            hostName: host.Hosts.host_name
+          }));
+        }
+      })
+    });
+    batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.configs.allOnSelectedHosts'), "HOST");
   },
 
   /**

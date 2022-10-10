@@ -289,6 +289,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   /**
    * {@inheritDoc}
    */
+  @Override
   public Map<String,String> getUpgradeJsonOutput() {
     return upgradeJsonOutput;
   }
@@ -425,6 +426,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
           for (PropertyInfo property : properties) {
             String configType = ConfigHelper.fileNameToConfigType(property.getFilename());
             PropertyUpgradeBehavior upgradeBehavior = property.getPropertyAmbariUpgradeBehavior();
+            LOG.debug("Property: {}, Config Type: {}", property, configType);
 
             if (property.isDeleted()) {
               // Do nothing
@@ -996,6 +998,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     return false;
   }
 
+  /**
+   * Perform database schema transformation. Can work only before persist service start
+   * @throws AmbariException
+   * @throws SQLException
+   */
   protected abstract void executeDDLUpdates() throws AmbariException, SQLException;
 
   /**
@@ -1005,6 +1012,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
    */
   protected abstract void executePreDMLUpdates() throws AmbariException, SQLException;
 
+  /**
+   * Performs normal data upgrade
+   * @throws AmbariException
+   * @throws SQLException
+   */
   protected abstract void executeDMLUpdates() throws AmbariException, SQLException;
 
   @Override

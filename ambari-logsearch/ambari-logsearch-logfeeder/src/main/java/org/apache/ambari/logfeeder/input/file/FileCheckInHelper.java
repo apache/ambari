@@ -18,17 +18,17 @@
  */
 package org.apache.ambari.logfeeder.input.file;
 
+import java.io.File;
+import java.io.RandomAccessFile;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ambari.logfeeder.input.InputFile;
 import org.apache.ambari.logfeeder.input.InputFileMarker;
 import org.apache.ambari.logfeeder.util.FileUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-
-import java.io.File;
-import java.io.RandomAccessFile;
-import java.util.Date;
-import java.util.Map;
 
 public class FileCheckInHelper {
 
@@ -40,7 +40,14 @@ public class FileCheckInHelper {
   public static void checkIn(InputFile inputFile, InputFileMarker inputMarker) {
     try {
       Map<String, Object> jsonCheckPoint = inputFile.getJsonCheckPoints().get(inputMarker.getBase64FileKey());
+      if (jsonCheckPoint == null) {
+        jsonCheckPoint = createNewCheckpointObject(inputFile);
+        attachCheckpointToInput(inputFile, jsonCheckPoint);
+      }
       File checkPointFile = inputFile.getCheckPointFiles().get(inputMarker.getBase64FileKey());
+      if (checkPointFile == null || !checkPointFile.exists()) {
+        checkPointFile = FileCheckInHelper.attachCheckpointFileToInput(inputFile);
+      }
 
       int lineNumber = LogFeederUtil.objectToInt(jsonCheckPoint.get("line_number"), 0, "line_number");
       if (lineNumber > inputMarker.getLineNumber()) {
@@ -80,15 +87,49 @@ public class FileCheckInHelper {
       FileUtil.move(tmpCheckPointFile, checkPointFile);
 
       if (inputFile.isClosed()) {
-        String logMessageKey = inputFile.getClass().getSimpleName() + "_FINAL_CHECKIN";
-        LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Wrote final checkPoint, input=" + inputFile.getShortDescription() +
-          ", checkPointFile=" + checkPointFile.getAbsolutePath() + ", checkPoint=" + jsonStr, null, LOG, Level.INFO);
+        LOG.info(String.format("Wrote final checkPoint, input=%s, checkPointFile=%s, checkPoint=%s", inputFile.getShortDescription(), checkPointFile.getAbsolutePath(), jsonStr));
       }
     } catch (Throwable t) {
-      String logMessageKey = inputFile.getClass().getSimpleName() + "_CHECKIN_EXCEPTION";
-      LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Caught exception checkIn. , input=" + inputFile.getShortDescription(), t,
-        LOG, Level.ERROR);
+      LOG.error("Caught exception checkIn. , input=" + inputFile.getShortDescription(), t);
     }
+  }
+
+  /**
+   * Create new checkpoint object
+   * @param inputFile file object which is used to fill the checkpoint defaults
+   * @return Created checkpoint object
+   */
+  static Map<String, Object> createNewCheckpointObject(final InputFile inputFile) {
+    Map<String, Object> jsonCheckPoint = new HashMap<>();
+    jsonCheckPoint.put("file_path", inputFile.getFilePath());
+    try {
+      jsonCheckPoint.put("file_key", inputFile.getBase64FileKey());
+    } catch (Exception e) {
+      LOG.error(String.format("Error during checkpoint object (path: %s) creationg: %s", inputFile.getFilePath(), e.getMessage()));
+    }
+    return jsonCheckPoint;
+  }
+
+  /**
+   * Attach a json checkpoint object to an input file
+   * @param inputFile input file object that will have the new checkpoint
+   * @param jsonCheckPoint holds checkpoint related data
+   */
+  static void attachCheckpointToInput(final InputFile inputFile, final Map<String, Object> jsonCheckPoint) throws Exception {
+    inputFile.getJsonCheckPoints().put(inputFile.getBase64FileKey(), jsonCheckPoint);
+  }
+
+  /**
+   * Create a new file object for input checkpoint
+   * @param inputFile input file object that will have the new checkpoint file
+   * @return Newly created checkpoint file
+   */
+  static File attachCheckpointFileToInput(final InputFile inputFile) throws Exception {
+    String checkPointFileName = inputFile.getBase64FileKey() + inputFile.getCheckPointExtension();
+    File checkPointFolder = inputFile.getInputManager().getCheckPointFolderFile();
+    File checkPointFile = new File(checkPointFolder, checkPointFileName);
+    inputFile.getCheckPointFiles().put(inputFile.getBase64FileKey(), checkPointFile);
+    return checkPointFile;
   }
 
 

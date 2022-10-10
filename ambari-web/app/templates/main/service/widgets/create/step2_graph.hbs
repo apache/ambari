@@ -29,7 +29,17 @@
     {{/if}}
     {{#each dataSet in dataSets}}
       <fieldset>
-        <h5>{{view Ember.TextField valueBinding="dataSet.label" class="form-control"}}</h5>
+        <h5 {{bindAttr class="dataSet.isInvalidLabel:has-error"}}>
+          {{view Ember.TextField valueBinding="dataSet.label" class="form-control"}}
+          {{#if dataSet.isInvalidLabel}}
+            <div>
+              <span class="help-block validation-block">
+                {{t widget.create.wizard.step2.body.invalid.label}}
+              </span>
+            </div>
+          {{/if}}
+        </h5>
+
         <h5>{{t common.expression}}:</h5>
         {{view App.WidgetWizardExpressionView expressionBinding="dataSet.expression"}}
         {{#if dataSet.isRemovable}}

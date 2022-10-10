@@ -15,14 +15,13 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <groupId>org.apache.ambari</groupId>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-logsearch</artifactId>
-  <version>2.7.3.0.0</version>
+  <version>2.7.6.0.0</version>
   <packaging>pom</packaging>
 
-  <url>http://maven.apache.org</url>
   <modules>
     <module>ambari-logsearch-assembly</module>
     <module>ambari-logsearch-appender</module>
@@ -45,7 +44,7 @@
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>${deb.python.ver}</deb.dependency.list>
-    <solr.version>7.5.0</solr.version>
+    <solr.version>7.7.3</solr.version>
     <hadoop.version>3.0.0</hadoop.version>
     <common.io.version>2.5</common.io.version>
     <zookeeper.version>3.4.6.2.3.0.0-2557</zookeeper.version>
@@ -64,7 +63,7 @@
   </licenses>
   <organization>
     <name>Apache Software Foundation</name>
-    <url>http://www.apache.org</url>
+    <url>https://www.apache.org</url>
   </organization>
   <issueManagement>
     <system>jira</system>
@@ -75,7 +74,7 @@
     <repository>
       <id>apache-hadoop</id>
       <name>hdp</name>
-      <url>http://repo.hortonworks.com/content/groups/public/</url>
+      <url>https://repo.hortonworks.com/content/groups/public/</url>
     </repository>
     <repository>
       <id>oss.sonatype.org</id>
@@ -85,7 +84,7 @@
     <repository>
       <id>spring-milestones</id>
       <name>Spring Milestones</name>
-      <url>http://repo.spring.io/milestone</url>
+      <url>https://repo.spring.io/milestone</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
@@ -103,6 +102,11 @@
       <releases>
         <enabled>false</enabled>
       </releases>
+    </repository>
+    <repository>
+      <id>maven-restlet</id>
+      <name>Public online Restlet repository</name>
+      <url>https://maven.restlet.com</url>
     </repository>
   </repositories>
   <build>
@@ -128,6 +132,11 @@
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>2.20</version>
         </plugin>
+        <plugin>
+          <groupId>org.vafer</groupId>
+          <artifactId>jdeb</artifactId>
+          <version>1.8</version>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -145,7 +154,7 @@
           </execution>
         </executions>
         <configuration>
-          <copyright>2012, Apache Software Foundation</copyright>
+          <license>2012, Apache Software Foundation</license>
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
           <release>${package-release}</release>
@@ -156,7 +165,6 @@
       <plugin>
         <groupId>org.vafer</groupId>
         <artifactId>jdeb</artifactId>
-        <version>1.4</version>
         <executions>
           <execution>
             <!--Stub execution on direct plugin call - workaround for ambari deb build process-->
@@ -327,17 +335,17 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>2.9.5</version>
+        <version>2.10.0</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-annotations</artifactId>
-        <version>2.9.5</version>
+        <version>2.9.9</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.dataformat</groupId>
         <artifactId>jackson-dataformat-xml</artifactId>
-        <version>2.9.5</version>
+        <version>2.9.9</version>
         <exclusions>
           <exclusion>
             <groupId>com.fasterxml.woodstox</groupId>
@@ -354,6 +362,11 @@
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
         <version>${zookeeper.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>28.0-jre</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

@@ -20,8 +20,10 @@ package org.apache.ambari.server.serveraction.kerberos;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.Lock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
@@ -45,6 +47,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.util.concurrent.Striped;
 import com.google.inject.Inject;
 
 /**
@@ -77,6 +80,11 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
   @Inject
   private HostDAO hostDAO;
 
+  /**
+   * Used to prevent multiple threads from working with the same keytab.
+   */
+  private Striped<Lock> m_locksByKeytab = Striped.lazyWeakLock(25);  
+  
   /**
    * Called to execute this action.  Upon invocation, calls
    * {@link KerberosServerAction#processIdentities(Map)} )}
@@ -135,18 +143,24 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
           File hostDirectory = new File(dataDirectory, hostName);
           File srcKeytabFile = new File(hostDirectory, DigestUtils.sha256Hex(destKeytabFilePath));
 
-          if (srcKeytabFile.exists()) {
-            String ownerAccess = keytab.getOwnerAccess();
-            String groupAccess = keytab.getGroupAccess();
-
-            installAmbariServerIdentity(resolvedPrincipal, srcKeytabFile.getAbsolutePath(), destKeytabFilePath,
-              keytab.getOwnerName(), ownerAccess,
-              keytab.getGroupName(), groupAccess, actionLog);
-
-            if (serviceMappingEntry.getValue().contains("AMBARI_SERVER_SELF")) {
-              // Create/update the JAASFile...
-              configureJAAS(resolvedPrincipal.getPrincipal(), destKeytabFilePath, actionLog);
+          Lock lock = m_locksByKeytab.get(destKeytabFilePath);
+          lock.lock();
+          try {
+            if (srcKeytabFile.exists()) {
+              String ownerAccess = keytab.getOwnerAccess();
+              String groupAccess = keytab.getGroupAccess();
+  
+              installAmbariServerIdentity(resolvedPrincipal, srcKeytabFile.getAbsolutePath(), destKeytabFilePath,
+                keytab.getOwnerName(), ownerAccess,
+                keytab.getGroupName(), groupAccess, actionLog);
+  
+              if (serviceMappingEntry.getValue().contains("AMBARI_SERVER_SELF")) {
+                // Create/update the JAASFile...
+                configureJAAS(resolvedPrincipal.getPrincipal(), destKeytabFilePath, actionLog);
+              }
             }
+          } finally {
+            lock.unlock();
           }
         }
       }
@@ -214,7 +228,7 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
       for(Map.Entry<String, String> mapping : principal.getServiceMapping().entries()) {
         String serviceName = mapping.getKey();
         String componentName = mapping.getValue();
-        KerberosKeytabPrincipalEntity entity = kerberosKeytabPrincipalDAO.findOrCreate(kke, hostEntity, kpe);
+        KerberosKeytabPrincipalEntity entity = kerberosKeytabPrincipalDAO.findOrCreate(kke, hostEntity, kpe, null).kkp;
         entity.setDistributed(true);
         entity.putServiceMapping(serviceName, componentName);
         kerberosKeytabPrincipalDAO.merge(entity);
@@ -249,12 +263,12 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
     if (jaasConfPath != null) {
       File jaasConfigFile = new File(jaasConfPath);
       try {
-        String jaasConfig = FileUtils.readFileToString(jaasConfigFile);
+        String jaasConfig = FileUtils.readFileToString(jaasConfigFile, Charset.defaultCharset());
         File oldJaasConfigFile = new File(jaasConfPath + ".bak");
-        FileUtils.writeStringToFile(oldJaasConfigFile, jaasConfig);
+        FileUtils.writeStringToFile(oldJaasConfigFile, jaasConfig, Charset.defaultCharset());
         jaasConfig = jaasConfig.replaceFirst(KEYTAB_PATTERN, "keyTab=\"" + keytabFilePath + "\"");
         jaasConfig = jaasConfig.replaceFirst(PRINCIPAL_PATTERN, "principal=\"" + principal + "\"");
-        FileUtils.writeStringToFile(jaasConfigFile, jaasConfig);
+        FileUtils.writeStringToFile(jaasConfigFile, jaasConfig, Charset.defaultCharset());
         String message = String.format("JAAS config file %s modified successfully for principal %s.",
             jaasConfigFile.getName(), principal);
         if (actionLog != null) {

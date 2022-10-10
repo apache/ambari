@@ -21,16 +21,16 @@ package org.apache.ambari.infra.model;
 import org.springframework.batch.admin.history.StepExecutionHistory;
 import org.springframework.batch.admin.web.StepExecutionProgress;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class StepExecutionProgressResponse {
 
-  private StepExecutionProgress stepExecutionProgress;
+  private final StepExecutionProgress stepExecutionProgress;
 
-  private StepExecutionHistory stepExecutionHistory;
+  private final StepExecutionHistory stepExecutionHistory;
 
-  private StepExecutionInfoResponse stepExecutionInfoResponse;
-
-  public StepExecutionProgressResponse() {
-  }
+  @JsonProperty("stepExecution")
+  private final StepExecutionInfoResponse stepExecutionInfoResponse;
 
   public StepExecutionProgressResponse(StepExecutionProgress stepExecutionProgress, StepExecutionHistory stepExecutionHistory,
                                        StepExecutionInfoResponse stepExecutionInfoResponse) {

@@ -29,6 +29,7 @@ import javax.persistence.EntityManager;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
@@ -99,6 +100,7 @@ public class AmbariPamAuthenticationProviderTest extends EasyMockSupport {
         bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
         bind(Users.class).toInstance(users);
         bind(Configuration.class).toInstance(configuration);
+        bind(AmbariLdapConfigurationProvider.class).toInstance(createMock(AmbariLdapConfigurationProvider.class));
       }
     });
   }

@@ -30,6 +30,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.agent.stomp.dto.AlertCluster;
 import org.apache.ambari.server.events.AlertDefinitionEventType;
 import org.apache.ambari.server.events.AlertDefinitionsAgentUpdateEvent;
@@ -191,10 +192,10 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
     }
   }
 
-  private void safelyUpdateData(AlertDefinitionsAgentUpdateEvent event) {
+  private void safelyUpdateData(AlertDefinitionsAgentUpdateEvent event) throws AmbariException {
     try {
       updateData(event);
-    } catch (AmbariException e) {
+    } catch (AmbariRuntimeException e) {
       LOG.warn(String.format("Failed to %s alert definitions for host %s", event.getEventType(), event.getHostName()), e);
     }
   }

@@ -18,109 +18,120 @@
  */
 package org.apache.ambari.infra.model;
 
-import org.apache.ambari.infra.model.wrapper.JobExecutionData;
-import org.springframework.batch.admin.web.JobParametersExtractor;
+import static java.util.Collections.unmodifiableList;
+import static org.apache.ambari.infra.model.DateUtil.toOffsetDateTime;
+
+import java.time.Duration;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Properties;
+
+import org.apache.ambari.infra.json.DurationToStringConverter;
+import org.apache.ambari.infra.json.OffsetDateTimeToStringConverter;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
-import org.springframework.batch.core.converter.JobParametersConverter;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Properties;
-import java.util.TimeZone;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import io.swagger.annotations.ApiModelProperty;
 
 public class JobExecutionInfoResponse {
-  private Long id;
-  private int stepExecutionCount;
-  private Long jobId;
-  private String jobName;
-  private String startDate = "";
-  private String startTime = "";
-  private String duration = "";
-  private JobExecutionData jobExecutionData;
-  private Properties jobParameters;
-  private String jobParametersString;
-  private boolean restartable = false;
-  private boolean abandonable = false;
-  private boolean stoppable = false;
-  private final TimeZone timeZone;
+  private static final DefaultJobParametersConverter DEFAULT_JOB_PARAMETERS_CONVERTER = new DefaultJobParametersConverter();
+
+  static {
+    DEFAULT_JOB_PARAMETERS_CONVERTER.setDateFormat(new ISO8601DateFormatter());
+  }
+
+  private final Long jobExecutionId;
+  private final Long jobInstanceId;
+  private final String jobName;
+  @JsonSerialize(converter = OffsetDateTimeToStringConverter.class)
+  private final OffsetDateTime creationTime;
+  @JsonSerialize(converter = OffsetDateTimeToStringConverter.class)
+  private final OffsetDateTime startTime;
+  @JsonSerialize(converter = OffsetDateTimeToStringConverter.class)
+  private final OffsetDateTime lastUpdatedTime;
+  @JsonSerialize(converter = OffsetDateTimeToStringConverter.class)
+  private final OffsetDateTime endTime;
+  @JsonSerialize(converter = DurationToStringConverter.class)
+  @ApiModelProperty(dataType = "java.lang.String", example = "PT5.311S")
+  private final Duration duration;
+  private final Properties jobParameters;
+  private final BatchStatus batchStatus;
+  @ApiModelProperty(example = "COMPLETED", allowableValues = "UNKNOWN, EXECUTING, COMPLETED, NOOP, FAILED, STOPPED")
+  private final String exitCode;
+  private final String exitDescription;
+  private final boolean restartable;
+  private final boolean abandonable;
+  private final boolean stoppable;
+  private final List<Throwable> failureExceptions;
+  private final String jobConfigurationName;
 
 
-  public JobExecutionInfoResponse(JobExecution jobExecution, TimeZone timeZone) {
-    JobParametersConverter converter = new DefaultJobParametersConverter();
-    this.jobExecutionData = new JobExecutionData(jobExecution);
-    this.timeZone = timeZone;
-    this.id = jobExecutionData.getId();
-    this.jobId = jobExecutionData.getJobId();
-    this.stepExecutionCount = jobExecutionData.getStepExecutions().size();
-    this.jobParameters = converter.getProperties(jobExecutionData.getJobParameters());
-    this.jobParametersString = (new JobParametersExtractor()).fromJobParameters(jobExecutionData.getJobParameters());
-    JobInstance jobInstance = jobExecutionData.getJobInstance();
+  public JobExecutionInfoResponse(JobExecution jobExecution) {
+    this.jobExecutionId = jobExecution.getId();
+    this.jobInstanceId = jobExecution.getJobId();
+    this.jobParameters = DEFAULT_JOB_PARAMETERS_CONVERTER.getProperties(jobExecution.getJobParameters());
+    this.creationTime = toOffsetDateTime(jobExecution.getCreateTime());
+    this.startTime = toOffsetDateTime(jobExecution.getStartTime());
+    this.lastUpdatedTime = toOffsetDateTime(jobExecution.getLastUpdated());
+    this.endTime = toOffsetDateTime(jobExecution.getEndTime());
+    JobInstance jobInstance = jobExecution.getJobInstance();
+    this.batchStatus = jobExecution.getStatus();
+    this.restartable = batchStatus.isGreaterThan(BatchStatus.STOPPING) && batchStatus.isLessThan(BatchStatus.ABANDONED);
+    this.abandonable = batchStatus.isGreaterThan(BatchStatus.STARTED) && batchStatus != BatchStatus.ABANDONED;
+    this.stoppable = batchStatus.isLessThan(BatchStatus.STOPPING);
+
+    if (jobExecution.getExitStatus() != null) {
+      this.exitCode = jobExecution.getExitStatus().getExitCode();
+      this.exitDescription = jobExecution.getExitStatus().getExitDescription();
+    }
+    else {
+      this.exitCode = null;
+      this.exitDescription = null;
+    }
+
     if(jobInstance != null) {
       this.jobName = jobInstance.getJobName();
-      BatchStatus endTime = jobExecutionData.getStatus();
-      this.restartable = endTime.isGreaterThan(BatchStatus.STOPPING) && endTime.isLessThan(BatchStatus.ABANDONED);
-      this.abandonable = endTime.isGreaterThan(BatchStatus.STARTED) && endTime != BatchStatus.ABANDONED;
-      this.stoppable = endTime.isLessThan(BatchStatus.STOPPING);
     } else {
       this.jobName = "?";
     }
 
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
-    SimpleDateFormat durationFormat = new SimpleDateFormat("HH:mm:ss");
-
-    durationFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-    timeFormat.setTimeZone(timeZone);
-    dateFormat.setTimeZone(timeZone);
-    if(jobExecutionData.getStartTime() != null) {
-      this.startDate = dateFormat.format(jobExecutionData.getStartTime());
-      this.startTime = timeFormat.format(jobExecutionData.getStartTime());
-      Date endTime1 = jobExecutionData.getEndTime() != null? jobExecutionData.getEndTime():new Date();
-      this.duration = durationFormat.format(new Date(endTime1.getTime() - jobExecutionData.getStartTime().getTime()));
+    if(startTime != null && endTime != null) {
+      this.duration = Duration.between(startTime, endTime);
     }
+    else {
+      this.duration = null;
+    }
+
+    this.failureExceptions = unmodifiableList(jobExecution.getFailureExceptions());
+    this.jobConfigurationName = jobExecution.getJobConfigurationName();
   }
 
-  public Long getId() {
-    return id;
+  public Long getJobExecutionId() {
+    return jobExecutionId;
   }
 
-  public int getStepExecutionCount() {
-    return stepExecutionCount;
-  }
-
-  public Long getJobId() {
-    return jobId;
+  public Long getJobInstanceId() {
+    return jobInstanceId;
   }
 
   public String getJobName() {
     return jobName;
   }
 
-  public String getStartDate() {
-    return startDate;
-  }
-
-  public String getStartTime() {
+  public OffsetDateTime getStartTime() {
     return startTime;
   }
 
-  public String getDuration() {
+  public Duration getDuration() {
     return duration;
-  }
-
-  public JobExecutionData getJobExecutionData() {
-    return jobExecutionData;
   }
 
   public Properties getJobParameters() {
     return jobParameters;
-  }
-
-  public String getJobParametersString() {
-    return jobParametersString;
   }
 
   public boolean isRestartable() {
@@ -135,7 +146,35 @@ public class JobExecutionInfoResponse {
     return stoppable;
   }
 
-  public TimeZone getTimeZone() {
-    return timeZone;
+  public BatchStatus getBatchStatus() {
+    return batchStatus;
+  }
+
+  public OffsetDateTime getCreationTime() {
+    return creationTime;
+  }
+
+  public OffsetDateTime getEndTime() {
+    return endTime;
+  }
+
+  public OffsetDateTime getLastUpdatedTime() {
+    return lastUpdatedTime;
+  }
+
+  public String getExitCode() {
+    return exitCode;
+  }
+
+  public String getExitDescription() {
+    return exitDescription;
+  }
+
+  public List<Throwable> getFailureExceptions() {
+    return this.failureExceptions;
+  }
+
+  public String getJobConfigurationName() {
+    return this.jobConfigurationName;
   }
 }

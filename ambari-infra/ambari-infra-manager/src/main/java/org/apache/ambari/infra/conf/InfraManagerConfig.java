@@ -31,6 +31,8 @@ public class InfraManagerConfig {
 
   @Bean
   public static PropertySourcesPlaceholderConfigurer propertyConfigurer() {
-    return new PropertySourcesPlaceholderConfigurer();
+    PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
+    propertySourcesPlaceholderConfigurer.setNullValue("@null");
+    return propertySourcesPlaceholderConfigurer;
   }
 }

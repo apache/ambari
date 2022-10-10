@@ -20,6 +20,7 @@ from ambari_commons import OSCheck
 '''
 
 import glob
+import unittest
 
 from mock.mock import MagicMock, patch
 from resource_management.core import sudo

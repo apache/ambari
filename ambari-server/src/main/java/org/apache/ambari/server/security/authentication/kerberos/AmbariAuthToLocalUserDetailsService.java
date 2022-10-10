@@ -28,7 +28,7 @@ import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authentication.AccountDisabledException;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationException;
-import org.apache.ambari.server.security.authentication.AmbariUserDetails;
+import org.apache.ambari.server.security.authentication.AmbariUserDetailsImpl;
 import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
 import org.apache.ambari.server.security.authentication.UserNotFoundException;
@@ -94,22 +94,7 @@ public class AmbariAuthToLocalUserDetailsService implements UserDetailsService {
     // If no entries are returned, we have not yet seen this principal.  If no, perform an auth-to-local translation
     // to determine what the local username is.
     if (CollectionUtils.isEmpty(entities)) {
-      // Since KerberosName relies on a static variable to hold on to the auth-to-local rules, attempt
-      // to protect access to the rule set by blocking other threads from changing the rules out from
-      // under us during this operation.  Similar logic is used in org.apache.ambari.server.view.ViewContextImpl.getUsername().
-      try {
-        synchronized (KerberosName.class) {
-          KerberosName.setRules(authToLocalRules);
-          username = new KerberosName(principal).getShortName();
-        }
-      } catch (UserNotFoundException e) {
-        throw new UsernameNotFoundException(e.getMessage(), e);
-      } catch (IOException e) {
-        String message = String.format("Failed to translate %s to a local username during Kerberos authentication: %s", principal, e.getLocalizedMessage());
-        LOG.warn(message);
-        throw new UsernameNotFoundException(message, e);
-      }
-
+      username = translatePrincipalName(principal);
       if (username == null) {
         String message = String.format("Failed to translate %s to a local username during Kerberos authentication.", principal);
         LOG.warn(message);
@@ -203,6 +188,35 @@ public class AmbariAuthToLocalUserDetailsService implements UserDetailsService {
       }
     }
 
-    return new AmbariUserDetails(new User(userEntity), null, users.getUserAuthorities(userEntity));
+    return new AmbariUserDetailsImpl(new User(userEntity), null, users.getUserAuthorities(userEntity));
+  }
+
+  /**
+   * Using the auth-to-local rules stored in <code>authentication.kerberos.auth_to_local.rules</code>
+   * in the <code>ambari.properties</code> file, translate the supplied principal name to a local name.
+   *
+   * @param principalName the principal name to translate
+   * @return a local username
+   */
+  public String translatePrincipalName(String principalName) {
+    if (StringUtils.isNotEmpty(principalName) && principalName.contains("@")) {
+      try {
+        // Since KerberosName relies on a static variable to hold on to the auth-to-local rules,
+        // attempt to protect access to the rule set by blocking other threads from changing the
+        // rules out from under us during this operation.
+        synchronized (KerberosName.class) {
+          KerberosName.setRules(authToLocalRules);
+          return new KerberosName(principalName).getShortName();
+        }
+      } catch (UserNotFoundException e) {
+        throw new UsernameNotFoundException(e.getMessage(), e);
+      } catch (IOException e) {
+        String message = String.format("Failed to translate %s to a local username during Kerberos authentication: %s", principalName, e.getLocalizedMessage());
+        LOG.warn(message);
+        throw new UsernameNotFoundException(message, e);
+      }
+    } else {
+      return principalName;
+    }
   }
 }

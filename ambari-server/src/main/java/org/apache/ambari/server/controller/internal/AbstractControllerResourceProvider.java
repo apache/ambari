@@ -243,6 +243,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return resourceProviderFactory.getAlertTargetResourceProvider();
       case ViewInstance:
         return resourceProviderFactory.getViewInstanceResourceProvider();
+      case Auth:
+        return resourceProviderFactory.getAuthResourceProvider(managementController);
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }

@@ -68,12 +68,10 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   // Cache the rpc port used and the suffix to use if the port tag is found
   private Map<String, String> rpcPortSuffixes = new HashMap<>(10);
 
-  private final ExecutorService executorService = Executors.newSingleThreadExecutor(new ThreadFactory() {
-    public Thread newThread(Runnable r) {
-      Thread t = Executors.defaultThreadFactory().newThread(r);
-      t.setDaemon(true);
-      return t;
-    }
+  private final ExecutorService executorService = Executors.newSingleThreadExecutor(r -> {
+    Thread t = Executors.defaultThreadFactory().newThread(r);
+    t.setDaemon(true);
+    return t;
   });
   private int hostInMemoryAggregationPort;
   private boolean hostInMemoryAggregationEnabled;
@@ -108,7 +106,12 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
 
     // Load collector configs
     protocol = conf.getString(COLLECTOR_PROTOCOL, "http");
-    collectorHosts = parseHostsStringArrayIntoCollection(conf.getStringArray(COLLECTOR_HOSTS_PROPERTY));
+    String collectorHostStr = conf.getString(COLLECTOR_HOSTS_PROPERTY);
+    String[] collectorHostArr = null;
+    if(collectorHostStr !=null) {
+      collectorHostArr = collectorHostStr.split(",");
+    }
+    collectorHosts = parseHostsStringArrayIntoCollection(collectorHostArr);
     port = conf.getString(COLLECTOR_PORT, "6188");
     hostInMemoryAggregationEnabled = conf.getBoolean(HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY, false);
     hostInMemoryAggregationPort = conf.getInt(HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY, 61888);

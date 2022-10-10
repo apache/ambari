@@ -24,6 +24,7 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -32,8 +33,11 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.QueryHint;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ArrayListMultimap;
@@ -72,6 +76,12 @@ import com.google.common.collect.Multimap;
     query = "SELECT kkpe FROM KerberosKeytabPrincipalEntity kkpe WHERE kkpe.hostId=:hostId"
   ),
   @NamedQuery(
+        name = "KerberosKeytabPrincipalEntity.findByPrincipalAndHost",
+        query = "SELECT kkpe FROM KerberosKeytabPrincipalEntity kkpe WHERE kkpe.hostId=:hostId AND kkpe.principalName=:principalName",
+        hints = {
+            @QueryHint(name = "eclipselink.query-results-cache", value = "true"),
+            @QueryHint(name = "eclipselink.query-results-cache.size", value = "500") }),
+    @NamedQuery(
     name = "KerberosKeytabPrincipalEntity.findByHostKeytabAndPrincipal",
     query = "SELECT kkpe FROM KerberosKeytabPrincipalEntity kkpe WHERE kkpe.hostId=:hostId AND kkpe.keytabPath=:keytabPath AND kkpe.principalName=:principalName"
   ),
@@ -98,7 +108,12 @@ public class KerberosKeytabPrincipalEntity {
   @Column(name = "is_distributed", nullable = false)
   private Integer isDistributed = 0;
 
-  @ManyToOne
+  /**
+   * The assocaited keytab entity must be fetched {@link FetchType#EAGER} to
+   * ensure that it can be discovered when only the principal and host are
+   * known.
+   */
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "keytab_path", referencedColumnName = "keytab_path", updatable = false, nullable = false, insertable = false)
   private KerberosKeytabEntity kerberosKeytabEntity;
 
@@ -110,7 +125,16 @@ public class KerberosKeytabPrincipalEntity {
   @JoinColumn(name = "principal_name", referencedColumnName = "principal_name", updatable = false, nullable = false, insertable = false)
   private KerberosPrincipalEntity kerberosPrincipalEntity;
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "kerberosKeytabPrincipalEntity", orphanRemoval = true)
+  /**
+   * Service mappings must be fetched {@link FetchType#EAGER} since they are
+   * required when processing {@link KerberosKeytabPrincipalEntity} instances
+   * and turning them into {@link ResolvedKerberosPrincipal}.
+   */
+  @OneToMany(
+      cascade = CascadeType.ALL,
+      mappedBy = "kerberosKeytabPrincipalEntity",
+      orphanRemoval = true,
+      fetch = FetchType.EAGER)
   private List<KerberosKeytabServiceMappingEntity> serviceMapping = new ArrayList<>();
 
   public KerberosKeytabPrincipalEntity() {
@@ -144,7 +168,7 @@ public class KerberosKeytabPrincipalEntity {
   }
 
   public void setKerberosKeytabEntity(KerberosKeytabEntity kke) {
-    this.kerberosKeytabEntity = kke;
+    kerberosKeytabEntity = kke;
     if (kke != null) {
       keytabPath = kke.getKeytabPath();
     }

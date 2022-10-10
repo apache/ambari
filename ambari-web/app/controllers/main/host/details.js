@@ -1451,6 +1451,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           haValue: 'false'
         },
         {
+          name: 'hadoop.kms.authentication.zk-dt-secret-manager.enable',
+          notHaValue: 'false',
+          haValue: 'true'
+        },
+        {
           name: 'hadoop.kms.cache.timeout.ms',
           notHaValue: '600000',
           haValue: '0'
@@ -1730,10 +1735,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   constructZookeeperConfigUrlParams: function (data) {
     var urlParams = [];
     var services = App.Service.find();
+    var zooKeeperRelatedServices = this.get('zooKeeperRelatedServices').slice(0);
     if (App.get('isHaEnabled')) {
-      urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
+      zooKeeperRelatedServices.push({
+        serviceName: 'HDFS',
+        typesToLoad: ['core-site'],
+        typesToSave: ['core-site']
+      });
     }
-    this.get('zooKeeperRelatedServices').forEach(function (service) {
+    zooKeeperRelatedServices.forEach(function (service) {
       if (services.someProperty('serviceName', service.serviceName)) {
         service.typesToLoad.forEach(function (type) {
           if (data.Clusters.desired_configs[type]) {
@@ -1762,7 +1772,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     this.updateZkConfigs(configs);
     var groups = [];
     var installedServiceNames = App.Service.find().mapProperty('serviceName');
-    this.get('zooKeeperRelatedServices').forEach(function (service) {
+    var zooKeeperRelatedServices = this.get('zooKeeperRelatedServices').slice(0);
+    if (App.get('isHaEnabled')) {
+      zooKeeperRelatedServices.push({
+        serviceName: 'HDFS',
+        typesToLoad: ['core-site'],
+        typesToSave: ['core-site']
+      });
+    }
+    zooKeeperRelatedServices.forEach(function (service) {
       if (installedServiceNames.contains(service.serviceName)) {
         var group = {
           properties: {},
@@ -2895,7 +2913,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     message = Em.I18n.t('passiveState.turn' + state.toCapital() + 'For').format(event.context.get('displayName'));
     return App.showConfirmationPopup(function () {
       self.updateComponentPassiveState(event.context, state, message);
-    }, Em.I18n.t('question.sure.maintenance').format(event.context.get('displayName')) );
+    }, Em.I18n.t('question.sure.maintenance').format(state.toLowerCase(), event.context.get('displayName')) );
   },
 
   downloadClientConfigs: function (event) {
@@ -3093,7 +3111,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   
   recoverHost: function() {
     var components = this.get('content.hostComponents');
-    var hostName = this.get('content.publicHostName');
+    var hostName = this.get('content.hostName');
     var self = this;
     var batches = [
       {

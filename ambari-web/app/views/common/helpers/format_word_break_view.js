@@ -38,7 +38,7 @@ App.FormatWordBreakView = Em.View.extend({
    * @type {string}
    */
   result: function() {
-    var content = this.get('content') || '';
+    var content = Ember.Handlebars.Utils.escapeExpression(this.get('content')) || '';
     var self = this;
     ['.', '_', '/'].forEach(function (delimiter) {
       if (content.contains(delimiter)) {

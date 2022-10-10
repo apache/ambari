@@ -24,12 +24,17 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.UpdateConfigurationPolicy;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -37,12 +42,13 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.KerberosKeytabController;
-import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.utils.ThreadPools;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -188,6 +194,12 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   @Inject
   private KerberosKeytabController kerberosKeytabController;
 
+  @Inject
+  private Configuration configuration;
+
+  @Inject
+  private ThreadPools threadPools;
+
   /**
    * Given a (command parameter) Map and a property name, attempts to safely retrieve the requested
    * data.
@@ -292,19 +304,13 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    *                                 to a given request
    * @return A Map of principals-to-password
    */
+  @SuppressWarnings("unchecked")
   protected static Map<String, String> getPrincipalPasswordMap(Map<String, Object> requestSharedDataContext) {
     if (requestSharedDataContext == null) {
       return null;
-    } else {
-      Object map = requestSharedDataContext.get(PRINCIPAL_PASSWORD_MAP);
-
-      if (map == null) {
-        map = new HashMap<String, String>();
-        requestSharedDataContext.put(PRINCIPAL_PASSWORD_MAP, map);
-      }
-
-      return (Map<String, String>) map;
-    }
+    } 
+    Object map = requestSharedDataContext.computeIfAbsent(PRINCIPAL_PASSWORD_MAP, k -> new HashMap<String, String>());
+    return (Map<String, String>) map;
   }
 
   /**
@@ -318,19 +324,13 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    *                                 to a given request
    * @return A Map of principals-to-key_numbers
    */
+  @SuppressWarnings("unchecked")
   protected static Map<String, Integer> getPrincipalKeyNumberMap(Map<String, Object> requestSharedDataContext) {
     if (requestSharedDataContext == null) {
       return null;
-    } else {
-      Object map = requestSharedDataContext.get(PRINCIPAL_KEY_NUMBER_MAP);
-
-      if (map == null) {
-        map = new HashMap<String, String>();
-        requestSharedDataContext.put(PRINCIPAL_KEY_NUMBER_MAP, map);
-      }
-
-      return (Map<String, Integer>) map;
     }
+    Object map = requestSharedDataContext.computeIfAbsent(PRINCIPAL_KEY_NUMBER_MAP, k -> new HashMap<String, String>());
+    return (Map<String, Integer>) map;
   }
 
   /**
@@ -414,6 +414,9 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    * Using {@link #getHostFilter()}, {@link #getIdentityFilter()} and {@link #getServiceComponentFilter()} it retrieve
    * list of filtered keytabs and their principals and process each principal using
    * {@link #processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, boolean, Map)}.
+   * The configuration option {@link Configuration#getKerberosServerActionThreadPoolSize()} defines
+   * how many threads will handle {@link #processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, boolean, Map)}.
+   * The default is {@code 1}, but this method must be thread-safe in the event that concurrent threads are used.
    *
    * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
    *                                 to a given request
@@ -422,7 +425,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    */
   protected CommandReport processIdentities(Map<String, Object> requestSharedDataContext)
       throws AmbariException {
-    CommandReport commandReport = null;
+    final CommandReport[] commandReport = {null};
     Map<String, String> commandParameters = getCommandParameters();
 
     actionLog.writeStdOut("Processing identities...");
@@ -435,7 +438,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       String defaultRealm = getDefaultRealm(commandParameters);
 
       KerberosOperationHandler handler = kerberosOperationHandlerFactory.getKerberosOperationHandler(kdcType);
-      Map<String, String> kerberosConfiguration = getConfiguration("kerberos-env");
+      Map<String, String> kerberosConfiguration = getConfigurationProperties("kerberos-env");
 
       try {
         handler.open(administratorCredential, defaultRealm, kerberosConfiguration);
@@ -448,21 +451,47 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       }
 
       try {
+        // create the thread factory, executor, and completion service for
+        // running the identity processing in parallel
+
+        ExecutionCommand executionCommand = getExecutionCommand();
+        int threadCount = configuration.getKerberosServerActionThreadPoolSize();
+        String factoryName = (executionCommand == null)
+          ? "process-identity-%d"
+          : "process-identity-task-" + executionCommand.getTaskId() + "-thread-%d";
+
+
         Map<String, Collection<String>> serviceComponentFilter = getServiceComponentFilter();
         if (serviceComponentFilter != null && pruneServiceFilter()) {
-          kerberosKeytabController.adjustServiceComponentFilter(clusters.getCluster(getClusterName()), true, serviceComponentFilter);
+          kerberosKeytabController.adjustServiceComponentFilter(clusters.getCluster(getClusterName()),
+            true, serviceComponentFilter);
         }
-        final Collection<KerberosIdentityDescriptor> serviceIdentities = serviceComponentFilter == null ? null : kerberosKeytabController.getServiceIdentities(getClusterName(), serviceComponentFilter.keySet());
-        for (ResolvedKerberosKeytab rkk : kerberosKeytabController.getFilteredKeytabs(serviceIdentities, getHostFilter(),getIdentityFilter())) {
-          for (ResolvedKerberosPrincipal principal : rkk.getPrincipals()) {
-            commandReport = processIdentity(principal, handler, kerberosConfiguration, isRelevantIdentity(serviceIdentities, principal), requestSharedDataContext);
-            // If the principal processor returns a CommandReport, than it is time to stop
-            // since an error condition has probably occurred, else all is assumed to be well.
-            if (commandReport != null) {
-              break;
+        final Collection<KerberosIdentityDescriptor> serviceIdentities = (serviceComponentFilter == null)
+          ? null
+          : kerberosKeytabController.getServiceIdentities(getClusterName(), serviceComponentFilter.keySet(), null);
+
+        threadPools.parallelOperation(factoryName, threadCount, "identities",
+          kerberosKeytabController.getFilteredKeytabs(serviceIdentities, getHostFilter(), getIdentityFilter())
+            .stream().flatMap(rkk -> rkk.getPrincipals().stream()).map(principal -> (Callable<CommandReport>) () -> {
+              try {
+                return processIdentity(principal, handler, kerberosConfiguration,
+                  isRelevantIdentity(serviceIdentities, principal), requestSharedDataContext);
+              } catch (AmbariException ambariException) {
+                throw new AmbariRuntimeException(ambariException);
+              }
             }
+          ).collect(Collectors.toList()),
+          (cr) -> { // processIdentity returns null if operation completed ok, else FAILED report generated
+            boolean isFailed = Objects.isNull(cr);
+            if (!isFailed) {
+              commandReport[0] = cr;
+            }
+            return isFailed;
           }
-        }
+        );
+      } catch (Exception exception) {
+        LOG.error("Unable to process identities asynchronously", exception);
+        return createCommandReport(0, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
       } finally {
         // The KerberosOperationHandler needs to be closed, if it fails to close ignore the
         // exception since there is little we can or care to do about it now.
@@ -480,9 +509,9 @@ public abstract class KerberosServerAction extends AbstractServerAction {
 
     // If commandReport is null, we can assume this operation was a success, so return a successful
     // CommandReport; else return the previously created CommandReport.
-    return (commandReport == null)
+    return (commandReport[0] == null)
         ? createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr())
-        : commandReport;
+        : commandReport[0];
   }
 
   protected boolean pruneServiceFilter() {
@@ -603,6 +632,35 @@ public abstract class KerberosServerAction extends AbstractServerAction {
     return (ambariServerHostEntity == null)
         ? null
         : ambariServerHostEntity.getHostId();
+  }
+
+
+  /**
+   * Retrieve the current set of properties for the requested config type for the relevant cluster.
+   *
+   * @return a Map of property names to property values for the requested config type; or null if no data is found
+   * @throws AmbariException if an error occurs retrieving the relevant cluster details
+   */
+  protected Map<String, String> getConfigurationProperties(String configType) throws AmbariException {
+    if (StringUtils.isNotEmpty(configType)) {
+      Cluster cluster = getCluster();
+      Config config = (cluster == null) ? null : cluster.getDesiredConfigByType(configType);
+      Map<String, String> properties = (config == null) ? null : config.getProperties();
+
+      if (properties == null) {
+        LOG.warn("The '{}' configuration data is not available:" +
+                "\n\tcluster: {}" +
+                "\n\tconfig: {}" +
+                "\n\tproperties: null",
+            configType,
+            (cluster == null) ? "null" : "not null",
+            (config == null) ? "null" : "not null");
+      }
+
+      return properties;
+    } else {
+      return null;
+    }
   }
 
   public static class KerberosCommandParameters {

@@ -19,28 +19,37 @@
 var App = require('app');
 require('controllers/main/admin/highAvailability/hawq/removeStandby/step2_controller');
 
+function getController() {
+  return App.RemoveHawqStandbyWizardStep2Controller.create({});
+}
+
 describe('App.RemoveHawqStandbyWizardStep2Controller', function () {
+  var controller;
+
+  beforeEach(function () {
+    controller = getController();
+  });
 
   describe('#isSubmitDisabled', function () {
 
-    var controller = App.RemoveHawqStandbyWizardStep2Controller.create({
-        content: Em.Object.create({})
-      }),
-      cases = [
-        {
-          isLoaded: false,
-          isSubmitDisabled: true,
-          title: 'wizard step content not loaded'
-        },
-        {
-          isLoaded: true,
-          isSubmitDisabled: false,
-          title: 'wizard step content loaded'
-        }
-      ];
+    var cases = [
+      {
+        isLoaded: false,
+        isSubmitDisabled: true,
+        title: 'wizard step content not loaded'
+      },
+      {
+        isLoaded: true,
+        isSubmitDisabled: false,
+        title: 'wizard step content loaded'
+      }
+    ];
 
     cases.forEach(function (item) {
       it(item.title, function () {
+        controller.reopen({
+          content: Em.Object.create({})
+        });
         controller.set('isLoaded', item.isLoaded);
         expect(controller.get('isSubmitDisabled')).to.equal(item.isSubmitDisabled);
       });
@@ -48,5 +57,36 @@ describe('App.RemoveHawqStandbyWizardStep2Controller', function () {
 
   });
 
+  describe("#submit()", function () {
+
+    var mock = {
+      getKDCSessionState: Em.clb
+    };
+
+    beforeEach(function() {
+      sinon.spy(mock, 'getKDCSessionState');
+      sinon.stub(App, 'get').returns(mock);
+      sinon.stub(App.router, 'send');
+    });
+    afterEach(function() {
+      App.get.restore();
+      App.router.send.restore();
+      mock.getKDCSessionState.restore();
+    });
+
+    it('App.router.send should be called', function() {
+      controller.set('isLoaded', true);
+      controller.submit();
+      expect(mock.getKDCSessionState.calledOnce).to.be.true;
+      expect(App.router.send.calledOnce).to.be.true;
+    });
+
+    it('App.router.send should not be called', function() {
+      controller.set('isLoaded', false);
+      controller.submit();
+      expect(mock.getKDCSessionState.calledOnce).to.be.false;
+      expect(App.router.send.calledOnce).to.be.false;
+    });
+  });
 
 });

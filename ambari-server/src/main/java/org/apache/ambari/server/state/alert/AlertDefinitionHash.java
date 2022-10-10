@@ -416,9 +416,7 @@ public class AlertDefinitionHash {
         if (component.getValue().isMasterComponent()) {
           Map<String, ServiceComponentHost> componentHosts = component.getValue().getServiceComponentHosts();
           if (null != componentHosts) {
-            for (String componentHost : componentHosts.keySet()) {
-              affectedHosts.add(componentHost);
-            }
+            affectedHosts.addAll(componentHosts.keySet());
           }
         }
       }

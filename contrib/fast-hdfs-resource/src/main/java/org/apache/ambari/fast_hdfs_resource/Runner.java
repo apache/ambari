@@ -35,7 +35,7 @@ import com.google.gson.Gson;
 
 public class Runner {
   public static void main(String[] args)
-      throws IOException, URISyntaxException {
+      throws IOException, URISyntaxException, Exception  {
     // 1 - Check arguments
     if (args.length != 1) {
       System.err.println("Incorrect number of arguments. Please provide:\n"
@@ -64,7 +64,7 @@ public class Runner {
       // 3 - Load data from JSON
       resources = (Resource[]) gson.fromJson(new FileReader(jsonFilePath),
           Resource[].class);
-      
+
       Configuration conf = new Configuration();
       FileSystem dfs = null;
 
@@ -144,6 +144,7 @@ public class Runner {
     catch(Exception e) {
        System.out.println("Exception occurred, Reason: " + e.getMessage());
        e.printStackTrace();
+       throw e;
     }
     finally {
       for(FileSystem dfs:fileSystemNameToInstance.values()) {
