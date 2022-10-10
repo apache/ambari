@@ -78,7 +78,7 @@ def main():
   for host in hosts:
     httpCode = make_connection(host, port, https.lower() == "true", protocol)
 
-    if httpCode != 200:
+    if httpCode != 200 and httpCode != 302:
       print "Cannot access WEB UI on: http://" + host + ":" + port if not https.lower() == "true" else "Cannot access WEB UI on: https://" + host + ":" + port
       exit(1)
 
