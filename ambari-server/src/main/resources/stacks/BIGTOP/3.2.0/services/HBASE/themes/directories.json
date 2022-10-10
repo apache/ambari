@@ -1,0 +1,167 @@
+{
+  "name": "directories",
+  "description": "Directories theme for HBASE service",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "directories",
+        "tabs": [
+          {
+            "name": "directories",
+            "display-name": "Directories",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "4",
+              "sections": [
+                {
+                  "name": "subsection-data-dirs",
+                  "display-name": "DATA DIRS",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-data-dirs",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "subsection-log-dirs",
+                  "display-name": "LOG DIRS",
+                  "row-index": "1",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-log-dirs",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "subsection-pid-dirs",
+                  "display-name": "PID DIRS",
+                  "row-index": "2",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-pid-dirs",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "hbase-env/hbase_pid_dir",
+          "subsection-name": "subsection-pid-dirs"
+        },
+        {
+          "config": "hbase-env/hbase_log_dir",
+          "subsection-name": "subsection-log-dirs"
+        },
+        {
+          "config": "hbase-env/hbase_java_io_tmpdir",
+          "subsection-name": "subsection-data-dirs"
+        },
+        {
+          "config": "hbase-site/hbase.bulkload.staging.dir",
+          "subsection-name": "subsection-data-dirs"
+        },
+        {
+          "config": "hbase-site/hbase.local.dir",
+          "subsection-name": "subsection-data-dirs"
+        },
+        {
+          "config": "hbase-site/hbase.rootdir",
+          "subsection-name": "subsection-data-dirs"
+        },
+        {
+          "config": "hbase-site/hbase.tmp.dir",
+          "subsection-name": "subsection-data-dirs"
+        },
+        {
+          "config": "hbase-site/zookeeper.znode.parent",
+          "subsection-name": "subsection-data-dirs"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "hbase-env/hbase_pid_dir",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "hbase-env/hbase_log_dir",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "hbase-env/hbase_java_io_tmpdir",
+        "widget": {
+          "type": "directories"
+        }
+      },
+      {
+        "config": "hbase-site/hbase.bulkload.staging.dir",
+        "widget": {
+          "type": "directories"
+        }
+      },
+      {
+        "config": "hbase-site/hbase.local.dir",
+        "widget": {
+          "type": "directories"
+        }
+      },
+      {
+        "config": "hbase-site/hbase.rootdir",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "hbase-site/hbase.tmp.dir",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "hbase-site/zookeeper.znode.parent",
+        "widget": {
+          "type": "text-field"
+        }
+      }
+    ]
+  }
+}

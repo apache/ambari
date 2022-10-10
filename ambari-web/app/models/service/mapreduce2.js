@@ -18,8 +18,7 @@
 var App = require('app');
 
 App.MapReduce2Service = App.Service.extend({
-  jobHistoryServer: DS.belongsTo('App.HostComponent'),
-  mapReduce2Clients: DS.attr('number')
+  jobHistoryServer: DS.belongsTo('App.HostComponent')
 });
 
 App.MapReduce2Service.FIXTURES = [];

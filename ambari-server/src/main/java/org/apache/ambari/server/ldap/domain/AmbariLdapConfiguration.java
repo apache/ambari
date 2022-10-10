@@ -199,6 +199,7 @@ public class AmbariLdapConfiguration extends AmbariServerConfiguration {
     return Boolean.valueOf(configValue(AmbariServerConfigurationKey.DISABLE_ENDPOINT_IDENTIFICATION));
   }
 
+  @Override
   public Map<String, String> toMap() {
     return new HashMap<>(configurationMap);
   }

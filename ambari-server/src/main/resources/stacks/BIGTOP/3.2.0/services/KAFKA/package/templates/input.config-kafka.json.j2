@@ -1,0 +1,92 @@
+{#
+ # Licensed to the Apache Software Foundation (ASF) under one
+ # or more contributor license agreements.  See the NOTICE file
+ # distributed with this work for additional information
+ # regarding copyright ownership.  The ASF licenses this file
+ # to you under the Apache License, Version 2.0 (the
+ # "License"); you may not use this file except in compliance
+ # with the License.  You may obtain a copy of the License at
+ #
+ #   http://www.apache.org/licenses/LICENSE-2.0
+ #
+ # Unless required by applicable law or agreed to in writing, software
+ # distributed under the License is distributed on an "AS IS" BASIS,
+ # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ #}
+{
+  "input":[
+    {
+      "type":"kafka_controller",
+      "rowtype":"service",
+      "path":"{{default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka')}}/controller.log"
+    },
+    {
+      "type":"kafka_request",
+      "rowtype":"service",
+      "path":"{{default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka')}}/kafka-request.log"
+    },
+    {
+      "type":"kafka_logcleaner",
+      "rowtype":"service",
+      "path":"{{default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka')}}/log-cleaner.log"
+    },
+    {
+      "type":"kafka_server",
+      "rowtype":"service",
+      "path":"{{default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka')}}/server.log"
+    },
+    {
+      "type":"kafka_statechange",
+      "rowtype":"service",
+      "path":"{{default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka')}}/state-change.log"
+    }
+  ],
+  "filter":[
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "kafka_controller",
+            "kafka_request",
+            "kafka_logcleaner"
+          ]
+        }
+      },
+      "log4j_format":"[%d] %p %m (%c)%n",
+      "multiline_pattern":"^(\\[%{TIMESTAMP_ISO8601:logtime}\\])",
+      "message_pattern":"(?m)^\\[%{TIMESTAMP_ISO8601:logtime}\\]%{SPACE}%{LOGLEVEL:level}%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+        }
+      }
+    },
+    {
+      "filter":"grok",
+      "comment":"Suppose to be same log4j pattern as other kafka processes, but some reason thread is not printed",
+      "conditions":{
+        "fields":{
+          "type":[
+            "kafka_server",
+            "kafka_statechange"
+          ]
+        }
+      },
+      "log4j_format":"[%d] %p %m (%c)%n",
+      "multiline_pattern":"^(\\[%{TIMESTAMP_ISO8601:logtime}\\])",
+      "message_pattern":"(?m)^\\[%{TIMESTAMP_ISO8601:logtime}\\]%{SPACE}%{LOGLEVEL:level}%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+        }
+      }
+    }
+  ]
+}

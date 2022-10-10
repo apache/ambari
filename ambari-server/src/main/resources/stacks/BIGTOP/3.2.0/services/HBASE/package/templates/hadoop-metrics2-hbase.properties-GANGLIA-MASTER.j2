@@ -1,0 +1,133 @@
+{#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# See http://wiki.apache.org/hadoop/GangliaMetrics
+#
+# Make sure you know whether you are using ganglia 3.0 or 3.1.
+# If 3.1, you will have to patch your hadoop instance with HADOOP-4675
+# And, yes, this file is named hadoop-metrics.properties rather than
+# hbase-metrics.properties because we're leveraging the hadoop metrics
+# package and hadoop-metrics.properties is an hardcoded-name, at least
+# for the moment.
+#
+# See also http://hadoop.apache.org/hbase/docs/current/metrics.html
+
+# HBase-specific configuration to reset long-running stats (e.g. compactions)
+# If this variable is left out, then the default is no expiration.
+hbase.extendedperiod = 3600
+
+{% if has_metric_collector %}
+
+*.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
+*.sink.timeline.slave.host.name={{hostname}}
+
+hbase.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
+hbase.period={{metrics_collection_period}}
+hbase.collector.hosts={{ams_collector_hosts}}
+hbase.protocol={{metric_collector_protocol}}
+hbase.port={{metric_collector_port}}
+
+jvm.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
+jvm.period={{metrics_collection_period}}
+jvm.collector.hosts={{ams_collector_hosts}}
+jvm.protocol={{metric_collector_protocol}}
+jvm.port={{metric_collector_port}}
+
+rpc.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
+rpc.period={{metrics_collection_period}}
+rpc.collector.hosts={{ams_collector_hosts}}
+rpc.protocol={{metric_collector_protocol}}
+rpc.port={{metric_collector_port}}
+
+hbase.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
+hbase.sink.timeline.period={{metrics_collection_period}}
+hbase.sink.timeline.sendInterval={{metrics_report_interval}}000
+hbase.sink.timeline.collector.hosts={{ams_collector_hosts}}
+hbase.sink.timeline.protocol={{metric_collector_protocol}}
+hbase.sink.timeline.port={{metric_collector_port}}
+hbase.sink.timeline.instanceId = {{cluster_name}}
+hbase.sink.timeline.set.instanceId = {{set_instanceId}}
+hbase.sink.timeline.host_in_memory_aggregation = {{host_in_memory_aggregation}}
+hbase.sink.timeline.host_in_memory_aggregation_port = {{host_in_memory_aggregation_port}}
+{% if is_aggregation_https_enabled %}
+hbase.sink.timeline.host_in_memory_aggregation_protocol = {{host_in_memory_aggregation_protocol}}
+{% endif %}
+
+# HTTPS properties
+hbase.sink.timeline.truststore.path = {{metric_truststore_path}}
+hbase.sink.timeline.truststore.type = {{metric_truststore_type}}
+hbase.sink.timeline.truststore.password = {{metric_truststore_password}}
+
+{% endif %}
+
+{% if has_ganglia_server %}
+
+# Configuration of the "hbase" context for ganglia
+# Pick one: Ganglia 3.0 (former) or Ganglia 3.1 (latter)
+# hbase.class=org.apache.hadoop.metrics.ganglia.GangliaContext
+hbase.class=org.apache.hadoop.metrics.ganglia.GangliaContext31
+hbase.period=10
+hbase.servers={{ganglia_server_host}}:8663
+
+# Configuration of the "jvm" context for ganglia
+# Pick one: Ganglia 3.0 (former) or Ganglia 3.1 (latter)
+# jvm.class=org.apache.hadoop.metrics.ganglia.GangliaContext
+jvm.class=org.apache.hadoop.metrics.ganglia.GangliaContext31
+jvm.period=10
+jvm.servers={{ganglia_server_host}}:8663
+
+# Configuration of the "rpc" context for ganglia
+# Pick one: Ganglia 3.0 (former) or Ganglia 3.1 (latter)
+# rpc.class=org.apache.hadoop.metrics.ganglia.GangliaContext
+rpc.class=org.apache.hadoop.metrics.ganglia.GangliaContext31
+rpc.period=10
+rpc.servers={{ganglia_server_host}}:8663
+
+#Ganglia following hadoop example
+hbase.sink.ganglia.class=org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31
+hbase.sink.ganglia.period=10
+
+# default for supportsparse is false
+*.sink.ganglia.supportsparse=true
+
+.sink.ganglia.slope=jvm.metrics.gcCount=zero,jvm.metrics.memHeapUsedM=both
+.sink.ganglia.dmax=jvm.metrics.threadsBlocked=70,jvm.metrics.memHeapUsedM=40
+
+hbase.sink.ganglia.servers={{ganglia_server_host}}:8663
+
+{% endif %}
+
+# Disable HBase metrics for regions/tables/regionservers by default.
+*.source.filter.class=org.apache.hadoop.metrics2.filter.RegexFilter
+hbase.*.source.filter.exclude=.*(Regions|Users|Tables).*

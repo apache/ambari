@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -63,7 +64,7 @@ public class VersionDefinitionTest extends EasyMockSupport {
 
   @Test
   public void testLoadingString() throws Exception {
-    String xmlString = FileUtils.readFileToString(file);
+    String xmlString = FileUtils.readFileToString(file, Charset.defaultCharset());
     VersionDefinitionXml xml = VersionDefinitionXml.load(xmlString);
 
     validateXml(xml);

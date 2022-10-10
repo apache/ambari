@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="true">
+  <property>
+    <name>spark.yarn.queue</name>
+    <value>default</value>
+    <description>
+      The name of the YARN queue to which the application is submitted.
+    </description>
+    <depends-on>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false" />
+  </property>
+  <property>
+    <name>spark.history.provider</name>
+    <value>org.apache.spark.deploy.history.FsHistoryProvider</value>
+    <description>
+      Name of history provider
+    </description>
+    <on-ambari-upgrade add="true" />
+  </property>
+  <property>
+    <name>spark.history.ui.port</name>
+    <value>18081</value>
+    <description>
+      The port to which the web interface of the History Server binds.
+    </description>
+    <final>true</final>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true" />
+  </property>
+  <property>
+    <name>spark.history.fs.logDirectory</name>
+    <display-name>Spark History FS Log directory</display-name>
+    <value>hdfs:///spark-history/</value>
+    <description>
+      Base directory for history spark application log.
+    </description>
+    <on-ambari-upgrade add="true" />
+  </property>
+  <property>
+    <name>spark.history.kerberos.principal</name>
+    <value>none</value>
+    <description>
+      Kerberos principal name for the Spark History Server.
+    </description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="true" />
+  </property>
+  <property>
+    <name>spark.history.kerberos.keytab</name>
+    <value>none</value>
+    <description>
+      Location of the kerberos keytab file for the Spark History Server.
+    </description>
+    <on-ambari-upgrade add="true" />
+  </property>
+  <property>
+    <name>spark.eventLog.enabled</name>
+    <value>true</value>
+    <description>
+        Whether to log Spark events, useful for reconstructing the Web UI after the application has finished.
+    </description>
+    <on-ambari-upgrade add="true" />
+  </property>
+  <property>
+    <name>spark.eventLog.dir</name>
+    <display-name>Spark Eventlog directory</display-name>
+    <value>hdfs:///spark-history/</value>
+    <description>
+        Base directory in which Spark events are logged, if spark.eventLog.enabled is true.
+    </description>
+    <on-ambari-upgrade add="true" />
+  </property>
+  <property>
+    <name>spark.yarn.historyServer.address</name>
+    <value>{{spark_history_server_host}}:{{spark_history_ui_port}}</value>
+    <description>The address of the Spark history server (i.e. host.com:18081). The address should not contain a scheme (http://). Defaults to not being set since the history server is an optional service. This address is given to the YARN ResourceManager when the Spark application finishes to link the application from the ResourceManager UI to the Spark history server UI.</description>
+    <on-ambari-upgrade add="true" />
+  </property>
+  <property>
+    <name>spark.scheduler.allocation.file</name>
+    <value>file:///{{spark_conf}}/spark-thrift-fairscheduler.xml</value>
+    <description>
+      Scheduler configuration file for thriftserver.
+    </description>
+    <on-ambari-upgrade add="true" />
+  </property>
+  <property>
+    <name>spark.scheduler.mode</name>
+    <value>FAIR</value>
+    <description>
+      The scheduling mode between jobs submitted to the same SparkContext.
+    </description>
+    <on-ambari-upgrade add="true" />
+  </property>
+  <property>
+    <name>spark.hadoop.cacheConf</name>
+    <value>false</value>
+    <description>
+      Specifies whether HadoopRDD caches the Hadoop configuration object
+    </description>
+    <on-ambari-upgrade add="true" />
+  </property>
+  
+  <property>
+    <name>spark.yarn.executor.failuresValidityInterval</name>
+    <value>2h</value>
+    <description>
+      Defines the validity interval for executor failure tracking.
+      Executor failures which are older than the validity interval will be ignored.
+    </description>
+    <on-ambari-upgrade add="false" />
+  </property>
+  <property>
+    <name>spark.yarn.maxAppAttempts</name>
+    <value>1</value>
+    <description>
+      The maximum number of attempts that will be made to submit the application.
+      It should be no larger than the global number of max attempts in the YARN configuration.
+    </description>
+    <on-ambari-upgrade add="false" />
+  </property>
+
+  <property>
+    <name>spark.history.fs.cleaner.enabled</name>
+    <value>true</value>
+    <description>Specifies whether the History Server should periodically clean up event logs from storage.</description>
+    <on-ambari-upgrade add="false" />
+  </property>
+  <property>
+    <name>spark.history.fs.cleaner.interval</name>
+    <value>7d</value>
+    <description>How often the filesystem job history cleaner checks for files to delete. Files are only deleted if they are older than spark.history.fs.cleaner.maxAge</description>
+    <on-ambari-upgrade add="false" />
+  </property>
+  <property>
+    <name>spark.history.fs.cleaner.maxAge</name>
+    <value>90d</value>
+    <description>Job history files older than this will be deleted when the filesystem history cleaner runs.</description>
+    <on-ambari-upgrade add="false" />
+  </property>
+
+
+  <property>
+    <name>spark.sql.statistics.fallBackToHdfs</name>
+    <value>true</value>
+    <description></description>
+    <on-ambari-upgrade add="false" />
+  </property>
+  <property>
+    <name>spark.sql.autoBroadcastJoinThreshold</name>
+    <value>10MB</value>
+    <description>Configures the maximum size in bytes for a table that will be broadcast to all worker nodes when performing a join.</description>
+    <on-ambari-upgrade add="false" />
+  </property>
+  <property>
+    <name>spark.io.compression.lz4.blockSize</name>
+    <value>128kb</value>
+    <description>Block size in bytes used in LZ4 compression, in the case when LZ4 compression codec is used. Lowering this block size will also lower shuffle memory usage when LZ4 is used.</description>
+    <on-ambari-upgrade add="false" />
+  </property>
+
+
+  <property>
+    <name>spark.sql.orc.filterPushdown</name>
+    <value>true</value>
+    <description>Enables filter pushdown for ORC formats.</description>
+    <on-ambari-upgrade add="false" />
+  </property>
+  <property>
+    <name>spark.sql.hive.convertMetastoreOrc</name>
+    <value>true</value>
+    <description>Enables new ORC format to read/write Hive Tables.</description>
+    <on-ambari-upgrade add="false" />
+  </property>
+
+
+  <property>
+    <name>spark.shuffle.io.backLog</name>
+    <value>8192</value>
+    <description>Requested maximum length of the queue of incoming connections.</description>
+    <on-ambari-upgrade add="false" />
+  </property>
+  <property>
+    <name>spark.shuffle.file.buffer</name>
+    <value>1m</value>
+    <description>Size of the in-memory buffer for each shuffle file output stream, in KiB unless otherwise specified. These buffers reduce the number of disk seeks and system calls made in creating intermediate shuffle files.</description>
+    <on-ambari-upgrade add="false" />
+  </property>
+  <property>
+    <name>spark.master</name>
+    <value>yarn</value>
+    <description>The deploying mode of spark application.</description>
+    <on-ambari-upgrade add="false" />
+  </property>
+  <property>
+    <name>spark.executor.extraJavaOptions</name>
+    <value>-XX:+UseNUMA</value>
+    <description></description>
+    <on-ambari-upgrade add="false" />
+  </property>
+  <property>
+    <name>spark.sql.warehouse.dir</name>
+    <value>{{spark_warehouse_dir}}</value>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <description></description>
+    <on-ambari-upgrade add="false" />
+  </property>
+
+  <property>
+    <name>spark.sql.hive.metastore.version</name>
+    <value>3.1.3</value>
+    <description></description>
+    <on-ambari-upgrade add="false" />
+  </property>
+  <property>
+    <name>spark.sql.hive.metastore.jars</name>
+    <value>{{hive_home}}/lib/*</value>
+    <description></description>
+    <on-ambari-upgrade add="false" />
+  </property>
+
+  <property>
+    <name>spark.history.store.path</name>
+    <value>/var/lib/spark/shs_db</value>
+    <description></description>
+    <on-ambari-upgrade add="false" />
+  </property>
+
+</configuration>

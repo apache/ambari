@@ -25,11 +25,10 @@
   <packaging>jar</packaging>
 
   <name>fast-hdfs-resource</name>
-  <url>http://maven.apache.org</url>
   <repositories>
     <repository>
       <id>hdp.internal</id>
-      <url>http://repo1.maven.org/maven2</url>
+      <url>https://repo1.maven.org/maven2</url>
     </repository>
   </repositories>
   <properties>
@@ -91,7 +90,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.3</version>
+        <configuration>
+          <createDependencyReducedPom>false</createDependencyReducedPom>
+        </configuration>
+        <version>3.4.0</version>
         <executions>
           <execution>
             <phase>package</phase>

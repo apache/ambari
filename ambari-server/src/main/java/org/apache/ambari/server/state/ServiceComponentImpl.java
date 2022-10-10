@@ -558,14 +558,15 @@ public class ServiceComponentImpl implements ServiceComponent {
       ServiceComponentHost sch = getServiceComponentHost(hostname);
       LOG.info("Deleting servicecomponenthost for cluster" + ", clusterName=" + getClusterName()
           + ", serviceName=" + getServiceName() + ", componentName=" + getName()
-          + ", recoveryEnabled=" + isRecoveryEnabled() + ", hostname=" + sch.getHostName());
+          + ", recoveryEnabled=" + isRecoveryEnabled() + ", hostname=" + sch.getHostName() + ", state=" + sch.getState());
       if (!sch.canBeRemoved()) {
-        throw new AmbariException("Could not delete hostcomponent from cluster"
+        throw new AmbariException("Current host component state prohibiting component removal."
             + ", clusterName=" + getClusterName()
             + ", serviceName=" + getServiceName()
             + ", componentName=" + getName()
             + ", recoveryEnabled=" + isRecoveryEnabled()
-            + ", hostname=" + sch.getHostName());
+            + ", hostname=" + sch.getHostName()
+            + ", state=" + sch.getState());
       }
       sch.delete(deleteMetaData);
       hostComponents.remove(hostname);

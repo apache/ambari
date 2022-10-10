@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.audit.AuditLoggerModule;
@@ -25,15 +25,17 @@ import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
-import org.apache.log4j.FileAppender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.impl.Log4jLoggerAdapter;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
+import ch.qos.logback.core.FileAppender;
 
 public class DatabaseConsistencyChecker {
   private static final Logger LOG = LoggerFactory.getLogger
@@ -123,15 +125,14 @@ public class DatabaseConsistencyChecker {
         DatabaseConsistencyCheckHelper.closeConnection();
         if (DatabaseConsistencyCheckHelper.getLastCheckResult().isErrorOrWarning()) {
           String ambariDBConsistencyCheckLog = "ambari-server-check-database.log";
-          if (LOG instanceof Log4jLoggerAdapter) {
-            org.apache.log4j.Logger dbConsistencyCheckHelperLogger = org.apache.log4j.Logger.getLogger(DatabaseConsistencyCheckHelper.class);
-            Enumeration appenders = dbConsistencyCheckHelperLogger.getAllAppenders();
-            while (appenders.hasMoreElements()) {
-              Object appender = appenders.nextElement();
-              if (appender instanceof FileAppender) {
-                ambariDBConsistencyCheckLog = ((FileAppender) appender).getFile();
-                break;
-              }
+          ch.qos.logback.classic.Logger dbConsistencyCheckHelperLogger =
+                  (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(DatabaseConsistencyCheckHelper.class);
+
+          for (Iterator<Appender<ILoggingEvent>> index = dbConsistencyCheckHelperLogger.iteratorForAppenders(); index.hasNext();){
+            Appender<ILoggingEvent> appender = index.next();
+            if (appender instanceof FileAppender) {
+              ambariDBConsistencyCheckLog = ((FileAppender) appender).getFile();
+              break;
             }
           }
           ambariDBConsistencyCheckLog = ambariDBConsistencyCheckLog.replace("//", "/");

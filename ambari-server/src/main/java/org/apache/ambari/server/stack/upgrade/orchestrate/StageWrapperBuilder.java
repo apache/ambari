@@ -31,7 +31,9 @@ import org.apache.ambari.server.stack.upgrade.ServerActionTask;
 import org.apache.ambari.server.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.stack.upgrade.Task;
 import org.apache.ambari.server.stack.upgrade.UpgradePack.ProcessingComponent;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Defines how to build stages for an Upgrade or Downgrade.
@@ -279,6 +281,11 @@ public abstract class StageWrapperBuilder {
 
     if (m_grouping.parallelScheduler != null) {
       int taskParallelism = m_grouping.parallelScheduler.maxDegreeOfParallelism;
+      String maxDegreeFromClusterEnv =
+              ctx.getResolver().getValueFromDesiredConfigurations(ConfigHelper.CLUSTER_ENV, "max_degree_parallelism");
+      if (StringUtils.isNotEmpty(maxDegreeFromClusterEnv) && StringUtils.isNumeric(maxDegreeFromClusterEnv)) {
+        taskParallelism = Integer.parseInt(maxDegreeFromClusterEnv);
+      }
       if (taskParallelism == ParallelScheduler.DEFAULT_MAX_DEGREE_OF_PARALLELISM) {
         taskParallelism = ctx.getDefaultMaxDegreeOfParallelism();
       }

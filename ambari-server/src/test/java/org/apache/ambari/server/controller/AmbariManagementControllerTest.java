@@ -7927,7 +7927,7 @@ public class AmbariManagementControllerTest {
       Assert.fail("Expect failure while deleting.");
     } catch (Exception ex) {
       Assert.assertTrue(ex.getMessage().contains(
-          "Host Component cannot be removed"));
+          "Current host component state prohibiting component removal"));
     }
 
     sc1.getServiceComponentHosts().values().iterator().next().setDesiredState(State.STARTED);

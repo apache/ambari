@@ -48,6 +48,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
@@ -55,6 +56,7 @@ import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
@@ -91,6 +93,7 @@ public class DatabaseConsistencyCheckHelper {
   private static Injector injector;
 
   private static MetainfoDAO metainfoDAO;
+  private static AlertDefinitionDAO alertDefinitionDAO;
   private static Connection connection;
   private static AmbariMetaInfo ambariMetaInfo;
   private static DBAccessor dbAccessor;
@@ -158,6 +161,7 @@ public class DatabaseConsistencyCheckHelper {
     closeConnection();
     connection = null;
     metainfoDAO = null;
+    alertDefinitionDAO = null;
     ambariMetaInfo = null;
     dbAccessor = null;
   }
@@ -189,6 +193,7 @@ public class DatabaseConsistencyCheckHelper {
         fixConfigGroupHostMappings();
         fixConfigGroupsForDeletedServices();
         fixConfigsSelectedMoreThanOnce();
+        fixAlertsForDeletedServices();
       }
       checkSchemaName();
       checkMySQLEngine();
@@ -201,6 +206,7 @@ public class DatabaseConsistencyCheckHelper {
       checkConfigGroupsHasServiceName();
       checkConfigGroupHostMapping(true);
       checkConfigGroupsForDeletedServices(true);
+      checkForStalealertdefs();
       LOG.info("******************************* Check database completed *******************************");
       return checkResult;
     }
@@ -216,7 +222,9 @@ public class DatabaseConsistencyCheckHelper {
     if (metainfoDAO == null) {
       metainfoDAO = injector.getInstance(MetainfoDAO.class);
     }
-
+    if (alertDefinitionDAO == null) {
+      alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
+    }
     MetainfoEntity schemaVersionEntity = metainfoDAO.findByKey(Configuration.SERVER_VERSION_KEY);
     String schemaVersion = null;
 
@@ -807,6 +815,52 @@ public class DatabaseConsistencyCheckHelper {
   }
 
   /**
+   * This method checks for stale alert definitions..
+   * */
+  static Map<String, String>  checkForStalealertdefs () {
+    Configuration conf = injector.getInstance(Configuration.class);
+    Map<String, String> alertInfo = new HashMap<>();
+    LOG.info("Checking to ensure there is no stale alert definitions");
+
+    ensureConnection();
+
+    String STALE_ALERT_DEFINITIONS = "select definition_name, service_name from alert_definition where service_name not in " +
+            "(select service_name from clusterservices) and service_name not in ('AMBARI')";
+
+    ResultSet rs = null;
+    Statement statement;
+
+    try {
+      statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+      rs = statement.executeQuery(STALE_ALERT_DEFINITIONS);
+      if (rs != null) {
+        while (rs.next()) {
+          alertInfo.put(rs.getString("definition_name"),rs.getString("service_name"));
+        }
+        if (!alertInfo.isEmpty()){
+          String alertInfoStr = "";
+          for (Map.Entry<String, String> entry : alertInfo.entrySet()) {
+            alertInfoStr = entry.getKey() + "(" + entry.getValue() + ")" ;
+          }
+          warning("You have Alerts that are not mapped with any services : {}.Run --auto-fix-database to fix "  +
+                  "this automatically. Please backup Ambari Server database before running --auto-fix-database.", alertInfoStr);
+        }
+      }
+    } catch (SQLException e) {
+      warning("Exception occurred during checking for stale alert definitions: ", e);
+    } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during  checking for stale alert definitions: ", e);
+        }
+      }
+    }
+    return alertInfo;
+  }
+
+  /**
    * Fix inconsistencies found by {@code checkForConfigsSelectedMoreThanOnce}
    * selecting latest one by selectedTimestamp
    */
@@ -1350,6 +1404,55 @@ public class DatabaseConsistencyCheckHelper {
     }
   }
 
+  @Transactional
+  static void fixAlertsForDeletedServices() {
+
+    Configuration conf = injector.getInstance(Configuration.class);
+
+    LOG.info("fixAlertsForDeletedServices stale alert definitions for deleted services");
+
+    ensureConnection();
+
+    String SELECT_STALE_ALERT_DEFINITIONS = "select definition_id from alert_definition where service_name not in " +
+            "(select service_name from clusterservices) and service_name not in ('AMBARI')";
+
+    int recordsCount = 0;
+    Statement statement = null;
+    ResultSet rs = null;
+    List<Integer> alertIds = new ArrayList<Integer>();
+    try {
+      statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+      rs = statement.executeQuery(SELECT_STALE_ALERT_DEFINITIONS);
+      while (rs.next()) {
+        alertIds.add(rs.getInt("definition_id"));
+      }
+
+    } catch (SQLException e) {
+      warning("Exception occurred during fixing stale alert definitions: ", e);
+    } finally {
+      if (statement != null) {
+        try {
+          statement.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during fixing stale alert definitions: ", e);
+        }
+      }
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during fixing stale alert definitions: ", e);
+        }
+      }
+    }
+
+    for(Integer alertId : alertIds) {
+      final AlertDefinitionEntity entity = alertDefinitionDAO.findById(alertId.intValue());
+      alertDefinitionDAO.remove(entity);
+    }
+    warning("fixAlertsForDeletedServices - {}  Stale alerts were deleted", alertIds.size());
+
+  }
   /**
    * Fix inconsistencies found by @checkConfigGroupHostMapping
    */

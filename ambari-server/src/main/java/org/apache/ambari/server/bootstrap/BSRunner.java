@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,18 +109,7 @@ class BSRunner extends Thread {
   }
 
   private String createHostString(List<String> list) {
-    StringBuilder ret = new StringBuilder();
-    if (list == null) {
-      return "";
-    }
-
-    int i = 0;
-    for (String host: list) {
-      ret.append(host);
-      if (i++ != list.size()-1)
-        ret.append(",");
-    }
-    return ret.toString();
+    return list != null ? String.join(",", list) : StringUtils.EMPTY;
   }
 
   /** Create request id dir for each bootstrap call **/
@@ -141,11 +132,11 @@ class BSRunner extends Thread {
   }
 
   private void writeSshKeyFile(String data) throws IOException {
-    FileUtils.writeStringToFile(sshKeyFile, data);
+    FileUtils.writeStringToFile(sshKeyFile, data, Charset.defaultCharset());
   }
 
   private void writePasswordFile(String data) throws IOException {
-    FileUtils.writeStringToFile(passwordFile, data);
+    FileUtils.writeStringToFile(passwordFile, data, Charset.defaultCharset());
   }
 
   /**
@@ -300,8 +291,10 @@ class BSRunner extends Thread {
         String outMesg = "";
         String errMesg = "";       
         try {
-          outMesg = FileUtils.readFileToString(new File(bootStrapOutputFilePath));
-          errMesg = FileUtils.readFileToString(new File(bootStrapErrorFilePath));
+          outMesg = FileUtils
+                  .readFileToString(new File(bootStrapOutputFilePath), Charset.defaultCharset());
+          errMesg = FileUtils
+                  .readFileToString(new File(bootStrapErrorFilePath), Charset.defaultCharset());
         } catch(IOException io) {
           LOG.info("Error in reading files ", io);
         }

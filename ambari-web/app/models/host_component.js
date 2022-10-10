@@ -573,7 +573,23 @@ App.HostComponentActionMap = {
         action: 'openNameNodeFederationWizard',
         label: Em.I18n.t('admin.nameNodeFederation.button.enable'),
         cssClass: 'icon icon-sitemap',
-        disabled: !App.get('isHaEnabled')
+        disabled: !App.get('isHaEnabled') || App.get('allHostNames.length') < 4
+      },
+      UPDATE_REPLICATION: {
+        action: 'updateHBaseReplication',
+        customCommand: 'UPDATE_REPLICATION',
+        context: Em.I18n.t('services.service.actions.run.updateHBaseReplication.context'),
+        label: Em.I18n.t('services.service.actions.run.updateHBaseReplication.label'),
+        cssClass: 'glyphicon glyphicon-refresh',
+        disabled: false
+      },
+      STOP_REPLICATION: {
+        action: 'stopHBaseReplication',
+        customCommand: 'STOP_REPLICATION',
+        context: Em.I18n.t('services.service.actions.run.stopHBaseReplication.context'),
+        label: Em.I18n.t('services.service.actions.run.stopHBaseReplication.label'),
+        cssClass: 'glyphicon glyphicon-refresh',
+        disabled: false
       }
     };
   },

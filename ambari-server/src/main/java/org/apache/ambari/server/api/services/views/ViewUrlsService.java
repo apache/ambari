@@ -38,10 +38,7 @@ import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.controller.ViewUrlResponseSwagger;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.http.HttpStatus;
-
-import com.google.common.base.Optional;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -57,7 +54,7 @@ import io.swagger.annotations.ApiResponses;
 @Api(value = "Views", description = "Endpoint for view specific operations")
 public class ViewUrlsService extends BaseService {
 
-  public static final String VIEW_URL_INFO_TYPE = "org.apache.ambari.server.controller.ViewUrlResponseSwagger";
+  private static final String VIEW_URL_INFO_TYPE = "org.apache.ambari.server.controller.ViewUrlResponseSwagger";
 
   /**
    * Get the list of all registered view URLs
@@ -85,7 +82,7 @@ public class ViewUrlsService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
   })
   public Response getViewUrls(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createViewUrlResource(Optional.absent()));
+    return handleRequest(headers, null, ui, Request.Type.GET, createViewUrlResource(null));
   }
 
   /**
@@ -95,8 +92,7 @@ public class ViewUrlsService extends BaseService {
    * @param ui
    * @param urlName
    * @return
-   * @throws AuthorizationException
-     */
+   */
   @POST
   @Path("{urlName}")
   @Produces(MediaType.TEXT_PLAIN)
@@ -111,8 +107,8 @@ public class ViewUrlsService extends BaseService {
           @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response createUrl(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                @PathParam("urlName") String urlName) throws AuthorizationException {
-    return handleRequest(headers, body, ui, Request.Type.POST, createViewUrlResource(Optional.of(urlName)));
+                            @PathParam("urlName") String urlName) {
+    return handleRequest(headers, body, ui, Request.Type.POST, createViewUrlResource(urlName));
   }
 
   /**
@@ -122,8 +118,7 @@ public class ViewUrlsService extends BaseService {
    * @param ui
    * @param urlName
    * @return
-   * @throws AuthorizationException
-     */
+   */
   @PUT
   @Path("{urlName}")
   @Produces(MediaType.TEXT_PLAIN)
@@ -141,8 +136,8 @@ public class ViewUrlsService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response updateUrl(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                            @PathParam("urlName") String urlName) throws AuthorizationException {
-    return handleRequest(headers, body, ui, Request.Type.PUT, createViewUrlResource(Optional.of(urlName)));
+                            @PathParam("urlName") String urlName) {
+    return handleRequest(headers, body, ui, Request.Type.PUT, createViewUrlResource(urlName));
   }
 
   /**
@@ -151,7 +146,6 @@ public class ViewUrlsService extends BaseService {
    * @param ui
    * @param urlName
    * @return
-   * @throws AuthorizationException
    */
   @GET
   @Path("{urlName}")
@@ -169,8 +163,8 @@ public class ViewUrlsService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
   })
   public Response getUrl(@Context HttpHeaders headers, @Context UriInfo ui,
-                         @PathParam("urlName") String urlName) throws AuthorizationException {
-    return handleRequest(headers, null, ui, Request.Type.GET, createViewUrlResource(Optional.of(urlName)));
+                         @PathParam("urlName") String urlName) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createViewUrlResource(urlName));
   }
 
   /**
@@ -180,8 +174,7 @@ public class ViewUrlsService extends BaseService {
    * @param ui
    * @param urlName
    * @return
-   * @throws AuthorizationException
-     */
+   */
   @DELETE
   @Path("{urlName}")
   @Produces(MediaType.TEXT_PLAIN)
@@ -194,8 +187,8 @@ public class ViewUrlsService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response deleteUrl(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                            @PathParam("urlName") String urlName) throws AuthorizationException {
-    return handleRequest(headers, body, ui, Request.Type.DELETE, createViewUrlResource(Optional.of(urlName)));
+                            @PathParam("urlName") String urlName) {
+    return handleRequest(headers, body, ui, Request.Type.DELETE, createViewUrlResource(urlName));
   }
 
   // ----- helper methods ----------------------------------------------------
@@ -207,7 +200,7 @@ public class ViewUrlsService extends BaseService {
    *
    * @return a view URL resource instance
    */
-  private ResourceInstance createViewUrlResource(Optional<String> urlName) {
-    return createResource(Resource.Type.ViewURL,Collections.singletonMap(Resource.Type.ViewURL, urlName.isPresent()?urlName.get().toString():null));
+  private ResourceInstance createViewUrlResource(final String urlName) {
+    return createResource(Resource.Type.ViewURL, Collections.singletonMap(Resource.Type.ViewURL, urlName));
   }
 }

@@ -102,6 +102,7 @@ public class BlueprintImpl implements Blueprint {
     this.setting = setting;
   }
 
+  @Override
   public String getName() {
     return name;
   }
@@ -114,6 +115,7 @@ public class BlueprintImpl implements Blueprint {
     return stack.getVersion();
   }
 
+  @Override
   public SecurityConfiguration getSecurity() {
     return security;
   }
@@ -330,6 +332,7 @@ public class BlueprintImpl implements Blueprint {
     validator.validateTopology();
   }
 
+  @Override
   public BlueprintEntity toEntity() {
 
     BlueprintEntity entity = new BlueprintEntity();
@@ -617,6 +620,7 @@ public class BlueprintImpl implements Blueprint {
   /**
    * A config type is valid if there are services related to except cluster-env and global.
    */
+  @Override
   public boolean isValidConfigType(String configType) {
     if (ConfigHelper.CLUSTER_ENV.equals(configType) || "global".equals(configType)) {
       return true;
@@ -648,6 +652,7 @@ public class BlueprintImpl implements Blueprint {
     return result;
   }
 
+  @Override
   public List<RepositorySetting> getRepositorySettings(){
     return repoSettings;
   }

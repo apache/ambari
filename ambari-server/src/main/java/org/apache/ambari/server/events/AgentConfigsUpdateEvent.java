@@ -64,6 +64,7 @@ public class AgentConfigsUpdateEvent extends STOMPHostEvent implements Hashable 
     return hash;
   }
 
+  @Override
   public void setHash(String hash) {
     this.hash = hash;
   }

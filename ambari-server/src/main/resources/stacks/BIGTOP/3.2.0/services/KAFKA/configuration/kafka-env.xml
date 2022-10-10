@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+    <property>
+        <name>kafka_user</name>
+        <display-name>Kafka User</display-name>
+        <value>kafka</value>
+        <property-type>USER</property-type>
+        <description />
+        <value-attributes>
+            <type>user</type>
+            <overridable>false</overridable>
+            <user-groups>
+                <property>
+                    <type>cluster-env</type>
+                    <name>user_group</name>
+                </property>
+            </user-groups>
+        </value-attributes>
+        <on-ambari-upgrade add="false" />
+    </property>
+    <property>
+        <name>kafka_keytab</name>
+        <description>Kafka keytab path</description>
+        <on-ambari-upgrade add="false" />
+    </property>
+    <property>
+        <name>kafka_principal_name</name>
+        <description>Kafka principal name</description>
+        <property-type>KERBEROS_PRINCIPAL</property-type>
+        <on-ambari-upgrade add="false" />
+    </property>
+    <property>
+        <name>kafka_log_dir</name>
+        <display-name>Kafka Log directory</display-name>
+        <value>/var/log/kafka</value>
+        <description />
+        <on-ambari-upgrade add="false" />
+    </property>
+    <property>
+        <name>kafka_pid_dir</name>
+        <value>/var/run/kafka</value>
+        <display-name>Kafka PID dir</display-name>
+        <description />
+        <value-attributes>
+            <type>directory</type>
+            <editable-only-at-install>true</editable-only-at-install>
+            <overridable>false</overridable>
+        </value-attributes>
+        <on-ambari-upgrade add="false" />
+    </property>
+    <property>
+        <name>kafka_user_nofile_limit</name>
+        <value>128000</value>
+        <description>Max open files limit setting for KAFKA user.</description>
+        <on-ambari-upgrade add="false" />
+    </property>
+    <property>
+        <name>kerberos_merge_advertised_listeners</name>
+        <value>true</value>
+        <value-attributes>
+            <type>boolean</type>
+        </value-attributes>
+        <description>Merge default Ambari-managed "advertised.listeners" value with user defined value.</description>
+        <on-ambari-upgrade add="true" />
+    </property>
+    <property>
+        <name>kafka_user_nproc_limit</name>
+        <value>65536</value>
+        <description>Max number of processes limit setting for KAFKA user.</description>
+        <on-ambari-upgrade add="false" />
+    </property>
+
+    <property>
+        <name>content</name>
+        <display-name>kafka-env template</display-name>
+        <description>This is the jinja template for kafka-env.sh file</description>
+        <value>
+  #!/bin/bash
+  
+  # Set KAFKA specific environment variables here.
+  
+  # The java implementation to use.
+  export JAVA_HOME={{java64_home}}
+  export PATH=$PATH:$JAVA_HOME/bin
+  export PID_DIR={{kafka_pid_dir}}
+  export LOG_DIR={{kafka_log_dir}}
+  {% if kerberos_security_enabled or kafka_other_sasl_enabled %}
+  export KAFKA_OPTS="-Djavax.security.auth.useSubjectCredsOnly=false {{kafka_kerberos_params}}"
+  {% else %}
+  export KAFKA_OPTS={{kafka_kerberos_params}}
+  {% endif %}
+  # Add kafka sink to classpath and related depenencies
+  if [ -e "/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar" ]; then
+    export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar
+    export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/lib/*
+  fi
+  {% if stack_supports_kafka_env_include_ranger_script %}
+  if [ -f /etc/kafka/conf/kafka-ranger-env.sh ]; then
+  . /etc/kafka/conf/kafka-ranger-env.sh
+  fi
+  {% else %}
+        export CLASSPATH=$CLASSPATH:{{conf_dir}}
+  {% endif %}
+      </value>
+        <value-attributes>
+            <type>content</type>
+        </value-attributes>
+        <on-ambari-upgrade add="false" />
+    </property>
+</configuration>

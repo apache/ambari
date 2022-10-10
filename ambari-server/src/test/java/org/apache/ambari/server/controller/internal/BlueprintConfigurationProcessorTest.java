@@ -2792,6 +2792,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Map<String, String> typeProps = new HashMap<>();
     typeProps.put("hbase.zookeeper.quorum", "localhost");
     properties.put("hbase-site", typeProps);
+    Map<String, String> livyConf = new HashMap<>();
+    livyConf.put("livy.server.recovery.state-store.url", "/livy2-recovery");
+    properties.put("livy2-conf", livyConf);
+    Map<String, String> originalLivyConf = ImmutableMap.copyOf(livyConf);
 
     Configuration clusterConfig = new Configuration(properties, emptyMap());
 
@@ -2827,7 +2831,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
-    String updatedVal = topology.getConfiguration().getFullProperties().get("hbase-site").get("hbase.zookeeper.quorum");
+    Map<String, Map<String, String>> fullProperties = topology.getConfiguration().getFullProperties();
+    String updatedVal = fullProperties.get("hbase-site").get("hbase.zookeeper.quorum");
     String[] hosts = updatedVal.split(",");
 
     Collection<String> expectedHosts = new HashSet<>();
@@ -2841,6 +2846,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       assertTrue(expectedHosts.contains(host));
       expectedHosts.remove(host);
     }
+
+    assertEquals(originalLivyConf, fullProperties.get("livy2-conf"));
   }
 
   @Test

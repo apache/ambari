@@ -18,31 +18,31 @@
 -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
     <name>Ambari</name>
     <description>
       Ambari is a web-based tool for performing installation, management, and monitoring of Apache Hadoop clusters. The stack of components that are currently supported by
       Ambari includes Falcon, HBase, HCatalog, HDFS, Hive, MapReduce, Oozie, Pig, Scoop, Storm, Templeton, Tez, YARN and Zookeeper.
     </description>
-    <url>http://ambari.apache.org</url>
+    <url>https://ambari.apache.org</url>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.apache.ambari</groupId>
-    <version>2.7.3</version>
+    <version>2.7.6</version>
     <artifactId>ambari</artifactId>
     <packaging>pom</packaging>
 
     <properties>
         <buildtype>test</buildtype>
         <BUILD_NUMBER>${env.BUILD_NUMBER}</BUILD_NUMBER>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <package.prefix>/usr</package.prefix>
         <package.conf.dir>/etc/ambari</package.conf.dir>
         <package.log.dir>/var/log/ambari</package.log.dir>
         <package.pid.dir>/var/run/ambari</package.pid.dir>
         <package.release>1</package.release>
         <package.type>tar.gz</package.type>
-        <ambari.version>2.2.1</ambari.version>
+        <ambari.version>2.7.6.0.0</ambari.version>
         <final.name>${project.artifactId}-${ambari.version}</final.name>
     </properties>
 
@@ -55,15 +55,15 @@
     </licenses>
 
     <scm>
-      <connection>scm:svn:http://svn.apache.org/repos/asf/incubator/ambari</connection>
-      <developerConnection>scm:svn:https://svn.apache.org/repos/asf/incubator/ambari</developerConnection>
+      <connection>scm:git:https://github.com/apache/ambari.git</connection>
+      <developerConnection>scm:git:https://github.com/apache/ambari.git</developerConnection>
       <tag>HEAD</tag>
-      <url>http://svn.apache.org/repos/asf/incubator/ambari</url>
+      <url>https://github.com/apache/ambari.git</url>
     </scm>
 
     <issueManagement>
         <system>Jira</system>
-        <url>http://issues.apache.org/jira/browse/AMBARI</url>
+        <url>https://issues.apache.org/jira/browse/AMBARI</url>
     </issueManagement>
 
     <mailingLists>
@@ -74,7 +74,7 @@
             <unsubscribe>mailto:user-unsubscribe@ambari.apache.org
             </unsubscribe>
             <post>mailto:user@ambari.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/ambari-user/</archive>
+            <archive>https://mail-archives.apache.org/mod_mbox/ambari-user/</archive>
         </mailingList>
         <mailingList>
             <name>Development list</name>
@@ -83,7 +83,7 @@
             <unsubscribe>mailto:dev-unsubscribe@ambari.apache.org
             </unsubscribe>
             <post>mailto:dev@ambari.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/ambari-dev/</archive>
+            <archive>https://mail-archives.apache.org/mod_mbox/ambari-dev/</archive>
         </mailingList>
         <mailingList>
             <name>JIRA list</name>
@@ -92,7 +92,7 @@
             <unsubscribe>mailto:issues-unsubscribe@ambari.apache.org
             </unsubscribe>
             <post>mailto:issues@ambari.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/ambari-issues/</archive>
+            <archive>https://mail-archives.apache.org/mod_mbox/ambari-issues/</archive>
         </mailingList>
         <mailingList>
             <name>Review Board list</name>
@@ -101,7 +101,7 @@
             <unsubscribe>mailto:reviews-unsubscribe@ambari.apache.org
             </unsubscribe>
             <post>mailto:reviews@ambari.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/ambari-reviews/</archive>
+            <archive>https://mail-archives.apache.org/mod_mbox/ambari-reviews/</archive>
         </mailingList>
         <mailingList>
             <name>Commit list</name>
@@ -110,7 +110,7 @@
             <unsubscribe>mailto:commits-unsubscribe@ambari.apache.org
             </unsubscribe>
             <post>mailto:commits@ambari.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/ambari-commits/</archive>
+            <archive>https://mail-archives.apache.org/mod_mbox/ambari-commits/</archive>
         </mailingList>
     </mailingLists>
 
@@ -203,10 +203,10 @@
             <email>aonishuk@apache.org</email>
             <timezone>+2</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks
+                Cloudera
             </organization>
         </developer>
         <developer>
@@ -373,7 +373,7 @@
                 Hortonworks
             </organization>
         </developer>
-        <developer>            
+        <developer>
             <id>ddas</id>
             <name>Devaraj Das</name>
             <email>ddas@hortonworks.com</email>
@@ -382,8 +382,8 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks                
-            </organization>            
+                Hortonworks
+            </organization>
         </developer>
         <developer>
             <id>dgergely</id>
@@ -489,7 +489,7 @@
                 <role>Committer</role>
             </roles>
             <organization>
-                
+
             </organization>
         </developer>
         <developer>
@@ -522,12 +522,12 @@
             <email>hapylestat@apache.org</email>
             <timezone>+2</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks
+                Cloudera
             </organization>
-        </developer>        
+        </developer>
         <developer>
             <id>hitesh</id>
             <name>Hitesh Shah</name>
@@ -537,7 +537,7 @@
                 <role>PMC</role>
             </roles>
             <organization>
-            </organization>            
+            </organization>
         </developer>
         <developer>
             <id>ishanbha</id>
@@ -560,8 +560,8 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                WANdisco                
-            </organization>            
+                WANdisco
+            </organization>
         </developer>
         <developer>
             <id>jaoki</id>
@@ -608,8 +608,8 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks                
-            </organization>            
+                Hortonworks
+            </organization>
         </developer>
         <developer>
             <id>jluniya</id>
@@ -620,7 +620,7 @@
                 <role>PMC Chair</role>
             </roles>
             <organization>
-                Hortonworks
+                Cloudera
             </organization>
         </developer>
         <developer>
@@ -678,8 +678,8 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                IBM                
-            </organization>            
+                IBM
+            </organization>
         </developer>
         <developer>
             <id>lavjain</id>
@@ -726,8 +726,8 @@
                 <role>Committer</role>
             </roles>
             <organization>
-                Hortonworks                
-            </organization>            
+                Hortonworks
+            </organization>
         </developer>
         <developer>
             <id>matyix</id>
@@ -954,9 +954,9 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks                
-            </organization>            
-        </developer>        
+                Hortonworks
+            </organization>
+        </developer>
         <developer>
             <id>reznor</id>
             <name>Varun Kapoor</name>
@@ -966,8 +966,8 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                - 
-            </organization>            
+                -
+            </organization>
         </developer>
         <developer>
             <id>rkamath</id>
@@ -1167,7 +1167,7 @@
             <roles>
                 <role>PMC</role>
             </roles>
-            <organization> 
+            <organization>
             </organization>
         </developer>
         <developer>
@@ -1228,7 +1228,7 @@
             <organization>
                 Hortonworks
             </organization>
-        </developer>        
+        </developer>
         <developer>
             <id>vgogate</id>
             <name>Vitthal Suhas Gogate</name>
@@ -1239,7 +1239,7 @@
             </roles>
             <organization>
                 Pivotal
-            </organization>           
+            </organization>
         </developer>
         <developer>
             <id>vinodkv</id>
@@ -1250,9 +1250,9 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks                
+                Hortonworks
             </organization>
-        </developer>       
+        </developer>
         <developer>
             <id>vishalsuvagia</id>
             <name>Vishal Suvagia</name>
@@ -1288,7 +1288,7 @@
             <organization>
                 Hortonworks
             </organization>
-        </developer> 
+        </developer>
         <developer>
             <id>yusaku</id>
             <name>Yusaku Sako</name>
@@ -1310,6 +1310,30 @@
                 <role>Committer</role>
             </roles>
             <organization>
+            </organization>
+        </developer>
+        <developer>
+            <id>payert</id>
+            <name>Tamas Payer</name>
+            <email>payert@apache.org</email>
+            <timezone>+1</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Cloudera
+            </organization>
+        </developer>
+        <developer>
+            <id>szabi</id>
+            <name>Szabolcs Beki</name>
+            <email>szabi@apache.org</email>
+            <timezone>+1</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                Cloudera
             </organization>
         </developer>
       </developers>
@@ -1630,11 +1654,43 @@
           <name>Hayat Behlim</name>
           <organization></organization>
         </contributor>
+        <contributor>
+          <name>Szilard Antal</name>
+          <organization>Cloudera</organization>
+        </contributor>
+        <contributor>
+          <name>Peter Eberhardt</name>
+          <organization>Cloudera</organization>
+        </contributor>
+        <contributor>
+          <name>Mariann Varga-Vakula</name>
+          <organization>Cloudera</organization>
+        </contributor>
+        <contributor>
+          <name>Dmytro Vitiuk</name>
+          <organization>Cloudera</organization>
+        </contributor>
+        <contributor>
+          <name>Dmytro Pidhaiets</name>
+          <organization>Cloudera</organization>
+        </contributor>
+        <contributor>
+          <name>David Sutta</name>
+          <organization>Cloudera</organization>
+        </contributor>
+        <contributor>
+          <name>Szabolcs Borbely</name>
+          <organization>Cloudera</organization>
+        </contributor>
+        <contributor>
+          <name>Imre Sos</name>
+          <organization>Cloudera</organization>
+        </contributor>
       </contributors>
 
     <organization>
         <name>Apache Software Foundation</name>
-        <url>http://www.apache.org/</url>
+        <url>https://www.apache.org/</url>
     </organization>
 
     <build>
@@ -1692,7 +1748,7 @@
         </plugin>
       </plugins>
     </reporting>
-    
+
   <distributionManagement>
     <site>
       <id>apache-website</id>
