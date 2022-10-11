@@ -59,7 +59,7 @@ public class ApiStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/v1")
-      .setAllowedOrigins("*")
+      .setAllowedOriginPatterns("*")
       .withSockJS().setHeartbeatTime(configuration.getAPIHeartbeatInterval());
   }
 
