@@ -674,7 +674,7 @@ class HdfsResourceProvider(Provider):
     else:
       path = path
       
-    return re.sub("[/]+", "/", path)
+    return re.sub("[/]+", "/", path).replace(" ", "%20")
 
   @staticmethod
   def get_ignored_resources_list(hdfs_resource_ignore_file):
@@ -687,7 +687,7 @@ class HdfsResourceProvider(Provider):
     hdfs_resources_to_ignore = []
     for hdfs_resource_to_ignore in content.split("\n"):
       hdfs_resources_to_ignore.append(HdfsResourceProvider.parse_path(hdfs_resource_to_ignore))
-            
+
     return hdfs_resources_to_ignore
     
   def action_delayed(self, action_name):
