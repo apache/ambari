@@ -1,8 +1,8 @@
 {
   "BIGTOP": {
     "stack_selector": [
-      "bigtop-select",
-      "/usr/lib/bigtop-select/bigtop-select",
+      "distro-select",
+      "/usr/lib/bigtop-select/distro-select",
       "bigtop-select"
     ],
     "conf_selector": [
