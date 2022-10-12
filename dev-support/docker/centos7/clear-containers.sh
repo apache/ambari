@@ -15,6 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+echo -e "\033[32mStopping container ambari-rpm-build and maven process\033[0m"
+if [ `docker inspect --format '{{.State.Running}}' ambari-rpm-build` == true ];then
+  docker exec ambari-rpm-build bash -c "pkill -KILL -f maven"
+  docker stop ambari-rpm-build
+fi
+
 echo -e "\033[32mRemoving container ambari-server\033[0m"
 docker rm -f ambari-server
 

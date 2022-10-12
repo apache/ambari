@@ -573,7 +573,7 @@ App.HostComponentActionMap = {
         action: 'openNameNodeFederationWizard',
         label: Em.I18n.t('admin.nameNodeFederation.button.enable'),
         cssClass: 'icon icon-sitemap',
-        disabled: !App.get('isHaEnabled')
+        disabled: !App.get('isHaEnabled') || App.get('allHostNames.length') < 4
       },
       UPDATE_REPLICATION: {
         action: 'updateHBaseReplication',
