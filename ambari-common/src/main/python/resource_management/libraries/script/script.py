@@ -892,9 +892,6 @@ class Script(object):
                           str(config['clusterLevelParams']['stack_version']))
       reload_windows_env()
 
-    from resource_management.libraries.functions import stack_select
-    stack_select.setup_stack_symlinks(Script.get_stack_version())
-
   def check_package_condition(self, package):
     condition = package['condition']
 

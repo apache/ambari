@@ -242,22 +242,6 @@ def get_packages(scope, service_name = None, component_name = None):
 
   return packages
 
-def setup_stack_symlinks(version):
-  """
-  Invokes <stack-selector-tool> set all against a calculated fully-qualified, "normalized" version based on a
-  stack version, such as "2.3". This should always be called after a component has been
-  installed to ensure that all HDP pointers are correct. The stack upgrade logic does not
-  interact with this since it's done via a custom command and will not trigger this hook.
-  :return:
-  """
-  # get the packages which the stack-select tool should be used on
-  stack_packages = get_packages(PACKAGE_SCOPE_INSTALL)
-  if stack_packages is None:
-    return
-
-  # On parallel command execution this should be executed by a single process at a time.
-  for package in stack_packages:
-    select(package, version)
 
 def select_all(version_to_select):
   """

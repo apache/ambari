@@ -32,6 +32,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
+from resource_management.libraries.functions.format import format
 
 # server configurations
 config = Script.get_config()
@@ -58,9 +59,6 @@ hostname = config['agentLevelParams']['hostname']
 
 # default kafka parameters
 kafka_home = '/usr/lib/kafka'
-kafka_start_cmd = kafka_home + "/bin/kafka-server-start.sh " + kafka_home + "/config/server.properties"
-kafka_stop_cmd = kafka_home + "/bin/kafka-server-stop.sh " + kafka_home + "/config/server.properties"
-kafka_bin = kafka_home + '/bin/kafka'
 conf_dir = "/etc/kafka/conf"
 limits_conf_dir = "/etc/security/limits.d"
 
@@ -75,8 +73,9 @@ kafka_delete_topic_enable = default('/configurations/kafka-broker/delete.topic.e
 # parameters for 2.2+
 if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
   kafka_home = os.path.join(stack_root,  "current", "kafka-broker")
-  kafka_bin = os.path.join(kafka_home, "bin", "kafka")
-  conf_dir = os.path.join(kafka_home, "config")
+
+kafka_start_cmd = format('{kafka_home}/bin/kafka-server-start.sh {conf_dir}/server.properties')
+kafka_stop_cmd = format('{kafka_home}/bin/kafka-server-stop.sh {conf_dir}/server.properties')
 
 kafka_user = config['configurations']['kafka-env']['kafka_user']
 kafka_log_dir = config['configurations']['kafka-env']['kafka_log_dir']

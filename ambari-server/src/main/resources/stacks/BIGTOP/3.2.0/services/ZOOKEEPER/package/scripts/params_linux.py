@@ -55,7 +55,6 @@ if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE,
   zk_home = format("{stack_root}/current/{component_directory}")
   zk_bin = format("{stack_root}/current/{component_directory}/bin")
   zk_cli_shell = format("{stack_root}/current/{component_directory}/bin/zkCli.sh")
-  config_dir = status_params.config_dir
 
 
 zk_user = config['configurations']['zookeeper-env']['zk_user']

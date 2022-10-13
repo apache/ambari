@@ -54,7 +54,4 @@ else:
   stack_version_formatted = format_stack_version(stack_version_unformatted)
   stack_root = Script.get_stack_root()
 
-  config_dir = "/etc/zookeeper/conf"
-  if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
-    config_dir = format("{stack_root}/current/{component_directory}/conf")
 stack_name = default("/clusterLevelParams/stack_name", None)

@@ -26,7 +26,8 @@
     "karma-ng-html2js-preprocessor": "^1.0.0",
     "karma-phantomjs-launcher": "^1.0.4",
     "phantomjs": "^2.1.7",
-    "protractor": "1.0.0"
+    "protractor": "1.0.0",
+    "bower-nexus3-resolver" : "*"
   },
   "scripts": {
     "prestart": "npm install",
