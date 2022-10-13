@@ -44,7 +44,6 @@ from resource_management.libraries.functions import StackFeature
 
 def _get_cmd(command, package, version):
   conf_selector_path = stack_tools.get_stack_tool_path(stack_tools.CONF_SELECTOR_NAME)
-  # return ('ambari-python-wrap', conf_selector_path, command, '--package', package, '--stack-version', version, '--conf-version', '0')
   return ('ambari-python-wrap', conf_selector_path, command, '--package', package, '--stack-version', version)
 
 def _valid(stack_name, package, ver):
