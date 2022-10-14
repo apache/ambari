@@ -247,6 +247,7 @@ export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS -Xms{{regionserver_heap
 export HBASE_OPTS="$HBASE_OPTS -Djava.security.auth.login.config={{client_jaas_config_file}} {{zk_security_opts}}"
 export HBASE_MASTER_OPTS="$HBASE_MASTER_OPTS -Djava.security.auth.login.config={{master_jaas_config_file}} -Djavax.security.auth.useSubjectCredsOnly=false"
 export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS -Djava.security.auth.login.config={{regionserver_jaas_config_file}} -Djavax.security.auth.useSubjectCredsOnly=false"
+export HBASE_SERVER_JAAS_OPTS="-Djava.security.auth.login.config={{client_jaas_config_file}}"
 {% endif %}
 
 # HBase off-heap MaxDirectMemorySize
