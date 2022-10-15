@@ -77,7 +77,7 @@ class KafkaBroker(Script):
         kafka_kinit_cmd = format("{kinit_path_local} -kt {kafka_keytab_path} {kafka_jaas_principal};")
         Execute(kafka_kinit_cmd, user=params.kafka_user)
 
-    daemon_cmd = format('source {params.conf_dir}/kafka-env.sh ; {params.kafka_start_cmd}>>/dev/null 2>>{params.kafka_err_file} & echo $!>{params.kafka_pid_file}')
+    daemon_cmd = format('source {params.conf_dir}/kafka-env.sh ; {params.kafka_start_cmd} >>/dev/null 2>>{params.kafka_err_file} & echo $!>{params.kafka_pid_file}')
     no_op_test = format('ls {params.kafka_pid_file}>/dev/null 2>&1 && ps -p `cat {params.kafka_pid_file}`>/dev/null 2>&1')
     try:
       Execute(daemon_cmd,

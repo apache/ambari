@@ -60,8 +60,6 @@ def format_stack_version(value):
     if strip_dots.isdigit():
       normalized = _normalize(str(value))
       if len(normalized) == 2:
-        normalized = normalized + [0, 0]
-      elif len(normalized) == 3:
         normalized = normalized + [0, ]
       normalized = [str(x) for x in normalized]   # need to convert each number into a string
       return ".".join(normalized)
