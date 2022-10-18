@@ -141,11 +141,13 @@ hostname = config['agentLevelParams']['hostname']
 # hadoop default parameters
 hadoop_home = status_params.hadoop_home
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
+hadoop_hdfs_home = stack_select.get_hadoop_dir("hdfs_home")
+hadoop_mapred_home = stack_select.get_hadoop_dir("mapred_home")
+hadoop_yarn_home = stack_select.get_hadoop_dir("yarn_home")
 hadoop_bin = stack_select.get_hadoop_dir("sbin")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-hadoop_yarn_home = '/usr/lib/hadoop-yarn'
 hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
 mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
 yarn_bin = "/usr/lib/hadoop-yarn/sbin"
@@ -166,7 +168,7 @@ if stack_supports_ru:
     yarn_role_root = YARN_SERVER_ROLE_DIRECTORY_MAP[command_role]
 
   # defaults set to current based on role
-  hadoop_mapr_home = format("{stack_root}/current/{mapred_role_root}")
+  hadoop_mapred_home = format("{stack_root}/current/{mapred_role_root}")
   hadoop_yarn_home = format("{stack_root}/current/{yarn_role_root}")
 
   # try to render the specific version
@@ -174,20 +176,8 @@ if stack_supports_ru:
   if version is None:
     version = default("/commandParams/version", None)
 
-
-  if version is not None:
-    hadoop_mapr_versioned_home = format("{stack_root}/{version}/hadoop-mapreduce")
-    hadoop_yarn_versioned_home = format("{stack_root}/{version}/hadoop-yarn")
-
-    if sudo.path_isdir(hadoop_mapr_versioned_home):
-      hadoop_mapr_home = hadoop_mapr_versioned_home
-
-    if sudo.path_isdir(hadoop_yarn_versioned_home):
-      hadoop_yarn_home = hadoop_yarn_versioned_home
-
-
-  hadoop_mapred2_jar_location = hadoop_mapr_home
-  mapred_bin = format("{hadoop_mapr_home}/sbin")
+  hadoop_mapred2_jar_location = hadoop_mapred_home
+  mapred_bin = format("{hadoop_mapred_home}/sbin")
 
   yarn_bin = format("{hadoop_yarn_home}/sbin")
   yarn_container_bin = format("{hadoop_yarn_home}/bin")
