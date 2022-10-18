@@ -172,7 +172,7 @@ def get_hadoop_conf_dir():
     if version is None:
       version = default("/commandParams/version", None)
 
-    hadoop_conf_dir = os.path.join(stack_root, str(version), "hadoop", "conf")
+    hadoop_conf_dir = os.path.join(stack_root, str(version), "usr/lib", "hadoop", "conf")
     if version is None or sudo.path_isdir(hadoop_conf_dir) is False:
       hadoop_conf_dir = os.path.join(stack_root, "current", "hadoop-client", "conf")
 
