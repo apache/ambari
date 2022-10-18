@@ -381,6 +381,30 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>mapreduce.map.env</name>
+    <value>HADOOP_MAPRED_HOME={{hadoop_mapred_home}}</value>
+    <description>
+      User added environment variables for the task processes, specified as a comma separated list.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>mapreduce.reduce.env</name>
+    <value>HADOOP_MAPRED_HOME={{hadoop_mapred_home}}</value>
+    <description>
+      User added environment variables for the task processes, specified as a comma separated list.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.app.mapreduce.am.env</name>
+    <value>HADOOP_MAPRED_HOME={{hadoop_mapred_home}}</value>
+    <description>
+      User added environment variables for the MR App Master processes, specified as a comma separated list. 
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>mapreduce.am.max-attempts</name>
     <value>2</value>
     <description>
