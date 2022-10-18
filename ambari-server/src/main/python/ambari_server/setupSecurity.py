@@ -657,7 +657,7 @@ def deryptPasswordsConfigs(db_password, db_sql_auth, masterKey, ts_password):
 
 def printManualDecryptionWarning(db_password, db_sql_auth, ts_password):
   print "To disable encryption, do the following:"
-  print "- Edit " + get_conf_dir() + "/" + AMBARI_PROPERTIES_FILE + \
+  print "- Edit " + os.path.join(get_conf_dir(), AMBARI_PROPERTIES_FILE) + \
         " and set " + SECURITY_IS_ENCRYPTION_ENABLED + " = " + "false." + \
         " and set " + SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED + " = " + "false." + \
         " and set all passwords and sensitive data in service configs to right value."
