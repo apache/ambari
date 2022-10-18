@@ -987,9 +987,7 @@ def store_password_file(password, filename):
   return passFilePath.replace('\\', '\\\\')
 
 def remove_password_file(filename):
-  conf_file = find_properties_file()
-  passFilePath = os.path.join(os.path.dirname(conf_file),
-                              filename)
+  passFilePath = os.path.join(get_conf_dir(), filename)
 
   if os.path.exists(passFilePath):
     try:

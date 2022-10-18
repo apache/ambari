@@ -44,7 +44,7 @@ from ambari_server.serverConfiguration import configDefaults, parse_properties_f
   get_credential_store_location, get_is_persisted, get_is_secure, get_master_key_location, get_db_type, write_property, \
   get_original_master_key, get_value_from_properties, get_java_exe_path, is_alias_string, read_ambari_user, \
   read_passwd_for_alias, remove_password_file, save_passwd_for_alias, store_password_file, update_properties_2, \
-  BLIND_PASSWORD, BOOTSTRAP_DIR_PROPERTY, JDBC_PASSWORD_FILENAME, JDBC_PASSWORD_PROPERTY, \
+  AMBARI_PROPERTIES_FILE, BLIND_PASSWORD, BOOTSTRAP_DIR_PROPERTY, JDBC_PASSWORD_FILENAME, JDBC_PASSWORD_PROPERTY, \
   JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_USE_INTEGRATED_AUTH_PROPERTY, \
   LDAP_MGR_PASSWORD_ALIAS, LDAP_MGR_PASSWORD_PROPERTY, CLIENT_SECURITY, \
   SECURITY_IS_ENCRYPTION_ENABLED, SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED, SECURITY_KEY_ENV_VAR_NAME, SECURITY_KERBEROS_JASS_FILENAME, \
@@ -657,7 +657,7 @@ def deryptPasswordsConfigs(db_password, db_sql_auth, masterKey, ts_password):
 
 def printManualDecryptionWarning(db_password, db_sql_auth, ts_password):
   print "To disable encryption, do the following:"
-  print "- Edit " + find_properties_file() + \
+  print "- Edit " + get_conf_dir + "/" + AMBARI_PROPERTIES_FILE + \
         " and set " + SECURITY_IS_ENCRYPTION_ENABLED + " = " + "false." + \
         " and set " + SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED + " = " + "false." + \
         " and set all passwords and sensitive data in service configs to right value."
