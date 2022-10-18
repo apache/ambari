@@ -498,7 +498,7 @@ def get_stack_version_before_install(component_name):
   stack_selector_name = stack_tools.get_stack_tool_name(stack_tools.STACK_SELECTOR_NAME)
   if os.path.islink(component_dir):
     stack_version = os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(os.readlink(component_dir)))))
-    match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', stack_version)
+    match = re.match('[0-9]+.[0-9]+.[0-9]+', stack_version)
     if match is None:
       Logger.info('Failed to get extracted version with {0} in method get_stack_version_before_install'.format(stack_selector_name))
       return None # lazy fail
