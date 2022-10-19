@@ -25,8 +25,8 @@
       <version>8.11.2-1</version>
       <components>
         <component>
-          <name>SOLR</name>
-          <displayName>Solr Instance</displayName>
+          <name>SOLR_SERVER</name>
+          <displayName>Solr Server</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>

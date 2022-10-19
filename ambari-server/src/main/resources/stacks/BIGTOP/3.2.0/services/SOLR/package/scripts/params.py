@@ -23,6 +23,9 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions import StackFeature
 
 import status_params
 
@@ -46,6 +49,11 @@ def get_name_from_principal(principal):
 # config object that holds the configurations declared in the -site.xml file
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+stack_root = Script.get_stack_root()
+
+# This is expected to be of the form #.#.#
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 stack_version = default("/commandParams/version", None)
 sudo = AMBARI_SUDO_BINARY
@@ -84,6 +92,10 @@ zookeeper_hosts = ",".join(zookeeper_hosts_list)
 # Only supporting SolrCloud mode - so hardcode those options
 solr_cloudmode = 'true'
 solr_dir = '/usr/lib/solr'
+
+if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+  solr_dir = format("{stack_root}/current/solr-server")
+
 solr_bindir = solr_dir + '/bin'
 
 zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
@@ -97,12 +109,12 @@ for host in config['clusterHostInfo']['zookeeper_server_hosts']:
     zookeeper_quorum += ","
 
 if "solr-env" in config['configurations']:
-  solr_hosts = config['clusterHostInfo']['solr_hosts']
+  solr_hosts = config['clusterHostInfo']['solr_server_hosts']
   solr_znode = config['configurations']['solr-env']['solr_znode']
   solr_min_mem = format(config['configurations']['solr-env']['solr_minmem'])
   solr_max_mem = format(config['configurations']['solr-env']['solr_maxmem'])
   solr_java_stack_size = format(config['configurations']['solr-env']['solr_java_stack_size'])
-  solr_instance_count = len(config['clusterHostInfo']['solr_hosts'])
+  solr_instance_count = len(config['clusterHostInfo']['solr_server_hosts'])
   solr_datadir = format(config['configurations']['solr-env']['solr_datadir'])
   solr_data_resources_dir = os.path.join(solr_datadir, 'resources')
   solr_jmx_port = config['configurations']['solr-env']['solr_jmx_port']
