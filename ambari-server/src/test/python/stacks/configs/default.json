@@ -1077,7 +1077,7 @@
             "timeline.metrics.daily.aggregator.minute.interval": "86400",
             "timeline.metrics.cluster.aggregator.minute.interval": "120",
             "timeline.metrics.host.aggregator.hourly.interval": "3600",
-            "timeline.metrics.initial.configured.master.components": "drpc_server,hive_server,resourcemanager,all,webhcat_server,snamenode,storm_ui_server,falcon_server,namenode,ganglia_server,logviewer_server,hive_metastore,nimbus,zookeeper_server,historyserver,hbase_master,oozie_server,metrics_collector,supervisor,ganglia_monitor,hive_mysql,ambari_server",
+            "timeline.metrics.initial.configured.master.components": "drpc_server,hive_server,resourcemanager,all,webhcat_server,snamenode,storm_ui_server,falcon_server,namenode,hdfs_client,logviewer_server,hive_metastore,nimbus,zookeeper_server,historyserver,hbase_master,ganglia_server,oozie_server,metrics_collector,supervisor,ganglia_monitor,hive_mysql,ambari_server",
             "timeline.metrics.initial.configured.slave.components": "hbase_regionserver,datanode,nodemanager",
             "hbase_total_heapsize": 536870912
         },
@@ -1369,6 +1369,10 @@
         ],
         "namenode_hosts": [
             "c6401.ambari.apache.org"
+        ],
+        "hdfs_client_hosts": [
+            "c6401.ambari.apache.org",
+            "c6402.ambari.apache.org"
         ],
         "hbase_master_hosts": [
             "c6402.ambari.apache.org"
