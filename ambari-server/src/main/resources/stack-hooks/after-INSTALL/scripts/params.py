@@ -58,11 +58,14 @@ logsearch_config_file_path = agent_cache_dir + "/" + service_package_folder + "/
 logsearch_config_file_exists = os.path.isfile(logsearch_config_file_path)
 
 # default hadoop params
+hadoop_home = stack_select.get_hadoop_dir("home")
+hadoop_hdfs_home = stack_select.get_hadoop_dir("hdfs_home")
+hadoop_mapred_home = stack_select.get_hadoop_dir("mapred_home")
+hadoop_yarn_home = stack_select.get_hadoop_dir("yarn_home")
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
+hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
-mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
-
-versioned_stack_root = '/usr/hdp/current'
+mapreduce_libs_path = "{{hadoop_mapred_home}}/*,{{hadoop_mapred_home}}/lib/*"
 
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']

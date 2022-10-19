@@ -156,21 +156,6 @@ hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
 
 # hadoop parameters stack supporting rolling_uprade
 if stack_supports_ru:
-  # MapR directory root
-  mapred_role_root = "hadoop-mapreduce-client"
-  command_role = default("/role", "")
-  if command_role in MAPR_SERVER_ROLE_DIRECTORY_MAP:
-    mapred_role_root = MAPR_SERVER_ROLE_DIRECTORY_MAP[command_role]
-
-  # YARN directory root
-  yarn_role_root = "hadoop-yarn-client"
-  if command_role in YARN_SERVER_ROLE_DIRECTORY_MAP:
-    yarn_role_root = YARN_SERVER_ROLE_DIRECTORY_MAP[command_role]
-
-  # defaults set to current based on role
-  hadoop_mapred_home = format("{stack_root}/current/{mapred_role_root}")
-  hadoop_yarn_home = format("{stack_root}/current/{yarn_role_root}")
-
   # try to render the specific version
   version = component_version.get_component_repository_version()
   if version is None:

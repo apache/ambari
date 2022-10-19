@@ -148,7 +148,7 @@
   </property>
   <property>
     <name>yarn.application.classpath</name>
-    <value>{{hadoop_conf_dir}},{{hadoop_home}}/*,{{hadoop_home}}/lib/*,{{hadoop_hdfs_home}}/*,{{hadoop_hdfs_home}}/lib/*,{{hadoop_yarn_home}}/*,{{hadoop_yarn_home}}/lib/*,{{hadoop_mapred_home}}/*,{{hadoop_mapred_home}}/lib/*</value>
+    <value>{{hadoop_conf_dir}},{{hadoop_home}}/*,{{hadoop_home}}/lib/*,{{hadoop_hdfs_home}}/*,{{hadoop_hdfs_home}}/lib/*,{{hadoop_yarn_home}}/*,{{hadoop_yarn_home}}/lib/*</value>
     <description>Classpath for typical applications.</description>
     <on-ambari-upgrade add="true"/>
   </property>
