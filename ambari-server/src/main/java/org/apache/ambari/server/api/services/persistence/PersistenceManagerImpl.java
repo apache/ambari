@@ -104,6 +104,12 @@ public class PersistenceManagerImpl implements PersistenceManager {
   public RequestStatus update(ResourceInstance resource, RequestBody requestBody)
       throws UnsupportedPropertyException, SystemException, NoSuchParentResourceException, NoSuchResourceException {
 
+    if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, null,
+            EnumSet.of(RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA))) {
+      throw new AuthorizationException("The authenticated user does not have authorization " +
+              "to update/store user persisted data.");
+    }
+
     Map<Resource.Type, String> mapResourceIds = resource.getKeyValueMap();
     Resource.Type type = resource.getResourceDefinition().getType();
     Schema schema = m_controller.getSchema(type);
@@ -129,6 +135,12 @@ public class PersistenceManagerImpl implements PersistenceManager {
   public RequestStatus delete(ResourceInstance resource, RequestBody requestBody)
       throws UnsupportedPropertyException, SystemException, NoSuchParentResourceException, NoSuchResourceException {
     //todo: need to account for multiple resources and user predicate
+    if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, null,
+            EnumSet.of(RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA))) {
+      throw new AuthorizationException("The authenticated user does not have authorization " +
+              "to delete/store user persisted data.");
+    }
+
     return m_controller.deleteResources(resource.getResourceDefinition().getType(),
         createControllerRequest(requestBody), resource.getQuery().getPredicate());
 
