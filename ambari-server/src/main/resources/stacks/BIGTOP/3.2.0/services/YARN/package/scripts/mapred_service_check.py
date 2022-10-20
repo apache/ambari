@@ -73,7 +73,7 @@ class MapReduce2ServiceCheckWindows(MapReduce2ServiceCheck):
     # hadoop_exe = os.path.join(params.hadoop_home, "bin", "hadoop")
     #
     # tested_file = os.path.join(params.hadoop_home, "bin", "hadoop.cmd")
-    # jar_path = os.path.join(params.hadoop_mapred2_jar_location, params.hadoopMapredExamplesJarName)
+    # jar_path = os.path.join(params.hadoop_mapred_home, params.hadoopMapredExamplesJarName)
     # input_file = format("/user/hadoop/mapredsmokeinput")
     # output_file = format("/user/hadoop/mapredsmokeoutput")
     # cleanup_cmd = format("cmd /C {hadoop_exe} fs -rm -r -f {output_file} {input_file}")
@@ -118,7 +118,7 @@ class MapReduce2ServiceCheckDefault(MapReduce2ServiceCheck):
     import params
     env.set_params(params)
 
-    jar_path = format("{hadoop_mapred2_jar_location}/{hadoopMapredExamplesJarName}")
+    jar_path = format("{hadoop_mapred_home}/{hadoopMapredExamplesJarName}")
     source_file = format("/etc/passwd")
     input_file = format("/user/{smokeuser}/mapredsmokeinput")
     output_file = format("/user/{smokeuser}/mapredsmokeoutput")

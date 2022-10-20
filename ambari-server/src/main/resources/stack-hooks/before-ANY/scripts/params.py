@@ -127,7 +127,7 @@ hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
 datanode_max_locked_memory = config['configurations']['hdfs-site']['dfs.datanode.max.locked.memory']
 is_datanode_max_locked_memory_set = not is_empty(config['configurations']['hdfs-site']['dfs.datanode.max.locked.memory'])
 
-mapreduce_libs_path = "{{hadoop_mapred_home}}/*,{{hadoop_mapred_home}}/lib/*"
+mapreduce_libs_path = format("{hadoop_mapred_home}/*,{hadoop_mapred_home}/lib/*")
 
 if not security_enabled:
   hadoop_secure_dn_user = '""'

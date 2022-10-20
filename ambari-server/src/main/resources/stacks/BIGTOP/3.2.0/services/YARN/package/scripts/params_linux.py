@@ -66,9 +66,6 @@ stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 tarball_map = default("/configurations/cluster-env/tarball_map", None)
 
-config_path = stack_select.get_hadoop_dir("conf")
-config_dir = os.path.realpath(config_path)
-
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)
 
@@ -148,24 +145,10 @@ hadoop_bin = stack_select.get_hadoop_dir("sbin")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
-mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
-yarn_bin = "/usr/lib/hadoop-yarn/sbin"
-yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
+mapred_bin = format("{hadoop_mapred_home}/sbin")
+yarn_bin = format("{hadoop_yarn_home}/sbin")
+yarn_container_bin = format("{hadoop_yarn_home}/bin")
 hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
-
-# hadoop parameters stack supporting rolling_uprade
-if stack_supports_ru:
-  # try to render the specific version
-  version = component_version.get_component_repository_version()
-  if version is None:
-    version = default("/commandParams/version", None)
-
-  hadoop_mapred2_jar_location = hadoop_mapred_home
-  mapred_bin = format("{hadoop_mapred_home}/sbin")
-
-  yarn_bin = format("{hadoop_yarn_home}/sbin")
-  yarn_container_bin = format("{hadoop_yarn_home}/bin")
 
 
 if stack_supports_timeline_state_store:

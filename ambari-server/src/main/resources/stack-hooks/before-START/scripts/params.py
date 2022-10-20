@@ -72,12 +72,12 @@ hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 hadoop_bin = stack_select.get_hadoop_dir("sbin")
 
+hadoop_home = stack_select.get_hadoop_dir("home")
 hadoop_hdfs_home = stack_select.get_hadoop_dir("hdfs_home")
 hadoop_mapred_home = stack_select.get_hadoop_dir("mapred_home")
 hadoop_yarn_home = stack_select.get_hadoop_dir("yarn_home")
 
-mapreduce_libs_path = "{{hadoop_mapred_home}}/*,{{hadoop_mapred_home}}/lib/*"
-hadoop_home = stack_select.get_hadoop_dir("home")
+mapreduce_libs_path = format("{hadoop_mapred_home}/*,{hadoop_mapred_home}/lib/*")
 create_lib_snappy_symlinks = False
   
 current_service = config['serviceName']

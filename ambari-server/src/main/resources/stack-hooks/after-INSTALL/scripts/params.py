@@ -28,6 +28,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions.version import format_stack_version, get_major_version
+from resource_management.libraries.functions import format
 from string import lower
 
 config = Script.get_config()
@@ -65,7 +66,7 @@ hadoop_yarn_home = stack_select.get_hadoop_dir("yarn_home")
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
-mapreduce_libs_path = "{{hadoop_mapred_home}}/*,{{hadoop_mapred_home}}/lib/*"
+mapreduce_libs_path = format("{hadoop_mapred_home}/*,{hadoop_mapred_home}/lib/*")
 
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
