@@ -47,7 +47,7 @@ App.ConfigVersionsControlView = Em.View.extend({
     return serviceVersions.sort(function (a, b) {
       return Em.get(b, 'createTime') - Em.get(a, 'createTime');
     });
-  }.property('serviceName', 'controller.selectedConfigGroup.name'),
+  }.property('controller.selectedConfigGroup.name'),
 
   primaryServiceVersionsInCompare: function() {
     return this.get('serviceVersions').filter((sv) => sv.get('version') !== this.get('controller.compareServiceVersion.version'));
