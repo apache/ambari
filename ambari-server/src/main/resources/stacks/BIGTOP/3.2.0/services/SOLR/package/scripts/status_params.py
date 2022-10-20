@@ -24,8 +24,11 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions import stack_select
 
 config = Script.get_config()
+
+component_directory = stack_select.get_package_name(default_package = 'solr-server')
 
 solr_port = default('configurations/solr-env/solr_port', '8983')
 solr_piddir = default('configurations/solr-env/solr_pid_dir', '/var/run/solr')

@@ -58,6 +58,7 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 stack_version = default("/commandParams/version", None)
 sudo = AMBARI_SUDO_BINARY
 security_enabled = status_params.security_enabled
+component_directory = status_params.component_directory
 
 hostname = config['agentLevelParams']['hostname'].lower()
 
@@ -94,7 +95,7 @@ solr_cloudmode = 'true'
 solr_dir = '/usr/lib/solr'
 
 if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
-  solr_dir = format("{stack_root}/current/solr-server")
+  solr_dir = format("{stack_root}/current/{component_directory}")
 
 solr_bindir = solr_dir + '/bin'
 
