@@ -99,10 +99,10 @@ class TestHookAfterInstall(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
-      conf_dir = "/usr/hdp/2.3.0.0-1234/hadoop/conf",
+      conf_dir = "/etc/hadoop/conf",
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-      only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf",
+      only_if="ls /etc/hadoop/conf",
       xml_include_file=None)
 
     self.assertResourceCalled('Directory',
@@ -167,10 +167,10 @@ class TestHookAfterInstall(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
-      conf_dir = "/usr/hdp/2.3.0.0-1234/hadoop/conf",
+      conf_dir = "/etc/hadoop/conf",
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-      only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf",
+      only_if="ls /etc/hadoop/conf",
       xml_include_file=None)
 
     self.assertResourceCalled('Directory',
@@ -269,10 +269,10 @@ class TestHookAfterInstall(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
-      conf_dir = "/usr/hdp/2.3.0.0-1234/hadoop/conf",
+      conf_dir = "/etc/hadoop/conf",
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-      only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf",
+      only_if="ls /etc/hadoop/conf",
       xml_include_file=None)
 
     self.assertResourceCalled('Directory',
