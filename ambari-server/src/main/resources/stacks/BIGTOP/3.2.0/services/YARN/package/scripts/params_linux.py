@@ -313,7 +313,7 @@ if security_enabled:
   rm_principal_name = rm_principal_name.replace('_HOST',hostname.lower())
   rm_keytab = config['configurations']['yarn-site']['yarn.resourcemanager.keytab']
   rm_kinit_cmd = format("{kinit_path_local} -kt {rm_keytab} {rm_principal_name};")
-  yarn_jaas_file = os.path.join(config_dir, 'yarn_jaas.conf')
+  yarn_jaas_file = os.path.join(hadoop_conf_dir, 'yarn_jaas.conf')
   if stack_supports_zk_security:
     zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
     zk_principal_user = zk_principal_name.split('/')[0]
@@ -325,7 +325,7 @@ if security_enabled:
     yarn_timelineservice_principal_name = yarn_timelineservice_principal_name.replace('_HOST', hostname.lower())
     yarn_timelineservice_keytab = config['configurations']['yarn-site']['yarn.timeline-service.keytab']
     yarn_timelineservice_kinit_cmd = format("{kinit_path_local} -kt {yarn_timelineservice_keytab} {yarn_timelineservice_principal_name};")
-    yarn_ats_jaas_file = os.path.join(config_dir, 'yarn_ats_jaas.conf')
+    yarn_ats_jaas_file = os.path.join(hadoop_conf_dir, 'yarn_ats_jaas.conf')
 
   if 'yarn.nodemanager.principal' in config['configurations']['yarn-site']:
     nodemanager_principal_name = default('/configurations/yarn-site/yarn.nodemanager.principal', None)
@@ -334,13 +334,13 @@ if security_enabled:
 
     nodemanager_keytab = config['configurations']['yarn-site']['yarn.nodemanager.keytab']
     nodemanager_kinit_cmd = format("{kinit_path_local} -kt {nodemanager_keytab} {nodemanager_principal_name};")
-    yarn_nm_jaas_file = os.path.join(config_dir, 'yarn_nm_jaas.conf')
+    yarn_nm_jaas_file = os.path.join(hadoop_conf_dir, 'yarn_nm_jaas.conf')
 
   if has_hs:
     mapred_jhs_principal_name = config['configurations']['mapred-site']['mapreduce.jobhistory.principal']
     mapred_jhs_principal_name = mapred_jhs_principal_name.replace('_HOST', hostname.lower())
     mapred_jhs_keytab = config['configurations']['mapred-site']['mapreduce.jobhistory.keytab']
-    mapred_jaas_file = os.path.join(config_dir, 'mapred_jaas.conf')
+    mapred_jaas_file = os.path.join(hadoop_conf_dir, 'mapred_jaas.conf')
 
 yarn_log_aggregation_enabled = config['configurations']['yarn-site']['yarn.log-aggregation-enable']
 yarn_nm_app_log_dir =  config['configurations']['yarn-site']['yarn.nodemanager.remote-app-log-dir']
