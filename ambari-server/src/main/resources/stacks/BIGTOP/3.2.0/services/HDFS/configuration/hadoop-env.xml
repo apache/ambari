@@ -365,8 +365,8 @@ fi
 # Add libraries to the hadoop classpath - some may not need a colon as they already include it
 export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}
 
-if [ -d "/usr/lib/tez" ]; then
-  export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/tez/*:/usr/lib/tez/lib/*:/etc/tez/conf
+if [ -d "{{tez_home}}" ]; then
+  export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:{{tez_home}}/*:{{tez_home}}/lib/*:{{tez_conf_dir}}
 fi
 
 # Setting path to hdfs command line

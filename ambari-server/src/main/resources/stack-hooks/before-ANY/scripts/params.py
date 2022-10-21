@@ -129,6 +129,12 @@ is_datanode_max_locked_memory_set = not is_empty(config['configurations']['hdfs-
 
 mapreduce_libs_path = format("{hadoop_mapred_home}/*,{hadoop_mapred_home}/lib/*")
 
+tez_home = '/usr/lib/tez'
+tez_conf_dir = '/etc/tez/conf'
+# hadoop parameters for stacks that support rolling_upgrade
+if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+  tez_home = format("{stack_root}/current/tez-client")
+
 if not security_enabled:
   hadoop_secure_dn_user = '""'
 else:
