@@ -44,7 +44,7 @@
       {
         "name": "kafka_kerberos",
         "description": "Kafka Kerberos support (AMBARI-10984)",
-        "max_version": "3.2.0"
+        "min_version": "3.2.0"
       },
       {
         "name": "rolling_upgrade",
