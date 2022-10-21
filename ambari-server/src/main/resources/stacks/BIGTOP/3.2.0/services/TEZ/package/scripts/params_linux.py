@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from inspect import stack
 import os
 
 from resource_management.libraries.resources import HdfsResource
@@ -48,26 +49,23 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
 
+component_directory = stack_select.get_package_name(default_package = 'tez-client')
+
 # default hadoop parameters
-hadoop_home = '/usr/lib/hadoop'
-tez_home = '/usr/lib/tez'
+hadoop_home = stack_select.get_hadoop_dir("home")
+hadoop_hdfs_home = stack_select.get_hadoop_dir("hdfs_home")
+hadoop_mapred_home = stack_select.get_hadoop_dir("mapred_home")
+hadoop_yarn_home = stack_select.get_hadoop_dir("yarn_home")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-tez_etc_dir = "/etc/tez"
-config_dir = "/etc/tez/conf"
-tez_examples_jar = "/usr/lib/tez/tez-examples*.jar"
-
+tez_home = '/usr/lib/tez'
+tez_conf_dir = '/etc/tez/conf'
 
 # hadoop parameters for stacks that support rolling_upgrade
 if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
-  tez_examples_jar = "{stack_root}/current/tez-client/tez-examples*.jar"
+  tez_home = format("{stack_root}/current/{component_directory}")
 
-# tez only started linking <stack-root>/x.x.x.x/tez-client/conf in config_versioning
-if stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version_formatted):
-  # !!! use realpath for now since the symlink exists but is broken and a
-  # broken symlink messes with the DirectoryProvider class
-  config_path = os.path.join(stack_root, "current/tez-client/conf")
-  config_dir = os.path.realpath(config_path)
+tez_examples_jar = format("{tez_home}/tez-examples*.jar")
 
 # Heap dump related
 heap_dump_enabled = default('/configurations/tez-env/enable_heap_dump', None)
@@ -91,11 +89,10 @@ tez_user = config['configurations']['tez-env']['tez_user']
 user_group = config['configurations']['cluster-env']['user_group']
 tez_env_sh_template = config['configurations']['tez-env']['content']
 
-tez_lib_base_dir_path = '/apps/tez'
+tez_lib_base_dir_path = os.path.join('/', stack_name.lower(), 'apps', stack_version_formatted, 'tez')
 tez_lib_uris = os.path.join(tez_lib_base_dir_path, 'tez.tar.gz')
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
-yarn_application_classpath = config['configurations']['yarn-site']['yarn.application.classpath']
 
 dfs_type = default("/clusterLevelParams/dfs_type", "")
 

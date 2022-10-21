@@ -20,7 +20,7 @@
   <property>
     <name>tez.lib.uris.classpath</name>
     <display-name>TEZ Lib URIs Classpath</display-name>
-    <value>{{yarn_application_classpath}},{{tez_home}}/*,{{tez_home}}/lib/*</value>
+    <value>{{hadoop_conf_dir}},{{hadoop_home}}/*,{{hadoop_home}}/lib/*,{{hadoop_hdfs_home}}/*,{{hadoop_hdfs_home}}/lib/*,{{hadoop_yarn_home}}/*,{{hadoop_yarn_home}}/lib/*,{{tez_home}}/*,{{tez_home}}/lib/*,{{tez_conf_dir}}</value>
     <description>Comma-delimited list of the location of the Tez libraries Classpath which will be localized for DAGs.
     </description>
     <on-ambari-upgrade add="false"/>
@@ -88,7 +88,7 @@
   </property>
   <property>
     <name>tez.am.launch.env</name>
-    <value>LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native</value>
+    <value>LD_LIBRARY_PATH={{hadoop_home}}/lib/native</value>
     <description>
         Additional execution environment entries for tez. This is not an additive property. You must preserve the original value if
         you want to have access to native libraries.
@@ -134,7 +134,7 @@
   </property>
   <property>
     <name>tez.task.launch.env</name>
-    <value>LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native</value>
+    <value>LD_LIBRARY_PATH={{hadoop_home}}/lib/native</value>
     <description>
       Additional execution environment entries for tez. This is not an additive property. You must preserve the original value if
       you want to have access to native libraries.

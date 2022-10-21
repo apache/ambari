@@ -42,9 +42,9 @@ def tez(config_dir):
   lzo_utils.install_lzo_if_needed()
 
   if config_dir is None:
-    config_dir = params.config_dir
+    config_dir = params.tez_conf_dir
 
-  Directory(params.tez_etc_dir, mode=0755)
+  Directory(params.tez_conf_dir, mode=0755)
 
   Directory(config_dir,
             owner = params.tez_user,

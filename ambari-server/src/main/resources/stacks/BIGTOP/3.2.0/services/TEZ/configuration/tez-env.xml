@@ -45,7 +45,7 @@
     <description>This is the jinja template for tez-env.sh file</description>
     <value>
 # Tez specific configuration
-export TEZ_CONF_DIR={{config_dir}}
+export TEZ_CONF_DIR={{tez_conf_dir}}
 
 # Set HADOOP_HOME to point to a specific hadoop install directory
 export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}

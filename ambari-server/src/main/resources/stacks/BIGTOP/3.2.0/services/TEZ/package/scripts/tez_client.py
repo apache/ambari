@@ -88,7 +88,7 @@ class TezClientLinux(TezClient):
   def install(self, env):
     import params
     self.install_packages(env)
-    self.configure(env, config_dir=params.config_dir)
+    self.configure(env, config_dir=params.tez_conf_dir)
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class TezClientWindows(TezClient):
