@@ -1451,6 +1451,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           haValue: 'false'
         },
         {
+          name: 'hadoop.kms.authentication.zk-dt-secret-manager.enable',
+          notHaValue: 'false',
+          haValue: 'true'
+        },
+        {
           name: 'hadoop.kms.cache.timeout.ms',
           notHaValue: '600000',
           haValue: '0'

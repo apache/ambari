@@ -102,19 +102,17 @@ hdfs_tmp_dir = default("/configurations/hadoop-env/hdfs_tmp_dir", "/tmp")
 namenode_backup_dir = default("/configurations/hadoop-env/namenode_backup_dir", "/tmp/upgrades")
 
 # hadoop default parameters
-mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_bin = stack_select.get_hadoop_dir("sbin")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_home = stack_select.get_hadoop_dir("home")
-hadoop_secure_dn_user = hdfs_user
-hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
+hadoop_hdfs_home = stack_select.get_hadoop_dir("hdfs_home")
+hadoop_mapred_home = stack_select.get_hadoop_dir("mapred_home")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
-
-# hadoop parameters for stacks that support rolling_upgrade
-if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
-  mapreduce_libs_path = format("{stack_root}/current/hadoop-mapreduce-client/*")
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+hadoop_secure_dn_user = hdfs_user
+hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
+mapreduce_libs_path = format("{hadoop_mapred_home}/*")
 
 if not security_enabled:
   hadoop_secure_dn_user = '""'

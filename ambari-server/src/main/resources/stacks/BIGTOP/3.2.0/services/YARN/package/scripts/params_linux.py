@@ -66,9 +66,6 @@ stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 tarball_map = default("/configurations/cluster-env/tarball_map", None)
 
-config_path = stack_select.get_hadoop_dir("conf")
-config_dir = os.path.realpath(config_path)
-
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)
 
@@ -141,56 +138,17 @@ hostname = config['agentLevelParams']['hostname']
 # hadoop default parameters
 hadoop_home = status_params.hadoop_home
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
+hadoop_hdfs_home = stack_select.get_hadoop_dir("hdfs_home")
+hadoop_mapred_home = stack_select.get_hadoop_dir("mapred_home")
+hadoop_yarn_home = stack_select.get_hadoop_dir("yarn_home")
 hadoop_bin = stack_select.get_hadoop_dir("sbin")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-hadoop_yarn_home = '/usr/lib/hadoop-yarn'
-hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
-mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
-yarn_bin = "/usr/lib/hadoop-yarn/sbin"
-yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
+mapred_bin = format("{hadoop_mapred_home}/sbin")
+yarn_bin = format("{hadoop_yarn_home}/sbin")
+yarn_container_bin = format("{hadoop_yarn_home}/bin")
 hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
-
-# hadoop parameters stack supporting rolling_uprade
-if stack_supports_ru:
-  # MapR directory root
-  mapred_role_root = "hadoop-mapreduce-client"
-  command_role = default("/role", "")
-  if command_role in MAPR_SERVER_ROLE_DIRECTORY_MAP:
-    mapred_role_root = MAPR_SERVER_ROLE_DIRECTORY_MAP[command_role]
-
-  # YARN directory root
-  yarn_role_root = "hadoop-yarn-client"
-  if command_role in YARN_SERVER_ROLE_DIRECTORY_MAP:
-    yarn_role_root = YARN_SERVER_ROLE_DIRECTORY_MAP[command_role]
-
-  # defaults set to current based on role
-  hadoop_mapr_home = format("{stack_root}/current/{mapred_role_root}")
-  hadoop_yarn_home = format("{stack_root}/current/{yarn_role_root}")
-
-  # try to render the specific version
-  version = component_version.get_component_repository_version()
-  if version is None:
-    version = default("/commandParams/version", None)
-
-
-  if version is not None:
-    hadoop_mapr_versioned_home = format("{stack_root}/{version}/hadoop-mapreduce")
-    hadoop_yarn_versioned_home = format("{stack_root}/{version}/hadoop-yarn")
-
-    if sudo.path_isdir(hadoop_mapr_versioned_home):
-      hadoop_mapr_home = hadoop_mapr_versioned_home
-
-    if sudo.path_isdir(hadoop_yarn_versioned_home):
-      hadoop_yarn_home = hadoop_yarn_versioned_home
-
-
-  hadoop_mapred2_jar_location = hadoop_mapr_home
-  mapred_bin = format("{hadoop_mapr_home}/sbin")
-
-  yarn_bin = format("{hadoop_yarn_home}/sbin")
-  yarn_container_bin = format("{hadoop_yarn_home}/bin")
 
 
 if stack_supports_timeline_state_store:
@@ -355,7 +313,7 @@ if security_enabled:
   rm_principal_name = rm_principal_name.replace('_HOST',hostname.lower())
   rm_keytab = config['configurations']['yarn-site']['yarn.resourcemanager.keytab']
   rm_kinit_cmd = format("{kinit_path_local} -kt {rm_keytab} {rm_principal_name};")
-  yarn_jaas_file = os.path.join(config_dir, 'yarn_jaas.conf')
+  yarn_jaas_file = os.path.join(hadoop_conf_dir, 'yarn_jaas.conf')
   if stack_supports_zk_security:
     zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
     zk_principal_user = zk_principal_name.split('/')[0]
@@ -367,7 +325,7 @@ if security_enabled:
     yarn_timelineservice_principal_name = yarn_timelineservice_principal_name.replace('_HOST', hostname.lower())
     yarn_timelineservice_keytab = config['configurations']['yarn-site']['yarn.timeline-service.keytab']
     yarn_timelineservice_kinit_cmd = format("{kinit_path_local} -kt {yarn_timelineservice_keytab} {yarn_timelineservice_principal_name};")
-    yarn_ats_jaas_file = os.path.join(config_dir, 'yarn_ats_jaas.conf')
+    yarn_ats_jaas_file = os.path.join(hadoop_conf_dir, 'yarn_ats_jaas.conf')
 
   if 'yarn.nodemanager.principal' in config['configurations']['yarn-site']:
     nodemanager_principal_name = default('/configurations/yarn-site/yarn.nodemanager.principal', None)
@@ -376,13 +334,13 @@ if security_enabled:
 
     nodemanager_keytab = config['configurations']['yarn-site']['yarn.nodemanager.keytab']
     nodemanager_kinit_cmd = format("{kinit_path_local} -kt {nodemanager_keytab} {nodemanager_principal_name};")
-    yarn_nm_jaas_file = os.path.join(config_dir, 'yarn_nm_jaas.conf')
+    yarn_nm_jaas_file = os.path.join(hadoop_conf_dir, 'yarn_nm_jaas.conf')
 
   if has_hs:
     mapred_jhs_principal_name = config['configurations']['mapred-site']['mapreduce.jobhistory.principal']
     mapred_jhs_principal_name = mapred_jhs_principal_name.replace('_HOST', hostname.lower())
     mapred_jhs_keytab = config['configurations']['mapred-site']['mapreduce.jobhistory.keytab']
-    mapred_jaas_file = os.path.join(config_dir, 'mapred_jaas.conf')
+    mapred_jaas_file = os.path.join(hadoop_conf_dir, 'mapred_jaas.conf')
 
 yarn_log_aggregation_enabled = config['configurations']['yarn-site']['yarn.log-aggregation-enable']
 yarn_nm_app_log_dir =  config['configurations']['yarn-site']['yarn.nodemanager.remote-app-log-dir']
