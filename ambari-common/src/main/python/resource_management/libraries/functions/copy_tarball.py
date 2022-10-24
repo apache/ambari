@@ -40,6 +40,7 @@ from resource_management.libraries.functions import tar_archive
 STACK_NAME_PATTERN = "{{ stack_name }}"
 STACK_ROOT_PATTERN = "{{ stack_root }}"
 STACK_VERSION_PATTERN = "{{ stack_version }}"
+LIB_DIR = "usr/lib"
 
 def _prepare_tez_tarball():
   """
@@ -204,63 +205,45 @@ def _prepare_mapreduce_tarball():
 # especially since it is an attribute of a stack and becomes
 # complicated to change during a Rolling/Express upgrade.
 TARBALL_MAP = {
-  "slider": {
-    "dirs": ("{0}/{1}/slider/lib/slider.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
-              "/{0}/apps/{1}/slider/slider.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-    "service": "SLIDER"
-  },
   "yarn": {
-    "dirs": ("{0}/{1}/hadoop-yarn/lib/service-dep.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+    "dirs": ("{0}/{1}/{2}/hadoop-yarn/lib/service-dep.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, LIB_DIR),
              "/{0}/apps/{1}/yarn/service-dep.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
     "service": "YARN"
   },
 
   "tez": {
-    "dirs": ("{0}/{1}/tez/lib/tez.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+    "dirs": ("{0}/{1}/{2}/tez/lib/tez.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, LIB_DIR),
            "/{0}/apps/{1}/tez/tez.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-    "service": "TEZ",
-    "prepare_function": _prepare_tez_tarball
+    "service": "TEZ"
   },
 
   "tez_hive2": {
-    "dirs": ("{0}/{1}/tez_hive2/lib/tez.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+    "dirs": ("{0}/{1}/{2}/tez_hive2/lib/tez.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, LIB_DIR),
            "/{0}/apps/{1}/tez_hive2/tez.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
     "service": "HIVE"
   },
 
   "hive": {
-    "dirs": ("{0}/{1}/hive/hive.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+    "dirs": ("{0}/{1}/{2}/hive/hive.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, LIB_DIR),
             "/{0}/apps/{1}/hive/hive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
     "service": "HIVE"
   },
 
-  "pig": {
-    "dirs": ("{0}/{1}/pig/pig.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
-           "/{0}/apps/{1}/pig/pig.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-    "service": "PIG"
-  },
-
   "hadoop_streaming": {
-    "dirs": ("{0}/{1}/hadoop-mapreduce/hadoop-streaming.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
-                        "/{0}/apps/{1}/mapreduce/hadoop-streaming.jar".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+    "dirs": ("{0}/{1}/{2}/hadoop-mapreduce/hadoop-streaming.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, LIB_DIR),
+            "/{0}/apps/{1}/mapreduce/hadoop-streaming.jar".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
     "service": "MAPREDUCE2"
   },
 
-  "sqoop": {
-    "dirs": ("{0}/{1}/sqoop/sqoop.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
-             "/{0}/apps/{1}/sqoop/sqoop.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-    "service": "SQOOP"
-  },
-
   "mapreduce": {
-    "dirs": ("{0}/{1}/hadoop/mapreduce.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+    "dirs": ("{0}/{1}/{2}/hadoop/mapreduce.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, LIB_DIR),
                 "/{0}/apps/{1}/mapreduce/mapreduce.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
     "service": "MAPREDUCE2",
     "prepare_function": _prepare_mapreduce_tarball
   },
 
   "spark": {
-    "dirs": ("{0}/{1}/spark/lib/spark-{2}-assembly.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, STACK_NAME_PATTERN),
+    "dirs": ("{0}/{1}/{3}/spark/lib/spark-{2}-assembly.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, STACK_NAME_PATTERN, LIB_DIR),
              "/{0}/apps/{1}/spark/spark-{0}-assembly.jar".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
     "service": "SPARK"
   },
@@ -280,11 +263,8 @@ TARBALL_MAP = {
 }
 
 SERVICE_TO_CONFIG_MAP = {
-  "slider": "slider-env",
   "yarn": "yarn-env",
   "tez": "tez-env",
-  "pig": "pig-env",
-  "sqoop": "sqoop-env",
   "hive": "hive-env",
   "mapreduce": "hadoop-env",
   "hadoop_streaming": "mapred-env",
