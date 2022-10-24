@@ -68,22 +68,22 @@ class TezServiceCheckLinux(TezServiceCheck):
       source = format("{tmp_dir}/sample-tez-test"),
     )
 
-    # if params.stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted):
-    #   copy_to_hdfs("tez", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
-    # else:
-    # If the directory already exists, it is a NO-OP
-    params.HdfsResource(params.tez_lib_base_dir_path,
-                        type="directory",
-                        action="create_on_execute",
-                        owner=params.smokeuser,
-                        )
-    # If the file already exists, it is a NO-OP
-    params.HdfsResource(params.tez_lib_uris,
-                        action = "create_on_execute",
-                        type = "file",
-                        owner = params.smokeuser,
-                        source = format("{tez_home}/lib/tez.tar.gz"),
-                        )
+    if params.stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted):
+      copy_to_hdfs("tez", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
+    else:
+      # If the directory already exists, it is a NO-OP
+      params.HdfsResource(params.tez_lib_base_dir_path,
+                          type="directory",
+                          action="create_on_execute",
+                          owner=params.smokeuser,
+                          )
+      # If the file already exists, it is a NO-OP
+      params.HdfsResource(params.tez_lib_uris,
+                          action = "create_on_execute",
+                          type = "file",
+                          owner = params.smokeuser,
+                          source = format("{tez_home}/lib/tez.tar.gz"),
+                          )
 
 
     params.HdfsResource(None, action = "execute")
