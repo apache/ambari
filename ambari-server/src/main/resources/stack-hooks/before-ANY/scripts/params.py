@@ -109,6 +109,9 @@ def is_secure_port(port):
 # force the use of "current" in the hook
 hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
 hadoop_home = stack_select.get_hadoop_dir("home")
+hadoop_hdfs_home = stack_select.get_hadoop_dir("hdfs_home")
+hadoop_mapred_home = stack_select.get_hadoop_dir("mapred_home")
+hadoop_yarn_home = stack_select.get_hadoop_dir("yarn_home")
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
@@ -124,7 +127,13 @@ hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
 datanode_max_locked_memory = config['configurations']['hdfs-site']['dfs.datanode.max.locked.memory']
 is_datanode_max_locked_memory_set = not is_empty(config['configurations']['hdfs-site']['dfs.datanode.max.locked.memory'])
 
-mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
+mapreduce_libs_path = format("{hadoop_mapred_home}/*,{hadoop_mapred_home}/lib/*")
+
+tez_home = '/usr/lib/tez'
+tez_conf_dir = '/etc/tez/conf'
+# hadoop parameters for stacks that support rolling_upgrade
+if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+  tez_home = format("{stack_root}/current/tez-client")
 
 if not security_enabled:
   hadoop_secure_dn_user = '""'

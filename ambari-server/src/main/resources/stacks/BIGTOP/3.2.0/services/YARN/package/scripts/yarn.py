@@ -512,20 +512,20 @@ def create_local_dir(dir_name):
 def yarn(name = None):
   import params
   XmlConfig("mapred-site.xml",
-            conf_dir=params.config_dir,
+            conf_dir=params.hadoop_conf_dir,
             configurations=params.config['configurations']['mapred-site'],
             owner=params.yarn_user,
             mode='f'
   )
   XmlConfig("yarn-site.xml",
-            conf_dir=params.config_dir,
+            conf_dir=params.hadoop_conf_dir,
             configurations=params.config['configurations']['yarn-site'],
             owner=params.yarn_user,
             mode='f',
             configuration_attributes=params.config['configurationAttributes']['yarn-site']
   )
   XmlConfig("capacity-scheduler.xml",
-            conf_dir=params.config_dir,
+            conf_dir=params.hadoop_conf_dir,
             configurations=params.config['configurations']['capacity-scheduler'],
             owner=params.yarn_user,
             mode='f'

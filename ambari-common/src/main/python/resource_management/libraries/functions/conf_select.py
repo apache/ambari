@@ -162,21 +162,8 @@ def get_hadoop_conf_dir():
   directory including the component's version is tried first, but if that doesn't exist,
   this will fallback to using "current".
   """
-  stack_root = Script.get_stack_root()
-  stack_version = Script.get_stack_version()
-
   hadoop_conf_dir = os.path.join(os.path.sep, "etc", "hadoop", "conf")
-  if check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version):
-    # read the desired version from the component map and use that for building the hadoop home
-    version = component_version.get_component_repository_version()
-    if version is None:
-      version = default("/commandParams/version", None)
-
-    hadoop_conf_dir = os.path.join(stack_root, str(version), "hadoop", "conf")
-    if version is None or sudo.path_isdir(hadoop_conf_dir) is False:
-      hadoop_conf_dir = os.path.join(stack_root, "current", "hadoop-client", "conf")
-
-    Logger.info("Using hadoop conf dir: {0}".format(hadoop_conf_dir))
+  Logger.info("Using hadoop conf dir: {0}".format(hadoop_conf_dir))
 
   return hadoop_conf_dir
 

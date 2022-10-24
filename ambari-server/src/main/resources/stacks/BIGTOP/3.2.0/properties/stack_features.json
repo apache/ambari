@@ -2,11 +2,6 @@
   "BIGTOP": {
     "stack_features": [
       {
-        "name": "snappy",
-        "description": "Snappy compressor/decompressor support",
-        "min_version": "3.2.0"
-      },
-      {
         "name": "lzo",
         "description": "LZO libraries support",
         "min_version": "3.2.0"

@@ -60,18 +60,24 @@ SERVICE_CHECK_DIRECTORY_MAP = {
 # <stack-root>/current/hadoop-client/[bin|sbin|libexec|lib]
 # <stack-root>/2.3.0.0-1234/hadoop/[bin|sbin|libexec|lib]
 HADOOP_DIR_TEMPLATE = "{0}/{1}/{2}/{3}"
+HADOOP_REAL_DIR_TEMPLATE = "{0}/{1}/{2}/{3}/{4}"
 
 # <stack-root>/current/hadoop-client
 # <stack-root>/2.3.0.0-1234/hadoop
 HADOOP_HOME_DIR_TEMPLATE = "{0}/{1}/{2}"
+HADOOP_REAL_HOME_DIR_TEMPLATE = "{0}/{1}/{2}/{3}"
+LIB_DIR = 'usr/lib'
+BIN_DIR = 'usr/bin'
 
 HADOOP_DIR_DEFAULTS = {
   "home": "/usr/lib/hadoop",
+  "hdfs_home": "/usr/lib/hadoop-hdfs",
+  "mapred_home": "/usr/lib/hadoop-mapreduce",
+  "yarn_home": "/usr/lib/hadoop-yarn",
   "libexec": "/usr/lib/hadoop/libexec",
   "sbin": "/usr/lib/hadoop/sbin",
   "bin": "/usr/bin",
-  "lib": "/usr/lib/hadoop/lib",
-  "conf": "/etc/hadoop/conf"
+  "lib": "/usr/lib/hadoop/lib"
 }
 
 PACKAGE_SCOPE_INSTALL = "INSTALL"
@@ -387,11 +393,27 @@ def get_hadoop_dir(target):
 
     # home uses a different template
     if target == "home":
-      hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, version, "hadoop")
+      hadoop_dir = HADOOP_REAL_HOME_DIR_TEMPLATE.format(stack_root, version, LIB_DIR, "hadoop")
       if version is None or sudo.path_isdir(hadoop_dir) is False:
         hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, "current", "hadoop-client")
+    elif target == "hdfs_home":
+      hadoop_dir = HADOOP_REAL_HOME_DIR_TEMPLATE.format(stack_root, version, LIB_DIR, "hadoop-hdfs")
+      if version is None or sudo.path_isdir(hadoop_dir) is False:
+        hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, "current", "hadoop-hdfs-client")
+    elif target == "mapred_home":
+      hadoop_dir = HADOOP_REAL_HOME_DIR_TEMPLATE.format(stack_root, version, LIB_DIR, "hadoop-mapreduce")
+      if version is None or sudo.path_isdir(hadoop_dir) is False:
+        hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, "current", "hadoop-mapreduce-client")
+    elif target == "yarn_home":
+      hadoop_dir = HADOOP_REAL_HOME_DIR_TEMPLATE.format(stack_root, version, LIB_DIR, "hadoop-yarn")
+      if version is None or sudo.path_isdir(hadoop_dir) is False:
+        hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, "current", "hadoop-yarn-client")
+    elif target == "bin":
+      hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, version, BIN_DIR)
+      if version is None or sudo.path_isdir(hadoop_dir) is False:
+        hadoop_dir = HADOOP_DIR_DEFAULTS[target]
     else:
-      hadoop_dir = HADOOP_DIR_TEMPLATE.format(stack_root, version, "hadoop", target)
+      hadoop_dir = HADOOP_REAL_DIR_TEMPLATE.format(stack_root, version, LIB_DIR, "hadoop", target)
       if version is None or sudo.path_isdir(hadoop_dir) is False:
         hadoop_dir = HADOOP_DIR_TEMPLATE.format(stack_root, "current", "hadoop-client", target)
 
@@ -412,9 +434,17 @@ def get_hadoop_dir_for_stack_version(target, stack_version):
 
   # home uses a different template
   if target == "home":
-    hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, stack_version, "hadoop")
+    hadoop_dir = HADOOP_REAL_HOME_DIR_TEMPLATE.format(stack_root, stack_version, LIB_DIR, "hadoop")
+  elif target == "hdfs_home":
+    hadoop_dir = HADOOP_REAL_HOME_DIR_TEMPLATE.format(stack_root, stack_version, LIB_DIR, "hadoop-hdfs")
+  elif target == "mapred_home":
+    hadoop_dir = HADOOP_REAL_HOME_DIR_TEMPLATE.format(stack_root, stack_version, LIB_DIR, "hadoop-mapreduce")
+  elif target == "yarn_home":
+    hadoop_dir = HADOOP_REAL_HOME_DIR_TEMPLATE.format(stack_root, stack_version, LIB_DIR, "hadoop-yarn")
+  elif target == "bin":
+    hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, stack_version, BIN_DIR)
   else:
-    hadoop_dir = HADOOP_DIR_TEMPLATE.format(stack_root, stack_version, "hadoop", target)
+    hadoop_dir = HADOOP_REAL_DIR_TEMPLATE.format(stack_root, stack_version, LIB_DIR, "hadoop", target)
 
   return hadoop_dir
 
@@ -480,7 +510,7 @@ def get_stack_version_before_install(component_name):
   stack_selector_name = stack_tools.get_stack_tool_name(stack_tools.STACK_SELECTOR_NAME)
   if os.path.islink(component_dir):
     stack_version = os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(os.readlink(component_dir)))))
-    match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', stack_version)
+    match = re.match('[0-9]+.[0-9]+.[0-9]+', stack_version)
     if match is None:
       Logger.info('Failed to get extracted version with {0} in method get_stack_version_before_install'.format(stack_selector_name))
       return None # lazy fail

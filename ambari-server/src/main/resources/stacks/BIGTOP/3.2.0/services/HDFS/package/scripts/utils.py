@@ -383,8 +383,6 @@ def get_hdfs_binary(distro_component_name):
   """
   import params
   hdfs_binary = "hdfs"
-  if params.stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted):
-    hdfs_binary = "{0}/current/{1}/bin/hdfs".format(params.stack_root, distro_component_name)
 
   return hdfs_binary
 
