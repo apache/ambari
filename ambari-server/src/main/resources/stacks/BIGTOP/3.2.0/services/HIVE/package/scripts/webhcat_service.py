@@ -40,7 +40,7 @@ def webhcat_service(action='start', upgrade_type=None):
     no_op_test = format('ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p `cat {webhcat_pid_file}` >/dev/null 2>&1')
     try:
       Execute(daemon_cmd,
-              environment = { 'HIVE_HOME': params.hive_home_dir },
+              environment = { 'HIVE_HOME': params.hive_home },
               user=params.webhcat_user,
               not_if=no_op_test)
     except:
@@ -91,4 +91,4 @@ def graceful_stop(cmd):
   import params
   daemon_cmd = format('{cmd} stop')
 
-  Execute(daemon_cmd, environment = { 'HIVE_HOME': params.hive_home_dir }, user = params.webhcat_user)
+  Execute(daemon_cmd, environment = { 'HIVE_HOME': params.hive_home }, user = params.webhcat_user)

@@ -35,13 +35,13 @@ limitations under the License.
   </property>
   <property>
     <name>templeton.jar</name>
-    <value>/usr/lib/hcatalog/share/webhcat/svr/webhcat.jar</value>
+    <value>{{hive_hcatalog_home}}/share/webhcat/svr/webhcat.jar</value>
     <description>The path to the Templeton jar file.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>templeton.libjars</name>
-    <value>/usr/lib/zookeeper/zookeeper.jar</value>
+    <value>{{zk_home}}/zookeeper.jar</value>
     <description>Jars to add the the classpath.</description>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -55,21 +55,6 @@ limitations under the License.
     <name>templeton.python</name>
     <value>${env.PYTHON_CMD}</value>
     <description>The path to the Python executable.</description>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>templeton.pig.archive</name>
-    <value>hdfs:///apps/webhcat/pig.tar.gz</value>
-    <description>The path to the Pig archive.</description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>templeton.pig.path</name>
-    <value>pig.tar.gz/pig/bin/pig</value>
-    <description>The path to the Pig executable.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

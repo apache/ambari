@@ -50,7 +50,7 @@ def webhcat():
             group=params.user_group,
             create_parents = True)
 
-  Directory(params.config_dir,
+  Directory(params.webhcat_conf_dir,
             create_parents = True,
             owner=params.webhcat_user,
             group=params.user_group,
@@ -64,7 +64,7 @@ def webhcat():
       webhcat_site[prop_name] = webhcat_site[prop_name].replace("_HOST", params.hostname)
 
   XmlConfig("webhcat-site.xml",
-            conf_dir=params.config_dir,
+            conf_dir=params.webhcat_conf_dir,
             configurations=webhcat_site,
             configuration_attributes=params.config['configurationAttributes']['webhcat-site'],
             owner=params.webhcat_user,
@@ -91,7 +91,7 @@ def webhcat():
   )
   
 
-  File(format("{config_dir}/webhcat-env.sh"),
+  File(format("{webhcat_conf_dir}/webhcat-env.sh"),
        owner=params.webhcat_user,
        group=params.user_group,
        content=InlineTemplate(params.webhcat_env_sh_template)
@@ -104,22 +104,22 @@ def webhcat():
 
   log4j_webhcat_filename = 'webhcat-log4j.properties'
   if (params.log4j_webhcat_props != None):
-    File(format("{config_dir}/{log4j_webhcat_filename}"),
+    File(format("{webhcat_conf_dir}/{log4j_webhcat_filename}"),
          mode=0644,
          group=params.user_group,
          owner=params.webhcat_user,
          content=InlineTemplate(params.log4j_webhcat_props)
     )
-  elif (os.path.exists("{config_dir}/{log4j_webhcat_filename}.template")):
-    File(format("{config_dir}/{log4j_webhcat_filename}"),
+  elif (os.path.exists("{webhcat_conf_dir}/{log4j_webhcat_filename}.template")):
+    File(format("{webhcat_conf_dir}/{log4j_webhcat_filename}"),
          mode=0644,
          group=params.user_group,
          owner=params.webhcat_user,
-         content=StaticFile(format("{config_dir}/{log4j_webhcat_filename}.template"))
+         content=StaticFile(format("{webhcat_conf_dir}/{log4j_webhcat_filename}.template"))
     )
 
   # Generate atlas-application.properties.xml file
   if params.enable_atlas_hook:
     # WebHCat uses a different config dir than the rest of the daemons in Hive.
-    atlas_hook_filepath = os.path.join(params.config_dir, params.atlas_hook_filename)
+    atlas_hook_filepath = os.path.join(params.webhcat_conf_dir, params.atlas_hook_filename)
     setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)

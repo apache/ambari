@@ -55,7 +55,7 @@ def hcat():
   )
 
   XmlConfig("hive-site.xml",
-            conf_dir=params.hive_client_conf_dir,
+            conf_dir=params.hive_conf_dir,
             configurations=params.config['configurations']['hive-site'],
             configuration_attributes=params.config['configurationAttributes']['hive-site'],
             owner=params.hive_user,
@@ -70,5 +70,5 @@ def hcat():
 
   # Generate atlas-application.properties.xml file
   if params.enable_atlas_hook:
-    atlas_hook_filepath = os.path.join(params.hive_config_dir, params.atlas_hook_filename)
+    atlas_hook_filepath = os.path.join(params.hive_conf_dir, params.atlas_hook_filename)
     setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)

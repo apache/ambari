@@ -399,18 +399,18 @@ export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS{{heap_dump_opts}}"
 # Set HADOOP_HOME to point to a specific hadoop install directory
 HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
 
-export HIVE_HOME=${HIVE_HOME:-{{hive_home_dir}}}
+export HIVE_HOME=${HIVE_HOME:-{{hive_home}}}
 
 # Hive Configuration Directory can be controlled by:
-export HIVE_CONF_DIR=${HIVE_CONF_DIR:-{{hive_config_dir}}}
+export HIVE_CONF_DIR=${HIVE_CONF_DIR:-{{hive_conf_dir}}}
 
 # Folder containing extra libraries required for hive compilation/execution can be controlled by:
 if [ "${HIVE_AUX_JARS_PATH}" != "" ]; then
   export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}
-elif [ -d "/usr/lib/hive-hcatalog/" ]; then
-  export HIVE_AUX_JARS_PATH=/usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core-*.jar
+elif [ -d "{{hive_hcatalog_home}}" ]; then
+  export HIVE_AUX_JARS_PATH={{hive_hcatalog_home}}/share/hcatalog/hive-hcatalog-core-*.jar
 else
-  export HIVE_AUX_JARS_PATH=/usr/lib/hcatalog/share/hcatalog/hcatalog-core.jar
+  export HIVE_AUX_JARS_PATH={{hive_hcatalog_home}}/share/hcatalog/hcatalog-core.jar
 fi
 export METASTORE_PORT={{hive_metastore_port}}
 

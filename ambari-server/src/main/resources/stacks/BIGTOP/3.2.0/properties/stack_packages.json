@@ -157,6 +157,30 @@
           "STANDARD": [
             "hadoop-client"
           ]
+        },
+        "WEBHCAT_SERVER": {
+          "STACK-SELECT-PACKAGE": "hive-webhcat",
+          "INSTALL": [
+            "hive-webhcat"
+          ],
+          "PATCH": [
+            "hive-webhcat"
+          ],
+          "STANDARD": [
+            "hive-webhcat"
+          ]
+        },
+        "HCAT": {
+          "STACK-SELECT-PACKAGE": "hive-hcat-client",
+          "INSTALL": [
+            "hive-hcat-client"
+          ],
+          "PATCH": [
+            "hive-hcat-client"
+          ],
+          "STANDARD": [
+            "hive-hcat-client"
+          ]
         }
       },
       "KAFKA": {

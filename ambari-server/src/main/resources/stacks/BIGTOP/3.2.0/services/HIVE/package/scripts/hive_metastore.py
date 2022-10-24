@@ -153,7 +153,7 @@ class HiveMetastore(Script):
 
         Execute(format("yes | {sudo} cp {libs_in_hive_lib} {target_native_libs_directory}"))
 
-        Execute(format("{sudo} chown -R {hive_user}:{user_group} {hive_lib}/*"))
+        Execute(format("{sudo} chown -R {hive_user}:{user_group} {hive_lib_dir}/*"))
       else:
         # copy the JDBC driver from the older metastore location to the new location only
         # if it does not already exist
@@ -164,12 +164,12 @@ class HiveMetastore(Script):
       File(target_directory_and_filename, mode = 0644)
 
     # build the schema tool command
-    binary = format("{hive_schematool_ver_bin}/schematool")
+    binary = format("{hive_bin_dir}/schematool")
 
     # the conf.server directory changed locations between stack versions
     # since the configurations have not been written out yet during an upgrade
     # we need to choose the original legacy location
-    schematool_hive_server_conf_dir = params.hive_server_conf_dir
+    schematool_hive_server_conf_dir = params.hive_conf_dir
 
     upgrade_from_version = upgrade_summary.get_source_version("HIVE",
       default_version = params.version_for_stack_feature_checks)
