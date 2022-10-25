@@ -2607,6 +2607,13 @@ public class Configuration {
     "stack.upgrade.default.parallelism", 100);
 
   /**
+   * The timeout, in seconds, when finalizing Kerberos enable/disable/regenerate commands.
+   */
+  @Markdown(description = "The timeout, in seconds, when finalizing Kerberos enable/disable/regenerate commands.")
+  public static final ConfigurationProperty<Integer> KERBEROS_SERVER_ACTION_FINALIZE_SECONDS = new ConfigurationProperty<>(
+          "server.kerberos.finalize.timeout", 600);
+
+  /**
    * Fully qualified class name of the strategy used to form host groups for add service request layout recommendation.
    */
   @Markdown(description = "Fully qualified class name of the strategy used to form host groups for add service request layout recommendation.")
@@ -5553,6 +5560,16 @@ public class Configuration {
    */
   public int getDefaultMaxParallelismForUpgrades() {
     return Integer.parseInt(getProperty(DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES));
+  }
+
+  /**
+   * Get the timeout, in seconds, when finalizing Kerberos
+   * enable/disable/regenerate commands.
+   *
+   * @return the timeout, in seconds, defaulting to 600.
+   */
+  public int getKerberosServerActionFinalizeTimeout() {
+    return Integer.parseInt(getProperty(KERBEROS_SERVER_ACTION_FINALIZE_SECONDS));
   }
 
   /**
