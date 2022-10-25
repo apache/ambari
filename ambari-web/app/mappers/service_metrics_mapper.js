@@ -81,7 +81,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     dfs_corrupt_blocks_values: 'metrics.dfs.FSNamesystem.CorruptBlocks',
     dfs_missing_blocks_values: 'metrics.dfs.FSNamesystem.MissingBlocks',
     dfs_under_replicated_blocks_values: 'metrics.dfs.FSNamesystem.UnderReplicatedBlocks',
-    dfs_total_files_values: 'metrics.dfs.namenode.TotalFiles',
+    dfs_total_files_values: 'metrics.dfs.FSNamesystem.FilesTotal',
     work_status_values: 'HostRoles.state',
     upgrade_status_values: 'metrics.dfs.namenode.UpgradeFinalized',
     safe_mode_status_values: 'metrics.dfs.namenode.Safemode',
