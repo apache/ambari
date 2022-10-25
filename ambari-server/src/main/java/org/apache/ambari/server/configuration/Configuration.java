@@ -2611,7 +2611,14 @@ public class Configuration {
    */
   @Markdown(description = "The timeout, in seconds, when finalizing Kerberos enable/disable/regenerate commands.")
   public static final ConfigurationProperty<Integer> KERBEROS_SERVER_ACTION_FINALIZE_SECONDS = new ConfigurationProperty<>(
-          "server.kerberos.finalize.timeout", 600);
+    "server.kerberos.finalize.timeout", 600);
+
+  /**
+   * The number of threads to use when executing server-side Kerberos commands, such as generate keytabs.
+   */
+  @Markdown(description = "The number of threads to use when executing server-side Kerberos commands, such as generate keytabs.")
+  public static final ConfigurationProperty<Integer> KERBEROS_SERVER_ACTION_THREADPOOL_SIZE = new ConfigurationProperty<>(
+    "server.kerberos.action.threadpool.size", 1);
 
   /**
    * Fully qualified class name of the strategy used to form host groups for add service request layout recommendation.
@@ -3041,7 +3048,7 @@ public class Configuration {
     writeConfigFile(existingProperties, false);
 
     // reloading properties
-    this.properties = readConfigFile();
+    properties = readConfigFile();
   }
 
   /**
@@ -5560,6 +5567,16 @@ public class Configuration {
    */
   public int getDefaultMaxParallelismForUpgrades() {
     return Integer.parseInt(getProperty(DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES));
+  }
+
+  /**
+   * Gets the number of threads to use when executing server-side Kerberos
+   * commands, such as generate keytabs.
+   *
+   * @return the threadpool size, defaulting to 1
+   */
+  public int getKerberosServerActionThreadpoolSize() {
+    return Integer.parseInt(getProperty(KERBEROS_SERVER_ACTION_THREADPOOL_SIZE));
   }
 
   /**
