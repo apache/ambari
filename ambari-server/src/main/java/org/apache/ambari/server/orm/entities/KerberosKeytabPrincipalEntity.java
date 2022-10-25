@@ -76,12 +76,13 @@ import com.google.common.collect.Multimap;
     query = "SELECT kkpe FROM KerberosKeytabPrincipalEntity kkpe WHERE kkpe.hostId=:hostId"
   ),
   @NamedQuery(
-        name = "KerberosKeytabPrincipalEntity.findByPrincipalAndHost",
-        query = "SELECT kkpe FROM KerberosKeytabPrincipalEntity kkpe WHERE kkpe.hostId=:hostId AND kkpe.principalName=:principalName",
-        hints = {
-            @QueryHint(name = "eclipselink.query-results-cache", value = "true"),
-            @QueryHint(name = "eclipselink.query-results-cache.size", value = "500") }),
-    @NamedQuery(
+    name = "KerberosKeytabPrincipalEntity.findByPrincipalAndHost",
+    query = "SELECT kkpe FROM KerberosKeytabPrincipalEntity kkpe WHERE kkpe.hostId=:hostId AND kkpe.principalName=:principalName",
+    hints = {
+      @QueryHint(name = "eclipselink.query-results-cache", value = "true"),
+      @QueryHint(name = "eclipselink.query-results-cache.size", value = "500") }
+  ),
+  @NamedQuery(
     name = "KerberosKeytabPrincipalEntity.findByHostKeytabAndPrincipal",
     query = "SELECT kkpe FROM KerberosKeytabPrincipalEntity kkpe WHERE kkpe.hostId=:hostId AND kkpe.keytabPath=:keytabPath AND kkpe.principalName=:principalName"
   ),
@@ -130,11 +131,7 @@ public class KerberosKeytabPrincipalEntity {
    * required when processing {@link KerberosKeytabPrincipalEntity} instances
    * and turning them into {@link ResolvedKerberosPrincipal}.
    */
-  @OneToMany(
-      cascade = CascadeType.ALL,
-      mappedBy = "kerberosKeytabPrincipalEntity",
-      orphanRemoval = true,
-      fetch = FetchType.EAGER)
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "kerberosKeytabPrincipalEntity", orphanRemoval = true, fetch = FetchType.EAGER)
   private List<KerberosKeytabServiceMappingEntity> serviceMapping = new ArrayList<>();
 
   public KerberosKeytabPrincipalEntity() {
