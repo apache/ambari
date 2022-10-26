@@ -126,8 +126,7 @@
           "STACK-SELECT-PACKAGE": "hive-metastore",
           "INSTALL": [
             "hive-metastore",
-            "hive-client",
-            "hive-hcat-client"
+            "hive-client"
           ],
           "PATCH": [
             "hive-metastore"
@@ -140,8 +139,7 @@
           "STACK-SELECT-PACKAGE": "hive-server2",
           "INSTALL": [
             "hive-server2",
-            "hive-client",
-            "hive-hcat-client"
+            "hive-client"
           ],
           "PATCH": [
             "hive-server2"
@@ -153,8 +151,7 @@
         "HIVE_CLIENT": {
           "STACK-SELECT-PACKAGE": "hive-client",
           "INSTALL": [
-            "hive-client",
-            "hive-hcat-client"
+            "hive-client"
           ],
           "PATCH": [
             "hive-client"
@@ -167,8 +164,7 @@
           "STACK-SELECT-PACKAGE": "hive-webhcat",
           "INSTALL": [
             "hive-webhcat",
-            "hive-client",
-            "hive-hcat-client"
+            "hive-client"
           ],
           "PATCH": [
             "hive-webhcat"
@@ -178,16 +174,16 @@
           ]
         },
         "HCAT": {
-          "STACK-SELECT-PACKAGE": "hive-hcat-client",
+          "STACK-SELECT-PACKAGE": "hive-webhcat",
           "INSTALL": [
-            "hive-hcat-client",
+            "hive-webhcat",
             "hive-client"
           ],
           "PATCH": [
-            "hive-hcat-client"
+            "hive-webhcat"
           ],
           "STANDARD": [
-            "hive-hcat-client"
+            "hive-webhcat"
           ]
         }
       },

@@ -515,7 +515,7 @@ hive_apps_whs_dir = hive_metastore_warehouse_dir
 hive_hcatalog_home = '/usr/lib/hive-hcatalog'
 # hadoop parameters for stacks that support rolling_upgrade
 if stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major):
-  hive_hcatalog_home = format('{stack_root}/current/hive-hcat-client')
+  hive_hcatalog_home = format('{stack_root}/current/hive-webhcat')
 
 hcat_lib = format('{hive_hcatalog_home}/share/hcatalog')
 webhcat_bin_dir = format('{hive_hcatalog_home}/sbin')
