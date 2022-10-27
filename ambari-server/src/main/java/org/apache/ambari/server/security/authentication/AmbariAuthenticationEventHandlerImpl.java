@@ -153,19 +153,5 @@ public class AmbariAuthenticationEventHandlerImpl implements AmbariAuthenticatio
 
   @Override
   public void beforeAttemptAuthentication(AmbariAuthenticationFilter filter, ServletRequest servletRequest, ServletResponse servletResponse) {
-    HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-
-    // Using the Ambari audit logger, log this event (if enabled)
-    if (auditLogger.isEnabled() && filter.shouldApply(httpServletRequest) && (AuthorizationHelper.getAuthenticatedName() == null)) {
-      AuditEvent loginFailedAuditEvent = LoginAuditEvent.builder()
-          .withRemoteIp(RequestUtils.getRemoteAddress(httpServletRequest))
-          .withTimestamp(System.currentTimeMillis())
-          .withReasonOfFailure("Authentication required")
-          .withUserName(null)
-          .withProxyUserName(null)
-          .build();
-      auditLogger.log(loginFailedAuditEvent);
-    }
-
   }
 }
