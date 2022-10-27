@@ -31,6 +31,7 @@ import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -86,6 +87,8 @@ public class TestUsers {
   protected PrincipalDAO principalDAO;
   @Inject
   protected PasswordEncoder passwordEncoder;
+  @Inject
+  protected Configuration configuration;
 
   @Before
   public void setup() throws AmbariException {
@@ -203,16 +206,26 @@ public class TestUsers {
     try {
       users.modifyAuthentication(foundLocalAuthenticationEntity, "user", null, false);
       fail("Null password should not be allowed");
-    } catch (AmbariException e) {
-      assertEquals("The new password does not meet the Ambari password requirements", e.getLocalizedMessage());
+    } catch (IllegalArgumentException e) {
+      assertEquals("The password does not meet the password policy requirements", e.getLocalizedMessage());
     }
 
     try {
       users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "", false);
       fail("Empty password should not be allowed");
-    } catch (AmbariException e) {
-      assertEquals("The new password does not meet the Ambari password requirements", e.getLocalizedMessage());
+    } catch (IllegalArgumentException e) {
+      assertEquals("The password does not meet the password policy requirements", e.getLocalizedMessage());
     }
+
+    //Minimum eight characters, at least one letter and one number:
+    configuration.setProperty(Configuration.PASSWORD_POLICY_REGEXP, "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$");
+    try {
+      users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "abc123", false);
+      fail("Should not pass validation");
+    } catch (IllegalArgumentException e) {
+      assertEquals("The password does not meet the Ambari user password policy regexp:^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$", e.getLocalizedMessage());
+    }
+    users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "abcd1234", false);
   }
 
   @Test

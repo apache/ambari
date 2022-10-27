@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.persistence.EntityManager;
 import javax.persistence.OptimisticLockException;
@@ -1746,20 +1747,22 @@ public class Users {
   }
 
   /**
-   * Validates the password meets configured requirements.
+   * Validates the password meets configured requirements according ambari.properties.
+   *
    * <p>
-   * In the future this may be configurable. For now just make sure the password is not empty.
    *
    * @param password the password
-   * @return true if the password is valid; false otherwise
+   * @throws IllegalArgumentException if password does not meet the password policy requirements
    */
-  public boolean validatePassword(String password) throws AmbariException {
-    // TODO: validate the new password...
+  public void validatePassword(String password) {
     if (StringUtils.isEmpty(password)) {
-      throw new AmbariException("The new password does not meet the Ambari password requirements");
+      throw new IllegalArgumentException("The password does not meet the password policy requirements");
     }
-
-    return true;
+    String regexp = configuration.getPasswordPolicyRegexp();
+    if (!StringUtils.isEmpty(regexp) && (!Pattern.matches(regexp,password))) {
+      final String msg = "The password does not meet the Ambari user password policy regexp:" + regexp;
+      throw new IllegalArgumentException(msg);
+    }
   }
 
   /**
