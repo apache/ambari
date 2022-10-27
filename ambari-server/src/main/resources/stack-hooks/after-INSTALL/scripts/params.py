@@ -28,7 +28,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions.version import format_stack_version, get_major_version
-from resource_management.libraries.functions import format
+from resource_management.libraries.functions.format import format
 from string import lower
 
 config = Script.get_config()
