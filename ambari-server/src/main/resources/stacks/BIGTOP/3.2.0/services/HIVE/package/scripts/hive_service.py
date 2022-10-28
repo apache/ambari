@@ -46,10 +46,10 @@ def hive_service(name, action='start', upgrade_type=None):
 
   if name == 'metastore':
     pid_file = status_params.hive_metastore_pid
-    cmd = format("{start_metastore_path} {hive_log_dir}/hive.out {hive_log_dir}/hive.err {pid_file} {hive_server_conf_dir}")
+    cmd = format("{start_metastore_path} {hive_log_dir}/hive.out {hive_log_dir}/hive.err {pid_file} {hive_conf_dir}")
   elif name == 'hiveserver2':
     pid_file = status_params.hive_pid
-    cmd = format("{start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.err {pid_file} {hive_server_conf_dir} {tez_conf_dir}")
+    cmd = format("{start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.err {pid_file} {hive_conf_dir} {tez_conf_dir}")
 
 
     if params.security_enabled:
@@ -61,7 +61,7 @@ def hive_service(name, action='start', upgrade_type=None):
 
   if action == 'start':
     if name == 'hiveserver2':
-      check_fs_root(params.hive_server_conf_dir, params.execute_path)
+      check_fs_root(params.hive_conf_dir, params.execute_path)
 
     daemon_cmd = cmd
     hadoop_home = params.hadoop_home
@@ -75,7 +75,7 @@ def hive_service(name, action='start', upgrade_type=None):
 
       if params.version and params.stack_root:
         hadoop_home = format("{stack_root}/{version}/hadoop")
-        hive_bin = os.path.join(params.hive_bin, hive_bin)
+        hive_bin = os.path.join(params.hive_bin_dir, hive_bin)
       
     Execute(daemon_cmd, 
       user = params.hive_user,
@@ -91,7 +91,7 @@ def hive_service(name, action='start', upgrade_type=None):
 
       if params.hive_jdbc_target is not None:
         validation_called = True
-        validate_connection(params.hive_jdbc_target, params.hive_lib)
+        validate_connection(params.hive_jdbc_target, params.hive_lib_dir)
 
       if not validation_called:
         emessage = "ERROR! DB connection check should be executed at least one time!"
@@ -190,7 +190,7 @@ def wait_for_znode():
   except ComponentIsNotRunning:
     raise Exception(format("HiveServer2 is no longer running, check the logs at {hive_log_dir}"))
   
-  cmd = format("{zk_bin}/zkCli.sh -server {zk_quorum} ls /{hive_server2_zookeeper_namespace} | grep 'serverUri='")
+  cmd = format("{zk_bin_dir}/zkCli.sh -server {zk_quorum} ls /{hive_server2_zookeeper_namespace} | grep 'serverUri='")
   code, out = shell.call(cmd)
   if code == 1:
     raise Fail(format("ZooKeeper node /{hive_server2_zookeeper_namespace} is not ready yet"))

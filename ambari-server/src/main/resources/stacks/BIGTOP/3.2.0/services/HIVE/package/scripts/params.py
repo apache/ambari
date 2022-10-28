@@ -51,6 +51,8 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import stack_select
 
 
 host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
@@ -111,15 +113,26 @@ stack_supports_ranger_hive_jdbc_url_change = check_stack_feature(StackFeature.RA
 # component ROLE directory (like hive-metastore or hive-server2-hive)
 component_directory = status_params.component_directory
 
-hadoop_home = '/usr/lib/hadoop'
-hive_bin = '/usr/lib/hive/bin'
-hive_schematool_ver_bin = hive_bin
-hive_schematool_bin = hive_bin
-hive_lib = '/usr/lib/hive/lib'
-hive_version_lib = hive_lib
+# default configuration directories
+hadoop_home = stack_select.get_hadoop_dir("home")
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
+tez_conf_dir = "/etc/tez/conf"
+zk_home = format('/usr/lib/zookeeper')
+
+hive_conf_dir = '/etc/hive/conf'
+hive_home = '/usr/lib/hive'
 hive_var_lib = '/var/lib/hive'
 hive_user_home_dir = "/home/hive"
-zk_bin = format('/usr/lib/zookeeper/bin')
+
+# hadoop parameters for stacks that support rolling_upgrade
+if stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major):
+  hive_home = format("{stack_root}/current/hive-client")
+  zk_home = format("{stack_root}/{stack_version_formatted_major}/usr/lib/zookeeper")
+
+zk_bin_dir = format('{zk_home}/bin')
+hive_bin_dir = format('{hive_home}/bin')
+hive_lib_dir = format('{hive_home}/lib')
 
 # starting on stacks where HSI is supported, we need to begin using the 'hive2' schematool
 hive_server2_hive_dir = None
@@ -145,30 +158,11 @@ limits_conf_dir = "/etc/security/limits.d"
 hive_user_nofile_limit = default("/configurations/hive-env/hive_user_nofile_limit", "32000")
 hive_user_nproc_limit = default("/configurations/hive-env/hive_user_nproc_limit", "16000")
 
-# use the directories from status_params as they are already calculated for
-# the correct stack version
-hadoop_conf_dir = status_params.hadoop_conf_dir
-hadoop_bin_dir = status_params.hadoop_bin_dir
-hive_conf_dir = status_params.hive_conf_dir
-hive_home_dir = status_params.hive_home_dir
-hive_config_dir = status_params.hive_config_dir
-hive_client_conf_dir = status_params.hive_client_conf_dir
-hive_server_conf_dir = status_params.hive_server_conf_dir
-tez_conf_dir = status_params.tez_conf_dir
-
-
 # --- Tarballs ---
 # DON'T CHANGE THESE VARIABLE NAMES
 # Values don't change from those in copy_tarball.py
 hive_tar_source = "{0}/{1}/hive/hive.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
-pig_tar_source = "{0}/{1}/pig/pig.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
 hive_tar_dest_file = "/{0}/apps/{1}/hive/hive.tar.gz".format(STACK_NAME_PATTERN,STACK_VERSION_PATTERN)
-pig_tar_dest_file = "/{0}/apps/{1}/pig/pig.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)
-
-hadoop_streaming_tar_source = "{0}/{1}/hadoop-mapreduce/hadoop-streaming.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
-sqoop_tar_source = "{0}/{1}/sqoop/sqoop.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
-hadoop_streaming_tar_dest_dir = "/{0}/apps/{1}/mapreduce/".format(STACK_NAME_PATTERN,STACK_VERSION_PATTERN)
-sqoop_tar_dest_dir = "/{0}/apps/{1}/sqoop/".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)
 
 tarballs_mode = 0444
 
@@ -180,7 +174,7 @@ if check_stack_feature(StackFeature.HIVE_PURGE_TABLE, version_for_stack_feature_
 if check_stack_feature(StackFeature.HIVE_METASTORE_SITE_SUPPORT, version_for_stack_feature_checks):
   hive_metastore_site_supported = True
 
-execute_path = os.environ['PATH'] + os.pathsep + hive_bin + os.pathsep + hadoop_bin_dir
+execute_path = os.environ['PATH'] + os.pathsep + hive_bin_dir + os.pathsep + hadoop_bin_dir
 
 hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']
 hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.option.ConnectionURL']
@@ -248,19 +242,19 @@ elif hive_jdbc_driver == "sap.jdbc4.sqlanywhere.IDriver":
 else: raise Fail(format("JDBC driver '{hive_jdbc_driver}' not supported."))
 
 default_mysql_jar_name = "mysql-connector-java.jar"
-default_mysql_target = format("{hive_lib}/{default_mysql_jar_name}")
-hive_previous_jdbc_jar = format("{hive_lib}/{hive_previous_jdbc_jar_name}")
+default_mysql_target = format("{hive_lib_dir}/{default_mysql_jar_name}")
+hive_previous_jdbc_jar = format("{hive_lib_dir}/{hive_previous_jdbc_jar_name}")
 if not hive_use_existing_db:
   jdbc_jar_name = default_mysql_jar_name
 
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
-hive_jdbc_target = format("{hive_lib}/{jdbc_jar_name}")
+hive_jdbc_target = format("{hive_lib_dir}/{jdbc_jar_name}")
 
 # during upgrade / downgrade, use the specific version to copy the JDBC JAR to
 if upgrade_direction:
-  hive_jdbc_target = format("{hive_version_lib}/{jdbc_jar_name}")
+  hive_jdbc_target = format("{hive_lib_dir}/{jdbc_jar_name}")
 
 
 driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
@@ -277,10 +271,10 @@ hive_jdbc_drivers_list = ["com.microsoft.sqlserver.jdbc.SQLServerDriver","com.my
                           "org.postgresql.Driver","oracle.jdbc.driver.OracleDriver","sap.jdbc4.sqlanywhere.IDriver"]
 
 prepackaged_jdbc_name = "ojdbc6.jar"
-prepackaged_ojdbc_symlink = format("{hive_lib}/{prepackaged_jdbc_name}")
+prepackaged_ojdbc_symlink = format("{hive_lib_dir}/{prepackaged_jdbc_name}")
 
 #constants for type2 jdbc
-jdbc_libs_dir = format("{hive_lib}/native/lib64")
+jdbc_libs_dir = format("{hive_lib_dir}/native/lib64")
 lib_dir_available = os.path.exists(jdbc_libs_dir)
 
 if sqla_db_used:
@@ -342,14 +336,14 @@ hive_pid = status_params.hive_pid
 # hive_interactive_pid = status_params.hive_interactive_pid
 
 #Default conf dir for client
-hive_conf_dirs_list = [hive_client_conf_dir]
+hive_conf_dirs_list = [hive_conf_dir]
 
 # These are the folders to which the configs will be written to.
-ranger_hive_ssl_config_file = os.path.join(hive_server_conf_dir, "ranger-policymgr-ssl.xml")
+ranger_hive_ssl_config_file = os.path.join(hive_conf_dir, "ranger-policymgr-ssl.xml")
 if status_params.role == "HIVE_METASTORE" and hive_metastore_hosts is not None and hostname in hive_metastore_hosts:
-  hive_conf_dirs_list.append(hive_server_conf_dir)
+  hive_conf_dirs_list.append(hive_conf_dir)
 elif status_params.role == "HIVE_SERVER" and hive_server_hosts is not None and hostname in hive_server_hosts:
-  hive_conf_dirs_list.append(hive_server_conf_dir)
+  hive_conf_dirs_list.append(hive_conf_dir)
 
 #Starting hiveserver2
 start_hiveserver2_script = 'startHiveserver2.sh.j2'
@@ -365,7 +359,7 @@ artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 # Need this for yarn.nodemanager.recovery.dir in yarn-site
 yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
 
-jars_in_hive_lib = format("{hive_lib}/*.jar")
+jars_in_hive_lib = format("{hive_lib_dir}/*.jar")
 
 start_hiveserver2_path = format("{tmp_dir}/start_hiveserver2_script")
 start_metastore_path = format("{tmp_dir}/start_metastore_script")
@@ -513,15 +507,18 @@ atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'a
 #endregion
 
 ########## HCAT
-webhcat_conf_dir = status_params.webhcat_conf_dir
-hive_apps_whs_dir = hive_metastore_warehouse_dir
+webhcat_conf_dir = "/etc/hive-webhcat/conf"
 hcat_conf_dir = '/etc/hive-hcatalog/conf'
-config_dir = '/etc/hive-webhcat/conf'
+hive_apps_whs_dir = hive_metastore_warehouse_dir
 
 # there are no client versions of these, use server versions directly
-hcat_lib = format('/usr/lib/hive-hcatalog/share/hcatalog')
-webhcat_bin_dir = format('/usr/lib/hive-hcatalog/sbin')
+hive_hcatalog_home = '/usr/lib/hive-hcatalog'
+# hadoop parameters for stacks that support rolling_upgrade
+if stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major):
+  hive_hcatalog_home = format('{stack_root}/current/hive-webhcat')
 
+hcat_lib = format('{hive_hcatalog_home}/share/hcatalog')
+webhcat_bin_dir = format('{hive_hcatalog_home}/sbin')
 webhcat_apps_dir = "/apps/webhcat"
 
 templeton_port = config['configurations']['webhcat-site']['templeton.port']
@@ -628,7 +625,7 @@ if security_enabled:
   yarn_kinit_cmd = format("{kinit_path_local} -kt {yarn_keytab} {yarn_principal_name};")
 
 hive_cluster_token_zkstore = default("/configurations/hive-site/hive.cluster.delegation.token.store.zookeeper.znode", None)
-jaas_file = os.path.join(hive_config_dir, 'zkmigrator_jaas.conf')
+jaas_file = os.path.join(hive_conf_dir, 'zkmigrator_jaas.conf')
 hive_zk_namespace = default("/configurations/hive-site/hive.zookeeper.namespace", None)
 
 zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
@@ -702,8 +699,8 @@ if enable_ranger_hive:
 
     ranger_downloaded_custom_connector = format("{tmp_dir}/{ranger_jdbc_jar_name}")
     ranger_driver_curl_source = format("{jdk_location}/{ranger_jdbc_jar_name}")
-    ranger_driver_curl_target = format("{hive_lib}/{ranger_jdbc_jar_name}")
-    ranger_previous_jdbc_jar = format("{hive_lib}/{ranger_previous_jdbc_jar_name}")
+    ranger_driver_curl_target = format("{hive_lib_dir}/{ranger_jdbc_jar_name}")
+    ranger_previous_jdbc_jar = format("{hive_lib_dir}/{ranger_previous_jdbc_jar_name}")
     sql_connector_jar = ''
 
   ranger_hive_url = format("{hive_url}/default;principal={hive_principal}") if security_enabled else hive_url
