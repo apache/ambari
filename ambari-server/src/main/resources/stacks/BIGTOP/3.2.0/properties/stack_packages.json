@@ -245,7 +245,8 @@
         "SPARK_JOBHISTORYSERVER": {
           "STACK-SELECT-PACKAGE": "spark-historyserver",
           "INSTALL": [
-            "spark-historyserver"
+            "spark-historyserver",
+            "spark-client"
           ],
           "PATCH": [
             "spark-historyserver"
@@ -257,7 +258,8 @@
         "SPARK_THRIFTSERVER": {
           "STACK-SELECT-PACKAGE": "spark-thriftserver",
           "INSTALL": [
-            "spark-thriftserver"
+            "spark-thriftserver",
+            "spark-client"
           ],
           "PATCH": [
             "spark-thriftserver"
