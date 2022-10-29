@@ -90,4 +90,13 @@
       Set to a positive integer (1 and above) to enable the auto purging.</description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>4lw.commands.whitelist</name>
+    <value>ruok</value>
+    <description>A list of comma separated Four Letter Words commands that user wants to use.
+      A valid Four Letter Words command must be put in this list else ZooKeeper server will not enable the command.
+      By default the whitelist only contains "srvr" command which zkServer.sh uses.
+      The rest of four letter word commands are disabled by default.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>
