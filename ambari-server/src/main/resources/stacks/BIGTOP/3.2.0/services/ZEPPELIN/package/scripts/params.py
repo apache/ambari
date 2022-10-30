@@ -50,15 +50,19 @@ def extract_spark_version(spark_home):
 
 # server configurations
 config = Script.get_config()
-# stack_root = Script.get_stack_root()
-stack_root = "/usr/lib"
+stack_root = Script.get_stack_root()
+# e.g. 2.3
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
+# e.g. 2.3.0.0
+stack_version_formatted = format_stack_version(stack_version_unformatted)
+major_stack_version = get_major_version(stack_version_formatted)
+# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
+# e.g. 2.3.0.0-2130
+version = default("/commandParams/version", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 
 # e.g. /var/lib/ambari-agent/cache/stacks/HDP/2.2/services/zeppelin-stack/package
 service_packagedir = os.path.realpath(__file__).split('/scripts')[0]
-
-zeppelin_dirname = 'zeppelin-server'
-
-install_dir = os.path.join(stack_root, "zeppelin")
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
@@ -68,20 +72,6 @@ is_ui_ssl_enabled = str(ui_ssl_enabled).upper() == 'TRUE'
 setup_view = True
 temp_file = config['configurations']['zeppelin-env']['zeppelin.temp.file']
 
-spark_home = config['configurations']['zeppelin-env']['spark_home']
-spark_version = None
-spark2_home = ""
-spark2_version = None
-if 'spark-defaults' in config['configurations']:
-  spark_home = os.path.join(stack_root, "current", 'spark-client')
-  spark_version = extract_spark_version(spark_home)
-if 'spark2-defaults' in config['configurations']:
-  spark2_home = os.path.join(stack_root, "current", 'spark2-client')
-  spark2_version = extract_spark_version(spark2_home)
-
-# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
-version = default("/commandParams/version", None)
-stack_name = default("/clusterLevelParams/stack_name", None)
 
 # params from zeppelin-site
 zeppelin_port = str(config['configurations']['zeppelin-site']['zeppelin.server.port'])
@@ -107,9 +97,21 @@ hbase_conf_dir = config['configurations']['zeppelin-env']['hbase_conf_dir']
 zeppelin_log_file = os.path.join(zeppelin_log_dir, 'zeppelin-setup.log')
 zeppelin_hdfs_user_dir = format("/user/{zeppelin_user}")
 
-zeppelin_dir = install_dir
-conf_dir = "/etc/zeppelin/conf"
-external_dependency_conf = "/etc/zeppelin/conf/external-dependency-conf"
+zeppelin_conf_dir = "/etc/zeppelin/conf"
+external_dependency_conf = format("{zeppelin_conf_dir}/external-dependency-conf")
+zeppelin_home = "/usr/lib/zeppelin"
+
+spark_home = config['configurations']['zeppelin-env']['spark_home']
+
+if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+  spark_home = format("{stack_root}/current/spark-client")
+  hbase_home = format("{stack_root}/current/hbase-client")
+  zeppelin_home = format("{stack_root}/current/zeppelin-server")
+  local_notebook_dir = format("{stack_root}/{stack_version_formatted}/{local_notebook_dir}")
+
+spark_version = None
+if 'spark-defaults' in config['configurations']:
+  spark_version = extract_spark_version(spark_home)
 
 conf_stored_in_hdfs = False
 if 'zeppelin.config.fs.dir' in config['configurations']['zeppelin-site'] and \
@@ -244,17 +246,7 @@ else:
 
 exclude_interpreter_autoconfig = default("/configurations/zeppelin-site/exclude.interpreter.autoconfig", None)
 
-# e.g. 2.3
-stack_version_unformatted = config['clusterLevelParams']['stack_version']
 
-# e.g. 2.3.0.0
-stack_version_formatted = format_stack_version(stack_version_unformatted)
-major_stack_version = get_major_version(stack_version_formatted)
-
-# e.g. 2.3.0.0-2130
-full_stack_version = default("/commandParams/version", None)
-
-spark_client_version = get_stack_version('spark-client')
 
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 livy_hosts = default("/clusterHostInfo/livy_server_hosts", [])

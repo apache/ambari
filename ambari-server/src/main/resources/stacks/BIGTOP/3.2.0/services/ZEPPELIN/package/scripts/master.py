@@ -52,9 +52,6 @@ class Master(Script):
     if params.spark_version:
       Execute('echo spark_version:' + str(params.spark_version) + ' detected for spark_home: '
               + params.spark_home + ' >> ' + params.zeppelin_log_file, user=params.zeppelin_user)
-    if params.spark2_version:
-      Execute('echo spark2_version:' + str(params.spark2_version) + ' detected for spark2_home: '
-              + params.spark2_home + ' >> ' + params.zeppelin_log_file, user=params.zeppelin_user)
 
   def create_zeppelin_dir(self, params):
     params.HdfsResource(format("/user/{zeppelin_user}"),
@@ -120,7 +117,7 @@ class Master(Script):
     self.create_zeppelin_log_dir(env)
 
     # create the pid and zeppelin dirs
-    Directory([params.zeppelin_pid_dir, params.zeppelin_dir],
+    Directory([params.zeppelin_pid_dir, params.zeppelin_home],
               owner=params.zeppelin_user,
               group=params.zeppelin_group,
               cd_access="a",
@@ -130,23 +127,23 @@ class Master(Script):
     self.chown_zeppelin_pid_dir(env)
 
     XmlConfig("zeppelin-site.xml",
-              conf_dir=params.conf_dir,
+              conf_dir=params.zeppelin_conf_dir,
               configurations=params.config['configurations']['zeppelin-site'],
               owner=params.zeppelin_user,
               group=params.zeppelin_group
               )
     # write out zeppelin-env.sh
     env_content = InlineTemplate(params.zeppelin_env_content)
-    File(format("{params.conf_dir}/zeppelin-env.sh"), content=env_content,
+    File(format("{params.zeppelin_conf_dir}/zeppelin-env.sh"), content=env_content,
          owner=params.zeppelin_user, group=params.zeppelin_group)
 
     # write out shiro.ini
     shiro_ini_content = InlineTemplate(params.shiro_ini_content)
-    File(format("{params.conf_dir}/shiro.ini"), content=shiro_ini_content,
+    File(format("{params.zeppelin_conf_dir}/shiro.ini"), content=shiro_ini_content,
          owner=params.zeppelin_user, group=params.zeppelin_group)
 
     # write out log4j.properties
-    File(format("{params.conf_dir}/log4j.properties"), content=params.log4j_properties_content,
+    File(format("{params.zeppelin_conf_dir}/log4j.properties"), content=params.log4j_properties_content,
          owner=params.zeppelin_user, group=params.zeppelin_group)
 
     self.create_zeppelin_hdfs_conf_dir(env)
@@ -218,7 +215,7 @@ class Master(Script):
     import params
     self.create_zeppelin_log_dir(env)
     self.chown_zeppelin_pid_dir(env)
-    Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh stop >> ' + params.zeppelin_log_file,
+    Execute(params.zeppelin_home + '/bin/zeppelin-daemon.sh stop >> ' + params.zeppelin_log_file,
             user=params.zeppelin_user)
 
   def start(self, env, upgrade_type=None):
@@ -254,15 +251,15 @@ class Master(Script):
                             )
 
     # if first_setup:
-    if not glob.glob(params.conf_dir + "/interpreter.json") and \
-      not os.path.exists(params.conf_dir + "/interpreter.json"):
+    if not glob.glob(params.zeppelin_conf_dir + "/interpreter.json") and \
+      not os.path.exists(params.zeppelin_conf_dir + "/interpreter.json"):
       self.create_interpreter_json()
 
     if params.zeppelin_interpreter_config_upgrade == True:
       self.reset_interpreter_settings(upgrade_type)
       self.update_zeppelin_interpreter()
 
-    Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh restart >> '
+    Execute(params.zeppelin_home + '/bin/zeppelin-daemon.sh restart >> '
             + params.zeppelin_log_file, user=params.zeppelin_user)
     pidfile = glob.glob(os.path.join(status_params.zeppelin_pid_dir,
                                      'zeppelin-' + params.zeppelin_user + '*.pid'))[0]
@@ -414,7 +411,7 @@ class Master(Script):
           kinit_if_needed = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal};")
         else:
           kinit_if_needed = ''
-        interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
+        interpreter_config = os.path.join(params.zeppelin_conf_dir, "interpreter.json")
         shell.call(format("rm {interpreter_config};"
             "{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -get {zeppelin_conf_fs} {interpreter_config}"),
             user=params.zeppelin_user)
@@ -426,7 +423,7 @@ class Master(Script):
     import json
 
     self.copy_interpreter_from_HDFS_to_FS(params)
-    interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
+    interpreter_config = os.path.join(params.zeppelin_conf_dir, "interpreter.json")
     config_content = sudo.read_file(interpreter_config)
     config_data = json.loads(config_content)
     return config_data
@@ -435,7 +432,7 @@ class Master(Script):
     import params
     import json
 
-    interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
+    interpreter_config = os.path.join(params.zeppelin_conf_dir, "interpreter.json")
     File(interpreter_config,
          group=params.zeppelin_group,
          owner=params.zeppelin_user,
@@ -653,7 +650,7 @@ class Master(Script):
 
     if not self.copy_interpreter_from_HDFS_to_FS(params):
       interpreter_json = interpreter_json_template.template
-      File(format("{params.conf_dir}/interpreter.json"),
+      File(format("{params.zeppelin_conf_dir}/interpreter.json"),
            content=interpreter_json,
            owner=params.zeppelin_user,
            group=params.zeppelin_group,
@@ -663,7 +660,7 @@ class Master(Script):
         params.HdfsResource(self.get_zeppelin_conf_FS(params),
                             type="file",
                             action="create_on_execute",
-                            source=format("{params.conf_dir}/interpreter.json"),
+                            source=format("{params.zeppelin_conf_dir}/interpreter.json"),
                             owner=params.zeppelin_user,
                             recursive_chown=True,
                             recursive_chmod=True,
@@ -671,7 +668,7 @@ class Master(Script):
 
   def get_zeppelin_spark_dependencies(self):
     import params
-    return glob.glob(params.zeppelin_dir + '/interpreter/spark/dep/zeppelin-spark-dependencies*.jar')
+    return glob.glob(params.zeppelin_home + '/interpreter/spark/dep/zeppelin-spark-dependencies*.jar')
 
 if __name__ == "__main__":
   Master().execute()
