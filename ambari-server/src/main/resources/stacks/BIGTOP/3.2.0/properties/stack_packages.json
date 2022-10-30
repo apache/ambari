@@ -19,7 +19,8 @@
         "HBASE_MASTER": {
           "STACK-SELECT-PACKAGE": "hbase-master",
           "INSTALL": [
-            "hbase-master"
+            "hbase-master",
+            "hbase-client"
           ],
           "PATCH": [
             "hbase-master"
@@ -31,7 +32,8 @@
         "HBASE_REGIONSERVER": {
           "STACK-SELECT-PACKAGE": "hbase-regionserver",
           "INSTALL": [
-            "hbase-regionserver"
+            "hbase-regionserver",
+            "hbase-client"
           ],
           "PATCH": [
             "hbase-regionserver"
