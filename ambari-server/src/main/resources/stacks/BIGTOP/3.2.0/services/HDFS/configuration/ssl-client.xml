@@ -19,52 +19,60 @@
 <configuration>
   <property>
     <name>ssl.client.truststore.location</name>
-    <value>/etc/security/clientKeys/all.jks</value>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <description>Location of the trust store file.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ssl.client.truststore.type</name>
     <value>jks</value>
     <description>Optional. Default value is "jks".</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ssl.client.truststore.password</name>
-    <value>bigdata</value>
+    <value/>
     <property-type>PASSWORD</property-type>
-    <description>Password to open the trust store file.</description>
     <value-attributes>
       <type>password</type>
+      <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <description>Password to open the trust store file.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ssl.client.truststore.reload.interval</name>
     <value>10000</value>
     <description>Truststore reload interval, in milliseconds.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ssl.client.keystore.type</name>
     <value>jks</value>
     <description>Optional. Default value is "jks".</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ssl.client.keystore.location</name>
-    <value>/etc/security/clientKeys/keystore.jks</value>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <description>Location of the keystore file.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ssl.client.keystore.password</name>
-    <value>bigdata</value>
-    <property-type>PASSWORD</property-type>
-    <description>Password to open the keystore file.</description>
+    <value/>
     <value-attributes>
       <type>password</type>
+      <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <property-type>PASSWORD</property-type>
+    <description>Password to open the keystore file.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>
