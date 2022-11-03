@@ -280,7 +280,7 @@
             "flink-client"
           ]
         },
-        "FLINK_JOBHISTORYSERVER": {
+        "FLINK_HISTORYSERVER": {
           "STACK-SELECT-PACKAGE": "flink-historyserver",
           "INSTALL": [
             "flink-historyserver"

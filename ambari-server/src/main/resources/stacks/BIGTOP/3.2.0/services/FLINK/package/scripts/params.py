@@ -32,6 +32,14 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.script.script import Script
 
+# a map of the Ambari role to the component name
+# for use with <stack-root>/current/<component>
+SERVER_ROLE_DIRECTORY_MAP = {
+  'FLINK_HISTORYSERVER' : 'flink-historyserver',
+  'FLINK_CLIENT' : 'flink-client'
+}
+component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "FLINK_CLIENT")
+
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -60,9 +68,8 @@ hdfs_site = config['configurations']['hdfs-site']
 hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore"
 
 flink_etc_dir = "/etc/flink"
-flink_config_dir = "/etc/flink/conf"
-flink_dir = "/usr/lib/flink"
-flink_bin_dir = "/usr/lib/flink/bin"
+flink_config_dir = format("{flink_etc_dir}/conf")
+flink_dir = format("{stack_root}/current/{component_directory}")
 flink_log_dir = config['configurations']['flink-env']['flink_log_dir']
 flink_pid_dir = config['configurations']['flink-env']['flink_pid_dir']
 

@@ -26,10 +26,6 @@ from setup_flink import *
 
 class FlinkClient(Script):
 
-  def pre_install(self, env):
-    import params
-    env.set_params(params)
-
   def configure(self, env, config_dir=None, upgrade_type=None):
     import params
     env.set_params(params)
