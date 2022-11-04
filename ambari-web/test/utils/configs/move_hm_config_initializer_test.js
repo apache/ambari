@@ -89,13 +89,6 @@ describe('App.MoveHmConfigInitializer', function () {
   });
 
   describe('#_initHiveMetastoreUris', function () {
-    it('should not change property value if config tag is not equal hive-site', function () {
-      sinon.stub(App.config, 'getConfigTagFromFileName').returns('test');
-      var result = initializer._initHiveMetastoreUris(Em.Object.create({value: 'test'}), {}, {});
-      expect(result.get('value')).to.be.equal('test');
-      App.config.getConfigTagFromFileName.restore();
-    });
-
     it('should set correct value if config tag is equal to hive-site and set 9083 port by default', function () {
       sinon.stub(App.config, 'getConfigTagFromFileName').returns('hive-site');
       var result = initializer._initHiveMetastoreUris(
