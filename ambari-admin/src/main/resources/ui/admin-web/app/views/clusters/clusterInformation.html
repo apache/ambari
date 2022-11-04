@@ -50,6 +50,7 @@
                  name="clusterName"
                  ng-change="toggleSaveButton()"
                  ng-model="edit.clusterName"
+                 ng-pattern="nameValidationPattern"
                  required
                  autofocus
                  ng-maxlength="100"
