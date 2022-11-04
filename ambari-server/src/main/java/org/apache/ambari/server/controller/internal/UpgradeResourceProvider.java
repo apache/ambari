@@ -1448,7 +1448,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     ActionExecutionContext actionContext = buildActionExecutionContext(cluster, context,
         Role.AMBARI_SERVER_ACTION.toString(), stackId, Collections.emptyList(),
-        commandParams, group.allowRetry, Short.valueOf((short) -1));
+        commandParams, group.allowRetry, -1);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
         cluster, context.getRepositoryVersion().getStackId(), null);
@@ -1705,7 +1705,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private ActionExecutionContext buildActionExecutionContext(Cluster cluster,
       UpgradeContext context, String role, StackId stackId,
       List<RequestResourceFilter> resourceFilters, Map<String, String> commandParams,
-      boolean allowRetry, short timeout) {
+      boolean allowRetry, int timeout) {
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         role, resourceFilters, commandParams);
