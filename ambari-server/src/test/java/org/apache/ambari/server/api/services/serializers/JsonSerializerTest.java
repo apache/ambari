@@ -235,8 +235,7 @@ public class JsonSerializerTest {
         "      \"error\" : {\n" +
         "        \"key\" : \"key2\",\n" +
         "        \"code\" : 403,\n" +
-        "        \"message\" : \"org.apache.ambari.server.security.authorization.AuthorizationException:"+
-                              " The authenticated user is not authorized to perform the requested operation\"\n" +
+        "        \"message\" : \"The authenticated user is not authorized to perform the requested operation\"\n" +
         "      }\n" +
         "    }\n" +
         "  ]\n" +
