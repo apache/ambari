@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.Lock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -35,12 +36,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.util.concurrent.Striped;
 import com.google.inject.Inject;
 
 public class FinalizeKerberosServerAction extends KerberosServerAction {
   private final static Logger LOG = LoggerFactory.getLogger(FinalizeKerberosServerAction.class);
 
   private final TopologyHolder topologyHolder;
+
+  /**
+   * Used to prevent multiple threads from working with the same keytab.
+   */
+  private Striped<Lock> m_locksByKeytab = Striped.lazyWeakLock(25);
 
   @Inject
   public FinalizeKerberosServerAction(TopologyHolder topologyHolder) {
@@ -91,7 +98,13 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
 
           String keytabFilePath = resolvedPrincipal.getKeytabPath();
 
-          if (!StringUtils.isEmpty(keytabFilePath)) {
+          if (StringUtils.isEmpty(keytabFilePath)) {
+            return null;
+          }
+
+          Lock lock = m_locksByKeytab.get(keytabFilePath);
+          lock.lock();
+          try {
             Set<String> visited = (Set<String>) requestSharedDataContext.get(this.getClass().getName() + "_visited");
 
             if (!visited.contains(keytabFilePath)) {
@@ -154,6 +167,8 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
 
               visited.add(keytabFilePath);
             }
+          } finally {
+            lock.unlock();
           }
         }
       }
