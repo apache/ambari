@@ -267,6 +267,11 @@ App.QueuesController = Ember.ArrayController.extend({
    * @type {Boolean}
    */
   hasDeletedQueues: Em.computed.alias('store.hasDeletedQueues'),
+  /**
+   * !hasDeletedQueues
+   * @type {Boolean}
+   */
+  doesNotHaveDeletedQueues: Em.computed.not('store.hasDeletedQueues'),
 
 
 
@@ -331,7 +336,13 @@ App.QueuesController = Ember.ArrayController.extend({
    * check there is some changes for save
    * @type {bool}
    */
-  needSave: cmp.any('needRestart', 'needRefresh'),
+  needRestartOrRefresh: cmp.any('needRestart', 'needRefresh'),
+  /**
+   * check there is some changes for save and no deleted queues
+   * queue deletion requires Yarn Resource Manager restart
+   * @type {bool}
+   */
+  needSave: cmp.and('needRestartOrRefresh', 'doesNotHaveDeletedQueues'),
 
   /**
    * check if can save configs
