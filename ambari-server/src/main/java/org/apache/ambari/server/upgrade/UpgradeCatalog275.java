@@ -27,16 +27,20 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
 
 /**
  * The {@link UpgradeCatalog275} upgrades Ambari from 2.7.4 to 2.7.5.
  */
 public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
 
+  private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog275.class);
   static final Gson GSON = new Gson();
 
 
@@ -63,7 +67,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
-
+    // no actions needed
   }
 
   /**
@@ -74,6 +78,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
+    LOG.debug("UpgradeCatalog275 executing Pre-DML Updates.");
     removeDfsHAInitial();
   }
 
@@ -85,6 +90,7 @@ public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
+    LOG.debug("UpgradeCatalog275 executing DML Updates.");
     addNewConfigurationsFromXml();
   }
 
