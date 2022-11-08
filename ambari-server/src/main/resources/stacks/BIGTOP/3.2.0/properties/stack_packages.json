@@ -283,7 +283,8 @@
         "FLINK_HISTORYSERVER": {
           "STACK-SELECT-PACKAGE": "flink-historyserver",
           "INSTALL": [
-            "flink-historyserver"
+            "flink-historyserver",
+            "flink-client"
           ],
           "PATCH": [
             "flink-historyserver"
