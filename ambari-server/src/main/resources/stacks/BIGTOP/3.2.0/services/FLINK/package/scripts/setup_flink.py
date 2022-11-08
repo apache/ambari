@@ -42,7 +42,6 @@ def setup_flink(env, type, upgrade_type = None, action = None):
             create_parents = True)
 
   Directory(params.flink_log_dir,mode=0767)
-  Link(params.flink_dir + '/log',to=params.flink_log_dir)
 
   if type == 'historyserver' and action == 'config':
     params.HdfsResource(params.flink_hdfs_user_dir,
