@@ -101,7 +101,7 @@ def setup_spark(env, type, upgrade_type = None, action = None):
   if not params.spark_warehouse_dir:
       spark_defaults.pop("spark.sql.warehouse.dir")
 
-  PropertiesFile(format("{spark_conf}/spark-defaults.conf"),
+  PropertiesFile(format("{spark_conf_dir}/spark-defaults.conf"),
     properties = spark_defaults,
     key_value_delimiter = " ",
     owner=params.spark_user,
@@ -110,7 +110,7 @@ def setup_spark(env, type, upgrade_type = None, action = None):
   )
 
   # create spark-env.sh in etc/conf dir
-  File(os.path.join(params.spark_conf, 'spark-env.sh'),
+  File(os.path.join(params.spark_conf_dir, 'spark-env.sh'),
        owner=params.spark_user,
        group=params.spark_group,
        content=InlineTemplate(params.spark_env_sh),
@@ -118,7 +118,7 @@ def setup_spark(env, type, upgrade_type = None, action = None):
   )
 
   #create log4j.properties in etc/conf dir
-  File(os.path.join(params.spark_conf, 'log4j.properties'),
+  File(os.path.join(params.spark_conf_dir, 'log4j.properties'),
        owner=params.spark_user,
        group=params.spark_group,
        content=params.spark_log4j_properties,
@@ -126,7 +126,7 @@ def setup_spark(env, type, upgrade_type = None, action = None):
   )
 
   #create metrics.properties in etc/conf dir
-  File(os.path.join(params.spark_conf, 'metrics.properties'),
+  File(os.path.join(params.spark_conf_dir, 'metrics.properties'),
        owner=params.spark_user,
        group=params.spark_group,
        content=InlineTemplate(params.spark_metrics_properties),
@@ -135,7 +135,7 @@ def setup_spark(env, type, upgrade_type = None, action = None):
 
   if params.is_hive_installed:
     XmlConfig("hive-site.xml",
-          conf_dir=params.spark_conf,
+          conf_dir=params.spark_conf_dir,
           configurations=params.spark_hive_properties,
           owner=params.spark_user,
           group=params.spark_group,
@@ -143,7 +143,7 @@ def setup_spark(env, type, upgrade_type = None, action = None):
 
   if params.spark_thrift_fairscheduler_content:
     # create spark-thrift-fairscheduler.xml
-    File(os.path.join(params.spark_conf,"spark-thrift-fairscheduler.xml"),
+    File(os.path.join(params.spark_conf_dir,"spark-thrift-fairscheduler.xml"),
       owner=params.spark_user,
       group=params.spark_group,
       mode=0755,

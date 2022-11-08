@@ -74,20 +74,25 @@ sysprep_skip_copy_tarballs_hdfs = get_sysprep_skip_copy_tarballs_hdfs()
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
 
-spark_conf = '/etc/spark/conf'
+hadoop_home = stack_select.get_hadoop_dir("home")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hive_home = '/usr/lib/hive'
-hive_conf_dir = format("{hive_home}/conf")
 yarn_application_classpath = config['configurations']['yarn-site']['yarn.application.classpath']
 
-hadoop_home = stack_select.get_hadoop_dir("home")
+spark_conf_dir = '/etc/spark/conf'
 spark_log_dir = config['configurations']['spark-env']['spark_log_dir']
 spark_pid_dir = status_params.spark_pid_dir
 spark_home='/usr/lib/spark'
 
+if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+  spark_home = format("{stack_root}/current/{component_directory}")
+  hive_home = format("{stack_root}/current/{hive_component_directory}")
+
+hive_conf_dir = format("{hive_home}/conf")
+
 spark_daemon_memory = config['configurations']['spark-env']['spark_daemon_memory']
-spark_thrift_server_conf_file = spark_conf + "/spark-defaults.conf"
+spark_thrift_server_conf_file = spark_conf_dir + "/spark-defaults.conf"
 java_home = config['ambariLevelParams']['java_home']
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
@@ -117,7 +122,7 @@ spark_history_server_stop = format("{spark_home}/sbin/stop-history-server.sh")
 
 spark_thrift_server_start = format("{spark_home}/sbin/start-thriftserver.sh")
 spark_thrift_server_stop = format("{spark_home}/sbin/stop-thriftserver.sh")
-spark_hadoop_lib_native = format("{stack_root}/current/hadoop-client/lib/native:{stack_root}/current/hadoop-client/lib/native/Linux-amd64-64")
+spark_hadoop_lib_native = format("{hadoop_home}/lib/native:{hadoop_home}/lib/native/Linux-amd64-64")
 
 run_example_cmd = format("{spark_home}/bin/run-example")
 spark_smoke_example = "SparkPi"

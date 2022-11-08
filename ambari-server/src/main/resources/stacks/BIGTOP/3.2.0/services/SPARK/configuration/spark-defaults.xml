@@ -104,7 +104,7 @@
   </property>
   <property>
     <name>spark.scheduler.allocation.file</name>
-    <value>file:///{{spark_conf}}/spark-thrift-fairscheduler.xml</value>
+    <value>file:///{{spark_conf_dir}}/spark-thrift-fairscheduler.xml</value>
     <description>
       Scheduler configuration file for thriftserver.
     </description>
