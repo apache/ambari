@@ -40,6 +40,7 @@ import com.google.inject.Injector;
  */
 public class UpgradeCatalog275 extends AbstractUpgradeCatalog {
 
+  private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog275.class);
   static final Gson GSON = new Gson();
 
 
