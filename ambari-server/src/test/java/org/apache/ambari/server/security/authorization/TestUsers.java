@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import static java.util.Collections.emptySet;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.mock;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
@@ -50,6 +54,7 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authentication.AmbariUserDetailsImpl;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapGroupDto;
 import org.apache.ambari.server.security.ldap.LdapUserDto;
@@ -58,6 +63,9 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.Guice;
@@ -164,6 +172,8 @@ public class TestUsers {
     users.grantAdminPrivilege(userEntity);
     users.addLocalAuthentication(userEntity, "admin");
 
+    setAuthenticatedUser(userEntity);
+
     userEntity = users.createUser("user", "user", "user");
     users.addLocalAuthentication(userEntity, "user");
 
@@ -178,7 +188,7 @@ public class TestUsers {
 
     foundUserEntity = userDAO.findUserByName("admin");
     assertNotNull(foundUserEntity);
-    users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "user_new_password", false);
+    users.modifyAuthentication(foundLocalAuthenticationEntity, "admin", "user_new_password", false);
 
     foundUserEntity = userDAO.findUserByName("user");
     assertNotNull(foundUserEntity);
@@ -204,7 +214,7 @@ public class TestUsers {
     assertTrue(passwordEncoder.matches("user", foundLocalAuthenticationEntity.getAuthenticationKey()));
 
     try {
-      users.modifyAuthentication(foundLocalAuthenticationEntity, "user", null, false);
+      users.modifyAuthentication(foundLocalAuthenticationEntity, "user", null, true);
       fail("Null password should not be allowed");
     } catch (IllegalArgumentException e) {
       assertEquals("The password does not meet the password policy requirements", e.getLocalizedMessage());
@@ -615,5 +625,15 @@ public class TestUsers {
     }
 
     return null;
+  }
+
+  private void setAuthenticatedUser(UserEntity userEntity) {
+    AmbariUserDetailsImpl principal = new AmbariUserDetailsImpl(new User(userEntity), "", emptySet());
+    Authentication auth = mock(Authentication.class);
+    expect(auth.getPrincipal()).andReturn(principal).anyTimes();
+    SecurityContext securityContext = mock(SecurityContext.class);
+    expect(securityContext.getAuthentication()).andReturn(auth).anyTimes();
+    replay(auth, securityContext);
+    SecurityContextHolder.setContext(securityContext);
   }
 }
