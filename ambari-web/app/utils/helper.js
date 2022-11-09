@@ -1058,6 +1058,22 @@ App.resetDsStoreTypeMap = function(type) {
   }
 };
 
+/**
+ * Clean store from already loaded data.
+ * @param {DS.Model[]} models to clear
+ **/
+App.clearModels = function (models) {
+  models.forEach(function (model) {
+    var records = App.get('store').findAll(model).filterProperty('id');
+    records.forEach(function (rec) {
+      Ember.run(this, function () {
+        rec.deleteRecord();
+        App.store.fastCommit();
+      });
+    }, this);
+  }, this);
+};
+
 App.logger = function() {
 
   var timers = {};
