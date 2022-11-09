@@ -27,6 +27,7 @@ function($scope, $http, $location, Cluster, $routeParams, $translate, $rootScope
     clusterName: null
   };
   $scope.isClusterNameEdited = false;
+  $scope.nameValidationPattern = /^\s*\w*\s*$/;
 
   $scope.$watch(function() {
     return $rootScope.cluster;
