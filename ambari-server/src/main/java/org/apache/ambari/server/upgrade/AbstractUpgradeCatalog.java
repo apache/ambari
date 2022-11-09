@@ -998,6 +998,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     return false;
   }
 
+  /**
+   * Perform database schema transformation. Can work only before persist service start
+   * @throws AmbariException
+   * @throws SQLException
+   */
   protected abstract void executeDDLUpdates() throws AmbariException, SQLException;
 
   /**
@@ -1007,6 +1012,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
    */
   protected abstract void executePreDMLUpdates() throws AmbariException, SQLException;
 
+  /**
+   * Performs normal data upgrade
+   * @throws AmbariException
+   * @throws SQLException
+   */
   protected abstract void executeDMLUpdates() throws AmbariException, SQLException;
 
   @Override
