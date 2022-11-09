@@ -174,7 +174,7 @@ public class ReadHandlerTest {
     ReadHandler handler = new ReadHandler();
     Result result = handler.handleRequest(request);
     assertEquals(ResultStatus.STATUS.SERVER_ERROR, result.getStatus().getStatus());
-    assertEquals(systemException.toString(), result.getStatus().getMessage());
+    assertEquals(systemException.getMessage(), result.getStatus().getMessage());
     verify(request, resource, query, predicate);
   }
 
