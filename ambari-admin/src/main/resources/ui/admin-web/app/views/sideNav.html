@@ -47,15 +47,15 @@
         </a>
         <ul class="sub-menu nav nav-pills nav-stacked">
           <li class="submenu-li" ng-class="{active: isActive('clusters.clusterInformation')}">
-            <a href="#!/clusterInformation" class="clusterInformation">
+            <a href="#/clusterInformation" class="clusterInformation">
               {{'common.clusterInformation' | translate}}
             </a>
           </li>
           <li class="submenu-li"  ng-class="{active: isActive('stackVersions.list')}" ng-show="cluster && totalRepos > 0">
-            <a href="#!/stackVersions">{{'common.versions' | translate}}</a>
+            <a href="#/stackVersions">{{'common.versions' | translate}}</a>
           </li>
           <li class="submenu-li" ng-class="{active: isActive('remoteClusters.list')}">
-            <a href="#!/remoteClusters">{{'common.remoteClusters' | translate}}</a>
+            <a href="#/remoteClusters">{{'common.remoteClusters' | translate}}</a>
           </li>
         </ul>
       </li>
