@@ -294,6 +294,7 @@ public class AlertTargetResourceProviderTest {
    * @throws Exception
    */
   private void testCreateResources(Authentication authentication) throws Exception {
+    expect(m_dao.findTargetByName(ALERT_TARGET_NAME)).andReturn(null).atLeastOnce();
     Capture<AlertTargetEntity> targetCapture = newCapture();
     m_dao.create(capture(targetCapture));
     expectLastCall();
@@ -364,6 +365,7 @@ public class AlertTargetResourceProviderTest {
     group2.setGroupId(2L);
     group3.setGroupId(3L);
     groups.addAll(Arrays.asList(group1, group2, group3));
+    expect(m_dao.findTargetByName(ALERT_TARGET_NAME)).andReturn(null).atLeastOnce();
     expect(m_dao.findGroupsById(groupIds)).andReturn(groups).once();
 
     Capture<AlertTargetEntity> targetCapture = EasyMock.newCapture();
@@ -431,6 +433,7 @@ public class AlertTargetResourceProviderTest {
    * @throws Exception
    */
   private void testCreateGlobalTarget(Authentication authentication) throws Exception {
+    expect(m_dao.findTargetByName(ALERT_TARGET_NAME)).andReturn(null).atLeastOnce();
     Capture<AlertTargetEntity> targetCapture = EasyMock.newCapture();
     m_dao.create(capture(targetCapture));
     expectLastCall();
@@ -497,6 +500,7 @@ public class AlertTargetResourceProviderTest {
    * @throws Exception
    */
   private void testCreateResourceWithRecipientArray(Authentication  authentication) throws Exception {
+    expect(m_dao.findTargetByName(ALERT_TARGET_NAME)).andReturn(null).atLeastOnce();
     Capture<AlertTargetEntity> targetCapture = EasyMock.newCapture();
     m_dao.create(capture(targetCapture));
     expectLastCall();
@@ -561,6 +565,7 @@ public class AlertTargetResourceProviderTest {
    * @throws Exception
    */
   private void testCreateResourceWithAlertStates(Authentication authentication) throws Exception {
+    expect(m_dao.findTargetByName(ALERT_TARGET_NAME)).andReturn(null).atLeastOnce();
     Capture<AlertTargetEntity> targetCapture = EasyMock.newCapture();
     m_dao.create(capture(targetCapture));
     expectLastCall();
@@ -628,6 +633,7 @@ public class AlertTargetResourceProviderTest {
    * @throws Exception
    */
   private void testUpdateResources(Authentication authentication) throws Exception {
+    expect(m_dao.findTargetByName(ALERT_TARGET_NAME)).andReturn(null).atLeastOnce();
     Capture<AlertTargetEntity> entityCapture = EasyMock.newCapture();
     m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
@@ -703,6 +709,7 @@ public class AlertTargetResourceProviderTest {
    * @throws Exception
    */
   private void testUpdateResourcesWithGroups(Authentication authentication) throws Exception {
+    expect(m_dao.findTargetByName(ALERT_TARGET_NAME)).andReturn(null).atLeastOnce();
     Capture<AlertTargetEntity> entityCapture = EasyMock.newCapture();
     m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
@@ -785,6 +792,7 @@ public class AlertTargetResourceProviderTest {
    * @throws Exception
    */
   private void testDeleteResources(Authentication authentication) throws Exception {
+    expect(m_dao.findTargetByName(ALERT_TARGET_NAME)).andReturn(null).atLeastOnce();
     Capture<AlertTargetEntity> entityCapture = EasyMock.newCapture();
     m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
@@ -820,6 +828,60 @@ public class AlertTargetResourceProviderTest {
 
     AlertTargetEntity entity1 = entityCapture.getValue();
     Assert.assertEquals(ALERT_TARGET_ID, entity1.getTargetId());
+
+    verify(m_amc, m_dao);
+  }
+
+  @Test
+  public void testDuplicateDirectiveAsClusterAdministrator() throws Exception {
+    testDuplicate(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDuplicateDirectiveAsServiceAdministrator() throws Exception {
+    testDuplicate(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDuplicateDirectiveAsClusterUser() throws Exception {
+    testDuplicate(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDuplicateDirectiveAsViewUser() throws Exception {
+    testDuplicate(TestAuthenticationFactory.createViewUser(99L));
+  }
+
+  @Test
+  public void testDuplicateDirectiveAsAdministrator() throws Exception {
+    testDuplicate(TestAuthenticationFactory.createAdministrator());
+  }
+
+
+  public void testDuplicate(Authentication authentication) throws Exception{
+    // mock out returning an existing entity
+    AlertTargetEntity entity = getMockEntities().get(0);
+    expect(m_dao.findTargetByName(ALERT_TARGET_NAME)).andReturn(entity).atLeastOnce();
+
+    replay(m_amc, m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    AlertTargetResourceProvider provider = createProvider(m_amc);
+    Map<String, Object> requestProps = getCreationProperties();
+
+    // mock out the directive
+    Map<String, String> requestInfoProperties = new HashMap<>();
+
+    Request request = PropertyHelper.getCreateRequest(
+        Collections.singleton(requestProps), requestInfoProperties);
+
+    try {
+      provider.createResources(request);
+      Assert.fail("IllegalArgumentException expected as duplicate not allowed");
+    } catch (IllegalArgumentException e){
+      assertEquals(e.getMessage(), "Alert targets already exists and can't be created");
+    }
 
     verify(m_amc, m_dao);
   }
@@ -893,6 +955,7 @@ public class AlertTargetResourceProviderTest {
 
   @Test
   public void testUpdateAlertTargetsWithCustomGroups() throws Exception{
+    expect(m_dao.findTargetByName(ALERT_TARGET_NAME)).andReturn(null).atLeastOnce();
     Capture<AlertTargetEntity> entityCapture = EasyMock.newCapture();
     m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
@@ -954,6 +1017,7 @@ public class AlertTargetResourceProviderTest {
 
   @Test
   public void testUpdateAlertTargetsWithAllGroups() throws Exception{
+    expect(m_dao.findTargetByName(ALERT_TARGET_NAME)).andReturn(null).atLeastOnce();
     Capture<AlertTargetEntity> entityCapture = EasyMock.newCapture();
     m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
