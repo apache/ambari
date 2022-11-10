@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
@@ -254,13 +255,17 @@ public class IPAKerberosOperationHandler extends KDCKerberosOperationHandler {
   }
 
   @Override
-  protected String[] getKinitCommand(String executableKinit, PrincipalKeyCredential credentials, String credentialsCache, Map<String, String> kerberosConfiguration) {
-    return new String[]{
+  protected String[] getKinitCommand(String executableKinit, PrincipalKeyCredential credentials, String credentialsCache, Map<String, String> kerberosConfiguration) throws KerberosOperationException {
+    String [] command = new String[]{
         executableKinit,
         "-c",
         credentialsCache,
         credentials.getPrincipal()
     };
+    if (Arrays.asList(command).contains(null)){
+      throw new KerberosOperationException("Got a null value, can not create 'kinit' command");
+    }
+    return command;
   }
 
   @Override
