@@ -42,6 +42,7 @@ logger = logging.getLogger()
 
 # service cmd
 SERVICE_CMD = "service"
+REDHAT7_SERVICE_CMD = "systemctl"
 
 
 class HostInfo(object):
@@ -192,6 +193,8 @@ class HostInfoLinux(HostInfo):
   DEFAULT_SERVICE_NAME = "ntpd"
   SERVICE_STATUS_CMD = "%s %s status" % (SERVICE_CMD, DEFAULT_SERVICE_NAME)
   SERVICE_STATUS_CMD_LIST = shlex.split(SERVICE_STATUS_CMD)
+  REDHAT7_SERVICE_STATUS_CMD = "%s status %s" % (REDHAT7_SERVICE_CMD, DEFAULT_SERVICE_NAME)
+  REDHAT7_SERVICE_STATUS_CMD_LIST = shlex.split(REDHAT7_SERVICE_STATUS_CMD)
 
   THP_FILE_REDHAT = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
   THP_FILE_UBUNTU = "/sys/kernel/mm/transparent_hugepage/enabled"
@@ -369,6 +372,8 @@ class HostInfoLinux(HostInfo):
 
   def getServiceStatus(self, service_name):
     service_check_live = list(self.SERVICE_STATUS_CMD_LIST)
+    if OSCheck.is_redhat_family() and int(OSCheck.get_os_major_version()) >= 7:
+      service_check_live = list(self.REDHAT7_SERVICE_STATUS_CMD_LIST)
     service_check_live[1] = service_name
     try:
       code, out, err = shell.call(service_check_live, stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = 5, quiet = True)
