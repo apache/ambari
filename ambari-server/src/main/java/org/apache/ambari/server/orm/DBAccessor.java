@@ -663,6 +663,16 @@ public interface DBAccessor {
    */
   void changeColumnType(String tableName, String columnName, Class fromType, Class toType) throws SQLException;
 
+
+  /**
+   * Obtain column metadata information by given table and column name
+   * @param tableName name of the table
+   * @param columnName name of the column
+   * @return column information
+   * @throws SQLException
+   */
+  DBColumnInfo getColumnInfo(String tableName, String columnName) throws SQLException;
+
   /**
    * Queries the database to determine the name of the primary key constraint on
    * the specified table. Currently, this is only implemented for
