@@ -304,7 +304,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>24.1.1-jre</version>
+        <version>28.0-jre</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.findbugs</groupId>
@@ -540,7 +540,6 @@
         <artifactId>spring-core</artifactId>
         <version>${spring.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-context</artifactId>
@@ -692,11 +691,16 @@
         <artifactId>jackson-databind</artifactId>
         <version>${fasterxml.jackson.databind.version}</version>
       </dependency>
-    <dependency>
-      <groupId>org.apache.zookeeper</groupId>
-      <artifactId>zookeeper</artifactId>
-      <version>3.4.10</version>
-    </dependency>
+      <dependency>
+        <groupId>org.apache.zookeeper</groupId>
+        <artifactId>zookeeper</artifactId>
+        <version>3.5.5</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.zookeeper</groupId>
+        <artifactId>zookeeper-jute</artifactId>
+        <version>3.5.5</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <build>
@@ -759,6 +763,11 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>2.20</version>
+        </plugin>
+        <plugin>
+          <groupId>org.vafer</groupId>
+          <artifactId>jdeb</artifactId>
+          <version>1.8</version>
         </plugin>
       </plugins>
     </pluginManagement>
