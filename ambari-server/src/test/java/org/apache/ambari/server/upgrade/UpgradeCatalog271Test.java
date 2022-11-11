@@ -41,6 +41,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.state.BlueprintProvisioningState;
@@ -183,9 +184,10 @@ public class UpgradeCatalog271Test {
 
     Injector injector = easyMockSupport.createNiceMock(Injector.class);
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-      .addMockedMethod("createConfiguration")
+      .addMockedMethod("createConfiguration", ConfigurationRequest.class)
       .addMockedMethod("getClusters", new Class[] { })
-      .addMockedMethod("createConfig")
+      .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
+          String.class, Map.class)
       .createNiceMock();
 
     expect(injector.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
@@ -265,9 +267,10 @@ public class UpgradeCatalog271Test {
 
     Injector injector = easyMockSupport.createNiceMock(Injector.class);
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-      .addMockedMethod("createConfiguration")
+      .addMockedMethod("createConfiguration", ConfigurationRequest.class)
       .addMockedMethod("getClusters", new Class[] { })
-      .addMockedMethod("createConfig")
+      .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
+          String.class, Map.class)
       .createNiceMock();
 
     expect(injector.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
@@ -327,9 +330,10 @@ public class UpgradeCatalog271Test {
 
     Injector injector = easyMockSupport.createNiceMock(Injector.class);
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-      .addMockedMethod("createConfiguration")
+      .addMockedMethod("createConfiguration", ConfigurationRequest.class)
       .addMockedMethod("getClusters", new Class[] { })
-      .addMockedMethod("createConfig")
+      .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
+          String.class, Map.class)
       .createNiceMock();
 
     DaoUtils daoUtilsMock = easyMockSupport.createNiceMock(DaoUtils.class);
