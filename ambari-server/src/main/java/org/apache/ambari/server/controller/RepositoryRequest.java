@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.utils.URLCredentialsHider;
+
 public class RepositoryRequest extends OperatingSystemRequest {
 
   private String repoId;
@@ -103,7 +105,7 @@ public class RepositoryRequest extends OperatingSystemRequest {
 
   @Override
   public String toString() {
-    return "RepositoryRequest [repoId=" + repoId + ", baseUrl=" + baseUrl
+    return "RepositoryRequest [repoId=" + repoId + ", baseUrl=" + URLCredentialsHider.hideCredentials(baseUrl)
         + ", verify=" + verify + ", getOsType()=" + getOsType()
         + ", getRepositoryVersionId()=" + getRepositoryVersionId()
         + ", getStackVersion()=" + getStackVersion() + ", getStackName()="
