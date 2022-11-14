@@ -48,7 +48,7 @@ export default Ember.Service.extend(FileOperationMixin, {
     return new Ember.RSVP.Promise((resolve, reject) => {
       adapter.ajax(this._getFileOperationUrl('mkdir'), "PUT", {data: data}).then(
         (response) => {
-          this.get('logger').success(`Successfully created <strong>${path}/${folderName}`, {flashOnly: true});
+          this.get('logger').success(`Successfully created ${path}/${folderName}`, {flashOnly: true});
           return resolve(response);
         }, (responseError) => {
           var error = this.extractError(responseError);
