@@ -49,6 +49,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.view.ViewContextImpl;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
@@ -811,7 +812,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    * @return the current user name; empty String if user is not known
    */
   public String getUsername() {
-    return securityHelper.getCurrentUserName();
+    return AuthorizationHelper.resolveLoginAliasToUserName(securityHelper.getCurrentUserName());
   }
 
   /**

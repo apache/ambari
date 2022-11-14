@@ -29,6 +29,7 @@ import org.apache.ambari.server.security.authentication.AmbariUserDetails;
 import org.apache.ambari.server.security.authentication.AmbariUserDetailsImpl;
 import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
 import org.apache.ambari.server.security.authentication.UserNotFoundException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.slf4j.Logger;
@@ -120,6 +121,12 @@ public class AmbariJwtAuthenticationProvider extends AmbariAuthenticationProvide
       }
 
       AmbariUserDetails userDetails = new AmbariUserDetailsImpl(users.getUser(userEntity), null, users.getUserAuthorities(userEntity));
+      
+      String jwtTokenName = userDetails.getUsername().trim();
+      //If JwtToken Provided Username and authenticatedUsername is different Add it to Alias
+      if(!userName.equals(jwtTokenName)){
+        AuthorizationHelper.addLoginNameAlias(userName,jwtTokenName);
+      }
       return new AmbariUserAuthentication(authentication.getCredentials().toString(), userDetails, true);
     } else {
       // The user was not authenticated, fail
