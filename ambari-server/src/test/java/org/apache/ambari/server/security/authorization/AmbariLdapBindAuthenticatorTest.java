@@ -179,6 +179,8 @@ public class AmbariLdapBindAuthenticatorTest extends EasyMockSupport {
     if (!StringUtils.isEmpty(ldapUsername) && !ambariUsername.equals(ldapUsername)) {
       servletRequestAttributes.setAttribute(eq(ambariUsername), eq(forceUsernameToLower ? ldapUsername.toLowerCase() : ldapUsername), eq(RequestAttributes.SCOPE_SESSION));
       expectLastCall().once();
+      servletRequestAttributes.setAttribute(eq(forceUsernameToLower ? ldapUsername.toLowerCase() : ldapUsername),eq(ambariUsername), eq(RequestAttributes.SCOPE_SESSION));
+      expectLastCall().once();
     }
 
     setupDatabaseConfigurationExpectations(true, forceUsernameToLower);
@@ -186,6 +188,8 @@ public class AmbariLdapBindAuthenticatorTest extends EasyMockSupport {
     replayAll();
 
     RequestContextHolder.setRequestAttributes(servletRequestAttributes);
+//    servletRequestAttributes.setAttribute(ambariUsername,ldapUsername, RequestAttributes.SCOPE_SESSION);
+//    expectLastCall().anyTimes();
 
     AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(ldapCtxSource, ldapConfiguration);
     bindAuthenticator.setUserSearch(userSearch);
