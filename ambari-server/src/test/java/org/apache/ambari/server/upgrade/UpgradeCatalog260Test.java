@@ -70,6 +70,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
@@ -900,9 +901,10 @@ public class UpgradeCatalog260Test {
     replay(injector, clusters, mockAmsSslClient, cluster);
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-        .addMockedMethod("createConfiguration")
+        .addMockedMethod("createConfiguration", ConfigurationRequest.class)
         .addMockedMethod("getClusters", new Class[] { })
-        .addMockedMethod("createConfig")
+        .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
+            String.class, Map.class)
         .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
         .createNiceMock();
 
@@ -959,9 +961,10 @@ public class UpgradeCatalog260Test {
     replay(injector, clusters, mockHsiConfigs, cluster);
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-            .addMockedMethod("createConfiguration")
+            .addMockedMethod("createConfiguration", ConfigurationRequest.class)
             .addMockedMethod("getClusters", new Class[] { })
-            .addMockedMethod("createConfig")
+            .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
+                String.class, Map.class)
             .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
             .createNiceMock();
 

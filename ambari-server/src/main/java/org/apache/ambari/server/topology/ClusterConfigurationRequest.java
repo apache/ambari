@@ -334,8 +334,10 @@ public class ClusterConfigurationRequest {
   private void setConfigurationsOnCluster(List<BlueprintServiceConfigRequest> configurationRequests,
                                          String tag, Set<String> updatedConfigTypes)  {
     String clusterName;
+    Cluster cluster;
     try {
       clusterName = ambariContext.getClusterName(clusterTopology.getClusterId());
+      cluster = AmbariContext.getController().getClusters().getCluster(clusterName);
     } catch (AmbariException e) {
       LOG.error("Cannot get cluster name for clusterId = " + clusterTopology.getClusterId(), e);
       throw new RuntimeException(e);
@@ -403,6 +405,7 @@ public class ClusterConfigurationRequest {
         LOG.error("ClusterRequest should not be null for service = " + blueprintConfigRequest.getServiceName());
       }
     }
+    cluster.refresh();
 
     ambariContext.notifyAgentsAboutConfigsChanges(clusterName);
 

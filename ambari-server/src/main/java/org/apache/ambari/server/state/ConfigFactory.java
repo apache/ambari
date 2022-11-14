@@ -47,7 +47,21 @@ public interface ConfigFactory {
    * @param tag
    * @param map
    * @param mapAttributes
-   * @return
+   * @param refreshCluster refreshes cluster entity after configs creating
+   * @return created config
+   */
+  Config createNew(StackId stackId, @Assisted("type") String type, Cluster cluster, @Assisted("tag") String tag,
+      Map<String, String> map, Map<String, Map<String, String>> mapAttributes, boolean refreshCluster);
+
+  /**
+   * Creates a new {@link Config} object using provided values.
+   *
+   * @param cluster
+   * @param type
+   * @param tag
+   * @param map
+   * @param mapAttributes
+   * @return created config
    */
   Config createNew(StackId stackId, Cluster cluster, @Assisted("type") String type, @Assisted("tag") String tag,
       Map<String, String> map, Map<String, Map<String, String>> mapAttributes);

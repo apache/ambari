@@ -185,6 +185,7 @@ import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
@@ -990,9 +991,10 @@ public class UpgradeCatalog270Test {
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-        .addMockedMethod("createConfiguration")
+        .addMockedMethod("createConfiguration", ConfigurationRequest.class)
         .addMockedMethod("getClusters", new Class[]{})
-        .addMockedMethod("createConfig")
+        .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
+            String.class, Map.class)
         .createNiceMock();
     ConfigHelper configHelper = createMockBuilder(ConfigHelper.class)
         .addMockedMethod("createConfigType", Cluster.class, StackId.class, AmbariManagementController.class,
@@ -1204,9 +1206,10 @@ public class UpgradeCatalog270Test {
     Capture<Map<String, String>> capturedProperties = newCapture();
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-        .addMockedMethod("createConfiguration")
+        .addMockedMethod("createConfiguration", ConfigurationRequest.class)
         .addMockedMethod("getClusters", new Class[]{})
-        .addMockedMethod("createConfig")
+        .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
+            String.class, Map.class)
         .addMockedMethod("getClusterMetadataOnConfigsUpdate", Cluster.class)
         .createMock();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
@@ -1460,9 +1463,10 @@ public class UpgradeCatalog270Test {
     replay(injector, clusters, mockAmsSite, mockAmsHbaseSite, cluster);
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-      .addMockedMethod("createConfiguration")
+      .addMockedMethod("createConfiguration", ConfigurationRequest.class)
       .addMockedMethod("getClusters", new Class[] { })
-      .addMockedMethod("createConfig")
+      .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
+          String.class, Map.class)
       .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
       .createNiceMock();
 
@@ -1522,9 +1526,10 @@ public class UpgradeCatalog270Test {
     replay(injector, clusters, mockAmsSite, cluster);
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-      .addMockedMethod("createConfiguration")
+      .addMockedMethod("createConfiguration", ConfigurationRequest.class)
       .addMockedMethod("getClusters", new Class[] { })
-      .addMockedMethod("createConfig")
+      .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
+          String.class, Map.class)
       .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
       .createNiceMock();
 
@@ -1581,7 +1586,8 @@ public class UpgradeCatalog270Test {
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("getClusters", new Class[] { })
-      .addMockedMethod("createConfig")
+      .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
+          String.class, Map.class)
       .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
       .createNiceMock();
 
@@ -1639,7 +1645,8 @@ public class UpgradeCatalog270Test {
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("getClusters", new Class[] { })
-      .addMockedMethod("createConfig")
+      .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
+          String.class, Map.class)
       .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
       .createNiceMock();
 
@@ -1692,7 +1699,8 @@ public class UpgradeCatalog270Test {
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
         .addMockedMethod("getClusters", new Class[] { })
-        .addMockedMethod("createConfig")
+        .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
+            String.class, Map.class)
         .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
         .createNiceMock();
 

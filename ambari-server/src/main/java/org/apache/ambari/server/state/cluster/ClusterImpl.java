@@ -1339,6 +1339,20 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  @Transactional
+  public void deleteAllClusterConfigs() {
+    clusterGlobalLock.writeLock().lock();
+    try {
+      Collection<ClusterConfigEntity> clusterConfigs = getClusterEntity().getClusterConfigEntities();
+      for (ClusterConfigEntity clusterConfigEntity : clusterConfigs) {
+        clusterDAO.removeConfig(clusterConfigEntity);
+      }
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
+    }
+  }
+
+  @Override
   public void deleteService(String serviceName, DeleteHostComponentStatusMetaData deleteMetaData)
     throws AmbariException {
     clusterGlobalLock.writeLock().lock();
@@ -1416,6 +1430,7 @@ public class ClusterImpl implements Cluster {
     try {
       refresh();
       deleteAllServices();
+      deleteAllClusterConfigs();
       resetHostVersions();
 
       refresh(); // update one-to-many clusterServiceEntities
@@ -2030,7 +2045,7 @@ public class ClusterImpl implements Cluster {
       }
     }
 
-    clusterEntity = clusterDAO.merge(clusterEntity);
+    clusterDAO.merge(clusterConfigs);
 
     if (serviceName == null) {
       ArrayList<String> configTypes = new ArrayList<>();
@@ -2546,7 +2561,7 @@ public class ClusterImpl implements Cluster {
       // since the entities which were modified came from the cluster entity's
       // list to begin with, we can just save them right back - no need for a
       // new collection since the entity instances were modified directly
-      clusterEntity = clusterDAO.merge(clusterEntity, true);
+      clusterDAO.merge(configEntities, true);
 
       cacheConfigurations();
 
