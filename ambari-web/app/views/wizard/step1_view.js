@@ -313,6 +313,9 @@ App.WizardStep1View = Em.View.extend({
     if (!repositories) {
       return;
     }
+    var changedRepo = repositories.find(function(repository) {
+      return repository.get('lastBaseUrl') && repository.get('lastBaseUrl') !== repository.get('baseUrl');
+    });
     repositories.forEach(function (repository) {
       if (repository.get('lastBaseUrl') !== repository.get('baseUrl')) {
         repository.setProperties({
@@ -321,6 +324,31 @@ App.WizardStep1View = Em.View.extend({
         });
       }
     }, this);
+    if (changedRepo) {
+      try {
+        var urlObject = new URL(changedRepo.get('baseUrl'));
+      } catch (e) {
+        return;
+      }
+      var username = urlObject.username;
+      var password = urlObject.password;
+      repositories.forEach(function (repository) {
+        var currentUrl = repository.get('baseUrl');
+        try {
+          var currentUrlObject = new URL(currentUrl);
+        } catch (e) {
+          return;
+        }
+        currentUrlObject.username = username;
+        currentUrlObject.password = password;
+        var newUrl = currentUrlObject.toString();
+        if (newUrl !== currentUrl) {
+          setTimeout(function () {
+            repository.set('baseUrl', newUrl);
+          }, 0);
+        }
+      }, this);
+    }
   }.observes('allRepositories.@each.baseUrl')
 
 });
