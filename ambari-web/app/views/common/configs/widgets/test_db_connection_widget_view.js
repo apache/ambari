@@ -188,7 +188,7 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
   connectToDatabase: function () {
     if (this.get('isBtnDisabled')) return;
     this.set('isRequestResolved', false);
-    App.db.set('tmp', this.get('parentView.service.serviceName') + '_connection', {});
+    App.db.set('tmp', this.get('db_connection_url.serviceName') + '_connection', {});
     this.setConnectingStatus(true);
     if (App.get('testMode')) {
       this.startPolling();
@@ -337,7 +337,7 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
         });
         this.setResponseStatus('failed');
       } else {
-        App.db.set('tmp', this.get('parentView.service.serviceName') + '_connection', this.get('preparedDBProperties'));
+        App.db.set('tmp', this.get('db_connection_url.serviceName') + '_connection', this.get('preparedDBProperties'));
         this.setResponseStatus('success');
       }
     }
