@@ -386,7 +386,7 @@ public class TestHeartbeatHandler {
   }
 
   private HeartBeatHandler createHeartBeatHandler() {
-    return new HeartBeatHandler(clusters, actionManagerTestHelper.getMockActionManager(), Encryptor.NONE, injector);
+    return new HeartBeatHandler(config, clusters, actionManagerTestHelper.getMockActionManager(), Encryptor.NONE, injector);
   }
 
   @Test
