@@ -39,8 +39,8 @@ App.SshKeyFileUploader = Em.View.extend({
         return function (e) {
           var fileNameArray = $("#file").val().toString().split("\\");
           var selectedFileName = fileNameArray[fileNameArray.length -1];
-          $('#selectedFileName').html(selectedFileName);
-          $('#sshKey').html(e.target.result);
+          $('#selectedFileName').text(selectedFileName);
+          $('#sshKey').text(e.target.result);
           self.get("controller").setSshKey(e.target.result);
         };
       })(file);
