@@ -511,6 +511,7 @@ public class AmbariServer {
       File resourcesDirectory = new File(configs.getResourceDirPath());
       ServletHolder resources = new ServletHolder(DefaultServlet.class);
       resources.setInitParameter("resourceBase", resourcesDirectory.getParent());
+      resources.setInitParameter("dirAllowed", "false");
       root.addServlet(resources, "/resources/*");
       resources.setInitOrder(5);
 
