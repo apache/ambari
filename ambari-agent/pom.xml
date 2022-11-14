@@ -140,7 +140,7 @@
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-test</artifactId>
-      <version>2.9.0</version>
+      <version>4.2.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -152,7 +152,13 @@
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-framework</artifactId>
-      <version>2.7.1</version>
+      <version>4.2.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-client</artifactId>
+      <version>4.2.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -212,7 +218,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.0</version>
+        <version>3.2</version>
         <configuration>
           <source>${jdk.version}</source>
           <target>${jdk.version}</target>
@@ -409,7 +415,6 @@
       <plugin>
         <groupId>org.vafer</groupId>
         <artifactId>jdeb</artifactId>
-        <version>1.4</version>
         <executions>
           <execution>
             <phase>none</phase>

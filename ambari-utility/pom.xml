@@ -118,7 +118,6 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>19.0</version> <!-- required for checkstyle -->
     </dependency>
     <dependency>
       <groupId>org.easymock</groupId>
@@ -185,7 +184,7 @@
           </execution>
         </executions>
         <configuration>
-          <copyright>2012, Apache Software Foundation</copyright>
+          <license>2012, Apache Software Foundation</license>
           <group>Development</group>
           <disabled>true</disabled>
           <description>Maven Recipe: RPM Package.</description>
