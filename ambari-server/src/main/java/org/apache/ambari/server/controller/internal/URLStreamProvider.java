@@ -38,7 +38,9 @@ import javax.net.ssl.TrustManagerFactory;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.proxy.ProxyService;
+import org.apache.ambari.server.utils.URLCredentialsHider;
 import org.apache.ambari.spi.net.HttpURLConnectionProvider;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
@@ -52,6 +54,8 @@ public class URLStreamProvider implements StreamProvider {
   public static final String COOKIE = "Cookie";
   private static final String WWW_AUTHENTICATE = "WWW-Authenticate";
   private static final String NEGOTIATE = "Negotiate";
+  private static final String AUTHORIZATION = "Authorization";
+  private static final String BASIC_AUTH = "Basic %s";
   private static final Logger LOG = LoggerFactory.getLogger(URLStreamProvider.class);
 
   private boolean setupTruststoreForHttps;
@@ -177,17 +181,18 @@ public class URLStreamProvider implements StreamProvider {
   public HttpURLConnection processURL(String spec, String requestMethod, byte[] body, Map<String, List<String>> headers)
           throws IOException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("readFrom spec:{}", spec);
+      LOG.debug("readFrom spec:{}", URLCredentialsHider.hideCredentials(spec));
     }
 
+    URL url = new URL(spec);
     HttpURLConnection connection = (spec.startsWith("https") && setupTruststoreForHttps) ?
-            getSSLConnection(spec) : getConnection(spec);
+            getSSLConnection(spec) : getConnection(url);
 
     AppCookieManager appCookieManager = getAppCookieManager();
 
     String appCookie = appCookieManager.getCachedAppCookie(spec);
     if (appCookie != null) {
-      LOG.debug("Using cached app cookie for URL:{}", spec);
+      LOG.debug("Using cached app cookie for URL:{}", URLCredentialsHider.hideCredentials(spec));
 
       // allow for additional passed in cookies
       if (headers == null || headers.isEmpty()) {
@@ -217,16 +222,21 @@ public class URLStreamProvider implements StreamProvider {
       connection.getOutputStream().write(body);
     }
 
+    if (url.getUserInfo() != null) {
+      String basicAuth = String.format(BASIC_AUTH, new String(new Base64().encode(url.getUserInfo().getBytes())));
+      connection.setRequestProperty(AUTHORIZATION, basicAuth);
+    }
+
     int statusCode = connection.getResponseCode();
     if (statusCode == HttpStatus.SC_UNAUTHORIZED ) {
       String wwwAuthHeader = connection.getHeaderField(WWW_AUTHENTICATE);
       if (LOG.isInfoEnabled()) {
-        LOG.info("Received WWW-Authentication header:" + wwwAuthHeader + ", for URL:" + spec);
+        LOG.info("Received WWW-Authentication header:" + wwwAuthHeader + ", for URL:" +
+                URLCredentialsHider.hideCredentials(spec));
       }
       if (wwwAuthHeader != null &&
         wwwAuthHeader.trim().startsWith(NEGOTIATE)) {
-        connection = spec.startsWith("https") ?
-           getSSLConnection(spec) : getConnection(spec);
+        connection = spec.startsWith("https") ? getSSLConnection(spec) : getConnection(url);
         appCookie = appCookieManager.getAppCookie(spec, true);
         connection.setRequestProperty(COOKIE, appCookie);
         connection.setConnectTimeout(connTimeout);
@@ -237,14 +247,16 @@ public class URLStreamProvider implements StreamProvider {
       } else {
         // no supported authentication type found
         // we would let the original response propagate
-        LOG.error("Unsupported WWW-Authentication header:" + wwwAuthHeader+ ", for URL:" + spec);
+        LOG.error("Unsupported WWW-Authentication header:" + wwwAuthHeader+ ", for URL:" +
+                URLCredentialsHider.hideCredentials(spec));
         return connection;
       }
     } else {
         // not a 401 Unauthorized status code
         // we would let the original response propagate
         if (statusCode == HttpStatus.SC_NOT_FOUND || statusCode == HttpStatus.SC_FORBIDDEN){
-          LOG.error(String.format("Received HTTP %s response from URL: %s", statusCode, spec));
+          LOG.error(String.format("Received HTTP %s response from URL: %s", statusCode,
+                  URLCredentialsHider.hideCredentials(spec)));
         }
         return connection;
     }
@@ -281,8 +293,8 @@ public class URLStreamProvider implements StreamProvider {
   // ----- helper methods ----------------------------------------------------
 
   // Get a connection
-  protected HttpURLConnection getConnection(String spec) throws IOException {
-    return (HttpURLConnection) new URL(spec).openConnection();
+  protected HttpURLConnection getConnection(URL url) throws IOException {
+    return (HttpURLConnection) url.openConnection();
   }
 
   // Get an ssl connection
@@ -294,7 +306,8 @@ public class URLStreamProvider implements StreamProvider {
 
           if (trustStorePath == null || trustStorePassword == null) {
             String msg =
-                String.format("Can't get secure connection to %s.  Truststore path or password is not set.", spec);
+                    String.format("Can't get secure connection to %s.  Truststore path or password is not set.",
+                            URLCredentialsHider.hideCredentials(spec));
 
             LOG.error(msg);
             throw new IllegalStateException(msg);
