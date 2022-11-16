@@ -138,6 +138,10 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.apache.zookeeper</groupId>
+      <artifactId>zookeeper-jute</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-test</artifactId>
       <version>4.2.0</version>
@@ -307,8 +311,7 @@
           </execution>
         </executions>
         <configuration>
-
-          <copyright>2012, Apache Software Foundation</copyright>
+          <license>2012, Apache Software Foundation</license>
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
           <requires>
@@ -466,6 +469,7 @@
               <artifactSet>
                 <includes>
                   <include>org.apache.zookeeper:zookeeper</include>
+                  <include>org.apache.zookeeper:zookeeper-jute</include>
                   <include>commons-cli:commons-cli</include>
                   <include>org.slf4j:*</include>
                   <include>log4j:*</include>
