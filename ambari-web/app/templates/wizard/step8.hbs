@@ -48,7 +48,7 @@
           {{else}}
             <div>
               <ul>
-                {{#each item in controller.clusterInfo.repoInfo}}
+                {{#each item in view.repoInfo}}
                   <li>
                     <p><span class="text text-info">{{item.os_type}} ({{item.repo_id}}): <br/></span>{{item.base_url}}</p>
                   </li>
