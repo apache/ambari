@@ -1020,7 +1020,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           STOMPUpdatePublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
               HostComponentUpdate.createHostComponentStatusUpdate(stateEntity, oldState))));
         }
-        if (event.getType().equals(ServiceComponentHostEventType.HOST_SVCCOMP_START)) {
+        if (event.getType().equals(ServiceComponentHostEventType.HOST_SVCCOMP_STARTED)) {
           HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
           if (desiredStateEntity.getBlueprintProvisioningState() == BlueprintProvisioningState.IN_PROGRESS) {
             desiredStateEntity.setBlueprintProvisioningState(BlueprintProvisioningState.FINISHED);
