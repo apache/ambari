@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -580,6 +581,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       } else {
         URLStreamProvider provider = new URLStreamProvider(connectTimeout, readTimeout,
             ComponentSSLConfiguration.instance());
+        provider.setSetupTruststoreForHttps(false);
 
         stream = provider.readFrom(definitionUrl);
       }
@@ -614,7 +616,17 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     entity.setStack(stackEntity);
 
-    List<RepositoryInfo> repos = holder.xml.repositoryInfo.getRepositories();
+    String credentials = null;
+    if (holder.url != null) {
+      try {
+        URI uri = new URI(holder.url);
+        credentials = uri.getUserInfo();
+      } catch (URISyntaxException e) {
+        throw new AmbariException(String.format("Could not parse url %s", holder.url), e);
+      }
+    }
+
+    List<RepositoryInfo> repos = holder.xml.repositoryInfo.getRepositories(credentials);
 
     StackInfo stack = s_metaInfo.get().getStack(stackId);
 
