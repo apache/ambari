@@ -157,10 +157,10 @@ const DoubleHandlers = SingleHandler.extend({
    * @type {string}
    */
   thresholdMinErrorMessage: function () {
-    var thresholdMin = this.get('thresholdMin');
-    var thresholdMax = this.get('thresholdMax');
-    var maxValue = this.get('maxValue');
-    var minValue = this.get('minValue');
+    var thresholdMin = Number(this.get('thresholdMin'));
+    var thresholdMax = Number(this.get('thresholdMax'));
+    var maxValue = Number(this.get('maxValue'));
+    var minValue = Number(this.get('minValue'));
     if (!isValidFloat(thresholdMin) || thresholdMin > maxValue || thresholdMin < minValue) {
       return Em.I18n.t('dashboard.widgets.error.invalid').format(minValue, maxValue);
     }
