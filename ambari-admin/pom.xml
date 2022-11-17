@@ -77,7 +77,7 @@
           </execution>
           <execution>
             <id>npm install</id>
-            <phase>none</phase>
+            <phase>generate-sources</phase>
             <goals>
               <goal>npm</goal>
             </goals>
@@ -93,7 +93,7 @@
         <executions>
           <execution>
             <id>Bower install</id>
-            <phase>none</phase>
+            <phase>generate-sources</phase>
             <goals>
               <goal>exec</goal>
             </goals>
@@ -109,7 +109,7 @@
           </execution>
           <execution>
             <id>Gulp build</id>
-            <phase>none</phase>
+            <phase>generate-sources</phase>
             <goals>
               <goal>exec</goal>
             </goals>
