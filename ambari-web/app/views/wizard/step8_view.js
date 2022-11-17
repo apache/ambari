@@ -34,6 +34,31 @@ App.WizardStep8View = Em.View.extend({
   printReview: function () {
     var o = $("#step8-info");
     o.jqprint();
-  }
+  },
+
+  repoInfo: function() {
+    var repoInfo = this.get('controller.clusterInfo.repoInfo');
+    if (!repoInfo) {
+      return [];
+    }
+    return repoInfo.map(function (item) {
+      var link = item.get('base_url');
+      try {
+        var urlObject = new URL(link);
+        if (urlObject.username && urlObject.password) {
+          urlObject.username = urlObject.username.replace(/./g, "*");
+          urlObject.password = urlObject.password.replace(/./g, "*");
+          link = urlObject.toString();
+        }
+      } catch (e) {
+      }
+
+      return {
+        os_type: item.get('os_type'),
+        repo_id: item.get('repo_id'),
+        base_url: link
+      };
+    });
+  }.property('controller.clusterInfo.repoInfo')
 });
 
