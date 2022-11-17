@@ -164,6 +164,6 @@ angular.module('ambariAdminConsole')
     };
 
     $scope.isHideCheckBoxEnabled = function ( repo ) {
-      return !repo.isProccessing && ( (!repo.cluster && repo.status !== 'OUT_OF_SYNC') || repo.isPatch && ( repo.status === 'INSTALLED' || repo.status === 'INSTALL_FAILED') );
+      return !repo.isProccessing && ( (!repo.cluster && repo.status !== 'OUT_OF_SYNC') || repo.isPatch && ( repo.status === 'INSTALLED' || repo.status === 'INSTALL_FAILED' ) || repo.hidden);
     }
   }]);
