@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.net.URLEncoder;
+import java.io.UnsupportedEncodingException;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
@@ -148,6 +150,11 @@ public class Utils {
 			}
 			boolean firstVal = true;
 			for (String val : entry.getValue()) {
+				try {
+					val = URLEncoder.encode(val, "UTF-8");
+				} catch(UnsupportedEncodingException e) {
+					LOGGER.error(e.getMessage(), e);
+				}
 				urlBuilder.append(firstVal ? "" : "&").append(entry.getKey())
 						.append("=").append(val);
 				firstVal = false;
