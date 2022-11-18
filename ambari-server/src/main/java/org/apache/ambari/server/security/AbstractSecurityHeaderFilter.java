@@ -53,6 +53,7 @@ public abstract class AbstractSecurityHeaderFilter implements Filter {
   protected final static String STRICT_TRANSPORT_HEADER = "Strict-Transport-Security";
   protected final static String X_FRAME_OPTIONS_HEADER = "X-Frame-Options";
   protected final static String X_XSS_PROTECTION_HEADER = "X-XSS-Protection";
+  protected final static String CONTENT_SECURITY_POLICY_HEADER = "Content-Security-Policy";
   protected final static String X_CONTENT_TYPE_HEADER = "X-Content-Type-Options";
   protected final static String CACHE_CONTROL_HEADER = "Cache-Control";
   protected final static String PRAGMA_HEADER = "Pragma";
@@ -90,6 +91,10 @@ public abstract class AbstractSecurityHeaderFilter implements Filter {
    * The value for the X-XSS-Protection HTTP response header.
    */
   private String xXSSProtectionHeader = Configuration.HTTP_X_XSS_PROTECTION_HEADER_VALUE.getDefaultValue();
+  /**
+   * The value for the Content-Security-Policy HTTP response header.
+   */
+  private String contentSecurityPolicyHeader = Configuration.HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE.getDefaultValue();
   /**
    * The value for the Content-Type HTTP response header.
    */
@@ -162,6 +167,10 @@ public abstract class AbstractSecurityHeaderFilter implements Filter {
     this.xXSSProtectionHeader = xXSSProtectionHeader;
   }
 
+  protected void setContentSecurityPolicyHeader(String contentSecurityPolicyHeader) {
+    this.contentSecurityPolicyHeader = contentSecurityPolicyHeader;
+  }
+
   protected void setXContentTypeHeader(String xContentTypeHeader) {
     this.xContentTypeHeader = xContentTypeHeader;
   }
@@ -195,6 +204,11 @@ public abstract class AbstractSecurityHeaderFilter implements Filter {
       // Conditionally set the X-XSS-Protection HTTP response header if a value is supplied
       if (!StringUtils.isEmpty(xXSSProtectionHeader)) {
         httpServletResponse.setHeader(X_XSS_PROTECTION_HEADER, xXSSProtectionHeader);
+      }
+
+      // Conditionally set the Content-Security-Policy HTTP response header if a value is supplied
+      if (!StringUtils.isEmpty(contentSecurityPolicyHeader)) {
+        httpServletResponse.setHeader(CONTENT_SECURITY_POLICY_HEADER, contentSecurityPolicyHeader);
       }
 
       // Conditionally set the X-Content-Type HTTP response header if a value is supplied
