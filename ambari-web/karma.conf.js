@@ -23,10 +23,10 @@ module.exports = function(config) {
     basePath: '',
 
     plugins: [
+      'karma-phantomjs-launcher',
       'karma-mocha',
       'karma-chai',
       'karma-sinon',
-      'karma-phantomjs-launcher',
       'karma-coverage',
       'karma-ember-precompiler-brunch',
       'karma-commonjs-require',
@@ -46,7 +46,7 @@ module.exports = function(config) {
 //      'public/test/javascripts/test.js',
 //      'public/test/tests.js'
 
-      'node_modules/karma-commonjs-require/node_modules/commonjs-require-definition/require.js',
+      'node_modules/commonjs-require-definition/require.js',
       'vendor/scripts/console-helper.js',
       'vendor/scripts/jquery-1.9.1.js',
       'vendor/scripts/handlebars-1.0.0.beta.6.js',
@@ -166,7 +166,6 @@ module.exports = function(config) {
     // - Firefox
     // - Opera (has to be installed with `npm install karma-opera-launcher`)
     // - Safari (only Mac; has to be installed with `npm install karma-safari-launcher`)
-    // - PhantomJS
     // - IE (only Windows; has to be installed with `npm install karma-ie-launcher`)
     browsers: ['PhantomJS'],
 
