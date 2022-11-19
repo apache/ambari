@@ -386,14 +386,14 @@ class PGConfig(LinuxDBMSConfig):
   else:
     SERVICE_CMD = "/usr/bin/env service"
     if os.path.isfile("/usr/bin/postgresql-setup"):
-        PG_INITDB_CMD = "/usr/bin/postgresql-setup initdb"
+      PG_INITDB_CMD = "/usr/bin/postgresql-setup initdb"
     else:
       PG_INITDB_CMD = "%s %s initdb" % (SERVICE_CMD, PG_SERVICE_NAME)
 
       if OSCheck.is_suse_family() and not is_service_exist(PG_SERVICE_NAME):
         versioned_script_paths = glob.glob("/usr/pgsql-*/bin/postgresql*-setup")
         if versioned_script_paths:
-          versioned_script_path_tps = map(lambda path: (re.search(r'pgsql-([0-9]+\.?[0-9]*)', path).group(1), path), versioned_script_paths)
+          versioned_script_path_tps = map(lambda path: (re.search(r'postgresql-([0-9]+\.?[0-9]*)', path).group(1), path), versioned_script_paths)
           versioned_script_path_tps.sort(key = lambda t: float(t[0]), reverse = True)
           for versioned_script_path_tp in versioned_script_path_tps:
             pgsql_service_file_name = "postgresql-%s" % versioned_script_path_tp[0]
