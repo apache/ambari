@@ -19,7 +19,7 @@
 <div class="alert alert-warning">
   {{view.warningMsg}}
 </div>
-<form class="form-horizontal">
+<form autocomplete="off" class="form-horizontal">
   <div class="control-group">
     <label class="control-label">{{t popup.invalid.KDC.admin.principal}}</label>
     {{view Ember.TextField valueBinding="view.parentView.principal" class="form-control"}}
