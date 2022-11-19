@@ -105,7 +105,9 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     var hdfsSiteConfigs = configsFromServer.findProperty('type', 'hdfs-site').properties;
     var nameServices = App.HDFSService.find().objectAt(0).get('masterComponentGroups').mapProperty('name');
     ret.nameServicesList = nameServices.join(',');
-    ret.nameservice1 = nameServices[0];
+    ret.nameservice1 = nameServices.find(function (ns){
+      return hdfsSiteConfigs['dfs.namenode.rpc-address.' + ns + '.nn1'];
+    });
     ret.newNameservice = this.get('content.nameServiceId');
     ret.namenode1 = hdfsSiteConfigs['dfs.namenode.rpc-address.' + ret.nameservice1 + '.nn1'].split(':')[0];
     ret.namenode2 = hdfsSiteConfigs['dfs.namenode.rpc-address.' + ret.nameservice1 + '.nn2'].split(':')[0];
