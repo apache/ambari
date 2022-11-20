@@ -99,4 +99,19 @@
       The rest of four letter word commands are disabled by default.</description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>admin.enableServer</name>
+    <value>true</value>
+    <description>Set to "false" to disable the AdminServer. By default the AdminServer is enabled.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>admin.serverPort</name>
+    <value>9393</value>
+    <description>The port the embedded Jetty server listens on. Defaults to 8080.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>
