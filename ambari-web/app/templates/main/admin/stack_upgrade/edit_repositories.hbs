@@ -38,12 +38,14 @@
           <table class="table table-condensed no-borders inner-table">
             <tbody>
               {{#each repository in os.repositories}}
-                <tr {{bindAttr class="repository.repoName"}}>
-                  <td class="col-md-2">{{repository.repoName}}</td>
-                  <td class="col-md-8">
-                    <div {{bindAttr class="repository.hasError:error :form-group"}}>{{view App.BaseUrlTextField repositoryBinding="repository" disabledBinding="view.content.useRedhatSatellite"}}</div>
-                  </td>
-                </tr>
+                {{#if repository.showRepo}}
+                  <tr {{bindAttr class="repository.repoName"}}>
+                    <td class="col-md-2">{{repository.repoName}}</td>
+                    <td class="col-md-8">
+                      <div {{bindAttr class="repository.hasError:error :form-group"}}>{{view App.BaseUrlTextField repositoryBinding="repository" disabledBinding="view.content.useRedhatSatellite"}}</div>
+                    </td>
+                  </tr>
+                {{/if}}
               {{/each}}
             </tbody>
           </table>
