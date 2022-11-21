@@ -109,7 +109,14 @@ class ClusterTopologyCache(ClusterCache):
     cluster_host_info = defaultdict(lambda: [])
     for component_dict in self[cluster_id].components:
       component_name = component_dict.componentName
-      hostnames = [self.hosts_to_id[cluster_id][host_id].hostName for host_id in component_dict.hostIds]
+      hostnames = []
+      for host_id in component_dict.hostIds:
+        if host_id in self.hosts_to_id[cluster_id]:
+          hostnames.append(self.hosts_to_id[cluster_id][host_id].hostName)
+        else:
+          # In theory this should never happen. But in practice it happened when ambari-server had corrupt DB cache.
+          logger.warning("Cannot find host_id={} in cluster_id={}".format(host_id, cluster_id))
+
       cluster_host_info[component_name.lower()+"_hosts"] += hostnames
 
     cluster_host_info['all_hosts'] = []
