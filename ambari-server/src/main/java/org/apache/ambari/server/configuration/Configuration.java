@@ -2234,6 +2234,13 @@ public class Configuration {
       "http.x-xss-protection", "1; mode=block");
 
   /**
+   * The value that will be used to set the {@code Content-Security-Policy} HTTP response header.
+   */
+  @Markdown(description = "The value that will be used to set the `Content-Security-Policy` HTTP response header.")
+  public static final ConfigurationProperty<String> HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE = new ConfigurationProperty<>(
+      "http.content-security-policy", "");
+
+  /**
    * The value that will be used to set the {@code X-Content-Type} HTTP response header.
    */
   @Markdown(description = "The value that will be used to set the `X-CONTENT-TYPE` HTTP response header.")
@@ -2286,6 +2293,14 @@ public class Configuration {
   @Markdown(description = "The value that will be used to set the `X-XSS-Protection` HTTP response header for Ambari View requests.")
   public static final ConfigurationProperty<String> VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE = new ConfigurationProperty<>(
       "views.http.x-xss-protection", "1; mode=block");
+
+  /**
+   * The value that will be used to set the {@code Content-Security-Policy}
+   * HTTP response header for Ambari View requests.
+   */
+  @Markdown(description = "The value that will be used to set the `Content-Security-Policy` HTTP response header for Ambari View requests.")
+  public static final ConfigurationProperty<String> VIEWS_HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE = new ConfigurationProperty<>(
+      "views.http.content-security-policy", "");
 
   /**
    * The value that will be used to set the {@code X-Content-Type} HTTP response header.
@@ -3702,6 +3717,17 @@ public class Configuration {
   }
 
   /**
+   * Get the value that should be set for the <code>Content-Security-Policy</code> HTTP response header for Ambari Server UI.
+   * <p/>
+   * By default this will be empty.
+   *
+   * @return the Content-Security-Policy value - null or "" indicates that the value is not set
+   */
+  public String getContentSecurityPolicyHTTPResponseHeader() {
+    return getProperty(HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE);
+  }
+
+  /**
    * Get the value that should be set for the <code>X-Content-Type</code> HTTP response header for Ambari Server UI.
    * <p/>
    * By default this will be <code>nosniff</code>. For example:
@@ -3806,6 +3832,17 @@ public class Configuration {
    */
   public String getViewsXXSSProtectionHTTPResponseHeader() {
     return getProperty(VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE);
+  }
+
+  /**
+   * Get the value that should be set for the <code>Content-Security-Policy</code> HTTP response header for Ambari Views.
+   * <p/>
+   * By default this will be empty.
+   *
+   * @return the Content-Security-Policy value - null or "" indicates that the value is not set
+   */
+  public String getViewsContentSecurityPolicyHTTPResponseHeader() {
+    return getProperty(VIEWS_HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE);
   }
 
   /**
