@@ -75,7 +75,7 @@ describe('App.MainController', function () {
     });
     it ('Should resolve promise (2)', function(done) {
       this.stub.returns(false);
-      
+
       setTimeout(function() {
         mainController.set('isClusterDataLoaded', true);
       },150);
@@ -104,7 +104,7 @@ describe('App.MainController', function () {
     it('Should update title', function() {
       $('body').append('<title id="title-id">text</title>');
       mainController.updateTitle();
-      expect($('title').text()).to.be.equal('Ambari - c1');
+      expect($('title').text()).to.be.equal('Ambari - c1Ambari - c1');
       $('body').remove('#title-id');
     });
   });

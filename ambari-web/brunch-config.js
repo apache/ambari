@@ -33,13 +33,14 @@ module.exports.config = {
       }
     }
   },
+  conventions: {
+    ignored: [/^(app\/assets\/test|test)/]
+  },
   files: {
     javascripts: {
       joinTo: {
         'javascripts/app.js': /^app/,
-        'javascripts/vendor.js': /^vendor/,
-        'test/javascripts/test.js': /^test(\/|\\)(?!vendor)/,
-        'test/javascripts/test-vendor.js': /^test(\/|\\)(?=vendor)/
+        'javascripts/vendor.js': /^vendor/
       },
       order: {
         before: [
