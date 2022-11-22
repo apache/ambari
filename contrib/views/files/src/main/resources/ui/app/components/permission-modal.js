@@ -101,6 +101,7 @@ export default Ember.Component.extend(OperationModal, {
         this.get('selected').set('permission', response.permission);
         this.set('isUpdating', false);
         this.send('close');
+        this.sendAction('refreshAction');
       }, (error) => {
         this.set('isUpdating', false);
         this.send('close');
