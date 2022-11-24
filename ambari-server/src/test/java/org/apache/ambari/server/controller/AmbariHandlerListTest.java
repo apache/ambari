@@ -99,7 +99,7 @@ public class AmbariHandlerListTest {
     Capture<Boolean> showStackCapture = EasyMock.newCapture();
     errorHandler.setShowStacks(EasyMock.captureBoolean(showStackCapture));
 
-    expect(handler.getErrorHandler()).andReturn(errorHandler).times(2);
+    expect(handler.getErrorHandler()).andReturn(errorHandler).times(3);
 
     replay(handler, server, sessionHandler, configuration, errorHandler);
 
