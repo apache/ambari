@@ -977,4 +977,31 @@ public class ConfigurationTest {
       // This is expected
     }
   }
+
+  @Test
+  public void testServerShowErrorStacksEnabled() throws  Exception {
+    // given
+    final Properties ambariProperties = new Properties();
+    ambariProperties.setProperty(Configuration.SERVER_SHOW_ERROR_STACKS.getKey(), "true");
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    // when
+    boolean result = configuration.isServerShowErrorStacks();
+
+    // then
+    Assert.assertTrue(result);
+  }
+
+  @Test
+  public void testServerShowErrorStacksDefault() throws  Exception {
+    // given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    // when
+    boolean result = configuration.isServerShowErrorStacks();
+
+    // then
+    Assert.assertEquals(result, Boolean.parseBoolean(Configuration.SERVER_SHOW_ERROR_STACKS.getDefaultValue()));
+  }
 }

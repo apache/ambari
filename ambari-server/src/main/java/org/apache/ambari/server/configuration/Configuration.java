@@ -2659,6 +2659,13 @@ public class Configuration {
     "server.kerberos.action.threadpool.size", 1);
 
   /**
+   * A flag to determine whether error stacks appear on the error page
+   */
+  @Markdown(description = "Show or hide the error stacks on the error page")
+  public static final ConfigurationProperty<String> SERVER_SHOW_ERROR_STACKS = new ConfigurationProperty<>(
+    "server.show.error.stacks", "false");
+
+  /**
    * Fully qualified class name of the strategy used to form host groups for add service request layout recommendation.
    */
   @Markdown(description = "Fully qualified class name of the strategy used to form host groups for add service request layout recommendation.")
@@ -6196,6 +6203,15 @@ public class Configuration {
 
   public int getAlertServiceCorePoolSize() {
     return Integer.parseInt(getProperty(SERVER_SIDE_ALERTS_CORE_POOL_SIZE));
+  }
+
+  /**
+   * Determines whether error stacks appear on the error page
+   *
+   * @return true if error stacks appear on the error page (defaults to {@code false})
+   */
+  public boolean isServerShowErrorStacks() {
+    return Boolean.parseBoolean(getProperty(SERVER_SHOW_ERROR_STACKS));
   }
 
   /**
