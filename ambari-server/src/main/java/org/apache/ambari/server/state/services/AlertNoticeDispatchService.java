@@ -271,16 +271,51 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
    */
   @Override
   protected void runOneIteration() throws Exception {
+    Map<AlertTargetEntity, List<AlertNoticeEntity>> aggregateMap;
+    try {
+      aggregateMap = getGroupedNotices();
+    } catch (Exception e) {
+      LOG.error("Caught exception during alert notices preparing.", e);
+      return;
+    }
+
+    // now that all of the notices are grouped by target, dispatch them
+    Set<AlertTargetEntity> targets = aggregateMap.keySet();
+    for (AlertTargetEntity target : targets) {
+      List<AlertNoticeEntity> notices = aggregateMap.get(target);
+      if (null == notices || notices.size() == 0) {
+        continue;
+      }
+      try {
+        String targetType = target.getNotificationType();
+        NotificationDispatcher dispatcher = m_dispatchFactory.getDispatcher(targetType);
+
+        // create a single digest notification if supported
+        if (dispatcher.isDigestSupported()) {
+          createSingleNotice(dispatcher, target, notices);
+        } else {
+          createSeparateNotices(dispatcher, target, notices);
+        }
+      } catch (Exception e) {
+        LOG.error("Caught exception during Alert Notice dispatching.", e);
+      }
+    }
+  }
+
+  /**
+   * Retrieves all pending notices to dispatch and groups them by target.
+   * @return grouped notices.
+   */
+  private Map<AlertTargetEntity, List<AlertNoticeEntity>> getGroupedNotices() {
     List<AlertNoticeEntity> pending = m_dao.findPendingNotices();
     if (pending.size() == 0) {
-      return;
+      return Collections.EMPTY_MAP;
     }
 
     LOG.info("There are {} pending alert notices about to be dispatched...",
         pending.size());
 
-    Map<AlertTargetEntity, List<AlertNoticeEntity>> aggregateMap =
-      new HashMap<>(pending.size());
+    Map<AlertTargetEntity, List<AlertNoticeEntity>> aggregateMap = new HashMap<>(pending.size());
 
     // combine all histories by target
     for (AlertNoticeEntity notice : pending) {
@@ -298,77 +333,76 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
 
       notices.add(notice);
     }
+    return aggregateMap;
+  }
 
-    // now that all of the notices are grouped by target, dispatch them
-    Set<AlertTargetEntity> targets = aggregateMap.keySet();
-    for (AlertTargetEntity target : targets) {
-      List<AlertNoticeEntity> notices = aggregateMap.get(target);
-      if (null == notices || notices.size() == 0) {
-        continue;
-      }
+  /**
+   * Creates a single digest notification. Should be used when dispatcher supports digest.
+   * @param dispatcher dispatches the created notifications.
+   * @param target where notifications will be sent.
+   * @param notices notices should be dispatched.
+   */
+  private void createSingleNotice(NotificationDispatcher dispatcher, AlertTargetEntity target,
+                                           List<AlertNoticeEntity> notices) {
+    AlertNotification notification = buildNotificationFromTarget(target);
+    notification.CallbackIds = new ArrayList<>(notices.size());
+    List<AlertHistoryEntity> histories = new ArrayList<>(
+        notices.size());
+
+    // add callback IDs so that the notices can be marked as DELIVERED or
+    // FAILED, and create a list of just the alert histories
+    for (AlertNoticeEntity notice : notices) {
+      AlertHistoryEntity history = notice.getAlertHistory();
+      histories.add(history);
+
+      notification.CallbackIds.add(notice.getUuid());
+    }
+
+
+    // populate the subject and body fields; if there is a problem
+    // generating the content, then mark the notices as FAILED
+    try {
+      renderDigestNotificationContent(dispatcher, notification, histories, target);
+
+      // dispatch
+      DispatchRunnable runnable = new DispatchRunnable(dispatcher, notification);
+      m_executor.execute(runnable);
+    } catch (Exception exception) {
+      LOG.error("Unable to create notification for alerts", exception);
+
+      // there was a problem generating content for the target; mark all
+      // notices as FAILED and skip this target
+      // mark these as failed
+      notification.Callback.onFailure(notification.CallbackIds);
+    }
+  }
+
+  /**
+   * If the dispatcher does not support digest, each notice must have a 1:1 notification created for it.
+   * @param dispatcher dispatches the created notifications.
+   * @param target where notifications will be sent.
+   * @param notices notices should be dispatched.
+   */
+  private void createSeparateNotices(NotificationDispatcher dispatcher, AlertTargetEntity target,
+                                      List<AlertNoticeEntity> notices) {
+    for (AlertNoticeEntity notice : notices) {
+      AlertNotification notification = buildNotificationFromTarget(target);
+      AlertHistoryEntity history = notice.getAlertHistory();
+      notification.CallbackIds = Collections.singletonList(notice.getUuid());
+
+      // populate the subject and body fields; if there is a problem
+      // generating the content, then mark the notices as FAILED
       try {
-        String targetType = target.getNotificationType();
-        NotificationDispatcher dispatcher = m_dispatchFactory.getDispatcher(targetType);
+        renderNotificationContent(dispatcher, notification, history, target);
 
-        // create a single digest notification if supported
-        if (dispatcher.isDigestSupported()) {
-          AlertNotification notification = buildNotificationFromTarget(target);
-          notification.CallbackIds = new ArrayList<>(notices.size());
-          List<AlertHistoryEntity> histories = new ArrayList<>(
-                  notices.size());
+        // dispatch
+        DispatchRunnable runnable = new DispatchRunnable(dispatcher, notification);
+        m_executor.execute(runnable);
+      } catch (Exception exception) {
+        LOG.error("Unable to create notification for alert", exception);
 
-          // add callback IDs so that the notices can be marked as DELIVERED or
-          // FAILED, and create a list of just the alert histories
-          for (AlertNoticeEntity notice : notices) {
-            AlertHistoryEntity history = notice.getAlertHistory();
-            histories.add(history);
-
-            notification.CallbackIds.add(notice.getUuid());
-          }
-
-
-          // populate the subject and body fields; if there is a problem
-          // generating the content, then mark the notices as FAILED
-          try {
-            renderDigestNotificationContent(dispatcher, notification, histories, target);
-
-            // dispatch
-            DispatchRunnable runnable = new DispatchRunnable(dispatcher, notification);
-            m_executor.execute(runnable);
-          } catch (Exception exception) {
-            LOG.error("Unable to create notification for alerts", exception);
-
-            // there was a problem generating content for the target; mark all
-            // notices as FAILED and skip this target
-            // mark these as failed
-            notification.Callback.onFailure(notification.CallbackIds);
-          }
-        } else {
-          // the dispatcher does not support digest, each notice must have a 1:1
-          // notification created for it
-          for (AlertNoticeEntity notice : notices) {
-            AlertNotification notification = buildNotificationFromTarget(target);
-            AlertHistoryEntity history = notice.getAlertHistory();
-            notification.CallbackIds = Collections.singletonList(notice.getUuid());
-
-            // populate the subject and body fields; if there is a problem
-            // generating the content, then mark the notices as FAILED
-            try {
-              renderNotificationContent(dispatcher, notification, history, target);
-
-              // dispatch
-              DispatchRunnable runnable = new DispatchRunnable(dispatcher, notification);
-              m_executor.execute(runnable);
-            } catch (Exception exception) {
-              LOG.error("Unable to create notification for alert", exception);
-
-              // mark these as failed
-              notification.Callback.onFailure(notification.CallbackIds);
-            }
-          }
-        }
-      } catch (Exception e) {
-        LOG.error("Caught exception during Alert Notice dispatching.", e);
+        // mark these as failed
+        notification.Callback.onFailure(notification.CallbackIds);
       }
     }
   }
