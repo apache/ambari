@@ -39,7 +39,6 @@ import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.HeartBeatHandler;
-import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.AmbariErrorHandler;
 import org.apache.ambari.server.api.AmbariPersistFilter;
 import org.apache.ambari.server.api.ContentTypeOverrideFilter;
@@ -496,7 +495,7 @@ public class AmbariServer {
       agentroot.addServlet(agent, "/agent/v1/*");
       agent.setInitOrder(3);
 
-      AgentResource.startHeartBeatHandler();
+      injector.getInstance(HeartBeatHandler.class).start();
       LOG.info("********** Started Heartbeat handler **********");
 
       ServletHolder cert = new ServletHolder(ServletContainer.class);
@@ -909,7 +908,6 @@ public class AmbariServer {
    */
   @Deprecated
   public void performStaticInjection() {
-    AgentResource.init(injector.getInstance(HeartBeatHandler.class));
     CertificateDownload.init(injector.getInstance(CertificateManager.class));
     ConnectionInfo.init(injector.getInstance(Configuration.class));
     CertificateSign.init(injector.getInstance(CertificateManager.class));
