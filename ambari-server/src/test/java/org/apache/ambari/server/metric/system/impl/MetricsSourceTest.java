@@ -20,11 +20,15 @@ package org.apache.ambari.server.metric.system.impl;
 
 import static java.util.Collections.singletonList;
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -184,5 +188,39 @@ public class MetricsSourceTest {
     MetricSource.JmxInfo deserialized = mapper.readValue(mapper.writeValueAsString(jmxInfo), MetricSource.JmxInfo.class);
     assertEquals("custom", deserialized.getValue().toString());
     assertEquals(singletonList("prop1"), deserialized.getPropertyList());
+  }
+
+  @Test
+  public void testJmxInfoEquality() {
+    MetricSource.JmxInfo jmxInfo = new MetricSource.JmxInfo();
+    MetricSource.JmxInfo otherJmxInfo = null;
+
+    assertFalse(jmxInfo.equals(otherJmxInfo));
+
+    otherJmxInfo = new MetricSource.JmxInfo();
+
+    assertTrue(jmxInfo.equals(otherJmxInfo));
+    assertTrue(otherJmxInfo.equals(jmxInfo));
+    assertEquals(jmxInfo.hashCode(), otherJmxInfo.hashCode());
+
+    jmxInfo.setPropertyList(Arrays.asList("a", "b", "c", "d"));
+    assertFalse(jmxInfo.equals(otherJmxInfo));
+    assertFalse(otherJmxInfo.equals(jmxInfo));
+    assertFalse(jmxInfo.hashCode() == otherJmxInfo.hashCode());
+
+    otherJmxInfo.setPropertyList(Arrays.asList("a", "b", "c", "d"));
+    assertTrue(jmxInfo.equals(otherJmxInfo));
+    assertTrue(otherJmxInfo.equals(jmxInfo));
+    assertEquals(jmxInfo.hashCode(), otherJmxInfo.hashCode());
+
+    jmxInfo.setPropertyList(Collections.emptyList());
+    assertFalse(jmxInfo.equals(otherJmxInfo));
+    assertFalse(otherJmxInfo.equals(jmxInfo));
+    assertFalse(jmxInfo.hashCode() == otherJmxInfo.hashCode());
+
+    otherJmxInfo.setPropertyList(Arrays.asList("b", "c", "d", "a"));
+    assertFalse(jmxInfo.equals(otherJmxInfo));
+    assertFalse(otherJmxInfo.equals(jmxInfo));
+    assertFalse(jmxInfo.hashCode() == otherJmxInfo.hashCode());
   }
 }
