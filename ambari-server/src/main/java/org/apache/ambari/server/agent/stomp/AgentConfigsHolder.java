@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.agent.stomp;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,7 @@ import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.utils.ThreadPools;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -47,6 +49,9 @@ public class AgentConfigsHolder extends AgentHostDataHolder<AgentConfigsUpdateEv
 
   @Inject
   private Provider<Clusters> clusters;
+
+  @Inject
+  private ThreadPools threadPools;
 
   @Inject
   public AgentConfigsHolder(AmbariEventPublisher ambariEventPublisher, @Named("AgentConfigEncryptor") Encryptor<AgentConfigsUpdateEvent> encryptor) {
@@ -71,10 +76,11 @@ public class AgentConfigsHolder extends AgentHostDataHolder<AgentConfigsUpdateEv
   public void updateData(Long clusterId, List<Long> hostIds) throws AmbariException {
     if (CollectionUtils.isEmpty(hostIds)) {
       // TODO cluster configs will be created before hosts assigning
-      if (CollectionUtils.isEmpty(clusters.get().getCluster(clusterId).getHosts())) {
+      Collection<Host> hosts = clusters.get().getCluster(clusterId).getHosts();
+      if (CollectionUtils.isEmpty(hosts)) {
         hostIds = clusters.get().getHosts().stream().map(Host::getHostId).collect(Collectors.toList());
       } else {
-        hostIds = clusters.get().getCluster(clusterId).getHosts().stream().map(Host::getHostId).collect(Collectors.toList());
+        hostIds = hosts.stream().map(Host::getHostId).collect(Collectors.toList());
       }
     }
 

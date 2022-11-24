@@ -29,6 +29,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
@@ -1105,9 +1106,8 @@ public class HostImpl implements Host {
   @Override
   public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster,
       Map<String, DesiredConfig> clusterDesiredConfigs) throws AmbariException {
-    Map<String, HostConfig> hostConfigMap = new HashMap<>();
 
-    if( null == cluster ){
+    if(null == cluster){
       clusterDesiredConfigs = new HashMap<>();
     }
 
@@ -1116,42 +1116,36 @@ public class HostImpl implements Host {
       clusterDesiredConfigs = cluster.getDesiredConfigs();
     }
 
-    if (clusterDesiredConfigs != null) {
-      for (Map.Entry<String, DesiredConfig> desiredConfigEntry
-          : clusterDesiredConfigs.entrySet()) {
+    Map<String, HostConfig> hostConfigMap = clusterDesiredConfigs.entrySet().stream().collect(Collectors.toMap(
+      Map.Entry::getKey,
+      desiredConfigEntry -> {
         HostConfig hostConfig = new HostConfig();
         hostConfig.setDefaultVersionTag(desiredConfigEntry.getValue().getTag());
-        hostConfigMap.put(desiredConfigEntry.getKey(), hostConfig);
+        return hostConfig;
       }
-    }
+    ));
 
     Map<Long, ConfigGroup> configGroups = (cluster == null) ? new HashMap<>() : cluster.getConfigGroupsByHostname(getHostName());
+    if (configGroups == null || configGroups.isEmpty()) {
+      return hostConfigMap;
+    }
 
-    if (configGroups != null && !configGroups.isEmpty()) {
-      for (ConfigGroup configGroup : configGroups.values()) {
-        for (Map.Entry<String, Config> configEntry : configGroup
-            .getConfigurations().entrySet()) {
-
-          String configType = configEntry.getKey();
-          // HostConfig config holds configType -> versionTag, per config group
-          HostConfig hostConfig = hostConfigMap.get(configType);
-          if (hostConfig == null) {
-            hostConfig = new HostConfig();
-            hostConfigMap.put(configType, hostConfig);
-            if (cluster != null) {
-              Config conf = cluster.getDesiredConfigByType(configType);
-              if(conf == null) {
-                LOG.error("Config inconsistency exists:"+
-                    " unknown configType="+configType);
-              } else {
-                hostConfig.setDefaultVersionTag(conf.getTag());
-              }
-            }
+    for (ConfigGroup configGroup : configGroups.values()) {
+      for (Map.Entry<String, Config> configEntry : configGroup.getConfigurations().entrySet()) {
+        String configType = configEntry.getKey();
+        // HostConfig config holds configType -> versionTag, per config group
+        HostConfig hostConfig = hostConfigMap.get(configType);
+        if (hostConfig == null) {
+          hostConfig = new HostConfig();
+          hostConfigMap.put(configType, hostConfig);
+          Config conf = cluster.getDesiredConfigByType(configType);
+          if(conf == null) {
+            LOG.error("Config inconsistency exists: unknown configType=" + configType);
+          } else {
+            hostConfig.setDefaultVersionTag(conf.getTag());
           }
-          Config config = configEntry.getValue();
-          hostConfig.getConfigGroupOverrides().put(configGroup.getId(),
-              config.getTag());
         }
+        hostConfig.getConfigGroupOverrides().put(configGroup.getId(), configEntry.getValue().getTag());
       }
     }
     return hostConfigMap;

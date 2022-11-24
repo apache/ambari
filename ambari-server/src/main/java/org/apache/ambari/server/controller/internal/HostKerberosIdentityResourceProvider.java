@@ -169,7 +169,7 @@ public class HostKerberosIdentityResourceProvider extends ReadOnlyResourceProvid
         // Retrieve the active identities for the cluster filtered and grouped by hostname
         Map<String, Collection<KerberosIdentityDescriptor>> hostDescriptors =
             kerberosHelper.getActiveIdentities(clusterName, hostName, null, null, true, null, 
-                kerberosDescriptor);
+                kerberosDescriptor, null);
 
         if (hostDescriptors != null) {
           for (Map.Entry<String, Collection<KerberosIdentityDescriptor>> entry : hostDescriptors.entrySet()) {

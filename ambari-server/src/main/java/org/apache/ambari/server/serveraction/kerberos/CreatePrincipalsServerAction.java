@@ -51,6 +51,7 @@ import com.google.inject.Inject;
  * {@link KerberosServerAction#processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, boolean, Map)}
  * is invoked attempting the creation of the relevant principal.
  */
+@SuppressWarnings("UnstableApiUsage")
 public class CreatePrincipalsServerAction extends KerberosServerAction {
   private final static Logger LOG = LoggerFactory.getLogger(CreatePrincipalsServerAction.class);
 

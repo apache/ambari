@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,14 +86,14 @@ public class VariableReplacementHelper {
    * @param replacementsMap a Map of data used to perform the variable replacements
    * @return a new String
    */
-  public String replaceVariables(String value, Map<String, Map<String, String>> replacementsMap) throws AmbariException {
+  public String replaceVariables(String value, Map<String, Map<String, String>> replacementsMap) throws AmbariRuntimeException {
     if ((value != null) && (replacementsMap != null) && !replacementsMap.isEmpty()) {
       int count = 0; // Used to help prevent an infinite loop...
       boolean replacementPerformed;
 
       do {
         if (++count > 1000) {
-          throw new AmbariException(String.format("Circular reference found while replacing variables in %s", value));
+          throw new AmbariRuntimeException(String.format("Circular reference found while replacing variables in %s", value));
         }
 
         Matcher matcher = PATTERN_VARIABLE.matcher(value);
@@ -106,35 +106,26 @@ public class VariableReplacementHelper {
           String name = matcher.group(2);
           String function = matcher.group(3);
 
-          Map<String, String> replacements;
-
           if ((name != null) && !name.isEmpty()) {
-            if (type == null) {
-              replacements = replacementsMap.get("");
-            } else {
-              replacements = replacementsMap.get(type);
+            Map<String, String> replacements = (type == null) ? replacementsMap.get("") : replacementsMap.get(type);
+            if (replacements == null || replacements.get(name) == null) {
+              continue;
             }
 
-            if (replacements != null) {
-              String replacement = replacements.get(name);
-
-              if (replacement != null) {
-                if (function != null) {
-                  replacement = applyReplacementFunction(function, replacement, replacementsMap);
-                }
-
-                // Escape '$' and '\' so they don't cause any issues.
-                matcher.appendReplacement(sb, replacement.replace("\\", "\\\\").replace("$", "\\$"));
-                replacementPerformed = true;
-              }
+            String replacement = replacements.get(name);
+            if (function != null) {
+              replacement = applyReplacementFunction(function, replacement, replacementsMap);
             }
+
+            // Escape '$' and '\' so they don't cause any issues.
+            matcher.appendReplacement(sb, replacement.replace("\\", "\\\\").replace("$", "\\$"));
+            replacementPerformed = true;
           }
         }
 
         matcher.appendTail(sb);
         value = sb.toString();
-      }
-      while (replacementPerformed); // Process the string again to make sure new variables were not introduced
+      } while (replacementPerformed); // Process the string again to make sure new variables were not introduced
     }
 
     return value;

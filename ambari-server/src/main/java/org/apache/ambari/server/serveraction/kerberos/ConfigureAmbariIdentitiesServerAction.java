@@ -228,7 +228,7 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
       for(Map.Entry<String, String> mapping : principal.getServiceMapping().entries()) {
         String serviceName = mapping.getKey();
         String componentName = mapping.getValue();
-        KerberosKeytabPrincipalEntity entity = kerberosKeytabPrincipalDAO.findOrCreate(kke, hostEntity, kpe).kkp;
+        KerberosKeytabPrincipalEntity entity = kerberosKeytabPrincipalDAO.findOrCreate(kke, hostEntity, kpe, null).kkp;
         entity.setDistributed(true);
         entity.putServiceMapping(serviceName, componentName);
         kerberosKeytabPrincipalDAO.merge(entity);

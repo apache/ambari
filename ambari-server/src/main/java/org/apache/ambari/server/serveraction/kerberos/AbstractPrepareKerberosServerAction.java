@@ -35,6 +35,8 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.UpdateConfigurationPolicy;
+import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
+import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Cluster;
@@ -70,6 +72,9 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
 
   @Inject
   private ConfigHelper configHelper;
+
+  @Inject
+  private KerberosKeytabPrincipalDAO kerberosKeytabPrincipalDAO;
 
   @Override
   protected CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal, KerberosOperationHandler operationHandler, Map<String, String> kerberosConfiguration, boolean includedInFilter, Map<String, Object> requestSharedDataContext) throws AmbariException {
@@ -153,11 +158,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
 
             if (!StringUtils.isEmpty(hostName)) {
               // Update the configurations with the relevant hostname
-              Map<String, String> generalProperties = currentConfigurations.get("");
-              if (generalProperties == null) {
-                generalProperties = new HashMap<>();
-                currentConfigurations.put("", generalProperties);
-              }
+              Map<String, String> generalProperties = currentConfigurations.computeIfAbsent("", k -> new HashMap<>());
 
               // Add the current hostname under "host" and "hostname"
               generalProperties.put("host", hostName);
@@ -215,10 +216,9 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
           propertiesToBeIgnored.putAll(propertiesToIgnore);
         }
 
-        // create database records for keytabs that must be presented on cluster
-        for (ResolvedKerberosKeytab keytab : resolvedKeytabs.values()) {
-          kerberosHelper.createResolvedKeytab(keytab);
-        }
+        // create database records for keytab that must be presented on cluster
+        List<KerberosKeytabPrincipalEntity> keytabList = kerberosKeytabPrincipalDAO.findAll();
+        resolvedKeytabs.values().forEach(keytab -> kerberosHelper.createResolvedKeytab(keytab, keytabList));
       } catch (IOException e) {
         String message = String.format("Failed to write index file - %s", identityDataFile.getAbsolutePath());
         LOG.error(message, e);
