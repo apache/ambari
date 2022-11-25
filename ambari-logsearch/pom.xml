@@ -52,6 +52,8 @@
     <reuseForks>false</reuseForks>
     <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>
     <skipSurefireTests>false</skipSurefireTests>
+    <ambari.web.skip>${skipTests}</ambari.web.skip>
+    <frontend-maven-plugin.version>1.12.0</frontend-maven-plugin.version>
   </properties>
 
   <licenses>
@@ -371,4 +373,18 @@
     </dependencies>
   </dependencyManagement>
 
+  <profiles>
+    <profile>
+      <id>non-x86_64</id>
+      <activation>
+        <os>
+          <arch>!amd64</arch>
+        </os>
+      </activation>
+      <properties>
+        <!-- AMBARI-25607 Do not build frontend for non-x86_64 because there is no PhantomJS for other architectures -->
+        <ambari.web.skip>true</ambari.web.skip>
+      </properties>
+    </profile>
+  </profiles>
 </project>

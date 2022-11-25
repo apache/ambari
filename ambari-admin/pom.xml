@@ -61,8 +61,9 @@
       <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
-        <version>1.4</version>
+        <version>${frontend-maven-plugin.version}</version>
         <configuration>
+          <skip>${ambari.web.skip}</skip>
           <nodeVersion>v4.5.0</nodeVersion>
           <yarnVersion>v0.23.2</yarnVersion>
           <workingDirectory>src/main/resources/ui/admin-web/</workingDirectory>
@@ -104,6 +105,7 @@
               <goal>exec</goal>
             </goals>
             <configuration>
+              <skip>${ambari.web.skip}</skip>
               <workingDirectory>${basedir}/src/main/resources/ui/admin-web</workingDirectory>
               <executable>${basedir}/src/main/resources/ui/admin-web/node/${executable.node}</executable>
               <arguments>
@@ -120,6 +122,7 @@
               <goal>exec</goal>
             </goals>
             <configuration>
+              <skip>${ambari.web.skip}</skip>
               <workingDirectory>${basedir}/src/main/resources/ui/admin-web</workingDirectory>
               <executable>${basedir}/src/main/resources/ui/admin-web/node/${executable.node}</executable>
               <arguments>
@@ -135,6 +138,7 @@
               <goal>exec</goal>
             </goals>
             <configuration>
+              <skip>${ambari.web.skip}</skip>
               <!-- sets Ambari version to make it accessible from code -->
               <executable>${executable.shell}</executable>
               <workingDirectory>${basedir}</workingDirectory>
@@ -149,6 +153,7 @@
               <goal>exec</goal>
             </goals>
             <configuration>
+              <skip>${ambari.web.skip}</skip>
               <workingDirectory>${basedir}/src/main/resources/ui/admin-web</workingDirectory>
               <executable>npm</executable>
               <arguments>
