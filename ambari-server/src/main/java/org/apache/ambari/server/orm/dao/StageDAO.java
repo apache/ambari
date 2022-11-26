@@ -44,7 +44,10 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.orm.entities.StageEntity_;
+import org.apache.ambari.server.orm.helpers.SQLConstants;
+import org.apache.ambari.server.orm.helpers.SQLOperations;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.eclipse.persistence.config.HintValues;
 import org.eclipse.persistence.config.QueryHints;
 
@@ -173,16 +176,20 @@ public class StageDAO {
   @RequiresSession
   public Map<Long, String> findRequestContext(List<Long> requestIds) {
     Map<Long, String> resultMap = new HashMap<>();
-    if (requestIds != null && !requestIds.isEmpty()) {
+    if (CollectionUtils.isNotEmpty(requestIds)) {
       TypedQuery<StageEntity> query = entityManagerProvider.get()
         .createQuery("SELECT stage FROM StageEntity stage WHERE " +
           "stage.requestId IN (SELECT DISTINCT s.requestId FROM StageEntity s " +
           "WHERE s.requestId IN ?1)", StageEntity.class);
-      List<StageEntity> result = daoUtils.selectList(query, requestIds);
-      if (result != null && !result.isEmpty()) {
-        for (StageEntity entity : result) {
-          resultMap.put(entity.getRequestId(), entity.getRequestContext());
-        }
+
+      List<StageEntity> result = new ArrayList<>();
+      SQLOperations.batch(requestIds, SQLConstants.IN_ARGUMENT_MAX_SIZE, (chunk, currentBatch, totalBatches, totalSize) -> {
+        result.addAll(daoUtils.selectList(query, chunk));
+        return 0;
+      });
+
+      for (StageEntity entity : result) {
+        resultMap.put(entity.getRequestId(), entity.getRequestContext());
       }
     }
     return resultMap;

@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -28,7 +28,10 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.helpers.SQLConstants;
+import org.apache.ambari.server.orm.helpers.SQLOperations;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -104,12 +107,15 @@ public class PermissionDAO {
    */
   @RequiresSession
   public List<PermissionEntity> findPermissionsByPrincipal(List<PrincipalEntity> principalList) {
-    if (principalList == null || principalList.isEmpty()) {
-      return Collections.emptyList();
-    }
     TypedQuery<PermissionEntity> query = entityManagerProvider.get().createNamedQuery("PermissionEntity.findByPrincipals", PermissionEntity.class);
-    query.setParameter("principalList", principalList);
-    return daoUtils.selectList(query);
+
+    List<PermissionEntity> result = new ArrayList<>();
+    SQLOperations.batch(principalList, SQLConstants.IN_ARGUMENT_MAX_SIZE, (chunk, currentBatch, totalBatches, totalSize) -> {
+      query.setParameter("principalList", chunk);
+      result.addAll(daoUtils.selectList(query));
+      return 0;
+    });
+    return Lists.newArrayList(result);
   }
 
   /**
