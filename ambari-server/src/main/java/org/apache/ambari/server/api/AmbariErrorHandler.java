@@ -19,15 +19,20 @@
 package org.apache.ambari.server.api;
 
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationPropertiesProvider;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.HttpChannel;
@@ -73,6 +78,23 @@ public class AmbariErrorHandler extends ErrorHandler {
     }
     errorMap.put("message", message);
 
+
+    Throwable th = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
+    if (th != null) {
+      if (code == org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR) {
+        UUID requestId = UUID.randomUUID();
+        message = "Internal server error, please refer the exception by " + requestId + " in the server log file";
+        errorMap.put("message", message);
+        LOG.error(message + ", requestURI: " + request.getRequestURI(), th);
+      }
+
+      if (this.isShowStacks()) {
+        StringWriter writer = new StringWriter();
+        writeErrorPageStacks(request, writer);
+        errorMap.put("reason:", writer.toString());
+      }
+    }
+
     if ((code == HttpServletResponse.SC_FORBIDDEN) || (code == HttpServletResponse.SC_UNAUTHORIZED)) {
       //if SSO is configured we should provide info about it in case of access error
       JwtAuthenticationProperties jwtProperties = jwtAuthenticationPropertiesProvider.get();
@@ -91,5 +113,18 @@ public class AmbariErrorHandler extends ErrorHandler {
     }
 
     gson.toJson(errorMap, response.getWriter());
+  }
+
+  @Override
+  protected void writeErrorPageStacks(HttpServletRequest request, Writer writer)
+    throws IOException {
+    Throwable th = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
+
+    while (th != null) {
+      writer.write("Caused by:\n");
+      write(writer, ExceptionUtils.getStackTrace(th));
+      writer.write("\n");
+      th = th.getCause();
+    }
   }
 }
