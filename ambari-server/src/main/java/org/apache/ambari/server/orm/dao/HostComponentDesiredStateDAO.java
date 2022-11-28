@@ -20,7 +20,6 @@ package org.apache.ambari.server.orm.dao;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -32,7 +31,6 @@ import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.helpers.SQLConstants;
 import org.apache.ambari.server.orm.helpers.SQLOperations;
-import org.apache.commons.collections.CollectionUtils;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -130,9 +128,6 @@ public class HostComponentDesiredStateDAO {
 
   @RequiresSession
   public List<HostComponentDesiredStateEntity> findByHostsAndCluster(Collection<Long> hostIds, Long clusterId) {
-    if (CollectionUtils.isEmpty(hostIds)) {
-      return Collections.<HostComponentDesiredStateEntity>emptyList();
-    }
     final EntityManager entityManager = entityManagerProvider.get();
     final TypedQuery<HostComponentDesiredStateEntity> query = entityManager.
         createNamedQuery("HostComponentDesiredStateEntity.findByHostsAndCluster", HostComponentDesiredStateEntity.class);
