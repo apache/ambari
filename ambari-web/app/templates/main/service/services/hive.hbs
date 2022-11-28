@@ -51,7 +51,7 @@
       <div class="row">
         <div class="col-md-6 summary-label" style="margin-top: 0px;">{{link.label}}</div>
         <div class="col-md-6 summary-value">
-          <a href="#" target="_blank" {{action goToView link.viewInstance target="controller"}}>{{t app.goToView}}</a>
+          <a href="#" target="_blank" rel="noopener noreferrer" {{action goToView link.viewInstance target="controller"}}>{{t app.goToView}}</a>
         </div>
       </div>
     {{/each}}

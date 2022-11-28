@@ -31,8 +31,8 @@ App.EditableWithLimitWidgetMixin = Em.Mixin.create({
 
       sliderHandlersManager: App.EditDashboardWidgetPopup.DoubleHandlers.create({
         maxValue: parseFloat(this.get('maxValue')),
-        thresholdMin: this.get('thresholdMin'),
-        thresholdMax: this.get('thresholdMax')
+        thresholdMin: Number(this.get('thresholdMin')),
+        thresholdMax: Number(this.get('thresholdMax'))
       })
 
     });

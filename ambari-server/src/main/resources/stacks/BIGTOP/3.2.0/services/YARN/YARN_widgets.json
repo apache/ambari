@@ -577,7 +577,7 @@
             }
           ],
           "properties": {
-            "display_unit": "",
+            "display_unit": "GB",
             "max_limit": "100"
           }
         },

@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -56,6 +58,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Module;
@@ -124,6 +127,17 @@ public interface AmbariManagementController {
    * Creates a configuration.
    *
    * @param request the request object which defines the configuration.
+   * @param refreshCluster should the cluster entity be refreshed from DB
+   * @throws AmbariException when the configuration cannot be created.
+   * @throws AuthorizationException when user is not authorized to perform operation.
+   */
+  ConfigurationResponse createConfiguration(ConfigurationRequest request, boolean refreshCluster)
+      throws AmbariException, AuthorizationException;
+
+  /**
+   * Creates a configuration.
+   *
+   * @param request the request object which defines the configuration.
    *
    * @throws AmbariException when the configuration cannot be created.
    */
@@ -133,6 +147,13 @@ public interface AmbariManagementController {
   /**
    * Create cluster config
    * TODO move this method to Cluster? doesn't seem to be on its place
+   * @return config created
+   */
+  Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
+                      String versionTag, Map<String, Map<String, String>> propertiesAttributes, boolean refreshCluster);
+
+  /**
+   * Create cluster config
    * @return config created
    */
   Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
@@ -274,13 +295,15 @@ public interface AmbariManagementController {
    *
    * @param fireAgentUpdates  should agent updates (configurations, metadata etc.) be fired inside
    *
+   * @param refreshCluster  refreshes cluster entity after cluster configs update
+   *
    * @return a track action response
    *
    * @throws AmbariException thrown if the resource cannot be updated
    * @throws AuthorizationException thrown if the authenticated user is not authorized to perform this operation
    */
-  RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
-                                              Map<String, String> requestProperties, boolean fireAgentUpdates)
+  RequestStatusResponse updateClusters(Set<ClusterRequest> requests, Map<String, String> requestProperties,
+                                       boolean fireAgentUpdates, boolean refreshCluster)
       throws AmbariException, AuthorizationException;
 
   /**
@@ -755,7 +778,8 @@ public interface AmbariManagementController {
    * @throws AmbariException if configuration tags can not be obtained
    */
   Map<String, Map<String,String>> findConfigurationTagsWithOverrides(
-        Cluster cluster, String hostName) throws AmbariException;
+          Cluster cluster, String hostName,
+          @Nullable Map<String, DesiredConfig> desiredConfigs) throws AmbariException;
 
   /**
    * Returns parameters for RCA database

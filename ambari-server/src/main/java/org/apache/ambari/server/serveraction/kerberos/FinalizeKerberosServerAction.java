@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.Striped;
 import com.google.inject.Inject;
 
+@SuppressWarnings("UnstableApiUsage")
 public class FinalizeKerberosServerAction extends KerberosServerAction {
   private final static Logger LOG = LoggerFactory.getLogger(FinalizeKerberosServerAction.class);
 

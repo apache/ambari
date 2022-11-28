@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,7 +38,6 @@ import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
 import org.apache.ambari.server.api.resources.RepositoryResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -71,6 +71,7 @@ import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.http.HttpStatus;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
@@ -570,21 +571,25 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     try {
       URI uri = new URI(definitionUrl);
-      InputStream stream = null;
 
       if (uri.getScheme().equalsIgnoreCase("file")) {
         if (!s_configuration.areFileVDFAllowed()) {
           throw new AmbariException("File URL for VDF are not enabled");
         }
-        stream = uri.toURL().openStream();
+        InputStream stream = uri.toURL().openStream();
+        holder.xmlString = IOUtils.toString(stream, "UTF-8");
       } else {
-        URLStreamProvider provider = new URLStreamProvider(connectTimeout, readTimeout,
-            ComponentSSLConfiguration.instance());
+        URLRedirectProvider provider = new URLRedirectProvider(connectTimeout, readTimeout, true);
+        URLRedirectProvider.RequestResult requestResult = provider.executeGet(definitionUrl);
 
-        stream = provider.readFrom(definitionUrl);
+        if (requestResult.getCode() != HttpStatus.SC_OK) {
+          String err = String.format("Could not load url from '%s' with code '%d'.  %s",
+                                     definitionUrl, requestResult.getCode(), requestResult.getContent());
+          throw new AmbariException(err);
+        }
+
+        holder.xmlString = requestResult.getContent();
       }
-
-      holder.xmlString = IOUtils.toString(stream, "UTF-8");
       holder.xml = VersionDefinitionXml.load(holder.xmlString);
     } catch (Exception e) {
       String err = String.format("Could not load url from %s.  %s",
@@ -614,7 +619,17 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     entity.setStack(stackEntity);
 
-    List<RepositoryInfo> repos = holder.xml.repositoryInfo.getRepositories();
+    String credentials = null;
+    if (holder.url != null) {
+      try {
+        URI uri = new URI(holder.url);
+        credentials = uri.getUserInfo();
+      } catch (URISyntaxException e) {
+        throw new AmbariException(String.format("Could not parse url %s", holder.url), e);
+      }
+    }
+
+    List<RepositoryInfo> repos = holder.xml.repositoryInfo.getRepositories(credentials);
 
     StackInfo stack = s_metaInfo.get().getStack(stackId);
 

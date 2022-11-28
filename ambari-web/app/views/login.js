@@ -31,6 +31,15 @@ App.LoginView = Em.View.extend({
   passTextField : Em.TextField.extend({
     insertNewline: function(){
       this.get("controller").submit();
+    },
+    didInsertElement: function(){
+      var self = this;
+      this._super();
+      this.$().attr('autocomplete', 'new-password');
+      // Hack to off autocomplete
+      this.$().on('focus', function () {
+        self.$().attr('type', 'password');
+      });
     }
   })
 });

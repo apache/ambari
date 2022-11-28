@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
@@ -387,6 +389,15 @@ public interface Cluster {
   Config getDesiredConfigByType(String configType);
 
   /**
+   * Gets the desired (and selected) config by type.
+   * @param configType  the type of configuration
+   * @param desiredConfigs map of desired configs
+   * @return  the {@link Config} instance, or <code>null</code> if the type has
+   * not been set.
+   */
+  Config getDesiredConfigByType(String configType, @Nullable Map<String, DesiredConfig> desiredConfigs);
+
+  /**
    * Check if config type exists in cluster.
    * @param configType the type of configuration
    * @return <code>true</code> if config type exists, else - <code>false</code>
@@ -437,6 +448,11 @@ public interface Cluster {
    * @throws AmbariException
    */
   void deleteAllServices() throws AmbariException;
+
+  /**
+   * Deletes all cluster configs associated with this cluster.
+   */
+  void deleteAllClusterConfigs();
 
   /**
    * Delete the named service associated with this cluster

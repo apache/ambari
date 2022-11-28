@@ -79,8 +79,6 @@ public class HeartBeatHandler {
   private final Encryptor<AgentConfigsUpdateEvent> encryptor;
   private HeartbeatMonitor heartbeatMonitor;
   private HeartbeatProcessor heartbeatProcessor;
-
-  @Inject
   private Configuration config;
 
   @Inject
@@ -103,11 +101,12 @@ public class HeartBeatHandler {
   private Map<String, HeartBeatResponse> hostResponses = new ConcurrentHashMap<>();
 
   @Inject
-  public HeartBeatHandler(Clusters fsm, ActionManager am, @Named("AgentConfigEncryptor") Encryptor<AgentConfigsUpdateEvent> encryptor,
+  public HeartBeatHandler(Configuration c, Clusters fsm, ActionManager am, @Named("AgentConfigEncryptor") Encryptor<AgentConfigsUpdateEvent> encryptor,
                           Injector injector) {
+    config = c;
     this.clusterFsm = fsm;
     this.encryptor = encryptor;
-    this.heartbeatMonitor = new HeartbeatMonitor(fsm, am, 60000, injector);
+    heartbeatMonitor = new HeartbeatMonitor(fsm, am, config.getHeartbeatMonitorInterval(), injector);
     this.heartbeatProcessor = new HeartbeatProcessor(fsm, am, heartbeatMonitor, injector); //TODO modify to match pattern
     injector.injectMembers(this);
   }

@@ -93,6 +93,7 @@ App.supports = {
   enableToggleKerberos: true,
   enableAddDeleteServices: true,
   regenerateKeytabsOnSingleHost: false,
+  disableCredentialsAutocompleteForRepoUrls: false,
   enableNewServiceRestartOptions: false
 };
 

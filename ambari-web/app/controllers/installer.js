@@ -305,6 +305,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }, this);
     }
+    if (!data.items || !data.items.length) {
+      this.setSelected(true, params.dfd);
+    }
     // if data.items is empty, we show error modal end return to back step
     if (data.items && data.items.length) {
       data.items.sortProperty('VersionDefinition.stack_version').reverse().forEach(function (versionDefinition) {
@@ -358,7 +361,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       stacks.sortProperty('id').set('lastObject.isSelected', true);
     }
     this.set('content.stacks', App.Stack.find());
-    App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('stackNameVersion'));
+    var selected = App.Stack.find().findProperty('isSelected');
+    App.set('currentStackVersion', selected ? selected.get('stackNameVersion') : null);
     dfd.resolve();
   },
 
@@ -960,10 +964,12 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       var os = selectedStack.get('operatingSystems').findProperty('id', params.osId);
       var repo = os.get('repositories').findProperty('repoId', params.repoId);
       if (repo) {
+        var title = Ember.Handlebars.Utils.escapeExpression(request.status + ":" + request.statusText);
+        var content =  Ember.Handlebars.Utils.escapeExpression($.parseJSON(request.responseText) ? $.parseJSON(request.responseText).message : "");
         repo.setProperties({
           validation: 'INVALID',
-          errorTitle: request.status + ":" + request.statusText,
-          errorContent: $.parseJSON(request.responseText) ? $.parseJSON(request.responseText).message : ""
+          errorTitle: title,
+          errorContent: content
         });
       }
     }

@@ -86,6 +86,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import javax.persistence.RollbackException;
 
 import org.apache.ambari.annotations.Experimental;
@@ -129,7 +130,7 @@ import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
-import org.apache.ambari.server.controller.internal.URLStreamProvider;
+import org.apache.ambari.server.controller.internal.URLRedirectProvider;
 import org.apache.ambari.server.controller.internal.WidgetLayoutResourceProvider;
 import org.apache.ambari.server.controller.internal.WidgetResourceProvider;
 import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider;
@@ -248,12 +249,13 @@ import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.apache.ambari.server.topology.Setting;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.utils.URLCredentialsHider;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1029,7 +1031,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    */
   @Override
   public synchronized ConfigurationResponse createConfiguration(
-      ConfigurationRequest request) throws AmbariException, AuthorizationException {
+      ConfigurationRequest request, boolean refreshCluster) throws AmbariException, AuthorizationException {
     if (null == request.getClusterName() || request.getClusterName().isEmpty()
         || null == request.getType() || request.getType().isEmpty()
         || null == request.getProperties()) {
@@ -1166,7 +1168,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     Config config = createConfig(cluster, stackId, request.getType(), requestProperties,
-      request.getVersionTag(), propertiesAttributes);
+      request.getVersionTag(), propertiesAttributes, refreshCluster);
 
     LOG.info(MessageFormat.format("Creating configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
         request.getVersionTag(),
@@ -1177,14 +1179,27 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
-                             String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
+  public synchronized ConfigurationResponse createConfiguration(
+      ConfigurationRequest request) throws AmbariException, AuthorizationException {
+    return createConfiguration(request, true);
+  }
 
-    Config config = configFactory.createNew(stackId, cluster, type, versionTag, properties,
-        propertiesAttributes);
+  @Override
+  public Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
+                             String versionTag, Map<String, Map<String, String>> propertiesAttributes, boolean refreshCluster) {
+
+    Config config = configFactory.createNew(stackId, type, cluster, versionTag, properties,
+        propertiesAttributes, refreshCluster);
 
     cluster.addConfig(config);
     return config;
+  }
+
+  @Override
+  public Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
+                             String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
+
+    return createConfig(cluster, stackId, type, properties, versionTag, propertiesAttributes, true);
   }
 
   @Override
@@ -1673,14 +1688,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public synchronized RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
                                                            Map<String, String> requestProperties)
       throws AmbariException, AuthorizationException {
-    return updateClusters(requests, requestProperties, true);
+    return updateClusters(requests, requestProperties, true, true);
   }
 
   @Override
   @Transactional
   public synchronized RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
                                                            Map<String, String> requestProperties,
-                                                           boolean fireAgentUpdates)
+                                                           boolean fireAgentUpdates, boolean refreshCluster)
       throws AmbariException, AuthorizationException {
 
     RequestStatusResponse response = null;
@@ -1688,7 +1703,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // We have to allow for multiple requests to account for multiple
     // configuration updates (create multiple configuration resources)...
     for (ClusterRequest request : requests) {
-      response = updateCluster(request, requestProperties, fireAgentUpdates);
+      response = updateCluster(request, requestProperties, fireAgentUpdates, refreshCluster);
     }
     return response;
   }
@@ -1789,7 +1804,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private synchronized RequestStatusResponse updateCluster(ClusterRequest request,
                                                            Map<String, String> requestProperties,
-                                                           boolean fireAgentUpdates
+                                                           boolean fireAgentUpdates, boolean refreshCluster
   )
       throws AmbariException, AuthorizationException {
 
@@ -1949,7 +1964,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 cr.getProperties().size() > 0) {            // properties to set
 
               cr.setClusterName(cluster.getClusterName());
-              configurationResponses.add(createConfiguration(cr));
+              configurationResponses.add(createConfiguration(cr, refreshCluster));
+
 
               LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
                   cr.getVersionTag(),
@@ -2499,9 +2515,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Override
   public Map<String, Map<String,String>> findConfigurationTagsWithOverrides(
-          Cluster cluster, String hostName) throws AmbariException {
+          Cluster cluster, String hostName,
+          @Nullable Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
 
-    return configHelper.getEffectiveDesiredTags(cluster, hostName);
+    return configHelper.getEffectiveDesiredTags(cluster, hostName, desiredConfigs);
   }
 
   @Override
@@ -4547,8 +4564,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    * @throws AmbariException if verification fails
    */
   private void verifyRepository(RepositoryRequest request) throws AmbariException {
-    URLStreamProvider usp = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT, REPO_URL_READ_TIMEOUT, null, null, null);
-    usp.setSetupTruststoreForHttps(false);
+    URLRedirectProvider usp = new URLRedirectProvider(REPO_URL_CONNECT_TIMEOUT, REPO_URL_READ_TIMEOUT, true);
 
     String repoName = request.getRepoName();
     if (StringUtils.isEmpty(repoName)) {
@@ -4587,10 +4603,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       }else{
         try {
-          IOUtils.readLines(usp.readFrom(spec));
+          URLRedirectProvider.RequestResult result = usp.executeGet(spec);
+          if (result.getCode() != HttpStatus.SC_OK) {
+            errorMessage = String.format("Could not access base url '%s', code: '%d', response: '%s'",
+                                         URLCredentialsHider.hideCredentials(request.getBaseUrl()),
+                                         result.getCode(),
+                                         result.getContent());
+          }
         } catch (IOException ioe) {
           e = ioe;
-          errorMessage = "Could not access base url . " + request.getBaseUrl() + " . ";
+          errorMessage = String.format("Could not access base url '%s'",
+                                       URLCredentialsHider.hideCredentials(request.getBaseUrl()));
           if (LOG.isDebugEnabled()) {
             errorMessage += ioe;
           } else {
@@ -4601,9 +4624,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-    if (e != null) {
+    if (errorMessage != null) {
       LOG.error(errorMessage);
-      throw new IllegalArgumentException(errorMessage, e);
+      if (e == null) {
+        throw new IllegalArgumentException(errorMessage);
+      } else {
+        throw new IllegalArgumentException(errorMessage, e);
+      }
     }
   }
 
@@ -5929,7 +5956,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     clusterLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
-    
+
     for (Service service : cluster.getServices().values()) {
       ServiceInfo serviceInfoInstance = ambariMetaInfo.getService(service);
       String serviceType = serviceInfoInstance.getServiceType();

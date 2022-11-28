@@ -63,14 +63,19 @@ App.ExportMetricsMixin = Em.Mixin.create({
     });
   },
 
+  getCustomFileName: function () {
+    return this.get('targetView.title').replace(/\s+/g, '_').toLowerCase();
+  },
+
   exportGraphDataSuccessCallback: function (response, request, params) {
     var seriesData = this.get('targetView').getData(response);
     if (!seriesData.length) {
       App.showAlertPopup(Em.I18n.t('graphs.noData.title'), Em.I18n.t('graphs.noData.tooltip.title'));
     } else {
       var fileType = params.isCSV ? 'csv' : 'json',
-        fileName = 'data.' + fileType,
-        data = params.isCSV ? this.prepareCSV(seriesData) : JSON.stringify(seriesData, this.jsonReplacer(), 4);
+          fileName = (Em.isEmpty(this.get('targetView.title')) ? 'data' : this.getCustomFileName()) + '.' + fileType,
+          data = params.isCSV ? this.prepareCSV(seriesData) : JSON.stringify(seriesData, this.jsonReplacer(), 4);
+
       fileUtils.downloadTextFile(data, fileType, fileName);
     }
   },

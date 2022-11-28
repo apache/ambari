@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.api.AmbariPersistFilter;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
@@ -44,6 +45,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.SessionIdManager;
+import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.server.session.SessionCache;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -64,7 +66,7 @@ public class AmbariHandlerListTest {
   private final SessionIdManager sessionIdManager = createNiceMock(SessionIdManager.class);
   private final SessionHandlerConfigurer sessionHandlerConfigurer = createNiceMock(SessionHandlerConfigurer.class);
   private final SessionCache sessionCache = createNiceMock(SessionCache.class);
-
+  private final Configuration configuration = createNiceMock(Configuration.class);
 
   @Test
   public void testAddViewInstance() throws Exception {
@@ -90,7 +92,16 @@ public class AmbariHandlerListTest {
     handler.addFilter(capture(securityFilterCapture), eq("/*"), eq(AmbariServer.DISPATCHER_TYPES));
     handler.setAllowNullPathInfo(true);
 
-    replay(handler, server, sessionHandler);
+    final boolean showErrorStacks = true;
+    expect(configuration.isServerShowErrorStacks()).andReturn(showErrorStacks);
+
+    ErrorHandler errorHandler = createNiceMock(ErrorHandler.class);
+    Capture<Boolean> showStackCapture = EasyMock.newCapture();
+    errorHandler.setShowStacks(EasyMock.captureBoolean(showStackCapture));
+
+    expect(handler.getErrorHandler()).andReturn(errorHandler).times(3);
+
+    replay(handler, server, sessionHandler, configuration, errorHandler);
 
     AmbariHandlerList handlerList = getAmbariHandlerList(handler);
 
@@ -103,8 +114,9 @@ public class AmbariHandlerListTest {
     Assert.assertEquals(ambariViewsSecurityHeaderFilter, securityHeaderFilterCapture.getValue().getFilter());
     Assert.assertEquals(persistFilter, persistFilterCapture.getValue().getFilter());
     Assert.assertEquals(springSecurityFilter, securityFilterCapture.getValue().getFilter());
+    Assert.assertEquals(showErrorStacks, showStackCapture.getValue());
 
-    verify(handler, server, sessionHandler);
+    verify(handler, server, sessionHandler, configuration, errorHandler);
   }
 
   @Test
@@ -185,6 +197,7 @@ public class AmbariHandlerListTest {
     handlerList.springSecurityFilter = springSecurityFilter;
     handlerList.sessionHandler = sessionHandler;
     handlerList.sessionHandlerConfigurer = sessionHandlerConfigurer;
+    handlerList.configuration = configuration;
     return handlerList;
   }
 

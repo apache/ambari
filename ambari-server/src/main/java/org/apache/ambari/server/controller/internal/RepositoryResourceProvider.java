@@ -43,6 +43,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.utils.URLCredentialsHider;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -167,35 +168,35 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
     Set<Resource> resources = new HashSet<>();
 
     for (RepositoryResponse response : responses) {
-        Resource resource = new ResourceImpl(Resource.Type.Repository);
+      Resource resource = new ResourceImpl(Resource.Type.Repository);
 
-        setResourceProperty(resource, REPOSITORY_STACK_NAME_PROPERTY_ID, response.getStackName(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_STACK_VERSION_PROPERTY_ID, response.getStackVersion(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_REPO_NAME_PROPERTY_ID, response.getRepoName(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_DISTRIBUTION_PROPERTY_ID, response.getDistribution(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_COMPONENTS_PROPERTY_ID, response.getComponents(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_BASE_URL_PROPERTY_ID, response.getBaseUrl(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_OS_TYPE_PROPERTY_ID, response.getOsType(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_REPO_ID_PROPERTY_ID, response.getRepoId(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_MIRRORS_LIST_PROPERTY_ID, response.getMirrorsList(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID, response.getDefaultBaseUrl(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_UNIQUE_PROPERTY_ID, response.isUnique(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_TAGS_PROPERTY_ID, response.getTags(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID, response.getApplicableServices(), requestedIds);
-        if (null != response.getClusterVersionId()) {
-          setResourceProperty(resource, REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID, response.getClusterVersionId(), requestedIds);
-        }
+      setResourceProperty(resource, REPOSITORY_STACK_NAME_PROPERTY_ID, response.getStackName(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_STACK_VERSION_PROPERTY_ID, response.getStackVersion(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_REPO_NAME_PROPERTY_ID, response.getRepoName(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_DISTRIBUTION_PROPERTY_ID, response.getDistribution(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_COMPONENTS_PROPERTY_ID, response.getComponents(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_BASE_URL_PROPERTY_ID, URLCredentialsHider.hideCredentials(response.getBaseUrl()), requestedIds);
+      setResourceProperty(resource, REPOSITORY_OS_TYPE_PROPERTY_ID, response.getOsType(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_REPO_ID_PROPERTY_ID, response.getRepoId(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_MIRRORS_LIST_PROPERTY_ID, response.getMirrorsList(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID, URLCredentialsHider.hideCredentials(response.getDefaultBaseUrl()), requestedIds);
+      setResourceProperty(resource, REPOSITORY_UNIQUE_PROPERTY_ID, response.isUnique(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_TAGS_PROPERTY_ID, response.getTags(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID, response.getApplicableServices(), requestedIds);
+      if (null != response.getClusterVersionId()) {
+        setResourceProperty(resource, REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID, response.getClusterVersionId(), requestedIds);
+      }
 
-        if (null != response.getRepositoryVersionId()) {
-          setResourceProperty(resource, REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID, response.getRepositoryVersionId(), requestedIds);
-        }
+      if (null != response.getRepositoryVersionId()) {
+        setResourceProperty(resource, REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID, response.getRepositoryVersionId(), requestedIds);
+      }
 
-        if (null != response.getVersionDefinitionId()) {
-          setResourceProperty(resource, REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID,
-              response.getVersionDefinitionId(), requestedIds);
-        }
+      if (null != response.getVersionDefinitionId()) {
+        setResourceProperty(resource, REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID,
+            response.getVersionDefinitionId(), requestedIds);
+      }
 
-        resources.add(resource);
+      resources.add(resource);
     }
 
     return resources;

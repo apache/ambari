@@ -956,7 +956,7 @@ public class ClusterImpl implements Cluster {
       ClusterEntity clusterEntity = getClusterEntity();
 
       clusterEntity.setDesiredStack(stackEntity);
-      clusterEntity = clusterDAO.merge(clusterEntity);
+      clusterDAO.merge(clusterEntity);
 
       loadServiceConfigTypes();
     } finally {
@@ -979,7 +979,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public State getProvisioningState() {
-    State provisioningState = null;
+    State provisioningState;
     ClusterEntity clusterEntity = getClusterEntity();
     provisioningState = clusterEntity.getProvisioningState();
 
@@ -994,7 +994,7 @@ public class ClusterImpl implements Cluster {
   public void setProvisioningState(State provisioningState) {
     ClusterEntity clusterEntity = getClusterEntity();
     clusterEntity.setProvisioningState(provisioningState);
-    clusterEntity = clusterDAO.merge(clusterEntity);
+    clusterDAO.merge(clusterEntity);
   }
 
   private boolean setBlueprintProvisioningState(BlueprintProvisioningState blueprintProvisioningState) {
@@ -1033,7 +1033,7 @@ public class ClusterImpl implements Cluster {
   public void setSecurityType(SecurityType securityType) {
     ClusterEntity clusterEntity = getClusterEntity();
     clusterEntity.setSecurityType(securityType);
-    clusterEntity = clusterDAO.merge(clusterEntity);
+    clusterDAO.merge(clusterEntity);
   }
 
   /**
@@ -1163,11 +1163,11 @@ public class ClusterImpl implements Cluster {
         clusterStateDAO.create(clusterStateEntity);
         clusterStateEntity = clusterStateDAO.merge(clusterStateEntity);
         clusterEntity.setClusterStateEntity(clusterStateEntity);
-        clusterEntity = clusterDAO.merge(clusterEntity);
+        clusterDAO.merge(clusterEntity);
       } else {
         clusterStateEntity.setCurrentStack(stackEntity);
-        clusterStateEntity = clusterStateDAO.merge(clusterStateEntity);
-        clusterEntity = clusterDAO.merge(clusterEntity);
+        clusterStateDAO.merge(clusterStateEntity);
+        clusterDAO.merge(clusterEntity);
       }
     } catch (RollbackException e) {
       LOG.warn("Unable to set version " + stackId + " for cluster "
@@ -1205,6 +1205,14 @@ public class ClusterImpl implements Cluster {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
+  }
+
+  @Override
+  public Config getDesiredConfigByType(String configType, @Nullable Map<String, DesiredConfig> desiredConfigs) {
+    DesiredConfig desiredConfig = (desiredConfigs == null) ? null : desiredConfigs.get(configType);
+    return (desiredConfig == null)
+      ? getDesiredConfigByType(configType)
+      : getConfig(configType, desiredConfig.getTag());
   }
 
   @Override
@@ -1339,6 +1347,20 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  @Transactional
+  public void deleteAllClusterConfigs() {
+    clusterGlobalLock.writeLock().lock();
+    try {
+      Collection<ClusterConfigEntity> clusterConfigs = getClusterEntity().getClusterConfigEntities();
+      for (ClusterConfigEntity clusterConfigEntity : clusterConfigs) {
+        clusterDAO.removeConfig(clusterConfigEntity);
+      }
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
+    }
+  }
+
+  @Override
   public void deleteService(String serviceName, DeleteHostComponentStatusMetaData deleteMetaData)
     throws AmbariException {
     clusterGlobalLock.writeLock().lock();
@@ -1416,6 +1438,7 @@ public class ClusterImpl implements Cluster {
     try {
       refresh();
       deleteAllServices();
+      deleteAllClusterConfigs();
       resetHostVersions();
 
       refresh(); // update one-to-many clusterServiceEntities
@@ -1507,13 +1530,8 @@ public class ClusterImpl implements Cluster {
   public Map<String, DesiredConfig> getDesiredConfigs(boolean cachedConfigEntities) {
     Map<String, Set<DesiredConfig>> activeConfigsByType = getDesiredConfigs(false, cachedConfigEntities);
     return Maps.transformEntries(
-        activeConfigsByType,
-        new Maps.EntryTransformer<String, Set<DesiredConfig>, DesiredConfig>() {
-          @Override
-          public DesiredConfig transformEntry(@Nullable String key, @Nullable Set<DesiredConfig> value) {
-            return value.iterator().next();
-          }
-        });
+      activeConfigsByType,
+      (key, value) -> value.iterator().next());
   }
 
   /**
@@ -2030,7 +2048,7 @@ public class ClusterImpl implements Cluster {
       }
     }
 
-    clusterEntity = clusterDAO.merge(clusterEntity);
+    clusterDAO.merge(clusterConfigs);
 
     if (serviceName == null) {
       ArrayList<String> configTypes = new ArrayList<>();
@@ -2546,7 +2564,7 @@ public class ClusterImpl implements Cluster {
       // since the entities which were modified came from the cluster entity's
       // list to begin with, we can just save them right back - no need for a
       // new collection since the entity instances were modified directly
-      clusterEntity = clusterDAO.merge(clusterEntity, true);
+      clusterDAO.merge(configEntities, true);
 
       cacheConfigurations();
 
@@ -2925,6 +2943,20 @@ public class ClusterImpl implements Cluster {
     }
 
     return componentVersionMap;
+  }
+
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    ClusterImpl cluster = (ClusterImpl) o;
+    return clusterId == cluster.clusterId;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(clusterId);
   }
 
   /**

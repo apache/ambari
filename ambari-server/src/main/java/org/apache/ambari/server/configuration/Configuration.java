@@ -325,6 +325,12 @@ public class Configuration {
   // Ambari server log4j file name
   public static final String AMBARI_LOG_FILE = "log4j.properties";
 
+  @Markdown(
+          description = "Interval for heartbeat presence checks.",
+          examples = {"60000","600000"} )
+  public static final ConfigurationProperty<Integer> HEARTBEAT_MONITORING_INTERVAL = new ConfigurationProperty<>(
+          "heartbeat.monitoring.interval",60000);
+
   /**
    * The directory on the Ambari Server file system used for storing
    * Ambari Agent bootstrap information such as request responses.
@@ -2228,6 +2234,13 @@ public class Configuration {
       "http.x-xss-protection", "1; mode=block");
 
   /**
+   * The value that will be used to set the {@code Content-Security-Policy} HTTP response header.
+   */
+  @Markdown(description = "The value that will be used to set the `Content-Security-Policy` HTTP response header.")
+  public static final ConfigurationProperty<String> HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE = new ConfigurationProperty<>(
+      "http.content-security-policy", "");
+
+  /**
    * The value that will be used to set the {@code X-Content-Type} HTTP response header.
    */
   @Markdown(description = "The value that will be used to set the `X-CONTENT-TYPE` HTTP response header.")
@@ -2280,6 +2293,14 @@ public class Configuration {
   @Markdown(description = "The value that will be used to set the `X-XSS-Protection` HTTP response header for Ambari View requests.")
   public static final ConfigurationProperty<String> VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE = new ConfigurationProperty<>(
       "views.http.x-xss-protection", "1; mode=block");
+
+  /**
+   * The value that will be used to set the {@code Content-Security-Policy}
+   * HTTP response header for Ambari View requests.
+   */
+  @Markdown(description = "The value that will be used to set the `Content-Security-Policy` HTTP response header for Ambari View requests.")
+  public static final ConfigurationProperty<String> VIEWS_HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE = new ConfigurationProperty<>(
+      "views.http.content-security-policy", "");
 
   /**
    * The value that will be used to set the {@code X-Content-Type} HTTP response header.
@@ -2460,16 +2481,6 @@ public class Configuration {
       "metrics.retrieval-service.request.ttl", 5);
 
   /**
-   * The number of tasks that can be queried from the database at once In the
-   * case of more tasks, multiple queries are issued
-   *
-   * @return
-   */
-  @Markdown(description = "The maximum number of tasks which can be queried by ID from the database.")
-  public static final ConfigurationProperty<Integer> TASK_ID_LIST_LIMIT = new ConfigurationProperty<>(
-      "task.query.parameterlist.size", 999);
-
-  /**
    * Indicates whether the current ambari server instance is the active instance.
    * If this property is missing, the value will be considered to be true.
    * If present, it should be explicitly set to "true" to set this as the active instance.
@@ -2636,6 +2647,21 @@ public class Configuration {
   @Markdown(description = "The number of threads to use when executing server-side Kerberos commands, such as generate keytabs.")
   public static final ConfigurationProperty<Integer> KERBEROS_SERVER_ACTION_THREADPOOL_SIZE = new ConfigurationProperty<>(
     "server.kerberos.action.threadpool.size", 1);
+
+  @Markdown(description = "The Agent command publisher pool. Affects degree of parallelization for generating the commands.")
+  public static final ConfigurationProperty<Integer> AGENT_COMMAND_PUBLISHER_THREADPOOL_SIZE = new ConfigurationProperty<>(
+    "server.pools.agent.command.publisher.size", 5);
+
+  @Markdown(description = "Configures size of the default JOIN Fork pool used for Streams.")
+  public static final ConfigurationProperty<Integer> DEFAULT_FORK_JOIN_THREADPOOL_SIZE = new ConfigurationProperty<>(
+    "server.pools.default.size", 5);
+
+  /**
+   * A flag to determine whether error stacks appear on the error page
+   */
+  @Markdown(description = "Show or hide the error stacks on the error page")
+  public static final ConfigurationProperty<String> SERVER_SHOW_ERROR_STACKS = new ConfigurationProperty<>(
+    "server.show.error.stacks", "false");
 
   /**
    * Fully qualified class name of the strategy used to form host groups for add service request layout recommendation.
@@ -3378,6 +3404,10 @@ public class Configuration {
     return getProperty(SYS_PREPPED_HOSTS);
   }
 
+  public Integer getHeartbeatMonitorInterval() {
+    return Integer.parseInt(getProperty(HEARTBEAT_MONITORING_INTERVAL));
+  }
+
   /**
    * Return {@code true} if we forced to work with legacy repositories
    *
@@ -3692,6 +3722,17 @@ public class Configuration {
   }
 
   /**
+   * Get the value that should be set for the <code>Content-Security-Policy</code> HTTP response header for Ambari Server UI.
+   * <p/>
+   * By default this will be empty.
+   *
+   * @return the Content-Security-Policy value - null or "" indicates that the value is not set
+   */
+  public String getContentSecurityPolicyHTTPResponseHeader() {
+    return getProperty(HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE);
+  }
+
+  /**
    * Get the value that should be set for the <code>X-Content-Type</code> HTTP response header for Ambari Server UI.
    * <p/>
    * By default this will be <code>nosniff</code>. For example:
@@ -3796,6 +3837,17 @@ public class Configuration {
    */
   public String getViewsXXSSProtectionHTTPResponseHeader() {
     return getProperty(VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE);
+  }
+
+  /**
+   * Get the value that should be set for the <code>Content-Security-Policy</code> HTTP response header for Ambari Views.
+   * <p/>
+   * By default this will be empty.
+   *
+   * @return the Content-Security-Policy value - null or "" indicates that the value is not set
+   */
+  public String getViewsContentSecurityPolicyHTTPResponseHeader() {
+    return getProperty(VIEWS_HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE);
   }
 
   /**
@@ -5485,16 +5537,6 @@ public class Configuration {
   }
 
   /**
-   * Returns the number of tasks that can be queried from the database at once
-   * In the case of more tasks, multiple queries are issued
-   *
-   * @return
-   */
-  public int getTaskIdListLimit() {
-    return Integer.parseInt(getProperty(TASK_ID_LIST_LIMIT));
-  }
-
-  /**
    * Get whether the current ambari server instance the active instance
    *
    * @return true / false
@@ -5617,8 +5659,22 @@ public class Configuration {
    *
    * @return the threadpool size, defaulting to 1
    */
-  public int getKerberosServerActionThreadpoolSize() {
+  public int getKerberosServerActionThreadPoolSize() {
     return Integer.parseInt(getProperty(KERBEROS_SERVER_ACTION_THREADPOOL_SIZE));
+  }
+
+  /**
+   * Determines the amount of threads dedicated for {@link org.apache.ambari.server.events.publishers.AgentCommandsPublisher}
+   */
+  public int getAgentCommandPublisherThreadPoolSize() {
+    return Integer.parseInt(getProperty(AGENT_COMMAND_PUBLISHER_THREADPOOL_SIZE));
+  }
+
+  /**
+   * Determines the amount of threads used by default ForJoin Pool
+   */
+  public int getDefaultForkJoinPoolSize(){
+    return Integer.parseInt(getProperty(DEFAULT_FORK_JOIN_THREADPOOL_SIZE));
   }
 
   /**
@@ -6149,6 +6205,15 @@ public class Configuration {
 
   public int getAlertServiceCorePoolSize() {
     return Integer.parseInt(getProperty(SERVER_SIDE_ALERTS_CORE_POOL_SIZE));
+  }
+
+  /**
+   * Determines whether error stacks appear on the error page
+   *
+   * @return true if error stacks appear on the error page (defaults to {@code false})
+   */
+  public boolean isServerShowErrorStacks() {
+    return Boolean.parseBoolean(getProperty(SERVER_SHOW_ERROR_STACKS));
   }
 
   /**

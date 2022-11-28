@@ -75,6 +75,8 @@ export default Ember.Service.extend({
 
   _processMessage: function(type, message, options, alertOptions) {
     this._clearMessagesIfRequired(alertOptions);
+    //escape html characters in the message
+    message = Ember.Handlebars.Utils.escapeExpression(message);
     let alertRecord = this._createAlert(message, type, options, alertOptions);
     if(alertRecord) {
       this.toggleProperty('alertsChanged');
