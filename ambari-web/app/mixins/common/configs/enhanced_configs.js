@@ -221,8 +221,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     var updateDependencies = Em.isArray(changedConfigs) && changedConfigs.length > 0;
     var stepConfigs = this.get('stepConfigs');
     var requiredTags = [];
-    const isAutoComplete = !updateDependencies;
-    this.set('isRecommendationsAutoComplete', isAutoComplete);
+    var isAutoComplete = !updateDependencies && this.get('isRecommendationsAutoComplete') !== undefined;
+    if (this.get('isRecommendationsAutoComplete') !== undefined) {
+      this.set('isRecommendationsAutoComplete', isAutoComplete);
+    }
 
     if (updateDependencies || Em.isNone(this.get('recommendationsConfigs'))) {
       var recommendations = isAutoComplete ? {} : this.get('hostGroups');
@@ -267,7 +269,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * @param stepConfigs
    */
   addRecommendationRequestParams: function(recommendations, dataToSend, stepConfigs) {
-    const isAutoComplete = Boolean(this.get('isRecommendationsAutoComplete'));
+    var isAutoComplete = Boolean(this.get('isRecommendationsAutoComplete'));
     if (!isAutoComplete) {
         recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(stepConfigs);
     }
