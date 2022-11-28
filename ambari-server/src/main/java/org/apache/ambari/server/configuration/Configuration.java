@@ -2658,6 +2658,14 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> KERBEROS_SERVER_ACTION_THREADPOOL_SIZE = new ConfigurationProperty<>(
     "server.kerberos.action.threadpool.size", 1);
 
+  @Markdown(description = "The Agent command publisher pool. Affects degree of parallelization for generating the commands.")
+  public static final ConfigurationProperty<Integer> AGENT_COMMAND_PUBLISHER_THREADPOOL_SIZE = new ConfigurationProperty<>(
+    "server.pools.agent.command.publisher.size", 5);
+
+  @Markdown(description = "Configures size of the default JOIN Fork pool used for Streams.")
+  public static final ConfigurationProperty<Integer> DEFAULT_FORK_JOIN_THREADPOOL_SIZE = new ConfigurationProperty<>(
+    "server.pools.default.size", 5);
+
   /**
    * A flag to determine whether error stacks appear on the error page
    */
@@ -5671,8 +5679,22 @@ public class Configuration {
    *
    * @return the threadpool size, defaulting to 1
    */
-  public int getKerberosServerActionThreadpoolSize() {
+  public int getKerberosServerActionThreadPoolSize() {
     return Integer.parseInt(getProperty(KERBEROS_SERVER_ACTION_THREADPOOL_SIZE));
+  }
+
+  /**
+   * Determines the amount of threads dedicated for {@link org.apache.ambari.server.events.publishers.AgentCommandsPublisher}
+   */
+  public int getAgentCommandPublisherThreadPoolSize() {
+    return Integer.parseInt(getProperty(AGENT_COMMAND_PUBLISHER_THREADPOOL_SIZE));
+  }
+
+  /**
+   * Determines the amount of threads used by default ForJoin Pool
+   */
+  public int getDefaultForkJoinPoolSize(){
+    return Integer.parseInt(getProperty(DEFAULT_FORK_JOIN_THREADPOOL_SIZE));
   }
 
   /**

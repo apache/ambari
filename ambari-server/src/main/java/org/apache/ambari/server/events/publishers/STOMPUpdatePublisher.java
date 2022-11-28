@@ -19,41 +19,33 @@ package org.apache.ambari.server.events.publishers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.events.DefaultMessageEmitter;
 import org.apache.ambari.server.events.STOMPEvent;
+import org.apache.ambari.server.utils.ThreadPools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Singleton;
 
 @Singleton
+@SuppressWarnings({"UnstableApiUsage", "rawtypes"})
 public class STOMPUpdatePublisher {
   private static final Logger LOG = LoggerFactory.getLogger(STOMPUpdatePublisher.class);
 
   private final EventBus agentEventBus;
   private final EventBus apiEventBus;
 
-  private final ExecutorService threadPoolExecutorAgent = Executors.newSingleThreadExecutor(
-      new ThreadFactoryBuilder().setNameFormat("stomp-agent-bus-%d").build());
-  private final ExecutorService threadPoolExecutorAPI = Executors.newSingleThreadExecutor(
-      new ThreadFactoryBuilder().setNameFormat("stomp-api-bus-%d").build());
+  private final List<BufferedUpdateEventPublisher> publishers = new ArrayList<>();
 
-  public STOMPUpdatePublisher() throws NoSuchFieldException, IllegalAccessException {
-    agentEventBus = new AsyncEventBus("agent-update-bus",
-        threadPoolExecutorAgent);
 
-    apiEventBus = new AsyncEventBus("api-update-bus",
-        threadPoolExecutorAPI);
+  public STOMPUpdatePublisher() {
+    agentEventBus = new AsyncEventBus("agent-update-bus", ThreadPools.getSingleThreadedExecutor("stomp-agent-bus"));
+    apiEventBus = new AsyncEventBus("api-update-bus", ThreadPools.getSingleThreadedExecutor("stomp-api-bus"));
   }
-
-  private List<BufferedUpdateEventPublisher> publishers = new ArrayList<>();
 
   public void registerPublisher(BufferedUpdateEventPublisher publisher) {
     if (publishers.contains(publisher)) {
@@ -74,6 +66,7 @@ public class STOMPUpdatePublisher {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private void publishAPI(STOMPEvent event) {
     boolean published = false;
     for (BufferedUpdateEventPublisher publisher : publishers) {

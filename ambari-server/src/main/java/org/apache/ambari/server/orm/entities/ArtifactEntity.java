@@ -28,8 +28,12 @@ import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.QueryHint;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
+import org.eclipse.persistence.config.HintValues;
+import org.eclipse.persistence.config.QueryHints;
 
 import com.google.gson.Gson;
 /**
@@ -38,15 +42,22 @@ import com.google.gson.Gson;
 @IdClass(ArtifactEntityPK.class)
 @Table(name = "artifact")
 @NamedQueries({
-    @NamedQuery(name = "artifactByNameAndForeignKeys",
-        query = "SELECT artifact FROM ArtifactEntity artifact " +
-            "WHERE artifact.artifactName=:artifactName AND artifact.foreignKeys=:foreignKeys"),
-    @NamedQuery(name = "artifactByName",
-        query = "SELECT artifact FROM ArtifactEntity artifact " +
-            "WHERE artifact.artifactName=:artifactName"),
-    @NamedQuery(name = "artifactByForeignKeys",
-        query = "SELECT artifact FROM ArtifactEntity artifact " +
-            "WHERE artifact.foreignKeys=:foreignKeys")
+    @NamedQuery(
+      name = "artifactByNameAndForeignKeys",
+      query = "SELECT artifact FROM ArtifactEntity artifact WHERE artifact.artifactName=:artifactName AND artifact.foreignKeys=:foreignKeys",
+      hints = {
+        @QueryHint(name = QueryHints.QUERY_RESULTS_CACHE, value = HintValues.TRUE),
+        @QueryHint(name = QueryHints.QUERY_RESULTS_CACHE_SIZE, value = "100")
+      }
+    ),
+    @NamedQuery(
+      name = "artifactByName",
+      query = "SELECT artifact FROM ArtifactEntity artifact WHERE artifact.artifactName=:artifactName"
+    ),
+    @NamedQuery(
+      name = "artifactByForeignKeys",
+      query = "SELECT artifact FROM ArtifactEntity artifact WHERE artifact.foreignKeys=:foreignKeys"
+    )
 })
 
 @Entity

@@ -228,7 +228,7 @@ public class HostKerberosIdentityResourceProviderTest extends EasyMockSupport {
         EasyMock.eq(false))).andReturn(kerberosDescriptor).atLeastOnce();
 
     expect(kerberosHelper.getActiveIdentities("Cluster100", "Host100", null, null, true, null,
-        kerberosDescriptor))
+        kerberosDescriptor, null))
         .andReturn(activeIdentities)
         .once();
 

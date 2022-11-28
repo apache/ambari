@@ -60,6 +60,7 @@ import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.Encryptor;
@@ -234,6 +235,7 @@ public class AbstractPrepareKerberosServerActionTest extends EasyMockSupport {
         bind(EntityManager.class).toProvider(entityManagerProvider);
         bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
         bind(AmbariLdapConfigurationProvider.class).toInstance(createMock(AmbariLdapConfigurationProvider.class));
+        bind(KerberosKeytabPrincipalDAO.class).toInstance(createNiceMock(KerberosKeytabPrincipalDAO.class));
         bind(new TypeLiteral<Encryptor<AgentConfigsUpdateEvent>>() {}).annotatedWith(Names.named("AgentConfigEncryptor")).toInstance(Encryptor.NONE);
         bind(new TypeLiteral<Encryptor<AmbariServerConfiguration>>() {}).annotatedWith(Names.named("AmbariServerConfigurationEncryptor")).toInstance(Encryptor.NONE);
       }

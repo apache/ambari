@@ -35,8 +35,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
+
+import javax.annotation.Nullable;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.CancelCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -50,8 +54,10 @@ import org.apache.ambari.server.serveraction.kerberos.stageutils.KerberosKeytabC
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.utils.ThreadPools;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -83,40 +89,72 @@ public class AgentCommandsPublisher {
   @Inject
   private AgentConfigsHolder agentConfigsHolder;
 
-  public void sendAgentCommand(Multimap<Long, AgentCommand> agentCommands) throws AmbariException {
+  @Inject
+  private ThreadPools threadPools;
+
+
+  public void sendAgentCommand(Multimap<Long, AgentCommand> agentCommands) throws AmbariRuntimeException {
     if (agentCommands != null && !agentCommands.isEmpty()) {
       Map<Long, TreeMap<String, ExecutionCommandsCluster>> executionCommandsClusters = new TreeMap<>();
-      for (Map.Entry<Long, AgentCommand> acHostEntry : agentCommands.entries()) {
-        Long hostId = acHostEntry.getKey();
-        AgentCommand ac = acHostEntry.getValue();
-        populateExecutionCommandsClusters(executionCommandsClusters, hostId, ac);
-      }
-      for (Map.Entry<Long, TreeMap<String, ExecutionCommandsCluster>> hostEntry : executionCommandsClusters.entrySet()) {
-        Long hostId = hostEntry.getKey();
-        ExecutionCommandEvent executionCommandEvent = new ExecutionCommandEvent(hostId,
-            agentConfigsHolder
-                .initializeDataIfNeeded(hostId, true).getTimestamp(),
-            hostEntry.getValue());
-        STOMPUpdatePublisher.publish(executionCommandEvent);
-      }
+      Map<Long, Map<String, DesiredConfig>> clusterDesiredConfigs = new HashMap<>();
+
+      try {
+        threadPools.getAgentPublisherCommandsPool().submit(() -> {
+          agentCommands.entries().stream().parallel().forEach(acHostEntry -> {
+            Long hostId = acHostEntry.getKey();
+            AgentCommand ac = acHostEntry.getValue();
+            Long clusterId = null;
+
+            if (ac instanceof ExecutionCommand) {
+              try {
+                clusterId = Long.valueOf(((ExecutionCommand)ac).getClusterId());
+                if (!clusterDesiredConfigs.containsKey(clusterId)) {
+                  clusterDesiredConfigs.put(clusterId, clusters.getCluster(clusterId).getDesiredConfigs());
+                }
+              } catch (NumberFormatException|AmbariException ignored) {}
+            }
+
+            Map<String, DesiredConfig> desiredConfigs = (clusterId != null && clusterDesiredConfigs.containsKey(clusterId))
+              ? clusterDesiredConfigs.get(clusterId)
+              : null;
+            populateExecutionCommandsClusters(executionCommandsClusters, hostId, ac, desiredConfigs);
+          });
+        }).get();
+      } catch (InterruptedException|ExecutionException ignored) {}
+
+      try {
+        threadPools.getAgentPublisherCommandsPool().submit(() -> {
+          executionCommandsClusters.entrySet().stream().parallel().forEach(entry -> {
+            STOMPUpdatePublisher.publish(new ExecutionCommandEvent(
+              entry.getKey(),
+              agentConfigsHolder.initializeDataIfNeeded(entry.getKey(), true).getTimestamp(),
+              entry.getValue()
+            ));
+          });
+        }).get();
+      } catch (InterruptedException|ExecutionException ignored) {}
     }
   }
 
-  public void sendAgentCommand(Long hostId, AgentCommand agentCommand) throws AmbariException {
+  public void sendAgentCommand(Long hostId, AgentCommand agentCommand) throws AmbariRuntimeException {
     Multimap<Long, AgentCommand> agentCommands = ArrayListMultimap.create();
     agentCommands.put(hostId, agentCommand);
     sendAgentCommand(agentCommands);
   }
 
-  private void populateExecutionCommandsClusters(Map<Long, TreeMap<String, ExecutionCommandsCluster>> executionCommandsClusters,
-                                            Long hostId, AgentCommand ac) throws AmbariException {
-    try {
-      if (LOG.isDebugEnabled()) {
+  private void populateExecutionCommandsClusters(
+    Map<Long, TreeMap<String, ExecutionCommandsCluster>> executionCommandsClusters,
+    Long hostId, AgentCommand ac,
+    @Nullable Map<String, DesiredConfig> desiredConfigs) throws AmbariRuntimeException {
+
+    if (LOG.isDebugEnabled()) {
+      try {
         LOG.debug("Sending command string = " + StageUtils.jaxbToString(ac));
+      } catch (Exception e) {
+        throw new AmbariRuntimeException("Could not get jaxb string for command", e);
       }
-    } catch (Exception e) {
-      throw new AmbariException("Could not get jaxb string for command", e);
     }
+
     switch (ac.getCommandType()) {
       case BACKGROUND_EXECUTION_COMMAND:
       case EXECUTION_COMMAND: {
@@ -129,16 +167,20 @@ public class AgentCommandsPublisher {
           if (SET_KEYTAB.equalsIgnoreCase(customCommand) || REMOVE_KEYTAB.equalsIgnoreCase(customCommand) || CHECK_KEYTABS.equalsIgnoreCase(customCommand)) {
             LOG.info(String.format("%s called", customCommand));
             try {
-              injectKeytab(ec, customCommand, clusters.getHostById(hostId).getHostName());
+              injectKeytab(ec, customCommand, clusters.getHostById(hostId).getHostName(), desiredConfigs);
             } catch (IOException e) {
-              throw new AmbariException("Could not inject keytab into command", e);
+              throw new AmbariRuntimeException("Could not inject keytab into command", e);
             }
           }
         }
         String clusterName = ec.getClusterName();
         String clusterId = "-1";
         if (clusterName != null) {
-          clusterId = Long.toString(clusters.getCluster(clusterName).getClusterId());
+          try {
+            clusterId = Long.toString(clusters.getCluster(clusterName).getClusterId());
+          } catch (AmbariException e) {
+            throw new AmbariRuntimeException(e);
+          }
         }
         ec.setClusterId(clusterId);
         prepareExecutionCommandsClusters(executionCommandsClusters, hostId, clusterId);
@@ -176,12 +218,14 @@ public class AgentCommandsPublisher {
    * @param ec the ExecutionCommand to update
    * @param command a name of the relevant keytab command
    * @param targetHost a name of the host the relevant command is destined for
+   * @param desiredConfigs desired config map
    * @throws AmbariException
    */
-  private void injectKeytab(ExecutionCommand ec, String command, String targetHost) throws AmbariException {
+  private void injectKeytab(ExecutionCommand ec, String command, String targetHost,
+                            @Nullable Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
     KerberosCommandParameterProcessor processor = KerberosCommandParameterProcessor.getInstance(command, clusters, ec, kerberosKeytabController);
     if (processor != null) {
-      ec.setKerberosCommandParams(processor.process(targetHost));
+      ec.setKerberosCommandParams(processor.process(targetHost, desiredConfigs));
     }
   }
 
@@ -238,28 +282,31 @@ public class AgentCommandsPublisher {
      * Kerberos-specific command details to send to the agent.
      *
      * @param targetHost the hostname of the target host
+     * @param desiredConfigs desired config map
      * @return a map of propoperties to set as the Kerberos command parameters
      * @throws AmbariException
      */
-    public List<Map<String, String>> process(String targetHost) throws AmbariException {
+    public List<Map<String, String>> process(String targetHost,
+                                             @Nullable Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
       KerberosServerAction.KerberosCommandParameters kerberosCommandParameters = new KerberosServerAction.KerberosCommandParameters(executionCommand);
+      Map<String, ? extends Collection<String>> serviceComponentFilter = getServiceComponentFilter(kerberosCommandParameters.getServiceComponentFilter());
+      final Collection<KerberosIdentityDescriptor> serviceIdentities = serviceComponentFilter == null
+        ? null
+        : kerberosKeytabController.getServiceIdentities(executionCommand.getClusterName(), serviceComponentFilter.keySet(), desiredConfigs);
+      final Set<ResolvedKerberosKeytab> keytabsToInject = kerberosKeytabController.getFilteredKeytabs(serviceIdentities, kerberosCommandParameters.getHostFilter(), kerberosCommandParameters.getIdentityFilter());
 
-      try {
-        Map<String, ? extends Collection<String>> serviceComponentFilter = getServiceComponentFilter(kerberosCommandParameters.getServiceComponentFilter());
-        final Collection<KerberosIdentityDescriptor> serviceIdentities = serviceComponentFilter == null ? null : kerberosKeytabController.getServiceIdentities(executionCommand.getClusterName(), serviceComponentFilter.keySet());
-        final Set<ResolvedKerberosKeytab> keytabsToInject = kerberosKeytabController.getFilteredKeytabs(serviceIdentities, kerberosCommandParameters.getHostFilter(), kerberosCommandParameters.getIdentityFilter());
-        for (ResolvedKerberosKeytab resolvedKeytab : keytabsToInject) {
-          for (ResolvedKerberosPrincipal resolvedPrincipal : resolvedKeytab.getPrincipals()) {
-            String hostName = resolvedPrincipal.getHostName();
-
-            if (targetHost.equalsIgnoreCase(hostName)) {
+      keytabsToInject.forEach(resolvedKeytab -> resolvedKeytab.getPrincipals().forEach(
+        resolvedPrincipal -> {
+          String hostName = resolvedPrincipal.getHostName();
+          if (targetHost.equalsIgnoreCase(hostName)) {
+            try {
               process(targetHost, resolvedKeytab, resolvedPrincipal, serviceComponentFilter);
+            } catch (IOException e) {
+              throw new AmbariRuntimeException("Could not inject keytabs to enable kerberos", e);
             }
           }
         }
-      } catch (IOException e) {
-        throw new AmbariException("Could not inject keytabs to enable kerberos");
-      }
+      ));
 
       return kcp;
     }
@@ -277,7 +324,9 @@ public class AgentCommandsPublisher {
      *                               should be processed
      * @throws IOException
      */
-    protected void process(String hostName, ResolvedKerberosKeytab resolvedKeytab, ResolvedKerberosPrincipal resolvedPrincipal, Map<String, ? extends Collection<String>> serviceComponentFilter) throws IOException {
+    protected void process(String hostName, ResolvedKerberosKeytab resolvedKeytab,
+                           ResolvedKerberosPrincipal resolvedPrincipal,
+                           Map<String, ? extends Collection<String>> serviceComponentFilter) throws IOException {
       Map<String, String> keytabMap = new HashMap<>();
       keytabMap.put(KerberosIdentityDataFileReader.HOSTNAME, hostName);
       keytabMap.put(KerberosIdentityDataFileReader.PRINCIPAL, resolvedPrincipal.getPrincipal());
