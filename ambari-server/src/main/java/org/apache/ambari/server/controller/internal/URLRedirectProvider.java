@@ -21,7 +21,13 @@ package org.apache.ambari.server.controller.internal;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 
+import javax.net.ssl.SSLContext;
+
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.utils.URLCredentialsHider;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -29,8 +35,15 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,14 +55,16 @@ public class URLRedirectProvider {
 
   private final int connTimeout;
   private final int readTimeout;
+  private final boolean skipSslCertificateCheck;
 
-  public URLRedirectProvider(int connectionTimeout, int readTimeout) {
+  public URLRedirectProvider(int connectionTimeout, int readTimeout, boolean skipSslCertificateCheck) {
     this.connTimeout = connectionTimeout;
     this.readTimeout = readTimeout;
+    this.skipSslCertificateCheck = skipSslCertificateCheck;
   }
 
   public RequestResult executeGet(String spec) throws IOException {
-    try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+    try (CloseableHttpClient httpClient = buildHttpClient()) {
       HttpGet httpGet = new HttpGet(spec);
 
       RequestConfig requestConfig = RequestConfig.custom()
@@ -72,6 +87,31 @@ public class URLRedirectProvider {
         return result;
       }
     }
+  }
+
+  private CloseableHttpClient buildHttpClient() throws AmbariException {
+    HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+    if (skipSslCertificateCheck) {
+      final SSLContext sslContext;
+      try {
+        sslContext = new SSLContextBuilder()
+          .loadTrustMaterial(null, (x509CertChain, authType) -> true)
+          .build();
+      } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
+        throw new AmbariException("Cannot build null truststore.", e);
+      }
+
+      httpClientBuilder.setSSLContext(sslContext)
+      .setConnectionManager(
+        new PoolingHttpClientConnectionManager(
+          RegistryBuilder.<ConnectionSocketFactory>create()
+            .register("http", PlainConnectionSocketFactory.INSTANCE)
+            .register("https", new SSLConnectionSocketFactory(sslContext,
+                                                              NoopHostnameVerifier.INSTANCE))
+            .build()
+        ));
+    }
+    return httpClientBuilder.build();
   }
 
   public static class RequestResult {
