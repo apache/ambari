@@ -355,7 +355,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
             String previousCachedFilePath = principalEntity.getCachedKeytabPath();
             String cachedKeytabFilePath = (cachedKeytabFile.exists()) ? cachedKeytabFile.getAbsolutePath() : null;
 
-            if (previousCachedFilePath != null && !previousCachedFilePath.equals(cachedKeytabFilePath)) {
+            if (previousCachedFilePath == null || !previousCachedFilePath.equals(cachedKeytabFilePath)) {
               principalEntity.setCachedKeytabPath(cachedKeytabFilePath);
               kerberosPrincipalDAO.merge(principalEntity);
             }
