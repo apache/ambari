@@ -204,7 +204,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,amazonlinux2,redhat6,suse11,suse12</osFamily>
+          <osFamily>redhat7</osFamily>
           <packages>
             <package>
               <name>spark_${stack_version}-core</name>
@@ -220,26 +220,6 @@
             </package>
             <package>
               <name>spark_${stack_version}-datanucleus</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,debian9,ubuntu12,ubuntu14,ubuntu16,ubuntu18</osFamily>
-          <packages>
-            <package>
-              <name>spark-${stack_version}-core</name>
-            </package>
-            <package>
-              <name>spark-${stack_version}-python</name>
-            </package>
-            <package>
-              <name>spark-${stack_version}-history-server</name>
-            </package>
-            <package>
-              <name>spark-${stack_version}-thriftserver</name>
-            </package>
-            <package>
-              <name>spark-${stack_version}-datanucleus</name>
             </package>
           </packages>
         </osSpecific>

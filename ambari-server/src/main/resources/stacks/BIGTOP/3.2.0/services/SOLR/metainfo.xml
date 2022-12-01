@@ -64,22 +64,14 @@
 
       <osSpecifics>
         <osSpecific>
-            <osFamily>redhat7,amazonlinux2,redhat6,suse11,suse12</osFamily>
-            <packages>
-                <package>
-                    <name>solr_${stack_version}</name>
-                </package>
-            </packages>
+          <osFamily>redhat7</osFamily>
+          <packages>
+            <package>
+              <name>solr_${stack_version}</name>
+            </package>
+          </packages>
         </osSpecific>
-        <osSpecific>
-            <osFamily>debian7,debian9,ubuntu12,ubuntu14,ubuntu16,ubuntu18</osFamily>
-            <packages>
-                <package>
-                    <name>solr-${stack_version}</name>
-                </package>
-            </packages>
-        </osSpecific>
-    </osSpecifics>
+      </osSpecifics>
 
       <commandScript>
         <script>scripts/service_check.py</script>

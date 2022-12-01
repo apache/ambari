@@ -281,7 +281,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,amazonlinux2,redhat6,suse11,suse12</osFamily>
+          <osFamily>redhat7</osFamily>
           <packages>
             <package>
               <name>hive_${stack_version}</name>
@@ -295,55 +295,12 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>amazonlinux2,redhat6,suse11,suse12</osFamily>
-          <packages>
-            <package>
-              <name>mysql</name>
-              <skipUpgrade>true</skipUpgrade>
-              <condition>should_install_mysql</condition>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>redhat7,amazonlinux2</osFamily>
+          <osFamily>redhat7</osFamily>
           <packages>
             <package>
               <name>mariadb-server</name>
               <skipUpgrade>true</skipUpgrade>
               <condition>should_install_mysql</condition>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,debian9,ubuntu12,ubuntu14,ubuntu16,ubuntu18</osFamily>
-          <packages>
-            <package>
-              <name>hive-${stack_version}</name>
-            </package>
-            <package>
-              <name>hive-${stack_version}-hcatalog</name>
-            </package>
-            <package>
-              <name>hive-${stack_version}-webhcat</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>amazonlinux2,redhat6,debian7,debian9,ubuntu12,ubuntu14,ubuntu16,ubuntu18</osFamily>
-          <packages>
-            <package>
-              <name>mysql-server</name>
-              <skipUpgrade>true</skipUpgrade>
-              <condition>should_install_mysql</condition>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>suse11,suse12</osFamily>
-          <packages>
-            <package>
-              <name>mysql-client</name>
-              <skipUpgrade>true</skipUpgrade>
             </package>
           </packages>
         </osSpecific>

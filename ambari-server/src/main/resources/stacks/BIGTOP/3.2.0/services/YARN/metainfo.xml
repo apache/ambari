@@ -141,7 +141,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>amazonlinux2,redhat6,redhat7,suse11,suse12</osFamily>
+          <osFamily>redhat7</osFamily>
           <packages>
             <package>
               <name>hadoop_${stack_version}-yarn</name>
@@ -151,17 +151,6 @@
             </package>
             <package>
               <name>hadoop_${stack_version}-hdfs</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,debian9,ubuntu12,ubuntu14,ubuntu16,ubuntu18</osFamily>
-          <packages>
-            <package>
-              <name>hadoop-${stack_version}-yarn</name>
-            </package>
-            <package>
-              <name>hadoop-${stack_version}-mapreduce</name>
             </package>
           </packages>
         </osSpecific>
@@ -295,18 +284,10 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>amazonlinux2,redhat6,redhat7,suse11,suse12</osFamily>
+          <osFamily>redhat7</osFamily>
           <packages>
             <package>
               <name>hadoop_${stack_version}-mapreduce</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>ubuntu12</osFamily>
-          <packages>
-            <package>
-              <name>hadoop-${stack_version}-mapreduce</name>
             </package>
           </packages>
         </osSpecific>
