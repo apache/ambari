@@ -86,11 +86,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
-           <bulkCommands>
-             <displayName>NodeManagers</displayName>
-             <!-- Used by decommission and recommission -->
-             <masterComponent>RESOURCEMANAGER</masterComponent>
-           </bulkCommands>
+          <bulkCommands>
+            <displayName>NodeManagers</displayName>
+            <!-- Used by decommission and recommission -->
+            <masterComponent>RESOURCEMANAGER</masterComponent>
+          </bulkCommands>
           <logs>
             <log>
               <logId>yarn_nodemanager</logId>
@@ -134,23 +134,34 @@
               <type>xml</type>
               <fileName>capacity-scheduler.xml</fileName>
               <dictionaryName>capacity-scheduler</dictionaryName>
-            </configFile>                        
+            </configFile>
           </configFiles>
         </component>
       </components>
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>any</osFamily>
+          <osFamily>amazonlinux2,redhat6,redhat7,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>hadoop-yarn</name>
+              <name>hadoop_${stack_version}-yarn</name>
             </package>
             <package>
-              <name>hadoop-hdfs</name>
+              <name>hadoop_${stack_version}-mapreduce</name>
             </package>
             <package>
-              <name>hadoop-mapreduce</name>
+              <name>hadoop_${stack_version}-hdfs</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,debian9,ubuntu12,ubuntu14,ubuntu16,ubuntu18</osFamily>
+          <packages>
+            <package>
+              <name>hadoop-${stack_version}-yarn</name>
+            </package>
+            <package>
+              <name>hadoop-${stack_version}-mapreduce</name>
             </package>
           </packages>
         </osSpecific>
@@ -161,7 +172,7 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
-      
+
       <requiredServices>
         <service>HDFS</service>
         <service>MAPREDUCE2</service>
@@ -284,10 +295,18 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>any</osFamily>
+          <osFamily>amazonlinux2,redhat6,redhat7,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>hadoop-mapreduce</name>
+              <name>hadoop_${stack_version}-mapreduce</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu12</osFamily>
+          <packages>
+            <package>
+              <name>hadoop-${stack_version}-mapreduce</name>
             </package>
           </packages>
         </osSpecific>
@@ -298,7 +317,7 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
-      
+
       <requiredServices>
         <service>YARN</service>
       </requiredServices>

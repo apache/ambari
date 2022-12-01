@@ -136,7 +136,7 @@ class HiveMetastore(Script):
     # ensure that the JDBC drive is present for the schema tool; if it's not
     # present, then download it first
     if params.hive_jdbc_driver in params.hive_jdbc_drivers_list:
-      target_directory = format("{stack_root}/{version}/hive/lib")
+      target_directory = format("{stack_root}/{version}/usr/lib/hive/lib")
 
       # download it if it does not exist
       if not os.path.exists(params.source_jdbc_file):

@@ -91,7 +91,7 @@ def _get_hive_execute_path(stack_version_formatted):
   formatted_stack_version = format_stack_version(stack_version_formatted)
   if formatted_stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, formatted_stack_version):
     # hive_bin
-    new_hive_bin = format('{stack_root}/{stack_version_formatted}/hive/bin')
+    new_hive_bin = format('{stack_root}/{stack_version_formatted}/usr/lib/hive/bin')
     if (os.pathsep + params.hive_bin_dir) in hive_execute_path:
       hive_execute_path = hive_execute_path.replace(os.pathsep + params.hive_bin_dir, os.pathsep + new_hive_bin)
     # hadoop_bin_dir
@@ -121,7 +121,7 @@ def _get_current_hiveserver_version():
     version_hive_bin = params.hive_bin_dir
     formatted_source_version = format_stack_version(source_version)
     if formatted_source_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, formatted_source_version):
-      version_hive_bin = format('{stack_root}/{source_version}/hive/bin')
+      version_hive_bin = format('{stack_root}/{source_version}/usr/lib/hive/bin')
     command = format('{version_hive_bin}/hive --version')
     return_code, output = shell.call(command, user=params.hive_user, path=hive_execute_path)
   except Exception, e:

@@ -42,7 +42,7 @@ class HivePostUpgrade(Script):
     
     target_version = upgrade_summary.get_target_version(service_name = "HIVE")
     
-    hive_script = format("/usr/bigtop/{target_version}/hive/bin/hive")
+    hive_script = format("/usr/bigtop/{target_version}/usr/lib/hive/bin/hive")
     cmd = format("{hive_script} --config /etc/hive/conf --service  strictmanagedmigration --hiveconf hive.strict.managed.tables=true  -m automatic  --modifyManagedTables --oldWarehouseRoot /apps/hive/warehouse")
     Execute(cmd,
             environment = { 'JAVA_HOME': params.java64_home },

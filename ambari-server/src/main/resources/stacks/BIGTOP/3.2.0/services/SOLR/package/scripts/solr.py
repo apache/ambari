@@ -31,6 +31,9 @@ from resource_management.libraries.functions.get_user_call_output import get_use
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.generate_logfeeder_input_config import generate_logfeeder_input_config
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 
 from setup_solr import setup_solr, setup_solr_znode_env
 
@@ -146,6 +149,15 @@ class Solr(Script):
   def get_pid_files(self):
     import status_params
     return [status_params.solr_pidfile]
+
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing Solr Stack Upgrade pre-restart")
+    import params
+
+    env.set_params(params)
+
+    if params.stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version):
+      stack_select.select_packages(params.stack_version)
 
 if __name__ == "__main__":
   Solr().execute()

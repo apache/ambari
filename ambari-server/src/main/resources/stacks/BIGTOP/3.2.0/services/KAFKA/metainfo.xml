@@ -90,14 +90,22 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>any</osFamily>
-          <packages>
-            <package>
-              <name>kafka</name>
-            </package>
-          </packages>
+            <osFamily>redhat7,amazonlinux2,redhat6,suse11,suse12</osFamily>
+            <packages>
+                <package>
+                    <name>kafka_${stack_version}</name>
+                </package>
+            </packages>
         </osSpecific>
-      </osSpecifics>
+        <osSpecific>
+            <osFamily>debian7,debian9,ubuntu12,ubuntu14,ubuntu16,ubuntu18</osFamily>
+            <packages>
+                <package>
+                    <name>kafka-${stack_version}</name>
+                </package>
+            </packages>
+        </osSpecific>
+    </osSpecifics>
 
       <restartRequiredAfterChange>true</restartRequiredAfterChange>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
