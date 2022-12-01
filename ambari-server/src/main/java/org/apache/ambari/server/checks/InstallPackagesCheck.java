@@ -78,6 +78,11 @@ public class InstallPackagesCheck extends ClusterCheck {
 
     final StackId targetStackId = new StackId(repositoryVersion.getStackId());
 
+    /**
+     * Because the version for BigTop is BIGTOP-3.2.0,
+     * But the version for HDP is HDP-x.x.x.x-x,
+     * So to be compatible with both HDP and BIGTOP, comment out this.
+     */
     // if (!repositoryVersion.getVersion().matches("^\\d+(\\.\\d+)*\\-\\d+$")) {
     //   String message = MessageFormat.format(
     //       "The Repository Version {0} for Stack {1} must contain a \"-\" followed by a build number. "
