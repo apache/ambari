@@ -64,10 +64,10 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>any</osFamily>
+          <osFamily>redhat7</osFamily>
           <packages>
             <package>
-              <name>solr</name>
+              <name>solr_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

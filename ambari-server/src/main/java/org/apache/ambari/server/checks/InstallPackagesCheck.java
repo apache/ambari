@@ -78,19 +78,6 @@ public class InstallPackagesCheck extends ClusterCheck {
 
     final StackId targetStackId = new StackId(repositoryVersion.getStackId());
 
-    if (!repositoryVersion.getVersion().matches("^\\d+(\\.\\d+)*\\-\\d+$")) {
-      String message = MessageFormat.format(
-          "The Repository Version {0} for Stack {1} must contain a \"-\" followed by a build number. "
-              + "Make sure that another registered repository does not have the same repo URL or "
-              + "shares the same build number. Next, try reinstalling the Repository Version.",
-          repositoryVersion.getVersion(), targetStackId.getStackVersion());
-
-      result.getFailedOn().add("Repository Version " + repositoryVersion.getVersion());
-      result.setStatus(UpgradeCheckStatus.FAIL);
-      result.setFailReason(message);
-      return result;
-    }
-
     final Set<HostDetail> failedHosts = new TreeSet<>();
 
     for (Host host : cluster.getHosts()) {

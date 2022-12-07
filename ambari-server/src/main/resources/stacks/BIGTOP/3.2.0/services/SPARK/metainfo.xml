@@ -204,26 +204,27 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>any</osFamily>
+          <osFamily>redhat7</osFamily>
           <packages>
             <package>
-              <name>spark-core</name>
+              <name>spark_${stack_version}-core</name>
             </package>
             <package>
-              <name>spark-python</name>
+              <name>spark_${stack_version}-python</name>
             </package>
             <package>
-              <name>spark-history-server</name>
+              <name>spark_${stack_version}-history-server</name>
             </package>
             <package>
-              <name>spark-thriftserver</name>
+              <name>spark_${stack_version}-thriftserver</name>
             </package>
             <package>
-              <name>spark-datanucleus</name>
+              <name>spark_${stack_version}-datanucleus</name>
             </package>
           </packages>
         </osSpecific>
       </osSpecifics>
+
       <quickLinksConfigurations>
         <quickLinksConfiguration>
           <fileName>quicklinks.json</fileName>

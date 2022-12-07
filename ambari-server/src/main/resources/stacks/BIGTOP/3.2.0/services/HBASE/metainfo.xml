@@ -128,7 +128,7 @@
               <type>env</type>
               <fileName>log4j.properties</fileName>
               <dictionaryName>hbase-log4j</dictionaryName>
-            </configFile>            
+            </configFile>
           </configFiles>
         </component>
 
@@ -139,7 +139,7 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
-      
+
       <requiredServices>
         <service>ZOOKEEPER</service>
         <service>HDFS</service>
@@ -167,10 +167,10 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>any</osFamily>
+          <osFamily>redhat7</osFamily>
           <packages>
             <package>
-              <name>hbase</name>
+              <name>hbase_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

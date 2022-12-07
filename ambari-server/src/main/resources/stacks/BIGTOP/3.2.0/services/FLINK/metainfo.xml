@@ -102,12 +102,13 @@
           </dependencies>
         </component>
       </components>
+
       <osSpecifics>
         <osSpecific>
-          <osFamily>any</osFamily>
+          <osFamily>redhat7</osFamily>
           <packages>
             <package>
-              <name>flink</name>
+              <name>flink_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

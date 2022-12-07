@@ -274,19 +274,13 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>any</osFamily>
+          <osFamily>redhat7</osFamily>
           <packages>
             <package>
-              <name>hadoop</name>
+              <name>hadoop_${stack_version}</name>
             </package>
-          </packages>
-        </osSpecific>
-
-        <osSpecific>
-          <osFamily>amazonlinux2,redhat6,redhat7,suse11</osFamily>
-          <packages>
             <package>
-              <name>hadoop-client</name>
+              <name>hadoop_${stack_version}-client</name>
             </package>
             <package>
               <name>snappy</name>
@@ -295,56 +289,13 @@
               <name>snappy-devel</name>
             </package>
             <package>
-              <name>hadoop-libhdfs</name>
+              <name>hadoop_${stack_version}-libhdfs</name>
             </package>
             <package>
               <name>libtirpc-devel</name>
             </package>
           </packages>
         </osSpecific>
-
-        <osSpecific>
-          <osFamily>suse12</osFamily>
-          <packages>
-            <package>
-              <name>hadoop-client</name>
-            </package>
-            <package>
-              <name>snappy</name>
-            </package>
-            <package>
-              <name>snappy-devel</name>
-            </package>
-            <package>
-              <name>hadoop-libhdfs</name>
-            </package>
-          </packages>
-        </osSpecific>
-
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
-          <packages>
-            <package>
-              <name>hadoop-client</name>
-            </package>
-            <package>
-              <name>libsnappy1</name>
-            </package>
-            <package>
-              <name>libsnappy-dev</name>
-            </package>
-            <package>
-              <name>hadoop-hdfs</name>
-            </package>
-            <package>
-              <name>libhdfs0</name>
-            </package>
-            <package>
-              <name>libhdfs0-dev</name>
-            </package>
-          </packages>
-        </osSpecific>
-
       </osSpecifics>
 
 

@@ -65,10 +65,10 @@ limitations under the License.
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>any</osFamily>
+          <osFamily>redhat7</osFamily>
           <packages>
             <package>
-              <name>zeppelin</name>
+              <name>zeppelin_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

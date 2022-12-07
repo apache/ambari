@@ -17,7 +17,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from inspect import stack
 import os
 
 from resource_management.libraries.resources import HdfsResource
