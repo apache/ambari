@@ -42,8 +42,8 @@
     <guice.version>4.1.0</guice.version>
     <spring.version>5.3.22</spring.version>
     <spring.security.version>5.7.2</spring.security.version>
-    <fasterxml.jackson.version>2.10.0</fasterxml.jackson.version>
-    <fasterxml.jackson.databind.version>2.10.0</fasterxml.jackson.databind.version>
+    <fasterxml.jackson.version>2.12.7</fasterxml.jackson.version>
+    <fasterxml.jackson.databind.version>2.12.7.1</fasterxml.jackson.databind.version>
     <postgres.version>42.2.2</postgres.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
