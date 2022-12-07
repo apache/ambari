@@ -319,15 +319,19 @@ public class KerberosKeytabController {
     Set<String> hosts = new HashSet<>(hostMap.keySet());
     Map<String, String> componentHosts = new HashMap<>();
 
-    hosts.add(StageUtils.getHostName());
-
-    for(String hostName: hosts) {
+    for (String hostName: hosts) {
       hostConfigurations.put(
         hostName,
         kerberosHelper.calculateConfigurations(cluster, hostName, kerberosDescriptor, userDescriptor,
           false,false, componentHosts, desiredConfigs)
       );
     }
+
+    // ambari-agent may not be installed on ambari-server. Add ambari-server after calculating configurations.
+    // If not, HostNotFoundException will raise
+    String ambariServerHostname = StageUtils.getHostName();
+    hosts.add(ambariServerHostname);
+
     for (String service: services) {
       kerberosHelper.getActiveIdentities(clusterName,null, service, null,true,
         hostConfigurations,kerberosDescriptor, desiredConfigs).values().forEach(serviceIdentities::addAll);
