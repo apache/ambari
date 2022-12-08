@@ -47,7 +47,7 @@
     <stackHooksLocation>src/main/resources/stack-hooks</stackHooksLocation>
     <stacksSrcLocation>src/main/resources/stacks/${stack.distribution}</stacksSrcLocation>
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
-    <skipPythonTests>false</skipPythonTests>
+
     <hadoop.version>2.7.2</hadoop.version>
     <empty.dir>src/main/package</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
     <el.log>ALL</el.log> <!-- log level for EclipseLink eclipselink-staticweave-maven-plugin -->
@@ -878,17 +878,6 @@
           </plugin>
         </plugins>
       </build>
-    </profile>
-    <profile>
-      <id>skipTestRun</id>
-      <activation>
-        <property>
-          <name>skipTests</name>
-        </property>
-      </activation>
-      <properties>
-        <skipPythonTests>true</skipPythonTests>
-      </properties>
     </profile>
     <profile>
       <id>copy-swagger-generated-resources</id>

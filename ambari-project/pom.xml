@@ -48,6 +48,7 @@
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
     <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>
+    <skipPythonTests>false</skipPythonTests>
   </properties>
   <profiles>
     <profile>
@@ -85,6 +86,17 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>skipTestRun</id>
+      <activation>
+        <property>
+          <name>skipTests</name>
+        </property>
+      </activation>
+      <properties>
+        <skipPythonTests>true</skipPythonTests>
+      </properties>
     </profile>
   </profiles>
   <dependencyManagement>
