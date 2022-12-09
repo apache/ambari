@@ -330,13 +330,26 @@ def create_ams_datasource():
         Logger.info("Ambari Metrics Grafana datasource already present. Checking Metrics Collector URL")
         datasource_url = datasources_json[i]["url"]
 
+        update_datasource = False
         if is_unchanged_datasource_url(datasource_url, new_datasource_host):
           Logger.info("Metrics Collector URL validation succeeded.")
-          return
-        else: # Metrics datasource present, but collector host is wrong.
+        else:
+          Logger.info("Metrics Collector URL validation failed.")
+          update_datasource = True
+
+        datasource_type = datasources_json[i]["type"]
+        new_datasource_def = json.loads(ams_datasource_json)
+        new_datasource_type = new_datasource_def["type"]
+
+        if datasource_type == new_datasource_type:
+          Logger.info("Grafana datasource type validation succeeded.")
+        else:
+          Logger.info("Grafana datasource type validation failed. Old type = %s, New type = %s" % (datasource_type, new_datasource_type))
+          update_datasource = True
+
+        if update_datasource: # Metrics datasource present, but collector host is wrong or the datasource type is outdated.
           datasource_id = datasources_json[i]["id"]
-          Logger.info("Metrics Collector URL validation failed. Updating "
-                      "datasource, id = %s" % datasource_id)
+          Logger.info("Updating datasource, id = %s" % datasource_id)
 
           (response, data) = perform_grafana_put_call(GRAFANA_DATASOURCE_URL, datasource_id,
                                                       ams_datasource_json, server)

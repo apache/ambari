@@ -22,7 +22,7 @@
 <configuration>
   <property>
     <name>timeline.metrics.service.operation.mode</name>
-    <value>embedded</value>
+    <value>distributed</value>
     <display-name>Metrics Service operation mode</display-name>
     <description>
       Service Operation modes:
