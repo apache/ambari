@@ -107,6 +107,7 @@
       <item name="Quick Start Guide" href="https://cwiki.apache.org/confluence/display/AMBARI/Quick+Start+Guide"/>
       <item name="Features + Roadmap" href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=30755705"/>
       <item name="API Reference" href="https://github.com/apache/ambari/blob/trunk/ambari-server/docs/api/v1/index.md"/>
+      <item name="Install Guide for 2.7.7" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.7.7"/>
       <item name="Install Guide for 2.7.6" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.7.6"/>
       <item name="Install Guide for 2.7.5" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.7.5"/>
       <item name="Install Guide for 2.7.4" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.7.4"/>
@@ -151,6 +152,7 @@
     </menu>
 
     <menu name="Releases">
+      <item name="2.7.7" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.7"/>
       <item name="2.7.6" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.6"/>
       <item name="2.7.5" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.5"/>
       <item name="2.7.4" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.4"/>
