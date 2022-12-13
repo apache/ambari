@@ -589,40 +589,40 @@ class BIGTOP320StackAdvisor(DefaultStackAdvisor):
 
     #split points
     scriptDir = os.path.dirname(os.path.abspath(__file__))
-    metricsDir = os.path.join(scriptDir, '../../../../common-services/AMBARI_METRICS/0.1.0/package')
+    metricsDir = os.path.join(scriptDir, '../../../../common-services/AMBARI_METRICS/2.0.0/package')
     serviceMetricsDir = os.path.join(metricsDir, 'files', 'service-metrics')
     sys.path.append(os.path.join(metricsDir, 'scripts'))
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
-    # from split_points import FindSplitPointsForAMSRegions
+    from split_points import FindSplitPointsForAMSRegions
 
-    # ams_hbase_site = None
-    # ams_hbase_env = None
+    ams_hbase_site = None
+    ams_hbase_env = None
 
-    # # Overriden properties form the UI
-    # if "ams-hbase-site" in services["configurations"]:
-    #   ams_hbase_site = services["configurations"]["ams-hbase-site"]["properties"]
-    # if "ams-hbase-env" in services["configurations"]:
-    #    ams_hbase_env = services["configurations"]["ams-hbase-env"]["properties"]
+    # Overriden properties form the UI
+    if "ams-hbase-site" in services["configurations"]:
+      ams_hbase_site = services["configurations"]["ams-hbase-site"]["properties"]
+    if "ams-hbase-env" in services["configurations"]:
+       ams_hbase_env = services["configurations"]["ams-hbase-env"]["properties"]
 
-    # # Recommendations
-    # if not ams_hbase_site:
-    #   ams_hbase_site = configurations["ams-hbase-site"]["properties"]
-    # if not ams_hbase_env:
-    #   ams_hbase_env = configurations["ams-hbase-env"]["properties"]
+    # Recommendations
+    if not ams_hbase_site:
+      ams_hbase_site = configurations["ams-hbase-site"]["properties"]
+    if not ams_hbase_env:
+      ams_hbase_env = configurations["ams-hbase-env"]["properties"]
 
-    # split_point_finder = FindSplitPointsForAMSRegions(
-    #   ams_hbase_site, ams_hbase_env, serviceMetricsDir, operatingMode, servicesList)
+    split_point_finder = FindSplitPointsForAMSRegions(
+      ams_hbase_site, ams_hbase_env, serviceMetricsDir, operatingMode, servicesList)
 
-    # result = split_point_finder.get_split_points()
-    # precision_splits = ' '
-    # aggregate_splits = ' '
-    # if result.precision:
-    #   precision_splits = result.precision
-    # if result.aggregate:
-    #   aggregate_splits = result.aggregate
-    # putAmsSiteProperty("timeline.metrics.host.aggregate.splitpoints", ','.join(precision_splits))
-    # putAmsSiteProperty("timeline.metrics.cluster.aggregate.splitpoints", ','.join(aggregate_splits))
+    result = split_point_finder.get_split_points()
+    precision_splits = ' '
+    aggregate_splits = ' '
+    if result.precision:
+      precision_splits = result.precision
+    if result.aggregate:
+      aggregate_splits = result.aggregate
+    putAmsSiteProperty("timeline.metrics.host.aggregate.splitpoints", ','.join(precision_splits))
+    putAmsSiteProperty("timeline.metrics.cluster.aggregate.splitpoints", ','.join(aggregate_splits))
 
     component_grafana_exists = False
     for service in services['services']:
