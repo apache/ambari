@@ -159,7 +159,7 @@ ams_collector_log_dir = config['configurations']['ams-env']['metrics_collector_l
 ams_collector_conf_dir = "/etc/ambari-metrics-collector/conf"
 ams_monitor_log_dir = config['configurations']['ams-env']['metrics_monitor_log_dir']
 
-ams_monitor_dir = "/usr/lib/python2.7/site-packages/resource_monitoring"
+ams_monitor_dir = "/usr/lib/python2.6/site-packages/resource_monitoring"
 ams_monitor_conf_dir = "/etc/ambari-metrics-monitor/conf"
 ams_monitor_pid_dir = status_params.ams_monitor_pid_dir
 ams_monitor_script = "/usr/sbin/ambari-metrics-monitor"
