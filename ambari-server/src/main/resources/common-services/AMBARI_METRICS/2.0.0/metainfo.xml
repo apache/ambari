@@ -32,7 +32,7 @@
           <cardinality>0+</cardinality>
           <versionAdvertised>false</versionAdvertised>
           <reassignAllowed>true</reassignAllowed>
-          <timelineAppid>AMS-HBASE</timelineAppid>
+          <timelineAppid>ams-hbase</timelineAppid>
           <recovery_enabled>true</recovery_enabled>
           <dependencies>
             <dependency>
