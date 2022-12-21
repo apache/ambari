@@ -41,7 +41,7 @@ import javax.persistence.UniqueConstraint;
 import org.apache.ambari.server.security.authorization.GroupType;
 
 @Entity
-@Table(name = "groups", uniqueConstraints = {@UniqueConstraint(columnNames = {"group_name", "ldap_group"})})
+@Table(name = "\"groups\"", uniqueConstraints = {@UniqueConstraint(columnNames = {"group_name", "ldap_group"})})
 @TableGenerator(name = "group_id_generator",
     table = "ambari_sequences",
     pkColumnName = "sequence_name",
