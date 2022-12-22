@@ -200,6 +200,7 @@
         </plugin>
         <plugin>
           <artifactId>maven-assembly-plugin</artifactId>
+          <version>3.4.2</version>
           <configuration>
             <descriptors>
               <descriptor>../ambari-project/src/main/assemblies/empty.xml</descriptor>
