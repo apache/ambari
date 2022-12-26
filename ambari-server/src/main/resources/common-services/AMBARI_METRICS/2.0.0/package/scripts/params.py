@@ -187,6 +187,7 @@ grafana_connect_attempts = max(int(default('/configurations/ams-grafana-env/metr
 grafana_connect_retry_delay = max(int(default('/configurations/ams-grafana-env/metrics_grafana_connect_retry_delay', 20)), 1)
 
 ams_hbase_home_dir = "/usr/lib/ams-hbase/"
+ams_hbase_real_conf_dir = "/usr/lib/ams-hbase/conf"
 
 ams_hbase_init_check_enabled = default("/configurations/ams-site/timeline.metrics.hbase.init.check.enabled", True)
 

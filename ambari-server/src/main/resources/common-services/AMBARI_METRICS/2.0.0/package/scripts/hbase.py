@@ -19,7 +19,7 @@ limitations under the License.
 """
 import os
 from ambari_commons import OSConst
-from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.resources.system import Directory, Execute, File, Link
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.resources.template_config import TemplateConfig
 from resource_management.libraries.functions.format import format
@@ -100,6 +100,16 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
       group = params.user_group,
       create_parents = True,
       recursive_ownership = True,
+  )
+
+  # Link /usr/lib/ams-hbase/conf -> /etc/ams-hbase/conf
+  if os.path.exists(params.ams_hbase_real_conf_dir) and not os.path.islink(params.ams_hbase_real_conf_dir):
+    Directory(params.ams_hbase_real_conf_dir,
+              action='delete'
+    )
+
+  Link(params.ams_hbase_real_conf_dir,
+      to = params.hbase_conf_dir
   )
 
   Directory (params.hbase_tmp_dir,
