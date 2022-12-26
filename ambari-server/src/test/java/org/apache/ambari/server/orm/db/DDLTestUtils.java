@@ -79,7 +79,7 @@ public class DDLTestUtils {
 
   // These patterns are used to match column/constraint definitons in a create table statement
   // to capture the table name
-  private static final Pattern TableName =   Pattern.compile("^\\s*create table\\s+([\\w\\.\\_]+).*$");
+  private static final Pattern TableName =   Pattern.compile("^\\s*create table\\s+([\\`\\w\\.\\_\\`]+).*$");
   // to capture the name and columns in a primary key
   private static final Pattern PK =          Pattern.compile("^.*constraint\\s+([\\w\\.\\_]+)\\s+primary\\s+key\\s*\\(([^\\)]+)\\).*$");
   // to capture the name and columns in a clusterd primary key
@@ -87,7 +87,7 @@ public class DDLTestUtils {
   // to capture the name and columns in a unique constraint
   private static final Pattern UQ =          Pattern.compile("^.*constraint\\s+([\\w\\.\\_]+)\\s+unique\\s*\\(([^\\)]+)\\).*$");
   // to capture the name and columns and the referred columnd in a foreign key
-  private static final Pattern FK =          Pattern.compile("^.*constraint\\s+([\\w\\.\\_]+)\\s+foreign\\s+key\\s*\\(([^\\)]*)\\)\\s*references\\s+([\\w\\_\\.]+)\\s*\\(([^\\)]+)\\).*$");
+  private static final Pattern FK =          Pattern.compile("^.*constraint\\s+([\\w\\.\\_]+)\\s+foreign\\s+key\\s*\\(([^\\)]*)\\)\\s*references\\s+([\\`\\w\\_\\.\\`]+)\\s*\\(([^\\)]+)\\).*$");
   // to capture the name of a columns
   private static final Pattern Col =         Pattern.compile("^\\s*([\\`\\\"\\[\\]\\w\\.\\_]+)\\s+.*$");
   // to capture column lists within the create table statement, such as the column list in "primary key (name, id)"
