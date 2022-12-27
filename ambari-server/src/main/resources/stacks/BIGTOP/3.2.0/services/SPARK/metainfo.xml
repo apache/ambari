@@ -23,7 +23,7 @@
       <name>SPARK</name>
       <displayName>Spark</displayName>
       <comment>Apache Spark is a unified analytics engine for large-scale data processing.</comment>
-      <version>3.2.1-1</version>
+      <version>3.2.3-1</version>
       <components>
         <component>
           <name>SPARK_JOBHISTORYSERVER</name>

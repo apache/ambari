@@ -22,7 +22,7 @@
       <name>FLINK</name>
       <displayName>Flink</displayName>
       <comment>Flink is a framework and distributed processing engine for stateful computations over unbounded and bounded data streams</comment>
-      <version>1.15.0-1</version>
+      <version>1.15.3-1</version>
       <components>
         <component>
           <name>FLINK_HISTORYSERVER</name>
