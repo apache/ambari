@@ -589,7 +589,7 @@ class BIGTOP320StackAdvisor(DefaultStackAdvisor):
 
     #split points
     scriptDir = os.path.dirname(os.path.abspath(__file__))
-    metricsDir = os.path.join(scriptDir, '../../../../common-services/AMBARI_METRICS/0.1.0/package')
+    metricsDir = os.path.join(scriptDir, '../../../../common-services/AMBARI_METRICS/2.0.0/package')
     serviceMetricsDir = os.path.join(metricsDir, 'files', 'service-metrics')
     sys.path.append(os.path.join(metricsDir, 'scripts'))
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
