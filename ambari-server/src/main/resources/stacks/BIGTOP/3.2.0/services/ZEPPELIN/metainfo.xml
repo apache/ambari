@@ -20,7 +20,7 @@ limitations under the License.
   <services>
     <service>
       <name>ZEPPELIN</name>
-      <displayName>Zeppelin Notebook</displayName>
+      <displayName>Zeppelin</displayName>
       <comment>A web-based notebook that enables interactive data analytics. It enables you to
         make beautiful data-driven, interactive and collaborative documents with SQL, Scala
         and more.
@@ -29,7 +29,7 @@ limitations under the License.
       <components>
         <component>
           <name>ZEPPELIN_MASTER</name>
-          <displayName>Zeppelin Notebook</displayName>
+          <displayName>Zeppelin</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
