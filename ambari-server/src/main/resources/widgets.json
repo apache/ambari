@@ -80,8 +80,8 @@
           ],
           "values": [
             {
-              "name": "Host Memory Used %",
-              "value": "${cpu_wio*100}"
+              "name": "Host CPU Wait IO %",
+              "value": "${cpu_wio}"
             }
           ],
           "properties": {
