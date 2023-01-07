@@ -130,7 +130,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_upgrade_finalized.py",
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_upgrade_finalized.py",
           "parameters": []
         }
       },
@@ -473,7 +473,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_checkpoint_time.py",
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_checkpoint_time.py",
           "parameters": [
             {
               "name": "connection.timeout",
@@ -531,7 +531,7 @@
         "ignore_host": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_ha_namenode_health.py",
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_ha_namenode_health.py",
           "parameters": [
             {
               "name": "connection.timeout",
@@ -554,7 +554,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
           "parameters": [
             {
               "name": "mergeHaMetrics",
@@ -634,7 +634,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
           "parameters": [
             {
               "name": "mergeHaMetrics",
@@ -714,7 +714,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
           "parameters": [
             {
               "name": "mergeHaMetrics",
@@ -794,7 +794,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
           "parameters": [
             {
               "name": "mergeHaMetrics",
@@ -874,7 +874,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
           "parameters": [
             {
               "name": "mergeHaMetrics",
@@ -954,7 +954,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
           "parameters": [
             {
               "name": "mergeHaMetrics",
@@ -1034,7 +1034,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
           "parameters": [
             {
               "name": "mergeHaMetrics",
@@ -1114,7 +1114,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
           "parameters": [
             {
               "name": "mergeHaMetrics",
@@ -1194,7 +1194,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
           "parameters": [
             {
               "name": "mergeHaMetrics",
@@ -1274,7 +1274,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
           "parameters": [
             {
               "name": "mergeHaMetrics",
@@ -1354,7 +1354,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
           "parameters": [
             {
               "name": "mergeHaMetrics",
@@ -1434,7 +1434,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
           "parameters": [
             {
               "name": "mergeHaMetrics",
@@ -1708,7 +1708,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDFS/2.1.0.2.0/package/alerts/alert_datanode_unmounted_data_dir.py"
+          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_datanode_unmounted_data_dir.py"
         }
       },
       {
