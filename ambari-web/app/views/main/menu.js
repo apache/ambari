@@ -219,14 +219,6 @@ App.SideNavServiceMenuView = Em.CollectionView.extend({
     isClientOnlyService : function(){
       return App.get('services.clientOnly').contains(this.get('content.serviceName'));
     }.property('content.serviceName'),
-    
-    displayName: function() {
-      if (this.get('content.hasMasterOrSlaveComponent') || this.get('content.displayName').endsWith('Client')) {
-        return this.get('content.displayName');
-      } else {
-        return this.get('content.displayName') + ' Client';
-      }
-    }.property('content.displayName', 'content.hasMasterOrSlaveComponent'),
 
     isConfigurable: function () {
       return !App.get('services.noConfigTypes').contains(this.get('content.serviceName'));

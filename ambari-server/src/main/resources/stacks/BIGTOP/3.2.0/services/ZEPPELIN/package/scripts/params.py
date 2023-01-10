@@ -131,7 +131,7 @@ log4j_properties_content = config['configurations']['zeppelin-log4j-properties']
 master_configs = config['clusterHostInfo']
 java64_home = config['ambariLevelParams']['java_home']
 ambari_host = str(config['ambariLevelParams']['ambari_server_host'])
-zeppelin_host = str(master_configs['zeppelin_master_hosts'][0])
+zeppelin_host = str(master_configs['zeppelin_server_hosts'][0])
 
 # detect HS2 details, if installed
 

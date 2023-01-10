@@ -22,14 +22,7 @@ require('utils/config');
 
 App.Service = DS.Model.extend({
   serviceName: DS.attr('string', {defaultValue: ''}),
-  displayName: function() {
-    const displayName = App.format.role(this.get('serviceName'), true);
-    if (this.get('hasMasterOrSlaveComponent') || displayName.endsWith('Client')) {
-      return displayName;
-    } else {
-      return displayName + ' Client';
-    }
-  }.property('serviceName'),
+  displayName: Em.computed.formatRole('serviceName', true),
   passiveState: DS.attr('string', {defaultValue: "OFF"}),
   workStatus: DS.attr('string'),
   rand: DS.attr('string'),
@@ -71,7 +64,7 @@ App.Service = DS.Model.extend({
    * @type {bool}
    */
   isInPassive: Em.computed.equal('passiveState', 'ON'),
-  
+
   /**
    * @type {bool}
    */

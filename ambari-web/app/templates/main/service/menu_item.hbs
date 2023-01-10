@@ -33,6 +33,6 @@
     <i {{bindAttr class="view.content.isStarted:started:stopped :icon-circle :status-icon"}}></i>
   {{/unless}}
   <span {{bindAttr class="view.isClientOnlyService:client-only-service :menu-item-name view.content.workStatus view.isMasterDown:master-down" data-original-title="view.content.toolTipContent"}} rel="serviceHealthTooltip">
-      {{view.content.displayName}}
+      {{unbound view.content.displayName}}
   </span>
 </a>

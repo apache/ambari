@@ -20,7 +20,7 @@ limitations under the License.
   <services>
     <service>
       <name>ZEPPELIN</name>
-      <displayName>Zeppelin Notebook</displayName>
+      <displayName>Zeppelin</displayName>
       <comment>A web-based notebook that enables interactive data analytics. It enables you to
         make beautiful data-driven, interactive and collaborative documents with SQL, Scala
         and more.
@@ -28,13 +28,13 @@ limitations under the License.
       <version>0.10.1-1</version>
       <components>
         <component>
-          <name>ZEPPELIN_MASTER</name>
-          <displayName>Zeppelin Notebook</displayName>
+          <name>ZEPPELIN_SERVER</name>
+          <displayName>Zeppelin Server</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
           <commandScript>
-            <script>scripts/master.py</script>
+            <script>scripts/zeppelin_server.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>10000</timeout>
           </commandScript>

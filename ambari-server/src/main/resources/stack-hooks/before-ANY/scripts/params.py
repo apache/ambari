@@ -198,7 +198,7 @@ hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 falcon_server_hosts = default("/clusterHostInfo/falcon_server_hosts", [])
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
-zeppelin_master_hosts = default("/clusterHostInfo/zeppelin_master_hosts", [])
+zeppelin_server_hosts = default("/clusterHostInfo/zeppelin_server_hosts", [])
 
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)
@@ -211,7 +211,7 @@ has_hbase_masters = not len(hbase_master_hosts) == 0
 has_oozie_server = not len(oozie_servers) == 0
 has_falcon_server_hosts = not len(falcon_server_hosts) == 0
 has_ranger_admin = not len(ranger_admin_hosts) == 0
-has_zeppelin_master = not len(zeppelin_master_hosts) == 0
+has_zeppelin_server = not len(zeppelin_server_hosts) == 0
 stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
 
 hostname = config['agentLevelParams']['hostname']

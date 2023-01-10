@@ -41,7 +41,7 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.script.script import Script
 
 
-class Master(Script):
+class ZeppelinServer(Script):
   def install(self, env):
     import params
     env.set_params(params)
@@ -671,4 +671,4 @@ class Master(Script):
     return glob.glob(params.zeppelin_home + '/interpreter/spark/dep/zeppelin-spark-dependencies*.jar')
 
 if __name__ == "__main__":
-  Master().execute()
+  ZeppelinServer().execute()
