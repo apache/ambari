@@ -1,7 +1,7 @@
 {
     "ZEPPELIN": {
       "service": [],
-      "ZEPPELIN_MASTER": [
+      "ZEPPELIN_SERVER": [
         {
           "name": "zeppelin_server_status",
           "label": "Zeppelin Server Status",

@@ -960,7 +960,7 @@
         }
       },
       "ZEPPELIN": {
-        "ZEPPELIN_MASTER": {
+        "ZEPPELIN_SERVER": {
           "STACK-SELECT-PACKAGE": "zeppelin-server",
           "INSTALL": [
             "zeppelin-server"

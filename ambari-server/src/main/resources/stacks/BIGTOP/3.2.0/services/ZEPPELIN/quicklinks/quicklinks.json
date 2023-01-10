@@ -19,7 +19,7 @@
           "name": "zeppelin_ui",
           "label": "Zeppelin UI",
           "requires_user_name": "false",
-          "component_name": "ZEPPELIN_MASTER",
+          "component_name": "ZEPPELIN_SERVER",
           "url":"%@://%@:%@/",
           "port":{
             "http_property": "zeppelin.server.port",
