@@ -11,7 +11,7 @@
         "source": {
           "type": "PORT",
           "uri": "{{kafka-broker/listeners}}",
-          "default_port": 6667,
+          "default_port": 9092,
           "reporting": {
             "ok": {
               "text": "TCP OK - {0:.3f}s response on port {1}"
