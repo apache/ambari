@@ -35,6 +35,12 @@ class ZookeeperServiceCheckLinux(ZookeeperServiceCheck):
     import params
     env.set_params(params)
 
+    File(format("{zk_log_dir}/zookeeper.log"),
+         mode=0664,
+         owner=params.zk_user,
+         group=params.user_group,
+    )
+
     File(params.zk_smoke_out,
          action="delete"
     )
