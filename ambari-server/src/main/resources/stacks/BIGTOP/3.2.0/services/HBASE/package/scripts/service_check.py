@@ -75,7 +75,7 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
       File( hbase_grant_premissions_file,
         owner   = params.hbase_user,
         group   = params.user_group,
-        mode = 0755,
+        mode    = 0755,
         content = Template('hbase_grant_permissions.j2')
       )
 
