@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #}
+#!/usr/bin/env bash
 
 #
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -35,5 +36,11 @@
 # under the License.
 #
 #
-grant '{{smoke_test_user}}', '{{smokeuser_permissions}}'
-exit
+
+echo "grant '{{smoke_test_user}}', '{{smokeuser_permissions}}'" | {{hbase_cmd}} --config {{hbase_conf_dir}} shell > {{exec_tmp_dir}}/hbase_grant_result
+cat {{exec_tmp_dir}}/hbase_grant_result
+tr -d '\n|\t| ' < {{exec_tmp_dir}}/hbase_grant_result | grep -q ERROR
+if [ "$?" -eq 0 ]
+then
+  exit 1
+fi

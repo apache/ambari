@@ -70,13 +70,13 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
     
     if params.security_enabled:    
       hbase_grant_premissions_file = format("{exec_tmp_dir}/hbase_grant_permissions.sh")
-      grantprivelegecmd = format("{kinit_cmd} {hbase_grant_premissions_file} {hbase_conf_dir} {hbase_cmd} {smoke_test_user} {smokeuser_permissions}")
+      grantprivelegecmd = format("{kinit_cmd} {hbase_grant_premissions_file}")
 
       File( hbase_grant_premissions_file,
         owner   = params.hbase_user,
         group   = params.user_group,
-        content = StaticFile("hbase_grant_permissions.sh"),
-        mode = 0755
+        mode = 0755,
+        content = Template('hbase_grant_permissions.j2')
       )
 
       Execute( grantprivelegecmd,
