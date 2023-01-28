@@ -11,7 +11,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HIVE/Bigtop+3.1/services/HIVE/package/alerts/alert_hive_metastore.py",
+          "path": "BIGTOP/3.2.0/services/HIVE/package/alerts/alert_hive_metastore.py",
           "parameters": [
             {
               "name": "check.command.timeout",
@@ -58,7 +58,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HIVE/Bigtop+3.1/services/HIVE/package/alerts/alert_hive_sys_db.py",
+          "path": "BIGTOP/3.2.0/services/HIVE/package/alerts/alert_hive_sys_db.py",
           "parameters": []
         }
       }
@@ -73,7 +73,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HIVE/Bigtop+3.1/services/HIVE/package/alerts/alert_hive_thrift_port.py",
+          "path": "BIGTOP/3.2.0/services/HIVE/package/alerts/alert_hive_thrift_port.py",
           "parameters": [
             {
               "name": "check.command.timeout",
@@ -122,7 +122,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HIVE/Bigtop+3.1/services/HIVE/package/alerts/alert_hive_interactive_thrift_port.py",
+          "path": "BIGTOP/3.2.0/services/HIVE/package/alerts/alert_hive_interactive_thrift_port.py",
           "parameters": [
             {
               "name": "check.command.timeout",
@@ -169,7 +169,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HIVE/Bigtop+3.1/services/HIVE/package/alerts/alert_llap_app_status.py",
+          "path": "BIGTOP/3.2.0/services/HIVE/package/alerts/alert_llap_app_status.py",
           "parameters": [
             {
               "name": "check.command.timeout",

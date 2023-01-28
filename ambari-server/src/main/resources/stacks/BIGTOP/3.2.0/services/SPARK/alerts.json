@@ -37,7 +37,7 @@
         "scope": "ANY",
         "source": {
           "type": "SCRIPT",
-          "path": "SPARK/package/scripts/alerts/alert_spark_thrift_port.py",
+          "path": "BIGTOP/3.2.0/services/SPARK/package/scripts/alerts/alert_spark_thrift_port.py",
           "parameters": [
             {
               "name": "check.command.timeout",

@@ -188,7 +188,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "YARN/2.1.0.2.0/package/alerts/alert_nodemanager_health.py",
+          "path": "BIGTOP/3.2.0/services/YARN/package/alerts/alert_nodemanager_health.py",
           "parameters": [
             {
               "name": "connection.timeout",
@@ -341,7 +341,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "YARN/2.1.0.2.0/package/alerts/alert_nodemanagers_summary.py",
+          "path": "BIGTOP/3.2.0/services/YARN/package/alerts/alert_nodemanagers_summary.py",
           "parameters": [
             {
               "name": "connection.timeout",
