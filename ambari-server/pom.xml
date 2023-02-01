@@ -1674,7 +1674,7 @@
     <dependency>
       <groupId>net.sf.ehcache</groupId>
       <artifactId>ehcache</artifactId>
-      <version>2.10.0</version>
+      <version>2.10.9.2</version>
     </dependency>
     <dependency>
       <groupId>com.nimbusds</groupId>
@@ -1866,6 +1866,10 @@
         <exclusion>
           <groupId>org.apache.directory.api</groupId>
           <artifactId>api-ldap-model</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>net.sf.ehcache</groupId>
+          <artifactId>ehcache</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
