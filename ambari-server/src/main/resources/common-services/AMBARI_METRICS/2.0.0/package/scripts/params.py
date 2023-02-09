@@ -283,7 +283,7 @@ else:
   cluster_zookeeper_clientPort = '2181'
 
 if not is_hbase_distributed:
-  zookeeper_quorum_hosts = hostname
+  zookeeper_quorum_hosts = 'localhost'
   zookeeper_clientPort = '61181'
 else:
   zookeeper_quorum_hosts = cluster_zookeeper_quorum_hosts
