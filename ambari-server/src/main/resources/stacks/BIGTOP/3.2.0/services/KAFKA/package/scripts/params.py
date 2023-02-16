@@ -153,6 +153,9 @@ if has_metric_collector:
   else:
     metric_collector_protocol = 'http'
 
+  # If AMS is part of Services, use the KafkaTimelineMetricsReporter for metric reporting. Default is ''.
+  metrics_reporters = "org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter"
+
   host_in_memory_aggregation = str(default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)).lower()
   host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
   is_aggregation_https_enabled = False

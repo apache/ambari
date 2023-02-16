@@ -305,7 +305,7 @@
   </property>
   <property>
     <name>kafka.metrics.reporters</name>
-    <value />
+    <value>{{metrics_reporters}}</value>
     <description>
       kafka ganglia metrics reporter and kafka timeline metrics reporter
     </description>
