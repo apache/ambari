@@ -394,10 +394,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     else:
       putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
 
-    #If AMS is part of Services, use the KafkaTimelineMetricsReporter for metric reporting. Default is ''.
-    if "AMBARI_METRICS" in servicesList:
-      putKafkaBrokerProperty('kafka.metrics.reporters', 'org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter')
-
     if ranger_plugin_enabled:
       kafkaLog4jRangerLines = [{
         "name": "log4j.appender.rangerAppender",
