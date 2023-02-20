@@ -471,6 +471,11 @@ class BIGTOP320StackAdvisor(DefaultStackAdvisor):
       if "timeline.metrics.service.operation.mode" in services["configurations"]["ams-site"]["properties"]:
         operatingMode = services["configurations"]["ams-site"]["properties"]["timeline.metrics.service.operation.mode"]
 
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if 'HDFS' not in servicesList:
+      operatingMode = "embedded"
+      putAmsSiteProperty("timeline.metrics.service.operation.mode", operatingMode)
+
     if operatingMode == "distributed":
       putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'true')
       putAmsHbaseSiteProperty("hbase.cluster.distributed", 'true')
