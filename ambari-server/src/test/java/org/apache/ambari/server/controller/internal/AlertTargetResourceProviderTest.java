@@ -1073,6 +1073,7 @@ public class AlertTargetResourceProviderTest {
 
   @Test
   public void testEnable() throws Exception {
+    expect(m_dao.findTargetByName(ALERT_TARGET_NAME)).andReturn(null).atLeastOnce();
     Capture<AlertTargetEntity> entityCapture = EasyMock.newCapture();
     m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
