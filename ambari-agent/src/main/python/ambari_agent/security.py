@@ -42,32 +42,19 @@ GEN_AGENT_KEY = 'openssl req -new -newkey rsa -nodes -keyout "%(keysdir)s' \
                 '-out "%(keysdir)s' + os.sep + '%(hostname)s.csr"'
 KEY_FILENAME = '%(hostname)s.key'
 
-
-class VerifiedHTTPSConnection:
-  """ Connecting using ssl wrapped sockets """
+class VerifiedStompConnection:
+  """ Connecting using http , ssl onw way or ssl two way stomp connection"""
   def __init__(self, host, connection_url, config):
-    self.two_way_ssl_required = False
     self.host = host
     self.connection_url = connection_url
     self.config = config
 
   def connect(self):
-    self.two_way_ssl_required = self.config.isTwoWaySSLConnection(self.host)
-    logger.debug("Server two-way SSL authentication required: %s", self.two_way_ssl_required)
-    if self.two_way_ssl_required is True:
-      logger.info(
-        'Server require two-way SSL authentication. Use it instead of one-way...')
+    connection_type = self.config.get_connection_type()
+    logging.info("Connecting to {0} connection type is {1}".format(self.connection_url, connection_type))
 
-    logging.info("Connecting to {0}".format(self.connection_url))
-
-
-    if not self.two_way_ssl_required:
-      conn = AmbariStompConnection(self.connection_url)
-      self.establish_connection(conn)
-      logger.info('SSL connection established. Two-way SSL authentication is '
-                  'turned off on the server.')
-      return conn
-    else:
+    ssl_options = None
+    if connection_type == self.config.CONNECTION_TYPE_SSL_TWO_WAY:
       self.certMan = CertificateManager(self.config, self.host)
       self.certMan.initSecurity()
       agent_key = self.certMan.getAgentKeyName()
@@ -81,23 +68,22 @@ class VerifiedHTTPSConnection:
         'ca_certs': server_crt
       }
 
-      conn = AmbariStompConnection(self.connection_url, ssl_options=ssl_options)
+    conn = AmbariStompConnection(self.connection_url, ssl_options=ssl_options)
 
-      try:
-        self.establish_connection(conn)
-        logger.info('SSL connection established. Two-way SSL authentication '
-                    'completed successfully.')
-      except ssl.SSLError:
-        logger.error('Two-way SSL authentication failed. Ensure that '
-                     'server and agent certificates were signed by the same CA '
-                     'and restart the agent. '
-                     '\nIn order to receive a new agent certificate, remove '
-                     'existing certificate file from keys directory. As a '
-                     'workaround you can turn off two-way SSL authentication in '
-                     'server configuration(ambari.properties) '
-                     '\nExiting..')
-        raise
-      return conn
+    try:
+      self.establish_connection(conn)
+      logger.info('connection established successfully.')
+    except ssl.SSLError:
+      logger.error('Two-way SSL authentication failed. Ensure that '
+                   'server and agent certificates were signed by the same CA '
+                   'and restart the agent. '
+                   '\nIn order to receive a new agent certificate, remove '
+                   'existing certificate file from keys directory. As a '
+                   'workaround you can turn off two-way SSL authentication in '
+                   'server configuration(ambari.properties) '
+                   '\nExiting..')
+      raise
+    return conn
 
   def establish_connection(self, conn):
     """
@@ -154,14 +140,14 @@ class CachedHTTPSConnection:
 
   def connect(self):
     if not self.connected:
-      self.httpsconn = VerifiedHTTPSConnection(self.server, self.port,
+      self.httpsconn = VerifiedStompConnection(self.server, self.port,
                                                self.config)
       self.httpsconn.connect()
       self.connected = True
     # possible exceptions are caught and processed in Controller
 
   def forceClear(self):
-    self.httpsconn = VerifiedHTTPSConnection(self.server, self.port,
+    self.httpsconn = VerifiedStompConnection(self.server, self.port,
                                              self.config)
     self.connect()
 

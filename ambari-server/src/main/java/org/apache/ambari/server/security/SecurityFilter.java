@@ -34,9 +34,24 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+
 public class SecurityFilter implements Filter {
 
   //Allowed pathes for one way auth https
+  /**
+   * The Configuration object used to determine how Ambari is configured
+   */
+  @Inject
+  private Configuration configuration;
+
+  /**
+   * Indicates whether Ambari is configured for SSL (true) or not (false).  By default true is assumed
+   * since preparing for more security will not hurt and is better than not assuming SSL is enabled
+   * when it is.
+   */
+  private boolean sslEnabled = true;
+
   private static String CA = "/ca";
 
   private static Configuration config;
@@ -57,25 +72,38 @@ public class SecurityFilter implements Filter {
     if (serReq.getLocalPort() != config.getTwoWayAuthPort()) {
       if (isRequestAllowed(reqUrl)) {
         filtCh.doFilter(serReq, serResp);
-      }
-      else {
+      } else {
         LOG.warn("This request is not allowed on this port: " + reqUrl);
       }
-    }
-	  else {
+    } else {
       LOG.debug("Request can continue on secure port {}", serReq.getLocalPort());
       filtCh.doFilter(serReq, serResp);
     }
   }
 
+  protected void processConfig(Configuration configuration) {
+    setSslEnabled(configuration.getApiSSLAuthentication());
+  }
+
+  protected void setSslEnabled(boolean sslEnabled) {
+    this.sslEnabled = sslEnabled;
+  }
+
   @Override
   public void init(FilterConfig arg0) throws ServletException {
+    LOG.debug("Initializing {}", this.getClass().getName());
+
+    if (configuration == null) {
+      LOG.warn("The Ambari configuration object is not available, all default options will be assumed.");
+    } else {
+      processConfig(configuration);
+    }
   }
 
   private boolean isRequestAllowed(String reqUrl) {
     try {
       URL url = new URL(reqUrl);
-      if (!"https".equals(url.getProtocol())) {
+      if (sslEnabled && !"https".equals(url.getProtocol())) {
         LOG.warn(String.format("Request %s is not using HTTPS", reqUrl));
         return false;
       }

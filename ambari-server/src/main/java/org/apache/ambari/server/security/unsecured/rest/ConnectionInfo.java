@@ -42,6 +42,7 @@ public class ConnectionInfo {
     public static void init(Configuration instance){
         conf = instance;
         response.put(Configuration.SRVR_TWO_WAY_SSL.getKey(),String.valueOf(conf.isTwoWaySsl()));
+        response.put(Configuration.AGENT_USE_SSL.getKey(),String.valueOf(conf.isSslEnabled()));
     }
 
     @GET @ApiIgnore // until documented

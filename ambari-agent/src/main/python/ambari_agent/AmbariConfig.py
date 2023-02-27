@@ -82,11 +82,17 @@ log_command_executes = 0
 
 
 class AmbariConfig:
-  TWO_WAY_SSL_PROPERTY = "security.server.two_way_ssl"
+  AGENT_SSL_PROPERTY = 'agent.ssl'
+  TWO_WAY_SSL_PROPERTY = 'security.server.two_way_ssl'
   COMMAND_FILE_RETENTION_POLICY_PROPERTY = 'command_file_retention_policy'
   AMBARI_PROPERTIES_CATEGORY = 'agentConfig'
   SERVER_CONNECTION_INFO = "{0}/connection_info"
-  CONNECTION_PROTOCOL = "https"
+  HTTPS_CONNECTION_PROTOCOL = "https"
+  HTTP_CONNECTION_PROTOCOL = "http"
+
+  CONNECTION_TYPE_HTTP = 'http'
+  CONNECTION_TYPE_SSL_ONE_WAY = 'ssl_one_way'
+  CONNECTION_TYPE_SSL_TWO_WAY = 'ssl_two_way'
 
   # linux open-file limit
   ULIMIT_OPEN_FILES_KEY = 'ulimit.open.files'
@@ -312,6 +318,21 @@ class AmbariConfig:
   def read(self, filename):
     self.config.read(filename)
 
+
+  def get_connection_type(self):
+    """
+    Get the connection type server communicate with agent
+    :return: http one_way_ssl two_way_ssl.
+    """
+    if self.is_http_connection(self.server_hostname):
+      return self.CONNECTION_TYPE_HTTP
+
+    if self.is_twoway_ssl_connection(self.server_hostname):
+      return self.CONNECTION_TYPE_SSL_TWO_WAY
+
+    return self.CONNECTION_TYPE_SSL_ONE_WAY
+
+
   def getServerOption(self, url, name, default=None):
     from ambari_agent.NetUtil import NetUtil
     status, response = NetUtil(self).checkURL(url)
@@ -324,12 +345,38 @@ class AmbariConfig:
         pass
     return default
 
-  def get_api_url(self, server_hostname):
-    return "%s://%s:%s" % (self.CONNECTION_PROTOCOL,
+
+  def get_api_url(self, server_hostname, protocol=HTTPS_CONNECTION_PROTOCOL):
+    return "%s://%s:%s" % (protocol,
                            server_hostname,
                            self.get('server', 'url_port'))
 
-  def isTwoWaySSLConnection(self, server_hostname):
+
+  def get_server_api_url(self, server_hostname):
+    protocol = self.get_connection_protocol(server_hostname)
+    url = self.get_api_url(server_hostname, protocol)
+    return url
+
+
+  def is_http_connection(self, server_hostname):
+    req_url = self.get_api_url(server_hostname, self.HTTP_CONNECTION_PROTOCOL)
+    response = self.getServerOption(self.SERVER_CONNECTION_INFO.format(req_url), self.AGENT_SSL_PROPERTY, 'true')
+    if response is None:
+      return False
+    elif response.lower() == "false":
+      return True
+    else:
+      return False
+
+
+  def get_connection_protocol(self, server_hostname):
+    if self.is_http_connection(server_hostname):
+      return self.HTTP_CONNECTION_PROTOCOL
+
+    return self.HTTPS_CONNECTION_PROTOCOL
+
+
+  def is_twoway_ssl_connection(self, server_hostname):
     req_url = self.get_api_url(server_hostname)
     response = self.getServerOption(self.SERVER_CONNECTION_INFO.format(req_url), self.TWO_WAY_SSL_PROPERTY, 'false')
     if response is None:

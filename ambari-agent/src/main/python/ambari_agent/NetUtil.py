@@ -66,14 +66,17 @@ class NetUtil:
     try:
       parsedurl = urlparse(url)
 
-      # hasattr being true means that current python version has default cert verification enabled.
-      if hasattr(ssl, '_create_unverified_context') and not ssl_verify_cert:
-          ca_connection = httplib.HTTPSConnection(parsedurl[1], context=ssl._create_unverified_context())
+      if parsedurl.scheme == 'http':
+        connection = httplib.HTTPConnection(parsedurl[1])
       else:
-          ca_connection = httplib.HTTPSConnection(parsedurl[1])
+        # hasattr being true means that current python version has default cert verification enabled.
+        if hasattr(ssl, '_create_unverified_context') and not ssl_verify_cert:
+          connection = httplib.HTTPSConnection(parsedurl[1], context=ssl._create_unverified_context())
+        else:
+          connection = httplib.HTTPSConnection(parsedurl[1])
 
-      ca_connection.request("GET", parsedurl[2])
-      response = ca_connection.getresponse()
+      connection.request("GET", parsedurl[2])
+      response = connection.getresponse()
       status = response.status
 
       if status == 200:

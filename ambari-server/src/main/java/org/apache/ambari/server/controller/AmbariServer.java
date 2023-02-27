@@ -429,7 +429,7 @@ public class AmbariServer {
 
       // session-per-request strategy for agents
       agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", DISPATCHER_TYPES);
-      agentroot.addFilter(SecurityFilter.class, "/*", DISPATCHER_TYPES);
+      agentroot.addFilter(new FilterHolder(injector.getInstance(SecurityFilter.class)), "/*", DISPATCHER_TYPES);
 
       Map<String, String> configsMap = configs.getConfigsMap();
 

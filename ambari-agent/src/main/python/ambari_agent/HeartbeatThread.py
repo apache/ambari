@@ -242,8 +242,13 @@ class HeartbeatThread(threading.Thread):
     """
     Create a stomp connection
     """
-    connection_url = 'wss://{0}:{1}/agent/stomp/v1'.format(self.config.server_hostname, self.config.secured_url_port)
-    connection_helper = security.VerifiedHTTPSConnection(self.config.server_hostname, connection_url, self.config)
+    websocket_protocol = 'wss'
+    server_hostname = self.config.server_hostname
+    if self.config.is_http_connection(server_hostname):
+      websocket_protocol = 'ws'
+    connection_url = '{0}://{1}:{2}/agent/stomp/v1'.format(websocket_protocol, server_hostname, self.config.secured_url_port)
+
+    connection_helper = security.VerifiedStompConnection(server_hostname, connection_url, self.config)
     self.connection = connection_helper.connect()
 
   def add_listeners(self):

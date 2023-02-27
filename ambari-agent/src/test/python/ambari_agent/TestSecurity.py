@@ -51,7 +51,7 @@ class TestSecurity(unittest.TestCase):
     self.config = AmbariConfig()
     self.config.set('security', 'ssl_verify_cert', '0')
     # Instantiate CachedHTTPSConnection (skip connect() call)
-    with patch.object(security.VerifiedHTTPSConnection, "connect"):
+    with patch.object(security.VerifiedStompConnection, "connect"):
       self.cachedHTTPSConnection = security.CachedHTTPSConnection(self.config, "example.com")
 
 
@@ -60,7 +60,7 @@ class TestSecurity(unittest.TestCase):
     sys.stdout = sys.__stdout__
   ### CachedHTTPSConnection ###
 
-  @patch.object(security.VerifiedHTTPSConnection, "connect")
+  @patch.object(security.VerifiedStompConnection, "connect")
   def test_CachedHTTPSConnection_connect(self, vhc_connect_mock):
     self.config.set('server', 'hostname', 'dummy.server.hostname')
     self.config.set('server', 'secured_url_port', '443')
@@ -119,8 +119,51 @@ class TestSecurity(unittest.TestCase):
       pass
 
 
-  ### CertificateManager ###
+  ### VerifiedStompConnection ###
 
+  @patch.object(security.CertificateManager, "getSrvrCrtName")
+  @patch.object(security.CertificateManager, "getAgentKeyName")
+  @patch.object(security.CertificateManager, "genAgentCrtReq")
+  @patch.object(security.CertificateManager, "getAgentCrtName")
+  @patch.object(security.CertificateManager, "initSecurity")
+  @patch('ambari_agent.security.AmbariStompConnection')
+  def test_VerifiedStompConnection_connect(self, mock_AmbariStompConnection, _, getAgentCrtName_mock,
+                                          genAgentCrtReq_mock, getAgentKeyName_mock, gettSrvrCrtName_mock):
+
+    server_hostname = 'dummy.server.hostname'
+    get_connection_type_mock = MagicMock()
+    self.config.get_connection_type = get_connection_type_mock
+
+    getAgentKeyName_mock.return_value = "dummy AgentKeyName"
+    getAgentCrtName_mock.return_value = "dummy AgentCrtName"
+    genAgentCrtReq_mock.return_value = "dummy SrvrCrtName"
+    gettSrvrCrtName_mock.return_value = "ca.crt"
+    connection_url = "example.com"
+    verifiedStompConnection = security.VerifiedStompConnection(server_hostname, connection_url, self.config)
+
+
+    # Test stopm connection params when use http
+    get_connection_type_mock.return_value = AmbariConfig.CONNECTION_TYPE_HTTP
+    verifiedStompConnection.connect()
+    mock_AmbariStompConnection.assert_called_once_with(connection_url, ssl_options=None)
+
+    # Test stopm connection params when use ssl one way
+    mock_AmbariStompConnection.reset_mock()
+    get_connection_type_mock.return_value = AmbariConfig.CONNECTION_TYPE_SSL_ONE_WAY
+    verifiedStompConnection.connect()
+    mock_AmbariStompConnection.assert_called_once_with(connection_url, ssl_options=None)
+
+
+    # Test stopm connection params when use ssl two way
+    mock_AmbariStompConnection.reset_mock()
+    ssl_options = {'ca_certs': 'ca.crt', 'certfile': 'dummy AgentCrtName', 'keyfile': 'dummy AgentKeyName', 'cert_reqs': 2}
+    get_connection_type_mock.return_value = AmbariConfig.CONNECTION_TYPE_SSL_TWO_WAY
+    verifiedStompConnection.connect()
+    mock_AmbariStompConnection.assert_called_once_with(connection_url, ssl_options=ssl_options)
+
+
+
+  ### CertificateManager ###
 
   @patch("ambari_agent.hostname.hostname")
   def test_getAgentKeyName(self, hostname_mock):

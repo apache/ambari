@@ -3943,6 +3943,16 @@ public class Configuration {
   }
 
   /**
+   * Check to see if  SSL auth should be used between server and agents
+   * or not
+   *
+   * @return SSL authentication is enabled
+   */
+  public boolean isSslEnabled() {
+    return Boolean.parseBoolean(getProperty(AGENT_USE_SSL));
+  }
+
+  /**
    * Check to see if the API responses should be compressed via gzip or not
    * @return false if not, true if gzip compression needs to be used.
    */
