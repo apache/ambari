@@ -38,6 +38,7 @@ limitations under the License.
       DEFAULT: Default cache for materialized views
       DUMMY: Do not cache materialized views and hence forward requests to metastore
     </description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hive.server2.max.start.attempts</name>
