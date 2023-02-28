@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -489,7 +490,11 @@ public class TopologyManagerTest {
     expect(ambariContext.isTopologyResolved(CLUSTER_ID)).andReturn(true).anyTimes();
 
     expect(blueprint.getSecurity()).andReturn(securityConfiguration).anyTimes();
+    expect(securityConfiguration.getDescriptor()).andReturn(Optional.empty());
     expect(request.getCredentialsMap()).andReturn(Collections.singletonMap(TopologyManager.KDC_ADMIN_CREDENTIAL, credential));
+    expect(credential.getAlias()).andReturn("").anyTimes();
+    expect(credential.getKey()).andReturn("").anyTimes();
+    expect(credential.getPrincipal()).andReturn("").anyTimes();
 
     bpConfiguration.setProperty(KerberosHelper.KERBEROS_ENV, KerberosHelper.KDC_TYPE, "none");
 
@@ -515,7 +520,11 @@ public class TopologyManagerTest {
     expect(ambariContext.isTopologyResolved(CLUSTER_ID)).andReturn(true).anyTimes();
 
     expect(blueprint.getSecurity()).andReturn(securityConfiguration).anyTimes();
+    expect(securityConfiguration.getDescriptor()).andReturn(Optional.empty());
     expect(request.getCredentialsMap()).andReturn(Collections.singletonMap(TopologyManager.KDC_ADMIN_CREDENTIAL, credential));
+    expect(credential.getAlias()).andReturn("").anyTimes();
+    expect(credential.getKey()).andReturn("").anyTimes();
+    expect(credential.getPrincipal()).andReturn("").anyTimes();
 
     bpConfiguration.setProperty(KerberosHelper.KERBEROS_ENV, KerberosHelper.MANAGE_IDENTITIES, "false");
 
