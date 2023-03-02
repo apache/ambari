@@ -142,50 +142,6 @@ class AmbariStompConnection(WsConnection):
   def add_listener(self, listener):
     self.set_listener(listener.__class__.__name__, listener)
 
-class CachedHTTPSConnection:
-  """ Caches a ssl socket and uses a single https connection to the server. """
-
-  def __init__(self, config, server_hostname):
-    self.connected = False
-    self.config = config
-    self.server = server_hostname
-    self.port = config.get('server', 'secured_url_port')
-    self.connect()
-
-  def connect(self):
-    if not self.connected:
-      self.httpsconn = VerifiedHTTPSConnection(self.server, self.port,
-                                               self.config)
-      self.httpsconn.connect()
-      self.connected = True
-    # possible exceptions are caught and processed in Controller
-
-  def forceClear(self):
-    self.httpsconn = VerifiedHTTPSConnection(self.server, self.port,
-                                             self.config)
-    self.connect()
-
-  def request(self, req):
-    self.connect()
-    try:
-      self.httpsconn.request(req.get_method(), req.get_full_url(),
-                             req.get_data(), req.headers)
-      response = self.httpsconn.getresponse()
-      # Ungzip if gzipped
-      if response.getheader('Content-Encoding') == 'gzip':
-        buf = StringIO(response.read())
-        response = gzip.GzipFile(fileobj=buf)
-      readResponse = response.read()
-    except Exception as ex:
-      # This exception is caught later in Controller
-      logger.debug("Error in sending/receving data from the server " +
-                   traceback.format_exc())
-      logger.info("Encountered communication error. Details: " + repr(ex))
-      self.connected = False
-      raise IOError("Error occured during connecting to the server: " + str(ex))
-    return readResponse
-
-
 class CertificateManager():
   def __init__(self, config, server_hostname):
     self.config = config
