@@ -76,8 +76,6 @@ class InitializerModule:
     self.action_queue = None
     self.alert_scheduler_handler = None
 
-    self.init()
-
   def init(self):
     """
     Initialize properties
