@@ -41,6 +41,7 @@ PROVIDERS = dict(
     ExecuteHDFS="resource_management.libraries.providers.execute_hdfs.ExecuteHDFSProvider",
     TemplateConfig="resource_management.libraries.providers.template_config.TemplateConfigProvider",
     XmlConfig="resource_management.libraries.providers.xml_config.XmlConfigProvider",
+    YamlConfig="resource_management.libraries.providers.yaml_config.YamlConfigProvider",
     PropertiesFile="resource_management.libraries.providers.properties_file.PropertiesFileProvider",
     MonitorWebserver="resource_management.libraries.providers.monitor_webserver.MonitorWebserverProvider",
     HdfsResource="resource_management.libraries.providers.hdfs_resource.HdfsResourceProvider",
