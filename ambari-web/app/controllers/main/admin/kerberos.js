@@ -572,7 +572,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
         self.regenerateKeytabsRequest(false,false);
       });
     } else {
-      this.restartServicesAfterRegenerate(false, callback);
+      this.regenerateKeytabs(callback);
     }
   },
 
