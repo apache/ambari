@@ -398,7 +398,7 @@ public class ConfigImpl implements Config {
 
     // save the entity, forcing a flush to ensure the refresh picks up the
     // newest data
-    clusterDAO.merge(entity, true);
+    clusterEntity = clusterDAO.merge(clusterEntity, true);
     LOG.info("Persisted config entity with id {} and cluster entity {}", entity.getConfigId(),
         clusterEntity.toString());
   }
