@@ -1508,38 +1508,33 @@ public class BlueprintConfigurationProcessor {
     Map<String, Map<String, String>> properties = configuration.getFullProperties();
     for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaters.entrySet()) {
       String type = entry.getKey();
-      for (String propertyName : entry.getValue().keySet()) {
+      Map<String, PropertyUpdater> propertyNameUpdaters = entry.getValue();
+      for (Map.Entry<String, PropertyUpdater> propertyNameUpdater : propertyNameUpdaters.entrySet()) {
+        String propertyName = propertyNameUpdater.getKey();
+        PropertyUpdater propertyUpdater = propertyNameUpdater.getValue();
         boolean matchedHost = false;
 
         Map<String, String> typeProperties = properties.get(type);
         if (typeProperties != null && typeProperties.containsKey(propertyName)) {
           String propValue = typeProperties.get(propertyName);
 
-          for (HostGroupInfo groupInfo : clusterTopology.getHostGroupInfo().values()) {
-            Collection<String> hosts = groupInfo.getHostNames();
-            for (String host : hosts) {
-              //todo: need to use regular expression to avoid matching a host which is a superset.
-              if (propValue.contains(host)) {
-                matchedHost = true;
-                configuration.setProperty(type, propertyName,
-                  propValue.replace(host, "%HOSTGROUP::" + groupInfo.getHostGroupName() + "%"));
-                break;
-              }
-            }
-            if (matchedHost) {
-              break;
-            }
+          String replacedValue = propertyUpdater.updateForBlueprintExport(propertyName, propValue, properties, clusterTopology);
+          if (!replacedValue.equals(propValue)) {
+            matchedHost = true;
+            configuration.setProperty(type, propertyName, replacedValue);
           }
+
           // remove properties that do not contain hostnames,
           // except in the case of HA-related properties, that
           // can contain nameservice references instead of hostnames (Fix for Bug AMBARI-7458).
           // also will not remove properties that reference the special 0.0.0.0 network
           // address or properties with undefined hosts
-          if (! matchedHost &&
-            ! isNameServiceProperty(propertyName) &&
-            ! isSpecialNetworkAddress(propValue)  &&
-            ! isUndefinedAddress(propValue) &&
-            ! isPlaceholder(propValue)) {
+          if (!matchedHost &&
+                  !isNameServiceProperty(propertyName) &&
+                  !isDatabaseConnectionURL(propertyName) &&
+                  !isSpecialNetworkAddress(propValue)  &&
+                  !isUndefinedAddress(propValue) &&
+                  !isPlaceholder(propValue)) {
 
             configuration.removeProperty(type, propertyName);
           }
@@ -1570,6 +1565,17 @@ public class BlueprintConfigurationProcessor {
    */
   private static boolean isNameServiceProperty(String propertyName) {
     return configPropertiesWithHASupport.contains(propertyName);
+  }
+
+  /**
+   * Determine if a property is a database connection url.
+   *
+   * @param propertyName  property name
+   *
+   * @return true if the property value is a database connection url.
+   */
+  private static boolean isDatabaseConnectionURL(String propertyName) {
+    return propertyName.equals("javax.jdo.option.ConnectionURL");
   }
 
   /**
@@ -1608,17 +1614,14 @@ public class BlueprintConfigurationProcessor {
     Map<String, Map<String, String>> properties = configuration.getFullProperties();
     for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaters.entrySet()) {
       String type = entry.getKey();
-      for (String propertyName : entry.getValue().keySet()) {
+      Map<String, PropertyUpdater> propertyNameUpdaters = entry.getValue();
+      for (Map.Entry<String, PropertyUpdater> propertyNameUpdater : propertyNameUpdaters.entrySet()) {
+        String propertyName = propertyNameUpdater.getKey();
+        PropertyUpdater propertyUpdater = propertyNameUpdater.getValue();
         Map<String, String> typeProperties = properties.get(type);
         if (typeProperties != null && typeProperties.containsKey(propertyName)) {
           String propValue = typeProperties.get(propertyName);
-          for (HostGroupInfo groupInfo : clusterTopology.getHostGroupInfo().values()) {
-            Collection<String> hosts = groupInfo.getHostNames();
-            for (String host : hosts) {
-              propValue = propValue.replaceAll(host + "\\b", "%HOSTGROUP::" +
-                groupInfo.getHostGroupName() + "%");
-            }
-          }
+          propValue = propertyUpdater.updateForBlueprintExport(propertyName, propValue, properties, clusterTopology);
           Collection<String> addedGroups = new HashSet<>();
           String[] toks = propValue.split(",");
           boolean inBrackets = propValue.startsWith("[");
@@ -1968,6 +1971,24 @@ public class BlueprintConfigurationProcessor {
     }
 
     @Override
+    public String updateForBlueprintExport(String propertyName,
+                                           String value,
+                                           Map<String, Map<String, String>> properties,
+                                           ClusterTopology topology) {
+      for (HostGroupInfo groupInfo : topology.getHostGroupInfo().values()) {
+        Collection<String> hosts = groupInfo.getHostNames();
+        for (String host : hosts) {
+          //todo: need to use regular expression to avoid matching a host which is a superset.
+          if (value.contains(host)) {
+            return value.replace(host, "%HOSTGROUP::" + groupInfo.getHostGroupName() + "%");
+          }
+        }
+      }
+
+      return value;
+    }
+
+    @Override
     public Collection<String> getRequiredHostGroups(String propertyName,
                                                     String origValue,
                                                     Map<String, Map<String, String>> properties,
@@ -2217,6 +2238,18 @@ public class BlueprintConfigurationProcessor {
     }
 
     @Override
+    public String updateForBlueprintExport(String propertyName,
+                                           String value,
+                                           Map<String, Map<String, String>> properties,
+                                           ClusterTopology topology) {
+      if (isDatabaseManaged(properties)) {
+        return super.updateForBlueprintExport(propertyName, value, properties, topology);
+      } else {
+        return value;
+      }
+    }
+
+    @Override
     public Collection<String> getRequiredHostGroups(String propertyName,
                                                     String origValue,
                                                     Map<String, Map<String, String>> properties,
@@ -2319,6 +2352,21 @@ public class BlueprintConfigurationProcessor {
       hostStrings.addAll(getHostStringsFromLocalhost(origValue, topology));
 
       return resolveHostGroupPlaceholder(origValue, hostStrings);
+    }
+
+    @Override
+    public String updateForBlueprintExport(String propertyName,
+                                           String value,
+                                           Map<String, Map<String, String>> properties,
+                                           ClusterTopology topology) {
+      for (HostGroupInfo groupInfo : topology.getHostGroupInfo().values()) {
+        Collection<String> hosts = groupInfo.getHostNames();
+        for (String host : hosts) {
+          value = value.replaceAll(host + "\\b", "%HOSTGROUP::" + groupInfo.getHostGroupName() + "%");
+        }
+      }
+
+      return value;
     }
 
     /**
