@@ -27,3 +27,4 @@ github:
     rebase:  false
 notifications:
   commits:      commits@ambari.apache.org
+  pullrequests: commits@ambari.apache.org
