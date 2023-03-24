@@ -18,9 +18,9 @@
 package org.apache.ambari.server.agent.stomp;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
