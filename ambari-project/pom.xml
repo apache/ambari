@@ -748,6 +748,13 @@
           <groupId>com.github.kongchen</groupId>
           <artifactId>swagger-maven-plugin</artifactId>
           <version>${swagger.maven.plugin.version}</version>
+          <dependencies>
+          <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${spring.version}</version>
+          </dependency>
+        </dependencies>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
