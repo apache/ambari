@@ -95,6 +95,10 @@
 					<groupId>org.eclipse.jetty</groupId>
 					<artifactId>jetty-util</artifactId>
 				</exclusion>
+                               <exclusion>
+                                       <groupId>com.fasterxml.jackson.core</groupId>
+                                       <artifactId>jackson-databind</artifactId>
+                               </exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -110,6 +114,10 @@
         <exclusion>
           <groupId>org.eclipse.jetty</groupId>
           <artifactId>jetty-util</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
         </exclusion>
       </exclusions>
 		</dependency>
