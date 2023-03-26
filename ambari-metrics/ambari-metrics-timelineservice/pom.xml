@@ -372,6 +372,10 @@
           <artifactId>javax.ws.rs-api</artifactId>
           <groupId>javax.ws.rs</groupId>
         </exclusion>
+        <exclusion>
+          <groupId>commons-collections</groupId>
+        <artifactId>commons-collections</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -419,6 +423,10 @@
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-databind</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>commons-collections</groupId>
+          <artifactId>commons-collections</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -450,6 +458,10 @@
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-collections</groupId>
+          <artifactId>commons-collections</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
