@@ -95,6 +95,10 @@
 					<groupId>org.eclipse.jetty</groupId>
 					<artifactId>jetty-util</artifactId>
 				</exclusion>
+                               <exclusion>
+                                   <groupId>log4j</groupId>
+                                   <artifactId>log4j</artifactId>
+                               </exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -106,7 +110,15 @@
 					<groupId>tomcat</groupId>
 					<artifactId>jasper-runtime</artifactId>
 				</exclusion>
-        <!--removed for security bugs in version : 9.3.19.v20170502-->
+                               <!--removed for security bugs in version : 9.3.19.v20170502-->
+                               <exclusion>
+                                   <groupId>org.eclipse.jetty</groupId>
+                                   <artifactId>jetty-util</artifactId>
+                               </exclusion>
+                               <exclusion>
+                                   <groupId>log4j</groupId>
+                                   <artifactId>log4j</artifactId>
+                               </exclusion>
         <exclusion>
           <groupId>org.eclipse.jetty</groupId>
           <artifactId>jetty-util</artifactId>
