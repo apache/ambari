@@ -21,7 +21,7 @@
     <service>
       <name>AMBARI_METRICS</name>
       <displayName>Ambari Metrics</displayName>
-      <version>2.0.0</version>
+      <version>3.0.0</version>
       <comment>A system for metrics collection that provides storage and retrieval capability for metrics collected from the cluster
       </comment>
       <components>

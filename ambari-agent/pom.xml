@@ -573,7 +573,7 @@
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${basedir}/target/src</outputDirectory>
+              <outputDirectory>${basedir}/target</outputDirectory>
               <resources>
                 <resource>
                   <directory>conf/unix</directory>
