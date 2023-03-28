@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>AMBARI_METRICS</name>
-      <extends>common-services/AMBARI_METRICS/2.0.0</extends>
+      <extends>common-services/AMBARI_METRICS/3.0.0</extends>
     </service>
   </services>
 </metainfo>
