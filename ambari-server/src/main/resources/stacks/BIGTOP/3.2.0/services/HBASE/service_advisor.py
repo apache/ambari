@@ -127,6 +127,7 @@ class HBASEServiceAdvisor(service_advisor.ServiceAdvisor):
     recommender.recommendHBASEConfigurationsFromHDP22(configurations, clusterData, services, hosts)
     recommender.recommendHBASEConfigurationsFromHDP23(configurations, clusterData, services, hosts)
     recommender.recommendHBASEConfigurationsFromHDP26(configurations, clusterData, services, hosts)
+    recommender.recommendHBASEConfigurationsFromHDP30(configurations, clusterData, services, hosts)
     recommender.recommendHBASEConfigurationsFromHDP301(configurations, clusterData, services, hosts)
     recommender.recommendHBASEConfigurationsForKerberos(configurations, clusterData, services, hosts)
 
@@ -153,8 +154,8 @@ class HBASEServiceAdvisor(service_advisor.ServiceAdvisor):
     # method(siteProperties, siteRecommendations, configurations, services, hosts)
     return validator.validateListOfConfigUsingMethod(configurations, recommendedDefaults, services, hosts, validator.validators)
 
-  # def isComponentUsingCardinalityForLayout(self, componentName):
-  #   return componentName == 'PHOENIX_QUERY_SERVER'
+  def isComponentUsingCardinalityForLayout(self, componentName):
+    return componentName == 'PHOENIX_QUERY_SERVER'
 
 
 class HBASERecommender(service_advisor.ServiceAdvisor):
@@ -245,11 +246,19 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     putHbaseSitePropertyAttributes = self.putPropertyAttribute(configurations, "hbase-site")
     putHbaseSiteProperty("hbase.regionserver.global.memstore.size", '0.4')
 
-    putHbaseSiteProperty("hbase.regionserver.wal.codec", 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec')
-    if ('hbase.rpc.controllerfactory.class' in configurations["hbase-site"]["properties"]) or \
-            ('hbase-site' in services['configurations'] and 'hbase.rpc.controllerfactory.class' in services['configurations']["hbase-site"]["properties"]):
-      putHbaseSitePropertyAttributes('hbase.rpc.controllerfactory.class', 'delete', 'true')
-      
+    if 'hbase-env' in services['configurations'] and 'phoenix_sql_enabled' in services['configurations']['hbase-env']['properties'] and \
+                    'true' == services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'].lower():
+      putHbaseSiteProperty("hbase.regionserver.wal.codec", 'org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec')
+      putHbaseSiteProperty("phoenix.functions.allowUserDefinedFunctions", 'true')
+    else:
+      putHbaseSiteProperty("hbase.regionserver.wal.codec", 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec')
+      if ('hbase.rpc.controllerfactory.class' in configurations["hbase-site"]["properties"]) or \
+              ('hbase-site' in services['configurations'] and 'hbase.rpc.controllerfactory.class' in services['configurations']["hbase-site"]["properties"]):
+        putHbaseSitePropertyAttributes('hbase.rpc.controllerfactory.class', 'delete', 'true')
+      if ('phoenix.functions.allowUserDefinedFunctions' in configurations["hbase-site"]["properties"]) or \
+              ('hbase-site' in services['configurations'] and 'phoenix.functions.allowUserDefinedFunctions' in services['configurations']["hbase-site"]["properties"]):
+        putHbaseSitePropertyAttributes('phoenix.functions.allowUserDefinedFunctions', 'delete', 'true')
+
     if "ranger-env" in services["configurations"] and "ranger-hbase-plugin-properties" in services["configurations"] and \
                     "ranger-hbase-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
       putHbaseRangerPluginProperty = self.putProperty(configurations, "ranger-hbase-plugin-properties", services)
@@ -342,17 +351,17 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
 
       putHbaseEnvPropertyAttributes('hbase_max_direct_memory_size', 'delete', 'true')
 
-    # if 'hbase-env' in services['configurations'] and 'phoenix_sql_enabled' in services['configurations']['hbase-env']['properties'] and \
-    #                 'true' == services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'].lower():
-    #   if 'hbase.rpc.controllerfactory.class' in services['configurations']['hbase-site']['properties'] and \
-    #                   services['configurations']['hbase-site']['properties']['hbase.rpc.controllerfactory.class'] == \
-    #                   'org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory':
-    #     putHbaseSitePropertyAttributes('hbase.rpc.controllerfactory.class', 'delete', 'true')
+    if 'hbase-env' in services['configurations'] and 'phoenix_sql_enabled' in services['configurations']['hbase-env']['properties'] and \
+                    'true' == services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'].lower():
+      if 'hbase.rpc.controllerfactory.class' in services['configurations']['hbase-site']['properties'] and \
+                      services['configurations']['hbase-site']['properties']['hbase.rpc.controllerfactory.class'] == \
+                      'org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory':
+        putHbaseSitePropertyAttributes('hbase.rpc.controllerfactory.class', 'delete', 'true')
 
-    #   putHbaseSiteProperty("hbase.region.server.rpc.scheduler.factory.class", "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory")
-    # else:
-    #   putHbaseSitePropertyAttributes('hbase.region.server.rpc.scheduler.factory.class', 'delete', 'true')
+      putHbaseSiteProperty("hbase.region.server.rpc.scheduler.factory.class", "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory")
+    else:
       putHbaseSitePropertyAttributes('hbase.region.server.rpc.scheduler.factory.class', 'delete', 'true')
+
 
   def recommendHBASEConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
     if 'hbase-env' in services['configurations'] and 'hbase_user' in services['configurations']['hbase-env']['properties']:
@@ -368,6 +377,56 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
       putRangerHbasePluginProperty("REPOSITORY_CONFIG_USERNAME",hbase_user)
     else:
       self.logger.info("Not setting Hbase Repo user for Ranger.")
+
+
+  def recommendHBASEConfigurationsFromHDP30(self, configurations, clusterData, services, hosts):
+    # Hbase-hook configurations for Atlas
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    hbase_atlas_hook_property = 'hbase.coprocessor.master.classes'
+    hbase_atlas_hook_impl_class = 'org.apache.atlas.hbase.hook.HBaseAtlasCoprocessor'
+    if hbase_atlas_hook_property in configurations['hbase-site']['properties']:
+      hbase_master_coprocessor_value = configurations['hbase-site']['properties']['hbase.coprocessor.master.classes']
+    else:
+      hbase_master_coprocessor_value = ''
+
+    hbase_master_coprocessor_list = [coprocessor_class.strip(' ') for coprocessor_class in hbase_master_coprocessor_value.split(',')]
+    hbase_master_coprocessor_list = [coprocessor_class for coprocessor_class in hbase_master_coprocessor_list if coprocessor_class != '' ]
+
+    is_atlas_present_in_cluster = 'ATLAS' in servicesList
+    putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
+    putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
+    putHBaseAtlasHookProperty = self.putProperty(configurations, "hbase-atlas-application-properties", services)
+    putHBaseAtlasHookPropertyAttribute = self.putPropertyAttribute(configurations,"hbase-atlas-application-properties")
+    if 'hbase-atlas-application-properties' in services['configurations'] and 'enable.external.atlas.for.hbase' in services['configurations']['hbase-atlas-application-properties']['properties']:
+      enable_external_hook_for_hbase = services['configurations']['hbase-atlas-application-properties']['properties']['enable.external.atlas.for.hbase'].lower() == 'true'
+    else:
+      enable_external_hook_for_hbase = False
+
+    if is_atlas_present_in_cluster:
+      putHbaseEnvProperty('hbase.atlas.hook','true')
+    elif enable_external_hook_for_hbase:
+      putHbaseEnvProperty('hbase.atlas.hook','true')
+    else:
+      putHbaseEnvProperty('hbase.atlas.hook','false')
+
+    if 'hbase-env' in configurations and 'hbase.atlas.hook' in configurations['hbase-env']['properties']:
+      enable_hbase_atlas_hook = configurations['hbase-env']['properties']['hbase.atlas.hook'] == 'true'
+    elif 'hbase-env' in services['configurations'] and 'hbase.atlas.hook' in services['configurations']['hbase-env']['properties']:
+      enable_hbase_atlas_hook = services['configurations']['hbase-env']['properties']['hbase.atlas.hook'] == 'true'
+    else:
+      enable_hbase_atlas_hook = False
+
+    if enable_hbase_atlas_hook:
+      is_hbase_atlas_hook_in_config = hbase_atlas_hook_impl_class in hbase_master_coprocessor_list
+      if not is_hbase_atlas_hook_in_config:
+        hbase_master_coprocessor_list.append(hbase_atlas_hook_impl_class)
+      else:
+        self.logger.info('hbase-atlas hook is already present in configuration.')
+    else:
+      hbase_master_coprocessor_list = [hbase_master_coprocessor for hbase_master_coprocessor in hbase_master_coprocessor_list if hbase_master_coprocessor != hbase_atlas_hook_impl_class]
+
+    hbase_master_coprocessor_value = '' if len(hbase_master_coprocessor_list) == 0 else ",".join(hbase_master_coprocessor_list)
+    putHbaseSiteProperty(hbase_atlas_hook_property,hbase_master_coprocessor_value)
 
   def recommendHBASEConfigurationsFromHDP301(self, configurations, clusterData, services, hosts):
     # Setters
@@ -407,6 +466,16 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
             {'mem_limit':8192, 'cpu_limit':8, 'handlers': 60},
             {'mem_limit':12288, 'cpu_limit':16, 'handlers': 90},
             {'mem_limit':16384, 'cpu_limit':24, 'handlers': 120} ]
+    phoenix_recommendations = [ {'mem_limit':2048, 'cpu_limit':4, 'handlers': 20, 'index_handlers': 10},
+            {'mem_limit':8192, 'cpu_limit':8, 'handlers': 50, 'index_handlers': 15},
+            {'mem_limit':12288, 'cpu_limit':16, 'handlers': 70, 'index_handlers': 20},
+            {'mem_limit':16384, 'cpu_limit':24, 'handlers': 100, 'index_handlers': 30} ]
+
+    # Is Phoenix enabled?
+    phoenix_enabled = 'hbase-env' in services['configurations'] and 'phoenix_sql_enabled' in services['configurations']['hbase-env']['properties'] and \
+                'true' == services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'].lower()
+    recommendations = phoenix_recommendations if phoenix_enabled else hbase_recommendations
+    self.logger.info("phoenix_enabled=" + str(phoenix_enabled))
 
     # Determine the limit
     handlers = None
@@ -414,16 +483,19 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     for level in recommendations:
       if level['mem_limit'] > hbaseRamInMB or level['cpu_limit'] > cores:
         handlers = level['handlers']
+        if phoenix_enabled:
+          index_handlers = level['index_handlers']
         break
 
     # For lots of RAM+CPU, we may have exceeded the final level's limits. Just use the last one.
     if handlers is None:
       level = recommendations[-1]
       handlers = level['handlers']
+      if phoenix_enabled:
+        index_handlers = level['index_handlers']
 
     self.logger.info("Setting HBase handlers to %d" % (handlers))
     putHbaseSiteProperty('hbase.regionserver.handler.count', handlers)
-    phoenix_enabled = False
     if phoenix_enabled:
       self.logger.info("Setting Phoenix index handlers to %d" % (index_handlers))
       putHbaseSiteProperty('phoenix.rpc.index.handler.count', index_handlers)
@@ -440,16 +512,16 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
       # Set the master's UI to readonly
       putHbaseSiteProperty('hbase.master.ui.readonly', 'true')
 
-      # phoenix_query_server_hosts = self.getPhoenixQueryServerHosts(services, hosts)
-      # self.logger.debug("Calculated Phoenix Query Server hosts: %s" % str(phoenix_query_server_hosts))
-      # if phoenix_query_server_hosts:
-      #   self.logger.debug("Attempting to update hadoop.proxyuser.HTTP.hosts with %s" % str(phoenix_query_server_hosts))
-      #   # The PQS hosts we want to ensure are set
-      #   new_value = ','.join(phoenix_query_server_hosts)
-      #   # Update the proxyuser setting, deferring to out callback to merge results together
-      #   self.put_proxyuser_value("HTTP", new_value, services=services, configurations=configurations, put_function=putCoreSiteProperty)
-      # else:
-      self.logger.debug("No phoenix query server hosts to update")
+      phoenix_query_server_hosts = self.getPhoenixQueryServerHosts(services, hosts)
+      self.logger.debug("Calculated Phoenix Query Server hosts: %s" % str(phoenix_query_server_hosts))
+      if phoenix_query_server_hosts:
+        self.logger.debug("Attempting to update hadoop.proxyuser.HTTP.hosts with %s" % str(phoenix_query_server_hosts))
+        # The PQS hosts we want to ensure are set
+        new_value = ','.join(phoenix_query_server_hosts)
+        # Update the proxyuser setting, deferring to out callback to merge results together
+        self.put_proxyuser_value("HTTP", new_value, services=services, configurations=configurations, put_function=putCoreSiteProperty)
+      else:
+        self.logger.debug("No phoenix query server hosts to update")
     else:
       putHbaseSiteProperty('hbase.master.ui.readonly', 'false')
 
@@ -584,15 +656,14 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
 
 
   def getPhoenixQueryServerHosts(self, services, hosts):
-    return None
-    # """
-    # Returns the list of Phoenix Query Server host names, or None.
-    # """
-    # if len(hosts['items']) > 0:
-    #   phoenix_query_server_hosts = self.getHostsWithComponent("HBASE", "PHOENIX_QUERY_SERVER", services, hosts)
-    #   if phoenix_query_server_hosts is None:
-    #     return []
-    #   return [host['Hosts']['host_name'] for host in phoenix_query_server_hosts]
+    """
+    Returns the list of Phoenix Query Server host names, or None.
+    """
+    if len(hosts['items']) > 0:
+      phoenix_query_server_hosts = self.getHostsWithComponent("HBASE", "PHOENIX_QUERY_SERVER", services, hosts)
+      if phoenix_query_server_hosts is None:
+        return []
+      return [host['Hosts']['host_name'] for host in phoenix_query_server_hosts]
 
 
   def isRangerPluginEnabled(self, configurations, services):

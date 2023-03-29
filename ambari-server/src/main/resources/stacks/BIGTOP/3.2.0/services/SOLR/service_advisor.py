@@ -23,7 +23,7 @@ import os
 import traceback
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../stacks/')
+STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../../../stacks/')
 PARENT_FILE = os.path.join(STACKS_DIR, 'service_advisor.py')
 if "BASE_SERVICE_ADVISOR" in os.environ:
   PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
