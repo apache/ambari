@@ -51,7 +51,7 @@ def create_package_dir_map():
 
   return package_dirs
 
-__version__ = "3.0.0.0-SNAPSHOT"
+__version__ = "2.8.0.0.0"
 
 def get_version():
   """

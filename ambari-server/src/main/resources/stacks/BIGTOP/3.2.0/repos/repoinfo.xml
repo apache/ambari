@@ -18,7 +18,7 @@
 <reposinfo>
   <os family="redhat7">
     <repo>
-      <baseurl>https://bigtop-snapshot.s3.amazonaws.com/centos-7/$basearch</baseurl>
+      <baseurl>http://your-repo/</baseurl>
       <repoid>BIGTOP-3.2.0</repoid>
       <reponame>bigtop</reponame>
     </repo>
