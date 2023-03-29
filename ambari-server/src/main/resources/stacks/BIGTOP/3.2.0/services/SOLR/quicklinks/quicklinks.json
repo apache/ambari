@@ -16,7 +16,7 @@
         {
           "name": "solr_ui",
           "label": "Solr Admin UI",
-          "component_name": "SOLR",
+          "component_name": "SOLR_SERVER",
           "url": "%@://%@:%@",
           "requires_user_name": "false",
           "port": {
