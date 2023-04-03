@@ -45,6 +45,17 @@ class HiveServiceCheck(Script):
     import params
     env.set_params(params)
 
+    # refresh HDFS configuration
+    Logger.info("Refreshing HDFS core-site")
+    Logger.info("--------------------------\n")
+    if params.security_enabled:
+      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
+        user=params.hdfs_user
+      )
+    refresh_hdfs_core_site_cmd = 'hdfs dfsadmin -refreshSuperUserGroupsConfiguration'
+    Execute(refresh_hdfs_core_site_cmd, user=params.hdfs_user)
+    Logger.info("End refresh HDFS configration")
+
     if params.security_enabled:
       kinit_cmd = format(
         "{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
