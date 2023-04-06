@@ -1,0 +1,583 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<configuration>
+  <property>
+    <name>hawq_master_address_host</name>
+    <display-name>HAWQ Master</display-name>
+    <value>localhost</value>
+    <description>
+      The hostname of HAWQ master.
+    </description>
+    <value-attributes>
+      <type>componentHost</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_master_address_port</name>
+    <display-name>HAWQ Master Port</display-name>
+    <value>5432</value>
+    <description>
+      The port used by HAWQ masters.
+      The default is 5432.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_standby_address_host</name>
+    <display-name>HAWQ Standby Master</display-name>
+    <value>localhost</value>
+    <description>
+      The hostname of the HAWQ standby master. The standby master and master must reside on different hosts.
+    </description>
+    <value-attributes>
+      <type>componentHost</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_segment_address_port</name>
+    <display-name>HAWQ Segment Port</display-name>
+    <value>40000</value>
+    <description>
+      The base port used by HAWQ segments.
+      The default is 40000.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_dfs_url</name>
+    <display-name>HAWQ DFS URL</display-name>
+    <value>localhost:8020/hawq_data</value>
+    <description>
+      URL for accessing HDFS.
+    </description>
+    <value-attributes>
+      <type>string</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_master_directory</name>
+    <display-name>HAWQ Master Directory</display-name>
+    <value>/data/hawq/master</value>
+    <description>
+      The base path for the HAWQ master data directory. Multiple directories are not allowed.
+      The default is /data/hawq/master.
+    </description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_segment_directory</name>
+    <display-name>HAWQ Segment Directory</display-name>
+    <value>/data/hawq/segment</value>
+    <description>
+      The base path for the HAWQ segment data directory. Multiple directories are not allowed.
+      The default is /data/hawq/segment.
+    </description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_master_temp_directory</name>
+    <display-name>HAWQ Master Temp Directories</display-name>
+    <value>/data/hawq/tmp/master</value>
+    <description>
+      Used as temporary filespace to store workfile cache, sort/join temp files etc.
+      The recommended number of temp directories is equal to the number of disks per node, one directory on each disk,
+      excluding system disk. Separate multiple entries with commas. The default is /data/hawq/tmp/master.
+    </description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_segment_temp_directory</name>
+    <display-name>HAWQ Segment Temp Directories</display-name>
+    <value>/data/hawq/tmp/segment</value>
+    <description>
+      Used as temporary filespace to store workfile cache, sort/join temp files etc.
+      The recommended number of temp directories is equal to the number of disks per node, one directory on each disk,
+      excluding system disk. Separate multiple entries with commas. The default is /data/hawq/tmp/segment.
+    </description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- HAWQ resource manager parameters -->
+  <property>
+    <name>hawq_global_rm_type</name>
+    <display-name>Resource Manager</display-name>
+    <value>none</value>
+    <description>
+      HAWQ global resource manager type. Valid values are YARN ('yarn') and Standalone ('none').
+      Standalone('none') indicates that the HAWQ resource manager manages its own resources exclusively for the entire cluster.
+      YARN ('yarn') means that HAWQ will negotiate with YARN's resource manager for resources.
+      The default is Standalone ('none').
+    </description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>none</value>
+          <label>Standalone</label>
+        </entry>
+        <entry>
+          <value>yarn</value>
+          <label>YARN</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_rm_memory_limit_perseg</name>
+    <display-name>Segment Memory Usage Limit</display-name>
+    <value>65535MB</value>
+    <description>
+      The maximum memory that can be used by a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
+      Its value depends on vm.overcommit_memory, vm.overcommit_ratio and system memory on HAWQ hosts.
+    </description>
+    <depends-on>
+      <property>
+        <type>hawq-site</type>
+        <name>hawq_global_rm_type</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_rm_nvcore_limit_perseg</name>
+    <display-name>Segment Virtual Core Usage Limit</display-name>
+    <value>16</value>
+    <description>
+      The maximum number of virtual cores that can be used for query execution in a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
+      The default is 16.
+    </description>
+    <depends-on>
+      <property>
+        <type>hawq-site</type>
+        <name>hawq_global_rm_type</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>64</maximum>
+      <increment-step>4</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_rm_yarn_address</name>
+    <value>localhost:8032</value>
+    <description>
+      Server address (host and port) of the YARN Resource Manager server (the value of yarn.resourcemanager.address).
+      You must define this if Resource Manager ('hawq_global_rm_type') is set to YARN ('yarn').
+      The default is localhost:8032.
+    </description>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.resourcemanager.address</name>
+      </property>
+      <property>
+        <type>hawq-site</type>
+        <name>hawq_global_rm_type</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <type>string</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_rm_yarn_scheduler_address</name>
+    <value>localhost:8030</value>
+    <description>
+      Server address (host and port) of the YARN resource manager scheduler (the value of yarn.resourcemanager.scheduler.address).
+      User must define this if Resource Manager ('hawq_global_rm_type') is set to YARN ('yarn').
+      The default is localhost:8030.
+    </description>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.resourcemanager.scheduler.address</name>
+      </property>
+      <property>
+        <type>hawq-site</type>
+        <name>hawq_global_rm_type</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <type>string</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_rm_yarn_queue_name</name>
+    <value>default</value>
+    <description>
+      The name of the YARN queue to register with HAWQ's resource manager.
+      The default is 'default'.
+    </description>
+    <depends-on>
+      <property>
+        <type>hawq-site</type>
+        <name>hawq_global_rm_type</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_rm_yarn_app_name</name>
+    <value>hawq</value>
+    <description>
+      The name of the YARN application to register with HAWQ's resource manager.
+      The default is 'hawq'.
+    </description>
+    <depends-on>
+      <property>
+        <type>hawq-site</type>
+        <name>hawq_global_rm_type</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>default_hash_table_bucket_number</name>
+    <display-name>Default buckets for Hash Distributed tables</display-name>
+    <value>6</value>
+    <description>
+      The default number of buckets when creating a hash distributed table, if not defined explicitly when creating the table.
+      When running a query on a hash dist table, the query resource is fixed and equal to the number of buckets.
+      The default set during installation is the number of HAWQ Segments multiplied by 6.
+      Adjust the value when the number of HAWQ Segments changes in the cluster. If parameter value is changed, existing Hash distributed tables must be redistributed.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>10000</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_rm_nvseg_perquery_perseg_limit</name>
+    <display-name>Virtual Segments Limit per Query (per Segment Node)</display-name>
+    <value>6</value>
+    <description>
+      The maximum number of virtual segments per query per segment node when querying randomly distributed tables, external tables, and tables with user defined functions.
+      This parameter is used to limit the maximum resource usage on each segment node.
+      The default is 6. Not recommended to change this parameter.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>16</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_rm_nvseg_perquery_limit</name>
+    <value>512</value>
+    <description>
+      The maximum number of virtual segments per query across the cluster.
+      This parameter is used to limit the maximum resource usage per query across the cluster regardless of the number of HAWQ Segments.
+      The default value is 512. Not recommended to change this parameter.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>10000</maximum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>gp_workfile_compress_algorithm</name>
+    <display-name>Spill Files Compression Algorithm</display-name>
+    <value>none</value>
+    <description>
+      Compression algorithm to use on the spill files when a hash aggregation or hash join operation spills to disk during query processing.
+      If using zlib, it must be in your $PATH on all segments. The default is none.
+    </description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>none</value>
+          <label>None</label>
+        </entry>
+        <entry>
+          <value>zlib</value>
+          <label>zlib</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>gp_workfile_limit_files_per_query</name>
+    <display-name>Max. No. of Temporary Spill Files allowed per Query per Segment</display-name>
+    <value>3000000</value>
+    <description>
+      Sets the maximum number of temporary spill files (also known as workfiles) allowed per query per segment.
+      Spill files are created when executing a query that requires more memory than it is allocated.
+      The current query is terminated when the limit is exceeded. The default is 3000000.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>gp_workfile_limit_per_query</name>
+    <display-name>Max. Disk Size Allowed for Individual Query for creating Temporary Spill Files per Segment</display-name>
+    <value>0</value>
+    <description>
+      Sets the maximum disk size an individual query is allowed to use for creating temporary spill files at each segment.
+      The default value is 0, which means a limit is not enforced.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>kB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>gp_workfile_limit_per_segment</name>
+    <display-name>Max. Disk Size Allowed for All Queries for creating Temporary Spill Files per Segment</display-name>
+    <value>0</value>
+    <description>
+      Sets the maximum total disk size that all running queries are allowed to use for creating temporary spill files at each segment.
+      The default value is 0, which means a limit is not enforced.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>kB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>gp_autostats_mode</name>
+    <value>on_no_stats</value>
+    <description>
+      Specifies the mode for triggering automatic statistics collection with ANALYZE.
+      The on_no_stats option triggers statistics collection for CREATE TABLE AS SELECT, INSERT, or COPY operations on any table that has no existing statistics.
+      The on_change option triggers statistics collection only when the number of rows affected exceeds the threshold defined by gp_autostats_on_change_threshold.
+      Operations that can trigger automatic statistics collection with on_change are CREATE TABLE AS SELECT, UPDATE, DELETE, INSERT and COPY.
+      The default is on_no_stats.
+    </description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>none</value>
+        </entry>
+        <entry>
+          <value>on_change</value>
+        </entry>
+        <entry>
+          <value>on_no_stats</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>gp_autostats_on_change_threshold</name>
+    <value>2147483647</value>
+    <description>
+      Specifies the threshold for automatic statistics collection when gp_autostats_mode is set to on_change.
+      When a triggering table operation affects a number of rows exceeding this threshold, ANALYZE is added and statistics are collected for the table.
+      The default is 2147483647.
+    </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>gp_external_max_segs</name>
+    <value>64</value>
+    <description>
+      Sets the number of segments that will scan external table data during an external table operation, the purpose being not to overload the system with scanning data and take away resources from other concurrent operations.
+      This only applies to external tables that use the gpfdist://protocol to access external table data. The default is 64.
+    </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hawq_rm_resource_idle_timeout</name>
+    <value>300</value>
+    <description>
+      Amount of time, in seconds, before idle resources are returned to YARN. The default is 300.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>-1</minimum>
+      <maximum>65535</maximum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>log_duration</name>
+    <value>off</value>
+    <description>
+      Causes the duration of every completed statement which satisfies log_statement to be logged. The default is off.
+    </description>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>log_rotation_age</name>
+    <value>1d</value>
+    <description>
+      Determines the maximum lifetime of an individual log file. After this time has elapsed, a new log file will be created.
+      Set to zero to disable time-based creation of new log files. The default is 1d.
+    </description>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>log_statement</name>
+    <value>ALL</value>
+    <description>
+      Controls which SQL statements are logged. DDL logs all data definition commands like CREATE, ALTER, and DROP commands.
+      MOD logs all DDL statements, plus INSERT, UPDATE, DELETE, TRUNCATE, and COPY FROM.
+      PREPARE and EXPLAIN ANALYZE statements are also logged if their contained command is of an appropriate type.
+      The default is ALL.
+    </description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>NONE</value>
+        </entry>
+        <entry>
+          <value>DDL</value>
+        </entry>
+        <entry>
+          <value>MOD</value>
+        </entry>
+        <entry>
+          <value>ALL</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>log_statement_stats</name>
+    <value>off</value>
+    <description>
+      For each query, write total performance statistics of the query parser, planner, and executor to the server log.
+      This is a crude profiling instrument. The default is off.
+    </description>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>log_truncate_on_rotation</name>
+    <value>off</value>
+    <description>
+      Truncates (overwrites), rather than appends to, any existing log file of the same name.
+      Truncation will occur only when a new file is being opened due to time-based rotation.
+      For example, using this setting in combination with a log_filename such as hawq-%H.log would result in generating twenty-four hourly log files and then cyclically overwriting them.
+      When off, pre-existing files will be appended to in all cases. The default is off.
+    </description>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>runaway_detector_activation_percent</name>
+    <value>95</value>
+    <description>
+      Sets the percentage of the virtual memory quota that will trigger the termination of queries.
+      If the amount of virtual memory utilized by a physical segment exceeds the calculated threshold, then HAWQ begins terminating queries based on memory usage, starting with the query that is consuming the largest amount of memory.
+      Queries are terminated until the percentage of utilized virtual memory is below the specified percentage. The default is 95.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>100</maximum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>statement_timeout</name>
+    <value>0</value>
+    <description>
+      Abort any statement that takes over the specified number of milliseconds. 0 turns off the limitation. The default is 0.
+    </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

@@ -281,7 +281,7 @@ class ODPi20StackAdvisor(DefaultStackAdvisor):
     putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
     putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
 
-    for user_name, user_properties in users.iteritems():
+    for user_name, user_properties in users.items():
       if hive_user and hive_user == user_name:
         if "propertyHosts" in user_properties:
           services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(hive_user)})
@@ -337,15 +337,15 @@ class ODPi20StackAdvisor(DefaultStackAdvisor):
     # dfs.datanode.du.reserved should be set to 10-15% of volume size
     # For each host selects maximum size of the volume. Then gets minimum for all hosts.
     # This ensures that each host will have at least one data dir with available space.
-    reservedSizeRecommendation = 0l #kBytes
+    reservedSizeRecommendation = 0 #kBytes
     for host in hosts["items"]:
       mountPoints = []
       mountPointDiskAvailableSpace = [] #kBytes
       for diskInfo in host["Hosts"]["disk_info"]:
         mountPoints.append(diskInfo["mountpoint"])
-        mountPointDiskAvailableSpace.append(long(diskInfo["size"]))
+        mountPointDiskAvailableSpace.append(int(diskInfo["size"]))
 
-      maxFreeVolumeSizeForHost = 0l #kBytes
+      maxFreeVolumeSizeForHost = 0 #kBytes
       for dataDir in dataDirs:
         mp = getMountPointForDir(dataDir, mountPoints)
         for i in range(len(mountPoints)):
@@ -558,8 +558,8 @@ class ODPi20StackAdvisor(DefaultStackAdvisor):
     total_sinks_count = 0
     # minimum heap size
     hbase_heapsize = 500
-    for serviceName, componentsDict in schMemoryMap.items():
-      for componentName, multiplier in componentsDict.items():
+    for serviceName, componentsDict in list(schMemoryMap.items()):
+      for componentName, multiplier in list(componentsDict.items()):
         schCount = len(
           self.getHostsWithComponent(serviceName, componentName, services,
                                      hosts))
@@ -1198,7 +1198,7 @@ class ODPi20StackAdvisor(DefaultStackAdvisor):
           if component["StackServiceComponents"]["hostnames"] is not None:
             for hostName in component["StackServiceComponents"]["hostnames"]:
               if self.isMasterComponent(component):
-                if hostName not in hostMasterComponents.keys():
+                if hostName not in list(hostMasterComponents.keys()):
                   hostMasterComponents[hostName] = []
                 hostMasterComponents[hostName].append(component["StackServiceComponents"]["component_name"])
 
@@ -1308,13 +1308,13 @@ class ODPi20StackAdvisor(DefaultStackAdvisor):
     mountPoints = {}
     for mountPoint in hostInfo["disk_info"]:
       mountPoints[mountPoint["mountpoint"]] = to_number(mountPoint["available"])
-    mountPoint = getMountPointForDir(dir, mountPoints.keys())
+    mountPoint = getMountPointForDir(dir, list(mountPoints.keys()))
 
     if not mountPoints:
       return self.getErrorItem("No disk info found on host %s" % hostInfo["host_name"])
 
     if mountPoint is None:
-      return self.getErrorItem("No mount point in directory %s. Mount points: %s" % (dir, ', '.join(mountPoints.keys())))
+      return self.getErrorItem("No mount point in directory %s. Mount points: %s" % (dir, ', '.join(list(mountPoints.keys()))))
 
     if mountPoints[mountPoint] < reqiuredDiskSpace:
       msg = "Ambari Metrics disk space requirements not met. \n" \
@@ -1569,9 +1569,9 @@ class ODPi20StackAdvisor(DefaultStackAdvisor):
       with open(login_defs, 'r') as f:
         data = f.read().split('\n')
         # look for uid_min_tag in file
-        uid = filter(lambda x: uid_min_tag in x, data)
+        uid = [x for x in data if uid_min_tag in x]
         # filter all lines, where uid_min_tag was found in comments
-        uid = filter(lambda x: x.find(comment_tag) > x.find(uid_min_tag) or x.find(comment_tag) == -1, uid)
+        uid = [x for x in uid if x.find(comment_tag) > x.find(uid_min_tag) or x.find(comment_tag) == -1]
 
       if uid is not None and len(uid) > 0:
         uid = uid[0]
@@ -1593,7 +1593,7 @@ class ODPi20StackAdvisor(DefaultStackAdvisor):
     return uid_min
 
   def mergeValidators(self, parentValidators, childValidators):
-    for service, configsDict in childValidators.iteritems():
+    for service, configsDict in childValidators.items():
       if service not in parentValidators:
         parentValidators[service] = {}
       parentValidators[service].update(configsDict)
@@ -1646,14 +1646,14 @@ class ODPi20StackAdvisor(DefaultStackAdvisor):
       self.logger.error("Couldn't retrieve 'capacity-scheduler' from services.")
 
     self.logger.info("Retrieved 'capacity-scheduler' received as dictionary : '{0}'. configs : {1}" \
-                .format(received_as_key_value_pair, capacity_scheduler_properties.items()))
+                .format(received_as_key_value_pair, list(capacity_scheduler_properties.items())))
     return capacity_scheduler_properties, received_as_key_value_pair
 
   """
   Gets all YARN leaf queues.
   """
   def getAllYarnLeafQueues(self, capacitySchedulerProperties):
-    config_list = capacitySchedulerProperties.keys()
+    config_list = list(capacitySchedulerProperties.keys())
     yarn_queues = None
     leafQueueNames = set()
     if 'yarn.scheduler.capacity.root.queues' in config_list:
@@ -1776,7 +1776,7 @@ class ODPi20StackAdvisor(DefaultStackAdvisor):
 
 def getOldValue(self, services, configType, propertyName):
   if services:
-    if 'changed-configurations' in services.keys():
+    if 'changed-configurations' in list(services.keys()):
       changedConfigs = services["changed-configurations"]
       for changedConfig in changedConfigs:
         if changedConfig["type"] == configType and changedConfig["name"]== propertyName and "old_value" in changedConfig:
@@ -1933,7 +1933,7 @@ def getHeapsizeProperties():
 def getMemorySizeRequired(components, configurations):
   totalMemoryRequired = 512*1024*1024 # 512Mb for OS needs
   for component in components:
-    if component in getHeapsizeProperties().keys():
+    if component in list(getHeapsizeProperties().keys()):
       heapSizeProperties = getHeapsizeProperties()[component]
       for heapSizeProperty in heapSizeProperties:
         try:

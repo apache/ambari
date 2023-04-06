@@ -1,0 +1,72 @@
+{
+  "services": [
+    {
+      "name": "OOZIE",
+      "identities": [
+        {
+          "name": "oozie_spnego",
+          "reference": "/spnego"
+        },
+        {
+          "name": "oozie_smokeuser",
+          "reference": "/smokeuser"
+        }
+      ],
+      "auth_to_local_properties" : [
+        "oozie-site/oozie.authentication.kerberos.name.rules"
+      ],
+      "configurations": [
+        {
+          "oozie-site": {
+            "oozie.authentication.type": "kerberos",
+            "oozie.service.AuthorizationService.authorization.enabled": "true",
+            "oozie.service.HadoopAccessorService.kerberos.enabled": "true",
+            "local.realm": "${realm}"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "OOZIE_SERVER",
+          "identities": [
+            {
+              "name": "oozie_oozie_server_hdfs",
+              "reference" : "/HDFS/NAMENODE/hdfs"
+            },
+            {
+              "name": "oozie_server",
+              "principal": {
+                "value": "oozie/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "oozie-site/oozie.service.HadoopAccessorService.kerberos.principal",
+                "local_username" : "${oozie-env/oozie_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/oozie.service.keytab",
+                "owner": {
+                  "name": "${oozie-env/oozie_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "oozie-site/oozie.service.HadoopAccessorService.keytab.file"
+              }
+            },
+            {
+              "name": "oozie_oozie_server_spnego",
+              "reference": "/spnego",
+              "principal": {
+                "configuration": "oozie-site/oozie.authentication.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "oozie-site/oozie.authentication.kerberos.keytab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

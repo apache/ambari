@@ -286,11 +286,8 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    */
   skipConfigStep: function () {
     var skipConfigStep = true;
-    this.get('content.services')
-      .filterProperty('isSelected', true)
-      .filterProperty('isInstalled', false)
-      .mapProperty('serviceName')
-      .map(function (serviceName) {
+    var selectedServices = this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).mapProperty('serviceName');
+    selectedServices.map(function (serviceName) {
       skipConfigStep = skipConfigStep && this.isServiceNotConfigurable(serviceName);
     }, this);
     return skipConfigStep;
@@ -370,12 +367,9 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    */
   saveClients: function () {
     var clients = [];
-    var clientComponents = App.StackServiceComponent.find().filterProperty('isClient');
-    this.get('content.services')
-    .filterProperty('isSelected')
-    .filterProperty('isInstalled', false)
-    .forEach(function (_service) {
-      var serviceClients = clientComponents.filterProperty('serviceName', _service.get('serviceName'));
+    var serviceComponents = App.StackServiceComponent.find();
+    this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled',false).forEach(function (_service) {
+      var serviceClients = serviceComponents.filterProperty('serviceName', _service.get('serviceName')).filterProperty('isClient');
       serviceClients.forEach(function (client) {
         clients.push({
           component_name: client.get('componentName'),
@@ -445,9 +439,10 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    * @method installServices
    */
   installServices: function (callback) {
+    var self = this;
     this.set('content.cluster.oldRequestsId', []);
-    this.installAdditionalClients().done(() => {
-      this.installSelectedServices(callback);
+    this.installAdditionalClients().done(function () {
+      self.installSelectedServices(callback);
     });
   },
 
@@ -457,10 +452,11 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    * @method installSelectedServices
    */
   installSelectedServices: function (callback) {
-    var selectedServices = this.get('content.services').filterProperty('isInstalled', false).filterProperty('isSelected').mapProperty('serviceName');
+    var name = 'common.services.update';
+    var selectedServices = this.get('content.services').filterProperty('isInstalled', false).filterProperty('isSelected', true).mapProperty('serviceName');
     var dependentServices = this.getServicesBySelectedSlaves();
     var data = this.generateDataForInstallServices(selectedServices.concat(dependentServices));
-    this.installServicesRequest('common.services.update', data, callback.bind(this));
+    this.installServicesRequest(name, data, callback.bind(this));
   },
 
   installServicesRequest: function (name, data, callback) {
@@ -479,11 +475,11 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    * @returns {Array}
    */
   getServicesBySelectedSlaves: function () {
-    const result = [];
+    var result = [];
     this.get('content.slaveComponentHosts').forEach(function (slaveComponent) {
       if (slaveComponent.hosts.someProperty('isInstalled', false)) {
-        const stackComponent = App.StackServiceComponent.find(slaveComponent.componentName);
-        if (stackComponent.get('isLoaded')) {
+        var stackComponent = App.StackServiceComponent.find().findProperty('componentName', slaveComponent.componentName);
+        if (stackComponent) {
           result.push(stackComponent.get('serviceName'));
         }
       }
@@ -500,13 +496,14 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
     var dfd = $.Deferred();
     var count = 0;
     if (this.get('content.additionalClients.length') > 0) {
-      this.get('content.additionalClients').forEach((c) => {
+      this.get('content.additionalClients').forEach(function (c) {
         if (c.hostNames.length > 0) {
+          var queryStr = 'HostRoles/component_name='+ c.componentName + '&HostRoles/host_name.in(' + c.hostNames.join() + ')';
           this.get('installClietsQueue').addRequest({
             name: 'common.host_component.update',
             sender: this,
             data: {
-              query: 'HostRoles/component_name='+ c.componentName + '&HostRoles/host_name.in(' + c.hostNames.join() + ')',
+              query: queryStr,
               context: 'Install ' + App.format.role(c.componentName, false),
               HostRoles: {
                 state: 'INSTALLED'

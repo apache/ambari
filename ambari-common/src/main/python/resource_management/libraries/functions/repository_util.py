@@ -30,19 +30,14 @@ __all__ = ["RepositoryUtil", "CommandRepository"]
 # components_lits = repoName + postfix
 UBUNTU_REPO_COMPONENTS_POSTFIX = "main"
 
-
 class RepositoryUtil:
-  def __init__(self, config):
-    """
-    Constructor for RepositoryUtil
-
-    :type config dict
-    """
+  def __init__(self, config, tags_to_skip):
+    self.tags_to_skip = tags_to_skip
 
     # repo templates
     repo_file = config['repositoryFile']
-    repo_rhel_suse = config['configurations']['cluster-env']['repo_suse_rhel_template']
-    repo_ubuntu = config['configurations']['cluster-env']['repo_ubuntu_template']
+    repo_rhel_suse =  config['configurations']['cluster-env']['repo_suse_rhel_template']
+    repo_ubuntu =  config['configurations']['cluster-env']['repo_ubuntu_template']
 
     if is_empty(repo_file):
       return
@@ -69,6 +64,10 @@ class RepositoryUtil:
       if repository.repo_id is None:
         raise Fail("Repository with url {0} has no id".format(repository.base_url))
 
+      if self.tags_to_skip & repository.tags:
+        Logger.info("Repository with url {0} is not created due to its tags: {1}".format(repository.base_url, repository.tags))
+        continue
+
       if not repository.ambari_managed:
         Logger.warning(
           "Repository for {0}/{1}/{2} is not managed by Ambari".format(
@@ -88,15 +87,13 @@ class RepositoryUtil:
 
     return repo_files
 
-
 def create_repo_files(template, command_repository):
   """
   DEPRECATED. Is present for usage by old mpacks.
   Please use Script.repository_util.create_repo_files() instead.
   """
   from resource_management.libraries.script import Script
-  return RepositoryUtil(Script.get_config()).create_repo_files()
-
+  return RepositoryUtil(Script.get_config(), set()).create_repo_files()
 
 def _find_value(dictionary, key, default=None):
   """
@@ -130,7 +127,7 @@ class CommandRepository(object):
 
     if isinstance(repo_object, dict):
       json_dict = dict(repo_object)   # strict dict(from ConfigDict) to avoid hidden type conversions
-    elif isinstance(repo_object, (str, unicode)):
+    elif isinstance(repo_object, str):
       json_dict = json.loads(repo_object)
     else:
       raise Fail("Cannot deserialize command repository {0}".format(str(repo_object)))
@@ -140,9 +137,7 @@ class CommandRepository(object):
     self.stack_name = _find_value(json_dict, 'stackName')
     self.version_string = _find_value(json_dict, 'repoVersion')
     self.repo_filename = _find_value(json_dict, 'repoFileName')
-    self.resolved = _find_value(json_dict, 'resolved', False)
     self.feat = CommandRepositoryFeature(_find_value(json_dict, "feature", default={}))
-    self.all_items = []
     self.items = []
 
     repos_def = _find_value(json_dict, 'repositories')
@@ -151,19 +146,7 @@ class CommandRepository(object):
          repos_def = [repos_def]
 
        for repo_def in repos_def:
-         self.all_items.append(CommandRepositoryItem(self, repo_def))
-
-    from resource_management.libraries.functions import lzo_utils
-
-    # remove repos with 'GPL' tag when GPL license is not approved
-    self.repo_tags_to_skip = set()
-    if not lzo_utils.is_gpl_license_accepted():
-      self.repo_tags_to_skip.add("GPL")
-    for r in self.all_items:
-      if self.repo_tags_to_skip & r.tags:
-        Logger.info("Repository with url {0} is not created due to its tags: {1}".format(r.base_url, r.tags))
-      else:
-        self.items.append(r)
+         self.items.append(CommandRepositoryItem(self, repo_def))
 
 
 class CommandRepositoryItem(object):

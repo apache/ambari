@@ -1,0 +1,166 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false">
+  <property>
+    <name>atlas.graph.storage.backend</name>
+    <value>berkeleyje</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.graph.storage.directory</name>
+    <value>/var/lib/atlas/data/berkeley</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.graph.index.search.backend</name>
+    <value>elasticsearch</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.graph.index.search.directory</name>
+    <value>/var/lib/atlas/data/es</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.graph.index.search.elasticsearch.client-only</name>
+    <value>false</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.graph.index.search.elasticsearch.local-mode</name>
+    <value>true</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.lineage.hive.table.type.name</name>
+    <value>DataSet</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.lineage.hive.table.schema.query.hive_table</name>
+    <value>hive_table where name='%s'\, columns</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.lineage.hive.table.schema.query.Table</name>
+    <value>Table where name='%s'\, columns</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.lineage.hive.process.type.name</name>
+    <value>Process</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.lineage.hive.process.inputs.name</name>
+    <value>inputs</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.lineage.hive.process.outputs.name</name>
+    <value>outputs</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.enableTLS</name>
+    <value>false</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method</name>
+    <value>simple</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.principal</name>
+    <value>atlas</value>
+    <description/>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.keytab</name>
+    <value>/etc/security/keytabs/atlas.service.keytab</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.server.bind.address</name>
+    <value>localhost</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>atlas.notification.embedded</name>
+    <value>false</value>
+    <description>Indicates whether or not the notification service should be embedded.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- atlas.cluster.name is also part of Atlas Hooks -->
+  <property>
+    <name>atlas.cluster.name</name>
+    <value>{{cluster_name}}</value>
+    <description>The cluster name.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>atlas.server.http.port</name>
+    <value>21000</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.server.https.port</name>
+    <value>21443</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>atlas.audit.hbase.tablename</name>
+    <value>ATLAS_ENTITY_AUDIT_EVENTS</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>atlas.audit.zookeeper.session.timeout.ms</name>
+    <value>60000</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

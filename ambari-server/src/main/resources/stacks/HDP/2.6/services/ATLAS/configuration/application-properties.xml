@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false">
+
+  <!-- Atlas knox sso properties -->
+  <property>
+    <name>atlas.sso.knox.enabled</name>
+    <display-name>Enable Atlas Knox SSO</display-name>
+    <value>false</value>
+    <description/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>atlas.sso.knox.providerurl</name>
+    <value/>
+    <description/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+       <type>gateway-site</type>
+       <name>gateway.port</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>atlas.sso.knox.publicKey</name>
+    <value/>
+    <description/>
+    <value-attributes>
+      <type>multiline</type>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>atlas.sso.knox.browser.useragent</name>
+    <value/>
+    <description/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>atlas.authentication.method.ldap.type</name>
+    <display-name>LDAP Authentication Type</display-name>
+    <value>ldap</value>
+    <description>The LDAP type (ldap, ad, or none).</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>ldap</value>
+          <label>LDAP</label>
+        </entry>
+        <entry>
+          <value>ad</value>
+          <label>AD</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.kafka.session.timeout.ms</name>
+    <value>30000</value>
+    <description>New Kafka consumer API</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>atlas.kafka.enable.auto.commit</name>
+    <value>false</value>
+    <description>New Kafka consumer API</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>atlas.kafka.auto.commit.enable</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>atlas.proxyusers</name>
+    <value/>
+    <description>Proxy users for Atlas</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>knox-env</type>
+        <name>knox_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

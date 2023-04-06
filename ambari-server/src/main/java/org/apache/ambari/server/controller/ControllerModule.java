@@ -55,16 +55,14 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.StageFactoryImpl;
+import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.DatabaseConsistencyCheckHelper;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
-import org.apache.ambari.server.checks.UpgradeCheckRegistryProvider;
 import org.apache.ambari.server.cleanup.ClasspathScannerUtils;
-import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
-import org.apache.ambari.server.controller.internal.AuthResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
@@ -87,7 +85,6 @@ import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetric
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
-import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.hooks.AmbariEventFactory;
 import org.apache.ambari.server.hooks.HookContext;
@@ -100,7 +97,6 @@ import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.metrics.system.impl.MetricsServiceImpl;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.notifications.DispatchFactory;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.notifications.dispatchers.AlertScriptDispatcher;
@@ -117,20 +113,13 @@ import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationInterceptor;
 import org.apache.ambari.server.security.authorization.internal.RunWithInternalSecurityContext;
-import org.apache.ambari.server.security.encryption.AESEncryptionService;
-import org.apache.ambari.server.security.encryption.AgentConfigUpdateEncryptor;
-import org.apache.ambari.server.security.encryption.AmbariServerConfigurationEncryptor;
-import org.apache.ambari.server.security.encryption.ConfigPropertiesEncryptor;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
-import org.apache.ambari.server.security.encryption.EncryptionService;
-import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
 import org.apache.ambari.server.serveraction.users.CollectionPersisterService;
 import org.apache.ambari.server.serveraction.users.CollectionPersisterServiceFactory;
 import org.apache.ambari.server.serveraction.users.CsvFilePersisterService;
 import org.apache.ambari.server.stack.StackManagerFactory;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -146,6 +135,7 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceComponentImpl;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceImpl;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
@@ -167,7 +157,6 @@ import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.utils.PasswordUtils;
-import org.apache.ambari.server.utils.ThreadPools;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.slf4j.Logger;
@@ -186,8 +175,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
-import com.google.inject.Singleton;
-import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.google.inject.persist.PersistModule;
@@ -204,7 +191,6 @@ public class ControllerModule extends AbstractModule {
   private final Configuration configuration;
   private final OsFamily os_family;
   private final HostsMap hostsMap;
-  private final ThreadPools threadPools;
   private boolean dbInitNeeded;
   private final Gson prettyGson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
 
@@ -215,14 +201,12 @@ public class ControllerModule extends AbstractModule {
     configuration = new Configuration();
     hostsMap = new HostsMap(configuration);
     os_family = new OsFamily(configuration);
-    threadPools = new ThreadPools(configuration);
   }
 
   public ControllerModule(Properties properties) throws Exception {
     configuration = new Configuration(properties);
     hostsMap = new HostsMap(configuration);
     os_family = new OsFamily(configuration);
-    threadPools = new ThreadPools((configuration));
   }
 
 
@@ -343,21 +327,9 @@ public class ControllerModule extends AbstractModule {
     bind(KerberosHelper.class).to(KerberosHelperImpl.class);
 
     bind(CredentialStoreService.class).to(CredentialStoreServiceImpl.class);
-    bind(EncryptionService.class).to(AESEncryptionService.class);
-    //to support different Encryptor implementation we have to annotate them by their name and use them as @Named injects
-    if (configuration.shouldEncryptSensitiveData()) {
-      bind(new TypeLiteral<Encryptor<Config>>() {}).annotatedWith(Names.named("ConfigPropertiesEncryptor")).to(ConfigPropertiesEncryptor.class);
-      bind(new TypeLiteral<Encryptor<AgentConfigsUpdateEvent>>() {}).annotatedWith(Names.named("AgentConfigEncryptor")).to(AgentConfigUpdateEncryptor.class);
-      bind(new TypeLiteral<Encryptor<AmbariServerConfiguration>>() {}).annotatedWith(Names.named("AmbariServerConfigurationEncryptor")).to(AmbariServerConfigurationEncryptor.class);
-    } else {
-      bind(new TypeLiteral<Encryptor<Config>>() {}).annotatedWith(Names.named("ConfigPropertiesEncryptor")).toInstance(Encryptor.NONE);
-      bind(new TypeLiteral<Encryptor<AgentConfigsUpdateEvent>>() {}).annotatedWith(Names.named("AgentConfigEncryptor")).toInstance(Encryptor.NONE);
-      bind(new TypeLiteral<Encryptor<AmbariServerConfiguration>>() {}).annotatedWith(Names.named("AmbariServerConfigurationEncryptor")).toInstance(Encryptor.NONE);
-    }
 
     bind(Configuration.class).toInstance(configuration);
     bind(OsFamily.class).toInstance(os_family);
-    bind(ThreadPools.class).toInstance(threadPools);
     bind(HostsMap.class).toInstance(hostsMap);
     bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
     bind(DelegatingFilterProxy.class).toInstance(new DelegatingFilterProxy() {
@@ -429,8 +401,7 @@ public class ControllerModule extends AbstractModule {
 
     bindByAnnotation(null);
     bindNotificationDispatchers(null);
-    
-    bind(UpgradeCheckRegistry.class).toProvider(UpgradeCheckRegistryProvider.class).in(Singleton.class);
+    registerUpgradeChecks(null);
     bind(HookService.class).to(UserHookService.class);
 
     InternalAuthenticationInterceptor ambariAuthenticationInterceptor = new InternalAuthenticationInterceptor();
@@ -504,7 +475,6 @@ public class ControllerModule extends AbstractModule {
         .implement(ResourceProvider.class, Names.named("alertTarget"), AlertTargetResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("viewInstance"), ViewInstanceResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("rootServiceHostComponentConfiguration"), RootServiceComponentConfigurationResourceProvider.class)
-        .implement(ResourceProvider.class, Names.named("auth"), AuthResourceProvider.class)
         .build(ResourceProviderFactory.class));
 
     install(new FactoryModuleBuilder().implement(
@@ -530,12 +500,9 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));
     install(new FactoryModuleBuilder().build(MetricPropertyProviderFactory.class));
     install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
-    install(new FactoryModuleBuilder().build(MpackManagerFactory.class));
-    install(new FactoryModuleBuilder().build(org.apache.ambari.server.topology.addservice.RequestValidatorFactory.class));
 
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
-    bind(org.apache.ambari.server.topology.StackFactory.class).to(org.apache.ambari.server.topology.DefaultStackFactory.class);
     bind(BlueprintFactory.class);
 
     install(new FactoryModuleBuilder().implement(AmbariEvent.class, Names.named("userCreated"), UserCreatedEvent.class).build(AmbariEventFactory.class));
@@ -700,6 +667,61 @@ public class ControllerModule extends AbstractModule {
       }
     }
 
+    return beanDefinitions;
+  }
+
+  /**
+   * Searches for all instances of {@link AbstractCheckDescriptor} on the
+   * classpath and registers each as a singleton with the
+   * {@link UpgradeCheckRegistry}.
+   */
+  @SuppressWarnings("unchecked")
+  protected Set<BeanDefinition> registerUpgradeChecks(Set<BeanDefinition> beanDefinitions) {
+
+    // make the registry a singleton
+    UpgradeCheckRegistry registry = new UpgradeCheckRegistry();
+    bind(UpgradeCheckRegistry.class).toInstance(registry);
+
+    if (null == beanDefinitions || beanDefinitions.isEmpty()) {
+      String packageName = AbstractCheckDescriptor.class.getPackage().getName();
+      LOG.info("Searching package {} for classes matching {}", packageName,
+          AbstractCheckDescriptor.class);
+
+      ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+
+      // match all implementations of the base check class
+      AssignableTypeFilter filter = new AssignableTypeFilter(AbstractCheckDescriptor.class);
+      scanner.addIncludeFilter(filter);
+
+      beanDefinitions = scanner.findCandidateComponents(packageName);
+    }
+
+    // no dispatchers is a problem
+    if (null == beanDefinitions || beanDefinitions.size() == 0) {
+      LOG.error("No instances of {} found to register", AbstractCheckDescriptor.class);
+      return null;
+    }
+
+    // for every discovered check, singleton-ize them and register with the
+    // registry
+    for (BeanDefinition beanDefinition : beanDefinitions) {
+      String className = beanDefinition.getBeanClassName();
+      Class<?> clazz = ClassUtils.resolveClassName(className, ClassUtils.getDefaultClassLoader());
+
+      try {
+        AbstractCheckDescriptor upgradeCheck = (AbstractCheckDescriptor) clazz.newInstance();
+        bind((Class<AbstractCheckDescriptor>) clazz).toInstance(upgradeCheck);
+        registry.register(upgradeCheck);
+      } catch (Exception exception) {
+        LOG.error("Unable to bind and register upgrade check {}", clazz, exception);
+      }
+    }
+
+    // log the order of the pre-upgrade checks
+    List<AbstractCheckDescriptor> upgradeChecks = registry.getUpgradeChecks();
+    for (AbstractCheckDescriptor upgradeCheck : upgradeChecks) {
+      LOG.info("Registered pre-upgrade check {}", upgradeCheck.getClass());
+    }
     return beanDefinitions;
   }
 }

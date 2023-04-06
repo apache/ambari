@@ -29,7 +29,6 @@ import java.util.Set;
 
 import javax.persistence.EntityManager;
 
-import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.controller.GroupPrivilegeResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -59,7 +58,6 @@ import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.Users;
-import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
@@ -70,8 +68,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.TypeLiteral;
-import com.google.inject.name.Names;
 
 import junit.framework.Assert;
 
@@ -354,7 +350,6 @@ public class GroupPrivilegeResourceProviderTest extends EasyMockSupport{
                                                        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
                                                        bind(HookService.class).toInstance(createMock(HookService.class));
                                                        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
-                                                       bind(new TypeLiteral<Encryptor<AmbariServerConfiguration>>() {}).annotatedWith(Names.named("AmbariServerConfigurationEncryptor")).toInstance(Encryptor.NONE);
                                                        bind(AmbariLdapConfigurationProvider.class).toInstance(createMock(AmbariLdapConfigurationProvider.class));
 
                                                        bind(GroupDAO.class).toInstance(groupDAO);

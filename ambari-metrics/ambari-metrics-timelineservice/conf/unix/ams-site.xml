@@ -1,0 +1,385 @@
+<?xml version="1.0"?>
+
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<configuration>
+
+  <!-- Site specific AMBARI_METRICS configuration properties -->
+
+  <property>
+    <name>cluster.zookeeper.property.clientPort</name>
+    <value>2182</value>
+  </property>
+
+  <property>
+    <name>cluster.zookeeper.quorum</name>
+    <value>localhost</value>
+  </property>
+
+  <property>
+    <name>failover.strategy</name>
+    <value>round-robin</value>
+  </property>
+
+  <property>
+    <name>phoenix.query.maxGlobalMemoryPercentage</name>
+    <value>25</value>
+  </property>
+
+  <property>
+    <name>phoenix.spool.directory</name>
+    <value>/tmp</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.aggregator.checkpoint.dir</name>
+    <value>/var/lib/ambari-metrics-collector/checkpoint</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.aggregators.skip.blockcache.enabled</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cache.commit.interval</name>
+    <value>10</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cache.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cache.size</name>
+    <value>100</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregate.splitpoints</name>
+    <value>jvm.JvmMetrics.ThreadsRunnable</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregation.sql.filters</name>
+    <value>sdisk\_%,boottime</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier</name>
+    <value>2</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.daily.disabled</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.daily.interval</name>
+    <value>86400</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.daily.ttl</name>
+    <value>63072000</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier</name>
+    <value>2</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.hourly.disabled</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.hourly.interval</name>
+    <value>3600</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.hourly.ttl</name>
+    <value>31536000</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.interpolation.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.minute.checkpointCutOffMultiplier</name>
+    <value>2</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.minute.disabled</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.minute.interval</name>
+    <value>300</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.minute.ttl</name>
+    <value>2592000</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.second.checkpointCutOffMultiplier</name>
+    <value>2</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.second.disabled</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.second.interval</name>
+    <value>120</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.second.timeslice.interval</name>
+    <value>30</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.cluster.aggregator.second.ttl</name>
+    <value>259200</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.daily.aggregator.minute.interval</name>
+    <value>86400</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.downsampler.event.metric.patterns</name>
+    <value>topology\.%</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.downsampler.topn.function</name>
+    <value>max</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.downsampler.topn.metric.patterns</name>
+    <value>dfs.NNTopUserOpCounts.windowMs=60000.op=__%.user=%,dfs.NNTopUserOpCounts.windowMs=300000.op=__%.user=%,dfs.NNTopUserOpCounts.windowMs=1500000.op=__%.user=%</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.downsampler.topn.value</name>
+    <value>10</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.hbase.compression.scheme</name>
+    <value>SNAPPY</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.hbase.data.block.encoding</name>
+    <value>FAST_DIFF</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.hbase.init.check.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.aggregate.splitpoints</name>
+    <value>jvm.JvmMetrics.ThreadsRunnable</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier</name>
+    <value>2</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.aggregator.daily.disabled</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.aggregator.daily.ttl</name>
+    <value>31536000</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.aggregator.hourly.checkpointCutOffMultiplier</name>
+    <value>2</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.aggregator.hourly.disabled</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.aggregator.hourly.interval</name>
+    <value>3600</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.aggregator.hourly.ttl</name>
+    <value>2592000</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.aggregator.minute.checkpointCutOffMultiplier</name>
+    <value>2</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.aggregator.minute.disabled</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.aggregator.minute.interval</name>
+    <value>300</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.aggregator.minute.ttl</name>
+    <value>604800</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.aggregator.ttl</name>
+    <value>86400</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.inmemory.aggregation</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.inmemory.aggregation.http.policy</name>
+    <value>HTTP_ONLY</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.host.inmemory.aggregation.port</name>
+    <value>61888</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.service.checkpointDelay</name>
+    <value>60</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.service.cluster.aggregator.appIds</name>
+    <value>datanode,nodemanager,hbase</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.service.default.result.limit</name>
+    <value>5760</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.service.handler.thread.count</name>
+    <value>20</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.service.http.policy</name>
+    <value>HTTP_ONLY</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.service.metadata.filters</name>
+    <value>ContainerResource</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.service.operation.mode</name>
+    <value>embedded</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.service.resultset.fetchSize</name>
+    <value>2000</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.service.rpc.address</name>
+    <value>0.0.0.0:60200</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.service.use.groupBy.aggregators</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.service.watcher.delay</name>
+    <value>30</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.service.watcher.disabled</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.service.watcher.initial.delay</name>
+    <value>600</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.service.watcher.timeout</name>
+    <value>30</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.service.webapp.address</name>
+    <value>0.0.0.0:6188</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.sink.report.interval</name>
+    <value>60</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.transient.metric.patterns</name>
+    <value>topology\.%</value>
+  </property>
+
+  <property>
+    <name>timeline.metrics.whitelisting.enabled</name>
+    <value>false</value>
+  </property>
+
+</configuration>

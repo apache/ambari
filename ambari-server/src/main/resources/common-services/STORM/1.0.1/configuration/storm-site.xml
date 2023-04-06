@@ -1,0 +1,174 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="true">
+  <property>
+    <name>storm.thrift.transport</name>
+    <value>{{storm_thrift_transport}}</value>
+    <description>The transport plug-in that used for Thrift client/server communication.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>_storm.thrift.nonsecure.transport</name>
+    <value>org.apache.storm.security.auth.SimpleTransportPlugin</value>
+    <description>The transport plug-in that used for non-secure mode for for Thrift client/server communication.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>_storm.thrift.secure.transport</name>
+    <value>org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin</value>
+    <description>The transport plug-in that used for secure mode for Thrift client/server communication.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>storm.messaging.transport</name>
+    <value>org.apache.storm.messaging.netty.Context</value>
+    <description>The transporter for communication among Storm tasks.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>nimbus.topology.validator</name>
+    <value>org.apache.storm.nimbus.DefaultTopologyValidator</value>
+    <description>A custom class that implements ITopologyValidator that is run whenever a
+       topology is submitted. Can be used to provide business-specific logic for
+       whether topologies are allowed to run or not.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>topology.spout.wait.strategy</name>
+    <value>org.apache.storm.spout.SleepSpoutWaitStrategy</value>
+    <description>A class that implements a strategy for what to do when a spout needs to wait. Waiting is
+       triggered in one of two conditions:
+
+       1. nextTuple emits no tuples
+       2. The spout has hit maxSpoutPending and can't emit any more tuples</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>topology.kryo.factory</name>
+    <value>org.apache.storm.serialization.DefaultKryoFactory</value>
+    <description>Class that specifies how to create a Kryo instance for serialization. Storm will then apply
+       topology.kryo.register and topology.kryo.decorators on top of this. The default implementation
+       implements topology.fall.back.on.java.serialization and turns references off.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>topology.tuple.serializer</name>
+    <value>org.apache.storm.serialization.types.ListDelegateSerializer</value>
+    <description>The serializer class for ListDelegate (tuple payload).
+       The default serializer will be ListDelegateSerializer</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>client.jartransformer.class</name>
+    <description>Storm Topology backward comptability transformer</description>
+    <value>org.apache.storm.hack.StormShadeTransformer</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>nimbus.impersonation.authorizer</name>
+    <description>
+      To ensure only authorized users can perform impersonation you should start nimbus with nimbus.impersonation.authorizer set to org.apache.storm.security.auth.authorizer.ImpersonationAuthorizer.
+      A storm client may submit requests on behalf of another user. For example, if a userX submits an oozie workflow and as part of workflow execution if user oozie wants to submit a topology on behalf of userX it can do so by leveraging the impersonation feature.In order to submit topology as some other user , you can use StormSubmitter.submitTopologyAs API. Alternatively you can use NimbusClient.getConfiguredClientAs to get a nimbus client as some other user and perform any nimbus action(i.e. kill/rebalance/activate/deactivate) using this client.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>nimbus.impersonation.acl</name>
+    <description>
+      The ImpersonationAuthorizer uses nimbus.impersonation.acl as the acl to authorize users. Following is a sample nimbus config for supporting impersonation:
+      nimbus.impersonation.acl:
+    impersonating_user1:
+        hosts:
+            [comma separated list of hosts from which impersonating_user1 is allowed to impersonate other users]
+        groups:
+            [comma separated list of groups whose users impersonating_user1 is allowed to impersonate]
+    impersonating_user2:
+        hosts:
+            [comma separated list of hosts from which impersonating_user2 is allowed to impersonate other users]
+        groups:
+            [comma separated list of groups whose users impersonating_user2 is allowed to impersonate]
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- Deleted configs. -->
+  <property>
+    <name>atlas.cluster.name</name>
+    <value>{{cluster_name}}</value>
+    <on-ambari-upgrade add="false"/>
+    <deleted>true</deleted>
+  </property>
+  <property>
+    <name>storm.cluster.metrics.consumer.register</name>
+    <value>[{"class": "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter"}]</value>
+    <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>topology.metrics.consumer.register</name>
+    <value>[{"class": "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsSink", "parallelism.hint": 1, "whitelist": ["kafkaOffset\\..+/", "__complete-latency", "__process-latency", "__execute-latency", "__receive\\.population$", "__sendqueue\\.population$", "__execute-count", "__emit-count", "__ack-count", "__fail-count", "memory/heap\\.usedBytes$", "memory/nonHeap\\.usedBytes$", "GC/.+\\.count$", "GC/.+\\.timeMs$"]}]</value>
+    <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>topology.metrics.aggregate.per.worker</name>
+    <value>true</value>
+    <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>topology.metrics.aggregate.metric.evict.secs</name>
+    <value>5</value>
+    <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>topology.metrics.expand.map.type</name>
+    <value>true</value>
+    <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>topology.metrics.metric.name.separator</name>
+    <value>.</value>
+    <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

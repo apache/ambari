@@ -90,8 +90,8 @@ import org.apache.commons.lang.StringUtils;
  */
 public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
 
-  public static final String KEY_PROPERTIES = "properties";
-  public static final String KEY_SERVICES = Type.SERVICE.getDescriptorPluralName();
+  static final String KEY_PROPERTIES = "properties";
+  static final String KEY_SERVICES = Type.SERVICE.getDescriptorPluralName();
 
   /**
    * A Map of the "global" properties contained within this KerberosDescriptor
@@ -271,9 +271,8 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
    * Properties will be updated if the relevant updated values are not null.
    *
    * @param updates the KerberosDescriptor containing the updated values
-   * @return this {@code KerberosDescriptor} for convenience
    */
-  public KerberosDescriptor update(KerberosDescriptor updates) {
+  public void update(KerberosDescriptor updates) {
     if (updates != null) {
       Map<String, KerberosServiceDescriptor> updatedServiceDescriptors = updates.getServices();
       if (updatedServiceDescriptors != null) {
@@ -291,8 +290,6 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
     }
 
     super.update(updates);
-
-    return this;
   }
 
   /**

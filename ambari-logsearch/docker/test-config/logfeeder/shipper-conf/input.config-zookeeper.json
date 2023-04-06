@@ -1,0 +1,35 @@
+{
+  "input": [
+    {
+      "type": "zookeeper",
+      "rowtype": "service",
+      "path": "/root/test-logs/zookeeper/zookeeper-test-log.txt",
+      "cache_enabled" : "true",
+      "cache_size" : "10",
+      "cache_dedup_interval" : "1000",
+      "group": "Zookeeper"
+    }
+  ],
+  "filter": [
+    {
+      "filter": "grok",
+      "conditions": {
+        "fields": {
+          "type": [
+            "zookeeper"
+          ]
+        }
+      },
+      "log4j_format": "%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n",
+      "multiline_pattern": "^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern": "(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}-%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\@%{INT:line_number}\\]%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values": {
+        "logtime": {
+          "map_date": {
+            "target_date_pattern": "yyyy-MM-dd HH:mm:ss,SSS"
+          }
+        }
+      }
+    }
+  ]
+}

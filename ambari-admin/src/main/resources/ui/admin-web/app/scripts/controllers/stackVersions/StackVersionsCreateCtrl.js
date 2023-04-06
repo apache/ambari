@@ -220,6 +220,10 @@ angular.module('ambariAdminConsole')
             $scope.osList.push(stackOs);
           }
         });
+        if ($scope.selectedOption.index == $scope.localOption.index) {
+          $scope.clearRepoVersions();
+          $scope.validateRepoUrl();
+        }
       })
       .catch(function (data) {
         Alert.error($t('versions.alerts.osListError'), data.message);
@@ -352,7 +356,7 @@ angular.module('ambariAdminConsole')
             });
           }
         })
-        .catch(function (data) {
+        .catch(function (resp) {
           Alert.error($t('versions.alerts.readVersionInfoError'), data.message);
         });
       } else {

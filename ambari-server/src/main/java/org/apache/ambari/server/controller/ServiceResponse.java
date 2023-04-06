@@ -41,16 +41,13 @@ public class ServiceResponse {
   private final boolean ssoIntegrationEnabled;
   private final boolean ssoIntegrationRequiresKerberos;
   private final boolean kerberosEnabled;
-  private final boolean ldapIntegrationSupported;
-  private final boolean ldapIntegrationEnabled;
-  private final boolean ldapIntegrationDesired;
 
   public ServiceResponse(Long clusterId, String clusterName, String serviceName,
                          StackId desiredStackId, String desiredRepositoryVersion,
                          RepositoryVersionState repositoryVersionState, String desiredState,
                          boolean credentialStoreSupported, boolean credentialStoreEnabled, boolean ssoIntegrationSupported,
                          boolean ssoIntegrationDesired, boolean ssoIntegrationEnabled, boolean ssoIntegrationRequiresKerberos,
-                         boolean kerberosEnabled, boolean ldapIntegrationSupported,  boolean ldapIntegrationEnabled, boolean ldapIntegrationDesired) {
+                         boolean kerberosEnabled) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
@@ -65,9 +62,6 @@ public class ServiceResponse {
     this.credentialStoreEnabled = credentialStoreEnabled;
     this.ssoIntegrationRequiresKerberos = ssoIntegrationRequiresKerberos;
     this.kerberosEnabled = kerberosEnabled;
-    this.ldapIntegrationSupported = ldapIntegrationSupported;
-    this.ldapIntegrationEnabled = ldapIntegrationEnabled;
-    this.ldapIntegrationDesired = ldapIntegrationDesired;
   }
 
   /**
@@ -282,30 +276,6 @@ public class ServiceResponse {
   @ApiModelProperty(name = "kerberos_enabled")
   public boolean isKerberosEnabled() {
     return kerberosEnabled;
-  }
-  
-  /**
-   * Indicates if this service supports LDAP integration.
-   */
-  @ApiModelProperty(name = "ldap_integration_supported")
-  public boolean isLdapIntegrationSupported() {
-    return ldapIntegrationSupported;
-  }
-
-  /**
-   * Indicates whether the service is configured for LDAP integration or not
-   */
-  @ApiModelProperty(name = "ldap_integration_enabled")
-  public boolean isLdapIntegrationEnabled() {
-    return ldapIntegrationEnabled;
-  }
-
-  /**
-   * Indicates whether the service is chosen for LDAP integration or not
-   */
-  @ApiModelProperty(name = "ldap_integration_desired")
-  public boolean isLdapIntegrationDesired() {
-    return ldapIntegrationDesired;
   }
 
   /**

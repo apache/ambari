@@ -201,11 +201,6 @@ public class StackAdvisorHelperTest {
   }
 
   @Test
-  public void testCreateRecommendationCommand_returnsLDAPConfigurationRecommendationCommand() throws IOException, StackAdvisorException {
-    testCreateConfigurationRecommendationCommand(StackAdvisorRequestType.LDAP_CONFIGURATIONS, StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS_FOR_LDAP);
-  }
-
-  @Test
   public void testCreateRecommendationCommand_returnsKerberosConfigurationRecommendationCommand() throws IOException, StackAdvisorException {
     testCreateConfigurationRecommendationCommand(StackAdvisorRequestType.KERBEROS_CONFIGURATIONS, StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS_FOR_KERBEROS);
   }

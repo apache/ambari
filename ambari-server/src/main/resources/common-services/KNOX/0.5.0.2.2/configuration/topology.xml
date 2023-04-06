@@ -1,0 +1,133 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false" supports_adding_forbidden="true">
+  <!-- topology file -->
+  <property>
+    <name>content</name>
+    <display-name>topology template</display-name>
+    <value>
+        &lt;topology&gt;
+
+            &lt;gateway&gt;
+
+                &lt;provider&gt;
+                    &lt;role&gt;authentication&lt;/role&gt;
+                    &lt;name&gt;ShiroProvider&lt;/name&gt;
+                    &lt;enabled&gt;true&lt;/enabled&gt;
+                    &lt;param&gt;
+                        &lt;name&gt;sessionTimeout&lt;/name&gt;
+                        &lt;value&gt;30&lt;/value&gt;
+                    &lt;/param&gt;
+                    &lt;param&gt;
+                        &lt;name&gt;main.ldapRealm&lt;/name&gt;
+                        &lt;value&gt;org.apache.hadoop.gateway.shirorealm.KnoxLdapRealm&lt;/value&gt;
+                    &lt;/param&gt;
+                    &lt;param&gt;
+                        &lt;name&gt;main.ldapRealm.userDnTemplate&lt;/name&gt;
+                        &lt;value&gt;uid={0},ou=people,dc=hadoop,dc=apache,dc=org&lt;/value&gt;
+                    &lt;/param&gt;
+                    &lt;param&gt;
+                        &lt;name&gt;main.ldapRealm.contextFactory.url&lt;/name&gt;
+                        &lt;value&gt;ldap://{{knox_host_name}}:33389&lt;/value&gt;
+                    &lt;/param&gt;
+                    &lt;param&gt;
+                        &lt;name&gt;main.ldapRealm.contextFactory.authenticationMechanism&lt;/name&gt;
+                        &lt;value&gt;simple&lt;/value&gt;
+                    &lt;/param&gt;
+                    &lt;param&gt;
+                        &lt;name&gt;urls./**&lt;/name&gt;
+                        &lt;value&gt;authcBasic&lt;/value&gt;
+                    &lt;/param&gt;
+                &lt;/provider&gt;
+
+                &lt;provider&gt;
+                    &lt;role&gt;identity-assertion&lt;/role&gt;
+                    &lt;name&gt;Default&lt;/name&gt;
+                    &lt;enabled&gt;true&lt;/enabled&gt;
+                &lt;/provider&gt;
+
+                &lt;provider&gt;
+                    &lt;role&gt;authorization&lt;/role&gt;
+                    &lt;name&gt;AclsAuthz&lt;/name&gt;
+                    &lt;enabled&gt;true&lt;/enabled&gt;
+                &lt;/provider&gt;
+
+            &lt;/gateway&gt;
+
+            &lt;service&gt;
+                &lt;role&gt;NAMENODE&lt;/role&gt;
+                &lt;url&gt;hdfs://{{namenode_host}}:{{namenode_rpc_port}}&lt;/url&gt;
+            &lt;/service&gt;
+
+            &lt;service&gt;
+                &lt;role&gt;JOBTRACKER&lt;/role&gt;
+                &lt;url&gt;rpc://{{rm_host}}:{{jt_rpc_port}}&lt;/url&gt;
+            &lt;/service&gt;
+
+            &lt;service&gt;
+                &lt;role&gt;WEBHDFS&lt;/role&gt;
+                {{webhdfs_service_urls}}
+            &lt;/service&gt;
+
+            &lt;service&gt;
+                &lt;role&gt;WEBHCAT&lt;/role&gt;
+                &lt;url&gt;http://{{webhcat_server_host}}:{{templeton_port}}/templeton&lt;/url&gt;
+            &lt;/service&gt;
+
+            &lt;service&gt;
+                &lt;role&gt;OOZIE&lt;/role&gt;
+                &lt;url&gt;http://{{oozie_server_host}}:{{oozie_server_port}}/oozie&lt;/url&gt;
+            &lt;/service&gt;
+
+            &lt;service&gt;
+                &lt;role&gt;WEBHBASE&lt;/role&gt;
+                &lt;url&gt;http://{{hbase_master_host}}:{{hbase_master_port}}&lt;/url&gt;
+            &lt;/service&gt;
+
+            &lt;service&gt;
+                &lt;role&gt;HIVE&lt;/role&gt;
+                &lt;url&gt;http://{{hive_server_host}}:{{hive_http_port}}/{{hive_http_path}}&lt;/url&gt;
+            &lt;/service&gt;
+
+            &lt;service&gt;
+                &lt;role&gt;RESOURCEMANAGER&lt;/role&gt;
+                &lt;url&gt;http://{{rm_host}}:{{rm_port}}/ws&lt;/url&gt;
+            &lt;/service&gt;
+        &lt;/topology&gt;
+    </value>
+    <description>
+        The configuration specifies the Hadoop cluster services Knox will provide access to.
+    </description>
+    <value-attributes>
+      <type>content</type>
+      <empty-value-valid>true</empty-value-valid>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-knox-plugin-properties</type>
+        <name>ranger-knox-plugin-enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

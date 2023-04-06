@@ -62,8 +62,7 @@ public abstract class STOMPEvent {
     ALERT_DEFINITIONS("alert_definitions"),
     UPGRADE("events.upgrade"),
     COMMAND("events.commands"),
-    AGENT_ACTIONS("events.agentactions"),
-    ENCRYPTION_KEY_UPDATE("events.encryption_key_update");
+    AGENT_ACTIONS("events.agentactions");
 
     /**
      * Is used to collect info about event appearing frequency.

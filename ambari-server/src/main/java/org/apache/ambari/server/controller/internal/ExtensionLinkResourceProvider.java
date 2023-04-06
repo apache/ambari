@@ -72,7 +72,7 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
   /**
    * The key property ids for a ExtensionLink resource.
    */
-  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Type.ExtensionLink, LINK_ID_PROPERTY_ID)
       .put(Type.Stack, STACK_NAME_PROPERTY_ID)
       .put(Type.StackVersion, STACK_VERSION_PROPERTY_ID)
@@ -83,7 +83,7 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
   /**
    * The property ids for a ExtensionLink resource.
    */
-  private static final Set<String> propertyIds = Sets.newHashSet(
+  private static Set<String> propertyIds = Sets.newHashSet(
       LINK_ID_PROPERTY_ID,
       STACK_NAME_PROPERTY_ID,
       STACK_VERSION_PROPERTY_ID,
@@ -131,7 +131,6 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
     return getRequestStatus(null);
   }
 
-  @Override
   protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
         throws SystemException, UnsupportedPropertyException,
         NoSuchResourceException, NoSuchParentResourceException {
@@ -219,7 +218,7 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
       requests.add(getRequest(propertyMap));
     }
 
-    modifyResources(new Command<RequestStatusResponse>() {
+    RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
       @Override
       public RequestStatusResponse invoke() throws AmbariException {
         for (ExtensionLinkRequest extensionLinkRequest : requests) {

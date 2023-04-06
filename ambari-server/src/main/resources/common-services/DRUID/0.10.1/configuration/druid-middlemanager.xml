@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property>
+    <name>druid.service</name>
+    <value>druid/middlemanager</value>
+    <description>The druid.service name of middlemanager node.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.port</name>
+    <value>8091</value>
+    <description>The port on which the middlemanager nodes will accept connections.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.indexer.runner.startPort</name>
+    <value>8100</value>
+    <description>The port that peons begin running on.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.worker.capacity</name>
+    <value>3</value>
+    <description>
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.indexer.runner.javaOpts</name>
+    <value>-server -Xmx2g -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -Dhdp.version={{stack_version}} -Dhadoop.mapreduce.job.classloader=true</value>
+    <description>
+      A string of -X Java options to pass to the peon's JVM.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.indexer.task.baseTaskDir</name>
+    <value>/apps/druid/tasks</value>
+    <description>
+      Base temporary working directory for druid tasks.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.server.http.numThreads</name>
+    <value>50</value>
+    <description>
+      Number of threads for HTTP requests.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.processing.buffer.sizeBytes</name>
+    <value>256000000</value>
+    <value-attributes>
+      <type>long</type>
+      <minimum>0</minimum>
+      <unit>Bytes</unit>
+    </value-attributes>
+    <description>
+      This specifies a buffer size for the storage of intermediate results. The computation engine in both the
+      Historical and Realtime nodes will use a scratch buffer of this size to do all of their intermediate computations
+      off-heap. Larger values allow for more aggregations in a single pass over the data while smaller values can
+      require more passes depending on the query that is being executed.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.processing.numThreads</name>
+    <value>2</value>
+    <description>
+      The number of processing threads to have available for parallel processing of segments.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.indexer.task.hadoopWorkingPath</name>
+    <value>/tmp/druid-indexing</value>
+    <description>
+      Temporary working directory for Hadoop tasks
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.indexer.fork.property.hadoop.mapreduce.reduce.java.opts</name>
+    <value>-Duser.timezone=UTC -Dfile.encoding=UTF-8</value>
+    <description>
+      Default java properties from Reducer containers
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>druid.indexer.fork.property.hadoop.mapreduce.map.java.opts</name>
+    <value>-Duser.timezone=UTC -Dfile.encoding=UTF-8</value>
+    <description>
+      Default java properties from Map containers
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+</configuration>

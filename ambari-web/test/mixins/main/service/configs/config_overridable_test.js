@@ -103,11 +103,13 @@ describe('App.ConfigOverridable', function () {
 
     beforeEach(function() {
       sinon.stub(configOverridable, 'launchConfigGroupSelectionCreationDialog');
+      sinon.stub(App.ModalPopup, 'show');
       sinon.stub(App.config, 'createOverride');
     });
 
     afterEach(function() {
       configOverridable.launchConfigGroupSelectionCreationDialog.restore();
+      App.ModalPopup.show.restore();
       App.config.createOverride.restore();
     });
 
@@ -282,12 +284,14 @@ describe('App.ConfigOverridable', function () {
     };
 
     beforeEach(function() {
+      sinon.spy(App.ModalPopup, 'show');
       sinon.stub(configOverridable, 'updateConfigurationGroup');
       sinon.spy(mock, 'callback');
     });
 
     afterEach(function() {
       configOverridable.updateConfigurationGroup.restore();
+      App.ModalPopup.show.restore();
       mock.callback.restore();
     });
 
@@ -370,6 +374,7 @@ describe('App.ConfigOverridable', function () {
       });
       sinon.stub(configOverridable.get('controller'), 'doSelectConfigGroup');
       sinon.stub(App.ServiceConfigGroup, 'find').returns([group]);
+      sinon.spy(App.ModalPopup, 'show');
       sinon.stub(App.router, 'get').returns(mock);
       sinon.spy(mock, 'manageConfigurationGroups');
     });
@@ -378,6 +383,7 @@ describe('App.ConfigOverridable', function () {
       configOverridable.get('controller').loadConfigGroups.restore();
       configOverridable.get('controller').doSelectConfigGroup.restore();
       App.ServiceConfigGroup.find.restore();
+      App.ModalPopup.show.restore();
       App.router.get.restore();
       mock.manageConfigurationGroups.restore();
     });

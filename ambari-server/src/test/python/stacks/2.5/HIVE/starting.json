@@ -1,0 +1,16 @@
+{
+  "amInfo" : {
+    "appName" : "llap",
+    "appType" : "org-apache-slider",
+    "appId" : "application_1455662455106_10882",
+    "containerId" : "container_e14_1455662455106_10882_01_000001",
+    "hostname" : "HOST_REPLACED",
+    "amWebUrl" : "http://HOST_REPLACED:1025/"
+  },
+  "state" : "LAUNCHING",
+  "originalConfigurationPath" : "hdfs://HOST_REPLACED:8020/user/USER_REPLACED/.slider/cluster/llap/snapshot",
+  "generatedConfigurationPath" : "hdfs://HOST_REPLACED:8020/user/USER_REPLACED/.slider/cluster/llap/generated",
+  "desiredInstances" : 3,
+  "liveInstances" : 0,
+  "appStartTime" : 1459625802169
+}

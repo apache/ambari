@@ -33,12 +33,10 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.StageFactoryImpl;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
-import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
-import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.hooks.AmbariEventFactory;
 import org.apache.ambari.server.hooks.HookContext;
@@ -51,7 +49,6 @@ import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.ldap.service.LdapFacade;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
@@ -59,10 +56,7 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
-import org.apache.ambari.server.security.encryption.EncryptionService;
-import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.stack.StackManagerFactory;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -77,6 +71,7 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceComponentImpl;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceImpl;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
@@ -96,7 +91,6 @@ import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
-import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.google.inject.persist.UnitOfWork;
@@ -160,7 +154,6 @@ public class PartialNiceMockBinder implements Module {
       });
       addConfigsBindings();
       addFactoriesInstallBinding();
-      addPasswordEncryptorBindings();
       return this;
     }
 
@@ -186,7 +179,6 @@ public class PartialNiceMockBinder implements Module {
     public Builder addDBAccessorBinding(DBAccessor dbAccessor) {
       configurers.add((Binder binder) -> {
           binder.bind(StackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(StackManagerFactory.class));
-          binder.bind(MpackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(MpackManagerFactory.class));
           binder.bind(EntityManager.class).toInstance(easyMockSupport.createNiceMock(EntityManager.class));
           binder.bind(DBAccessor.class).toInstance(dbAccessor);
           binder.bind(Clusters.class).toInstance(easyMockSupport.createNiceMock(Clusters.class));
@@ -198,7 +190,6 @@ public class PartialNiceMockBinder implements Module {
     public Builder addDBAccessorBinding() {
       configurers.add((Binder binder) -> {
           binder.bind(StackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(StackManagerFactory.class));
-          binder.bind(MpackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(MpackManagerFactory.class));
           binder.bind(EntityManager.class).toInstance(easyMockSupport.createNiceMock(EntityManager.class));
           binder.bind(DBAccessor.class).toInstance(easyMockSupport.createNiceMock(DBAccessor.class));
           binder.bind(Clusters.class).toInstance(easyMockSupport.createNiceMock(Clusters.class));
@@ -211,16 +202,6 @@ public class PartialNiceMockBinder implements Module {
       addHostRoleCommandsConfigsBindings();
       addActionSchedulerConfigsBindings();
       addActionDBAccessorConfigsBindings();
-      return this;
-    }
-
-    public Builder addPasswordEncryptorBindings() {
-      configurers.add((Binder binder) -> {
-        binder.bind(EncryptionService.class).toInstance(easyMockSupport.createNiceMock(EncryptionService.class));
-        binder.bind(new TypeLiteral<Encryptor<Config>>() {}).annotatedWith(Names.named("ConfigPropertiesEncryptor")).toInstance(Encryptor.NONE);
-        binder.bind(new TypeLiteral<Encryptor<AgentConfigsUpdateEvent>>() {}).annotatedWith(Names.named("AgentConfigEncryptor")).toInstance(Encryptor.NONE);
-        binder.bind(new TypeLiteral<Encryptor<AmbariServerConfiguration>>() {}).annotatedWith(Names.named("AmbariServerConfigurationEncryptor")).toInstance(Encryptor.NONE);
-      });
       return this;
     }
 
@@ -247,7 +228,7 @@ public class PartialNiceMockBinder implements Module {
       );
       return this;
     }
-    
+
     public Builder addLdapBindings() {
       configurers.add((Binder binder) -> {
         binder.bind(LdapFacade.class).toInstance(easyMockSupport.createNiceMock(LdapFacade.class));

@@ -81,7 +81,6 @@ import org.apache.ambari.server.hooks.users.UserCreatedEvent;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -96,9 +95,6 @@ import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManagerFactory;
-import org.apache.ambari.server.stack.upgrade.Direction;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -120,6 +116,8 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
@@ -131,6 +129,7 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.ambari.server.topology.PersistedState;
@@ -352,7 +351,7 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
         .andReturn(createMockServiceInfo("KNOX", knoxProperties, Collections.singletonList(createMockComponentInfo("KNOX_GATEWAY")))).anyTimes();
 
     AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
-    expect(managementController.findConfigurationTagsWithOverrides(cluster, null, null))
+    expect(managementController.findConfigurationTagsWithOverrides(cluster, null))
         .andReturn(clusterConfig).once();
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
 
@@ -613,7 +612,8 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
       @Override
       protected void configure() {
         PartialNiceMockBinder.newBuilder(PreconfigureKerberosActionTest.this)
-            .addActionDBAccessorConfigsBindings().addLdapBindings().addPasswordEncryptorBindings().build().configure(binder());
+            .addLdapBindings()
+            .addActionDBAccessorConfigsBindings().build().configure(binder());
 
         bind(EntityManager.class).toInstance(createMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createMock(DBAccessor.class));
@@ -644,7 +644,6 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
         bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
         bind(HookService.class).to(UserHookService.class);
         bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
-        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
 
         bind(AmbariManagementController.class).toInstance(createMock(AmbariManagementController.class));
         bind(KerberosHelper.class).to(KerberosHelperImpl.class);

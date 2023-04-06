@@ -19,64 +19,48 @@ package org.apache.ambari.server.checks;
 
 import java.util.Collection;
 
-import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
-import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
-import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
-import org.apache.ambari.spi.upgrade.UpgradeCheckType;
-import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 
 /**
  * The {@link HostMaintenanceModeCheck} is used to provide a warning if any
  * hosts are in maintenance mode. Hosts in MM will be exluded from the upgrade.
  * <p/>
- * This check will return {@link UpgradeCheckStatus#WARNING} for any hosts in
+ * This check will return {@link PrereqCheckStatus#WARNING} for any hosts in
  * maintenance mode.
  *
  * @see HostsHeartbeatCheck
  */
 @Singleton
-@UpgradeCheckInfo(
+@UpgradeCheck(
     group = UpgradeCheckGroup.MAINTENANCE_MODE,
     order = 7.0f,
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
-public class HostMaintenanceModeCheck extends ClusterCheck {
+public class HostMaintenanceModeCheck extends AbstractCheckDescriptor {
 
   public static final String KEY_CANNOT_START_HOST_ORDERED = "cannot_upgrade_mm_hosts";
-
-  static final UpgradeCheckDescription HOSTS_MAINTENANCE_MODE = new UpgradeCheckDescription("HOSTS_MAINTENANCE_MODE",
-      UpgradeCheckType.HOST,
-      "Hosts in Maintenance Mode will be excluded from the upgrade.",
-      new ImmutableMap.Builder<String, String>()
-        .put(UpgradeCheckDescription.DEFAULT,
-            "There are hosts in Maintenance Mode which excludes them from being upgraded.")
-        .put(HostMaintenanceModeCheck.KEY_CANNOT_START_HOST_ORDERED,
-            "The following hosts cannot be in Maintenance Mode: {{fails}}.").build());
 
   /**
    * Constructor.
    */
   public HostMaintenanceModeCheck() {
-    super(HOSTS_MAINTENANCE_MODE);
+    super(CheckDescription.HOSTS_MAINTENANCE_MODE);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public UpgradeCheckResult perform(UpgradeCheckRequest request)
+  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
       throws AmbariException {
-    UpgradeCheckResult result = new UpgradeCheckResult(this);
-
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     Collection<Host> hosts = cluster.getHosts();
@@ -85,26 +69,24 @@ public class HostMaintenanceModeCheck extends ClusterCheck {
     for (Host host : hosts) {
       MaintenanceState maintenanceState = host.getMaintenanceState(cluster.getClusterId());
       if (maintenanceState != MaintenanceState.OFF) {
-        result.getFailedOn().add(host.getHostName());
+        prerequisiteCheck.getFailedOn().add(host.getHostName());
 
-        result.getFailedDetail().add(
+        prerequisiteCheck.getFailedDetail().add(
             new HostDetail(host.getHostId(), host.getHostName()));
       }
     }
 
     // for any host in MM, produce a warning
-    if (!result.getFailedOn().isEmpty()) {
-      UpgradeCheckStatus status = request.getUpgradeType() == UpgradeType.HOST_ORDERED ?
-          UpgradeCheckStatus.FAIL : UpgradeCheckStatus.WARNING;
-      result.setStatus(status);
+    if (!prerequisiteCheck.getFailedOn().isEmpty()) {
+      PrereqCheckStatus status = request.getUpgradeType() == UpgradeType.HOST_ORDERED ?
+          PrereqCheckStatus.FAIL : PrereqCheckStatus.WARNING;
+      prerequisiteCheck.setStatus(status);
 
       String failReason = request.getUpgradeType() == UpgradeType.HOST_ORDERED ?
-          getFailReason(KEY_CANNOT_START_HOST_ORDERED, result, request) :
-          getFailReason(result, request);
+          getFailReason(KEY_CANNOT_START_HOST_ORDERED, prerequisiteCheck, request) :
+          getFailReason(prerequisiteCheck, request);
 
-      result.setFailReason(failReason);
+      prerequisiteCheck.setFailReason(failReason);
     }
-
-    return result;
   }
 }

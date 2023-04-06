@@ -126,8 +126,8 @@ angular.module('ambariAdminConsole')
         $scope.stepOneNotCompleted = true;
         $scope.stepTwoNotCompleted = true;
         $location.path(targetUrl);
-      }).catch(function(data) {
-        Alert.error($t('views.alerts.cannotLoadViewUrls'), data.message);
+      }).catch(function(resp) {
+        Alert.error($t('views.alerts.cannotLoadViewUrls'), resp.data.message);
       });
 
     }

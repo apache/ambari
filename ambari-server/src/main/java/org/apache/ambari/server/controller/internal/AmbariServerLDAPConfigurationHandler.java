@@ -18,76 +18,40 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType.LDAP_CONFIGURATIONS;
-import static org.apache.ambari.server.configuration.AmbariServerConfigurationCategory.LDAP_CONFIGURATION;
-import static org.apache.ambari.server.configuration.AmbariServerConfigurationKey.AMBARI_MANAGES_LDAP_CONFIGURATION;
-import static org.apache.ambari.server.configuration.AmbariServerConfigurationKey.LDAP_ENABLED_SERVICES;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
-import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
-import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.ldap.service.AmbariLdapException;
 import org.apache.ambari.server.ldap.service.LdapFacade;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
-import org.apache.ambari.server.security.encryption.Encryptor;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.google.inject.name.Named;
 
 /**
  * AmbariServerLDAPConfigurationHandler handles Ambari server LDAP-specific configuration properties.
  */
 @Singleton
-public class AmbariServerLDAPConfigurationHandler extends AmbariServerStackAdvisorAwareConfigurationHandler {
+public class AmbariServerLDAPConfigurationHandler extends AmbariServerConfigurationHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(AmbariServerLDAPConfigurationHandler.class);
 
   private final LdapFacade ldapFacade;
-  private final Encryptor<AmbariServerConfiguration> encryptor;
 
   @Inject
-  AmbariServerLDAPConfigurationHandler(Clusters clusters, ConfigHelper configHelper, AmbariManagementController managementController,
-      StackAdvisorHelper stackAdvisorHelper, AmbariConfigurationDAO ambariConfigurationDAO, AmbariEventPublisher publisher,
-      LdapFacade ldapFacade, @Named("AmbariServerConfigurationEncryptor") Encryptor<AmbariServerConfiguration> encryptor) {
-    super(ambariConfigurationDAO, publisher, clusters, configHelper, managementController, stackAdvisorHelper);
+  AmbariServerLDAPConfigurationHandler(LdapFacade ldapFacade, AmbariConfigurationDAO ambariConfigurationDAO,
+                                       AmbariEventPublisher publisher, Configuration ambariConfiguration) {
+    super(ambariConfigurationDAO, publisher, ambariConfiguration);
     this.ldapFacade = ldapFacade;
-    this.encryptor = encryptor;
-  }
-  
-  @Override
-  public void updateComponentCategory(String categoryName, Map<String, String> properties, boolean removePropertiesIfNotSpecified) throws AmbariException {
-    final AmbariLdapConfiguration ldapConfiguration = new AmbariLdapConfiguration(properties);
-    encryptor.encryptSensitiveData(ldapConfiguration);
-    super.updateComponentCategory(categoryName, ldapConfiguration.toMap(), removePropertiesIfNotSpecified);
-    if (ldapConfiguration.isAmbariManagesLdapConfiguration()) {
-      processClusters(LDAP_CONFIGURATIONS);
-    }
-  }
-
-  /**
-   * Gets the set of services for which the user declared  Ambari to enable LDAP integration.
-   * <p>
-   * If Ambari is not managing LDAP integration configuration for services the set of names will be empty.
-   *
-   * @return a set of service names
-   */
-  public Set<String> getLDAPEnabledServices() {
-    return getEnabledServices(LDAP_CONFIGURATION.getCategoryName(), AMBARI_MANAGES_LDAP_CONFIGURATION.key(), LDAP_ENABLED_SERVICES.key());
   }
 
   @Override
@@ -101,6 +65,9 @@ public class AmbariServerLDAPConfigurationHandler extends AmbariServerStackAdvis
     OperationType operationType;
     try {
       operationType = OperationType.translate(operation);
+      if (operationType == null) {
+        throw new SystemException(String.format("The requested operation is not supported for this category: %s", categoryName));
+      }
     } catch (IllegalArgumentException e) {
       throw new SystemException(String.format("The requested operation is not supported for this category: %s", categoryName), e);
     }
@@ -174,11 +141,6 @@ public class AmbariServerLDAPConfigurationHandler extends AmbariServerStackAdvis
         return (message == null) ? throwable.getMessage() : message;
       }
     }
-  }
-
-  @Override
-  protected String getServiceVersionNote() {
-    return "Ambari managed LDAP configurations";
   }
 
   enum OperationType {

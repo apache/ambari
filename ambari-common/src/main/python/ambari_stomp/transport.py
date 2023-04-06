@@ -222,7 +222,7 @@ class BaseTransport(ambari_stomp.listener.Publisher):
         elif frame_type == 'disconnected':
             self.set_connected(False)
 
-        for listener in self.listeners.values():
+        for listener in list(self.listeners.values()):
             if not listener:
                 continue
 
@@ -253,7 +253,7 @@ class BaseTransport(ambari_stomp.listener.Publisher):
 
         :param Frame frame: the Frame object to transmit
         """
-        for listener in self.listeners.values():
+        for listener in list(self.listeners.values()):
             if not listener:
                 continue
             try:
@@ -377,7 +377,7 @@ class BaseTransport(ambari_stomp.listener.Publisher):
                 c = b''
             if c is None or len(c) == 0:
                 raise exception.ConnectionClosedException()
-            if c == b'\x0a' and not self.__recvbuf and not fastbuf.tell():
+            if c.encode() == b'\x0a' and not self.__recvbuf and not fastbuf.tell():
                 #
                 # EOL to an empty receive buffer: treat as heartbeat.
                 # Note that this may misdetect an optional EOL at end of frame as heartbeat in case the
@@ -385,9 +385,9 @@ class BaseTransport(ambari_stomp.listener.Publisher):
                 # last byte of that read. But that should be harmless in practice.
                 #
                 fastbuf.close()
-                return [c]
-            fastbuf.write(c)
-            if b'\x00' in c:
+                return [c.encode()]
+            fastbuf.write(c.encode())
+            if b'\x00' in c.encode():
                 #
                 # Possible end of frame
                 #

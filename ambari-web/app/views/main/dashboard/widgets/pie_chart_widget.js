@@ -18,7 +18,6 @@
 
 var App = require('app');
 var numberUtils = require('utils/number_utils');
-var chartUtils = require('utils/chart_utils');
 
 App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
 
@@ -94,7 +93,7 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
     centerTextColor: Em.computed.alias('contentColor'),
 
     palette: new Rickshaw.Color.Palette({
-      scheme: chartUtils.getColorSchemeForGaugeWidget()
+      scheme: [ '#FFFFFF', '#D6DDDF'].reverse()
     }),
 
     data: function() {
@@ -112,17 +111,17 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
       var thresholdMax = parseFloat(this.get('thresholdMax'));
       if (used <= thresholdMin) {
         this.set('palette', new Rickshaw.Color.Palette({
-          scheme: chartUtils.getColorSchemeForGaugeWidget(App.healthStatusGreen)
+          scheme: ['#DDDDDD', App.healthStatusGreen].reverse()
         }));
       }
       else if (used <= thresholdMax) {
         this.set('palette', new Rickshaw.Color.Palette({
-          scheme: chartUtils.getColorSchemeForGaugeWidget(App.healthStatusOrange)
+          scheme: ['#DDDDDD', App.healthStatusOrange].reverse()
         }));
       }
       else {
         this.set('palette', new Rickshaw.Color.Palette({
-          scheme: chartUtils.getColorSchemeForGaugeWidget(App.healthStatusRed)
+          scheme: ['#DDDDDD', App.healthStatusRed].reverse()
         }));
       }
       return App.widgetContentColor;

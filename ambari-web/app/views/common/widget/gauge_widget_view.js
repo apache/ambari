@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var chartUtils = require('utils/chart_utils');
 
 App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
   templateName: require('templates/common/widget/gauge_widget'),
@@ -88,7 +87,7 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
     centerTextColor: Em.computed.alias('contentColor'),
 
     palette: new Rickshaw.Color.Palette({
-      scheme: chartUtils.getColorSchemeForGaugeWidget()
+      scheme: ['#FFFFFF', '#D6DDDF'].reverse()
     }),
 
     data: function () {
@@ -106,15 +105,15 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
       var color_orange = App.healthStatusOrange;
       if ((isNaN(threshold1) && isNaN(threshold2)) || (isNaN(threshold1) && used <= threshold2) || (isNaN(threshold2) && used <= threshold1) || (!isNaN(threshold2) && (threshold1 > threshold2) && (used > threshold1)) || (!isNaN(threshold2) && (threshold1 < threshold2) && (used <= threshold1))) {
         this.set('palette', new Rickshaw.Color.Palette({
-          scheme: chartUtils.getColorSchemeForGaugeWidget(color_green)
+          scheme: ['#DDDDDD', color_green].reverse()
         }));
       } else if ((!isNaN(threshold2) && used.isInRange(threshold1, threshold2)) || (isNaN(threshold2) && used > threshold1)) {
         this.set('palette', new Rickshaw.Color.Palette({
-          scheme: chartUtils.getColorSchemeForGaugeWidget(color_orange)
+          scheme: ['#DDDDDD', color_orange].reverse()
         }));
       } else {
         this.set('palette', new Rickshaw.Color.Palette({
-          scheme: chartUtils.getColorSchemeForGaugeWidget(color_red)
+          scheme: ['#DDDDDD', color_red].reverse()
         }));
       }
       return App.widgetContentColor;

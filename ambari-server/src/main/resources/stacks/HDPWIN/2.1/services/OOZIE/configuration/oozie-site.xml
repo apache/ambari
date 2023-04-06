@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+  <!--
+      Refer to the oozie-default.xml file for the complete list of
+      Oozie configuration properties and their default values.
+  -->
+  <property>
+    <name>oozie.service.JPAService.jdbc.driver</name>
+    <value>com.microsoft.sqlserver.jdbc.SQLServerDriver</value>
+    <display-name>JDBC Driver Class</display-name>
+    <description>
+      JDBC driver class.
+    </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.JPAService.jdbc.url</name>
+    <value>jdbc:sqlserver://localhost;databaseName=oozie</value>
+    <display-name>Database URL</display-name>
+    <description>
+      JDBC URL.
+    </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.HadoopAccessorService.hadoop.configurations</name>
+    <value>*=c:\hdp\hadoop\etc\hadoop</value>
+    <description>
+      Comma separated AUTHORITY=HADOOP_CONF_DIR, where AUTHORITY is the HOST:PORT of
+      the Hadoop service (JobTracker, HDFS). The wildcard '*' configuration is
+      used when there is no exact match for an authority. The HADOOP_CONF_DIR contains
+      the relevant Hadoop *-site.xml files. If the path is relative is looked within
+      the Oozie configuration directory; though the path can be absolute (i.e. to point
+      to Hadoop client conf/ directories in the local filesystem.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- New/Updated properties for 2.1 -->
+  <property>
+    <name>oozie.services</name>
+    <value>
+      org.apache.oozie.service.SchedulerService,
+      org.apache.oozie.service.InstrumentationService,
+      org.apache.oozie.service.CallableQueueService,
+      org.apache.oozie.service.UUIDService,
+      org.apache.oozie.service.ELService,
+      org.apache.oozie.service.AuthorizationService,
+      org.apache.oozie.service.UserGroupInformationService,
+      org.apache.oozie.service.HadoopAccessorService,
+      org.apache.oozie.service.URIHandlerService,
+      org.apache.oozie.service.MemoryLocksService,
+      org.apache.oozie.service.DagXLogInfoService,
+      org.apache.oozie.service.SchemaService,
+      org.apache.oozie.service.LiteWorkflowAppService,
+      org.apache.oozie.service.JPAService,
+      org.apache.oozie.service.StoreService,
+      org.apache.oozie.service.CoordinatorStoreService,
+      org.apache.oozie.service.SLAStoreService,
+      org.apache.oozie.service.DBLiteWorkflowStoreService,
+      org.apache.oozie.service.CallbackService,
+      org.apache.oozie.service.ActionService,
+      org.apache.oozie.service.ActionCheckerService,
+      org.apache.oozie.service.RecoveryService,
+      org.apache.oozie.service.PurgeService,
+      org.apache.oozie.service.CoordinatorEngineService,
+      org.apache.oozie.service.BundleEngineService,
+      org.apache.oozie.service.DagEngineService,
+      org.apache.oozie.service.CoordMaterializeTriggerService,
+      org.apache.oozie.service.StatusTransitService,
+      org.apache.oozie.service.PauseTransitService,
+      org.apache.oozie.service.GroupsService,
+      org.apache.oozie.service.ProxyUserService,
+      org.apache.oozie.service.XLogStreamingService,
+      org.apache.oozie.service.JobsConcurrencyService
+    </value>
+    <description>List of Oozie services</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.services.ext</name>
+    <value>org.apache.oozie.service.JMSAccessorService,org.apache.oozie.service.PartitionDependencyManagerService,org.apache.oozie.service.HCatAccessorService
+    </value>
+    <description>
+      To add/replace services defined in 'oozie.services' with custom implementations.
+      Class names must be separated by commas.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

@@ -32,8 +32,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -51,7 +53,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -85,6 +86,7 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
@@ -147,7 +149,6 @@ public class AmbariMetaInfoTest {
     File stacks = new File("src/test/resources/stacks");
     File version = new File("src/test/resources/version");
     File resourcesRoot = new File("src/test/resources/");
-
     if (System.getProperty("os.name").contains("Windows")) {
       stacks = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
@@ -512,6 +513,7 @@ public class AmbariMetaInfoTest {
     StackInfo stackInfo = metaInfo.getStack(STACK_NAME_HDP, STACK_VERSION_HDP);
     Assert.assertEquals(stackInfo.getName(), STACK_NAME_HDP);
     Assert.assertEquals(stackInfo.getVersion(), STACK_VERSION_HDP);
+    Assert.assertEquals(stackInfo.getMinUpgradeVersion(), STACK_MINIMAL_VERSION_HDP);
     try {
       metaInfo.getStack(STACK_NAME_HDP, NON_EXT_VALUE);
     } catch (StackAccessException e) {
@@ -764,6 +766,94 @@ public class AmbariMetaInfoTest {
     // not explicitly defined, uses 2.0.5
     list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.6", "HDFS", "DATANODE", Resource.Type.Component.name());
     Assert.assertNull(list);
+  }
+
+  @Test
+  public void testCrossCheckJmxToGangliaMetrics() throws Exception {
+
+    File stacks = new File("src/main/resources/stacks");
+    File version = new File("src/test/resources/version");
+    File commonServicesRoot = new File("src/main/resources/common-services");
+    if (System.getProperty("os.name").contains("Windows")) {
+      stacks = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
+      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
+      commonServicesRoot = new File(ClassLoader.getSystemClassLoader().getResource("common-services").getPath());
+    }
+
+    Properties properties = new Properties();
+    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stacks.getPath());
+    properties.setProperty(Configuration.COMMON_SERVICES_DIR_PATH.getKey(), commonServicesRoot.getPath());
+    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), version.getPath());
+    Configuration configuration = new Configuration(properties);
+
+    TestAmbariMetaInfo ambariMetaInfo = new TestAmbariMetaInfo(configuration);
+    ambariMetaInfo.replayAllMocks();
+
+    try {
+      ambariMetaInfo.init();
+    } catch(Exception e) {
+      LOG.info("Error in metainfo initializing ", e);
+      throw e;
+    }
+    waitForAllReposToBeResolved(ambariMetaInfo);
+    String[] metricsTypes = {
+      Resource.Type.Component.name(),
+      Resource.Type.HostComponent.name()
+    };
+
+    for (StackInfo stackInfo: ambariMetaInfo.getStacks(STACK_NAME_HDP)) {
+      for (ServiceInfo serviceInfo: stackInfo.getServices()) {
+        for (ComponentInfo componentInfo: serviceInfo.getComponents()) {
+          for (String metricType: metricsTypes) {
+            List<MetricDefinition> list =
+              ambariMetaInfo.getMetrics(stackInfo.getName(), stackInfo.getVersion(),
+                serviceInfo.getName(), componentInfo.getName(), metricType);
+            String currentComponentInfo =  stackInfo.getName() + "-" +
+              stackInfo.getVersion() + ", " + serviceInfo.getName() + ", " +
+              componentInfo.getName()+ ", " + metricType;
+            if (list == null) {
+              LOG.info("No metrics found for " + currentComponentInfo);
+              continue;
+            } else {
+              checkNoAggregatedFunctionsForJmx(list);
+            }
+            LOG.info("Cross-checking JMX-to-Ganglia metrics for " + currentComponentInfo);
+
+            Map<String, Metric> jmxMetrics = Collections.emptyMap();
+            for (MetricDefinition metricDefinition : list) {
+
+              if ("jmx".equals(metricDefinition.getType())) {
+                // all jmx should be point-in-time and not temporal
+                jmxMetrics = metricDefinition.getMetrics();
+                for (Metric metric : jmxMetrics.values()) {
+                  Assert.assertTrue(metric.isPointInTime());
+                  Assert.assertFalse(metric.isTemporal());
+                }
+              }
+            }
+            LinkedList<String> failedMetrics = new LinkedList<>();
+            for (MetricDefinition metricDefinition : list) {
+              if ("ganglia".equals(metricDefinition.getType())) {
+                //all ams metrics should be temporal
+                for (Map.Entry<String, Metric> metricEntry : metricDefinition.getMetrics().entrySet()) {
+                  Assert.assertTrue(metricEntry.getValue().isTemporal());
+                  // some ams metrics may be point-in-time
+                  // if they aren't provided by JMX
+                  if (metricEntry.getValue().isPointInTime() &&
+                    jmxMetrics.containsKey(metricEntry.getKey())) {
+                    failedMetrics.add(metricEntry.getKey());
+                  }
+                }
+
+              }
+            }
+            Assert.assertEquals(failedMetrics +
+                " metrics defined with pointInTime=true for both jmx and ganglia types.",
+              0, failedMetrics.size());
+          }
+        }
+      }
+    }
   }
 
   @Test
@@ -1936,10 +2026,7 @@ public class AmbariMetaInfoTest {
     Properties properties = new Properties();
     properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stackRoot.getPath());
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), versionFile.getPath());
-
     properties.setProperty(Configuration.RESOURCES_DIR.getKey(), resourcesRoot.getPath());
-    properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(),"src/test/resources/mpacks-v2");
-
     Configuration configuration = new Configuration(properties);
 
     TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(configuration);
@@ -1985,6 +2072,7 @@ public class AmbariMetaInfoTest {
 
   private static class TestAmbariMetaInfo extends AmbariMetaInfo {
 
+    MetainfoDAO metaInfoDAO;
     AlertDefinitionDAO alertDefinitionDAO;
     AlertDefinitionFactory alertDefinitionFactory;
     OsFamily osFamily;
@@ -2001,17 +2089,17 @@ public class AmbariMetaInfoTest {
 
       Class<?> c = getClass().getSuperclass();
 
+      // MetainfoDAO
+      metaInfoDAO = injector.getInstance(MetainfoDAO.class);
+      Field f = c.getDeclaredField("metaInfoDAO");
+      f.setAccessible(true);
+      f.set(this, metaInfoDAO);
+
       // StackManagerFactory
       StackManagerFactory stackManagerFactory = injector.getInstance(StackManagerFactory.class);
-      Field f = c.getDeclaredField("stackManagerFactory");
+      f = c.getDeclaredField("stackManagerFactory");
       f.setAccessible(true);
       f.set(this, stackManagerFactory);
-
-      // MpackManagerFactory
-      MpackManagerFactory mpackManagerFactory = injector.getInstance(MpackManagerFactory.class);
-      f = c.getDeclaredField("mpackManagerFactory");
-      f.setAccessible(true);
-      f.set(this, mpackManagerFactory);
 
       //AlertDefinitionDAO
       alertDefinitionDAO = createNiceMock(AlertDefinitionDAO.class);
@@ -2065,7 +2153,7 @@ public class AmbariMetaInfoTest {
     }
 
     public void replayAllMocks() {
-      replay(alertDefinitionDAO);
+      replay(metaInfoDAO, alertDefinitionDAO);
     }
 
     public class MockModule extends AbstractModule {

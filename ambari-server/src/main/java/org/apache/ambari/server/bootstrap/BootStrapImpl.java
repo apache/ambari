@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.bootstrap;
 
-import static org.apache.ambari.server.utils.VersionUtils.DEV_VERSION;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -37,6 +35,7 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class BootStrapImpl {
+  public static final String DEV_VERSION = "${ambariVersion}";
   private File bootStrapDir;
   private String bootScript;
   private String bootSetupAgentScript;
@@ -57,18 +56,18 @@ public class BootStrapImpl {
 
   @Inject
   public BootStrapImpl(Configuration conf, AmbariMetaInfo ambariMetaInfo) throws IOException {
-    bootStrapDir = conf.getBootStrapDir();
-    bootScript = conf.getBootStrapScript();
-    bootSetupAgentScript = conf.getBootSetupAgentScript();
-    bootSetupAgentPassword = conf.getBootSetupAgentPassword();
-    bsStatus = new FifoLinkedHashMap<>();
-    masterHostname = conf.getMasterHostname(
+    this.bootStrapDir = conf.getBootStrapDir();
+    this.bootScript = conf.getBootStrapScript();
+    this.bootSetupAgentScript = conf.getBootSetupAgentScript();
+    this.bootSetupAgentPassword = conf.getBootSetupAgentPassword();
+    this.bsStatus = new FifoLinkedHashMap<>();
+    this.masterHostname = conf.getMasterHostname(
         InetAddress.getLocalHost().getCanonicalHostName());
-    clusterOsType = conf.getServerOsType();
-    clusterOsFamily = conf.getServerOsFamily();
-    projectVersion = ambariMetaInfo.getServerVersion();
-    projectVersion = (projectVersion.equals(DEV_VERSION)) ? DEV_VERSION.replace("$", "") : projectVersion;
-    serverPort = (conf.getApiSSLAuthentication())? conf.getClientSSLApiPort() : conf.getClientApiPort();
+    this.clusterOsType = conf.getServerOsType();
+    this.clusterOsFamily = conf.getServerOsFamily();
+    this.projectVersion = ambariMetaInfo.getServerVersion();
+    this.projectVersion = (this.projectVersion.equals(DEV_VERSION)) ? DEV_VERSION.replace("$", "") : this.projectVersion;
+    this.serverPort = (conf.getApiSSLAuthentication())? conf.getClientSSLApiPort() : conf.getClientApiPort();
   }
 
   /**
@@ -97,10 +96,8 @@ public class BootStrapImpl {
   public synchronized void init() throws IOException {
     if (!bootStrapDir.exists()) {
       boolean mkdirs = bootStrapDir.mkdirs();
-      if (!mkdirs) {
-        throw new IOException("Unable to make directory for " +
-            "bootstrap " + bootStrapDir);
-      }
+      if (!mkdirs) throw new IOException("Unable to make directory for " +
+          "bootstrap " + bootStrapDir);
     }
   }
 
@@ -130,7 +127,7 @@ public class BootStrapImpl {
     } else {
       bsRunner = new BSRunner(this, info, bootStrapDir.toString(),
           bootScript, bootSetupAgentScript, bootSetupAgentPassword, requestId, 0L,
-          masterHostname, info.isVerbose(), clusterOsFamily, projectVersion, serverPort);
+          this.masterHostname, info.isVerbose(), this.clusterOsFamily, this.projectVersion, this.serverPort);
       bsRunner.start();
       response.setStatus(BSRunStat.OK);
       response.setLog("Running Bootstrap now.");
@@ -148,9 +145,8 @@ public class BootStrapImpl {
 
     if (null == hosts || 0 == hosts.size() || (hosts.size() == 1 && hosts.get(0).equals("*"))) {
       for (BootStrapStatus status : bsStatus.values()) {
-        if (null != status.getHostsStatus()) {
+        if (null != status.getHostsStatus())
           statuses.addAll(status.getHostsStatus());
-        }
       }
     } else {
       // TODO make bootstrapping a bit more robust then stop looping

@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>SLIDER</name>
+      <displayName>Slider</displayName>
+      <comment>A framework for deploying, managing and monitoring existing distributed applications on YARN.</comment>
+      <version>0.60.0.2.2</version>
+      <components>
+        <component>
+          <name>SLIDER</name>
+          <displayName>Slider Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/slider_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>slider-client.xml</fileName>
+              <dictionaryName>slider-client</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>core-site.xml</fileName>
+              <dictionaryName>core-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>hdfs-site.xml</fileName>
+              <dictionaryName>hdfs-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>yarn-site.xml</fileName>
+              <dictionaryName>yarn-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>slider-env.sh</fileName>
+              <dictionaryName>slider-env</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>log4j.properties</fileName>
+              <dictionaryName>slider-log4j</dictionaryName>
+            </configFile>
+          </configFiles>
+        </component>
+      </components>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <requiredServices>
+        <service>YARN</service>
+        <service>HDFS</service>
+        <service>ZOOKEEPER</service>
+      </requiredServices>
+
+      <configuration-dependencies>
+        <config-type>slider-log4j</config-type>
+        <config-type>slider-client</config-type>
+        <config-type>slider-env</config-type>
+      </configuration-dependencies>
+
+    </service>
+  </services>
+</metainfo>

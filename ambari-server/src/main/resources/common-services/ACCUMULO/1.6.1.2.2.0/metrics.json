@@ -1,0 +1,1377 @@
+{
+  "ACCUMULO_MASTER": {
+    "Component": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/master/replication/files_pending_repl_avg_time": {
+              "metric": "master.MasterReplication.FilesPendingReplicationAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/files_pending_repl_num_ops": {
+              "metric": "master.MasterReplication.FilesPendingReplicationNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/max_repl_threads_avg_time": {
+              "metric": "master.MasterReplication.MaxReplicationThreadsAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/max_repl_threads_num_ops": {
+              "metric": "master.MasterReplication.MaxReplicationThreadsNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/num_peers_avg_time": {
+              "metric": "master.MasterReplication.NumPeersAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/num_peers_num_ops": {
+              "metric": "master.MasterReplication.NumPeersNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/thrift/execute_avg_time": {
+              "metric": "thrift.Master.ExecuteAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/thrift/execute_num_ops": {
+              "metric": "thrift.Master.ExecuteNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/thrift/idle_avg_time": {
+              "metric": "thrift.Master.IdleAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/thrift/idle_num_ops": {
+              "metric": "thrift.Master.IdleNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/thrift/coordinator_execute_avg_time": {
+              "metric": "thrift.MasterReplicationCoordinator.ExecuteAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/thrift/coordinator_execute_num_ops": {
+              "metric": "thrift.MasterReplicationCoordinator.ExecuteNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/thrift/coordinator_idle_avg_time": {
+              "metric": "thrift.MasterReplicationCoordinator.IdleAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/thrift/coordinator_idle_num_ops": {
+              "metric": "thrift.MasterReplicationCoordinator.IdleNumOps",
+              "pointInTime": true,
+              "temporal": true
+            }
+          }
+        }
+      }
+    ],
+    "HostComponent": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/master/replication/files_pending_repl_avg_time": {
+              "metric": "master.MasterReplication.FilesPendingReplicationAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/files_pending_repl_num_ops": {
+              "metric": "master.MasterReplication.FilesPendingReplicationNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/max_repl_threads_avg_time": {
+              "metric": "master.MasterReplication.MaxReplicationThreadsAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/max_repl_threads_num_ops": {
+              "metric": "master.MasterReplication.MaxReplicationThreadsNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/num_peers_avg_time": {
+              "metric": "master.MasterReplication.NumPeersAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/num_peers_num_ops": {
+              "metric": "master.MasterReplication.NumPeersNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/thrift/execute_avg_time": {
+              "metric": "thrift.Master.ExecuteAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/thrift/execute_num_ops": {
+              "metric": "thrift.Master.ExecuteNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/thrift/idle_avg_time": {
+              "metric": "thrift.Master.IdleAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/thrift/idle_num_ops": {
+              "metric": "thrift.Master.IdleNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/thrift/coordinator_execute_avg_time": {
+              "metric": "thrift.MasterReplicationCoordinator.ExecuteAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/thrift/coordinator_execute_num_ops": {
+              "metric": "thrift.MasterReplicationCoordinator.ExecuteNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/thrift/coordinator_idle_avg_time": {
+              "metric": "thrift.MasterReplicationCoordinator.IdleAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/master/replication/thrift/coordinator_idle_num_ops": {
+              "metric": "thrift.MasterReplicationCoordinator.IdleNumOps",
+              "pointInTime": true,
+              "temporal": true
+            }
+          }
+        }
+      }
+    ]
+  },
+  "ACCUMULO_GC": {
+    "Component": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/gc/thrift/execute_avg_time": {
+              "metric": "thrift.SimpleGarbageCollector.ExecuteAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/gc/thrift/execute_num_ops": {
+              "metric": "thrift.SimpleGarbageCollector.ExecuteNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/gc/thrift/idle_avg_time": {
+              "metric": "thrift.SimpleGarbageCollector.IdleAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/gc/thrift/idle_num_ops": {
+              "metric": "thrift.SimpleGarbageCollector.IdleNumOps",
+              "pointInTime": true,
+              "temporal": true
+            }
+          }
+        }
+      }
+    ],
+    "HostComponent": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/gc/thrift/execute_avg_time": {
+              "metric": "thrift.SimpleGarbageCollector.ExecuteAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/gc/thrift/execute_num_ops": {
+              "metric": "thrift.SimpleGarbageCollector.ExecuteNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/gc/thrift/idle_avg_time": {
+              "metric": "thrift.SimpleGarbageCollector.IdleAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/gc/thrift/idle_num_ops": {
+              "metric": "thrift.SimpleGarbageCollector.IdleNumOps",
+              "pointInTime": true,
+              "temporal": true
+            }
+          }
+        }
+      }
+    ]
+  },
+  "ACCUMULO_TSERVER": {
+    "Component": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/tserver/general/active_majcs": {
+              "metric": "tserver.general.activeMajCs",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/active_mincs": {
+              "metric": "tserver.general.activeMinCs",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/entries": {
+              "metric": "tserver.general.entries",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/entries_in_mem": {
+              "metric": "tserver.general.entriesInMem",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/files_per_tablet": {
+              "metric": "tserver.general.filesPerTablet",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/hold_time": {
+              "metric": "tserver.general.holdTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/online_tablets": {
+              "metric": "tserver.general.onlineTablets",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/opening_tablets": {
+              "metric": "tserver.general.openingTablets",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/queries": {
+              "metric": "tserver.general.queries",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/queued_majcs": {
+              "metric": "tserver.general.queuedMajCs",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/queued_mincs": {
+              "metric": "tserver.general.queuedMinCs",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/total_mincs": {
+              "metric": "tserver.general.totalMinCs",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/unopened_tablets": {
+              "metric": "tserver.general.unopenedTablets",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/minc_avg_count": {
+              "metric": "tserver.MinorCompactions.MincAvgCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/minc_imax_count": {
+              "metric": "tserver.MinorCompactions.MincIMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/minc_imin_count": {
+              "metric": "tserver.MinorCompactions.MincIMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/minc_max_count": {
+              "metric": "tserver.MinorCompactions.MincMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/minc_min_count": {
+              "metric": "tserver.MinorCompactions.MincMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/minc_num_ops": {
+              "metric": "tserver.MinorCompactions.MincNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/minc_stdev_count": {
+              "metric": "tserver.MinorCompactions.MincStdevCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/queue_avg_count": {
+              "metric": "tserver.MinorCompactions.QueueAvgCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/queue_imax_count": {
+              "metric": "tserver.MinorCompactions.QueueIMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/queue_imin_count": {
+              "metric": "tserver.MinorCompactions.QueueIMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/queue_max_count": {
+              "metric": "tserver.MinorCompactions.QueueMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/queue_min_count": {
+              "metric": "tserver.MinorCompactions.QueueMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/queue_num_ops": {
+              "metric": "tserver.MinorCompactions.QueueNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/queue_stdev_count": {
+              "metric": "tserver.MinorCompactions.QueueStdevCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/result_avg_count": {
+              "metric": "tserver.Scans.ResultAvgCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "tmetrics/tserver/scans/result_imax_count": {
+              "metric": "tserver.Scans.ResultIMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/result_imin_count": {
+              "metric": "tserver.Scans.ResultIMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/result_max_count": {
+              "metric": "tserver.Scans.ResultMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/result_min_count": {
+              "metric": "tserver.Scans.ResultMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/result_num_ops": {
+              "metric": "tserver.Scans.ResultNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/result_stdev_count": {
+              "metric": "tserver.Scans.ResultStdevCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/scan_avg_count": {
+              "metric": "tserver.Scans.ScanAvgCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/scan_imax_count": {
+              "metric": "tserver.Scans.ScanIMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/scan_imin_count": {
+              "metric": "tserver.Scans.ScanIMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/scan_max_count": {
+              "metric": "tserver.Scans.ScanMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/scan_min_count": {
+              "metric": "tserver.Scans.ScanMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/scan_num_ops": {
+              "metric": "tserver.Scans.ScanNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/scan_stdev_count": {
+              "metric": "tserver.Scans.ScanStdevCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_prep_avg_time": {
+              "metric": "tserver.Updates.CommitPrepAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_prep_imax_time": {
+              "metric": "tserver.Updates.CommitPrepIMaxTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_prep_imin_time": {
+              "metric": "tserver.Updates.CommitPrepIMinTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_prep_max_time": {
+              "metric": "tserver.Updates.CommitPrepMaxTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_prep_min_time": {
+              "metric": "tserver.Updates.CommitPrepMinTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_prep_num_ops": {
+              "metric": "tserver.Updates.CommitPrepNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_prep_stdev_time": {
+              "metric": "tserver.Updates.CommitPrepStdevTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_time_avg_time": {
+              "metric": "tserver.Updates.CommitTimeAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_time_imax_time": {
+              "metric": "tserver.Updates.CommitTimeIMaxTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_time_imin_time": {
+              "metric": "tserver.Updates.CommitTimeIMinTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_time_max_time": {
+              "metric": "tserver.Updates.CommitTimeMaxTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_time_min_time": {
+              "metric": "tserver.Updates.CommitTimeMinTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_time_num_ops": {
+              "metric": "tserver.Updates.CommitTimeNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_time_stdev_time": {
+              "metric": "tserver.Updates.CommitTimeStdevTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/mut_arrays_avg_size": {
+              "metric": "tserver.Updates.MutationArraysSizeAvgSize",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/mut_arrays_imax_size": {
+              "metric": "tserver.Updates.MutationArraysSizeIMaxSize",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/mut_arrays_imin_size": {
+              "metric": "tserver.Updates.MutationArraysSizeIMinSize",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/mut_arrays_max_size": {
+              "metric": "tserver.Updates.MutationArraysSizeMaxSize",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/mut_arrays_min_size": {
+              "metric": "tserver.Updates.MutationArraysSizeMinSize",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/mut_arrays_num_ops": {
+              "metric": "tserver.Updates.MutationArraysSizeNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/mut_arrays_stdev_size": {
+              "metric": "tserver.Updates.MutationArraysSizeStdevSize",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/walog_write_avg_time": {
+              "metric": "tserver.Updates.WaLogWriteTimeAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/walog_write_imax_time": {
+              "metric": "tserver.Updates.WaLogWriteTimeIMaxTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/walog_write_imin_time": {
+              "metric": "tserver.Updates.WaLogWriteTimeIMinTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/walog_write_max_time": {
+              "metric": "tserver.Updates.WaLogWriteTimeMaxTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/walog_write_min_time": {
+              "metric": "tserver.Updates.WaLogWriteTimeMinTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/walog_write_num_ops": {
+              "metric": "tserver.Updates.WaLogWriteTimeNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/walog_write_stdev_time": {
+              "metric": "tserver.Updates.WaLogWriteTimeStdevTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/constraint_violations": {
+              "metric": "tserver.Updates.constraintViolations",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/permission_errors": {
+              "metric": "tserver.Updates.permissionErrors",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/unknown_tablet_errors": {
+              "metric": "tserver.Updates.unknownTabletErrors",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/thrift/execute_avg_time": {
+              "metric": "thrift.TabletServer.ExecuteAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/thrift/execute_num_ops": {
+              "metric": "thrift.TabletServer.ExecuteNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/thrift/idle_avg_time": {
+              "metric": "thrift.TabletServer.IdleAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/thrift/idle_num_ops": {
+              "metric": "thrift.TabletServer.IdleNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/replication/thrift/servicer_handler_execute_avg_time": {
+              "metric": "thrift.ReplicationServicerHandler.ExecuteAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/replication/thrift/servicer_handler_execute_num_ops": {
+              "metric": "thrift.ReplicationServicerHandler.ExecuteNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/replication/thrift/servicer_handler_idle_avg_time": {
+              "metric": "thrift.ReplicationServicerHandler.IdleAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/replication/thrift/servicer_handler_idle_num_ops": {
+              "metric": "thrift.ReplicationServicerHandler.IdleNumOps",
+              "pointInTime": true,
+              "temporal": true
+            }
+          }
+        }
+      }
+    ],
+    "HostComponent": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/cpu/cpu_idle": {
+              "metric": "cpu_idle",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/cpu/cpu_nice": {
+              "metric": "cpu_nice",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/cpu/cpu_system": {
+              "metric": "cpu_system",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/cpu/cpu_user": {
+              "metric": "cpu_user",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/cpu/cpu_wio": {
+              "metric": "cpu_wio",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/disk/disk_free": {
+              "metric": "disk_free",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/disk/disk_total": {
+              "metric": "disk_total",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/load/load_fifteen": {
+              "metric": "load_fifteen",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/load/load_five": {
+              "metric": "load_five",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/load/load_one": {
+              "metric": "load_one",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/mem_buffers": {
+              "metric": "mem_buffers",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/mem_cached": {
+              "metric": "mem_cached",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/mem_free": {
+              "metric": "mem_free",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/mem_shared": {
+              "metric": "mem_shared",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/mem_total": {
+              "metric": "mem_total",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/swap_free": {
+              "metric": "swap_free",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/swap_total": {
+              "metric": "swap_total",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/network/bytes_in": {
+              "metric": "bytes_in",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/network/bytes_out": {
+              "metric": "bytes_out",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/network/pkts_in": {
+              "metric": "pkts_in",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/network/pkts_out": {
+              "metric": "pkts_out",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/process/proc_run": {
+              "metric": "proc_run",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/process/proc_total": {
+              "metric": "proc_total",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/disk/read_count": {
+              "metric": "read_count",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/disk/write_count": {
+              "metric": "write_count",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/disk/read_bytes": {
+              "metric": "read_bytes",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/disk/write_bytes": {
+              "metric": "write_bytes",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/disk/read_time": {
+              "metric": "read_time",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/disk/write_time": {
+              "metric": "write_time",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/jvm/memNonHeapUsedM": {
+              "metric": "jvm.JvmMetrics.MemNonHeapUsedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/part_max_used": {
+              "metric": "part_max_used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/ugi/loginSuccess_num_ops": {
+              "metric": "ugi.UgiMetrics.LoginSuccessNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memNonHeapCommittedM": {
+              "metric": "jvm.JvmMetrics.MemNonHeapCommittedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/ugi/loginFailure_num_ops": {
+              "metric": "ugi.UgiMetrics.LoginFailureNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memHeapCommittedM": {
+              "metric": "jvm.JvmMetrics.MemHeapCommittedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsRunnable": {
+              "metric": "jvm.JvmMetrics.ThreadsRunnable",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsNew": {
+              "metric": "jvm.JvmMetrics.ThreadsNew",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/gcTimeMillis": {
+              "metric": "jvm.JvmMetrics.GcTimeMillis",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsTerminated": {
+              "metric": "jvm.JvmMetrics.ThreadsTerminated",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/boottime": {
+              "metric": "boottime",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric":true
+            },
+            "metrics/jvm/logError": {
+              "metric": "jvm.JvmMetrics.LogError",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsBlocked": {
+              "metric": "jvm.JvmMetrics.ThreadsBlocked",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_aidle": {
+              "metric": "cpu_aidle",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_speed": {
+              "metric": "cpu_speed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/maxMemoryM": {
+              "metric": "jvm.metrics.maxMemoryM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/logWarn": {
+              "metric": "jvm.JvmMetrics.LogWarn",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsTimedWaiting": {
+              "metric": "jvm.JvmMetrics.ThreadsTimedWaiting",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/gcCount": {
+              "metric": "jvm.JvmMetrics.GcCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memHeapUsedM": {
+              "metric": "jvm.JvmMetrics.MemHeapUsedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsWaiting": {
+              "metric": "jvm.JvmMetrics.ThreadsWaiting",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/logInfo": {
+              "metric": "jvm.JvmMetrics.LogInfo",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/ugi/loginFailure_avg_time": {
+              "metric": "ugi.UgiMetrics.LoginFailureAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/logFatal": {
+              "metric": "jvm.JvmMetrics.LogFatal",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/JvmMetrics/GcCountConcurrentMarkSweep": {
+              "metric": "jvm.JvmMetrics.GcCountConcurrentMarkSweep",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/jvm/JvmMetrics/GcCountParNew": {
+              "metric": "jvm.JvmMetrics.GcCountParNew",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/jvm/JvmMetrics/GcTimeMillisConcurrentMarkSweep": {
+              "metric": "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/jvm/JvmMetrics/GcTimeMillisParNew": {
+              "metric": "jvm.JvmMetrics.GcTimeMillisParNew",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/jvm/JvmMetrics/LogFatal": {
+              "metric": "jvm.JvmMetrics.LogFatal",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/jvm/JvmMetrics/MemHeapMaxM": {
+              "metric": "jvm.JvmMetrics.MemHeapMaxM",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/jvm/JvmMetrics/MemMaxM": {
+              "metric": "jvm.JvmMetrics.MemMaxM",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/jvm/JvmMetrics/MemNonHeapMaxM": {
+              "metric": "jvm.JvmMetrics.MemNonHeapMaxM",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/tserver/general/active_majcs": {
+              "metric": "tserver.general.activeMajCs",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/active_mincs": {
+              "metric": "tserver.general.activeMinCs",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/entries": {
+              "metric": "tserver.general.entries",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/entries_in_mem": {
+              "metric": "tserver.general.entriesInMem",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/files_per_tablet": {
+              "metric": "tserver.general.filesPerTablet",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/hold_time": {
+              "metric": "tserver.general.holdTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/online_tablets": {
+              "metric": "tserver.general.onlineTablets",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/opening_tablets": {
+              "metric": "tserver.general.openingTablets",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/queries": {
+              "metric": "tserver.general.queries",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/queued_majcs": {
+              "metric": "tserver.general.queuedMajCs",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/queued_mincs": {
+              "metric": "tserver.general.queuedMinCs",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/total_mincs": {
+              "metric": "tserver.general.totalMinCs",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/general/unopened_tablets": {
+              "metric": "tserver.general.unopenedTablets",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/minc_avg_count": {
+              "metric": "tserver.MinorCompactions.MincAvgCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/minc_imax_count": {
+              "metric": "tserver.MinorCompactions.MincIMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/minc_imin_count": {
+              "metric": "tserver.MinorCompactions.MincIMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/minc_max_count": {
+              "metric": "tserver.MinorCompactions.MincMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/minc_min_count": {
+              "metric": "tserver.MinorCompactions.MincMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/minc_num_ops": {
+              "metric": "tserver.MinorCompactions.MincNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/minc_stdev_count": {
+              "metric": "tserver.MinorCompactions.MincStdevCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/queue_avg_count": {
+              "metric": "tserver.MinorCompactions.QueueAvgCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/queue_imax_count": {
+              "metric": "tserver.MinorCompactions.QueueIMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/queue_imin_count": {
+              "metric": "tserver.MinorCompactions.QueueIMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/queue_max_count": {
+              "metric": "tserver.MinorCompactions.QueueMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/queue_min_count": {
+              "metric": "tserver.MinorCompactions.QueueMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/queue_num_ops": {
+              "metric": "tserver.MinorCompactions.QueueNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/mincs/queue_stdev_count": {
+              "metric": "tserver.MinorCompactions.QueueStdevCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/result_avg_count": {
+              "metric": "tserver.Scans.ResultAvgCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "tmetrics/tserver/scans/result_imax_count": {
+              "metric": "tserver.Scans.ResultIMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/result_imin_count": {
+              "metric": "tserver.Scans.ResultIMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/result_max_count": {
+              "metric": "tserver.Scans.ResultMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/result_min_count": {
+              "metric": "tserver.Scans.ResultMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/result_num_ops": {
+              "metric": "tserver.Scans.ResultNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/result_stdev_count": {
+              "metric": "tserver.Scans.ResultStdevCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/scan_avg_count": {
+              "metric": "tserver.Scans.ScanAvgCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/scan_imax_count": {
+              "metric": "tserver.Scans.ScanIMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/scan_imin_count": {
+              "metric": "tserver.Scans.ScanIMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/scan_max_count": {
+              "metric": "tserver.Scans.ScanMaxCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/scan_min_count": {
+              "metric": "tserver.Scans.ScanMinCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/scan_num_ops": {
+              "metric": "tserver.Scans.ScanNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/scans/scan_stdev_count": {
+              "metric": "tserver.Scans.ScanStdevCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_prep_avg_time": {
+              "metric": "tserver.Updates.CommitPrepAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_prep_imax_time": {
+              "metric": "tserver.Updates.CommitPrepIMaxTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_prep_imin_time": {
+              "metric": "tserver.Updates.CommitPrepIMinTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_prep_max_time": {
+              "metric": "tserver.Updates.CommitPrepMaxTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_prep_min_time": {
+              "metric": "tserver.Updates.CommitPrepMinTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_prep_num_ops": {
+              "metric": "tserver.Updates.CommitPrepNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_prep_stdev_time": {
+              "metric": "tserver.Updates.CommitPrepStdevTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_time_avg_time": {
+              "metric": "tserver.Updates.CommitTimeAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_time_imax_time": {
+              "metric": "tserver.Updates.CommitTimeIMaxTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_time_imin_time": {
+              "metric": "tserver.Updates.CommitTimeIMinTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_time_max_time": {
+              "metric": "tserver.Updates.CommitTimeMaxTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_time_min_time": {
+              "metric": "tserver.Updates.CommitTimeMinTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_time_num_ops": {
+              "metric": "tserver.Updates.CommitTimeNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/commit_time_stdev_time": {
+              "metric": "tserver.Updates.CommitTimeStdevTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/mut_arrays_avg_size": {
+              "metric": "tserver.Updates.MutationArraysSizeAvgSize",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/mut_arrays_imax_size": {
+              "metric": "tserver.Updates.MutationArraysSizeIMaxSize",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/mut_arrays_imin_size": {
+              "metric": "tserver.Updates.MutationArraysSizeIMinSize",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/mut_arrays_max_size": {
+              "metric": "tserver.Updates.MutationArraysSizeMaxSize",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/mut_arrays_min_size": {
+              "metric": "tserver.Updates.MutationArraysSizeMinSize",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/mut_arrays_num_ops": {
+              "metric": "tserver.Updates.MutationArraysSizeNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/mut_arrays_stdev_size": {
+              "metric": "tserver.Updates.MutationArraysSizeStdevSize",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/walog_write_avg_time": {
+              "metric": "tserver.Updates.WaLogWriteTimeAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/walog_write_imax_time": {
+              "metric": "tserver.Updates.WaLogWriteTimeIMaxTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/walog_write_imin_time": {
+              "metric": "tserver.Updates.WaLogWriteTimeIMinTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/walog_write_max_time": {
+              "metric": "tserver.Updates.WaLogWriteTimeMaxTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/walog_write_min_time": {
+              "metric": "tserver.Updates.WaLogWriteTimeMinTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/walog_write_num_ops": {
+              "metric": "tserver.Updates.WaLogWriteTimeNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/walog_write_stdev_time": {
+              "metric": "tserver.Updates.WaLogWriteTimeStdevTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/constraint_violations": {
+              "metric": "tserver.Updates.constraintViolations",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/permission_errors": {
+              "metric": "tserver.Updates.permissionErrors",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/updates/unknown_tablet_errors": {
+              "metric": "tserver.Updates.unknownTabletErrors",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/thrift/execute_avg_time": {
+              "metric": "thrift.TabletServer.ExecuteAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/thrift/execute_num_ops": {
+              "metric": "thrift.TabletServer.ExecuteNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/thrift/idle_avg_time": {
+              "metric": "thrift.TabletServer.IdleAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/thrift/idle_num_ops": {
+              "metric": "thrift.TabletServer.IdleNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/replication/thrift/servicer_handler_execute_avg_time": {
+              "metric": "thrift.ReplicationServicerHandler.ExecuteAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/replication/thrift/servicer_handler_execute_num_ops": {
+              "metric": "thrift.ReplicationServicerHandler.ExecuteNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/replication/thrift/servicer_handler_idle_avg_time": {
+              "metric": "thrift.ReplicationServicerHandler.IdleAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/tserver/replication/thrift/servicer_handler_idle_num_ops": {
+              "metric": "thrift.ReplicationServicerHandler.IdleNumOps",
+              "pointInTime": true,
+              "temporal": true
+            }
+          }
+        }
+      }
+    ]
+  }
+}

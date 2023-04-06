@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<!-- The default settings for Templeton. -->
+<!-- Edit templeton-site.xml to change settings for your local -->
+<!-- install. -->
+<configuration supports_final="true">
+  <property>
+    <name>templeton.jar</name>
+    <value>c:\hdp\hive\hcatalog\share\webhcat\svr\lib\hive-webhcat.jar</value>
+    <description>The path to the Templeton jar file.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>templeton.hcat</name>
+    <value>${env.HCAT_HOME}\bin\hcat.py</value>
+    <description>The path to the hcatalog executable.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>templeton.hadoop</name>
+    <value>${env.HADOOP_HOME}\bin\hadoop.cmd</value>
+    <description>The path to the Hadoop executable.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>templeton.streaming.jar</name>
+    <value>file:///c:/hdp/hadoop/share/hadoop/tools/lib/hadoop-streaming.jar</value>
+    <description>The hdfs path to the Hadoop streaming jar file.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>templeton.libjars</name>
+    <value>file:///c:/hdp/hive/lib/zookeeper.jar</value>
+    <description>Jars to add to the classpath.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>templeton.pig.path</name>
+    <value>${env.PIG_HOME}/bin/pig.cmd</value>
+    <description>The path to the Pig executable.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>templeton.hive.path</name>
+    <value>${env.HIVE_HOME}\bin\hive.cmd</value>
+    <description>The path to the Hive executable.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

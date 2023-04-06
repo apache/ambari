@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.metrics;
 
+import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.GANGLIA;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
 
@@ -27,7 +28,6 @@ import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
-import org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 import org.apache.ambari.server.controller.metrics.ganglia.GangliaReportPropertyProvider;
 import org.apache.ambari.server.controller.metrics.timeline.AMSReportPropertyProvider;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;

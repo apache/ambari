@@ -1,0 +1,147 @@
+{#
+ # Licensed to the Apache Software Foundation (ASF) under one
+ # or more contributor license agreements.  See the NOTICE file
+ # distributed with this work for additional information
+ # regarding copyright ownership.  The ASF licenses this file
+ # to you under the Apache License, Version 2.0 (the
+ # "License"); you may not use this file except in compliance
+ # with the License.  You may obtain a copy of the License at
+ #
+ #   http://www.apache.org/licenses/LICENSE-2.0
+ #
+ # Unless required by applicable law or agreed to in writing, software
+ # distributed under the License is distributed on an "AS IS" BASIS,
+ # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ #}
+{
+  "input":[
+    {
+      "type":"storm_drpc",
+      "rowtype":"service",
+      "path":"{{default('/configurations/storm-env/storm_log_dir', '/var/log/storm')}}/drpc.log"
+    },
+    {
+      "type":"storm_logviewer",
+      "rowtype":"service",
+      "path":"{{default('/configurations/storm-env/storm_log_dir', '/var/log/storm')}}/logviewer.log"
+    },
+    {
+      "type":"storm_nimbus",
+      "rowtype":"service",
+      "path":"{{default('/configurations/storm-env/storm_log_dir', '/var/log/storm')}}/nimbus.log"
+    },
+    {
+      "type":"storm_supervisor",
+      "rowtype":"service",
+      "path":"{{default('/configurations/storm-env/storm_log_dir', '/var/log/storm')}}/supervisor.log"
+    },
+    {
+      "type":"storm_ui",
+      "rowtype":"service",
+      "path":"{{default('/configurations/storm-env/storm_log_dir', '/var/log/storm')}}/ui.log"
+    },
+    {
+      "type":"storm_worker",
+      "rowtype":"service",
+      "path":"{{default('/configurations/storm-env/storm_log_dir', '/var/log/storm')}}/workers-artifacts/*/*/worker.log",
+      "init_default_fields":"true",
+      "cache_enabled":"true",
+      "cache_size":"100",
+      "cache_dedup_interval":"1000",
+      "cache_key_field":"log_message",
+      "cache_last_dedup_enabled":"true"
+    },
+    {
+      "type":"storm_worker_event",
+      "rowtype":"service",
+      "path":"{{default('/configurations/storm-env/storm_log_dir', '/var/log/storm')}}/workers-artifacts/*/*/events.log",
+      "init_default_fields":"true",
+      "cache_enabled":"true",
+      "cache_size":"100",
+      "cache_dedup_interval":"1000",
+      "cache_key_field":"log_message",
+      "cache_last_dedup_enabled":"true",
+      "add_fields":{
+        "level":"INFO"
+      }
+    }
+  ],
+  "filter":[
+    {
+      "filter":"grok",
+      "sort_order":1,
+      "conditions":{
+        "fields":{
+          "type":[
+            "storm_nimbus",
+            "storm_supervisor",
+            "storm_logviewer",
+            "storm_drpc",
+            "storm_ui",
+            "storm_worker"
+          ]
+        }
+      },
+      "log4j_format":"",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{JAVACLASS:logger_name}\\s%{GREEDYDATA:thread_name}\\s\\[%{LOGLEVEL:level}\\]\\s%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss.SSS"
+          }
+        }
+      }
+    },
+    {
+      "filter":"grok",
+      "sort_order":5,
+      "conditions":{
+        "fields":{
+          "type":[
+            "storm_worker_event"
+          ]
+        }
+      },
+      "log4j_format":"",
+      "message_pattern":"^%{TIMESTAMP_ISO8601:logtime}(!_DELIM_!&lt;STREAMLINE_EVENT&gt;!_DELIM_!%{DATA:sdi_streamline_component_name}!_DELIM_!%{DATA:sdi_streamline_event_id}!_DELIM_!%{DATA:sdi_streamline_root_ids}!_DELIM_!%{DATA:sdi_streamline_parent_ids}!_DELIM_!%{DATA:sdi_streamline_event_fields_and_values}!_DELIM_!%{DATA:sdi_streamline_event_headers}!_DELIM_!%{DATA:sdi_streamline_event_aux_fields_and_values})|(%{GREEDYDATA})",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss.SSS"
+          }
+        }
+      }
+    },
+    {
+      "filter":"grok",
+      "sort_order":6,
+      "conditions":{
+        "fields":{
+          "type":[
+            "storm_worker_event"
+          ]
+        }
+      },
+      "source_field":"path",
+      "remove_source_field":"false",
+      "message_pattern":"{{default('/configurations/storm-env/storm_log_dir', '/var/log/storm')}}/workers-artifacts/%{DATA:sdi_storm_topology_id}/%{DATA:sdi_storm_worker_port}/events\\.log"
+    },
+    {
+      "filter":"grok",
+      "sort_order":7,
+      "conditions":{
+        "fields":{
+          "type":[
+            "storm_worker_event"
+          ]
+        }
+      },
+      "source_field":"sdi_storm_topology_id",
+      "remove_source_field":"false",
+      "message_pattern":"(streamline\\-%{DATA:sdi_streamline_topology_id}\\-%{DATA:sdi_streamline_topology_name}\\-[0-9]+\\-[0-9]+)|(%{DATA:sdi_storm_topology_id})"
+    }
+  ]
+}

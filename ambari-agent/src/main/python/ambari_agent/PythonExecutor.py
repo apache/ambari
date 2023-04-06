@@ -26,12 +26,11 @@ import sys
 
 import ambari_simplejson as json
 
-from ambari_commons import subprocess32
+import subprocess
 from ambari_commons import shell
 
-from Grep import Grep
-from BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
-from resource_management.libraries.functions.log_process_information import log_process_information
+from .Grep import Grep
+from .BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
 
 
 class PythonExecutor(object):
@@ -51,7 +50,7 @@ class PythonExecutor(object):
     self.config = config
     self.log_max_symbols_size = self.config.log_max_symbols_size
 
-  def open_subprocess32_files(self, tmp_out_file, tmp_err_file, override_output_files, backup_log_files=True):
+  def open_subprocess_files(self, tmp_out_file, tmp_err_file, override_output_files, backup_log_files=True):
     mode = "w" if override_output_files else "a"
 
     if override_output_files and backup_log_files:
@@ -76,8 +75,8 @@ class PythonExecutor(object):
                override_output_files=True, backup_log_files=True, handle=None,
                log_info_on_failure=True):
     """
-    Executes the specified python file in a separate subprocess32.
-    Method returns only when the subprocess32 is finished.
+    Executes the specified python file in a separate subprocess.
+    Method returns only when the subprocess is finished.
     Params arg is a list of script parameters
     Timeout meaning: how many seconds should pass before script execution
     is forcibly terminated
@@ -91,10 +90,10 @@ class PythonExecutor(object):
 
     def background_executor():
       logger = logging.getLogger()
-      process_out, process_err = self.open_subprocess32_files(tmp_out_file, tmp_err_file, True)
+      process_out, process_err = self.open_subprocess_files(tmp_out_file, tmp_err_file, True)
 
       logger.debug("Starting process command %s", python_command)
-      p = self.launch_python_subprocess32(python_command, process_out, process_err)
+      p = self.launch_python_subprocess(python_command, process_out, process_err)
 
       logger.debug("Process has been started. Pid = %s", p.pid)
 
@@ -111,9 +110,9 @@ class PythonExecutor(object):
       logger.debug("Exiting from thread for holder pid %s", handle.pid)
 
     if handle is None:
-      tmpout, tmperr = self.open_subprocess32_files(tmp_out_file, tmp_err_file, override_output_files, backup_log_files)
+      tmpout, tmperr = self.open_subprocess_files(tmp_out_file, tmp_err_file, override_output_files, backup_log_files)
 
-      process = self.launch_python_subprocess32(python_command, tmpout, tmperr)
+      process = self.launch_python_subprocess(python_command, tmpout, tmperr)
       # map task_id to pid
       callback(task_id, process.pid)
       self.logger.debug("Launching watchdog thread")
@@ -140,8 +139,9 @@ class PythonExecutor(object):
     """
     Log some useful information after task failure.
     """
-    self.logger.info("Command %s failed with exitcode=%s", pprint.pformat(python_command), result['exitcode'])
-    log_process_information(self.logger)
+    pass
+    #logger.info("Command %s failed with exitcode=%s", pprint.pformat(pythonCommand), result['exitcode'])
+    #log_process_information(logger)
 
   def prepare_process_result(self, returncode, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=None):
     out, error, structured_out = self.read_result_from_files(tmpoutfile, tmperrfile, tmpstructedoutfile)
@@ -171,13 +171,13 @@ class PythonExecutor(object):
       structured_out = {}
     return out, error, structured_out
 
-  def launch_python_subprocess32(self, command, tmpout, tmperr):
+  def launch_python_subprocess(self, command, tmpout, tmperr):
     """
-    Creates subprocess32 with given parameters. This functionality was moved to separate method
+    Creates subprocess with given parameters. This functionality was moved to separate method
     to make possible unit testing
     """
     command_env = dict(os.environ)
-    return subprocess32.Popen(command, stdout=tmpout, stderr=tmperr, close_fds=True, env=command_env,
+    return subprocess.Popen(command, stdout=tmpout, stderr=tmperr, close_fds=True, env=command_env,
                               preexec_fn=lambda: os.setpgid(0, 0))
 
   def is_successful(self, return_code):

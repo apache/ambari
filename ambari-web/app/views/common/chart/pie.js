@@ -17,16 +17,13 @@
  */
 
 var App = require('app');
-var chartUtils = require('utils/chart_utils');
 
 App.ChartPieView = Em.View.extend({
   w:100,
   h:100,
   data:[300, 500],
   id:null,
-  palette: function () {
-    return new Rickshaw.Color.Palette({scheme: chartUtils.getColorSchemeForChart(this.get('data.length'))});
-  }.property('data.length'),
+  palette: new Rickshaw.Color.Palette({ scheme: 'munin'}),
   stroke: 'black',
   strokeWidth: 1,
   donut:d3.layout.pie().sort(null),
@@ -91,7 +88,7 @@ App.ChartPieView = Em.View.extend({
       .append("svg:g").attr('class', 'arc')
       .append('svg:path')
       .attr("fill", function (d, i) {
-        return thisChart.get('palette').color(i);
+        return thisChart.palette.color(i);
       })
       .attr("d", thisChart.get('arc'))
     );

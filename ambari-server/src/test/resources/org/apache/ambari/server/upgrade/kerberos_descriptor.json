@@ -2568,7 +2568,7 @@
     {
       "components":[
         {
-          "name":"ZEPPELIN_SERVER"
+          "name":"ZEPPELIN_MASTER"
         }
       ],
       "configurations":[

@@ -82,7 +82,8 @@ public class PasswordUtils {
       if (CredentialProvider.isAliasString(passwordProperty)) {
         return readPasswordFromStore(passwordProperty);
       } else {
-        return readPasswordFromFile(passwordProperty, defaultPassword);
+        final String pw = readPasswordFromFile(passwordProperty, defaultPassword);
+        return CredentialProvider.isAliasString(pw) ? readPasswordFromStore(pw) : pw;
       }
     }
     return defaultPassword;
@@ -125,7 +126,7 @@ public class PasswordUtils {
   }
 
   private String readPasswordFromStore(String aliasStr) {
-    return readPasswordFromStore(aliasStr, configuration);
+    return readPasswordFromStore(aliasStr, configuration.getMasterKeyLocation(), configuration.isMasterKeyPersisted(), configuration.getMasterKeyStoreLocation());
   }
 
   /**
@@ -133,20 +134,19 @@ public class PasswordUtils {
    *
    * @param aliasStr
    *          the Credential Store alias you want to read the password for
-   * @param configuration with configured master key:
-   * masterKeyLocation
+   * @param masterKeyLocation
    *          the master key location file
-   * isMasterKeyPersisted
+   * @param isMasterKeyPersisted
    *          a flag indicating whether the master key is persisted
-   * masterKeyStoreLocation
+   * @param masterKeyStoreLocation
    *          the master key-store location file
    * @return the password of the given alias if it is not <code>blank</code> and
    *         there is password stored for this alias in Credential Store;
    *         <code>null</code> otherwise
    */
-  public String readPasswordFromStore(String aliasStr, Configuration configuration) {
+  public String readPasswordFromStore(String aliasStr, File masterKeyLocation, boolean isMasterKeyPersisted, File masterKeyStoreLocation) {
     String password = null;
-    loadCredentialProvider(configuration);
+    loadCredentialProvider(masterKeyLocation, isMasterKeyPersisted, masterKeyStoreLocation);
     if (credentialProvider != null) {
       char[] result = null;
       try {
@@ -167,11 +167,11 @@ public class PasswordUtils {
     return password;
   }
 
-  private void loadCredentialProvider(Configuration configuration) {
+  private void loadCredentialProvider(File masterKeyLocation, boolean isMasterKeyPersisted, File masterKeyStoreLocation) {
     if (credentialProvider == null) {
       try {
         LOCK.lock();
-        credentialProvider = new CredentialProvider(null, configuration);
+        credentialProvider = new CredentialProvider(null, masterKeyLocation, isMasterKeyPersisted, masterKeyStoreLocation);
       } catch (Exception e) {
         LOG.info("Credential provider creation failed", e);
         credentialProvider = null;

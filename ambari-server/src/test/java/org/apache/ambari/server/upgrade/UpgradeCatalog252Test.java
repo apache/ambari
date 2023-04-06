@@ -67,7 +67,6 @@ import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
@@ -440,8 +439,7 @@ public class UpgradeCatalog252Test {
     Module module = new Module() {
       @Override
       public void configure(Binder binder) {
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding()
-        .addPasswordEncryptorBindings().addLdapBindings().build().configure(binder);
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addLdapBindings().addFactoriesInstallBinding().build().configure(binder);
 
         binder.bind(DBAccessor.class).toInstance(dbAccessor);
         binder.bind(OsFamily.class).toInstance(osFamily);
@@ -467,7 +465,6 @@ public class UpgradeCatalog252Test {
         binder.bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
         binder.bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
         binder.bind(ConfigHelper.class).toInstance(createStrictMock(ConfigHelper.class));
-        binder.bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
       }
     };
     return Guice.createInjector(module);

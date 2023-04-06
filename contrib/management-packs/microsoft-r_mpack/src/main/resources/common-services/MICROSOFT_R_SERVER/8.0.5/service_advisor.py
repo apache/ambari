@@ -26,13 +26,15 @@ import traceback
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../../../stacks/')
 PARENT_FILE = os.path.join(STACKS_DIR, 'service_advisor.py')
+if "BASE_SERVICE_ADVISOR" in os.environ:
+  PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
 
 try:
   with open(PARENT_FILE, 'rb') as fp:
     service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
 except Exception as e:
   traceback.print_exc()
-  print "Failed to load parent"
+  print("Failed to load parent")
 
 class MICROSOFT_R_SERVER805ServiceAdvisor(service_advisor.ServiceAdvisor):
 
@@ -42,7 +44,7 @@ class MICROSOFT_R_SERVER805ServiceAdvisor(service_advisor.ServiceAdvisor):
     traceback.print_tb(None)
     rClientComponent = rClientComponent[0]
     if not self.isComponentHostsPopulated(rClientComponent):
-      for hostName in hostsComponentsMap.keys():
+      for hostName in list(hostsComponentsMap.keys()):
         hostComponents = hostsComponentsMap[hostName]
         if ({"name": "NODEMANAGER"} in hostComponents or {"name": "YARN_CLIENT"} in hostComponents) \
             and {"name": "MICROSOFT_R_NODE_CLIENT"} not in hostComponents:

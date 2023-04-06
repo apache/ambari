@@ -17,9 +17,7 @@
  */
 package org.apache.ambari.server.state;
 
-import java.util.Set;
-
-import com.google.common.collect.Sets;
+import java.util.EnumSet;
 
 /**
  * Represents the state of an alert.
@@ -52,7 +50,7 @@ public enum AlertState {
    */
   SKIPPED(4);
 
-  public static final Set<AlertState> RECALCULATE_AGGREGATE_ALERT_STATES = Sets.immutableEnumSet(CRITICAL, WARNING);
+  public static EnumSet<AlertState> RECALCULATE_AGGREGATE_ALERT_STATES = EnumSet.of(CRITICAL, WARNING);
 
   private final int intValue;
 

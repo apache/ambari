@@ -1,0 +1,52 @@
+{
+  "services": [
+    {
+      "name": "ZEPPELIN",
+      "identities": [
+        {
+          "name": "zeppelin_smokeuser",
+          "reference": "/smokeuser"
+        },
+        {
+          "name": "zeppelin_user",
+          "principal": {
+            "value": "${zeppelin-env/zeppelin_user}${principal_suffix}@${realm}",
+            "type" : "user",
+            "configuration": "zeppelin-env/zeppelin.server.kerberos.principal",
+            "local_username" : "${zeppelin-env/zeppelin_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/zeppelin.server.kerberos.keytab",
+            "owner": {
+              "name": "${zeppelin-env/zeppelin_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "zeppelin-env/zeppelin.server.kerberos.keytab"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "ZEPPELIN_MASTER"
+        }
+      ],
+      "configurations": [
+        {
+          "zeppelin-env": {
+            "zeppelin.kerberos.enabled": "true"
+          }
+        },
+        {
+          "core-site": {
+            "hadoop.proxyuser.${zeppelin-env/zeppelin_user}.groups": "*",
+            "hadoop.proxyuser.${zeppelin-env/zeppelin_user}.hosts": "*"
+          }
+        }
+      ]
+    }
+  ]
+}

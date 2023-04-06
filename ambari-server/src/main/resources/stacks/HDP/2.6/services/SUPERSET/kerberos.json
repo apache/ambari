@@ -1,0 +1,47 @@
+{
+  "services": [
+    {
+      "name": "SUPERSET",
+      "identities": [
+        {
+          "name": "superset",
+          "principal": {
+            "value": "${superset-env/superset_user}${principal_suffix}@${realm}",
+            "type": "user",
+            "configuration": "superset/KERBEROS_PRINCIPAL",
+            "local_username": "${superset-env/superset_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/superset.headless.keytab",
+            "owner": {
+              "name": "${superset-env/superset_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": "r"
+            },
+            "configuration": "superset/KERBEROS_KEYTAB"
+          }
+        },
+        {
+          "name": "superset_smokeuser",
+          "reference": "/smokeuser"
+        }
+      ],
+      "components": [
+        {
+          "name": "SUPERSET"
+        }
+      ],
+      "configurations": [
+        {
+          "superset": {
+            "ENABLE_KERBEROS_AUTHENTICATION": "True",
+            "KERBEROS_REINIT_TIME_SEC": "3600"
+          }
+        }
+      ]
+    }
+  ]
+}

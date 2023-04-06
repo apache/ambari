@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>hive_database_type</name>
+    <value>mssql</value>
+    <display-name>Hive Database Type</display-name>
+    <description>Default HIVE DB type.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_database</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_database</name>
+    <value>Existing MSSQL Server database with SQL authentication</value>
+    <display-name>Hive Database</display-name>
+    <description>
+      Property that determines whether the HIVE DB is managed by Ambari.
+    </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_ambari_database</name>
+    <value>MSSQL</value>
+    <description>Database type.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_log_dir</name>
+    <value>c:\hadoop\logs\hive</value>
+    <display-name>Hive Log Dir</display-name>
+    <description>Directory for Hive Log files.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_pid_dir</name>
+    <value>c:\hadoop\run\hive</value>
+    <display-name>Hive PID Dir</display-name>
+    <description>Hive PID Dir.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_user</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <!--HCAT-->
+  <property>
+    <name>hcat_log_dir</name>
+    <value>c:\hadoop\logs\webhcat</value>
+    <display-name>WebHCat Log Dir</display-name>
+    <description>WebHCat Log Dir.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hcat_pid_dir</name>
+    <value>c:\hadooop\run\webhcat</value>
+    <display-name>WebHCat Pid Dir</display-name>
+    <description>WebHCat Pid Dir.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hcat_user</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>webhcat_user</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <!-- hive-env.cmd -->
+  <property>
+    <name>content</name>
+    <description>hive-env.cmd content</description>
+    <value>
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

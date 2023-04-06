@@ -1,0 +1,20 @@
+{
+  "services": [
+    {
+      "name": "SQOOP",
+      "configurations": [
+        {
+          "sqoop-atlas-application.properties": {
+            "atlas.jaas.KafkaClient.option.useTicketCache": "true",
+            "atlas.jaas.KafkaClient.option.renewTicket": "true"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "SQOOP"
+        }
+      ]
+    }
+  ]
+}

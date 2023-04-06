@@ -79,7 +79,7 @@ def resolve_ambari_config():
       agent_config.read(config_path)
     else:
       raise Exception("No config found at %s" % str(config_path))
-  except Exception, err:
+  except Exception as err:
     traceback.print_exc()
     Logger.warning(err)
 

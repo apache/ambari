@@ -59,7 +59,7 @@ import com.google.common.collect.Multimaps;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonFilter("propertiesfilter")
-public class ServiceInfo implements Validable {
+public class ServiceInfo implements Validable, Cloneable {
 
   public static final AbstractMap.SimpleEntry<String, String> DEFAULT_SERVICE_INSTALLABLE_PROPERTY = new AbstractMap.SimpleEntry<>("installable", "true");
   public static final AbstractMap.SimpleEntry<String, String> DEFAULT_SERVICE_MANAGED_PROPERTY = new AbstractMap.SimpleEntry<>("managed", "true");
@@ -77,7 +77,6 @@ public class ServiceInfo implements Validable {
   private String comment;
   private String serviceType;
   private Selection selection;
-  private String maintainer;
 
   /**
    * Default to Python if not specified.
@@ -167,12 +166,6 @@ public class ServiceInfo implements Validable {
   @XmlElements(@XmlElement(name = "sso"))
   private SingleSignOnInfo singleSignOnInfo;
 
-  /**
-   * LDAP support information
-   */
-  @XmlElements(@XmlElement(name = "ldap"))
-  private ServiceLdapInfo ldapInfo;
-
   public Boolean isRestartRequiredAfterChange() {
     return restartRequiredAfterChange;
   }
@@ -202,6 +195,7 @@ public class ServiceInfo implements Validable {
   @XmlTransient
   private File widgetsDescriptorFile = null;
 
+  @XmlTransient
   private StackRoleCommandOrder roleCommandOrder;
 
   @XmlTransient
@@ -245,7 +239,7 @@ public class ServiceInfo implements Validable {
 
   @Override
   public void addErrors(Collection<String> errors) {
-    errorSet.addAll(errors);
+    this.errorSet.addAll(errors);
   }
 
   /**
@@ -289,6 +283,7 @@ public class ServiceInfo implements Validable {
    * at getter.
    * Added at schema ver 2
    */
+  @XmlTransient
   private volatile Map<String, ServiceOsSpecific> serviceOsSpecificsMap;
 
   /**
@@ -335,12 +330,6 @@ public class ServiceInfo implements Validable {
   @XmlTransient
   private File serverActionsFolder;
 
-  /**
-   * Used to determine if rolling restart is supported
-   * */
-  @XmlElement(name = "rollingRestartSupported")
-  private boolean rollingRestartSupported;
-
   public boolean isDeleted() {
     return isDeleted;
   }
@@ -363,11 +352,11 @@ public class ServiceInfo implements Validable {
     }
     // If set to null and has a parent, then the value would have already been resolved and set.
     // Otherwise, return the default value (true).
-    return supportDeleteViaUIInternal;
+    return this.supportDeleteViaUIInternal;
   }
 
   public void setSupportDeleteViaUI(boolean supportDeleteViaUI) {
-    supportDeleteViaUIInternal = supportDeleteViaUI;
+    this.supportDeleteViaUIInternal = supportDeleteViaUI;
   }
 
   public String getName() {
@@ -395,7 +384,7 @@ public class ServiceInfo implements Validable {
   }
 
   public void setServiceAdvisorType(ServiceAdvisorType type) {
-    serviceAdvisorType = type;
+    this.serviceAdvisorType = type;
   }
 
   public ServiceAdvisorType getServiceAdvisorType() {
@@ -439,18 +428,6 @@ public class ServiceInfo implements Validable {
     return selection == null;
   }
 
-  public String getMaintainer() {
-    return maintainer;
-  }
-
-  public void setMaintainer(String maintainer) {
-    this.maintainer = maintainer;
-  }
-
-  public boolean isMaintainerEmpty() {
-    return maintainer == null;
-  }
-
   public String getComment() {
     return comment;
   }
@@ -492,6 +469,56 @@ public class ServiceInfo implements Validable {
 
   public void setProperties(List<PropertyInfo> properties) {
     this.properties = properties;
+  }
+
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+    ServiceInfo clone = (ServiceInfo) super.clone();
+    clone.setSchemaVersion(schemaVersion);
+    clone.setName(name);
+    clone.setDisplayName(displayName);
+    clone.setVersion(version);
+    clone.setComment(comment);
+    clone.setServiceType(serviceType);
+    clone.setSelection(selection);
+    clone.components = components;
+    clone.setDeleted(isDeleted);
+    clone.setConfigDependencies(configDependencies);
+    clone.setExcludedConfigTypes(excludedConfigTypes);
+    clone.setMonitoringService(monitoringService);
+    clone.setRestartRequiredAfterChange(restartRequiredAfterChange);
+    clone.setRestartRequiredAfterRackChange(restartRequiredAfterRackChange);
+    clone.setParent(parent);
+    if(metricsFile != null) {
+      clone.metricsFileName = metricsFile.getName();
+    }
+    if(widgetsDescriptorFile != null) {
+      clone.widgetsFileName = widgetsDescriptorFile.getName();
+    }
+    clone.setCredentialStoreInfo(credentialStoreInfo);
+    clone.setServicePropertyList(servicePropertyList);
+    clone.configDir = configDir;
+
+    clone.themesDir = themesDir;
+    clone.setThemesMap(themesMap);
+    if(this.themesMap != null) {
+      clone.themes = new ArrayList(this.themesMap.values());
+    }
+
+    clone.quickLinksConfigurationsDir = quickLinksConfigurationsDir;
+    clone.setQuickLinksConfigurationsMap(quickLinksConfigurationsMap);
+    if(this.quickLinksConfigurationsMap != null) {
+      clone.quickLinksConfigurations = new ArrayList(this.quickLinksConfigurationsMap.values());
+    }
+
+    clone.serviceOsSpecificsMap =  serviceOsSpecificsMap;
+    if(this.serviceOsSpecificsMap != null) {
+      clone.serviceOsSpecifics = new ArrayList<>(serviceOsSpecificsMap.values());
+    }
+
+    clone.setCommandScript(commandScript);
+    clone.setRequiredServices(requiredServices);
+    return clone;
   }
 
   public List<ComponentInfo> getComponents() {
@@ -711,7 +738,6 @@ public class ServiceInfo implements Validable {
   /**
    * @deprecated Use {@link #getSingleSignOnEnabledTest()} instead
    */
-  @Deprecated
   public String getSingleSignOnEnabledConfiguration() {
     return singleSignOnInfo != null ? singleSignOnInfo.getEnabledConfiguration() : null;
   }
@@ -725,38 +751,6 @@ public class ServiceInfo implements Validable {
    */
   public boolean isKerberosRequiredForSingleSignOnIntegration() {
     return singleSignOnInfo != null && singleSignOnInfo.isKerberosRequired();
-  }
-
-  /**
-   * Gets a new value for LDAP integration support
-   */
-  public ServiceLdapInfo getLdapInfo() {
-    return ldapInfo;
-  }
-
-  /**
-   * Sets a new value for LDAP integration support
-   *
-   * @param ldapInfo
-   *          a {@link ServiceLdapInfo}
-   */
-  public void setLdapInfo(ServiceLdapInfo ldapInfo) {
-    this.ldapInfo = ldapInfo;
-  }
-
-  /**
-   * @return whether this service supports single sign-on integration
-   */
-  public boolean isLdapSupported() {
-    return (ldapInfo != null) && ldapInfo.isSupported();
-  }
-
-  /**
-   * @return the configuration specification that can be used to determine if LDAP
-   *         has been enabled or not.
-   */
-  public String getLdapEnabledTest() {
-    return ldapInfo != null ? ldapInfo.getLdapEnabledTest() : null;
   }
 
   @Override
@@ -813,7 +807,7 @@ public class ServiceInfo implements Validable {
    * @param typeAttributes attributes associated with the type
    */
   public synchronized void setTypeAttributes(String type, Map<String, Map<String, String>> typeAttributes) {
-    if (configTypes == null) {
+    if (this.configTypes == null) {
       configTypes = new HashMap<>();
     }
     configTypes.put(type, typeAttributes);
@@ -1095,14 +1089,6 @@ public class ServiceInfo implements Validable {
     return kerberosDescriptorFile;
   }
 
-  public boolean isRollingRestartSupported() {
-    return rollingRestartSupported;
-  }
-
-  public void setRollingRestartSupported(boolean rollingRestartSupported) {
-    this.rollingRestartSupported = rollingRestartSupported;
-  }
-
   /**
    * @return the widgets descriptor file, or <code>null</code> if none exists
    */
@@ -1371,32 +1357,6 @@ public class ServiceInfo implements Validable {
         }
       }
     }
-
-    if (ldapInfo != null && ldapInfo.isSupported() && StringUtils.isBlank(ldapInfo.getLdapEnabledTest())) {
-      setValid(false);
-      addError("LDAP support is indicated for service " + getName() + " but no test configuration has been set by ldapEnabledTest.");
-    }
-  }
-
-  /**
-   * Gets whether this service advertises a version based on whether at least
-   * one of its components advertises a version.
-   *
-   * @return {@code true} if at least 1 component of this service advertises a
-   *         version, {@code false} otherwise.
-   */
-  public boolean isVersionAdvertised() {
-    if (null == components) {
-      return false;
-    }
-
-    for (ComponentInfo componentInfo : components) {
-      if (componentInfo.isVersionAdvertised()) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   public enum Selection {

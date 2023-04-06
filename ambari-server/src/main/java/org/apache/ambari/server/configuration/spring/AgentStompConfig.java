@@ -29,7 +29,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.messaging.simp.config.ChannelRegistration;
-import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -72,7 +71,7 @@ public class AgentStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/v1").setHandshakeHandler(getHandshakeHandler())
-        .setAllowedOriginPatterns("*");
+        .setAllowedOrigins("*");
 
   }
 
@@ -91,10 +90,5 @@ public class AgentStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
     registration.setMessageSizeLimit(configuration.getStompMaxIncomingMessageSize());
     registration.setSendBufferSizeLimit(configuration.getStompMaxBufferMessageSize());
-  }
-
-  @Override
-  public void configureMessageBroker(MessageBrokerRegistry registry) {
-    registry.setPreservePublishOrder(true);
   }
 }

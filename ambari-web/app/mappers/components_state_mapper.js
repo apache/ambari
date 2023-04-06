@@ -102,6 +102,36 @@ App.componentsStateMapper = App.QuickDataMapper.create({
       ranger_tagsyncs_installed: 'INSTALLED_PATH',
       ranger_tagsyncs_total: 'TOTAL_PATH'
     },
+    'MAPREDUCE2_CLIENT': {
+      map_reduce2_clients: 'INSTALLED_PATH'
+    },
+    'TEZ_CLIENT': {
+      installed_clients: 'INSTALLED_PATH'
+    },
+    'HIVE_CLIENT': {
+      installed_clients: 'INSTALLED_PATH'
+    },
+    'FALCON_CLIENT': {
+      installed_clients: 'INSTALLED_PATH'
+    },
+    'OOZIE_CLIENT': {
+      installed_clients: 'INSTALLED_PATH'
+    },
+    'ZOOKEEPER_CLIENT': {
+      installed_clients: 'INSTALLED_PATH'
+    },
+    'PIG': {
+      installed_clients: 'INSTALLED_PATH'
+    },
+    'SQOOP': {
+      installed_clients: 'INSTALLED_PATH'
+    },
+    'YARN_CLIENT': {
+      installed_clients: 'INSTALLED_PATH'
+    },
+    'HDFS_CLIENT': {
+      installed_clients: 'INSTALLED_PATH'
+    },
     'FLUME_HANDLER': {
       flume_handlers_total: 'TOTAL_PATH'
     }
@@ -112,11 +142,9 @@ App.componentsStateMapper = App.QuickDataMapper.create({
    * @return {Object}
    */
   getComponentConfig: function (componentName) {
-    const config = {};
-    const isClient = App.StackServiceComponent.find(componentName).get('isClient');
-    const defaultValue = isClient ? { installed_clients: 'TOTAL_PATH' } : {};
-    const componentConfig = Em.getWithDefault(this.get('configMap'), componentName, defaultValue);
-    const paths = this.get('paths');
+    var config = {};
+    var componentConfig = this.get('configMap')[componentName];
+    var paths = this.get('paths');
 
     for (var property in componentConfig) {
       if (paths[componentConfig[property]]) {

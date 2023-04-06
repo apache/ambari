@@ -1,0 +1,156 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+  <property require-input="false">
+    <name>metadata_log_dir</name>
+    <display-name>Metadata Log directory</display-name>
+    <value>/var/log/atlas</value>
+    <description>Atlas log directory.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property require-input="false">
+    <name>metadata_pid_dir</name>
+    <display-name>Metadata PID directory</display-name>
+    <value>/var/run/atlas</value>
+    <description>Atlas pid-file directory.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>metadata_user</name>
+    <display-name>Metadata User</display-name>
+    <value>atlas</value>
+    <property-type>USER</property-type>
+    <description>Metadata User Name.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>metadata_opts</name>
+    <value>-Dlog4j.configuration=atlas-log4j.xml</value>
+    <description>Metadata Server command line options.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>metadata_classpath</name>
+    <value> </value>
+    <description>Metadata Server additional classpath.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property require-input="false">
+    <name>metadata_data_dir</name>
+    <display-name>Metadata Data directory</display-name>
+    <value>/var/lib/atlas/data</value>
+    <description>Atlas data directory.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property require-input="false">
+    <name>metadata_expanded_war_dir</name>
+    <display-name>Metadata Expanded War directory</display-name>
+    <value>./server/webapp</value>
+    <description>Atlas expanded WAR directory.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>metadata_conf_file</name>
+    <value>application.properties</value>
+    <description>Atlas configuration file</description>
+    <value-attributes>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>atlas_server_metadata_size</name>
+    <value>50000</value>
+    <description>Count of metadata objects that supposed to be processed by atlas instance</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>atlas_server_xmx</name>
+    <value>2048</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>atlas_server_max_new_size</name>
+    <value>614</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <!-- metadata-env.sh -->
+  <property>
+    <name>content</name>
+    <display-name>atlas-env template</display-name>
+    <description>This is the jinja template for metadata-env.sh file</description>
+    <value>
+# The java implementation to use. If JAVA_HOME is not found we expect java and jar to be in path
+export JAVA_HOME={{java64_home}}
+
+# any additional java opts you want to set. This will apply to both client and server operations
+{% if security_enabled %}
+export METADATA_OPTS="{{metadata_opts}} -Dzookeeper.sasl.client.username={{zk_principal_user}} -Djava.security.auth.login.config={{atlas_jaas_file}}"
+{% else %}
+export METADATA_OPTS="{{metadata_opts}}"
+{% endif %}
+
+# metadata configuration directory
+export METADATA_CONF={{conf_dir}}
+
+# Where log files are stored. Defatult is logs directory under the base install location
+export METADATA_LOG_DIR={{log_dir}}
+
+# additional classpath entries
+export METADATACPPATH={{metadata_classpath}}
+
+# data dir
+export METADATA_DATA_DIR={{data_dir}}
+
+# pid dir
+export METADATA_PID_DIR={{pid_dir}}
+
+# hbase conf dir
+export HBASE_CONF_DIR={{hbase_conf_dir}}
+
+# Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.
+export METADATA_EXPANDED_WEBAPP_DIR={{expanded_war_dir}}
+export ATLAS_SERVER_OPTS="-server -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+CMSClassUnloadingEnabled -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+PrintTenuringDistribution -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$ATLAS_LOG_DIR/atlas_server.hprof -Xloggc:$ATLAS_LOG_DIR/gc-worker.log -verbose:gc -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=1m -XX:+PrintGCDetails -XX:+PrintHeapAtGC -XX:+PrintGCTimeStamps"
+{% if java_version == 8 %}
+export ATLAS_SERVER_HEAP="-Xms{{atlas_server_xmx}}m -Xmx{{atlas_server_xmx}}m -XX:MaxNewSize={{atlas_server_max_new_size}}m -XX:MetaspaceSize=100m -XX:MaxMetaspaceSize=512m"
+{% else %}
+export ATLAS_SERVER_HEAP="-Xms{{atlas_server_xmx}}m -Xmx{{atlas_server_xmx}}m -XX:MaxNewSize={{atlas_server_max_new_size}}m -XX:MaxPermSize=512m"
+{% endif %}
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

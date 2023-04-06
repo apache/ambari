@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>RANGER</name>
+      <displayName>Ranger</displayName>
+      <comment>Comprehensive security for Hadoop</comment>
+      <version>0.4.0</version>
+      <components>
+          
+        <component>
+          <name>RANGER_ADMIN</name>
+          <displayName>Ranger Admin</displayName>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/ranger_admin.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>ranger_admin</logId>
+              <primary>true</primary>
+            </log>
+            <log>
+              <logId>ranger_dbpatch</logId>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>RANGER_USERSYNC</name>
+          <displayName>Ranger Usersync</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <auto-deploy>
+            <enabled>true</enabled>
+            <co-locate>RANGER/RANGER_ADMIN</co-locate>
+          </auto-deploy>
+          <commandScript>
+            <script>scripts/ranger_usersync.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>ranger_usersync</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+      </components>
+      <configuration-dependencies>
+        <config-type>admin-properties</config-type>
+        <config-type>ranger-site</config-type>
+        <config-type>usersync-properties</config-type>
+      </configuration-dependencies>
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+      <themes>
+        <theme>
+          <fileName>theme_version_1.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7,amazonlinux2,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>ranger_${stack_version}-admin</name>
+            </package>
+            <package>
+              <name>ranger_${stack_version}-usersync</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>ranger-${stack_version}-admin</name>
+            </package>
+            <package>
+              <name>ranger-${stack_version}-usersync</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+
+    </service>
+  </services>
+</metainfo>

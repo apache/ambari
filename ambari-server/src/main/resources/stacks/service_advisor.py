@@ -99,12 +99,6 @@ class ServiceAdvisor(DefaultStackAdvisor):
     """
     pass
 
-  def getServiceConfigurationRecommendationsForLDAP(self, configurations, clusterSummary, services, hosts):
-    """
-    Any LDAP related configuration recommendations for the service should be defined in this function.
-    """
-    pass
-
   def getServiceConfigurationRecommendationsForKerberos(self, configurations, clusterSummary, services, hosts):
     """
     Any Kerberos-related configuration recommendations for the service should be defined in this function.

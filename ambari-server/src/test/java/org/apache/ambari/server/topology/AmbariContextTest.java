@@ -19,7 +19,6 @@
 package org.apache.ambari.server.topology;
 
 import static java.util.Collections.singletonList;
-import static org.apache.ambari.server.utils.Assertions.assertThrows;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -75,10 +74,10 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
-import org.apache.ambari.spi.RepositoryType;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -88,7 +87,6 @@ import org.junit.Test;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.Provider;
 
 /**
  * AmbariContext unit tests
@@ -105,7 +103,7 @@ public class AmbariContextTest {
   private static final String HOST_GROUP_2 = "group2";
   private static final String HOST1 = "host1";
   private static final String HOST2 = "host2";
-  private static final StackId STACK_ID = new StackId(STACK_NAME, STACK_VERSION);
+  StackId stackId = new StackId(STACK_NAME, STACK_VERSION);
 
   private static final AmbariContext context = new AmbariContext();
   private static final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
@@ -128,8 +126,6 @@ public class AmbariContextTest {
   private static final Host host2 = createNiceMock(Host.class);
   private static final ConfigFactory configFactory = createNiceMock(ConfigFactory.class);
   private static final Service mockService1 = createStrictMock(Service.class);
-  private static final Provider<ConfigHelper> mockConfigHelperProvider = createNiceMock(Provider.class);
-  private static final ConfigHelper mockConfigHelper = createNiceMock(ConfigHelper.class);
 
   private static final Collection<String> blueprintServices = new HashSet<>();
   private static final Map<String, Service> clusterServices = new HashMap<>();
@@ -167,10 +163,6 @@ public class AmbariContextTest {
     f = clazz.getDeclaredField("hostComponentResourceProvider");
     f.setAccessible(true);
     f.set(null, hostComponentResourceProvider);
-
-    f = clazz.getDeclaredField("configHelper");
-    f.setAccessible(true);
-    f.set(context, mockConfigHelperProvider);
 
     // bp configuration
     Map<String, Map<String, String>> bpProperties = new HashMap<>();
@@ -280,27 +272,23 @@ public class AmbariContextTest {
     expect(configGroup1.getName()).andReturn(String.format("%s:%s", BP_NAME, HOST_GROUP_1)).anyTimes();
     expect(configGroup2.getName()).andReturn(String.format("%s:%s", BP_NAME, HOST_GROUP_2)).anyTimes();
 
-    expect(mockConfigHelperProvider.get()).andReturn(mockConfigHelper).anyTimes();
   }
 
   @After
   public void tearDown() throws Exception {
     verify(controller, clusterController, hostResourceProvider, serviceResourceProvider, componentResourceProvider,
         hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
-        cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory,
-        mockConfigHelperProvider, mockConfigHelper);
+        cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
 
     reset(controller, clusterController, hostResourceProvider, serviceResourceProvider, componentResourceProvider,
         hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
-        cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory,
-        mockConfigHelperProvider, mockConfigHelper);
+        cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
   }
 
   private void replayAll() {
     replay(controller, clusterController, hostResourceProvider, serviceResourceProvider, componentResourceProvider,
       hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
-      cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory,
-      mockConfigHelperProvider, mockConfigHelper);
+      cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
   }
 
   @Test
@@ -747,29 +735,22 @@ public class AmbariContextTest {
 
     context.repositoryVersionDAO = repositoryVersionDAO;
 
-    expectAmbariResourceCreation();
+    controller.createCluster(capture(Capture.<ClusterRequest>newInstance()));
+    expectLastCall().once();
+    expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
+
+    serviceResourceProvider.createServices(capture(Capture.<Set<ServiceRequest>>newInstance()));
+    expectLastCall().once();
+    componentResourceProvider.createComponents(capture(Capture.<Set<ServiceComponentRequest>>newInstance()));
+    expectLastCall().once();
+
+    expect(serviceResourceProvider.updateResources(
+        capture(Capture.<Request>newInstance()), capture(Capture.<Predicate>newInstance()))).andReturn(null).atLeastOnce();
 
     replayAll();
 
     // test
     context.createAmbariResources(topology, CLUSTER_NAME, null, null, null);
-  }
-
-  private void expectAmbariResourceCreation() {
-    try {
-      controller.createCluster(capture(Capture.newInstance()));
-      expectLastCall().once();
-      expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
-
-      serviceResourceProvider.createServices(capture(Capture.newInstance()));
-      expectLastCall().once();
-      componentResourceProvider.createComponents(capture(Capture.newInstance()));
-      expectLastCall().once();
-
-      expect(serviceResourceProvider.updateResources(capture(Capture.newInstance()), capture(Capture.newInstance()))).andReturn(null).atLeastOnce();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
   }
 
   @Test
@@ -824,58 +805,6 @@ public class AmbariContextTest {
           "Could not identify repository version with stack testStack-testVersion and version xyz for installing services. Specify a valid version with 'repository_version'",
           e.getMessage());
     }
-  }
-
-  @Test
-  public void testCreateAmbariResourcesVersionOK() {
-    RepositoryVersionEntity repoVersion = repositoryInClusterCreationRequest(1L, "3.0.1.2-345", STACK_ID);
-    expectAmbariResourceCreation();
-    replayAll();
-
-    context.createAmbariResources(topology, CLUSTER_NAME, null, repoVersion.getVersion(), null);
-  }
-
-  @Test
-  public void testCreateAmbariResourcesVersionByIdOK() {
-    RepositoryVersionEntity repoVersion = repositoryInClusterCreationRequest(1L, "3.0.1.2-345", STACK_ID);
-    expectAmbariResourceCreation();
-    replayAll();
-
-    context.createAmbariResources(topology, CLUSTER_NAME, null, null, repoVersion.getId());
-  }
-
-  @Test
-  public void testCreateAmbariResourcesVersionMismatch() {
-    RepositoryVersionEntity repoVersion = repositoryInClusterCreationRequest(1L, "3.0.1.2-345", new StackId("HDP", "3.0"));
-    replayAll();
-
-    IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
-      () -> context.createAmbariResources(topology, CLUSTER_NAME, null, repoVersion.getVersion(), null));
-    assertTrue(e.getMessage(), e.getMessage().contains("should match"));
-  }
-
-  @Test
-  public void testCreateAmbariResourcesVersionMismatchById() {
-    RepositoryVersionEntity repoVersion = repositoryInClusterCreationRequest(1L, "3.0.1.2-345", new StackId("HDP", "3.0"));
-    replayAll();
-
-    IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
-      () -> context.createAmbariResources(topology, CLUSTER_NAME, null, null, repoVersion.getId()));
-    assertTrue(e.getMessage(), e.getMessage().contains("should match"));
-  }
-
-  private RepositoryVersionEntity repositoryInClusterCreationRequest(Long id, String version, StackId stackId) {
-    RepositoryVersionEntity repoEntity = createNiceMock(RepositoryVersionEntity.class);
-    expect(repoEntity.getStackId()).andStubReturn(stackId);
-    expect(repoEntity.getId()).andStubReturn(id);
-    expect(repoEntity.getType()).andStubReturn(RepositoryType.STANDARD);
-    expect(repoEntity.getVersion()).andStubReturn(version);
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-    expect(repositoryVersionDAO.findByPK(1L)).andStubReturn(repoEntity);
-    expect(repositoryVersionDAO.findByStackAndVersion(EasyMock.anyObject(StackId.class), EasyMock.anyString())).andStubReturn(repoEntity);
-    replay(repositoryVersionDAO, repoEntity);
-    context.repositoryVersionDAO = repositoryVersionDAO;
-    return repoEntity;
   }
 
 }

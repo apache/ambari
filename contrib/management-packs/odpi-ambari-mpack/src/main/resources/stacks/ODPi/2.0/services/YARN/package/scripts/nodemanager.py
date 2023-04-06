@@ -19,7 +19,7 @@ Ambari Agent
 
 """
 
-import nodemanager_upgrade
+from . import nodemanager_upgrade
 
 from resource_management import *
 from resource_management.libraries.functions import conf_select
@@ -30,8 +30,8 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
-from yarn import yarn
-from service import service
+from .yarn import yarn
+from .service import service
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 
@@ -41,18 +41,18 @@ class Nodemanager(Script):
     self.install_packages(env)
 
   def stop(self, env, upgrade_type=None):
-    import params
+    from . import params
     env.set_params(params)
     service('nodemanager',action='stop')
 
   def start(self, env, upgrade_type=None):
-    import params
+    from . import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
     service('nodemanager',action='start')
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     yarn(name="nodemanager")
 
@@ -70,7 +70,7 @@ class NodemanagerDefault(Nodemanager):
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing NodeManager Stack Upgrade pre-restart")
-    import params
+    from . import params
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
@@ -78,18 +78,18 @@ class NodemanagerDefault(Nodemanager):
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing NodeManager Stack Upgrade post-restart")
-    import params
+    from . import params
     env.set_params(params)
 
     nodemanager_upgrade.post_upgrade_check()
 
   def status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     check_process_status(status_params.nodemanager_pid_file)
 
   def security_status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     if status_params.security_enabled:
       props_value_check = {"yarn.timeline-service.http-authentication.type": "kerberos",
@@ -149,11 +149,11 @@ class NodemanagerDefault(Nodemanager):
       self.put_structured_out({"securityState": "UNSECURED"})
 
   def get_log_folder(self):
-    import params
+    from . import params
     return params.yarn_log_dir
   
   def get_user(self):
-    import params
+    from . import params
     return params.yarn_user
 
 if __name__ == "__main__":

@@ -50,7 +50,6 @@ import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -1154,7 +1153,7 @@ public class ConfigHelperTest {
           final AmbariMetaInfo mockMetaInfo = createNiceMock(AmbariMetaInfo.class);
           final ClusterController clusterController = createStrictMock(ClusterController.class);
 
-          PartialNiceMockBinder.newBuilder().addAmbariMetaInfoBinding().addFactoriesInstallBinding().addLdapBindings().build().configure(binder());
+          PartialNiceMockBinder.newBuilder().addAmbariMetaInfoBinding().addLdapBindings().addFactoriesInstallBinding().build().configure(binder());
 
           bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
           bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
@@ -1167,8 +1166,6 @@ public class ConfigHelperTest {
           bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
           bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
           bind(STOMPUpdatePublisher.class).toInstance(createNiceMock(STOMPUpdatePublisher.class));
-          bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
-
         }
       });
 

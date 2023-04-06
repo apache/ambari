@@ -20,7 +20,7 @@
   {{view view.dashboardMasterComponentView}}
   <div class="col-md-12">
     <div class="col-md-2">
-      {{#if view.showComponentsTitleForNonMasters}}
+      {{#if view.hasMultipleMasterGroups}}
         {{t dashboard.services.hdfs.summary.components}}
       {{/if}}
     </div>
@@ -51,7 +51,7 @@
       <div class="row">
         <div class="col-md-6 summary-label" style="margin-top: 0px;">{{link.label}}</div>
         <div class="col-md-6 summary-value">
-          <a href="#" target="_blank" rel="noopener noreferrer" {{action goToView link.viewInstance target="controller"}}>{{t app.goToView}}</a>
+          <a href="#" target="_blank" {{action goToView link.viewInstance target="controller"}}>{{t app.goToView}}</a>
         </div>
       </div>
     {{/each}}

@@ -1,0 +1,18 @@
+{
+  "services": [
+    {
+      "name": "KERBEROS",
+      "identities": [
+        {
+          "name": "kerberos_smokeuser",
+          "reference": "/smokeuser"
+        }
+      ],
+      "components": [
+        {
+          "name": "KERBEROS_CLIENT"
+        }
+      ]
+    }
+  ]
+}

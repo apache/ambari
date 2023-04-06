@@ -19,65 +19,48 @@ package org.apache.ambari.server.checks;
 
 import java.util.Set;
 
-import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
-import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
-import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
-import org.apache.ambari.spi.upgrade.UpgradeCheckType;
-import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 
 /**
  * Checks to ensure that services are not in maintenance mode.
  */
 @Singleton
-@UpgradeCheckInfo(
+@UpgradeCheck(
     group = UpgradeCheckGroup.MAINTENANCE_MODE,
     order = 6.0f,
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
-public class ServicesMaintenanceModeCheck extends ClusterCheck {
-
-  static final UpgradeCheckDescription SERVICES_MAINTENANCE_MODE = new UpgradeCheckDescription("SERVICES_MAINTENANCE_MODE",
-      UpgradeCheckType.SERVICE,
-      "No services can be in Maintenance Mode",
-      new ImmutableMap.Builder<String, String>()
-        .put(UpgradeCheckDescription.DEFAULT,
-            "The following Services must not be in Maintenance Mode: {{fails}}.").build());
+public class ServicesMaintenanceModeCheck extends AbstractCheckDescriptor {
 
   /**
    * Constructor.
    */
   public ServicesMaintenanceModeCheck() {
-    super(SERVICES_MAINTENANCE_MODE);
+    super(CheckDescription.SERVICES_MAINTENANCE_MODE);
   }
 
   @Override
-  public UpgradeCheckResult perform(UpgradeCheckRequest request) throws AmbariException {
-    UpgradeCheckResult result = new UpgradeCheckResult(this);
-
+  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    Set<String> servicesInUpgrade = checkHelperProvider.get().getServicesInUpgrade(request);
+    Set<String> servicesInUpgrade = getServicesInUpgrade(request);
 
     for (String serviceName : servicesInUpgrade) {
       final Service service = cluster.getService(serviceName);
       if (!service.isClientOnlyService() && service.getMaintenanceState() == MaintenanceState.ON) {
-        result.getFailedOn().add(service.getName());
+        prerequisiteCheck.getFailedOn().add(service.getName());
       }
     }
-
-    if (!result.getFailedOn().isEmpty()) {
-      result.setStatus(UpgradeCheckStatus.FAIL);
-      result.setFailReason(getFailReason(result, request));
+    if (!prerequisiteCheck.getFailedOn().isEmpty()) {
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
     }
-
-    return result;
   }
 }

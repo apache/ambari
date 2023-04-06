@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<!--Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>SPARK</name>
+      <extends>common-services/SPARK/1.2.1</extends>
+      <displayName>Spark</displayName>
+      <comment>Apache Spark is a fast and general engine for large-scale data processing.</comment>
+      <version>1.3.1</version>
+      <components>
+        <component>
+          <name>SPARK_JOBHISTORYSERVER</name>
+          <displayName>Spark History Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+               <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
+               <scope>host</scope>
+               <auto-deploy>
+                 <enabled>true</enabled>
+               </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+             </auto-deploy>
+           </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/job_history_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
+        <component>
+          <name>SPARK_CLIENT</name>
+          <displayName>Spark Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+               <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
+               <scope>host</scope>
+               <auto-deploy>
+                 <enabled>true</enabled>
+               </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+             </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/spark_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>env</type>
+              <fileName>spark-log4j.properties</fileName>
+              <dictionaryName>spark-log4j-properties</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>spark-env.sh</fileName>
+              <dictionaryName>spark-env</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>spark-metrics.properties</fileName>
+              <dictionaryName>spark-metrics-properties</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>properties</type>
+              <fileName>spark-defaults.conf</fileName>
+              <dictionaryName>spark-defaults</dictionaryName>
+            </configFile>
+          </configFiles>
+        </component>
+      </components>
+
+      <configuration-dependencies>
+        <config-type>spark-defaults</config-type>
+        <config-type>spark-env</config-type>
+        <config-type>spark-log4j-properties</config-type>
+        <config-type>spark-metrics-properties</config-type>
+        <config-type>spark-javaopts-properties</config-type>
+      </configuration-dependencies>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <requiredServices>
+        <service>YARN</service>
+      </requiredServices>
+    </service>
+  </services>
+</metainfo>

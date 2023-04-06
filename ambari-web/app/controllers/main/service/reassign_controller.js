@@ -144,15 +144,14 @@ App.ReassignMasterController = App.WizardController.extend({
         type: 'sync',
         callback: function () {
           this.loadComponentDir();
-          this.updateUserConfigs();
         }
       }
     ]
   },
 
   serviceToConfigSiteMap: {
-    'NAMENODE': ['hdfs-site', 'core-site', 'hadoop-env', 'cluster-env'],
-    'SECONDARY_NAMENODE': ['hdfs-site', 'core-site', 'hadoop-env', 'cluster-env'],
+    'NAMENODE': ['hdfs-site', 'core-site'],
+    'SECONDARY_NAMENODE': ['hdfs-site', 'core-site'],
     'JOBTRACKER': ['mapred-site'],
     'RESOURCEMANAGER': ['yarn-site'],
     'WEBHCAT_SERVER': ['hive-env', 'webhcat-site', 'core-site'],
@@ -201,14 +200,6 @@ App.ReassignMasterController = App.WizardController.extend({
   loadTasksStatuses: function () {
     var statuses = App.db.getReassignTasksStatuses();
     this.set('content.tasksStatuses', statuses);
-  },
-  
-  /**
-   * Update hdfs-user and group with actual value from configs
-   */
-  updateUserConfigs: function() {
-    this.set('content.hdfsUser', this.get('content.configs')['hadoop-env']['hdfs_user']);
-    this.set('content.group', this.get('content.configs')['cluster-env']['user_group']);
   },
 
   /**

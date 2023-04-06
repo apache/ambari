@@ -18,11 +18,8 @@
 
 package org.apache.ambari.funtest.server.tests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.apache.ambari.funtest.server.ConnectionParams;
 import org.apache.ambari.funtest.server.WebResponse;
 import org.apache.ambari.funtest.server.api.cluster.DeleteClusterWebRequest;
@@ -32,25 +29,28 @@ import org.apache.ambari.funtest.server.api.service.StopServiceWebRequest;
 import org.apache.ambari.funtest.server.utils.ClusterUtils;
 import org.apache.ambari.funtest.server.utils.RestApiUtils;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
-import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
-import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
-import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 import org.apache.ambari.server.state.State;
+
+import org.apache.http.HttpStatus;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpStatus;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 
@@ -58,7 +58,6 @@ import com.google.gson.JsonObject;
  * Simple test that starts the local ambari server,
  * tests it's status and shuts down the server.
  */
-@Ignore
 public class DeleteServiceTest extends ServerTestBase {
 
     private static Log LOG = LogFactory.getLog(DeleteServiceTest.class);

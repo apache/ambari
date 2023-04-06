@@ -26,7 +26,7 @@ The Ambari API facilitates the management and monitoring of the resources of an 
 - [Management](#management)
 - [Resources](#resources)
 - [Partial Response](#partial-response)
-- [Query Predicates](#query-predicates)
+- [Query Parameters](#query-parameters)
 - [Batch Requests](#batch-requests)
 - [RequestInfo](#request-info)
 - [Temporal Metrics](#temporal-metrics)

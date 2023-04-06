@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.configuration.AmbariServerConfiguration;
-import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -48,40 +47,51 @@ public class JwtAuthenticationProperties extends AmbariServerConfiguration {
   private static final String PEM_CERTIFICATE_HEADER = "-----BEGIN CERTIFICATE-----";
   private static final String PEM_CERTIFICATE_FOOTER = "-----END CERTIFICATE-----";
 
+  private String authenticationProviderUrl = null;
   private RSAPublicKey publicKey = null;
+  private List<String> audiences = null;
+  private String cookieName = "hadoop-jwt";
+  private String originalUrlQueryParam = null;
+  private boolean enabledForAmbari;
 
   JwtAuthenticationProperties(Map<String, String> configurationMap) {
-    super(configurationMap);
-  }
-  
-  @Override
-  protected AmbariServerConfigurationCategory getCategory() {
-    return AmbariServerConfigurationCategory.SSO_CONFIGURATION;
+    setEnabledForAmbari(Boolean.valueOf(getValue(SSO_AUTHENTICATION_ENABLED, configurationMap)));
+    setAudiencesString(getValue(SSO_JWT_AUDIENCES, configurationMap));
+    setAuthenticationProviderUrl(getValue(SSO_PROVIDER_URL, configurationMap));
+    setCookieName(getValue(SSO_JWT_COOKIE_NAME, configurationMap));
+    setOriginalUrlQueryParam(getValue(SSO_PROVIDER_ORIGINAL_URL_PARAM_NAME, configurationMap));
+    setPublicKey(getValue(SSO_PROVIDER_CERTIFICATE, configurationMap));
   }
 
   public String getAuthenticationProviderUrl() {
-    return getValue(SSO_PROVIDER_URL, configurationMap);
+    return authenticationProviderUrl;
   }
 
-  public String getCertification() {
-    return getValue(SSO_PROVIDER_CERTIFICATE, configurationMap);
+  public void setAuthenticationProviderUrl(String authenticationProviderUrl) {
+    this.authenticationProviderUrl = authenticationProviderUrl;
   }
 
   public RSAPublicKey getPublicKey() {
-    if (publicKey == null) {
-      publicKey = createPublicKey(getCertification());
-    }
     return publicKey;
   }
 
-  //used by unit tests only to make JWT related filter test easier to setup
-  void setPublicKey(RSAPublicKey publicKey) {
+  public void setPublicKey(String publicKey) {
+    setPublicKey(createPublicKey(publicKey));
+  }
+
+  public void setPublicKey(RSAPublicKey publicKey) {
     this.publicKey = publicKey;
   }
 
   public List<String> getAudiences() {
-    final String audiencesString = getValue(SSO_JWT_AUDIENCES, configurationMap);
-    final List<String> audiences;
+    return audiences;
+  }
+
+  public void setAudiences(List<String> audiences) {
+    this.audiences = audiences;
+  }
+
+  public void setAudiencesString(String audiencesString) {
     if (StringUtils.isNotEmpty(audiencesString)) {
       // parse into the list
       String[] audArray = audiencesString.split(",");
@@ -90,20 +100,30 @@ public class JwtAuthenticationProperties extends AmbariServerConfiguration {
     } else {
       audiences = null;
     }
-    
-    return audiences;
   }
 
   public String getCookieName() {
-    return getValue(SSO_JWT_COOKIE_NAME, configurationMap);
+    return cookieName;
+  }
+
+  public void setCookieName(String cookieName) {
+    this.cookieName = cookieName;
   }
 
   public String getOriginalUrlQueryParam() {
-    return getValue(SSO_PROVIDER_ORIGINAL_URL_PARAM_NAME, configurationMap);
+    return originalUrlQueryParam;
+  }
+
+  public void setOriginalUrlQueryParam(String originalUrlQueryParam) {
+    this.originalUrlQueryParam = originalUrlQueryParam;
   }
 
   public boolean isEnabledForAmbari() {
-    return Boolean.valueOf(getValue(SSO_AUTHENTICATION_ENABLED, configurationMap));
+    return enabledForAmbari;
+  }
+
+  public void setEnabledForAmbari(boolean enabledForAmbari) {
+    this.enabledForAmbari = enabledForAmbari;
   }
 
   /**
@@ -138,10 +158,5 @@ public class JwtAuthenticationProperties extends AmbariServerConfiguration {
     }
 
     return publicKey;
-  }
-  
-  @Override
-  public Map<String, String> toMap() {
-    return configurationMap;
   }
 }

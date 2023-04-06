@@ -58,7 +58,6 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
-import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -131,7 +130,7 @@ public class HeartbeatTestHelper {
 
   public HeartBeatHandler getHeartBeatHandler(ActionManager am)
       throws InvalidStateTransitionException, AmbariException {
-    HeartBeatHandler handler = new HeartBeatHandler(configuration, clusters, am, Encryptor.NONE, injector);
+    HeartBeatHandler handler = new HeartBeatHandler(configuration, clusters, am, injector);
     Register reg = new Register();
     HostInfo hi = new HostInfo();
     hi.setHostName(DummyHostname1);

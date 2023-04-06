@@ -18,7 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 from resource_management.core.exceptions import Fail
-from resource_management.core.encryption import ensure_decrypted
 
 IMMUTABLE_MESSAGE = """Configuration dictionary is immutable!
 
@@ -35,7 +34,7 @@ class ConfigDictionary(dict):
     """
     Recursively turn dict to ConfigDictionary
     """
-    for k, v in dictionary.iteritems():
+    for k, v in dictionary.items():
       if isinstance(v, dict):
         dictionary[k] = ConfigDictionary(v)
         
@@ -53,9 +52,8 @@ class ConfigDictionary(dict):
       value = super(ConfigDictionary, self).__getitem__(name)
     except KeyError:
       return UnknownConfiguration(name)
-
-    value = ensure_decrypted(value)
-
+      
+    
     if value == "true":
       value = True
     elif value == "false":

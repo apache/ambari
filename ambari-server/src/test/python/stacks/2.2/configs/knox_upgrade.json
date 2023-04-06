@@ -1,0 +1,344 @@
+{
+    "configurationAttributes": {
+        "gateway-log4j": {}, 
+        "knox-env": {}, 
+        "ldap-log4j": {}, 
+        "core-site": {
+            "final": {
+                "fs.defaultFS": "true"
+            }
+        }, 
+        "hadoop-env": {}, 
+        "topology": {}, 
+        "gateway-site": {}, 
+
+        "cluster-env": {}
+    }, 
+    "commandParams": {
+        "upgrade_direction": "upgrade", 
+        "service_package_folder": "common-services/KNOX/0.5.0.2.2/package", 
+        "script": "scripts/knox_gateway.py", 
+        "hooks_folder": "HDP/2.0.6/hooks", 
+        "upgrade_type": "rolling_upgrade",
+        "command_retry_max_attempt_count": "3", 
+        "version": "2.3.0.0-2096", 
+        "source_stack": "HDP-2.3",
+        "command_retry_enabled": "false", 
+        "command_timeout": "1200", 
+        "target_stack": "HDP-2.3", 
+        "script_type": "PYTHON"
+    }, 
+    "roleCommand": "CUSTOM_COMMAND", 
+    "kerberosCommandParams": [], 
+    "clusterName": "c1", 
+    "hostname": "c6402.ambari.apache.org", 
+    "clusterLevelParams": {
+        "stack_version": "2.3", 
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "hooks_folder": "stack-hooks", 
+        "stack_name": "HDP", 
+        "group_list": "[\"hdfs\",\"hadoop\",\"users\"]", 
+        "user_groups": "{\"hive\":[\"hadoop\"], \"oozie\":[\"hadoop\",\"users\"], \"nobody\":[\"hadoop\",\"nobody\"], \"ambari-qa\":[\"hadoop\",\"users\"], \"flume\":[\"hadoop\"], \"hdfs\":[\"hadoop\"], \"storm\":[\"hadoop\"], \"mapred\":[\"hadoop\"], \"hbase\":[\"hadoop\"], \"tez\":[\"hadoop\",\"users\"], \"zookeeper\":[\"hadoop\"], \"falcon\":[\"hadoop\",\"users\"], \"sqoop\":[\"hadoop\"], \"yarn\":[\"hadoop\"], \"hcat\":[\"hadoop\"]}", 
+        "cluster_name": "c1", 
+        "user_list": "[\"ambari-qa\",\"hdfs\"]"
+    },
+    "ambariLevelParams": {
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources",
+        "agent_stack_retry_count": "5", 
+        "db_driver_filename": "mysql-connector-java.jar", 
+        "agent_stack_retry_on_unavailability": "false", 
+        "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
+        "jce_name": "jce_policy-7.zip", 
+        "java_version": "7", 
+        "ambari_db_rca_password": "mapred", 
+        "host_sys_prepped": "false", 
+        "db_name": "ambari", 
+        "oracle_jdbc_url": "http://c6401.ambari.apache.org/resources/ojdbc6.jar",
+        "ambari_db_rca_driver": "org.postgresql.Driver", 
+        "ambari_db_rca_username": "mapred", 
+        "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
+        "java_home": "/usr/jdk64/jdk1.7.0_45", 
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources/mysql-connector-java.jar"
+    },
+    "repositoryFile": {
+        "resolved": true, 
+        "repoVersion": "2.6.4.0-60", 
+        "repositories": [
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60", 
+                "repoName": "HDP", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-2.6-repo-1"
+            }, 
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60", 
+                "repoName": "HDP-GPL", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-2.6-GPL-repo-1"
+            }, 
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6", 
+                "repoName": "HDP-UTILS", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-UTILS-1.1.0.22-repo-1"
+            }
+        ], 
+        "feature": {
+            "m_isScoped": true, 
+            "m_isPreInstalled": false
+        }, 
+        "stackName": "HDP", 
+        "repoVersionId": 1
+    },
+    "agentLevelParams": {
+        "public_hostname": "c6401.ambari.apache.org", 
+        "hostname": "c6401.ambari.apache.org", 
+        "agentConfigParams": {
+            "agent": {
+                "parallel_execution": 0, 
+                "use_system_proxy_settings": true
+            }
+        }, 
+        "agentCacheDir": "/var/lib/ambari-agent/cache"
+    },
+    "hostLevelParams": {
+        "recoveryConfig": {
+            "retryGap": "5", 
+            "windowInMinutes": "60", 
+            "maxLifetimeCount": "1024", 
+            "components": "", 
+            "maxCount": "6", 
+            "type": "AUTO_START"
+        }, 
+        "hostRepositories": {
+            "componentRepos": {
+                "NAMENODE": 1, 
+                "SECONDARY_NAMENODE": 1, 
+                "DATANODE": 1, 
+                "HDFS_CLIENT": 1
+            }, 
+            "commandRepos": {
+                "1": {
+                    "resolved": true, 
+                    "repoVersion": "2.1.4.0-60", 
+                    "repositories": [
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60", 
+                            "repoName": "HDP", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-2.6-repo-1"
+                        }, 
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60", 
+                            "repoName": "HDP-GPL", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-2.6-GPL-repo-1"
+                        }, 
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6", 
+                            "repoName": "HDP-UTILS", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-UTILS-1.1.0.22-repo-1"
+                        }
+                    ], 
+                    "feature": {
+                        "m_isScoped": true, 
+                        "m_isPreInstalled": false
+                    }, 
+                    "stackName": "HDP", 
+                    "repoVersionId": 1
+                }
+            }
+        }
+    },
+    "serviceLevelParams": {
+        "credentialStoreEnabled": false, 
+        "status_commands_timeout": 300, 
+        "version": "2.7.3", 
+        "service_package_folder": "common-services/HDFS/2.1.0.2.0/package"
+    },
+    "commandType": "EXECUTION_COMMAND", 
+    "roleParams": {
+        "component_category": "MASTER"
+    }, 
+    "serviceName": "KNOX", 
+    "role": "KNOX_GATEWAY", 
+    "forceRefreshConfigTags": [], 
+    "taskId": 100, 
+    "public_hostname": "c6401.ambari.apache.org",
+    "upgradeSummary": {
+      "services": {
+        "KNOX": {
+          "sourceRepositoryId": 1,
+          "sourceStackId": "HDP-2.3",
+          "sourceVersion": "2.3.0.0-2075",
+          "targetRepositoryId": 2,
+          "targetStackId": "HDP-2.3",
+          "targetVersion": "2.3.0.0-2096"
+        }
+      },
+      "direction": "UPGRADE",
+      "type": "rolling_upgrade",
+      "isRevert": false,
+      "orchestration": "STANDARD"
+    },
+    "configurations": {
+        "gateway-log4j": {
+            "content": "\n\n      # Licensed to the Apache Software Foundation (ASF) under one\n      # or more contributor license agreements. See the NOTICE file\n      # distributed with this work for additional information\n      # regarding copyright ownership. The ASF licenses this file\n      # to you under the Apache License, Version 2.0 (the\n      # \"License\"); you may not use this file except in compliance\n      # with the License. You may obtain a copy of the License at\n      #\n      # http://www.apache.org/licenses/LICENSE-2.0\n      #\n      # Unless required by applicable law or agreed to in writing, software\n      # distributed under the License is distributed on an \"AS IS\" BASIS,\n      # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n      # See the License for the specific language governing permissions and\n      # limitations under the License.\n\n      app.log.dir=${launcher.dir}/../logs\n      app.log.file=${launcher.name}.log\n      app.audit.file=${launcher.name}-audit.log\n\n      log4j.rootLogger=ERROR, drfa\n\n      log4j.logger.org.apache.hadoop.gateway=INFO\n      #log4j.logger.org.apache.hadoop.gateway=DEBUG\n\n      #log4j.logger.org.eclipse.jetty=DEBUG\n      #log4j.logger.org.apache.shiro=DEBUG\n      #log4j.logger.org.apache.http=DEBUG\n      #log4j.logger.org.apache.http.client=DEBUG\n      #log4j.logger.org.apache.http.headers=DEBUG\n      #log4j.logger.org.apache.http.wire=DEBUG\n\n      log4j.appender.stdout=org.apache.log4j.ConsoleAppender\n      log4j.appender.stdout.layout=org.apache.log4j.PatternLayout\n      log4j.appender.stdout.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n\n\n      log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender\n      log4j.appender.drfa.File=${app.log.dir}/${app.log.file}\n      log4j.appender.drfa.DatePattern=.yyyy-MM-dd\n      log4j.appender.drfa.layout=org.apache.log4j.PatternLayout\n      log4j.appender.drfa.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n\n\n      log4j.logger.audit=INFO, auditfile\n      log4j.appender.auditfile=org.apache.log4j.DailyRollingFileAppender\n      log4j.appender.auditfile.File=${app.log.dir}/${app.audit.file}\n      log4j.appender.auditfile.Append = true\n      log4j.appender.auditfile.DatePattern = '.'yyyy-MM-dd\n      log4j.appender.auditfile.layout = org.apache.hadoop.gateway.audit.log4j.layout.AuditLayout"
+        },  
+        "knox-env": {
+            "knox_master_secret": "admin", 
+            "knox_group": "knox", 
+            "knox_pid_dir": "/var/run/knox", 
+            "knox_user": "knox"
+        },  
+        "ldap-log4j": {
+            "content": "\n        # Licensed to the Apache Software Foundation (ASF) under one\n        # or more contributor license agreements.  See the NOTICE file\n        # distributed with this work for additional information\n        # regarding copyright ownership.  The ASF licenses this file\n        # to you under the Apache License, Version 2.0 (the\n        # \"License\"); you may not use this file except in compliance\n        # with the License.  You may obtain a copy of the License at\n        #\n        #     http://www.apache.org/licenses/LICENSE-2.0\n        #\n        # Unless required by applicable law or agreed to in writing, software\n        # distributed under the License is distributed on an \"AS IS\" BASIS,\n        # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n        # See the License for the specific language governing permissions and\n        # limitations under the License.\n\n        app.log.dir=${launcher.dir}/../logs\n        app.log.file=${launcher.name}.log\n\n        log4j.rootLogger=ERROR, drfa\n        log4j.logger.org.apache.directory.server.ldap.LdapServer=INFO\n        log4j.logger.org.apache.directory=WARN\n\n        log4j.appender.stdout=org.apache.log4j.ConsoleAppender\n        log4j.appender.stdout.layout=org.apache.log4j.PatternLayout\n        log4j.appender.stdout.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n\n\n        log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender\n        log4j.appender.drfa.File=${app.log.dir}/${app.log.file}\n        log4j.appender.drfa.DatePattern=.yyyy-MM-dd\n        log4j.appender.drfa.layout=org.apache.log4j.PatternLayout\n        log4j.appender.drfa.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n"
+        }, 
+        "core-site": {
+            "io.serializations": "org.apache.hadoop.io.serializer.WritableSerialization", 
+            "proxyuser_group": "users", 
+            "fs.trash.interval": "360", 
+            "ha.failover-controller.active-standby-elector.zk.op.retries": "120", 
+            "hadoop.http.authentication.simple.anonymous.allowed": "true", 
+            "hadoop.security.authentication": "simple", 
+            "ha.zookeeper.quorum": "c6401.ambari.apache.org:2181,c6403.ambari.apache.org:2181,c6402.ambari.apache.org:2181", 
+            "ipc.client.connection.maxidletime": "30000", 
+            "hadoop.security.key.provider.path": " ", 
+            "mapreduce.jobtracker.webinterface.trusted": "false", 
+            "hadoop.security.authorization": "false", 
+            "net.topology.script.file.name": "/etc/hadoop/conf/topology_script.py", 
+            "ipc.server.tcpnodelay": "true", 
+            "ipc.client.connect.max.retries": "50", 
+            "hadoop.security.auth_to_local": "\n        DEFAULT", 
+            "io.file.buffer.size": "131072", 
+            "hadoop.proxyuser.hdfs.hosts": "*", 
+            "hadoop.proxyuser.hdfs.groups": "*", 
+            "ipc.client.idlethreshold": "8000", 
+            "fs.defaultFS": "hdfs://ha", 
+            "io.compression.codecs": "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec"
+        }, 
+        "hadoop-env": {
+            "proxyuser_group": "users", 
+            "hdfs_log_dir_prefix": "/var/log/hadoop", 
+            "keyserver_host": " ", 
+            "hdfs_user": "hdfs", 
+            "keyserver_port": " ", 
+            "namenode_opt_maxnewsize": "128m", 
+            "namenode_opt_maxpermsize": "256m", 
+            "content": "\n# Set Hadoop-specific environment variables here.\n\n# The only required environment variable is JAVA_HOME.  All others are\n# optional.  When running a distributed configuration it is best to\n# set JAVA_HOME in this file, so that it is correctly defined on\n# remote nodes.\n\n# The java implementation to use.  Required.\nexport JAVA_HOME={{java_home}}\nexport HADOOP_HOME_WARN_SUPPRESS=1\n\n# Hadoop home directory\nexport HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n\n# Hadoop Configuration Directory\n\n{# this is different for HDP1 #}\n# Path to jsvc required by secure HDP 2.0 datanode\nexport JSVC_HOME={{jsvc_path}}\n\n\n# The maximum amount of heap to use, in MB. Default is 1000.\nexport HADOOP_HEAPSIZE=\"{{hadoop_heapsize}}\"\n\nexport HADOOP_NAMENODE_INIT_HEAPSIZE=\"-Xms{{namenode_heapsize}}\"\n\n# Extra Java runtime options.  Empty by default.\nexport HADOOP_OPTS=\"-Djava.net.preferIPv4Stack=true ${HADOOP_OPTS}\"\n\n# Command specific options appended to HADOOP_OPTS when specified\nHADOOP_JOBTRACKER_OPTS=\"-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{jtnode_opt_newsize}} -XX:MaxNewSize={{jtnode_opt_maxnewsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xmx{{jtnode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dmapred.audit.logger=INFO,MRAUDIT -Dhadoop.mapreduce.jobsummary.logger=INFO,JSA ${HADOOP_JOBTRACKER_OPTS}\"\n\nHADOOP_TASKTRACKER_OPTS=\"-server -Xmx{{ttnode_heapsize}} -Dhadoop.security.logger=ERROR,console -Dmapred.audit.logger=ERROR,console ${HADOOP_TASKTRACKER_OPTS}\"\n\n{% if java_version < 8 %}\nSHARED_HADOOP_NAMENODE_OPTS=\"-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{namenode_opt_newsize}} -XX:MaxNewSize={{namenode_opt_maxnewsize}} -XX:PermSize={{namenode_opt_permsize}} -XX:MaxPermSize={{namenode_opt_maxpermsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms{{namenode_heapsize}} -Xmx{{namenode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT\"\nexport HADOOP_NAMENODE_OPTS=\"${SHARED_HADOOP_NAMENODE_OPTS} -XX:OnOutOfMemoryError=\\\"/usr/hdp/current/hadoop-hdfs-namenode/bin/kill-name-node\\\" ${HADOOP_NAMENODE_OPTS}\"\nexport HADOOP_DATANODE_OPTS=\"-server -XX:ParallelGCThreads=4 -XX:+UseConcMarkSweepGC -XX:ErrorFile=/var/log/hadoop/$USER/hs_err_pid%p.log -XX:NewSize=200m -XX:MaxNewSize=200m -XX:PermSize=128m -XX:MaxPermSize=256m -Xloggc:/var/log/hadoop/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms{{dtnode_heapsize}} -Xmx{{dtnode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_DATANODE_OPTS}\"\n\nexport HADOOP_SECONDARYNAMENODE_OPTS=\"${SHARED_HADOOP_NAMENODE_OPTS} -XX:OnOutOfMemoryError=\\\"/usr/hdp/current/hadoop-hdfs-secondarynamenode/bin/kill-secondary-name-node\\\" ${HADOOP_SECONDARYNAMENODE_OPTS}\"\n\n# The following applies to multiple commands (fs, dfs, fsck, distcp etc)\nexport HADOOP_CLIENT_OPTS=\"-Xmx${HADOOP_HEAPSIZE}m -XX:MaxPermSize=512m $HADOOP_CLIENT_OPTS\"\n\n{% else %}\nSHARED_HADOOP_NAMENODE_OPTS=\"-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{namenode_opt_newsize}} -XX:MaxNewSize={{namenode_opt_maxnewsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms{{namenode_heapsize}} -Xmx{{namenode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT\"\nexport HADOOP_NAMENODE_OPTS=\"${SHARED_HADOOP_NAMENODE_OPTS} -XX:OnOutOfMemoryError=\\\"/usr/hdp/current/hadoop-hdfs-namenode/bin/kill-name-node\\\" ${HADOOP_NAMENODE_OPTS}\"\nexport HADOOP_DATANODE_OPTS=\"-server -XX:ParallelGCThreads=4 -XX:+UseConcMarkSweepGC -XX:ErrorFile=/var/log/hadoop/$USER/hs_err_pid%p.log -XX:NewSize=200m -XX:MaxNewSize=200m -Xloggc:/var/log/hadoop/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms{{dtnode_heapsize}} -Xmx{{dtnode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_DATANODE_OPTS}\"\n\nexport HADOOP_SECONDARYNAMENODE_OPTS=\"${SHARED_HADOOP_NAMENODE_OPTS} -XX:OnOutOfMemoryError=\\\"/usr/hdp/current/hadoop-hdfs-secondarynamenode/bin/kill-secondary-name-node\\\" ${HADOOP_SECONDARYNAMENODE_OPTS}\"\n\n# The following applies to multiple commands (fs, dfs, fsck, distcp etc)\nexport HADOOP_CLIENT_OPTS=\"-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS\"\n{% endif %}\n\nHADOOP_NFS3_OPTS=\"-Xmx{{nfsgateway_heapsize}}m -Dhadoop.security.logger=ERROR,DRFAS ${HADOOP_NFS3_OPTS}\"\nHADOOP_BALANCER_OPTS=\"-server -Xmx{{hadoop_heapsize}}m ${HADOOP_BALANCER_OPTS}\"\n\n\n# On secure datanodes, user to run the datanode as after dropping privileges\nexport HADOOP_SECURE_DN_USER=${HADOOP_SECURE_DN_USER:-{{hadoop_secure_dn_user}}}\n\n# Extra ssh options.  Empty by default.\nexport HADOOP_SSH_OPTS=\"-o ConnectTimeout=5 -o SendEnv=HADOOP_CONF_DIR\"\n\n# Where log files are stored.  $HADOOP_HOME/logs by default.\nexport HADOOP_LOG_DIR={{hdfs_log_dir_prefix}}/$USER\n\n# History server logs\nexport HADOOP_MAPRED_LOG_DIR={{mapred_log_dir_prefix}}/$USER\n\n# Where log files are stored in the secure data environment.\nexport HADOOP_SECURE_DN_LOG_DIR={{hdfs_log_dir_prefix}}/$HADOOP_SECURE_DN_USER\n\n# File naming remote slave hosts.  $HADOOP_HOME/conf/slaves by default.\n# export HADOOP_SLAVES=${HADOOP_HOME}/conf/slaves\n\n# host:path where hadoop code should be rsync'd from.  Unset by default.\n# export HADOOP_MASTER=master:/home/$USER/src/hadoop\n\n# Seconds to sleep between slave commands.  Unset by default.  This\n# can be useful in large clusters, where, e.g., slave rsyncs can\n# otherwise arrive faster than the master can service them.\n# export HADOOP_SLAVE_SLEEP=0.1\n\n# The directory where pid files are stored. /tmp by default.\nexport HADOOP_PID_DIR={{hadoop_pid_dir_prefix}}/$USER\nexport HADOOP_SECURE_DN_PID_DIR={{hadoop_pid_dir_prefix}}/$HADOOP_SECURE_DN_USER\n\n# History server pid\nexport HADOOP_MAPRED_PID_DIR={{mapred_pid_dir_prefix}}/$USER\n\nYARN_RESOURCEMANAGER_OPTS=\"-Dyarn.server.resourcemanager.appsummary.logger=INFO,RMSUMMARY\"\n\n# A string representing this instance of hadoop. $USER by default.\nexport HADOOP_IDENT_STRING=$USER\n\n# The scheduling priority for daemon processes.  See 'man nice'.\n\n# export HADOOP_NICENESS=10\n\n# Use libraries from standard classpath\nJAVA_JDBC_LIBS=\"\"\n#Add libraries required by mysql connector\nfor jarFile in `ls /usr/share/java/*mysql* 2>/dev/null`\ndo\n  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile\ndone\n# Add libraries required by oracle connector\nfor jarFile in `ls /usr/share/java/*ojdbc* 2>/dev/null`\ndo\n  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile\ndone\n# Add libraries required by nodemanager\nMAPREDUCE_LIBS={{mapreduce_libs_path}}\nexport HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}\n\n# added to the HADOOP_CLASSPATH\nif [ -d \"/usr/hdp/current/tez-client\" ]; then\n  if [ -d \"/usr/hdp/current/tez-client/conf/\" ]; then\n    # When using versioned RPMs, the tez-client will be a symlink to the current folder of tez in HDP.\n    export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:/usr/hdp/current/tez-client/*:/usr/hdp/current/tez-client/lib/*:/usr/hdp/current/tez-client/conf/\n  fi\nfi\n\n\n# Setting path to hdfs command line\nexport HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}\n\n# Mostly required for hadoop 2.0\nexport JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}\n\nexport HADOOP_OPTS=\"-Dhdp.version=$HDP_VERSION $HADOOP_OPTS\"", 
+            "namenode_heapsize": "1024m", 
+            "namenode_opt_newsize": "128m", 
+            "nfsgateway_heapsize": "1024", 
+            "dtnode_heapsize": "1024m", 
+            "hadoop_root_logger": "INFO,RFA", 
+            "hadoop_heapsize": "1024", 
+            "hadoop_pid_dir_prefix": "/var/run/hadoop", 
+            "namenode_opt_permsize": "128m"
+        }, 
+        "topology": {
+            "content": "\n        <topology>\n\n            <gateway>\n\n                <provider>\n                    <role>authentication</role>\n                    <name>ShiroProvider</name>\n                    <enabled>true</enabled>\n                    <param>\n                        <name>sessionTimeout</name>\n                        <value>30</value>\n                    </param>\n                    <param>\n                        <name>main.ldapRealm</name>\n                        <value>org.apache.hadoop.gateway.shirorealm.KnoxLdapRealm</value>\n                    </param>\n                    <param>\n                        <name>main.ldapRealm.userDnTemplate</name>\n                        <value>uid={0},ou=people,dc=hadoop,dc=apache,dc=org</value>\n                    </param>\n                    <param>\n                        <name>main.ldapRealm.contextFactory.url</name>\n                        <value>ldap://{{knox_host_name}}:33389</value>\n                    </param>\n                    <param>\n                        <name>main.ldapRealm.contextFactory.authenticationMechanism</name>\n                        <value>simple</value>\n                    </param>\n                    <param>\n                        <name>urls./**</name>\n                        <value>authcBasic</value>\n                    </param>\n                </provider>\n\n                <provider>\n                    <role>identity-assertion</role>\n                    <name>Default</name>\n                    <enabled>true</enabled>\n                </provider>\n\n                <provider>\n                    <role>authorization</role>\n                    <name>AclsAuthz</name>\n                    <enabled>true</enabled>\n                </provider>\n\n                <provider>\n                    <role>ha</role>\n                    <name>HaProvider</name>\n                    <enabled>true</enabled>\n                    <param>\n                        <name>WEBHDFS</name\n                        <value>maxFailoverAttempts=3;failoverSleep=1000;maxRetryAttempts=300;retrySleep=1000;enabled=true</value>\n                    </param>\n                </provider>\n            </gateway>\n\n            <service>\n                <role>NAMENODE</role>\n                <url>hdfs://{{namenode_host}}:{{namenode_rpc_port}}</url>\n            </service>\n\n            <service>\n                <role>JOBTRACKER</role>\n                <url>rpc://{{rm_host}}:{{jt_rpc_port}}</url>\n            </service>\n\n            <service>\n                <role>WEBHDFS</role>\n                <url>http://{{namenode_host}}:{{namenode_http_port}}/webhdfs</url>\n                <url>http://c6402.ambari.apache.org:50070/webhdfs</url>\n            </service>\n\n            <service>\n                <role>WEBHCAT</role>\n                <url>http://{{webhcat_server_host}}:{{templeton_port}}/templeton</url>\n            </service>\n\n            <service>\n                <role>OOZIE</role>\n                <url>http://{{oozie_server_host}}:{{oozie_server_port}}/oozie</url>\n            </service>\n\n            <service>\n                <role>WEBHBASE</role>\n                <url>http://{{hbase_master_host}}:{{hbase_master_port}}</url>\n            </service>\n\n            <service>\n                <role>HIVE</role>\n                <url>http://{{hive_server_host}}:{{hive_http_port}}/{{hive_http_path}}</url>\n            </service>\n\n            <service>\n                <role>RESOURCEMANAGER</role>\n                <url>http://{{rm_host}}:{{rm_port}}/ws</url>\n            </service>\n        </topology>"
+        }, 
+        "gateway-site": {
+            "java.security.auth.login.config": "/etc/knox/conf/krb5JAASLogin.conf", 
+            "gateway.hadoop.kerberos.secured": "false", 
+            "gateway.gateway.conf.dir": "deployments", 
+            "gateway.path": "gateway", 
+            "sun.security.krb5.debug": "true", 
+            "gateway.port": "8443", 
+            "java.security.krb5.conf": "/etc/knox/conf/krb5.conf"
+        }, 
+        "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
+            "security_enabled": "false",
+            "ignore_groupsusers_create": "false", 
+            "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab", 
+            "kerberos_domain": "EXAMPLE.COM", 
+            "user_group": "hadoop", 
+            "smokeuser": "ambari-qa"
+        }
+    }, 
+    "configurationTags": {
+        "gateway-log4j": {
+            "tag": "version1432344568560"
+        },  
+        "knox-env": {
+            "tag": "version1432344568560"
+        }, 
+        "topology": {
+            "tag": "version1432345400137"
+        }, 
+        "ldap-log4j": {
+            "tag": "version1432344568560"
+        }, 
+        "core-site": {
+            "tag": "version1432344568529"
+        }, 
+        "hadoop-env": {
+            "tag": "version1"
+        }, 
+        "gateway-site": {
+            "tag": "version1432344568560"
+        }, 
+        "cluster-env": {
+            "tag": "version1"
+        }
+    }, 
+    "commandId": "25-26", 
+    "clusterHostInfo": {
+        "all_ping_ports": [
+            "8670", 
+            "8670", 
+            "8670"
+        ], 
+        "knox_gateway_hosts": [
+            "c6402.ambari.apache.org", 
+            "c6403.ambari.apache.org"
+        ], 
+        "all_hosts": [
+            "c6402.ambari.apache.org", 
+            "c6403.ambari.apache.org", 
+            "c6401.ambari.apache.org"
+        ], 
+        "slave_hosts": [
+            "c6403.ambari.apache.org"
+        ], 
+        "all_racks": [
+            "/default-rack", 
+            "/default-rack", 
+            "/default-rack"
+        ], 
+        "all_ipv4_ips": [
+            "192.168.64.102", 
+            "192.168.64.103", 
+            "192.168.64.101"
+        ], 
+        "ambari_server_host": [
+            "c6401.ambari.apache.org"
+        ]
+    }
+}

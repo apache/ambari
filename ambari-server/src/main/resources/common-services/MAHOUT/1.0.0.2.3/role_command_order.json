@@ -1,0 +1,6 @@
+{
+  "general_deps" : {
+    "_comment": "dependencies for MAHOUT",
+    "MAHOUT_SERVICE_CHECK-SERVICE_CHECK": ["NODEMANAGER-START", "RESOURCEMANAGER-START"]
+  }
+}

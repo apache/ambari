@@ -10,7 +10,8 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
+ * distributed under the License is distribut
+ * ed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -22,21 +23,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-
-import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 /**
  * Configuration for a topology entity such as a blueprint, hostgroup or cluster.
  */
 public class Configuration {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
-
   /**
    * properties for this configuration instance
    */
@@ -51,76 +43,6 @@ public class Configuration {
    * parent configuration
    */
   private Configuration parentConfiguration;
-
-  public static Configuration newEmpty() {
-    return new Configuration(new HashMap<>(), new HashMap<>());
-  }
-
-  /**
-   * Apply configuration changes from {@code updatedConfigs} to {@code config}, but only
-   * change properties that are either absent in the existing config, or have values that
-   * match the stack default config.
-   *
-   * @return config types that had any updates applied
-   */
-  public Set<String> applyUpdatesToStackDefaultProperties(Configuration stackDefaultConfig, Map<String, Map<String, String>> existingConfigurations, Map<String, Map<String, String>> updatedConfigs) {
-    Set<String> updatedConfigTypes = new HashSet<>();
-
-    Map<String, Map<String, String>> stackDefaults = stackDefaultConfig.getProperties();
-
-    for (Map.Entry<String, Map<String, String>> configEntry : updatedConfigs.entrySet()) {
-      String configType = configEntry.getKey();
-      Map<String, String> propertyMap = configEntry.getValue();
-      Map<String, String> clusterConfigProperties = existingConfigurations.get(configType);
-      Map<String, String> stackDefaultConfigProperties = stackDefaults.get(configType);
-      for (Map.Entry<String, String> propertyEntry : propertyMap.entrySet()) {
-        String property = propertyEntry.getKey();
-        String newValue = propertyEntry.getValue();
-        String currentValue = getPropertyValue(configType, property);
-
-        if (!propertyHasCustomValue(clusterConfigProperties, stackDefaultConfigProperties, property) && !Objects.equals(currentValue, newValue)) {
-          LOG.debug("Update config property {}/{}: {} -> {}", configType, property, currentValue, newValue);
-          setProperty(configType, property, newValue);
-          updatedConfigTypes.add(configType);
-        }
-      }
-    }
-
-    return updatedConfigTypes;
-  }
-
-  /**
-   * Returns true if the property exists in clusterConfigProperties and has a custom user defined value. Property has
-   * custom value in case we there's no stack default value for it or it's not equal to stack default value.
-   */
-  private static boolean propertyHasCustomValue(Map<String, String> clusterConfigProperties, Map<String, String> stackDefaultConfigProperties, String property) {
-
-    boolean propertyHasCustomValue = false;
-    if (clusterConfigProperties != null) {
-      String propertyValue = clusterConfigProperties.get(property);
-      if (propertyValue != null) {
-        if (stackDefaultConfigProperties != null) {
-          String stackDefaultValue = stackDefaultConfigProperties.get(property);
-          if (stackDefaultValue != null) {
-            propertyHasCustomValue = !propertyValue.equals(stackDefaultValue);
-          } else {
-            propertyHasCustomValue = true;
-          }
-        } else {
-          propertyHasCustomValue = true;
-        }
-      }
-    }
-    return propertyHasCustomValue;
-  }
-
-  public Configuration copy() {
-    Configuration parent = parentConfiguration;
-    parentConfiguration = null;
-    Configuration copy = new Configuration(getFullProperties(), getFullAttributes());
-    parentConfiguration = parent;
-    return copy;
-  }
 
   /**
    * Constructor.
@@ -150,8 +72,8 @@ public class Configuration {
   /**
    * Configuration.
    *
-   * @param properties  properties in configType -> propertyName -> value format
-   * @param attributes  attributes in configType -> attributeName -> propertyName -> attributeValue format
+   * @param properties  properties
+   * @param attributes  attributes
    */
   public Configuration(Map<String, Map<String, String>> properties,
                        Map<String, Map<String, Map<String, String>>> attributes) {
@@ -436,17 +358,6 @@ public class Configuration {
     return allTypes;
   }
 
-  public boolean containsConfigType(String configType) {
-    return properties.containsKey(configType) || attributes.containsKey(configType) ||
-      (parentConfiguration != null && parentConfiguration.containsConfigType(configType));
-  }
-
-  public boolean containsConfig(String configType, String propertyName) {
-    return (properties.containsKey(configType) && properties.get(configType).containsKey(propertyName))
-      || (attributes.containsKey(configType) && attributes.get(configType).values().stream().filter(map -> map.containsKey(propertyName)).findAny().isPresent())
-      || (parentConfiguration != null && parentConfiguration.containsConfig(configType, propertyName));
-  }
-
   /**
    * Get the parent configuration.
    *
@@ -469,46 +380,14 @@ public class Configuration {
    * Remove all occurrences of a config type
    */
   public void removeConfigType(String configType) {
-    if (properties != null) {
+    if (properties != null && properties.containsKey(configType)) {
       properties.remove(configType);
     }
-    if (attributes != null) {
+    if (attributes != null && attributes.containsKey(configType)) {
       attributes.remove(configType);
     }
     if (parentConfiguration != null) {
       parentConfiguration.removeConfigType(configType);
     }
-  }
-
-  /**
-   * Create a new {@code Configuration} based on a pair of maps.
-   * (This is just a convenience method to be able to avoid local variables in a few places.)
-   */
-  public static Configuration of(Pair<Map<String, Map<String, String>>, Map<String, Map<String, Map<String, String>>>> propertiesAndAttributes) {
-    return new Configuration(propertiesAndAttributes.getLeft(), propertiesAndAttributes.getRight());
-  }
-
-  /**
-   * @return this configuration's properties and attributes as a pair of maps,
-   * in order to be able to pass around more easily without polluting non-topology code with the Configuration object
-   */
-  public Pair<Map<String, Map<String, String>>, Map<String, Map<String, Map<String, String>>>> asPair() {
-    return Pair.of(properties, attributes);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    Configuration other = (Configuration) obj;
-
-    return Objects.equals(properties, other.properties) &&
-      Objects.equals(attributes, other.attributes) &&
-      Objects.equals(parentConfiguration, other.parentConfiguration);
   }
 }

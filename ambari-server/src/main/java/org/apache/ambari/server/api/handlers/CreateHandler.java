@@ -77,7 +77,7 @@ public class CreateHandler extends BaseManagementHandler {
     } catch (ResourceAlreadyExistsException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.CONFLICT, e.getMessage()));
     } catch(IllegalArgumentException e) {
-      LOG.error("Bad request received: " + e.getMessage(), e);
+      LOG.error("Bad request received: " + e.getMessage());
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
     } catch (RuntimeException e) {
       if (LOG.isErrorEnabled()) {

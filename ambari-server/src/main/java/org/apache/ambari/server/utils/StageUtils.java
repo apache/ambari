@@ -45,8 +45,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import javax.xml.bind.JAXBException;
 
@@ -236,6 +234,7 @@ public class StageUtils {
     finalAttribute.put("dfs.block.size", "true");
     hdfsSiteAttributes.put("final", finalAttribute);
     configurationAttributes.put("hdfsSite", hdfsSiteAttributes);
+    execCmd.setConfigurationAttributes(configurationAttributes);
     Map<String, String> params = new TreeMap<>();
     params.put("jdklocation", "/x/y/z");
     params.put("stack_version", "1.2.0");
@@ -343,16 +342,18 @@ public class StageUtils {
 
         for (String hostName : serviceComponent.getServiceComponentHosts().keySet()) {
 
-          SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
+          if (roleName != null) {
+            SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
 
-          if (hostsForComponentsHost == null) {
-            hostsForComponentsHost = new TreeSet<>();
-            hostRolesInfo.put(roleName, hostsForComponentsHost);
+            if (hostsForComponentsHost == null) {
+              hostsForComponentsHost = new TreeSet<>();
+              hostRolesInfo.put(roleName, hostsForComponentsHost);
+            }
+
+            int hostIndex = hostsList.indexOf(hostName);
+            //Add index of host to current host role
+            hostsForComponentsHost.add(hostIndex);
           }
-
-          int hostIndex = hostsList.indexOf(hostName);
-          //Add index of host to current host role
-          hostsForComponentsHost.add(hostIndex);
         }
       }
     }
@@ -364,23 +365,41 @@ public class StageUtils {
 
       for (String hostComponent : hostComponents) {
         String roleName = getClusterHostInfoKey(hostComponent);
-        SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
-
-        if (hostsForComponentsHost == null) {
-          hostsForComponentsHost = new TreeSet<>();
-          hostRolesInfo.put(roleName, hostsForComponentsHost);
+        if (null == roleName) {
+          roleName = additionalComponentToClusterInfoKeyMap.get(hostComponent);
+        }
+        if (null == roleName) {
+          // even though all mappings are being added, componentToClusterInfoKeyMap is
+          // a higher priority lookup
+          for (Service service : cluster.getServices().values()) {
+            for (ServiceComponent sc : service.getServiceComponents().values()) {
+              if (sc.getName().equals(hostComponent)) {
+                roleName = hostComponent.toLowerCase() + "_hosts";
+                additionalComponentToClusterInfoKeyMap.put(hostComponent, roleName);
+              }
+            }
+          }
         }
 
-        int hostIndex = hostsList.indexOf(hostname);
-        if (hostIndex != -1) {
-          if (!hostsForComponentsHost.contains(hostIndex)) {
-            hostsForComponentsHost.add(hostIndex);
+        if (roleName != null) {
+          SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
+
+          if (hostsForComponentsHost == null) {
+            hostsForComponentsHost = new TreeSet<>();
+            hostRolesInfo.put(roleName, hostsForComponentsHost);
           }
-        } else {
-          //todo: I don't think that this can happen
-          //todo: determine if it can and if so, handle properly
-          //todo: if it 'cant' should probably enforce invariant
-          throw new RuntimeException("Unable to get host index for host: " + hostname);
+
+          int hostIndex = hostsList.indexOf(hostname);
+          if (hostIndex != -1) {
+            if (!hostsForComponentsHost.contains(hostIndex)) {
+              hostsForComponentsHost.add(hostIndex);
+            }
+          } else {
+            //todo: I don't think that this can happen
+            //todo: determine if it can and if so, handle properly
+            //todo: if it 'cant' should probably enforce invariant
+            throw new RuntimeException("Unable to get host index for host: " + hostname);
+          }
         }
       }
     }
@@ -616,27 +635,5 @@ public class StageUtils {
         hostLevelParams.put(JCE_NAME, null); // custom jdk for stack
       }
     }
-  }
-
-  /**
-   * Create a component -> hosts mapping that can be used for clusterHostInfo.
-   * Component names are transformed to clusterHostInfo keys ("_hosts" is appended).
-   * List of hosts is comma-separated.
-   *
-   * @param services collection of services to create the mapping for
-   * @param componentsLookup function to find components of a given service
-   * @param hostAssignmentLookup function to find hosts of a given (service, component) pair
-   * @return component names
-   */
-  public static Map<String, String> createComponentHostMap(Collection<String> services, Function<String, Collection<String>> componentsLookup, BiFunction<String, String, Collection<String>> hostAssignmentLookup) {
-    Map<String, String> componentHostsMap = new HashMap<>();
-    for (String service : services) {
-      Collection<String> components = componentsLookup.apply(service);
-      for (String component : components) {
-        Collection<String> hosts = hostAssignmentLookup.apply(service, component);
-        componentHostsMap.put(getClusterHostInfoKey(component), StringUtils.join(hosts, ","));
-      }
-    }
-    return componentHostsMap;
   }
 }

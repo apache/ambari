@@ -61,8 +61,7 @@ public class RecommendationResourceProviderTest {
   public void testCreateConfigurationResources() throws Exception {
     Set<String> hosts = new HashSet<>(Arrays.asList(new String[]{"hostName1", "hostName2", "hostName3"}));
     Set<String> services = new HashSet<>(Arrays.asList(new String[]{"serviceName1", "serviceName2", "serviceName3"}));
-    RequestStatus requestStatus = testCreateResources(hosts, services,
-        StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS, true);
+    RequestStatus requestStatus = testCreateResources(hosts, services, StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS);
 
     assertFalse(requestStatus == null);
     assertEquals(1, requestStatus.getAssociatedResources().size());
@@ -84,8 +83,7 @@ public class RecommendationResourceProviderTest {
   public void testCreateNotConfigurationResources() throws Exception {
     Set<String> hosts = new HashSet<>(Arrays.asList(new String[]{"hostName1", "hostName2", "hostName3"}));
     Set<String> services = new HashSet<>(Arrays.asList(new String[]{"serviceName1", "serviceName2", "serviceName3"}));
-    RequestStatus requestStatus = testCreateResources(hosts, services,
-        StackAdvisorRequest.StackAdvisorRequestType.HOST_GROUPS, false);
+    RequestStatus requestStatus = testCreateResources(hosts, services, StackAdvisorRequest.StackAdvisorRequestType.HOST_GROUPS);
 
     assertFalse(requestStatus == null);
     assertEquals(1, requestStatus.getAssociatedResources().size());
@@ -134,8 +132,7 @@ public class RecommendationResourceProviderTest {
   }
 
   private RequestStatus testCreateResources(Set<String> hosts, Set<String> services,
-                                            StackAdvisorRequest.StackAdvisorRequestType type,
-                                            Boolean configsOnlyResponse) throws
+                                            StackAdvisorRequest.StackAdvisorRequestType type) throws
       NoSuchParentResourceException, ResourceAlreadyExistsException,
       UnsupportedPropertyException, SystemException, StackAdvisorException, AmbariException {
     StackAdvisorHelper stackAdvisorHelper = createMock(StackAdvisorHelper.class);
@@ -151,9 +148,9 @@ public class RecommendationResourceProviderTest {
     RecommendationResourceProvider.init(stackAdvisorHelper, configuration, clusters, ambariMetaInfo);
 
     StackAdvisorRequest stackAdvisorRequest = StackAdvisorRequest.StackAdvisorRequestBuilder.
-        forStack(null, null).ofType(type).
-        withConfigsResponse(configsOnlyResponse).
-        build();
+      forStack(null, null).ofType(type).
+      withConfigsResponse(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS.equals(type)).
+      build();
 
     Request request = createMock(Request.class);
     expect(provider.prepareStackAdvisorRequest(eq(request))).andReturn(stackAdvisorRequest);

@@ -1,0 +1,19 @@
+{
+  "services": [
+    {
+      "name": "TEZ",
+      "components": [
+        {
+          "name": "TEZ_CLIENT",
+          "configurations": [
+            {
+              "tez-site": {
+                "tez.am.view-acls": ""
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -18,12 +18,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>pig</artifactId>
+  <version>2.7.5.0.0</version>
   <name>Pig</name>
 
   <parent>
     <groupId>org.apache.ambari.contrib.views</groupId>
     <artifactId>ambari-contrib-views</artifactId>
-    <version>${revision}</version>
+    <version>2.7.5.0.0</version>
   </parent>
 
   <dependencies>
@@ -151,18 +152,18 @@
     <dependency>
       <groupId>org.apache.ambari.contrib.views</groupId>
       <artifactId>ambari-views-utils</artifactId>
-      <version>${revision}</version>
+      <version>2.7.5.0.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.ambari.contrib.views</groupId>
       <artifactId>ambari-views-commons</artifactId>
-      <version>${revision}</version>
+      <version>2.7.5.0.0</version>
     </dependency>
   </dependencies>
 
   <properties>
     <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
-    <ambari.version>${revision}</ambari.version>
+    <ambari.version>2.7.5.0.0</ambari.version>
     <ui.directory>${basedir}/src/main/resources/ui/pig-web</ui.directory>
   </properties>
   <build>
@@ -295,8 +296,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.2</version>
         <configuration>
-          <source>${jdk.version}</source>
-          <target>${jdk.version}</target>
+          <source>1.8</source>
+          <target>1.8</target>
         </configuration>
       </plugin>
       <plugin>

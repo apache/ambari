@@ -1,20 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * <p/>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Collections;
@@ -43,16 +26,32 @@ import org.apache.ambari.server.topology.KerberosDescriptorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.inject.assistedinject.Assisted;
 
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 public class KerberosDescriptorResourceProvider extends AbstractControllerResourceProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KerberosDescriptorResourceProvider.class);
 
-  static final String KERBEROS_DESCRIPTOR_NAME_PROPERTY_ID =
+  private static final String KERBEROS_DESCRIPTOR_NAME_PROPERTY_ID =
       PropertyHelper.getPropertyId("KerberosDescriptors", "kerberos_descriptor_name");
 
   private static final String KERBEROS_DESCRIPTOR_TEXT_PROPERTY_ID =
@@ -61,12 +60,16 @@ public class KerberosDescriptorResourceProvider extends AbstractControllerResour
   /**
    * The key property ids for a KerberosDescriptor resource.
    */
-  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = ImmutableMap.of(Resource.Type.KerberosDescriptor, KERBEROS_DESCRIPTOR_NAME_PROPERTY_ID);
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.KerberosDescriptor, KERBEROS_DESCRIPTOR_NAME_PROPERTY_ID)
+      .build();
 
   /**
    * The property ids for a KerberosDescriptor resource.
    */
-  private static final Set<String> PROPERTY_IDS = ImmutableSet.of(KERBEROS_DESCRIPTOR_NAME_PROPERTY_ID, KERBEROS_DESCRIPTOR_TEXT_PROPERTY_ID);
+  private static Set<String> propertyIds = Sets.newHashSet(
+      KERBEROS_DESCRIPTOR_NAME_PROPERTY_ID,
+      KERBEROS_DESCRIPTOR_TEXT_PROPERTY_ID);
 
   private KerberosDescriptorDAO kerberosDescriptorDAO;
 
@@ -77,7 +80,7 @@ public class KerberosDescriptorResourceProvider extends AbstractControllerResour
   KerberosDescriptorResourceProvider(KerberosDescriptorDAO kerberosDescriptorDAO,
                                      KerberosDescriptorFactory kerberosDescriptorFactory,
                                      @Assisted AmbariManagementController managementController) {
-    super(Resource.Type.KerberosDescriptor, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    super(Resource.Type.KerberosDescriptor, propertyIds, keyPropertyIds, managementController);
     this.kerberosDescriptorDAO = kerberosDescriptorDAO;
     this.kerberosDescriptorFactory = kerberosDescriptorFactory;
   }
@@ -89,15 +92,11 @@ public class KerberosDescriptorResourceProvider extends AbstractControllerResour
   }
 
   @Override
-  public RequestStatus createResources(Request request) throws ResourceAlreadyExistsException {
+  public RequestStatus createResources(Request request) throws SystemException, UnsupportedPropertyException,
+      ResourceAlreadyExistsException, NoSuchParentResourceException {
+
     String name = getNameFromRequest(request);
     String descriptor = getRawKerberosDescriptorFromRequest(request);
-
-    if (kerberosDescriptorDAO.findByName(name) != null) {
-      String msg = String.format("Kerberos descriptor named %s already exists", name);
-      LOGGER.info(msg);
-      throw new ResourceAlreadyExistsException(msg);
-    }
 
     KerberosDescriptor kerberosDescriptor = kerberosDescriptorFactory.createKerberosDescriptor(name, descriptor);
     kerberosDescriptorDAO.create(kerberosDescriptor.toEntity());
@@ -105,8 +104,10 @@ public class KerberosDescriptorResourceProvider extends AbstractControllerResour
     return getRequestStatus(null);
   }
 
+
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) throws NoSuchResourceException, NoSuchParentResourceException {
+  public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException,
+      UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     List<KerberosDescriptorEntity> results = null;
     boolean applyPredicate = false;
@@ -149,7 +150,7 @@ public class KerberosDescriptorResourceProvider extends AbstractControllerResour
     return resources;
   }
 
-  private static void toResource(Resource resource, KerberosDescriptorEntity entity, Set<String> requestPropertyIds) {
+  private void toResource(Resource resource, KerberosDescriptorEntity entity, Set<String> requestPropertyIds) {
     setResourceProperty(resource, KERBEROS_DESCRIPTOR_NAME_PROPERTY_ID, entity.getName(), requestPropertyIds);
     setResourceProperty(resource, KERBEROS_DESCRIPTOR_TEXT_PROPERTY_ID, entity.getKerberosDescriptorText(), requestPropertyIds);
   }
@@ -178,41 +179,26 @@ public class KerberosDescriptorResourceProvider extends AbstractControllerResour
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return ImmutableSet.copyOf(KEY_PROPERTY_IDS.values());
+    return Collections.emptySet();
   }
 
-  /**
-   * @throws IllegalArgumentException if descriptor text is not found or is empty
-   */
-  private static String getRawKerberosDescriptorFromRequest(Request request) {
-    Map<String, String> requestInfoProperties = request.getRequestInfoProperties();
-    if (requestInfoProperties != null) {
-      String descriptorText = requestInfoProperties.get(Request.REQUEST_INFO_BODY_PROPERTY);
-      if (!Strings.isNullOrEmpty(descriptorText)) {
-        return descriptorText;
-      }
+  private String getRawKerberosDescriptorFromRequest(Request request) throws UnsupportedPropertyException {
+    if (request.getRequestInfoProperties() == null ||
+        !request.getRequestInfoProperties().containsKey(Request.REQUEST_INFO_BODY_PROPERTY)) {
+      LOGGER.error("Could not find the raw request body in the request: {}", request);
+      throw new UnsupportedPropertyException(Resource.Type.KerberosDescriptor,
+          Collections.singleton(Request.REQUEST_INFO_BODY_PROPERTY));
     }
-
-    String msg = "No Kerberos descriptor found in the request body";
-    LOGGER.error(msg);
-    throw new IllegalArgumentException(msg);
+    return request.getRequestInfoProperties().get(Request.REQUEST_INFO_BODY_PROPERTY);
   }
 
-  /**
-   * @throws IllegalArgumentException if name is not found or is empty
-   */
-  private static String getNameFromRequest(Request request) {
-    if (request.getProperties() != null && !request.getProperties().isEmpty()) {
-      Map<String, Object> properties = request.getProperties().iterator().next();
-      Object name = properties.get(KERBEROS_DESCRIPTOR_NAME_PROPERTY_ID);
-      if (name != null) {
-        return String.valueOf(name);
-      }
+  private String getNameFromRequest(Request request) throws UnsupportedPropertyException {
+    if (request.getProperties() == null || !request.getProperties().iterator().hasNext()) {
+      LOGGER.error("There is no {} property id in the request {}", KERBEROS_DESCRIPTOR_NAME_PROPERTY_ID, request);
+      throw new UnsupportedPropertyException(Resource.Type.KerberosDescriptor,
+          Collections.singleton(KERBEROS_DESCRIPTOR_NAME_PROPERTY_ID));
     }
-
-    String msg = "No name provided for the Kerberos descriptor";
-    LOGGER.error(msg);
-    throw new IllegalArgumentException(msg);
+    return (String) request.getProperties().iterator().next().get(KERBEROS_DESCRIPTOR_NAME_PROPERTY_ID);
   }
 
 }

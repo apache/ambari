@@ -130,7 +130,7 @@ class VM:
         weave_launch_command = ["sudo", "weave", "launch"]
         weave_launch_command.extend(vm_external_ip_list)
 
-        print weave_launch_command
+        print(weave_launch_command)
 
         with open(os.devnull, 'w') as shutup:
             subprocess.call(weave_launch_command, stdout=shutup)
@@ -182,7 +182,7 @@ class VM:
                        "-h", docker.weave_domain_name,
                        "--name", docker.get_container_name(),
                        docker_image, "bash", "-c", cmd]
-            print command
+            print(command)
             subprocess.call(command)
 
     def _set_docker_partition(self, mount_point):

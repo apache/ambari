@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!--
+ censed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
+    <property>
+        <name>sasl.enabled.mechanisms</name>
+        <value>GSSAPI</value>
+        <description>The list of SASL mechanisms enabled in the Kafka server. The list may contain any mechanism for which a security provider is available. Only GSSAPI is enabled by default.</description>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>security.inter.broker.protocol</name>
+        <value>PLAINTEXT</value>
+        <description>Security protocol used to communicate between brokers. Valid values are: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL. It is an error to set this and inter.broker.listener.name properties at the same time.</description>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>sasl.mechanism.inter.broker.protocol</name>
+        <value>GSSAPI</value>
+        <description>SASL mechanism used for inter-broker communication. Default is GSSAPI.</description>
+        <on-ambari-upgrade add="true"/>
+    </property>
+</configuration>

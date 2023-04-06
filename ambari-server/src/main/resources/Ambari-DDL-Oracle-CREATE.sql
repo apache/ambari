@@ -17,30 +17,11 @@
 --
 
 ------create tables---------
-CREATE TABLE registries(
- id BIGINT NOT NULL,
- registy_name VARCHAR(255) NOT NULL,
- registry_type VARCHAR(255) NOT NULL,
- registry_uri VARCHAR(255) NOT NULL,
- CONSTRAINT PK_registries PRIMARY KEY (id));
-
-CREATE TABLE mpacks(
- id BIGINT NOT NULL,
- mpack_name VARCHAR(255) NOT NULL,
- mpack_version VARCHAR(255) NOT NULL,
- mpack_uri VARCHAR(255),
- registry_id BIGINT,
- CONSTRAINT PK_mpacks PRIMARY KEY (id),
- CONSTRAINT uni_mpack_name_version UNIQUE(mpack_name, mpack_version),
- CONSTRAINT FK_registries FOREIGN KEY (registry_id) REFERENCES registries(id));
-
 CREATE TABLE stack(
   stack_id NUMBER(19) NOT NULL,
   stack_name VARCHAR2(255) NOT NULL,
   stack_version VARCHAR2(255) NOT NULL,
-  mpack_id NUMBER(19),
   CONSTRAINT PK_stack PRIMARY KEY (stack_id),
-  CONSTRAINT FK_mpacks FOREIGN KEY (mpack_id) REFERENCES mpacks(id),
   CONSTRAINT UQ_stack UNIQUE (stack_name, stack_version));
 
 CREATE TABLE extension(
@@ -106,7 +87,7 @@ CREATE TABLE clusterconfig (
 CREATE TABLE ambari_configuration (
   category_name VARCHAR2(100) NOT NULL,
   property_name VARCHAR2(100) NOT NULL,
-  property_value VARCHAR2(2048),
+  property_value VARCHAR2(4000),
   CONSTRAINT PK_ambari_configuration PRIMARY KEY (category_name, property_name));
 
 CREATE TABLE serviceconfig (
@@ -364,8 +345,6 @@ CREATE TABLE requestschedule (
   status VARCHAR2(255),
   batch_separation_seconds smallint,
   batch_toleration_limit smallint,
-  batch_toleration_limit_per_batch smallint,
-  pause_after_first_batch VARCHAR2(1),
   authenticated_user_id NUMBER(10),
   create_user VARCHAR2(255),
   create_timestamp NUMBER(19),
@@ -886,7 +865,6 @@ CREATE TABLE upgrade (
   direction VARCHAR2(255) DEFAULT 'UPGRADE' NOT NULL,
   orchestration VARCHAR2(255) DEFAULT 'STANDARD' NOT NULL,
   upgrade_package VARCHAR2(255) NOT NULL,
-  upgrade_package_stack VARCHAR2(255) NOT NULL,
   upgrade_type VARCHAR2(32) NOT NULL,
   repo_version_id NUMBER(19) NOT NULL,
   skip_failures NUMBER(1) DEFAULT 0 NOT NULL,
@@ -1174,7 +1152,6 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_id_
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_item_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('stack_id_seq', 0);
-INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('mpack_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('extension_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('link_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_id_seq', 0);

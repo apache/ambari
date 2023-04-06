@@ -34,9 +34,9 @@ from resource_management.libraries.functions.security_commons import build_expec
 from resource_management.core.source import Template
 from resource_management.core.logger import Logger
 
-from install_jars import install_tez_jars
-from yarn import yarn
-from service import service
+from .install_jars import install_tez_jars
+from .yarn import yarn
+from .service import service
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 
@@ -46,12 +46,12 @@ class HistoryServer(Script):
     self.install_packages(env)
 
   def stop(self, env, upgrade_type=None):
-    import params
+    from . import params
     env.set_params(params)
     service('historyserver', action='stop', serviceName='mapreduce')
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     yarn(name="historyserver")
 
@@ -59,7 +59,7 @@ class HistoryServer(Script):
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HistoryserverWindows(HistoryServer):
   def start(self, env):
-    import params
+    from . import params
     env.set_params(params)
     self.configure(env)
     service('historyserver', action='start', serviceName='mapreduce')
@@ -75,7 +75,7 @@ class HistoryServerDefault(HistoryServer):
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade pre-restart")
-    import params
+    from . import params
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
@@ -87,7 +87,7 @@ class HistoryServerDefault(HistoryServer):
       params.HdfsResource(None, action="execute")
 
   def start(self, env, upgrade_type=None):
-    import params
+    from . import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
 
@@ -117,12 +117,12 @@ class HistoryServerDefault(HistoryServer):
     service('historyserver', action='start', serviceName='mapreduce')
 
   def status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     check_process_status(status_params.mapred_historyserver_pid_file)
 
   def security_status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     if status_params.security_enabled:
       expectations = {}
@@ -178,11 +178,11 @@ class HistoryServerDefault(HistoryServer):
       self.put_structured_out({"securityState": "UNSECURED"})
 
   def get_log_folder(self):
-    import params
+    from . import params
     return params.mapred_log_dir
 
   def get_user(self):
-    import params
+    from . import params
     return params.mapred_user
 
 if __name__ == "__main__":

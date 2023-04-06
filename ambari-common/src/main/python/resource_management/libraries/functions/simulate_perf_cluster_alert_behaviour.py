@@ -82,7 +82,7 @@ def simulate_perf_cluster_alert_behaviour(alert_behaviour_properties, configurat
 
     if alert_timeout_return_value and alert_timeout_secs:
       logger.info("Sleeping for {0} seconds".format(alert_timeout_secs))
-      print "Sleeping for {0} seconds".format(alert_timeout_secs)
+      print("Sleeping for {0} seconds".format(alert_timeout_secs))
       time.sleep(int(alert_timeout_secs))
       return (return_values_map[alert_timeout_return_value][0], [return_values_map[alert_timeout_return_value][1]])
     else:

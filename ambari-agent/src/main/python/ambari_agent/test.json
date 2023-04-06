@@ -1,0 +1,69 @@
+{
+"commandId": "234",
+"hostname":  "h1.hortonworks.com",
+
+"clusterHostInfo" : 
+{
+"namenode_host" : ["1"],
+"slave_hosts"   : ["0", "1"],
+"all_hosts"     : ["h1.hortonworks.com", "h2.hortonworks.com"],
+"all_ping_ports"    : ["8670:0,1"]
+},
+"hostLevelParams": 
+{
+"hdfs_user" : "hdfs",
+"jdk_location" : "http://hdp1/downloads",
+"java_home" : " java64_home ",
+"java32_home" : "/usr/jdk64/jdk1.6.0_31",
+"java64_home" : "/usr/jdk64/jdk1.6.0_31",
+"jdk_bins" :  { "32" : "jdk-6u31-linux-x64.bin", "64" : "jdk-6u31-linux-x64.bin" },
+"repo_info" :[
+{
+  "baseUrl":"http://public-repo-1.hortonworks.com/HDP-1.1.1.16/repos/centos5",
+  "osType":"centos5",
+  "repoId":"HDP-1.1.1.16_TEST",
+  "repoName":"HDP_TEST"
+}
+,
+{
+  "baseUrl":"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos5",
+  "osType":"centos5",
+  "repoId":"HDP-UTILS-1.1.0.15_TEST",
+  "repoName":"HDP-UTILS_TEST"
+}]
+
+},
+"commandParams":
+{
+  "command_timeout": "600"
+},
+
+
+"configurations" : {
+"hdfs-site" : { "dfs.block.size" : "256000000", "dfs.replication" : "1" } ,
+"core-site" :  { "fs.default.name" : "hrt8n36.cc1.ygridcore.net" } ,
+"mapred-queue-acls" : {"mapred.queue.default.acl-submit-job" : "*",
+		       "mapred.queue.default.acl-administer-jobs" : "*"},
+"hadoop-policy" : {"security.client.protocol.acl" : "*",
+		   "security.client.datanode.protocol.acl" : "*"},
+"mapred-site" : {"mapred.jobtracker.taskScheduler" : "org.apache.hadoop.mapred.CapacityTaskScheduler",
+		 "mapred.queue.names" : "hive,pig,default"},
+"capacity-scheduler" : {"mapred.capacity-scheduler.queue.default.capacity" : "100",
+			"mapred.capacity-scheduler.queue.default.supports-priorit" : "false"},
+"health_check" : {"security_enabled" : "true",
+                  "task_bin_exe" : "ls"},
+"hadoop_env" : {"hadoop_piddirprefix" : "/tmp"},
+
+"hbase-site" : {"hbase.cluster.distributed" : "true"},
+"hbase-policy" : {"security.client.protocol.acl" : "*"},
+"hadoop_metrics" : {"ganglia_server_host" : "localhost"},
+"hive-site" : {"hive.exec.scratchdir" : "/tmp"},
+"oozie-site" : {"oozie.service.ActionService.executor.ext.classes" : "org.apache.oozie.action.hadoop.HiveActionExecutor, org.apache.oozie.action.hadoop.SqoopActionExecutor,org.apache.oozie.action.email.EmailActionExecutor,"},
+"templeton-site" : {"templeton.override.enabled" : "true"},
+"global" : {"java64_home" : " java64_home "}
+},
+
+"role": "NAMENODE",
+"roleCommand": "INSTALL",
+"roleParams" : {}
+}

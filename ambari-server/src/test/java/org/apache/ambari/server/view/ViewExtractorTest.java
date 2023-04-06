@@ -19,6 +19,8 @@
 package org.apache.ambari.server.view;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -47,7 +49,6 @@ import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewEntityTest;
 import org.apache.ambari.server.view.configuration.ViewConfig;
-import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,27 +56,27 @@ import org.junit.Test;
 /**
  * ViewExtractor tests.
  */
-public class ViewExtractorTest extends EasyMockSupport {
+public class ViewExtractorTest {
 
-  private final File extractedArchiveDir = createNiceMock(File.class);
-  private final File viewArchive = createNiceMock(File.class);
-  private final File archiveDir = createNiceMock(File.class);
-  private final File entryFile = createNiceMock(File.class);
-  private final File classesDir = createNiceMock(File.class);
-  private final File libDir = createNiceMock(File.class);
-  private final File metaInfDir = createNiceMock(File.class);
-  private final File metaInfManifest = createNiceMock(File.class);
-  private final JarInputStream viewJarFile = createNiceMock(JarInputStream.class);
-  private final JarEntry jarEntry = createNiceMock(JarEntry.class);
-  private final FileOutputStream fos = createMock(FileOutputStream.class);
-  private final Configuration configuration = createNiceMock(Configuration.class);
-  private final File viewDir = createNiceMock(File.class);
-  private final File fileEntry = createNiceMock(File.class);
-  private final ViewDAO viewDAO = createMock(ViewDAO.class);
+  private static final File extractedArchiveDir = createNiceMock(File.class);
+  private static final File viewArchive = createNiceMock(File.class);
+  private static final File archiveDir = createNiceMock(File.class);
+  private static final File entryFile  = createNiceMock(File.class);
+  private static final File classesDir = createNiceMock(File.class);
+  private static final File libDir = createNiceMock(File.class);
+  private static final File metaInfDir = createNiceMock(File.class);
+  private static final JarInputStream viewJarFile = createNiceMock(JarInputStream.class);
+  private static final JarEntry jarEntry = createNiceMock(JarEntry.class);
+  private static final FileOutputStream fos = createMock(FileOutputStream.class);
+  private static final Configuration configuration = createNiceMock(Configuration.class);
+  private static final File viewDir = createNiceMock(File.class);
+  private static final File fileEntry = createNiceMock(File.class);
+  private static final ViewDAO viewDAO = createMock(ViewDAO.class);
 
   @Before
   public void resetGlobalMocks() {
-    resetAll();
+    reset(extractedArchiveDir, viewArchive,archiveDir,entryFile, classesDir, libDir, metaInfDir, viewJarFile,
+        jarEntry, fos, configuration, viewDir, fileEntry, viewDAO);
   }
 
   @Test
@@ -99,20 +100,20 @@ public class ViewExtractorTest extends EasyMockSupport {
     expect(configuration.getViewExtractionThreadPoolCoreSize()).andReturn(2).anyTimes();
     expect(configuration.getViewExtractionThreadPoolMaxSize()).andReturn(3).anyTimes();
     expect(configuration.getViewExtractionThreadPoolTimeout()).andReturn(10000L).anyTimes();
-
     if (System.getProperty("os.name").contains("Windows")) {
       expect(viewArchive.getAbsolutePath()).andReturn("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}").anyTimes();
-      expect(metaInfManifest.getAbsolutePath()).andReturn("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\META-INF\\MANIFEST.MF").anyTimes();
-      expect(archiveDir.getAbsolutePath()).andReturn("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}").anyTimes();
     }
     else {
       expect(viewArchive.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
-      expect(metaInfManifest.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF/MANIFEST.MF").anyTimes();
-      expect(archiveDir.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
     }
 
     expect(archiveDir.exists()).andReturn(false);
-        
+    if (System.getProperty("os.name").contains("Windows")) {
+      expect(archiveDir.getAbsolutePath()).andReturn("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}").anyTimes();
+    }
+    else {
+      expect(archiveDir.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
+    }
     expect(archiveDir.mkdir()).andReturn(true);
     expect(archiveDir.toURI()).andReturn(new URI("file:./"));
 
@@ -156,12 +157,16 @@ public class ViewExtractorTest extends EasyMockSupport {
     expect(addFilePath.isFile()).andReturn(true);
     expect(addFilePath.toURI()).andReturn(new URI("file://file3"));
 
-    replayAll();
+    replay(extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir, libDir, metaInfDir, viewJarFile,
+        jarEntry, fos, configuration, viewDir, fileEntry, viewDAO,
+            addDirPath, addDirPathFile1, addDirPathFile2, addDirPath2, addFilePath);
 
     ViewExtractor viewExtractor = getViewExtractor(viewDefinition);
     viewExtractor.extractViewArchive(viewDefinition, viewArchive, archiveDir, viewsAdditionalClasspath);
 
-    verifyAll();
+    verify(extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir, libDir, metaInfDir, viewJarFile,
+        jarEntry, fos, configuration, viewDir, fileEntry, viewDAO,
+            addDirPath, addDirPathFile1, addDirPathFile2, addDirPath2, addFilePath);
   }
 
   @Test
@@ -176,7 +181,8 @@ public class ViewExtractorTest extends EasyMockSupport {
 
     expect(extractedArchiveDir.exists()).andReturn(true);
 
-    replayAll();
+    replay(extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir, libDir, metaInfDir, viewJarFile,
+        jarEntry, fos, configuration, viewDir, fileEntry, viewDAO);
 
     ViewExtractor viewExtractor = getViewExtractor(viewDefinition);
 
@@ -187,7 +193,8 @@ public class ViewExtractorTest extends EasyMockSupport {
       Assert.assertTrue(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work"));
     }
 
-    verifyAll();
+    verify(extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir, libDir, metaInfDir, viewJarFile,
+        jarEntry, fos, configuration, viewDir, fileEntry, viewDAO);
 
     reset(extractedArchiveDir);
 
@@ -233,24 +240,20 @@ public class ViewExtractorTest extends EasyMockSupport {
     Map<String, File> files = new HashMap<>();
 
     if (System.getProperty("os.name").contains("Windows")) {
-      // sometimes JARs have odd orderings for the MANIFEST.MF, so put it before the META-INF directory
-      files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\META-INF\\MANIFEST.MF", metaInfManifest);
-      files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\META-INF", metaInfDir);
       files.put("\\var\\lib\\ambari-server\\resources\\views\\work", extractedArchiveDir);
       files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}", archiveDir);
       files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\view.xml", entryFile);
       files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\WEB-INF/classes", classesDir);
       files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\WEB-INF/lib", libDir);
+      files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\META-INF", metaInfDir);
     }
     else {
-      // sometimes JARs have odd orderings for the MANIFEST.MF, so put it before the META-INF directory
-      files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF/MANIFEST.MF", metaInfManifest);
-      files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF", metaInfDir);
       files.put("/var/lib/ambari-server/resources/views/work", extractedArchiveDir);
       files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}", archiveDir);
       files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/view.xml", entryFile);
       files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/classes", classesDir);
       files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/lib", libDir);
+      files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF", metaInfDir);
     }
 
     Map<File, FileOutputStream> outputStreams = new HashMap<>();

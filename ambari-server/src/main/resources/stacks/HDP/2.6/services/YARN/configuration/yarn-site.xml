@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+  <property>
+    <name>yarn.application.classpath</name>
+    <value>{{hadoop_home}}/conf,{{hadoop_home}}/*,{{hadoop_home}}/lib/*,/usr/hdp/current/hadoop-hdfs-client/*,/usr/hdp/current/hadoop-hdfs-client/lib/*,/usr/hdp/current/hadoop-yarn-client/*,/usr/hdp/current/hadoop-yarn-client/lib/*,/usr/hdp/current/ext/hadoop/*</value>
+    <description>Classpath for typical applications.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.client.failover-proxy-provider</name>
+    <value>org.apache.hadoop.yarn.client.RequestHedgingRMFailoverProxyProvider</value>
+    <description>When HA is enabled, the class to be used by Clients, AMs and NMs to failover to the Active RM. It should extend org.apache.hadoop.yarn.client.RMFailoverProxyProvider</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled</name>
+    <value>false</value>
+    <description>This property need to be set to make preemption can happen under a fragmented cluster.</description>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.resourcemanager.scheduler.monitor.enable</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round</name>
+    <value>0.1</value>
+    <description>This option controls the pace at which containers-marked-for-preemption are actually preempted in each period.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.monitor.capacity.preemption.natural_termination_factor</name>
+    <value>1</value>
+    <description>Similar to total_preemption_per_round, we can apply this factor to slowdown resource preemption after preemption-target is computed for each queue.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.entity-group-fs-store.app-cache-size</name>
+    <value>10</value>
+    <description>
+      Size of the reader cache for ATS reader. This value controls how many entity groups the ATS server should cache.
+      If the number of active read entity groups is greater than the number of caches items, some reads may return empty data.
+      This value must be greater than 0.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.client.fd-flush-interval-secs</name>
+    <value>5</value>
+    <description>
+      Flush interval for ATS writer. This value controls how frequent the writer will flush the DFS FSStream for the entity/domain.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.entity-group-fs-store.scan-interval-seconds</name>
+    <value>15</value>
+    <description>
+      Scan interval for ATS entity group file system storage reader.This
+      value controls how frequent the reader will scan the DFS active directory
+      for application status.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.log.server.web-service.url</name>
+    <value>http://localhost:8188/ws/v1/applicationhistory</value>
+    <description>Log Server Web Service URL.</description>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.http.policy</name>
+      </property>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.timeline-service.webapp.address</name>
+      </property>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.timeline-service.webapp.https.address</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.kill-escape.launch-command-line</name>
+    <value>slider-agent,LLAP</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.kill-escape.user</name>
+    <value>hive</value>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.log-aggregation.file-formats</name>
+    <value>IndexedFormat,TFile</value>
+    <description></description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.log-aggregation.file-controller.TFile.class</name>
+    <value>org.apache.hadoop.yarn.logaggregation.filecontroller.tfile.LogAggregationTFileController</value>
+    <description></description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.log-aggregation.file-controller.IndexedFormat.class</name>
+    <value>org.apache.hadoop.yarn.logaggregation.filecontroller.ifile.LogAggregationIndexedFileController</value>
+    <description></description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

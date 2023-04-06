@@ -117,7 +117,7 @@ public class HostComponentSummary {
 
   @Override
   public int hashCode() {
-    int result;
+    int result = 1;
     result = 31 + (serviceName != null ? serviceName.hashCode() : 0);
     result = result + (componentName != null ? componentName.hashCode() : 0);
     result = result + (hostId != null ? hostId.hashCode() : 0);

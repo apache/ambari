@@ -20,4 +20,4 @@ export PATH=$PATH:/var/lib/ambari-agent
 export PYTHONPATH=/usr/lib/ambari-agent/lib:$PYTHONPATH
 
 # customize python binary for ambari
-# export PYTHON=/usr/bin/python2
+# export PYTHON=/usr/bin/python3

@@ -1,0 +1,65 @@
+{#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# syntax: [prefix].[source|sink|jmx].[instance].[options]
+# See package.html for org.apache.hadoop.metrics2 for details
+
+{% if has_ganglia_server %}
+*.period=60
+
+*.sink.ganglia.class=org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31
+*.sink.ganglia.period=10
+
+# default for supportsparse is false
+*.sink.ganglia.supportsparse=true
+
+.sink.ganglia.slope=jvm.metrics.gcCount=zero,jvm.metrics.memHeapUsedM=both
+.sink.ganglia.dmax=jvm.metrics.threadsBlocked=70,jvm.metrics.memHeapUsedM=40
+
+# Hook up to the server
+namenode.sink.ganglia.servers={{ganglia_server_host}}:8661
+datanode.sink.ganglia.servers={{ganglia_server_host}}:8659
+jobtracker.sink.ganglia.servers={{ganglia_server_host}}:8662
+tasktracker.sink.ganglia.servers={{ganglia_server_host}}:8658
+maptask.sink.ganglia.servers={{ganglia_server_host}}:8660
+reducetask.sink.ganglia.servers={{ganglia_server_host}}:8660
+resourcemanager.sink.ganglia.servers={{ganglia_server_host}}:8664
+nodemanager.sink.ganglia.servers={{ganglia_server_host}}:8657
+historyserver.sink.ganglia.servers={{ganglia_server_host}}:8666
+journalnode.sink.ganglia.servers={{ganglia_server_host}}:8654
+nimbus.sink.ganglia.servers={{ganglia_server_host}}:8649
+supervisor.sink.ganglia.servers={{ganglia_server_host}}:8650
+
+resourcemanager.sink.ganglia.tagsForPrefix.yarn=Queue
+
+{% endif %}

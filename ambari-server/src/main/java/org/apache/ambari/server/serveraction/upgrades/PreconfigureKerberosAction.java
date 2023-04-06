@@ -41,14 +41,12 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
+import org.apache.ambari.server.orm.dao.KerberosKeytabDAO;
+import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.kerberos.PreconfigureServiceType;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
-import org.apache.ambari.server.stack.upgrade.Direction;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
@@ -56,6 +54,7 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosConfigurationDescriptor;
@@ -63,6 +62,7 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.kerberos.VariableReplacementHelper;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -94,7 +94,10 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
   private HostDAO hostDAO;
 
   @Inject
-  private KerberosKeytabPrincipalDAO kerberosKeytabPrincipalDAO;
+  private KerberosKeytabDAO kerberosKeytabDAO;
+
+  @Inject
+  KerberosPrincipalDAO kerberosPrincipalDAO;
 
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext) throws AmbariException, InterruptedException {
@@ -122,11 +125,11 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
               "The target stack Id was not specified.");
         }
 
-        KerberosDescriptor kerberosDescriptor = kerberosHelper.getKerberosDescriptor(KerberosHelper.KerberosDescriptorType.COMPOSITE, cluster, stackId, true, null);
+        KerberosDescriptor kerberosDescriptor = kerberosHelper.getKerberosDescriptor(KerberosHelper.KerberosDescriptorType.COMPOSITE, cluster, stackId, true);
 
         // Calculate the current host-specific configurations. These will be used to replace
         // variables within the Kerberos descriptor data
-        Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, true, false, null);
+        Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, true, false);
 
         PreconfigureServiceType preconfigureServiceType = getPreconfigureServiceType(configurations);
 
@@ -385,9 +388,10 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
           propertiesToBeIgnored.putAll(propertiesToIgnore);
         }
 
-        // create database records for keytab that must be presented on cluster
-        List<KerberosKeytabPrincipalEntity> keytabList = kerberosKeytabPrincipalDAO.findAll();
-        resolvedKeytabs.values().forEach(keytab -> kerberosHelper.createResolvedKeytab(keytab, keytabList));
+        // create database records for keytabs that must be presented on cluster
+        for (ResolvedKerberosKeytab keytab : resolvedKeytabs.values()) {
+          kerberosHelper.createResolvedKeytab(keytab);
+        }
       } catch (IOException e) {
         throw new AmbariException(e.getMessage(), e);
       }

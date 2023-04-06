@@ -46,7 +46,6 @@ public class RequiredPasswordValidator implements TopologyValidator {
    * @throws InvalidTopologyException if required password properties are missing and no
    *                                  default is specified via 'default_password'
    */
-  @Override
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
 
     defaultPassword = topology.getDefaultPassword();

@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -82,7 +81,7 @@ public class HostRequest implements Comparable<HostRequest> {
   Map<Long, HostRoleCommand> logicalTasks = new HashMap<>();
 
   // logical task id -> physical tasks
-  private Map<Long, Long> physicalTasks = new ConcurrentHashMap<>();
+  private Map<Long, Long> physicalTasks = new HashMap<>();
 
   private List<TopologyHostTask> topologyTasks = new ArrayList<>();
 
@@ -456,7 +455,7 @@ public class HostRequest implements Comparable<HostRequest> {
   }
 
   public Map<Long, Long> getPhysicalTaskMapping() {
-    return new ConcurrentHashMap<>(physicalTasks);
+    return new HashMap<>(physicalTasks);
   }
 
   //todo: since this is used to determine equality, using hashCode() isn't safe as it can return the same

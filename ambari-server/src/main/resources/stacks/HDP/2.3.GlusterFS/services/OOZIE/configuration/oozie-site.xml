@@ -1,0 +1,340 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+        
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+  <!--
+      Refer to the oozie-default.xml file for the complete list of
+      Oozie configuration properties and their default values.
+  -->
+  <property>
+    <name>oozie.base.url</name>
+    <value>http://localhost:11000/oozie</value>
+    <description>Base Oozie URL.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.system.id</name>
+    <value>oozie-${user.name}</value>
+    <description>
+      The Oozie system ID.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.systemmode</name>
+    <value>NORMAL</value>
+    <description>
+      System mode for Oozie at startup.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.AuthorizationService.security.enabled</name>
+    <value>true</value>
+    <description>
+      Specifies whether security (user name/admin role) is enabled or not.
+      If disabled any user can manage Oozie system and manage any job.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.PurgeService.older.than</name>
+    <value>30</value>
+    <description>
+      Jobs older than this value, in days, will be purged by the PurgeService.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.PurgeService.purge.interval</name>
+    <value>3600</value>
+    <description>
+      Interval at which the purge service will run, in seconds.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.CallableQueueService.queue.size</name>
+    <value>1000</value>
+    <description>Max callable queue size</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.CallableQueueService.threads</name>
+    <value>10</value>
+    <description>Number of threads used for executing callables</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.CallableQueueService.callable.concurrency</name>
+    <value>3</value>
+    <description>
+      Maximum concurrency for a given callable type.
+      Each command is a callable type (submit, start, run, signal, job, jobs, suspend,resume, etc).
+      Each action type is a callable type (Map-Reduce, Pig, SSH, FS, sub-workflow, etc).
+      All commands that use action executors (action-start, action-end, action-kill and action-check) use
+      the action type as the callable type.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.coord.normal.default.timeout</name>
+    <value>120</value>
+    <description>Default timeout for a coordinator action input check (in minutes) for normal job.
+      -1 means infinite timeout
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.HadoopAccessorService.supported.filesystems</name>
+    <value>glusterfs</value>
+    <description>List of other HCFS supported filesystems</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.db.schema.name</name>
+    <value>oozie</value>
+    <description>
+      Oozie DataBase Name
+    </description>
+    <value-attributes>
+      <type>database</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.authentication.type</name>
+    <value>simple</value>
+    <description>
+      Authentication used for Oozie HTTP endpoint, the supported values are: simple | kerberos |
+      #AUTHENTICATION_HANDLER_CLASSNAME#.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.WorkflowAppService.system.libpath</name>
+    <value>/user/${user.name}/share/lib</value>
+    <description>
+      System library path to use for workflow applications.
+      This path is added to workflow application if their job properties sets
+      the property 'oozie.use.system.libpath' to true.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>use.system.libpath.for.mapreduce.and.pig.jobs</name>
+    <value>false</value>
+    <description>
+      If set to true, submissions of MapReduce and Pig jobs will include
+      automatically the system library path, thus not requiring users to
+      specify where the Pig JAR files are. Instead, the ones from the system
+      library path are used.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.authentication.kerberos.name.rules</name>
+    <value>
+
+
+
+
+
+    </value>
+    <description>The mapping from kerberos principal names to local OS user names.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.HadoopAccessorService.hadoop.configurations</name>
+    <value>*=/etc/hadoop/conf</value>
+    <description>
+      Comma separated AUTHORITY=HADOOP_CONF_DIR, where AUTHORITY is the HOST:PORT of
+      the Hadoop service (JobTracker, HDFS). The wildcard '*' configuration is
+      used when there is no exact match for an authority. The HADOOP_CONF_DIR contains
+      the relevant Hadoop *-site.xml files. If the path is relative is looked within
+      the Oozie configuration directory; though the path can be absolute (i.e. to point
+      to Hadoop client conf/ directories in the local filesystem.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.ActionService.executor.ext.classes</name>
+    <value>
+      org.apache.oozie.action.email.EmailActionExecutor,
+      org.apache.oozie.action.hadoop.HiveActionExecutor,
+      org.apache.oozie.action.hadoop.ShellActionExecutor,
+      org.apache.oozie.action.hadoop.SqoopActionExecutor,
+      org.apache.oozie.action.hadoop.DistcpActionExecutor
+    </value>
+    <description>
+      List of ActionExecutors extension classes (separated by commas). Only action types with associated executors can
+      be used in workflows. This property is a convenience property to add extensions to the built in executors without
+      having to include all the built in ones.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.SchemaService.wf.ext.schemas</name>
+    <value>shell-action-0.1.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,sqoop-action-0.2.xsd,ssh-action-0.1.xsd,distcp-action-0.1.xsd,shell-action-0.2.xsd,oozie-sla-0.1.xsd,oozie-sla-0.2.xsd,hive-action-0.3.xsd</value>
+    <description>
+      Schemas for additional actions types. IMPORTANT: if there are no schemas leave a 1 space string, the service
+      trims the value, if empty Configuration assumes it is NULL.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.JPAService.create.db.schema</name>
+    <value>false</value>
+    <description>
+      Creates Oozie DB.
+
+      If set to true, it creates the DB schema if it does not exist. If the DB schema exists is a NOP.
+      If set to false, it does not create the DB schema. If the DB schema does not exist it fails start up.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.JPAService.jdbc.driver</name>
+    <value>org.apache.derby.jdbc.EmbeddedDriver</value>
+    <description>
+      JDBC driver class.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.JPAService.jdbc.url</name>
+    <value>jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true</value>
+    <description>
+      JDBC URL.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.JPAService.jdbc.username</name>
+    <value>oozie</value>
+    <description>
+      Database user name to use to connect to the database
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property require-input="true">
+    <name>oozie.service.JPAService.jdbc.password</name>
+    <value> </value>
+    <display-name>Database Password</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>
+      DB user password.
+
+      IMPORTANT: if password is emtpy leave a 1 space string, the service trims the value,
+      if empty Configuration assumes it is NULL.
+    </description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.JPAService.pool.max.active.conn</name>
+    <value>10</value>
+    <description>
+      Max number of connections.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.services</name>
+    <value>
+      org.apache.oozie.service.SchedulerService,
+      org.apache.oozie.service.InstrumentationService,
+      org.apache.oozie.service.CallableQueueService,
+      org.apache.oozie.service.UUIDService,
+      org.apache.oozie.service.ELService,
+      org.apache.oozie.service.AuthorizationService,
+      org.apache.oozie.service.UserGroupInformationService,
+      org.apache.oozie.service.HadoopAccessorService,
+      org.apache.oozie.service.URIHandlerService,
+      org.apache.oozie.service.MemoryLocksService,
+      org.apache.oozie.service.DagXLogInfoService,
+      org.apache.oozie.service.SchemaService,
+      org.apache.oozie.service.LiteWorkflowAppService,
+      org.apache.oozie.service.JPAService,
+      org.apache.oozie.service.StoreService,
+      org.apache.oozie.service.CoordinatorStoreService,
+      org.apache.oozie.service.SLAStoreService,
+      org.apache.oozie.service.DBLiteWorkflowStoreService,
+      org.apache.oozie.service.CallbackService,
+      org.apache.oozie.service.ActionService,
+      org.apache.oozie.service.ActionCheckerService,
+      org.apache.oozie.service.RecoveryService,
+      org.apache.oozie.service.PurgeService,
+      org.apache.oozie.service.CoordinatorEngineService,
+      org.apache.oozie.service.BundleEngineService,
+      org.apache.oozie.service.DagEngineService,
+      org.apache.oozie.service.CoordMaterializeTriggerService,
+      org.apache.oozie.service.StatusTransitService,
+      org.apache.oozie.service.PauseTransitService,
+      org.apache.oozie.service.GroupsService,
+      org.apache.oozie.service.ProxyUserService
+    </value>
+    <description>List of Oozie services</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.HadoopAccessorService.kerberos.enabled</name>
+    <value>false</value>
+    <description>
+       Indicates if Oozie is configured to use Kerberos.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.URIHandlerService.uri.handlers</name>
+    <value>org.apache.oozie.dependency.FSURIHandler,org.apache.oozie.dependency.HCatURIHandler</value>
+    <description>
+      Enlist the different uri handlers supported for data availability checks.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.services.ext</name>
+    <value>org.apache.oozie.service.PartitionDependencyManagerService,org.apache.oozie.service.HCatAccessorService
+    </value>
+    <description>
+      To add/replace services defined in 'oozie.services' with custom implementations.
+      Class names must be separated by commas.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.coord.push.check.requeue.interval</name>
+    <value>30000</value>
+    <description>
+      Command re-queue interval for push dependencies (in millisecond).
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.credentials.credentialclasses</name>
+    <value>hcat=org.apache.oozie.action.hadoop.HCatCredentials</value>
+    <description>
+      Credential Class to be used for HCat.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

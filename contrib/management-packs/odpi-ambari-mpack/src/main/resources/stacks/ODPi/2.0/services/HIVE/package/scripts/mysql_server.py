@@ -20,41 +20,41 @@ limitations under the License.
 
 import sys
 import os
-import mysql_users
+from . import mysql_users
 from resource_management import *
 
-from mysql_service import mysql_service
-from mysql_utils import mysql_configure
+from .mysql_service import mysql_service
+from .mysql_utils import mysql_configure
 
 
 class MysqlServer(Script):
   def install(self, env):
-    import params
+    from . import params
     self.install_packages(env)
     self.configure(env)
 
   def clean(self, env):
-    import params
+    from . import params
     env.set_params(params)
     mysql_users.mysql_deluser()
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     mysql_configure()
 
   def start(self, env, rolling_restart=False):
-    import params
+    from . import params
     env.set_params(params)
     mysql_service(daemon_name=params.daemon_name, action='start')
 
   def stop(self, env, rolling_restart=False):
-    import params
+    from . import params
     env.set_params(params)
     mysql_service(daemon_name=params.daemon_name, action='stop')
 
   def status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
 
     mysql_service(daemon_name=status_params.daemon_name, action='status')

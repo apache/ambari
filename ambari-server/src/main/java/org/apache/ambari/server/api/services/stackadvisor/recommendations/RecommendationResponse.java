@@ -18,29 +18,15 @@
 
 package org.apache.ambari.server.api.services.stackadvisor.recommendations;
 
-import static com.google.common.collect.Maps.transformValues;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.state.ValueAttributesInfo;
-import org.apache.ambari.server.topology.ConfigurableHelper;
-import org.apache.commons.lang3.tuple.Pair;
-import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * Recommendation response POJO.
@@ -138,12 +124,6 @@ public class RecommendationResponse extends StackAdvisorResponse {
     public void setHostGroups(Set<HostGroup> hostGroups) {
       this.hostGroups = hostGroups;
     }
-
-    public Map<String, Set<String>> getHostgroupComponentMap() {
-      return hostGroups.stream()
-        .flatMap(hg -> hg.getComponentNames().stream().map(comp -> Pair.of(hg.getName(), comp)))
-        .collect(groupingBy(Pair::getKey, mapping(Pair::getValue, toSet())));
-    }
   }
 
   public static class BlueprintConfigurations {
@@ -153,24 +133,6 @@ public class RecommendationResponse extends StackAdvisorResponse {
     @JsonProperty("property_attributes")
     @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
     private Map<String, ValueAttributesInfo> propertyAttributes = null;
-
-    /**
-     *
-     * @param properties properties in <i>name -> value</i> format
-     * @param attributes attributes in <i>attribute name -> property name -> value</i> format
-     */
-    public static BlueprintConfigurations create(Map<String, String> properties, Map<String, Map<String, String>> attributes) {
-      BlueprintConfigurations config = new BlueprintConfigurations();
-      config.setProperties(properties);
-      if (attributes != null) {
-        // transform map to property name -> attribute name -> value format
-        Map<String, Map<String, String>> transformedAttributes = ConfigurableHelper.transformAttributesMap(attributes);
-        ObjectMapper mapper = new ObjectMapper();
-        config.setPropertyAttributes(
-          new HashMap<>(transformValues(transformedAttributes, attr -> ValueAttributesInfo.fromMap(attr, Optional.of(mapper)))));
-      }
-      return config;
-    }
 
     public BlueprintConfigurations() {
 
@@ -198,16 +160,6 @@ public class RecommendationResponse extends StackAdvisorResponse {
       return propertyAttributes;
     }
 
-    /**
-     * @return value attributes in <i>attribute name -> property name -> value</i> format
-     */
-    @JsonIgnore
-    public Map<String, Map<String, String>> getPropertyAttributesAsMap() {
-      ObjectMapper mapper = new ObjectMapper();
-      return null == propertyAttributes ? null :
-        ConfigurableHelper.transformAttributesMap( transformValues(propertyAttributes, vaInfo -> vaInfo.toMap(Optional.of(mapper))) );
-    }
-
     public void setPropertyAttributes(Map<String, ValueAttributesInfo> propertyAttributes) {
       this.propertyAttributes = propertyAttributes;
     }
@@ -216,14 +168,18 @@ public class RecommendationResponse extends StackAdvisorResponse {
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
+
       BlueprintConfigurations that = (BlueprintConfigurations) o;
-      return Objects.equals(properties, that.properties) &&
-          Objects.equals(propertyAttributes, that.propertyAttributes);
+
+      if (properties != null ? !properties.equals(that.properties) : that.properties != null) return false;
+      return propertyAttributes != null ? propertyAttributes.equals(that.propertyAttributes) : that.propertyAttributes == null;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(properties, propertyAttributes);
+      int result = properties != null ? properties.hashCode() : 0;
+      result = 31 * result + (propertyAttributes != null ? propertyAttributes.hashCode() : 0);
+      return result;
     }
   }
 
@@ -249,25 +205,6 @@ public class RecommendationResponse extends StackAdvisorResponse {
     public void setComponents(Set<Map<String, String>> components) {
       this.components = components;
     }
-
-    @JsonIgnore
-    public Set<String> getComponentNames() {
-      return components.stream().map(comp -> comp.get("name")).collect(toSet());
-    }
-
-    public static Set<HostGroup> fromHostGroupComponents(Map<String, Set<String>> hostGroupComponents) {
-      return hostGroupComponents.entrySet().stream()
-        .map(entry -> create(entry.getKey(), entry.getValue()))
-        .collect(toSet());
-    }
-
-    public static HostGroup create(String name, Set<String> componentNames) {
-      HostGroup group = new HostGroup();
-      group.setName(name);
-      Set<Map<String, String>> components = componentNames.stream().map(comp -> ImmutableMap.of("name", comp)).collect(toSet());
-      group.setComponents(components);
-      return group;
-    }
   }
 
   public static class BlueprintClusterBinding {
@@ -280,20 +217,6 @@ public class RecommendationResponse extends StackAdvisorResponse {
 
     public void setHostGroups(Set<BindingHostGroup> hostGroups) {
       this.hostGroups = hostGroups;
-    }
-
-    @JsonIgnore
-    public Map<String, Set<String>> getHostgroupHostMap() {
-      return hostGroups.stream().collect(toMap(BindingHostGroup::getName, BindingHostGroup::getHostNames));
-    }
-
-    public static BlueprintClusterBinding fromHostGroupHostMap(Map<String, Set<String>> hostGroupHosts) {
-      Set<BindingHostGroup> hostGroups = hostGroupHosts.entrySet().stream()
-        .map(entry -> BindingHostGroup.create(entry.getKey(), entry.getValue()))
-        .collect(toSet());
-      BlueprintClusterBinding binding = new BlueprintClusterBinding();
-      binding.setHostGroups(hostGroups);
-      return binding;
     }
   }
 
@@ -318,19 +241,6 @@ public class RecommendationResponse extends StackAdvisorResponse {
 
     public void setHosts(Set<Map<String, String>> hosts) {
       this.hosts = hosts;
-    }
-
-    @JsonIgnore
-    public Set<String> getHostNames() {
-      return hosts.stream().map(host -> host.get("fqdn")).collect(toSet());
-    }
-
-    public static BindingHostGroup create(String name, Set<String> hostNames) {
-      BindingHostGroup hostGroup = new BindingHostGroup();
-      hostGroup.setName(name);
-      Set<Map<String, String>> hosts = hostNames.stream().map(hostName -> ImmutableMap.of("fqdn", hostName)).collect(toSet());
-      hostGroup.setHosts(hosts);
-      return hostGroup;
     }
   }
 
@@ -381,15 +291,21 @@ public class RecommendationResponse extends StackAdvisorResponse {
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
+
       ConfigGroup that = (ConfigGroup) o;
-      return Objects.equals(hosts, that.hosts) &&
-          Objects.equals(configurations, that.configurations) &&
-          Objects.equals(dependentConfigurations, that.dependentConfigurations);
+
+      if (hosts != null ? !hosts.equals(that.hosts) : that.hosts != null) return false;
+      if (configurations != null ? !configurations.equals(that.configurations) : that.configurations != null)
+        return false;
+      return dependentConfigurations != null ? dependentConfigurations.equals(that.dependentConfigurations) : that.dependentConfigurations == null;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(hosts, configurations, dependentConfigurations);
+      int result = hosts != null ? hosts.hashCode() : 0;
+      result = 31 * result + (configurations != null ? configurations.hashCode() : 0);
+      result = 31 * result + (dependentConfigurations != null ? dependentConfigurations.hashCode() : 0);
+      return result;
     }
   }
 

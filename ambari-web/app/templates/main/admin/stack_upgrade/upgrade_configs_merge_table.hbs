@@ -20,9 +20,9 @@
 <a {{action openConfigsInNewWindow view.configs target="App.router.mainAdminStackAndUpgradeController"}} {{translateAttr title="common.openNewWindow"}} class="pull-right open-in-new-window" href="#">
   <i class="icon-external-link"></i> <span>{{t common.open}}</span>
 </a>
-<p>
+<div class="alert alert-warning">
   {{t popup.clusterCheck.Upgrade.configsMerge.alert}}
-</p>
+</div>
 <table class="configs-table table table-hover">
   <thead>
     <tr>

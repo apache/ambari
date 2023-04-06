@@ -34,21 +34,10 @@ public class UndocumentedRestApiOperationCheck extends AbstractCheck {
   private static final String API_OPERATION = "ApiOperation";
   private static final String API_IGNORE = "ApiIgnore";
   public static final String MESSAGE = "REST API operation should be documented";
-  private static final int[] TOKENS = new int[] { TokenTypes.METHOD_DEF };
-
-  @Override
-  public int[] getAcceptableTokens() {
-    return TOKENS;
-  }
 
   @Override
   public int[] getDefaultTokens() {
-    return TOKENS;
-  }
-
-  @Override
-  public int[] getRequiredTokens() {
-    return TOKENS;
+    return new int[] { TokenTypes.METHOD_DEF };
   }
 
   @Override

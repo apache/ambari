@@ -63,7 +63,6 @@ public class GenericKeyCredential implements Credential {
    *
    * @return a String containing the value representation of this GenericKeyCredential
    */
-  @Override
   public char[] toValue() {
     return this.key;
   }

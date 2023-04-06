@@ -100,7 +100,8 @@ public class AmbariLdapBindAuthenticator extends AbstractLdapAuthenticator {
       } else {
         processedLdapUserName = ldapUserName;
       }
-      if (!processedLdapUserName.equals(loginName.toLowerCase())) {
+      if (!processedLdapUserName.equals(loginName.toLowerCase()))
+      {
         AuthorizationHelper.addLoginNameAlias(processedLdapUserName, loginName.toLowerCase());
       }
     }
@@ -290,7 +291,12 @@ public class AmbariLdapBindAuthenticator extends AbstractLdapAuthenticator {
     String setAmbariAdminAttrFilter = resolveAmbariAdminAttrFilter(ldapServerProperties, memberValue);
     LOG.debug("LDAP login - set admin attr filter: {}", setAmbariAdminAttrFilter);
 
-    AttributesMapper attributesMapper = attrs -> attrs.get(groupNamingAttribute).get();
+    AttributesMapper attributesMapper = new AttributesMapper() {
+      public Object mapFromAttributes(Attributes attrs)
+          throws NamingException {
+        return attrs.get(groupNamingAttribute).get();
+      }
+    };
 
     LdapTemplate ldapTemplate = new LdapTemplate((getContextSource()));
     ldapTemplate.setIgnorePartialResultException(true);

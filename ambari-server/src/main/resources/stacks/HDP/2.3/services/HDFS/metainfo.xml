@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>HDFS</name>
+      <version>2.7.1.2.3</version>
+
+      <components>
+        <component>
+          <name>NFS_GATEWAY</name>
+          <displayName>NFSGateway</displayName>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <category>SLAVE</category>
+          <commandScript>
+            <script>scripts/nfsgateway.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+      </components>
+      
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>rpcbind</name>
+              <condition>should_install_rpcbind</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat7,amazonlinux2,redhat6,suse11</osFamily>
+          <packages>
+            <package>
+              <name>hadoop_${stack_version}</name>
+            </package>
+            <package>
+              <name>hadoop_${stack_version}-client</name>
+            </package>
+            <package>
+              <name>snappy</name>
+            </package>
+            <package>
+              <name>snappy-devel</name>
+            </package>
+            <package>
+              <name>hadoop_${stack_version}-libhdfs</name>
+            </package>
+            <package>
+              <name>libtirpc-devel</name>
+            </package>
+          </packages>
+        </osSpecific>
+
+        <osSpecific>
+          <osFamily>suse12</osFamily>
+          <packages>
+            <package>
+              <name>hadoop_${stack_version}</name>
+            </package>
+            <package>
+              <name>hadoop_${stack_version}-client</name>
+            </package>
+            <package>
+              <name>snappy</name>
+            </package>
+            <package>
+              <name>snappy-devel</name>
+            </package>
+            <package>
+              <name>hadoop_${stack_version}-libhdfs</name>
+            </package>
+          </packages>
+        </osSpecific>
+
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>hadoop-${stack_version}-client</name>
+            </package>
+            <package>
+              <name>hadoop-${stack_version}-hdfs-datanode</name>
+            </package>
+            <package>
+              <name>hadoop-${stack_version}-hdfs-journalnode</name>
+            </package>
+            <package>
+              <name>hadoop-${stack_version}-hdfs-namenode</name>
+            </package>
+            <package>
+              <name>hadoop-${stack_version}-hdfs-secondarynamenode</name>
+            </package>
+            <package>
+              <name>hadoop-${stack_version}-hdfs-zkfc</name>
+            </package>
+            <package>
+              <name>libsnappy1</name>
+            </package>
+            <package>
+              <name>libsnappy-dev</name>
+            </package>
+            <package>
+              <name>libhdfs0-${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+    </service>
+  </services>
+</metainfo>

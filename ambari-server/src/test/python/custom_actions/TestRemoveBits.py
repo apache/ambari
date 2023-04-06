@@ -19,7 +19,7 @@ limitations under the License.
 '''
 import json
 import os
-from ambari_commons import subprocess32
+import subprocess
 import select
 import install_packages
 

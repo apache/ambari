@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import ConfigParser
+import configparser
 import glob
 
 from .generic_manager import GenericManagerProperties, GenericManager
@@ -26,7 +26,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.utils import suppress_stdout
 from resource_management.core import sudo
 
-from StringIO import StringIO
+from io import StringIO
 
 import re
 import os
@@ -208,7 +208,7 @@ class YumManager(GenericManager):
 
     if not name:
       raise ValueError("Installation command was executed with no package name")
-    elif not self._check_existence(name) or context.action_force:
+    elif context.is_upgrade or context.use_repos or not self._check_existence(name):
       cmd = self.properties.install_cmd[context.log_output]
       if context.use_repos:
         enable_repo_option = '--enablerepo=' + ",".join(sorted(context.use_repos.keys()))
@@ -273,8 +273,6 @@ class YumManager(GenericManager):
     yum in inconsistant state (locked, used, having invalid repo). Once packages are installed
     we should not rely on that.
     """
-    if not name:
-      raise ValueError("Package name can't be empty")
 
     if os.geteuid() == 0:
       return self.yum_check_package_available(name)
@@ -327,7 +325,7 @@ class YumManager(GenericManager):
     # if there are any matches, it means the repo already exists and we should use it to search
     # for packages to install
     for repo_file in glob.glob(os.path.join(YumManagerProperties.repo_definition_location, "*.repo")):
-      config_parser = ConfigParser.ConfigParser()
+      config_parser = configparser.ConfigParser()
       config_parser.read(repo_file)
       sections = config_parser.sections()
       for section in sections:
@@ -408,7 +406,7 @@ class YumManager(GenericManager):
         elif RPMTransactions.done in item:
           transactions[tr_id].pkgs_done = pkgs_in_transaction
 
-    for tr in transactions.values():
+    for tr in list(transactions.values()):
       if len(tr.pkgs_all) == 0:
         continue
 
@@ -450,9 +448,6 @@ Ambari has detected that there are incomplete Yum transactions on this host. Thi
 - Identify the pending transactions with the command 'yum history list <packages failed>'
 - Revert each pending transaction with the command 'yum history undo'
 - Flush the transaction log with 'yum-complete-transaction --cleanup-only'
-
-If the issue persists, old transaction files may be the cause.
-Please delete them from /var/lib/yum/transaction*
 """
 
     for line in help_msg.split("\n"):

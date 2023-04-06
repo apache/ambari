@@ -1,0 +1,44 @@
+{
+  "services": [
+    {
+      "name": "FLUME",
+      "components": [
+        {
+          "name": "FLUME_HANDLER",
+          "identities": [
+            {
+              "name": "flume_principal",
+              "principal": {
+                "value": "${flume-env/flume_user}/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "flume-env/flume_principal_name",
+                "local_username": "${flume-env/flume_user}"
+
+              },
+              "keytab": {
+                "file": "${keytab_dir}/flume.service.keytab",
+                "owner": {
+                  "name": "${flume-env/flume_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "flume-env/flume_keytab_path"
+              }
+            }
+          ],
+          "configurations": [
+            {
+              "core-site": {
+                "hadoop.proxyuser.flume.groups": "${hadoop-env/proxyuser_group}",
+                "hadoop.proxyuser.flume.hosts": "*"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

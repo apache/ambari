@@ -102,8 +102,9 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
 
     Set<Resource> keepers = new HashSet<>();
     for (Resource resource : resources) {
-      populateResource(resource, request, predicate);
-      keepers.add(resource);
+      if (populateResource(resource, request, predicate)) {
+        keepers.add(resource);
+      }
     }
     return keepers;
   }

@@ -33,21 +33,18 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
-import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Responsible for cluster configuration.
@@ -60,6 +57,7 @@ public class ClusterConfigurationRequest {
    * a regular expression Pattern used to find "clusterHostInfo.(component_name)_host" placeholders in strings
    */
   private static final Pattern CLUSTER_HOST_INFO_PATTERN_VARIABLE = Pattern.compile("\\$\\{clusterHostInfo/?([\\w\\-\\.]+)_host(?:\\s*\\|\\s*(.+?))?\\}");
+  public static final String CLUSTER_HOST_INFO = "clusterHostInfo";
 
   private AmbariContext ambariContext;
   private ClusterTopology clusterTopology;
@@ -161,41 +159,70 @@ public class ClusterConfigurationRequest {
   }
 
   private Set<String> configureKerberos(Configuration clusterConfiguration, Map<String, Map<String, String>> existingConfigurations) throws AmbariException {
+    Set<String> updatedConfigTypes = new HashSet<>();
+
     Cluster cluster = getCluster();
     Blueprint blueprint = clusterTopology.getBlueprint();
-    Set<String> services = ImmutableSet.copyOf(blueprint.getServices());
-    Configuration stackDefaults = blueprint.getStack().getConfiguration(services);
+
+    Configuration stackDefaults = blueprint.getStack().getConfiguration(blueprint.getServices());
+    Map<String, Map<String, String>> stackDefaultProps = stackDefaults.getProperties();
 
     // add clusterHostInfo containing components to hosts map, based on Topology, to use this one instead of
     // StageUtils.getClusterInfo()
     Map<String, String> componentHostsMap = createComponentHostMap(blueprint);
-    existingConfigurations.put(KerberosHelper.CLUSTER_HOST_INFO, componentHostsMap);
+    existingConfigurations.put("clusterHostInfo", componentHostsMap);
 
     try {
-      KerberosHelper kerberosHelper = AmbariContext.getController().getKerberosHelper();
-
       // generate principals & keytabs for headless identities
-      kerberosHelper.ensureHeadlessIdentities(cluster, existingConfigurations, services);
-
-      // get Kerberos specific configurations
-      Map<String, Map<String, String>> updatedConfigs = kerberosHelper.getServiceConfigurationUpdates(
-        cluster, existingConfigurations, createServiceComponentMap(blueprint), null, null, true, false);
-
-      // Since Kerberos is being enabled, make sure the cluster-env/security_enabled property is
-      // set to "true"
-      updatedConfigs
-        .computeIfAbsent(ConfigHelper.CLUSTER_ENV, __ -> new HashMap<>())
-        .put("security_enabled", "true");
-
-      updatedConfigs.keySet().removeIf(configType -> !blueprint.isValidConfigType(configType));
+      AmbariContext.getController().getKerberosHelper()
+        .ensureHeadlessIdentities(cluster, existingConfigurations,
+          new HashSet<>(blueprint.getServices()));
 
       // apply Kerberos specific configurations
-      return clusterConfiguration.applyUpdatesToStackDefaultProperties(stackDefaults, existingConfigurations, updatedConfigs);
+      Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
+        .getServiceConfigurationUpdates(cluster, existingConfigurations,
+            createServiceComponentMap(blueprint), null, null, true, false);
+
+      // ******************************************************************************************
+      // Since Kerberos is being enabled, make sure the cluster-env/security_enabled property is
+      // set to "true"
+      Map<String, String> clusterEnv = updatedConfigs.get("cluster-env");
+
+      if(clusterEnv == null) {
+        clusterEnv = new HashMap<>();
+        updatedConfigs.put("cluster-env", clusterEnv);
+      }
+
+      clusterEnv.put("security_enabled", "true");
+      // ******************************************************************************************
+
+      for (String configType : updatedConfigs.keySet()) {
+        // apply only if config type has related services in Blueprint
+        if (blueprint.isValidConfigType(configType)) {
+          Map<String, String> propertyMap = updatedConfigs.get(configType);
+          Map<String, String> clusterConfigProperties = existingConfigurations.get(configType);
+          Map<String, String> stackDefaultConfigProperties = stackDefaultProps.get(configType);
+          for (String property : propertyMap.keySet()) {
+            // update value only if property value configured in Blueprint / ClusterTemplate is not a custom one
+            String currentValue = clusterConfiguration.getPropertyValue(configType, property);
+            String newValue = propertyMap.get(property);
+            if (!propertyHasCustomValue(clusterConfigProperties, stackDefaultConfigProperties, property) &&
+              (currentValue == null || !currentValue.equals(newValue))) {
+
+              LOG.debug("Update Kerberos related config property: {} {} {}", configType, property, propertyMap.get
+                (property));
+              clusterConfiguration.setProperty(configType, property, newValue);
+              updatedConfigTypes.add(configType);
+            }
+          }
+        }
+      }
+
     } catch (KerberosInvalidConfigurationException e) {
       LOG.error("An exception occurred while doing Kerberos related configuration update: " + e, e);
     }
 
-    return ImmutableSet.of();
+    return updatedConfigTypes;
   }
 
   /**
@@ -211,20 +238,58 @@ public class ClusterConfigurationRequest {
     if(services != null) {
       for (String service : services) {
         Collection<String> components = blueprint.getComponents(service);
-        Set<String> componentSet = components == null ? ImmutableSet.of() : ImmutableSet.copyOf(components);
-        serviceComponents.put(service, componentSet);
+        serviceComponents.put(service,
+            (components == null)
+                ? Collections.emptySet()
+                : new HashSet<>(blueprint.getComponents(service)));
       }
     }
 
     return serviceComponents;
   }
 
+  /**
+   * Returns true if the property exists in clusterConfigProperties and has a custom user defined value. Property has
+   * custom value in case we there's no stack default value for it or it's not equal to stack default value.
+   * @param clusterConfigProperties
+   * @param stackDefaultConfigProperties
+   * @param property
+   * @return
+   */
+  private boolean propertyHasCustomValue(Map<String, String> clusterConfigProperties, Map<String, String>
+    stackDefaultConfigProperties, String property) {
+
+    boolean propertyHasCustomValue = false;
+    if (clusterConfigProperties != null) {
+      String propertyValue = clusterConfigProperties.get(property);
+      if (propertyValue != null) {
+        if (stackDefaultConfigProperties != null) {
+          String stackDefaultValue = stackDefaultConfigProperties.get(property);
+          if (stackDefaultValue != null) {
+            propertyHasCustomValue = !propertyValue.equals(stackDefaultValue);
+          } else {
+            propertyHasCustomValue = true;
+          }
+        } else {
+          propertyHasCustomValue = true;
+        }
+      }
+    }
+    return propertyHasCustomValue;
+  }
+
   private Map<String, String> createComponentHostMap(Blueprint blueprint) {
-    return StageUtils.createComponentHostMap(
-      blueprint.getServices(),
-      blueprint::getComponents,
-      (service, component) -> clusterTopology.getHostAssignmentsForComponent(component)
-    );
+    Map<String, String> componentHostsMap = new HashMap<>();
+    for (String service : blueprint.getServices()) {
+      Collection<String> components = blueprint.getComponents(service);
+      for (String component : components) {
+        Collection<String> componentHost = clusterTopology.getHostAssignmentsForComponent(component);
+        // retrieve corresponding clusterInfoKey for component using StageUtils
+        String clusterInfoKey = StageUtils.getClusterHostInfoKey(component);
+        componentHostsMap.put(clusterInfoKey, StringUtils.join(componentHost, ","));
+      }
+    }
+    return componentHostsMap;
   }
 
   private Collection<String> getRequiredHostgroupsForKerberosConfiguration() {
@@ -236,7 +301,7 @@ public class ClusterConfigurationRequest {
 
       Configuration clusterConfiguration = clusterTopology.getConfiguration();
       Map<String, Map<String, String>> existingConfigurations = clusterConfiguration.getFullProperties();
-      existingConfigurations.put(KerberosHelper.CLUSTER_HOST_INFO, new HashMap<>());
+      existingConfigurations.put(CLUSTER_HOST_INFO, new HashMap<>());
 
       // apply Kerberos specific configurations
       Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
@@ -333,7 +398,7 @@ public class ClusterConfigurationRequest {
    */
   private void setConfigurationsOnCluster(List<BlueprintServiceConfigRequest> configurationRequests,
                                          String tag, Set<String> updatedConfigTypes)  {
-    String clusterName;
+    String clusterName = null;
     Cluster cluster;
     try {
       clusterName = ambariContext.getClusterName(clusterTopology.getClusterId());

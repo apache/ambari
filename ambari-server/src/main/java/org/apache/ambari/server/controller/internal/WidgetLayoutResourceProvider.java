@@ -52,8 +52,6 @@ import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 /**
@@ -78,31 +76,37 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
   }
 
   @SuppressWarnings("serial")
-  private static final Set<String> pkPropertyIds = ImmutableSet.<String>builder()
-    .add(WIDGETLAYOUT_ID_PROPERTY_ID)
-    .build();
+  private static Set<String> pkPropertyIds = new HashSet<String>() {
+    {
+      add(WIDGETLAYOUT_ID_PROPERTY_ID);
+    }
+  };
 
   @SuppressWarnings("serial")
-  private static final ReadWriteLock lock = new ReentrantReadWriteLock();
+  private static ReadWriteLock lock = new ReentrantReadWriteLock();
 
   @SuppressWarnings("serial")
-  public static final Set<String> propertyIds = ImmutableSet.<String>builder()
-    .add(WIDGETLAYOUT_ID_PROPERTY_ID)
-    .add(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID)
-    .add(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID)
-    .add(WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID)
-    .add(WIDGETLAYOUT_WIDGETS_PROPERTY_ID)
-    .add(WIDGETLAYOUT_SCOPE_PROPERTY_ID)
-    .add(WIDGETLAYOUT_USERNAME_PROPERTY_ID)
-    .add(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID)
-    .build();
+  public static Set<String> propertyIds = new HashSet<String>() {
+    {
+      add(WIDGETLAYOUT_ID_PROPERTY_ID);
+      add(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID);
+      add(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID);
+      add(WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID);
+      add(WIDGETLAYOUT_WIDGETS_PROPERTY_ID);
+      add(WIDGETLAYOUT_SCOPE_PROPERTY_ID);
+      add(WIDGETLAYOUT_USERNAME_PROPERTY_ID);
+      add(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID);
+    }
+  };
 
   @SuppressWarnings("serial")
-  public static final Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String>builder()
-    .put(Type.WidgetLayout, WIDGETLAYOUT_ID_PROPERTY_ID)
-    .put(Type.Cluster, WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID)
-    .put(Type.User, WIDGETLAYOUT_USERNAME_PROPERTY_ID)
-    .build();
+  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
+    {
+      put(Type.WidgetLayout, WIDGETLAYOUT_ID_PROPERTY_ID);
+      put(Type.Cluster, WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID);
+      put(Type.User, WIDGETLAYOUT_USERNAME_PROPERTY_ID);
+    }
+  };
 
   @Inject
   private static WidgetDAO widgetDAO;
@@ -197,11 +201,14 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Resource> resources = new HashSet<>();
+    final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
+    List<WidgetEntity> widgetEntities = new ArrayList<>();
     List<WidgetLayoutEntity> layoutEntities = new ArrayList<>();
 
     for (Map<String, Object> propertyMap: propertyMaps) {
+      String userName = getUserName(propertyMap);
       if (propertyMap.get(WIDGETLAYOUT_ID_PROPERTY_ID) != null) {
         final Long id;
         try {
@@ -222,7 +229,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
     for (WidgetLayoutEntity layoutEntity : layoutEntities) {
       Resource resource = new ResourceImpl(Type.WidgetLayout);
       resource.setProperty(WIDGETLAYOUT_ID_PROPERTY_ID, layoutEntity.getId());
-      String clusterName;
+      String clusterName = null;
       try {
         clusterName = getManagementController().getClusters().getClusterById(layoutEntity.getClusterId()).getClusterName();
       } catch (AmbariException e) {

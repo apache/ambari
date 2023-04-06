@@ -39,22 +39,22 @@ class TestValidateConfigs(TestCase):
       "component_configurations/NAMENODE/hadoop-env/hdfs_user" : "root",
       "component_configurations/NAMENODE/hadoop-env/user_group" : "root"
     }
-    self.assertEquals(vc.check_users(params), True)
+    self.assertEqual(vc.check_users(params), True)
     params = {
       "component_configurations/NAMENODE/hadoop-env/hdfs_user" : "root",
       "component_configurations/NAMENODE/hadoop-env/user_group" : "wrong_group"
     }
-    self.assertEquals(vc.check_users(params), False)
+    self.assertEqual(vc.check_users(params), False)
     params = {
       "component_configurations/NAMENODE/hadoop-env/hdfs_user" : "wrong_user",
       "component_configurations/NAMENODE/hadoop-env/user_group" : "root"
     }
-    self.assertEquals(vc.check_users(params), False)
+    self.assertEqual(vc.check_users(params), False)
     params = {
       "component_configurations/NAMENODE/hadoop-env/hdfs_user" : "wrong_user",
       "component_configurations/NAMENODE/hadoop-env/user_group" : "wrong_group"
     }
-    self.assertEquals(vc.check_users(params), False)
+    self.assertEqual(vc.check_users(params), False)
 
   def test_check_user_in_group(self):
     vc = ValidateConfigs()
@@ -103,7 +103,7 @@ class TestValidateConfigs(TestCase):
 
     vc = ValidateConfigs()
 
-    self.assertEquals(vc.flatten_dict(init_dict, prefix="prefix"), result_list)
+    self.assertEqual(vc.flatten_dict(init_dict, prefix="prefix"), sorted(result_list))
 
   def test_get_value(self):
 
@@ -114,7 +114,7 @@ class TestValidateConfigs(TestCase):
 
     vc = ValidateConfigs()
 
-    self.assertEquals(vc.get_value("component_configurations/NAMENODE/hadoop-env/hdfs_user", params), 'root')
-    self.assertEquals(vc.get_value("component_configurations/NAMENODE/hadoop-env/user_group", params), 'root')
+    self.assertEqual(vc.get_value("component_configurations/NAMENODE/hadoop-env/hdfs_user", params), 'root')
+    self.assertEqual(vc.get_value("component_configurations/NAMENODE/hadoop-env/user_group", params), 'root')
 
 

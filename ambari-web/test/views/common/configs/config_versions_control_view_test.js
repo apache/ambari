@@ -88,7 +88,6 @@ describe('App.ConfigVersionsControlView', function () {
 
   describe('#makeCurrent()', function () {
     beforeEach(function () {
-      App.ModalPopup.show.restore();
       sinon.stub(App.ModalPopup, 'show', function (options) {
         options.onPrimary.call(Em.Object.create({
           serviceConfigNote: 'note',
@@ -98,6 +97,7 @@ describe('App.ConfigVersionsControlView', function () {
       sinon.stub(view, 'sendRevertCall', Em.K);
     });
     afterEach(function () {
+      App.ModalPopup.show.restore();
       view.sendRevertCall.restore();
     });
     it('context passed', function () {

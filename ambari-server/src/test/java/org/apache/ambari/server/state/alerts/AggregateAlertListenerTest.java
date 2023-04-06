@@ -112,8 +112,6 @@ public class AggregateAlertListenerTest {
     EasyMock.expect(
         m_alertsDao.findAggregateCounts(EasyMock.anyLong(), EasyMock.eq("mock-aggregate-alert"))).andReturn(
         summaryDTO).atLeastOnce();
-    m_alertsDao.saveEntities(EasyMock.anyObject(), EasyMock.anyObject());
-    EasyMock.expectLastCall().anyTimes();
 
     EasyMock.replay(m_alertsDao, m_aggregateMapping, currentEntityMock);
 

@@ -66,7 +66,6 @@ public class ServiceComponentHostEventWrapper {
     }
   }
   
-  @Override
   public String toString() {
     if (event != null) {
       return event.toString();

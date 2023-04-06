@@ -22,7 +22,7 @@ import getpass
 import os
 import pwd
 import shlex
-from ambari_commons import subprocess32
+import subprocess
 
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg
 
@@ -38,10 +38,10 @@ def os_run_os_command(cmd, env=None, shell=False, cwd=None):
   print_info_msg('about to run command: ' + str(cmd))
   if type(cmd) == str:
     cmd = shlex.split(cmd)
-  process = subprocess32.Popen(cmd,
-                             stdout=subprocess32.PIPE,
-                             stdin=subprocess32.PIPE,
-                             stderr=subprocess32.PIPE,
+  process = subprocess.Popen(cmd,
+                             stdout=subprocess.PIPE,
+                             stdin=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
                              env=env,
                              cwd=cwd,
                              shell=shell
@@ -84,10 +84,3 @@ def os_set_open_files_limit(maxOpenFiles):
 
 def os_getpass(prompt):
   return getpass.unix_getpass(prompt)
-
-def os_is_service_exist(serviceName):
-  if os.path.exists('/run/systemd/system/'):
-    return os.popen('systemctl list-units --full -all | grep "%s.service"' % serviceName).read().strip() != ''
-
-  status = os.system("service %s status >/dev/null 2>&1" % serviceName)
-  return status != 256

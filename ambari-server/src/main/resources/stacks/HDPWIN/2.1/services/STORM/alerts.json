@@ -1,0 +1,147 @@
+{
+  "STORM": {
+    "service": [
+      {
+        "name": "storm_supervisor_process_percent",
+        "label": "Percent Supervisors Available",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "storm_supervisor_process",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.1
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.3
+            }
+          }
+        }
+      }
+    ],
+    "STORM_UI_SERVER": [
+      {
+        "name": "storm_server_process",
+        "label": "Storm Server Process",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "{{storm-site/ui.port}}",
+          "default_port": 8744,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      },
+      {
+        "name": "storm_webui",
+        "label": "Storm Web UI",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{storm-site/ui.port}}"
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {2:.3f} seconds"
+            },
+            "warning":{
+              "text": "HTTP {0} response in {2:.3f} seconds"
+            },
+            "critical": {
+              "text": "Connection failed to {1}"
+            }
+          }
+        }
+      }
+    ],
+    "NIMBUS": [
+      {
+        "name": "storm_nimbus_process",
+        "label": "Nimbus Process",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "{{storm-site/nimbus.thrift.port}}",
+          "default_port": 6627,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ],
+    "DRPC_SERVER": [
+      {
+        "name": "storm_drpc_server",
+        "label": "DRPC Server Process",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "{{storm-site/drpc.port}}",
+          "default_port": 3772,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ],
+    "SUPERVISOR": [
+      {
+        "name": "storm_supervisor_process",
+        "label": "Supervisor Process",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "SCRIPT",
+          "path": "STORM/0.9.1/package/alerts/check_supervisor_process_win.py"
+        }
+      }
+    ]
+  }
+}

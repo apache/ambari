@@ -61,16 +61,16 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
   /**
    * Key property mapping by resource type.
    */
-  protected final Map<Resource.Type, String> keyPropertyIds;
+  private final Map<Resource.Type, String> keyPropertyIds;
 
   /**
    * Observers of this observable resource provider.
    */
   private final Set<ResourceProviderObserver> observers = new HashSet<>();
 
-  protected static final Logger LOG = LoggerFactory.getLogger(AbstractResourceProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractResourceProvider.class);
   protected final static String PROPERTIES_ATTRIBUTES_REGEX = "properties_attributes/[a-zA-Z][a-zA-Z._-]*$";
-  private static final Pattern propertiesAttributesPattern = Pattern.compile(".*/" + PROPERTIES_ATTRIBUTES_REGEX);
+  public static Pattern propertiesAttributesPattern = Pattern.compile(".*/" + PROPERTIES_ATTRIBUTES_REGEX);
 
 
   // ----- Constructors ------------------------------------------------------

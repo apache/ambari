@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!--
+ censed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
+  <property>
+    <name>nimbus.seeds</name>
+    <value>localhost</value>
+    <description>Comma-delimited list of the hosts running nimbus server.</description>
+    <value-attributes>
+      <type>componentHosts</type>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>nimbus.thrift.threads</name>
+    <value>196</value>
+    <description>The number of threads that should be used by the nimbus thrift server.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>topology.min.replication.count.default</name>
+    <value>1</value>
+    <description>Default minimum number of nimbus hosts where the code must be replicated before leader nimbus can mark the topology as active and create assignments. </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>topology.min.replication.count</name>
+    <value>{{actual_topology_min_replication_count}}</value>
+    <description>Calculated minimum number of nimbus hosts where the code must be replicated before leader nimbus can mark the topology as active and create assignments. </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>topology.max.replication.wait.time.sec.default</name>
+    <value>60</value>
+    <description>Default maximum wait time for the nimbus host replication to achieve the nimbus.min.replication.count. Once this time is elapsed nimbus will go ahead and perform topology activation tasks even if required nimbus.min.replication.count is not achieved</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>topology.max.replication.wait.time.sec</name>
+    <value>{{actual_topology_max_replication_wait_time_sec}}</value>
+    <description>Calculated maximum wait time for the nimbus host replication to achieve the nimbus.min.replication.count. Once this time is elapsed nimbus will go ahead and perform topology activation tasks even if required nimbus.min.replication.count is not achieved</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>nimbus.host</name>
+    <value>localhost</value>
+    <description>Deprecated config in favor of nimbus.seeds used during non HA mode.</description>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

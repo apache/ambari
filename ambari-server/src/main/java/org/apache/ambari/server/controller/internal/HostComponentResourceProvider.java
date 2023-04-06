@@ -17,11 +17,6 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_INITIAL_INSTALL;
-import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_INITIAL_START;
-import static org.apache.ambari.server.controller.AmbariManagementControllerImpl.CLUSTER_PHASE_PROPERTY;
-import static org.apache.ambari.server.controller.internal.RequestResourceProvider.CONTEXT;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +30,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
@@ -72,10 +68,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
@@ -141,7 +137,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   /**
    * The key property ids for a HostComponent resource.
    */
-  public static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  public static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Cluster, CLUSTER_NAME)
       .put(Resource.Type.Host, HOST_NAME)
       .put(Resource.Type.HostComponent, COMPONENT_NAME)
@@ -151,7 +147,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   /**
    * The property ids for a HostComponent resource.
    */
-  protected static final Set<String> propertyIds = ImmutableSet.of(
+  protected static Set<String> propertyIds = Sets.newHashSet(
       ROLE_ID,
       CLUSTER_NAME,
       SERVICE_NAME,
@@ -172,12 +168,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       UPGRADE_STATE,
       QUERY_PARAMETERS_RUN_SMOKE_TEST_ID);
 
-  public static final String SKIP_INSTALL_FOR_COMPONENTS = "skipInstallForComponents";
-  public static final String DO_NOT_SKIP_INSTALL_FOR_COMPONENTS = "dontSkipInstallForComponents";
-  public static final String ALL_COMPONENTS = "ALL";
-  public static final String FOR_ALL_COMPONENTS = joinComponentList(ImmutableSet.of(ALL_COMPONENTS));
-  public static final String FOR_NO_COMPONENTS = joinComponentList(ImmutableSet.of());
-
   /**
    * maintenance state helper
    */
@@ -195,7 +185,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    * @param managementController the management controller
    */
   @AssistedInject
-  public HostComponentResourceProvider(@Assisted AmbariManagementController managementController) {
+  public HostComponentResourceProvider(@Assisted AmbariManagementController managementController,
+                                       Injector injector) {
     super(Resource.Type.HostComponent, propertyIds, keyPropertyIds, managementController);
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES,RoleAuthorization.HOST_ADD_DELETE_COMPONENTS));
@@ -393,12 +384,15 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     installProperties.put(DESIRED_STATE, "INSTALLED");
     Map<String, String> requestInfo = new HashMap<>();
-    requestInfo.put(CONTEXT, String.format("Install components on host %s", hostname));
-    requestInfo.put(CLUSTER_PHASE_PROPERTY, CLUSTER_PHASE_INITIAL_INSTALL);
+    requestInfo.put("context", String.format("Install components on host %s", hostname));
+    requestInfo.put("phase", "INITIAL_INSTALL");
+    requestInfo.put(AmbariManagementControllerImpl.SKIP_INSTALL_FOR_COMPONENTS, StringUtils.join
+      (skipInstallForComponents, ";"));
+    requestInfo.put(AmbariManagementControllerImpl.DONT_SKIP_INSTALL_FOR_COMPONENTS, StringUtils.join
+      (dontSkipInstallForComponents, ";"));
     // although the operation is really for a specific host, the level needs to be set to HostComponent
     // to make sure that any service in maintenance mode does not prevent install/start on the new host during scale-up
     requestInfo.putAll(RequestOperationLevel.propertiesFor(Resource.Type.HostComponent, cluster));
-    addProvisionActionProperties(skipInstallForComponents, dontSkipInstallForComponents, requestInfo);
 
     Request installRequest = PropertyHelper.getUpdateRequest(installProperties, requestInfo);
 
@@ -430,31 +424,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     return requestStages.getRequestStatusResponse();
   }
 
-  @VisibleForTesting
-  static void addProvisionActionProperties(Collection<String> skipInstallForComponents, Collection<String> dontSkipInstallForComponents, Map<String, String> requestInfo) {
-    requestInfo.put(SKIP_INSTALL_FOR_COMPONENTS, joinComponentList(skipInstallForComponents));
-    requestInfo.put(DO_NOT_SKIP_INSTALL_FOR_COMPONENTS, joinComponentList(dontSkipInstallForComponents));
-  }
-
-  public static String joinComponentList(Collection<String> components) {
-    return components != null
-      ? ";" + String.join(";", components) + ";"
-      : "";
-  }
-
-  public static boolean shouldSkipInstallTaskForComponent(String componentName, boolean isClientComponent, Map<String, String> requestProperties) {
-    // Skip INSTALL for service components if START_ONLY is set for component, or if START_ONLY is set on cluster
-    // level and no other provision action is specified for component
-    String skipInstallForComponents = requestProperties.get(SKIP_INSTALL_FOR_COMPONENTS);
-    String searchString = joinComponentList(ImmutableSet.of(componentName));
-    return !isClientComponent &&
-      CLUSTER_PHASE_INITIAL_INSTALL.equals(requestProperties.get(CLUSTER_PHASE_PROPERTY)) &&
-      skipInstallForComponents != null &&
-      (skipInstallForComponents.contains(searchString) ||
-        (skipInstallForComponents.equals(FOR_ALL_COMPONENTS) &&
-          !requestProperties.get(DO_NOT_SKIP_INSTALL_FOR_COMPONENTS).contains(searchString))
-      );
-  }
 
   // TODO, revisit this extra method, that appears to be used during Add Hosts
   // TODO, How do we determine the component list for INSTALL_ONLY during an Add Hosts operation? rwn
@@ -469,8 +438,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       UnsupportedPropertyException, NoSuchParentResourceException {
 
     Map<String, String> requestInfo = new HashMap<>();
-    requestInfo.put(CONTEXT, String.format("Start components on host %s", hostName));
-    requestInfo.put(CLUSTER_PHASE_PROPERTY, CLUSTER_PHASE_INITIAL_START);
+    requestInfo.put("context", String.format("Start components on host %s", hostName));
+    requestInfo.put("phase", "INITIAL_START");
     // see rationale for marking the operation as HostComponent-level at "Install components on host"
     requestInfo.putAll(RequestOperationLevel.propertiesFor(Resource.Type.HostComponent, cluster));
     requestInfo.put(Setting.SETTING_NAME_SKIP_FAILURE, Boolean.toString(skipFailure));
@@ -834,7 +803,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    * @throws NoSuchResourceException        the query didn't match any resources
    * @throws NoSuchParentResourceException  a specified parent resource doesn't exist
    */
-  public RequestStageContainer doUpdateResources(final RequestStageContainer stages, final Request request,
+  private RequestStageContainer doUpdateResources(final RequestStageContainer stages, final Request request,
                                                   Predicate predicate, boolean performQueryEvaluation,
                                                   boolean useGeneratedConfigs, boolean useClusterHostInfo)
                                                   throws UnsupportedPropertyException,

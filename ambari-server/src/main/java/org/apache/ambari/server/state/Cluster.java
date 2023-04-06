@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
@@ -37,10 +35,10 @@ import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
-import org.apache.ambari.spi.ClusterInformation;
 
 import com.google.common.collect.ListMultimap;
 
@@ -270,19 +268,11 @@ public interface Cluster {
   Map<String, Config> getConfigsByType(String configType);
 
   /**
-   * Gets all properties types that matches the specified type for the current stack.
+   * Gets all properties types that mach the specified type.
    * @param configType the config type to return
    * @return properties types for given config type
    */
   Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType);
-
-  /**
-   * Gets all properties types that matches the specified type for the given stack.
-   * @param configType the config type to return
-   * @param stackId the stack to scan properties for
-   * @return properties types for given config type
-   */
-  Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType, StackId stackId);
 
   /**
    * Gets the specific config that matches the specified type and tag.  This not
@@ -387,15 +377,6 @@ public interface Cluster {
    * not been set.
    */
   Config getDesiredConfigByType(String configType);
-
-  /**
-   * Gets the desired (and selected) config by type.
-   * @param configType  the type of configuration
-   * @param desiredConfigs map of desired configs
-   * @return  the {@link Config} instance, or <code>null</code> if the type has
-   * not been set.
-   */
-  Config getDesiredConfigByType(String configType, @Nullable Map<String, DesiredConfig> desiredConfigs);
 
   /**
    * Check if config type exists in cluster.
@@ -519,7 +500,7 @@ public interface Cluster {
    * @param id
    * @throws AmbariException
    */
-  void deleteConfigGroup(Long id) throws AmbariException;
+  void deleteConfigGroup(Long id) throws AmbariException, AuthorizationException;
 
   /**
    * Find all config groups associated with the give hostname
@@ -535,13 +516,6 @@ public interface Cluster {
    * @return config group
    */
   ConfigGroup getConfigGroupsById(Long configId);
-
-  /**
-   * Find all config groups associated with the give service name
-   * @param serviceName
-   * @return Map of config group id to config group
-   */
-  Map<Long, ConfigGroup> getConfigGroupsByServiceName(String serviceName);
 
   /**
    * Add a @RequestExecution to the cluster
@@ -742,12 +716,4 @@ public interface Cluster {
    * @return a mapping of service to component version, or an empty map.
    */
   Map<String, Map<String, String>> getComponentVersionMap();
-
-  /**
-   * Builds a {@link ClusterInformation} instance from a {@link Cluster}.
-   *
-   * @return the {@link ClusterInformation} instance comprised of simple POJOs
-   *         and SPI classes.
-   */
-  ClusterInformation buildClusterInformation();
 }

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.utils;
 
+import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
@@ -65,10 +66,10 @@ public class PasswordUtilsTest extends EasyMockSupport {
     final CredentialProvider credentialProvider = PowerMock.createNiceMock(CredentialProvider.class);
     setupBasicCredentialProviderExpectations(credentialProvider);
     credentialProvider.getPasswordForAlias(CS_ALIAS);
-    PowerMock.expectLastCall().andReturn("testPassword".toCharArray()).once();
+    PowerMock.expectLastCall().andReturn("testPassword".toCharArray()).anyTimes();
     PowerMock.replay(credentialProvider, CredentialProvider.class);
     replayAll();
-    assertEquals("testPassword", passwordUtils.readPassword(CS_ALIAS, "testPassword"));
+    assertEquals("testPassword", passwordUtils.readPassword(CS_ALIAS, "testPasswordDefault"));
     verifyAll();
   }
   
@@ -94,6 +95,20 @@ public class PasswordUtilsTest extends EasyMockSupport {
     assertEquals("testPasswordDefault", passwordUtils.readPassword(passwordFile.getAbsolutePath(), "testPasswordDefault"));
   }
 
+  @Test
+  public void shouldResolveEncryptedPaswordIfWeStoreTheAliasInPasswordFile() throws Exception {
+    final String testPassword = "testPassword";
+    final File passwordFile = writeTestPasswordFile(CS_ALIAS);
+    final CredentialProvider credentialProvider = PowerMock.createNiceMock(CredentialProvider.class);
+    setupBasicCredentialProviderExpectations(credentialProvider);
+    credentialProvider.getPasswordForAlias(CS_ALIAS);
+    PowerMock.expectLastCall().andReturn(testPassword.toCharArray()).anyTimes();
+    PowerMock.replay(credentialProvider, CredentialProvider.class);
+    replayAll();
+    assertEquals(testPassword, passwordUtils.readPassword(passwordFile.getAbsolutePath(), "testPasswordDefault"));
+    verifyAll();
+  }
+
   private File writeTestPasswordFile(final String testPassword) throws IOException {
     final TemporaryFolder tempFolder = new TemporaryFolder();
     tempFolder.create();
@@ -104,7 +119,12 @@ public class PasswordUtilsTest extends EasyMockSupport {
   }
 
   private void setupBasicCredentialProviderExpectations(CredentialProvider credentialProvider) throws Exception {
-    PowerMock.expectNew(CredentialProvider.class, null, null, configuration).andReturn(credentialProvider);
+    final File masterKeyLocation = createNiceMock(File.class);
+    final File masterKeyStoreLocation = createNiceMock(File.class);
+    expect(configuration.getMasterKeyLocation()).andReturn(masterKeyLocation).once();
+    expect(configuration.isMasterKeyPersisted()).andReturn(false).once();
+    expect(configuration.getMasterKeyStoreLocation()).andReturn(masterKeyStoreLocation).once();
+    PowerMock.expectNew(CredentialProvider.class, null, (String) null, masterKeyLocation, false, masterKeyStoreLocation).andReturn(credentialProvider);
   }
 
   private Injector createInjector() {

@@ -84,13 +84,12 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
-import org.apache.ambari.server.stack.upgrade.Direction;
-import org.apache.ambari.server.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -101,9 +100,10 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.Capture;
@@ -298,7 +298,7 @@ public class ClusterStackVersionResourceProviderTest {
     expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
             EasyMock.<Map<String, String>>anyObject(), anyObject(String.class))).
             andReturn(packages).anyTimes();
-    expect(managementController.findConfigurationTagsWithOverrides(anyObject(Cluster.class), EasyMock.anyString(), anyObject()))
+    expect(managementController.findConfigurationTagsWithOverrides(anyObject(Cluster.class), EasyMock.anyString()))
       .andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -719,7 +719,7 @@ public class ClusterStackVersionResourceProviderTest {
     expect(resourceProviderFactory.getHostResourceProvider(
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
-    expect(managementController.findConfigurationTagsWithOverrides(anyObject(Cluster.class), EasyMock.anyString(), anyObject()))
+    expect(managementController.findConfigurationTagsWithOverrides(anyObject(Cluster.class), EasyMock.anyString()))
       .andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
 
 
@@ -943,7 +943,7 @@ public class ClusterStackVersionResourceProviderTest {
             EasyMock.anyObject(), anyObject(String.class))).
             andReturn(packages).anyTimes(); // only one host has the versionable component
 
-    expect(managementController.findConfigurationTagsWithOverrides(anyObject(Cluster.class), EasyMock.anyString(), anyObject()))
+    expect(managementController.findConfigurationTagsWithOverrides(anyObject(Cluster.class), EasyMock.anyString()))
     .andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -1157,7 +1157,7 @@ public class ClusterStackVersionResourceProviderTest {
             EasyMock.<Map<String, String>>anyObject(), anyObject(String.class))).
             andReturn(packages).anyTimes();
 
-    expect(managementController.findConfigurationTagsWithOverrides(anyObject(Cluster.class), EasyMock.anyString(), anyObject()))
+    expect(managementController.findConfigurationTagsWithOverrides(anyObject(Cluster.class), EasyMock.anyString()))
       .andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -1534,7 +1534,7 @@ public class ClusterStackVersionResourceProviderTest {
             (Map<String, String>) anyObject(List.class), anyObject(String.class))).
             andReturn(packages).anyTimes();
 
-    expect(managementController.findConfigurationTagsWithOverrides(anyObject(Cluster.class), EasyMock.anyString(), anyObject()))
+    expect(managementController.findConfigurationTagsWithOverrides(anyObject(Cluster.class), EasyMock.anyString()))
       .andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
 
 
@@ -1958,7 +1958,7 @@ public class ClusterStackVersionResourceProviderTest {
          EasyMock.<Map<String, String>>anyObject(), anyObject(String.class))).
      andReturn(packages).anyTimes(); // only one host has the versionable component
 
-     expect(managementController.findConfigurationTagsWithOverrides(anyObject(Cluster.class), EasyMock.anyString(), anyObject()))
+     expect(managementController.findConfigurationTagsWithOverrides(anyObject(Cluster.class), EasyMock.anyString()))
      .andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
 
      expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster).anyTimes();

@@ -1,0 +1,239 @@
+<?xml version="1.0"?>
+<!--Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>SPARK2</name>
+      <displayName>Spark2</displayName>
+      <comment>Apache Spark 2.0 is a fast and general engine for large-scale data processing. This service is &lt;b&gt;Technical Preview&lt;/b&gt;.</comment>
+      <version>2.0.0</version>
+      <selection>TECH_PREVIEW</selection>
+      <components>
+        <component>
+          <name>SPARK2_JOBHISTORYSERVER</name>
+          <displayName>Spark2 History Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+               <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
+               <scope>host</scope>
+               <auto-deploy>
+                 <enabled>true</enabled>
+               </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+             </auto-deploy>
+           </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/job_history_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>spark2_jobhistory_server</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+        <component>
+          <name>SPARK2_THRIFTSERVER</name>
+          <displayName>Spark2 Thrift Server</displayName>
+          <category>SLAVE</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+               <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
+               <scope>host</scope>
+               <auto-deploy>
+                 <enabled>true</enabled>
+               </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>HIVE/HIVE_METASTORE</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/spark_thrift_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>spark2_thriftserver</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+        <component>
+          <name>SPARK2_CLIENT</name>
+          <displayName>Spark2 Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+               <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
+               <scope>host</scope>
+               <auto-deploy>
+                 <enabled>true</enabled>
+               </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+             </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/spark_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>env</type>
+              <fileName>spark-log4j.properties</fileName>
+              <dictionaryName>spark2-log4j-properties</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>spark-env.sh</fileName>
+              <dictionaryName>spark2-env</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>spark-metrics.properties</fileName>
+              <dictionaryName>spark2-metrics-properties</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>properties</type>
+              <fileName>spark-defaults.conf</fileName>
+              <dictionaryName>spark2-defaults</dictionaryName>
+            </configFile>
+          </configFiles>
+        </component>
+      </components>
+
+      <configuration-dependencies>
+        <config-type>spark2-defaults</config-type>
+        <config-type>spark2-env</config-type>
+        <config-type>spark2-log4j-properties</config-type>
+        <config-type>spark2-metrics-properties</config-type>
+        <config-type>spark2-thrift-sparkconf</config-type>
+        <config-type>spark2-hive-site-override</config-type>
+        <config-type>spark2-thrift-fairscheduler</config-type>
+      </configuration-dependencies>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <requiredServices>
+        <service>HDFS</service>
+        <service>YARN</service>
+        <service>HIVE</service>
+      </requiredServices>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7,amazonlinux2,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>spark2_${stack_version}</name>
+            </package>
+            <package>
+              <name>spark2_${stack_version}-python</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>spark2-${stack_version}</name>
+            </package>
+            <package>
+              <name>spark2-${stack_version}-python</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+
+      <themes>
+        <theme>
+          <fileName>directories.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
+    </service>
+  </services>
+</metainfo>

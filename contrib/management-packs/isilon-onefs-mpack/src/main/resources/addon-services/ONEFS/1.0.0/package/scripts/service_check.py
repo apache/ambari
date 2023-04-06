@@ -26,7 +26,7 @@ class HdfsServiceCheck(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HdfsServiceCheckDefault(HdfsServiceCheck):
   def service_check(self, env):
-    import params
+    from . import params
 
     env.set_params(params)
     unique = functions.get_unique_id_and_date()
@@ -40,7 +40,7 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
     params.HdfsResource(dir,
                         type="directory",
                         action="create_on_execute",
-                        mode=0777
+                        mode=0o777
     )
     params.HdfsResource(tmp_file,
                         type="file",

@@ -1,0 +1,379 @@
+{
+    "configurationAttributes": {
+        "storm-site": {}, 
+        "storm-env": {}, 
+        "zoo.cfg": {},
+        "zookeeper-env": {}, 
+        "zookeeper-log4j": {}, 
+        "cluster-env": {}
+    }, 
+    "commandParams": {
+        "service_package_folder": "common-services/STORM/0.9.1/package",
+        "script": "scripts/service_check.py", 
+        "hooks_folder": "HDP/2.0.6/hooks", 
+        "command_retry_max_attempt_count": "3", 
+        "command_retry_enabled": "false", 
+        "command_timeout": "300", 
+        "script_type": "PYTHON",
+        "version": "2.3.0.0-1889"
+    }, 
+    "roleCommand": "SERVICE_CHECK", 
+    "kerberosCommandParams": [], 
+    "clusterName": "c1", 
+    "hostname": "c6401.ambari.apache.org", 
+    "clusterLevelParams": {
+        "stack_version": "2.2", 
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "hooks_folder": "stack-hooks", 
+        "stack_name": "HDP", 
+        "group_list": "[\"hdfs\",\"hadoop\",\"users\"]", 
+        "user_groups": "{\"hive\":[\"hadoop\"], \"oozie\":[\"hadoop\",\"users\"], \"nobody\":[\"hadoop\",\"nobody\"], \"ambari-qa\":[\"hadoop\",\"users\"], \"flume\":[\"hadoop\"], \"hdfs\":[\"hadoop\"], \"storm\":[\"hadoop\"], \"mapred\":[\"hadoop\"], \"hbase\":[\"hadoop\"], \"tez\":[\"hadoop\",\"users\"], \"zookeeper\":[\"hadoop\"], \"falcon\":[\"hadoop\",\"users\"], \"sqoop\":[\"hadoop\"], \"yarn\":[\"hadoop\"], \"hcat\":[\"hadoop\"]}", 
+        "cluster_name": "c1", 
+        "user_list": "[\"ambari-qa\",\"hdfs\"]"
+    },
+    "ambariLevelParams": {
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources",
+        "agent_stack_retry_count": "5", 
+        "db_driver_filename": "mysql-connector-java.jar", 
+        "agent_stack_retry_on_unavailability": "false", 
+        "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
+        "jce_name": "jce_policy-7.zip", 
+        "java_version": "7", 
+        "ambari_db_rca_password": "mapred", 
+        "host_sys_prepped": "false", 
+        "db_name": "ambari", 
+        "oracle_jdbc_url": "http://c6401.ambari.apache.org/resources/ojdbc6.jar",
+        "ambari_db_rca_driver": "org.postgresql.Driver", 
+        "ambari_db_rca_username": "mapred", 
+        "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
+        "java_home": "/usr/jdk64/jdk1.8.0_40", 
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources/mysql-connector-java.jar"
+    },
+    "repositoryFile": {
+        "resolved": true, 
+        "repoVersion": "2.6.4.0-60", 
+        "repositories": [
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60", 
+                "repoName": "HDP", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-2.6-repo-1"
+            }, 
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60", 
+                "repoName": "HDP-GPL", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-2.6-GPL-repo-1"
+            }, 
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6", 
+                "repoName": "HDP-UTILS", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-UTILS-1.1.0.22-repo-1"
+            }
+        ], 
+        "feature": {
+            "m_isScoped": true, 
+            "m_isPreInstalled": false
+        }, 
+        "stackName": "HDP", 
+        "repoVersionId": 1
+    },
+    "agentLevelParams": {
+        "public_hostname": "c6401.ambari.apache.org", 
+        "hostname": "c6401.ambari.apache.org", 
+        "agentConfigParams": {
+            "agent": {
+                "parallel_execution": 0, 
+                "use_system_proxy_settings": true
+            }
+        }, 
+        "agentCacheDir": "/var/lib/ambari-agent/cache"
+    },
+    "hostLevelParams": {
+        "recoveryConfig": {
+            "retryGap": "5", 
+            "windowInMinutes": "60", 
+            "maxLifetimeCount": "1024", 
+            "components": "", 
+            "maxCount": "6", 
+            "type": "AUTO_START"
+        }, 
+        "hostRepositories": {
+            "componentRepos": {
+                "NAMENODE": 1, 
+                "SECONDARY_NAMENODE": 1, 
+                "DATANODE": 1, 
+                "HDFS_CLIENT": 1
+            }, 
+            "commandRepos": {
+                "1": {
+                    "resolved": true, 
+                    "repoVersion": "2.1.4.0-60", 
+                    "repositories": [
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60", 
+                            "repoName": "HDP", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-2.6-repo-1"
+                        }, 
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60", 
+                            "repoName": "HDP-GPL", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-2.6-GPL-repo-1"
+                        }, 
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6", 
+                            "repoName": "HDP-UTILS", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-UTILS-1.1.0.22-repo-1"
+                        }
+                    ], 
+                    "feature": {
+                        "m_isScoped": true, 
+                        "m_isPreInstalled": false
+                    }, 
+                    "stackName": "HDP", 
+                    "repoVersionId": 1
+                }
+            }
+        }
+    },
+    "serviceLevelParams": {
+        "credentialStoreEnabled": false, 
+        "status_commands_timeout": 300, 
+        "version": "2.7.3", 
+        "service_package_folder": "common-services/HDFS/2.1.0.2.0/package"
+    },
+    "commandType": "EXECUTION_COMMAND", 
+    "roleParams": {}, 
+    "serviceName": "STORM", 
+    "role": "STORM_SERVICE_CHECK", 
+    "forceRefreshConfigTags": [], 
+    "taskId": 31, 
+    "public_hostname": "c6401.ambari.apache.org", 
+    "configurations": {
+        "storm-site": {
+            "topology.tuple.serializer": "backtype.storm.serialization.types.ListDelegateSerializer", 
+            "topology.workers": "1", 
+            "drpc.worker.threads": "64", 
+            "storm.messaging.netty.client_worker_threads": "1", 
+            "supervisor.heartbeat.frequency.secs": "5", 
+            "topology.executor.send.buffer.size": "1024", 
+            "drpc.childopts": "-Xmx768m _JAAS_PLACEHOLDER", 
+            "nimbus.thrift.port": "6627", 
+            "storm.zookeeper.retry.intervalceiling.millis": "30000", 
+            "storm.local.dir": "/hadoop/storm", 
+            "topology.receiver.buffer.size": "8", 
+            "storm.zookeeper.servers": "['c6401.ambari.apache.org','c6403.ambari.apache.org','c6402.ambari.apache.org']", 
+            "transactional.zookeeper.root": "/transactional", 
+            "_storm.min.ruid": "null", 
+            "nimbus.seeds": "[c6402.ambari.apache.org, c6401.ambari.apache.org]", 
+            "topology.min.replication.count": "1", 
+            "topology.skip.missing.kryo.registrations": "false", 
+            "worker.heartbeat.frequency.secs": "1", 
+            "zmq.hwm": "0", 
+            "storm.zookeeper.connection.timeout": "15000", 
+            "_storm.thrift.secure.transport": "backtype.storm.security.auth.kerberos.KerberosSaslTransportPlugin", 
+            "storm.messaging.netty.server_worker_threads": "1", 
+            "supervisor.worker.start.timeout.secs": "120", 
+            "zmq.threads": "1", 
+            "topology.acker.executors": "null", 
+            "storm.local.mode.zmq": "false", 
+            "topology.max.task.parallelism": "null", 
+            "topology.max.error.report.per.interval": "5", 
+            "topology.debug": "false", 
+            "drpc.queue.size": "128", 
+            "worker.childopts": "-Xmx768m _JAAS_PLACEHOLDER -javaagent:/usr/hdp/current/storm-client/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8650,wireformat31x=true,mode=multicast,config=/usr/hdp/current/storm-client/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Worker_%ID%_JVM", 
+            "nimbus.childopts": "-Xmx1024m _JAAS_PLACEHOLDER -javaagent:/usr/hdp/current/storm-nimbus/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8649,wireformat31x=true,mode=multicast,config=/usr/hdp/current/storm-nimbus/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Nimbus_JVM", 
+            "storm.zookeeper.retry.times": "5", 
+            "nimbus.monitor.freq.secs": "10", 
+            "storm.cluster.mode": "distributed", 
+            "dev.zookeeper.path": "/tmp/dev-storm-zookeeper", 
+            "drpc.invocations.port": "3773", 
+            "_storm.thrift.nonsecure.transport": "backtype.storm.security.auth.SimpleTransportPlugin", 
+            "storm.zookeeper.root": "/storm", 
+            "logviewer.childopts": "-Xmx128m _JAAS_PLACEHOLDER", 
+            "topology.max.replication.wait.time.sec": "60", 
+            "transactional.zookeeper.port": "null", 
+            "topology.worker.childopts": "null", 
+            "topology.max.spout.pending": "null", 
+            "nimbus.cleanup.inbox.freq.secs": "600", 
+            "storm.messaging.netty.min_wait_ms": "100", 
+            "nimbus.task.timeout.secs": "30", 
+            "nimbus.thrift.max_buffer_size": "1048576", 
+            "topology.sleep.spout.wait.strategy.time.ms": "1", 
+            "topology.optimize": "true", 
+            "nimbus.reassign": "true", 
+            "storm.messaging.transport": "backtype.storm.messaging.netty.Context", 
+            "logviewer.appender.name": "A1", 
+            "ui.port": "8744", 
+            "supervisor.slots.ports": "[6700, 6701]", 
+            "nimbus.file.copy.expiration.secs": "600", 
+            "supervisor.monitor.frequency.secs": "3", 
+            "ui.childopts": "-Xmx768m _JAAS_PLACEHOLDER", 
+            "transactional.zookeeper.servers": "null", 
+            "zmq.linger.millis": "5000", 
+            "topology.error.throttle.interval.secs": "10", 
+            "topology.worker.shared.thread.pool.size": "4", 
+            "java.library.path": "/usr/local/lib:/opt/local/lib:/usr/lib:/usr/hdp/current/storm-client/lib", 
+            "topology.spout.wait.strategy": "backtype.storm.spout.SleepSpoutWaitStrategy", 
+            "task.heartbeat.frequency.secs": "3", 
+            "topology.transfer.buffer.size": "1024", 
+            "topology.builtin.metrics.bucket.size.secs": "60", 
+            "topology.executor.receive.buffer.size": "1024", 
+            "topology.stats.sample.rate": "0.05", 
+            "topology.fall.back.on.java.serialization": "true", 
+            "supervisor.childopts": "-Xmx256m _JAAS_PLACEHOLDER -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port={{jmxremote_port}} -javaagent:/usr/hdp/current/storm-supervisor/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8650,wireformat31x=true,mode=multicast,config=/usr/hdp/current/storm-supervisor/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Supervisor_JVM", 
+            "topology.enable.message.timeouts": "true", 
+            "storm.messaging.netty.max_wait_ms": "1000", 
+            "nimbus.topology.validator": "backtype.storm.nimbus.DefaultTopologyValidator", 
+            "nimbus.supervisor.timeout.secs": "60", 
+            "topology.disruptor.wait.strategy": "com.lmax.disruptor.BlockingWaitStrategy", 
+            "storm.messaging.netty.buffer_size": "5242880", 
+            "drpc.port": "3772", 
+            "topology.kryo.factory": "backtype.storm.serialization.DefaultKryoFactory", 
+            "storm.zookeeper.retry.interval": "1000", 
+            "storm.messaging.netty.max_retries": "30", 
+            "topology.tick.tuple.freq.secs": "null", 
+            "drpc.request.timeout.secs": "600", 
+            "nimbus.task.launch.secs": "120", 
+            "task.refresh.poll.secs": "10", 
+            "topology.message.timeout.secs": "30", 
+            "nimbus.inbox.jar.expiration.secs": "3600", 
+            "topology.state.synchronization.timeout.secs": "60", 
+            "supervisor.worker.timeout.secs": "30", 
+            "ui.filter": "null", 
+            "topology.trident.batch.emit.interval.millis": "500", 
+            "storm.zookeeper.session.timeout": "20000", 
+            "storm.thrift.transport": "{{storm_thrift_transport}}", 
+            "logviewer.port": "8000", 
+            "storm.log.dir": "{{log_dir}}", 
+            "storm.zookeeper.port": "2181"
+        }, 
+        "storm-env": {
+            "jmxremote_port": "56431", 
+            "storm_log_dir": "/var/log/storm", 
+            "storm_pid_dir": "/var/run/storm", 
+            "content": "\n#!/bin/bash\n\n# Set Storm specific environment variables here.\n\n# The java implementation to use.\nexport JAVA_HOME={{java64_home}}\n\n# export STORM_CONF_DIR=\"\"\nexport STORM_HOME=/usr/hdp/current/storm-client", 
+            "nimbus_seeds_supported": "true", 
+            "storm_user": "storm"
+        }, 
+        "zoo.cfg": {
+            "clientPort": "2181", 
+            "autopurge.purgeInterval": "24", 
+            "syncLimit": "5", 
+            "dataDir": "/hadoop/zookeeper", 
+            "initLimit": "10", 
+            "tickTime": "2000", 
+            "autopurge.snapRetainCount": "30"
+        },
+        "zookeeper-env": {
+            "zk_log_dir": "/var/log/zookeeper", 
+            "content": "\nexport JAVA_HOME={{java64_home}}\nexport ZOOKEEPER_HOME={{zk_home}}\nexport ZOO_LOG_DIR={{zk_log_dir}}\nexport ZOOPIDFILE={{zk_pid_file}}\nexport SERVER_JVMFLAGS={{zk_server_heapsize}}\nexport JAVA=$JAVA_HOME/bin/java\nexport CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*\n\n{% if security_enabled %}\nexport SERVER_JVMFLAGS=\"$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_server_jaas_file}}\"\nexport CLIENT_JVMFLAGS=\"$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}}\"\n{% endif %}", 
+            "zk_pid_dir": "/var/run/zookeeper", 
+            "zk_user": "zookeeper"
+        }, 
+        "zookeeper-log4j": {
+            "content": "\n#\n#\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n#\n#\n#\n\n#\n# ZooKeeper Logging Configuration\n#\n\n# DEFAULT: console appender only\nlog4j.rootLogger=INFO, CONSOLE\n\n# Example with rolling log file\n#log4j.rootLogger=DEBUG, CONSOLE, ROLLINGFILE\n\n# Example with rolling log file and tracing\n#log4j.rootLogger=TRACE, CONSOLE, ROLLINGFILE, TRACEFILE\n\n#\n# Log INFO level and above messages to the console\n#\nlog4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender\nlog4j.appender.CONSOLE.Threshold=INFO\nlog4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout\nlog4j.appender.CONSOLE.layout.ConversionPattern=%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n\n\n#\n# Add ROLLINGFILE to rootLogger to get log file output\n#    Log DEBUG level and above messages to a log file\nlog4j.appender.ROLLINGFILE=org.apache.log4j.RollingFileAppender\nlog4j.appender.ROLLINGFILE.Threshold=DEBUG\nlog4j.appender.ROLLINGFILE.File=zookeeper.log\n\n# Max log file size of 10MB\nlog4j.appender.ROLLINGFILE.MaxFileSize=10MB\n# uncomment the next line to limit number of backup files\n#log4j.appender.ROLLINGFILE.MaxBackupIndex=10\n\nlog4j.appender.ROLLINGFILE.layout=org.apache.log4j.PatternLayout\nlog4j.appender.ROLLINGFILE.layout.ConversionPattern=%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n\n\n\n#\n# Add TRACEFILE to rootLogger to get log file output\n#    Log DEBUG level and above messages to a log file\nlog4j.appender.TRACEFILE=org.apache.log4j.FileAppender\nlog4j.appender.TRACEFILE.Threshold=TRACE\nlog4j.appender.TRACEFILE.File=zookeeper_trace.log\n\nlog4j.appender.TRACEFILE.layout=org.apache.log4j.PatternLayout\n### Notice we are including log4j's NDC here (%x)\nlog4j.appender.TRACEFILE.layout.ConversionPattern=%d{ISO8601} - %-5p [%t:%C{1}@%L][%x] - %m%n"
+        }, 
+        "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
+            "security_enabled": "false",
+            "ignore_groupsusers_create": "false",
+            "kerberos_domain": "EXAMPLE.COM",
+            "user_group": "hadoop",
+            "smokeuser": "ambari-qa",
+            "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab"
+        }
+    }, 
+    "configurationTags": {
+        "storm-site": {
+            "tag": "version1"
+        }, 
+        "storm-env": {
+            "tag": "version1"
+        }, 
+        "zoo.cfg": {
+            "tag": "version1"
+        },
+        "zookeeper-env": {
+            "tag": "version1"
+        }, 
+        "zookeeper-log4j": {
+            "tag": "version1"
+        }, 
+        "cluster-env": {
+            "tag": "version1"
+        }
+    }, 
+    "commandId": "7-0", 
+    "clusterHostInfo": {
+        "drpc_server_hosts": [
+            "c6402.ambari.apache.org"
+        ], 
+        "nimbus_hosts": [
+            "c6402.ambari.apache.org", 
+            "c6401.ambari.apache.org"
+        ], 
+        "all_ping_ports": [
+            "8670", 
+            "8670", 
+            "8670"
+        ], 
+        "all_hosts": [
+            "c6402.ambari.apache.org", 
+            "c6403.ambari.apache.org", 
+            "c6401.ambari.apache.org"
+        ], 
+        "storm_ui_server_hosts": [
+            "c6402.ambari.apache.org"
+        ], 
+        "all_racks": [
+            "/default-rack", 
+            "/default-rack", 
+            "/default-rack"
+        ], 
+        "all_ipv4_ips": [
+            "192.168.64.102", 
+            "192.168.64.103", 
+            "192.168.64.101"
+        ], 
+        "ambari_server_host": [
+            "c6401.ambari.apache.org"
+        ], 
+        "zookeeper_server_hosts": [
+            "c6402.ambari.apache.org", 
+            "c6403.ambari.apache.org", 
+            "c6401.ambari.apache.org"
+        ], 
+        "supervisor_hosts": [
+            "c6401.ambari.apache.org"
+        ]
+    }
+}

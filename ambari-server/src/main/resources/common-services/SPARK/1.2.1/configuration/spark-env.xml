@@ -1,0 +1,166 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>spark_user</name>
+    <display-name>Spark User</display-name>
+    <value>spark</value>
+    <property-type>USER</property-type>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+        <property>
+          <type>spark-env</type>
+          <name>spark_group</name>
+        </property>
+      </user-groups>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>spark_group</name>
+    <display-name>Spark Group</display-name>
+    <value>spark</value>
+    <property-type>GROUP</property-type>
+    <description>spark group</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>spark_log_dir</name>
+    <display-name>Spark Log directory</display-name>
+    <value>/var/log/spark</value>
+    <description>Spark Log Dir</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>spark_pid_dir</name>
+    <display-name>Spark PID directory</display-name>
+    <value>/var/run/spark</value>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>spark_daemon_memory</name>
+    <value>1024</value>
+    <description>Memory for Master, Worker and history server (default: 1G)</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_kerberos_keytab</name>
+    <value>{{hive_kerberos_keytab}}</value>
+    <description>hive keytab for spark thrift server</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_kerberos_principal</name>
+    <value>{{hive_kerberos_principal}}</value>
+    <description>hive principal for spark thrift server</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- spark-env.sh -->
+  <property>
+    <name>content</name>
+    <display-name>spark-env template</display-name>
+    <description>This is the jinja template for spark-env.sh file</description>
+    <value>
+#!/usr/bin/env bash
+
+# This file is sourced when running various Spark programs.
+# Copy it as spark-env.sh and edit that to configure Spark for your site.
+
+# Options read in YARN client mode
+#SPARK_EXECUTOR_INSTANCES="2" #Number of workers to start (Default: 2)
+#SPARK_EXECUTOR_CORES="1" #Number of cores for the workers (Default: 1).
+#SPARK_EXECUTOR_MEMORY="1G" #Memory per Worker (e.g. 1000M, 2G) (Default: 1G)
+#SPARK_DRIVER_MEMORY="512M" #Memory for Master (e.g. 1000M, 2G) (Default: 512 Mb)
+#SPARK_YARN_APP_NAME="spark" #The name of your application (Default: Spark)
+#SPARK_YARN_QUEUE="~@~Xdefault~@~Y" #The hadoop queue to use for allocation requests (Default: @~Xdefault~@~Y)
+#SPARK_YARN_DIST_FILES="" #Comma separated list of files to be distributed with the job.
+#SPARK_YARN_DIST_ARCHIVES="" #Comma separated list of archives to be distributed with the job.
+
+# Generic options for the daemons used in the standalone deploy mode
+
+# Alternate conf dir. (Default: ${SPARK_HOME}/conf)
+export SPARK_CONF_DIR=${SPARK_CONF_DIR:-{{spark_home}}/conf}
+
+# Where log files are stored.(Default:${SPARK_HOME}/logs)
+#export SPARK_LOG_DIR=${SPARK_HOME:-{{spark_home}}}/logs
+export SPARK_LOG_DIR={{spark_log_dir}}
+
+# Where the pid file is stored. (Default: /tmp)
+export SPARK_PID_DIR={{spark_pid_dir}}
+
+# A string representing this instance of spark.(Default: $USER)
+SPARK_IDENT_STRING=$USER
+
+# The scheduling priority for daemons. (Default: 0)
+SPARK_NICENESS=0
+
+export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
+export HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-{{hadoop_conf_dir}}}
+
+# The java implementation to use.
+export JAVA_HOME={{java_home}}
+
+#Memory for Master, Worker and history server (default: 1024MB)
+export SPARK_DAEMON_MEMORY={{spark_daemon_memory}}m
+
+if [ -d "/etc/tez/conf/" ]; then
+  export TEZ_CONF_DIR=/etc/tez/conf
+else
+  export TEZ_CONF_DIR=
+fi
+
+</value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>spark_thrift_cmd_opts</name>
+    <description>additional spark thrift server commandline options</description>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

@@ -183,14 +183,14 @@ class ZypperManager(GenericManager):
     """
     if not name:
       raise ValueError("Installation command was executed with no package name")
-    elif not self._check_existence(name) or context.action_force:
+    elif context.is_upgrade or context.use_repos or not self._check_existence(name):
       cmd = self.properties.install_cmd[context.log_output]
 
       if context.use_repos:
         active_base_repos = self.get_active_base_repos()
         if 'base' in context.use_repos:
           # Remove 'base' from use_repos list
-          use_repos = filter(lambda x: x != 'base', context.use_repos)
+          use_repos = [x for x in context.use_repos if x != 'base']
           use_repos.extend(active_base_repos)
         use_repos_options = []
         for repo in sorted(context.use_repos):

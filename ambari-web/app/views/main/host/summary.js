@@ -171,19 +171,23 @@ App.MainHostSummaryView = Em.View.extend(App.HiveInteractiveCheck, App.TimeRange
    * Master components first, then slaves and clients
    */
   sortedComponentsFormatter: function() {
+    const updatebleProperties = Em.A(['workStatus', 'passiveState', 'staleConfigs', 'haStatus']);
     const hostComponentViewMap = this.get('hostComponentViewMap');
-    let sortedComponentsArray = [];
+    const masters = [], slaves = [], clients = [];
+
     this.get('content.hostComponents').forEach(function (component) {
       component.set('viewClass', hostComponentViewMap[component.get('componentName')] ? hostComponentViewMap[component.get('componentName')] : App.HostComponentView);
-      if (component.get('isClient')) {
+      if (component.get('isMaster')) {
+        masters.push(component);
+      } else if (component.get('isSlave')) {
+        slaves.push(component);
+      } else if (component.get('isClient')) {
         component.set('isLast', true);
         component.set('isInstallFailed', ['INSTALL_FAILED', 'INIT'].contains(component.get('workStatus')));
-      }
-      sortedComponentsArray.push(component);
-    });
-
-    sortedComponentsArray = sortedComponentsArray.sort((a, b) => a.get('displayName').localeCompare(b.get('displayName')));
-    this.set('sortedComponents', sortedComponentsArray);
+        clients.pushObject(component);
+        }
+    }, this);
+    this.set('sortedComponents', masters.concat(slaves, clients));
   },
 
   /**
@@ -227,9 +231,6 @@ App.MainHostSummaryView = Em.View.extend(App.HiveInteractiveCheck, App.TimeRange
             && !this.hasCardinalityConflict(addableComponent.get('componentName'))) {
           if ((addableComponent.get('componentName') === 'OOZIE_SERVER') && !App.router.get('mainHostDetailsController.isOozieServerAddable') ||
             addableComponent.get('componentName') === 'HIVE_SERVER_INTERACTIVE' && !self.get('enableHiveInteractive')) {
-            return;
-          }
-          if (installedServices.includes('HDFS') && addableComponent.get('componentName') === 'OZONE_DATANODE') {
             return;
           }
           components.pushObject(self.addableComponentObject.create({

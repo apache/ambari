@@ -1,0 +1,72 @@
+{
+  "services": [
+    {
+      "name": "LOGSEARCH",
+      "identities": [
+        {
+          "name": "logsearch_smokeuser",
+          "reference": "/smokeuser"
+        }
+      ],
+      "components": [
+        {
+          "name": "LOGSEARCH_SERVER",
+          "identities": [
+            {
+              "name": "logsearch",
+              "principal": {
+                "value": "logsearch/_HOST@${realm}",
+                "type": "service",
+                "configuration": "logsearch-env/logsearch_kerberos_principal"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/logsearch.service.keytab",
+                "owner": {
+                  "name": "${logsearch-env/logsearch_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "logsearch-env/logsearch_kerberos_keytab"
+              }
+            },
+            {
+              "name": "logsearch_logsearch_server_infra-solr",
+              "reference": "/AMBARI_INFRA_SOLR/INFRA_SOLR/infra-solr",
+              "when" : {
+                "contains" : ["services", "AMBARI_INFRA_SOLR"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LOGSEARCH_LOGFEEDER",
+          "identities": [
+            {
+              "name": "logfeeder",
+              "principal": {
+                "value": "logfeeder/_HOST@${realm}",
+                "type": "service",
+                "configuration": "logfeeder-env/logfeeder_kerberos_principal"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/logfeeder.service.keytab",
+                "owner": {
+                  "name": "root",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "logfeeder-env/logfeeder_kerberos_keytab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

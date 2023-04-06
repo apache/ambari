@@ -31,6 +31,12 @@ describe('App.ServiceSimple', function () {
 
     var cases = [
       {
+        name: 'MAPREDUCE2',
+        doNotShowAndInstall: false,
+        isHidden: true,
+        title: 'MapReduce2 isn\'t displayed in wizard as separate service'
+      },
+      {
         name: 'KERBEROS',
         doNotShowAndInstall: true,
         isHidden: true,

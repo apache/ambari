@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>audit_log_level</name>
+    <value>OFF</value>
+    <description>Log level for audit logging</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>monitor_forwarding_log_level</name>
+    <value>WARN</value>
+    <description>Log level for logging forwarded to the Accumulo
+      Monitor</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>debug_log_size</name>
+    <value>512M</value>
+    <description>Size of each debug rolling log file</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>debug_num_logs</name>
+    <value>10</value>
+    <description>Number of rolling debug log files to keep</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>info_log_size</name>
+    <value>512M</value>
+    <description>Size of each info rolling log file</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>info_num_logs</name>
+    <value>10</value>
+    <description>Number of rolling info log files to keep</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>content</name>
+    <display-name>accumulo-log4j template</display-name>
+    <description>Custom log4j.properties</description>
+    <value>
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# default logging properties:
+#  by default, log everything at INFO or higher to the console
+log4j.rootLogger=INFO,A1
+
+# hide Jetty junk
+log4j.logger.org.mortbay.log=WARN,A1
+
+# hide "Got brand-new compressor" messages
+log4j.logger.org.apache.hadoop.io.compress=WARN,A1
+log4j.logger.org.apache.accumulo.core.file.rfile.bcfile.Compression=WARN,A1
+
+# hide junk from TestRandomDeletes
+log4j.logger.org.apache.accumulo.test.TestRandomDeletes=WARN,A1
+
+# hide junk from VFS
+log4j.logger.org.apache.commons.vfs2.impl.DefaultFileSystemManager=WARN,A1
+
+# hide almost everything from zookeeper
+log4j.logger.org.apache.zookeeper=ERROR,A1
+
+# hide AUDIT messages in the shell, alternatively you could send them to a different logger
+log4j.logger.org.apache.accumulo.core.util.shell.Shell.audit=WARN,A1
+
+# Send most things to the console
+log4j.appender.A1=org.apache.log4j.ConsoleAppender
+log4j.appender.A1.layout.ConversionPattern=%d{ISO8601} [%-8c{2}] %-5p: %m%n
+log4j.appender.A1.layout=org.apache.log4j.PatternLayout
+
+    </value>
+    <value-attributes>
+      <type>content</type>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

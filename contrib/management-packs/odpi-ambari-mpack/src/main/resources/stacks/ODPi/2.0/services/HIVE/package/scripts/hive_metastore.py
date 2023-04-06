@@ -35,9 +35,9 @@ from resource_management.libraries.functions.security_commons import validate_se
 from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
 from resource_management.core.resources.system import File
 
-from hive import hive
-from hive import jdbc_connector
-from hive_service import hive_service
+from .hive import hive
+from .hive import jdbc_connector
+from .hive_service import hive_service
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
 
@@ -46,12 +46,12 @@ LEGACY_HIVE_SERVER_CONF = "/etc/hive/conf.server"
 
 class HiveMetastore(Script):
   def install(self, env):
-    import params
+    from . import params
     self.install_packages(env)
 
 
   def start(self, env, upgrade_type=None):
-    import params
+    from . import params
     env.set_params(params)
 
     # writing configurations on start required for securtity
@@ -61,13 +61,13 @@ class HiveMetastore(Script):
 
 
   def stop(self, env, upgrade_type=None):
-    import params
+    from . import params
     env.set_params(params)
     hive_service('metastore', action='stop', upgrade_type=upgrade_type)
 
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     hive(name = 'metastore')
 
@@ -75,7 +75,7 @@ class HiveMetastore(Script):
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HiveMetastoreWindows(HiveMetastore):
   def status(self, env):
-    import status_params
+    from . import status_params
     from resource_management.libraries.functions import check_windows_service_status
     check_windows_service_status(status_params.hive_metastore_win_service_name)
 
@@ -87,7 +87,7 @@ class HiveMetastoreDefault(HiveMetastore):
 
 
   def status(self, env):
-    import status_params
+    from . import status_params
     from resource_management.libraries.functions import check_process_status
 
     env.set_params(status_params)
@@ -98,7 +98,7 @@ class HiveMetastoreDefault(HiveMetastore):
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Metastore Stack Upgrade pre-restart")
-    import params
+    from . import params
 
     env.set_params(params)
 
@@ -113,7 +113,7 @@ class HiveMetastoreDefault(HiveMetastore):
 
 
   def security_status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     if status_params.security_enabled:
       props_value_check = {"hive.server2.authentication": "KERBEROS",
@@ -179,8 +179,8 @@ class HiveMetastoreDefault(HiveMetastore):
     Should not be invoked for a DOWNGRADE; Metastore only supports schema upgrades.
     """
     Logger.info("Upgrading Hive Metastore Schema")
-    import status_params
-    import params
+    from . import status_params
+    from . import params
     env.set_params(params)
 
     # ensure that configurations are written out before trying to upgrade the schema
@@ -223,7 +223,7 @@ class HiveMetastoreDefault(HiveMetastore):
           Execute(('cp', params.source_jdbc_file, target_directory),
             path=["/bin", "/usr/bin/"], sudo = True)
 
-      File(target_directory_and_filename, mode = 0644)
+      File(target_directory_and_filename, mode = 0o644)
 
     # build the schema tool command
     binary = format("{hive_schematool_ver_bin}/schematool")
@@ -243,11 +243,11 @@ class HiveMetastoreDefault(HiveMetastore):
     Execute(command, user=params.hive_user, tries=1, environment=env_dict, logoutput=True)
     
   def get_log_folder(self):
-    import params
+    from . import params
     return params.hive_log_dir
 
   def get_user(self):
-    import params
+    from . import params
     return params.hive_user
 
 

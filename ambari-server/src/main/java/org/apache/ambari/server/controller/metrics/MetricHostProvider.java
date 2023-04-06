@@ -17,9 +17,10 @@
  */
 package org.apache.ambari.server.controller.metrics;
 
+import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
+
 import java.util.Optional;
 
-import org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 import org.apache.ambari.server.controller.spi.SystemException;
 
 public interface MetricHostProvider {

@@ -1,0 +1,73 @@
+#!/bin/sh
+# chkconfig: 2345 70 40
+# description: hdp-gmond startup script
+# processname: hdp-gmond
+#/*
+# * Licensed to the Apache Software Foundation (ASF) under one
+# * or more contributor license agreements.  See the NOTICE file
+# * distributed with this work for additional information
+# * regarding copyright ownership.  The ASF licenses this file
+# * to you under the Apache License, Version 2.0 (the
+# * "License"); you may not use this file except in compliance
+# * with the License.  You may obtain a copy of the License at
+# *
+# *     http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# */
+
+# Remember to keep this in-sync with the definition of 
+# GANGLIA_RUNTIME_COMPONENTS_UNPACK_DIR in monrpmInstaller.sh.
+HDP_GANGLIA_RUNTIME_COMPONENTS_DIR=/usr/libexec/hdp/ganglia
+HDP_GANLIA_GMOND_STARTER=${HDP_GANGLIA_RUNTIME_COMPONENTS_DIR}/startGmond.sh
+HDP_GANLIA_GMOND_STOPPER=${HDP_GANGLIA_RUNTIME_COMPONENTS_DIR}/stopGmond.sh
+HDP_GANLIA_GMOND_CHECKER=${HDP_GANGLIA_RUNTIME_COMPONENTS_DIR}/checkGmond.sh
+
+RETVAL=0
+
+case "$1" in
+   start)
+      echo "============================="
+      echo "Starting hdp-gmond..."
+      echo "============================="
+      [ -f ${HDP_GANLIA_GMOND_STARTER} ] || exit 1
+      eval "${HDP_GANLIA_GMOND_STARTER}"
+      RETVAL=$?
+      echo
+      [ $RETVAL -eq 0 ] && touch /var/lock/subsys/hdp-gmond
+      ;;
+
+  stop)
+      echo "=================================="
+      echo "Shutting down hdp-gmond..."
+      echo "=================================="
+      [ -f ${HDP_GANLIA_GMOND_STOPPER} ] || exit 1
+      eval "${HDP_GANLIA_GMOND_STOPPER}"
+      RETVAL=$?
+      echo
+      [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/hdp-gmond
+      ;;
+
+  restart|reload)
+   	$0 stop
+   	$0 start
+   	RETVAL=$?
+	;;
+  status)
+      echo "======================================="
+      echo "Checking status of hdp-gmond..."
+      echo "======================================="
+      [ -f ${HDP_GANLIA_GMOND_CHECKER} ] || exit 1
+      eval "${HDP_GANLIA_GMOND_CHECKER}"
+      RETVAL=$?
+      ;;
+  *)
+	echo "Usage: $0 {start|stop|restart|status}"
+	exit 1
+esac
+
+exit $RETVAL

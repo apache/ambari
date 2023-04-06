@@ -51,7 +51,6 @@ import com.google.inject.Inject;
  * {@link KerberosServerAction#processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, boolean, Map)}
  * is invoked attempting the creation of the relevant principal.
  */
-@SuppressWarnings("UnstableApiUsage")
 public class CreatePrincipalsServerAction extends KerberosServerAction {
   private final static Logger LOG = LoggerFactory.getLogger(CreatePrincipalsServerAction.class);
 
@@ -74,7 +73,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
    * Used to prevent multiple threads from working with the same principal.
    */
   private Striped<Lock> locksByPrincipal = Striped.lazyWeakLock(25);
-
+  
   /**
    * A set of visited principal names used to prevent unnecessary processing on already processed
    * principal names
@@ -172,7 +171,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
         String principal = resolvedPrincipal.getPrincipal();
         Lock lock = locksByPrincipal.get(principal);
         lock.lock();
-
+        
         String password = principalPasswordMap.get(principal);
 
         try {
@@ -182,7 +181,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
               commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
             } else {
               Map<String, Integer> principalKeyNumberMap = getPrincipalKeyNumberMap(requestSharedDataContext);
-
+  
               principalPasswordMap.put(resolvedPrincipal.getPrincipal(), result.getPassword());
               principalKeyNumberMap.put(resolvedPrincipal.getPrincipal(), result.getKeyNumber());
               // invalidate given principal for all keytabs to make them redistributed again

@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>zk_user</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>zk_log_dir</name>
+    <value>c:\hadoop\log\zookeeper</value>
+    <display-name>ZooKeeper Log Dir</display-name>
+    <description>ZooKeeper Log Dir</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>zk_pid_dir</name>
+    <value>c:\hadoop\run\zookeeper</value>
+    <display-name>ZooKeeper PID Dir</display-name>
+    <description>ZooKeeper Pid Dir</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- zookeeper-env.sh -->
+  <property>
+    <name>content</name>
+    <description>zookeeper-env.sh content</description>
+    <value>
+@echo off
+@rem Licensed to the Apache Software Foundation (ASF) under one or more
+@rem contributor license agreements.  See the NOTICE file distributed with
+@rem this work for additional information regarding copyright ownership.
+@rem The ASF licenses this file to You under the Apache License, Version 2.0
+@rem (the "License"); you may not use this file except in compliance with
+@rem the License.  You may obtain a copy of the License at
+@rem
+@rem     http://www.apache.org/licenses/LICENSE-2.0
+@rem
+@rem Unless required by applicable law or agreed to in writing, software
+@rem distributed under the License is distributed on an "AS IS" BASIS,
+@rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+@rem See the License for the specific language governing permissions and
+@rem limitations under the License.
+@rem
+
+@rem Set environment variables here.
+
+@rem JVM parameters for both client and server
+@rem JDK6 on Windows has a known bug for IPv6, use preferIPv4Stack unless JDK7.
+set JVMFLAGS=-Djava.net.preferIPv4Stack=true
+
+@rem Client specific JVM parameters
+@rem set CLIENT_JVMFLAGS=
+
+@rem Server specific JVM parameters
+@rem set SERVER_JVMFLAGS=
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

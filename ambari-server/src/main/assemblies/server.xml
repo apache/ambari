@@ -63,14 +63,6 @@
       <outputDirectory>${simplejson.install.dir}</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_pbkdf2</directory>
-      <outputDirectory>${pbkdf2.install.dir}</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_pyaes</directory>
-      <outputDirectory>${pyaes.install.dir}</outputDirectory>
-    </fileSet>
-    <fileSet>
       <fileMode>700</fileMode>
       <directory>src/main/resources/db</directory>
       <outputDirectory>/var/lib/ambari-server/keys/db</outputDirectory>
@@ -209,14 +201,6 @@
       <includes>
 	    <include>/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</include>
 	  </includes>
-    </fileSet>
-    <fileSet>
-      <directoryMode>700</directoryMode>
-      <directory>src/main/resources/mpacks-v2</directory>
-      <outputDirectory>/var/lib/ambari-server/resources/mpacks-v2</outputDirectory>
-      <excludes>
-        <exclude>*/**</exclude>
-      </excludes>
     </fileSet>
     <fileSet>
       <fileMode>755</fileMode>

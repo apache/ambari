@@ -38,7 +38,7 @@ describe('#Cluster', function () {
 
       beforeEach(inject(function(_Stack_) {
         Stack = _Stack_;
-        spyOn(Stack, 'allRepos').and.returnValue({
+        spyOn(Stack, 'allRepos').andReturn({
           then: function (callback) {
             repos = callback({
               items: [{}, {}]

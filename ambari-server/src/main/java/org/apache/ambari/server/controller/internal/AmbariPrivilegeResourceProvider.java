@@ -23,7 +23,7 @@ import static org.apache.ambari.server.controller.internal.ViewPrivilegeResource
 import static org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider.VIEW_NAME;
 
 import java.util.EnumSet;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,7 +63,7 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
   /**
    * The property ids for an Ambari privilege resource.
    */
-  private static final Set<String> propertyIds = Sets.newHashSet(
+  private static Set<String> propertyIds = Sets.newHashSet(
       PRIVILEGE_ID,
       PERMISSION_NAME,
       PERMISSION_LABEL,
@@ -78,7 +78,7 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
   /**
    * The key property ids for a privilege resource.
    */
-  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.AmbariPrivilege, PRIVILEGE_ID)
       .build();
 
@@ -121,7 +121,7 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
 
   @Override
   public Map<Long, Object> getResourceEntities(Map<String, Object> properties) {
-    Map<Long, Object> resourceEntities = new LinkedHashMap<>();
+    Map<Long, Object> resourceEntities = new HashMap<>();
 
     resourceEntities.put(ResourceEntity.AMBARI_RESOURCE_ID, null);
     // add cluster entities

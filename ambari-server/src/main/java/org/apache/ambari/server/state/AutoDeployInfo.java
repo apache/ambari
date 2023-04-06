@@ -34,7 +34,6 @@ public class AutoDeployInfo {
    * Optional component name to co-locate with.
    * Specified in the form serviceName/componentName.
    */
-  @XmlElement(name="co-locate")
   private String m_coLocate;
 
   /**
@@ -69,6 +68,7 @@ public class AutoDeployInfo {
    *
    * @return a component name in the form serviceName/componentName
    */
+  @XmlElement(name="co-locate")
   public String getCoLocate() {
     return m_coLocate;
   }

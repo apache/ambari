@@ -1,0 +1,88 @@
+{
+  "name": "directories",
+  "description": "Directories theme for HIVE service",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "directories",
+        "tabs": [
+          {
+            "name": "directories",
+            "display-name": "Directories",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "4",
+              "sections": [
+                {
+                  "name": "subsection-data-dirs",
+                  "display-name": "DATA DIRS",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-data-dirs",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "subsection-pid-dirs",
+                  "display-name": "PID DIRS",
+                  "row-index": "2",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-pid-dirs",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "gateway-site/gateway.gateway.conf.dir",
+          "subsection-name": "subsection-data-dirs"
+        },
+        {
+          "config": "knox-env/knox_pid_dir",
+          "subsection-name": "subsection-pid-dirs"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "gateway-site/gateway.gateway.conf.dir",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "knox-env/knox_pid_dir",
+        "widget": {
+          "type": "text-field"
+        }
+      }
+    ]
+  }
+}

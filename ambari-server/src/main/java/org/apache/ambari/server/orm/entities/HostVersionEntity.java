@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import java.util.Objects;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -203,7 +201,7 @@ public class HostVersionEntity {
     }
 
     HostVersionEntity other = (HostVersionEntity) obj;
-    if (!Objects.equals(id, other.id)) {
+    if (id != null ? id != other.id : other.id != null) {
       return false;
     }
     if (hostEntity != null ? !hostEntity.equals(other.hostEntity) : other.hostEntity != null) {

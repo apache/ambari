@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 import logging
+import ambari_stomp
 import threading
 from socket import error as socket_error
 
@@ -27,6 +28,7 @@ from ambari_agent.Register import Register
 from ambari_agent.Utils import BlockingDictionary
 from ambari_agent.Utils import Utils
 from ambari_agent.ComponentVersionReporter import ComponentVersionReporter
+from ambari_agent.listeners.ServerResponsesListener import ServerResponsesListener
 from ambari_agent.listeners.TopologyEventListener import TopologyEventListener
 from ambari_agent.listeners.ConfigurationEventListener import ConfigurationEventListener
 from ambari_agent.listeners.AgentActionsListener import AgentActionsListener
@@ -34,7 +36,6 @@ from ambari_agent.listeners.MetadataEventListener import MetadataEventListener
 from ambari_agent.listeners.CommandsEventListener import CommandsEventListener
 from ambari_agent.listeners.HostLevelParamsEventListener import HostLevelParamsEventListener
 from ambari_agent.listeners.AlertDefinitionsEventListener import AlertDefinitionsEventListener
-from ambari_agent.listeners.EncryptionKeyListener import EncryptionKeyListener
 from ambari_agent import security
 from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 
@@ -63,12 +64,11 @@ class HeartbeatThread(threading.Thread):
     self.metadata_events_listener = MetadataEventListener(initializer_module)
     self.topology_events_listener = TopologyEventListener(initializer_module)
     self.configuration_events_listener = ConfigurationEventListener(initializer_module)
-    self.encryption_key_events_listener = EncryptionKeyListener(initializer_module)
     self.host_level_params_events_listener = HostLevelParamsEventListener(initializer_module)
     self.alert_definitions_events_listener = AlertDefinitionsEventListener(initializer_module)
     self.agent_actions_events_listener = AgentActionsListener(initializer_module)
     self.component_status_executor = initializer_module.component_status_executor
-    self.listeners = [self.server_responses_listener, self.commands_events_listener, self.metadata_events_listener, self.topology_events_listener, self.configuration_events_listener, self.host_level_params_events_listener, self.alert_definitions_events_listener, self.agent_actions_events_listener, self.encryption_key_events_listener]
+    self.listeners = [self.server_responses_listener, self.commands_events_listener, self.metadata_events_listener, self.topology_events_listener, self.configuration_events_listener, self.host_level_params_events_listener, self.alert_definitions_events_listener, self.agent_actions_events_listener]
 
     self.post_registration_requests = [
     (Constants.TOPOLOGY_REQUEST_ENDPOINT, initializer_module.topology_cache, self.topology_events_listener, Constants.TOPOLOGIES_TOPIC),
@@ -143,7 +143,7 @@ class HeartbeatThread(threading.Thread):
         try:
           listener.on_event({}, response)
         except:
-          logger.exception("Exception while handing response to request at {0} {1}".format(endpoint, response))
+          logger.exception("Exception while handing response to request at {0}. {1}".format(endpoint, response))
           raise
       finally:
         with listener.event_queue_lock:
@@ -196,12 +196,12 @@ class HeartbeatThread(threading.Thread):
     # exitstatus = 0 (OK - Default)
     # exitstatus = 1 (Registration failed because different version of agent and server)
     exitstatus = 0
-    if 'exitstatus' in response.keys():
+    if 'exitstatus' in list(response.keys()):
       exitstatus = int(response['exitstatus'])
 
     if exitstatus != 0:
       # log - message, which will be printed to agents log
-      if 'log' in response.keys():
+      if 'log' in list(response.keys()):
         error_message = "Registration failed due to: {0}".format(response['log'])
       else:
         error_message = "Registration failed"

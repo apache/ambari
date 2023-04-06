@@ -1159,7 +1159,7 @@ public class ClusterControllerImplTest {
 
   private static class TestStackVersionResourceProvider extends TestResourceProvider {
     private TestStackVersionResourceProvider() {
-      super(StackVersionResourceProvider.PROPERTY_IDS, StackVersionResourceProvider.KEY_PROPERTY_IDS);
+      super(StackVersionResourceProvider.propertyIds, StackVersionResourceProvider.keyPropertyIds);
     }
 
     @Override

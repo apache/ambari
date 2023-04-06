@@ -97,7 +97,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   protected static final String ALERT_DEF_SOURCE = "AlertDefinition/source";
   protected static final String ALERT_DEF_SOURCE_TYPE = "AlertDefinition/source/type";
 
-  private static final Set<String> pkPropertyIds = new HashSet<>(
+  private static Set<String> pkPropertyIds = new HashSet<>(
     Arrays.asList(ALERT_DEF_ID, ALERT_DEF_NAME));
 
   private static Gson gson = new Gson();

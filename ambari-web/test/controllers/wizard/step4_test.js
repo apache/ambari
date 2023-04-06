@@ -190,16 +190,13 @@ describe('App.WizardStep4Controller', function () {
         beforeEach(function () {
           controller.clear();
           Object.keys(testCase.condition).forEach(function (id) {
-            controller.pushObject(Em.Object.create({
+            controller.pushObject(App.StackService.createRecord({
               serviceName: id,
               isSelected: testCase.condition[id],
               canBeSelected: true,
               isInstalled: false,
               coSelectedServices: function() {
-                var coSelected = {
-                  'YARN': ['MAPREDUCE2']
-                };
-                return coSelected[this.get('serviceName')] || [];
+                return App.StackService.coSelected[this.get('serviceName')] || [];
               }.property('serviceName')
             }));
           });

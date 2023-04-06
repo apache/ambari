@@ -19,12 +19,13 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>${revision}</version>
+    <version>2.7.5.0.0</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-agent</artifactId>
+  <version>2.7.5.0.0</version>
   <name>Ambari Agent</name>
   <description>Ambari Agent</description>
   <properties>
@@ -42,8 +43,6 @@
     <simplejson.install.dir>/usr/lib/ambari-agent/lib/ambari_simplejson</simplejson.install.dir>
     <stomp.install.dir>/usr/lib/ambari-agent/lib/ambari_stomp</stomp.install.dir>
     <ws4py.install.dir>/usr/lib/ambari-agent/lib/ambari_ws4py</ws4py.install.dir>
-    <pbkdf2.install.dir>/usr/lib/ambari-agent/lib/ambari_pbkdf2</pbkdf2.install.dir>
-    <pyaes.install.dir>/usr/lib/ambari-agent/lib/ambari_pyaes</pyaes.install.dir>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
     <deb.architecture>amd64</deb.architecture>
     <ambari.server.module>../ambari-server</ambari.server.module>
@@ -59,16 +58,6 @@
     <dependency>
       <groupId>org.apache.zookeeper</groupId>
       <artifactId>zookeeper</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>
@@ -100,7 +89,6 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>18.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -127,19 +115,15 @@
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
         </exclusion>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.zookeeper</groupId>
       <artifactId>zookeeper-jute</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.zookeeper</groupId>
+      <artifactId>zookeeper</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.curator</groupId>
@@ -169,21 +153,13 @@
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
         </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-utility</artifactId>
       <scope>test</scope>
-      <version>${revision}</version>
+      <version>2.7.5.0.0</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -224,8 +200,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.2</version>
         <configuration>
-          <source>${jdk.version}</source>
-          <target>${jdk.version}</target>
+          <source>1.8</source>
+          <target>1.8</target>
         </configuration>
       </plugin>
       <plugin>
@@ -252,7 +228,7 @@
               <environmentVariables>
                 <PYTHONPATH>${path.python.1}${pathsep}$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
-              <skip>${skipPythonTests}</skip>
+              <skip>${skipTests}</skip>
             </configuration>
             <id>python-test</id>
             <phase>test</phase>
@@ -338,9 +314,9 @@
             <fileEncoding>utf-8</fileEncoding>
           </postremoveScriptlet>
 
-          <needarch>x86_64</needarch>
+          <needarch>aarch64</needarch>
           <autoRequires>false</autoRequires>
-          <mappings>
+          <mappings combine.children="append">
             <mapping>
               <directory>/etc</directory>
               <username>root</username>
@@ -447,10 +423,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <configuration>
-          <createDependencyReducedPom>false</createDependencyReducedPom>
-        </configuration>
-        <version>3.4.0</version>
+        <version>3.2.1</version>
         <executions>
           <execution>
             <id>shade-zkmigrator</id>
@@ -667,6 +640,7 @@
             <exclude>**/*.json</exclude>
             <exclude>**/*.pydevproject</exclude>
             <exclude>src/main/package/choco/ambari-agent.nuspec</exclude>
+            <exclude>**/dependency-reduced-pom.xml</exclude>
           </excludes>
         </configuration>
         <executions>
@@ -738,8 +712,36 @@
       <executable.shell>sh</executable.shell>
       <fileextension.shell>sh</fileextension.shell>
       <fileextension.dot.shell-default></fileextension.dot.shell-default>
-      <path.python.1>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_jinja2:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari_agent:${project.basedir}/src/main/python/resource_management:${project.basedir}/src/test/python:${project.basedir}/src/test/python/ambari_agent:${project.basedir}/src/test/python/resource_management:${project.basedir}/../ambari-server/src/test/python:${project.basedir}/../ambari-server/src/main/resources/common-services/HDFS/2.1.0.2.0/package/files</path.python.1>
+      <path.python.1>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_jinja2:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari_agent:${project.basedir}/src/main/python/resource_management:${project.basedir}/src/test/python:${project.basedir}/src/test/python/ambari_agent:${project.basedir}/src/test/python/resource_management:${project.basedir}/../ambari-server/src/test/python:${project.basedir}/../ambari-server/src/main/resources/common-services/HDFS/2.1.0.2.0/package/files</path.python.1>
      </properties>
+    </profile>
+    <profile>
+      <id>suse12</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>rpm-maven-plugin</artifactId>
+            <configuration>
+              <group>Development</group>
+              <mappings>
+                <mapping>
+                  <directory>/etc/${project.artifactId}/conf/custom</directory>
+                  <username>root</username>
+                  <groupname>root</groupname>
+                  <filemode>644</filemode>
+                  <directoryIncluded>false</directoryIncluded>
+                  <sources>
+                    <source>
+                      <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}${dirsep}var${dirsep}lib${dirsep}ambari-agent${dirsep}tmp${dirsep}sles12.sh</location>
+                    </source>
+                  </sources>
+                </mapping>
+              </mappings>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
     <profile>
       <id>windows-distro</id>

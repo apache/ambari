@@ -32,6 +32,7 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.utils.AmbariPath;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ntp.TimeStamp;
 import org.slf4j.Logger;
@@ -41,7 +42,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
   private static final Logger LOG = LoggerFactory.getLogger(MasterKeyServiceImpl.class);
   private static final String MASTER_PASSPHRASE = "masterpassphrase";
   private static final String MASTER_PERSISTENCE_TAG_PREFIX = "#1.0# ";
-  private final EncryptionService encryptionService = new AESEncryptionService();
+  private static final AESEncryptor aes = new AESEncryptor(MASTER_PASSPHRASE);
 
   private char[] master = null;
 
@@ -51,10 +52,6 @@ public class MasterKeyServiceImpl implements MasterKeyService {
    * @param masterKeyFile the location of the master key file
    */
   public MasterKeyServiceImpl(File masterKeyFile) {
-    initFromFile(masterKeyFile);
-  }
-
-  private void initFromFile(File masterKeyFile) {
     if (masterKeyFile == null) {
       throw new IllegalArgumentException("Master Key location not provided.");
     }
@@ -88,22 +85,12 @@ public class MasterKeyServiceImpl implements MasterKeyService {
   }
 
   /**
-   * default constructor
+   * Constructs a new MasterKeyServiceImpl using the master key found in the environment.
    */
-  public MasterKeyServiceImpl(){}
-
-  /**
-   * Constructs a new MasterKeyServiceImpl using prefered source according config.
-   * masterKey > masterKeyLocation > environment
-   */
-  public MasterKeyServiceImpl(Configuration configuration) {
-    if (configuration!= null && configuration.isMasterKeyPersisted()) {
-      if (configuration.getMasterKeyLocation() == null) {
-        throw new IllegalArgumentException("The master key file location must be specified if the master key is persisted");
-      }
-      initFromFile(configuration.getMasterKeyLocation());
-    } else {
-      initializeFromEnv();
+  public MasterKeyServiceImpl() {
+    String key = readMasterKey();
+    if (key != null) {
+      master = key.toCharArray();
     }
   }
 
@@ -127,12 +114,11 @@ public class MasterKeyServiceImpl implements MasterKeyService {
         masterKeyLocation = args[1];
       }
       if (args.length > 2 && !args[2].isEmpty()) {
-        persistMasterKey = args[2].equalsIgnoreCase("true");
+        persistMasterKey = args[2].toLowerCase().equals("true");
       }
     }
 
-    final MasterKeyServiceImpl masterKeyService = new MasterKeyServiceImpl(masterKey);
-    if (persistMasterKey && !masterKeyService.initializeMasterKeyFile(new File(masterKeyLocation), masterKey)) {
+    if (persistMasterKey && !MasterKeyServiceImpl.initializeMasterKeyFile(new File(masterKeyLocation), masterKey)) {
       System.exit(1);
     } else {
       System.exit(0);
@@ -151,13 +137,14 @@ public class MasterKeyServiceImpl implements MasterKeyService {
    * @param masterKey     the master key
    * @return true if the master key was written to the specified file; otherwise false
    */
-   public boolean initializeMasterKeyFile(File masterKeyFile, String masterKey) {
+  public static boolean initializeMasterKeyFile(File masterKeyFile, String masterKey) {
     LOG.debug("Persisting master key into {}", masterKeyFile.getAbsolutePath());
 
-    String encryptedMasterKey = null;
+    EncryptionResult atom = null;
+
     if (masterKey != null) {
       try {
-        encryptedMasterKey = encryptionService.encrypt(masterKey, MASTER_PASSPHRASE);
+        atom = aes.encrypt(masterKey);
       } catch (Exception e) {
         LOG.error(String.format("Failed to encrypt master key, no changes have been made: %s", e.getLocalizedMessage()), e);
         return false;
@@ -167,12 +154,22 @@ public class MasterKeyServiceImpl implements MasterKeyService {
     if (masterKeyFile.exists()) {
       if ((masterKeyFile.length() == 0) || isMasterKeyFile(masterKeyFile)) {
         LOG.info(String.format("Master key file exists at %s, resetting.", masterKeyFile.getAbsolutePath()));
-        try (FileOutputStream fos = new FileOutputStream(masterKeyFile); FileChannel fileChannel = fos.getChannel();) {
+        FileChannel fileChannel = null;
+        try {
+          fileChannel = new FileOutputStream(masterKeyFile).getChannel();
           fileChannel.truncate(0);
         } catch (FileNotFoundException e) {
           LOG.error(String.format("Failed to open key file at %s: %s", masterKeyFile.getAbsolutePath(), e.getLocalizedMessage()), e);
         } catch (IOException e) {
           LOG.error(String.format("Failed to reset key file at %s: %s", masterKeyFile.getAbsolutePath(), e.getLocalizedMessage()), e);
+        } finally {
+          if (fileChannel != null) {
+            try {
+              fileChannel.close();
+            } catch (IOException e) {
+              // Ignore...
+            }
+          }
         }
       } else {
         LOG.info(String.format("File exists at %s, but may not be a master key file. " +
@@ -181,11 +178,16 @@ public class MasterKeyServiceImpl implements MasterKeyService {
       }
     }
 
-    if (encryptedMasterKey != null) {
+    if (atom != null) {
       try {
         ArrayList<String> lines = new ArrayList<>();
         lines.add(MASTER_PERSISTENCE_TAG_PREFIX + TimeStamp.getCurrentTime().toDateString());
-        lines.add(encryptedMasterKey);
+
+        String line = Base64.encodeBase64String((
+            Base64.encodeBase64String(atom.salt) + "::" +
+                Base64.encodeBase64String(atom.iv) + "::" +
+                Base64.encodeBase64String(atom.cipher)).getBytes("UTF8"));
+        lines.add(line);
         FileUtils.writeLines(masterKeyFile, "UTF8", lines);
 
         // restrict os permissions to only the user running this process
@@ -210,11 +212,22 @@ public class MasterKeyServiceImpl implements MasterKeyService {
    * @return true if the file is identitified as "master key" file; otherwise false
    */
   private static boolean isMasterKeyFile(File file) {
-    try (FileReader reader = new FileReader(file)) {
+    FileReader reader = null;
+
+    try {
+      reader = new FileReader(file);
       char[] buffer = new char[MASTER_PERSISTENCE_TAG_PREFIX.length()];
       return (reader.read(buffer) == buffer.length) && Arrays.equals(buffer, MASTER_PERSISTENCE_TAG_PREFIX.toCharArray());
     } catch (Exception e) {
       // Ignore, assume the file is not a master key file...
+    } finally {
+      if (reader != null) {
+        try {
+          reader.close();
+        } catch (IOException e) {
+          // Ignore...
+        }
+      }
     }
 
     return false;
@@ -257,8 +270,8 @@ public class MasterKeyServiceImpl implements MasterKeyService {
     }
   }
 
-  private void initializeFromEnv() {
-    String key;
+  private String readMasterKey() {
+    String key = null;
     Map<String, String> envVariables = System.getenv();
     if (envVariables != null && !envVariables.isEmpty()) {
       key = envVariables.get(Configuration.MASTER_KEY_ENV_PROP);
@@ -269,18 +282,19 @@ public class MasterKeyServiceImpl implements MasterKeyService {
           if (keyFile.exists()) {
             try {
               initializeFromFile(keyFile);
+              if (master != null) {
+                key = new String(master);
+              }
+              FileUtils.deleteQuietly(keyFile);
             } catch (Exception e) {
               LOG.error("Cannot read master key from file: " + keyPath);
               e.printStackTrace();
             }
           }
-        } else {
-          LOG.error("Cannot read master key property {1} or master key file property {3} from environment");
         }
-      } else {
-        master = key.toCharArray();
       }
     }
+    return key;
   }
 
   private void initializeFromFile(File masterFile) throws Exception {
@@ -288,7 +302,11 @@ public class MasterKeyServiceImpl implements MasterKeyService {
       List<String> lines = FileUtils.readLines(masterFile, "UTF8");
       String tag = lines.get(0);
       LOG.info("Loading from persistent master: " + tag);
-      master = encryptionService.decrypt(lines.get(1), MASTER_PASSPHRASE).toCharArray();
+      String line = new String(Base64.decodeBase64(lines.get(1)));
+      String[] parts = line.split("::");
+      master = new String(aes.decrypt(Base64.decodeBase64(parts[0]),
+          Base64.decodeBase64(parts[1]), Base64.decodeBase64(parts[2])),
+          "UTF8").toCharArray();
     } catch (Exception e) {
       e.printStackTrace();
       throw e;

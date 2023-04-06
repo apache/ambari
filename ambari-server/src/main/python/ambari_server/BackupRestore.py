@@ -21,6 +21,7 @@ limitations under the License.
 import sys
 import zipfile
 import os
+import logging
 from ambari_server.ambariPath import AmbariPath
 
 # Default values are hardcoded here
@@ -61,10 +62,10 @@ class BackupRestore:
       # Use allowZip64=True to allow sizes greater than 4GB
       zipf = zipfile.ZipFile(self.zip_folder_path + self.zipname, 'w', allowZip64=True)
       zipdir(zipf, self.state_file_list, self.zipname)
-    except Exception, e:
+    except Exception as e:
       sys.exit("Could not create zip file. Details: " + str(e))
 
-    print("Zip file created at " + self.zip_folder_path + self.zipname)
+    print(("Zip file created at " + self.zip_folder_path + self.zipname))
 
   def perform_restore(self):
     """
@@ -72,9 +73,10 @@ class BackupRestore:
     :return:
     """
     try:
-      print("Extracting the archive " + self.zip_folder_path + self.zipname)
+      #print(("Extracting the archive " + self.zip_folder_path + self.zipname))
+      logging.info(("Extracting the archive " + self.zip_folder_path + self.zipname))
       unzip(self.zip_folder_path + self.zipname, '/')
-    except Exception, e:
+    except Exception as e:
       sys.exit("Could not extract the zipfile " + self.zip_folder_path + self.zipname
                + " Details: " + str(e))
 
@@ -89,8 +91,8 @@ def unzip(source_filename, dest_dir):
   zf = zipfile.ZipFile(source_filename)
   try:
     zf.extractall(dest_dir)
-  except Exception, e:
-    print("A problem occurred while unzipping. Details: " + str(e))
+  except Exception as e:
+    print(("A problem occurred while unzipping. Details: " + str(e)))
     raise e
   finally:
     zf.close()
@@ -110,8 +112,8 @@ def zipdir(zipf, state_file_list, zipname):
         for file in files:
           if not file == zipname:
             zipf.write(os.path.join(root, file))
-  except Exception, e:
-    print("A problem occurred while unzipping. Details: " + str(e))
+  except Exception as e:
+    print(("A problem occurred while unzipping. Details: " + str(e)))
     raise e
   finally:
     zipf.close()
@@ -121,11 +123,11 @@ def print_usage():
   Usage instructions
   :return:
   """
-  print("Usage: python BackupRestore.py <processType> [zip-folder-path|zip-file-path]\n\n"
+  print(("Usage: python BackupRestore.py <processType> [zip-folder-path|zip-file-path]\n\n"
         + "    processType - backup : backs up the filesystem state of the Ambari server into a zip file\n"
         + "    processType - restore : restores the filesystem state of the Ambari server\n"
         + "    [zip-folder-path] used with backup specifies the path of the folder where the zip file to be created\n"
-        + "    [zip-folder-path] used with restore specifies the path of the Ambari folder where the zip file to restore from is located\n")
+        + "    [zip-folder-path] used with restore specifies the path of the Ambari folder where the zip file to restore from is located\n"))
 
 
 def validate_folders(folders):
@@ -145,7 +147,7 @@ def retrieve_path_and_zipname(archive_absolute_path):
     if elements is not None and len(elements)>0:
       target['zipname'] = elements[len(elements)-1]
       target['path'] = archive_absolute_path.replace(elements[len(elements)-1], "")
-  except Exception, e:
+  except Exception as e:
     sys.exit("Could not retrieve path and zipname from the absolute path " + archive_absolute_path + ". Please check arguments."
              + " Details: " + str(e))
 
@@ -162,7 +164,7 @@ def main(argv=None):
       sys.exit("Unsupported process type: " + process_type)
     # if no archive is specified
     if len(argv) == 2:
-      print "No path specified. Will use " + DEFAULT_ARCHIVE
+      print("No path specified. Will use " + DEFAULT_ARCHIVE)
       location_data = retrieve_path_and_zipname(DEFAULT_ARCHIVE)
     else:
       location_data = retrieve_path_and_zipname(argv[2])
@@ -173,14 +175,14 @@ def main(argv=None):
 
   backup_restore = BackupRestore(AMBARI_FILESYSTEM_STATE, ambari_backup_zip_filename, zip_file_path)
 
-  print(process_type.title() + " process initiated.")
+  print((process_type.title() + " process initiated."))
   if process_type == BACKUP_PROCESS:
     validate_folders(AMBARI_FILESYSTEM_STATE)
     backup_restore.perform_backup()
-    print(BACKUP_PROCESS.title() + " complete.")
+    print((BACKUP_PROCESS.title() + " complete."))
   if process_type == RESTORE_PROCESS:
     backup_restore.perform_restore()
-    print(RESTORE_PROCESS.title() + " complete.")
+    print((RESTORE_PROCESS.title() + " complete."))
 
 
 if __name__ == '__main__':

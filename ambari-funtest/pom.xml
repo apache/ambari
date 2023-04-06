@@ -13,25 +13,17 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>${revision}</version>
+    <version>2.7.5.0.0</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-funtest</artifactId>
-  <packaging>jar</packaging>
+  <version>2.7.5.0.0</version>
+  <packaging>${packagingFormat}</packaging>
   <name>Ambari Functional Tests</name>
   <description>Ambari Functional Tests</description>
   <build>
     <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.2</version>
-        <configuration>
-          <source>${jdk.version}</source>
-          <target>${jdk.version}</target>
-          <useIncrementalCompilation>false</useIncrementalCompilation>
-         </configuration>
-      </plugin>
        <plugin>
          <groupId>org.vafer</groupId>
          <artifactId>jdeb</artifactId>
@@ -84,15 +76,10 @@
           <includes>
             <include>**/*.java</include>
           </includes>
+          <forkMode>once</forkMode>
         </configuration>
         <executions>
           <!-- Will display BUILD FAILURE if build fails or any test fails -->
-          <execution>
-            <id>integration-test</id>
-            <goals>
-              <goal>integration-test</goal>
-            </goals>
-          </execution>
           <execution>
             <id>run-verify</id>
             <phase>verify</phase>
@@ -111,7 +98,6 @@
               <exclude>src/test/resources/os_family.json</exclude>
               <exclude>src/test/resources/stacks/**</exclude>
               <exclude>derby.log</exclude>
-              <exclude>pass.txt</exclude>
             </excludes>
           </configuration>
       </plugin>
@@ -133,6 +119,7 @@
         <fileextension.shell>sh</fileextension.shell>
         <fileextension.dot.shell-default></fileextension.dot.shell-default>
         <assemblydescriptor>src/main/assemblies/empty.xml</assemblydescriptor>
+        <packagingFormat>jar</packagingFormat>
       </properties>
     </profile>
     <profile>
@@ -150,6 +137,7 @@
         <fileextension.shell>cmd</fileextension.shell>
         <fileextension.dot.shell-default></fileextension.dot.shell-default>
         <assemblydescriptor>src/main/assemblies/empty.xml</assemblydescriptor>
+        <packagingFormat>jar</packagingFormat>
         </properties>
     </profile>
   </profiles>
@@ -192,38 +180,6 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>postgresql</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>mariadb</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.mariadb.jdbc</groupId>
-      <artifactId>mariadb-java-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>mssqlserver</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.microsoft.sqlserver</groupId>
-      <artifactId>mssql-jdbc</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>mysql</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
     </dependency>
   </dependencies>
 </project>

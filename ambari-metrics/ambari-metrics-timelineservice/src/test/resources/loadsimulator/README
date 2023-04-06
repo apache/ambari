@@ -1,0 +1,65 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+ WORKING OF THE AMS LOAD SIMULATOR
+ The AMS load simulator is designed to perform load testing on a live AMS instance by performing the role of either a
+ sink or an Ambari UI instance based on how it is being invoked.
+
+  > When it acts as a host sink, it makes calls to the AMS to PUT metrics for all the services for a defined interval.
+  The simulator can also be used to start up "N" such host instances where each instance has a number of Sinks that PUT
+  metrics.
+  > When the load simulator is invoked as a UI instance, it makes GET metrics calls to the AMS in defined
+  intervals for all the services. The rate of the GET metrics call and the list of metrics requested has been designed
+  to closely match an actual Ambari UI instance. Apache JMeter API has been used to design the GET calls made to the
+  AMS.
+
+  The load simulator uses a properties file (ams-jmeter.properties) file to configure the test run. It is part of the
+  JAR in the same folder as this README file. It can also be supplied as a command line argument to the test using the
+  "-p" option. Other properties files like jmeter.properties and saveservice.properties contain JMeter internal
+  properties and need not be modified.
+
+
+ INSTRUCTIONS TO RUN THE SIMULATOR
+ 1. Modify the ams-jmeter.properties to point to your AMS host. Change the properties "num-hosts" based on how many hosts
+    need to be simulated for sinks. The GET Metric section of the properties is used for fine tuning GET call interval
+    for every APP type.
+ 2. Build the ambari-metrics-timelineservice jar.
+ 3. Invoke the test using the command as follows.
+
+   java -cp lib/*:ambari-metrics-timelineservice-<version>.jar AMSJMeterLoadTest -t <S/U>
+
+   lib/* -> All the dependency JARs generated for the ambari-metrics-timelineservice JAR.
+   -t option => S-Sink simulator or U-UI simulator
+   You can use the -p <location of ams-jmeter.properties> option to pass in your own properties file.
+
+ 4. Test results will be found at <TMP_DIR>/amsTestResults.jtl.
+ 5. Open the amsJmeterGrpah.jmx file through a JMeter GUI instance and supply the results (amsTestResults.jtl) file as
+    input to the Graph to be drawn.
+
+ TESTING ON GCE
+
+ 1. Copy the JAR, libs, optional ams-jmeter.properties file to all the machines on which the test needs to be run.
+ 2. Sink simulation for num-hosts = N.
+    Start the test with -t S on 1 machine with property "create-master=true".
+    Start the test with -t S on N-1 machines with property "create-master=false"
+ 3. UI simulation
+    Start the test with -t U on 1 or more machines.
+ 4. To stop the test after you have sufficient load testing done, the following command should be run on all machines.
+    ps axf | grep jmeter | grep -v grep | awk '{print "kill -9 " $1}' | sh
+ 5. Copy over the results file to a location with JMeter downloaded. Open the amsJmeterGraph.jmx on jmeter and browse to
+    open the results file as input to the graph.

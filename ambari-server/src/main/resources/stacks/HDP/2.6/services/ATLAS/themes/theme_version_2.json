@@ -1,0 +1,845 @@
+{
+  "name": "default",
+  "description": "Default theme for Atlas service",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "authentication_settings",
+            "display-name": "Authentication",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "4",
+              "sections": [
+                {
+                  "name": "section-authentication-type",
+                  "display-name": "Authentication Methods",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-authentication-type",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "subsection-authentication-file",
+                  "display-name": "File",
+                  "row-index": "1",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-authentication-file",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-authentication-ldap",
+                  "display-name": "LDAP/AD",
+                  "row-index": "2",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-authentication-ldap",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1",
+                      "depends-on": [
+                        {
+                          "configs":[
+                            "application-properties/atlas.authentication.method.ldap"
+                          ],
+                          "if": "${application-properties/atlas.authentication.method.ldap}",
+                          "then": {
+                            "property_value_attributes": {
+                              "visible": true
+                            }
+                          },
+                          "else": {
+                            "property_value_attributes": {
+                              "visible": false
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "section-atlas-sso",
+                  "display-name": "Atlas Knox SSO",
+                  "row-index": "3",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-atlas-sso",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "application-properties/atlas.authentication.method.file",
+          "subsection-name": "subsection-authentication-type"
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.file.filename",
+          "subsection-name": "subsection-authentication-file",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.file"
+              ],
+              "if": "${application-properties/atlas.authentication.method.file}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap",
+          "subsection-name": "subsection-authentication-type"
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.type",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.url",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ldap && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.userDNpattern",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ldap && ${application-properties/atlas.authentication.method.ldap} ",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.groupSearchBase",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ldap && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.groupSearchFilter",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ldap && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.groupRoleAttribute",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ldap && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.base.dn",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ldap && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.bind.dn",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ldap && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.bind.password",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ldap && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.referral",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ldap && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.user.searchfilter",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ldap && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.default.role",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ldap && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.ad.url",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ad && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.ad.domain",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ad && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.ad.base.dn",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ad && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.ad.bind.dn",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ad && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.ad.bind.password",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ad && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.ad.referral",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ad && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.ad.user.searchfilter",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ad && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.authentication.method.ldap.ad.default.role",
+          "subsection-name": "subsection-authentication-ldap",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.authentication.method.ldap.type",
+                "application-properties/atlas.authentication.method.ldap"
+              ],
+              "if": "${application-properties/atlas.authentication.method.ldap.type} === ad && ${application-properties/atlas.authentication.method.ldap}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.sso.knox.enabled",
+          "subsection-name": "subsection-authentication-type"
+        },
+        {
+          "config": "application-properties/atlas.sso.knox.providerurl",
+          "subsection-name": "subsection-atlas-sso",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.sso.knox.enabled"
+              ],
+              "if": "${application-properties/atlas.sso.knox.enabled}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.sso.knox.publicKey",
+          "subsection-name": "subsection-atlas-sso",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.sso.knox.enabled"
+              ],
+              "if": "${application-properties/atlas.sso.knox.enabled}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "application-properties/atlas.sso.knox.browser.useragent",
+          "subsection-name": "subsection-atlas-sso",
+          "depends-on": [
+            {
+              "configs":[
+                "application-properties/atlas.sso.knox.enabled"
+              ],
+              "if": "${application-properties/atlas.sso.knox.enabled}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "application-properties/atlas.authentication.method.file",
+        "widget": {
+          "type": "checkbox"
+        }
+      },
+      {
+        "config": "application-properties/atlas.authentication.method.file.filename",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "application-properties/atlas.authentication.method.ldap",
+        "widget": {
+          "type": "checkbox"
+        }
+      },
+      {
+        "config":"application-properties/atlas.authentication.method.ldap.url",
+        "widget":{
+          "type":"text-field"
+        }
+      },
+      {
+        "config":"application-properties/atlas.authentication.method.ldap.userDNpattern",
+        "widget":{
+          "type":"text-field"
+        }
+      },
+      {
+        "config":"application-properties/atlas.authentication.method.ldap.groupSearchBase",
+        "widget":{
+          "type":"text-field"
+        }
+      },
+      {
+        "config":"application-properties/atlas.authentication.method.ldap.groupSearchFilter",
+        "widget":{
+          "type":"text-field"
+        }
+      },
+      {
+        "config":"application-properties/atlas.authentication.method.ldap.groupRoleAttribute",
+        "widget":{
+          "type":"text-field"
+        }
+      },
+      {
+        "config":"application-properties/atlas.authentication.method.ldap.base.dn",
+        "widget":{
+          "type":"text-field"
+        }
+      },
+      {
+        "config":"application-properties/atlas.authentication.method.ldap.bind.dn",
+        "widget":{
+          "type":"text-field"
+        }
+      },
+      {
+        "config":"application-properties/atlas.authentication.method.ldap.bind.password",
+        "widget":{
+          "type":"password"
+        }
+      },
+      {
+        "config":"application-properties/atlas.authentication.method.ldap.referral",
+        "widget":{
+          "type":"text-field"
+        }
+      },
+      {
+        "config":"application-properties/atlas.authentication.method.ldap.user.searchfilter",
+        "widget":{
+          "type":"text-field"
+        }
+      },
+      {
+        "config":"application-properties/atlas.authentication.method.ldap.default.role",
+        "widget":{
+          "type":"text-field"
+        }
+      },
+      {
+        "config": "application-properties/atlas.authentication.method.ldap.type",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config":"application-properties/atlas.authentication.method.ldap.ad.url",
+        "widget":{
+          "type":"text-field"
+        }
+      },
+      {
+        "config":"application-properties/atlas.authentication.method.ldap.ad.domain",
+        "widget":{
+          "type":"text-field"
+        }
+      },
+      {
+        "config":"application-properties/atlas.authentication.method.ldap.ad.base.dn",
+        "widget":{
+          "type":"text-field"
+        }
+      },
+      {
+        "config": "application-properties/atlas.authentication.method.ldap.ad.bind.dn",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "application-properties/atlas.authentication.method.ldap.ad.bind.password",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "application-properties/atlas.authentication.method.ldap.ad.referral",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "application-properties/atlas.authentication.method.ldap.ad.user.searchfilter",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "application-properties/atlas.authentication.method.ldap.ad.default.role",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "application-properties/atlas.sso.knox.enabled",
+        "widget": {
+          "type":"checkbox"
+        }
+      },
+      {
+        "config": "application-properties/atlas.sso.knox.providerurl",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "application-properties/atlas.sso.knox.publicKey",
+        "widget": {
+          "type": "text-area"
+        }
+      },
+      {
+        "config": "application-properties/atlas.sso.knox.browser.useragent",
+        "widget": {
+          "type": "text-field"
+        }
+      }
+    ]
+  }
+}

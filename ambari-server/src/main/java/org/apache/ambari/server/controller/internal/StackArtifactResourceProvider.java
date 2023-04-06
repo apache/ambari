@@ -59,8 +59,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
@@ -118,30 +116,18 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
   /**
    * primary key fields
    */
-  public static final Set<String> pkPropertyIds = ImmutableSet.<String>builder()
-    .add(ARTIFACT_NAME_PROPERTY_ID)
-    .build();
+  public static Set<String> pkPropertyIds = new HashSet<>();
 
   /**
    * map of resource type to fk field
    */
-  public static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
-    .put(Resource.Type.StackArtifact, ARTIFACT_NAME_PROPERTY_ID)
-    .put(Resource.Type.Stack, STACK_NAME_PROPERTY_ID)
-    .put(Resource.Type.StackVersion, STACK_VERSION_PROPERTY_ID)
-    .put(Resource.Type.StackService, STACK_SERVICE_NAME_PROPERTY_ID)
-    .build();
+  public static Map<Resource.Type, String> keyPropertyIds =
+    new HashMap<>();
 
   /**
    * resource properties
    */
-  public static final Set<String> propertyIds = ImmutableSet.<String>builder()
-    .add(STACK_NAME_PROPERTY_ID)
-    .add(STACK_VERSION_PROPERTY_ID)
-    .add(STACK_SERVICE_NAME_PROPERTY_ID)
-    .add(ARTIFACT_NAME_PROPERTY_ID)
-    .add(ARTIFACT_DATA_PROPERTY_ID)
-    .build();
+  public static Set<String> propertyIds = new HashSet<>();
 
   /**
    * name of the kerberos descriptor artifact.
@@ -172,6 +158,25 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
 
   Type widgetLayoutType = new TypeToken<Map<String, List<WidgetLayout>>>(){}.getType();
   Gson gson = new Gson();
+
+  // set resource properties, pk and fk's
+  static {
+    // resource properties
+    propertyIds.add(STACK_NAME_PROPERTY_ID);
+    propertyIds.add(STACK_VERSION_PROPERTY_ID);
+    propertyIds.add(STACK_SERVICE_NAME_PROPERTY_ID);
+    propertyIds.add(ARTIFACT_NAME_PROPERTY_ID);
+    propertyIds.add(ARTIFACT_DATA_PROPERTY_ID);
+
+    // pk property
+    pkPropertyIds.add(ARTIFACT_NAME_PROPERTY_ID);
+
+    // fk properties
+    keyPropertyIds.put(Resource.Type.StackArtifact, ARTIFACT_NAME_PROPERTY_ID);
+    keyPropertyIds.put(Resource.Type.Stack, STACK_NAME_PROPERTY_ID);
+    keyPropertyIds.put(Resource.Type.StackVersion, STACK_VERSION_PROPERTY_ID);
+    keyPropertyIds.put(Resource.Type.StackService, STACK_SERVICE_NAME_PROPERTY_ID);
+  }
 
   /**
    * Constructor.
@@ -496,8 +501,12 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
 
     Collection<KerberosServiceDescriptor> serviceDescriptors = getServiceDescriptors(stackInfo);
 
-    serviceDescriptors.forEach(kerberosDescriptor::putService);
-    return kerberosDescriptor.toMap();
+    if (serviceDescriptors != null) {
+      serviceDescriptors.forEach(kerberosDescriptor::putService);
+      return kerberosDescriptor.toMap();
+    } else {
+      return null;
+    }
   }
 
   /**

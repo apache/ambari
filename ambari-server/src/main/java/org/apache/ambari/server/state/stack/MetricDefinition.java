@@ -18,9 +18,10 @@
 
 package org.apache.ambari.server.state.stack;
 
+import static java.util.Map.Entry;
+
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.apache.ambari.server.state.UriInfo;
@@ -71,7 +72,6 @@ public class MetricDefinition {
     return metricMap;
   }
   
-  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("{type=").append(type);

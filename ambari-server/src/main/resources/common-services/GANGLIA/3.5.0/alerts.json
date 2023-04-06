@@ -1,0 +1,137 @@
+{
+  "GANGLIA": {
+    "service": [],
+    "GANGLIA_SERVER": [
+      {
+        "name": "ganglia_server_process",
+        "label": "Ganglia Server Process",
+        "description": "This host-level alert is triggered if the Ganglia server process cannot be established to be up and listening on the network.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "8651",
+          "default_port": 8651,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      },
+      {
+        "name": "ganglia_monitor_hdfs_namenode",
+        "label": "Ganglia NameNode Process Monitor",
+        "description": "This host-level alert is triggered if the Ganglia gmond process which handles receiving metrics for HDFS NameNode is not up and listening.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "8661",
+          "default_port": 8661,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      },
+      {
+        "name": "ganglia_monitor_hbase_master",
+        "label": "Ganglia HBase Master Process Monitor",
+        "description": "This host-level alert is triggered if the Ganglia gmond process which handles receiving metrics for the HBase Master process is not up and listening.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "8663",
+          "default_port": 8663,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      },
+      {
+        "name": "ganglia_monitor_yarn_resourcemanager",
+        "label": "Ganglia ResourceManager Process Monitor",
+        "description": "This host-level alert is triggered if the Ganglia gmond process which handles receiving metrics for the YARN ResourceManager process is not up and listening.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "8664",
+          "default_port": 8664,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      },
+      {
+        "name": "ganglia_monitor_mapreduce_history_server",
+        "label": "Ganglia History Server Process Monitor",
+        "description": "This host-level alert is triggered if the Ganglia gmond process which handles receiving metrics for the MapReduce History Server process is not up and listening.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "8666",
+          "default_port": 8666,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ]
+  }
+}

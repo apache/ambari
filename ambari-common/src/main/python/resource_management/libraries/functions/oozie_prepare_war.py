@@ -89,11 +89,11 @@ def prepare_war(params):
     # Generate marker files
     File(prepare_war_cmd_file,
          content=command_to_file,
-         mode=0644,
+         mode=0o644,
          )
     File(libext_content_file,
          content=libext_content,
-         mode=0644,
+         mode=0o644,
          )
   else:
     Logger.info(format("No need to run prepare-war since marker file {prepare_war_cmd_file} already exists."))

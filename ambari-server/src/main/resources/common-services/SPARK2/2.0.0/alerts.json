@@ -1,0 +1,80 @@
+{
+  "SPARK2": {
+    "service": [],
+    "SPARK2_JOBHISTORYSERVER": [
+      {
+        "name": "SPARK2_JOBHISTORYSERVER_PROCESS",
+        "label": "Spark2 History Server",
+        "description": "This host-level alert is triggered if the Spark2 History Server cannot be determined to be up.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "PORT",
+          "uri": "{{spark2-defaults/spark.history.ui.port}}",
+          "default_port": 18081,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5
+            }
+          }
+        }
+      }
+    ],
+    "LIVY2_SERVER": [
+      {
+        "name": "livy2_server_status",
+        "label": "Spark2 Livy Server",
+        "description": "This host-level alert is triggered if the Livy2 Server cannot be determined to be up.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "SCRIPT",
+          "path": "SPARK2/2.0.0/package/scripts/alerts/alert_spark2_livy_port.py",
+          "parameters": [
+            {
+              "name": "check.command.timeout",
+              "display_name": "Command Timeout",
+              "value": 60.0,
+              "type": "NUMERIC",
+              "description": "The maximum time before check command will be killed by timeout",
+              "units": "seconds",
+              "threshold": "CRITICAL"
+            }
+          ]
+        }
+      }
+    ],
+    "SPARK2_THRIFTSERVER": [
+      {
+        "name": "spark2_thriftserver_status",
+        "label": "Spark2 Thrift Server",
+        "description": "This host-level alert is triggered if the Spark2 Thrift Server cannot be determined to be up.",
+        "interval": 5,
+        "scope": "HOST",
+        "source": {
+          "type": "SCRIPT",
+          "path": "SPARK2/2.0.0/package/scripts/alerts/alert_spark2_thrift_port.py",
+          "parameters": [
+            {
+              "name": "check.command.timeout",
+              "display_name": "Command Timeout",
+              "value": 60.0,
+              "type": "NUMERIC",
+              "description": "The maximum time before check command will be killed by timeout",
+              "units": "seconds",
+              "threshold": "CRITICAL"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

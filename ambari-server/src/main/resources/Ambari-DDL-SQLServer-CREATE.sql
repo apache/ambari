@@ -29,30 +29,11 @@ sqlcmd -S localhost\SQLEXPRESS -i C:\app\ambari-server-1.3.0-SNAPSHOT\resources\
 ------create the database------
 
 ------create tables and grant privileges to db user---------
-CREATE TABLE registries(
- id BIGINT NOT NULL,
- registy_name VARCHAR(255) NOT NULL,
- registry_type VARCHAR(255) NOT NULL,
- registry_uri VARCHAR(255) NOT NULL,
- CONSTRAINT PK_registries PRIMARY KEY (id));
-
-CREATE TABLE mpacks(
- id BIGINT NOT NULL,
- mpack_name VARCHAR(255) NOT NULL,
- mpack_version VARCHAR(255) NOT NULL,
- mpack_uri VARCHAR(255),
- registry_id BIGINT,
- CONSTRAINT PK_mpacks PRIMARY KEY (id),
- CONSTRAINT uni_mpack_name_version UNIQUE(mpack_name, mpack_version),
- CONSTRAINT FK_registries FOREIGN KEY (registry_id) REFERENCES registries(id));
-
 CREATE TABLE stack(
   stack_id BIGINT NOT NULL,
   stack_name VARCHAR(255) NOT NULL,
   stack_version VARCHAR(255) NOT NULL,
-  mpack_id BIGINT,
   CONSTRAINT PK_stack PRIMARY KEY CLUSTERED (stack_id),
-  CONSTRAINT FK_mpacks FOREIGN KEY (mpack_id) REFERENCES mpacks(id),
   CONSTRAINT UQ_stack UNIQUE (stack_name, stack_version));
 
 CREATE TABLE extension(
@@ -119,7 +100,7 @@ CREATE TABLE clusterconfig (
 CREATE TABLE ambari_configuration (
   category_name VARCHAR(100) NOT NULL,
   property_name VARCHAR(100) NOT NULL,
-  property_value VARCHAR(4000) NOT NULL,
+  property_value VARCHAR(2048),
   CONSTRAINT PK_ambari_configuration PRIMARY KEY (category_name, property_name)
 );
 
@@ -368,8 +349,6 @@ CREATE TABLE requestschedule (
   STATUS VARCHAR(255),
   batch_separation_seconds SMALLINT,
   batch_toleration_limit SMALLINT,
-  batch_toleration_limit_per_batch SMALLINT,
-  pause_after_first_batch BIT,
   authenticated_user_id INTEGER,
   create_user VARCHAR(255),
   create_timestamp BIGINT,
@@ -907,7 +886,6 @@ CREATE TABLE upgrade (
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
   orchestration VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
-  upgrade_package_stack VARCHAR(255) NOT NULL,
   upgrade_type VARCHAR(32) NOT NULL,
   repo_version_id BIGINT NOT NULL,
   skip_failures BIT NOT NULL DEFAULT 0,
@@ -1202,7 +1180,6 @@ BEGIN TRANSACTION
     ('widget_layout_id_seq', 0),
     ('upgrade_item_id_seq', 0),
     ('stack_id_seq', 0),
-    ('mpack_id_seq', 0),
     ('extension_id_seq', 0),
     ('link_id_seq', 0),
     ('topology_host_info_id_seq', 0),

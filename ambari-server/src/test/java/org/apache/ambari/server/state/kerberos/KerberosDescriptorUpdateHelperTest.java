@@ -27,8 +27,6 @@ import java.util.Properties;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
@@ -63,7 +61,6 @@ import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.ambari.server.topology.PersistedState;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -84,13 +81,6 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
   private static final Gson GSON = new Gson();
 
   @Test
-  @Ignore
-  @Experimental(
-      feature = ExperimentalFeature.MULTI_SERVICE,
-      comment = "This was a very useful test that no longer works since all of the kerberos "
-          + "descriptor files for services are stored in stacks no longer shipped with Ambari. "
-          + "Although we could checking a bunch of descriptors, perhaps this is better suited to "
-          + "something that is run when mpacks are registered.")
   public void updateDefaultUserKerberosDescriptor() throws Exception {
     Injector injector = Guice.createInjector(new AbstractModule() {
 
@@ -105,6 +95,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
         Configuration configuration = new Configuration(properties);
 
         PartialNiceMockBinder.newBuilder(KerberosDescriptorUpdateHelperTest.this).addConfigsBindings()
+            .addLdapBindings()
             .addFactoriesInstallBinding().build().configure(binder());
 
         install(new FactoryModuleBuilder().build(StackManagerFactory.class));

@@ -110,12 +110,12 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   /**
    * package directory name
    */
-  protected static final String PACKAGE_FOLDER_NAME = "package";
+  public static final String PACKAGE_FOLDER_NAME = "package";
 
   /**
    * upgrades directory name
    */
-  protected static final String UPGRADES_FOLDER_NAME = "upgrades";
+  public static final String UPGRADES_FOLDER_NAME = "upgrades";
 
   /**
    * checks directory name
@@ -446,7 +446,7 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
 
       roleCommandOrder = new StackRoleCommandOrder(result);
 
-      if (LOG.isDebugEnabled()) {
+      if (LOG.isDebugEnabled() && rcoFile != null) {
         LOG.debug("Role Command Order for {}", rcoFile.getAbsolutePath());
         roleCommandOrder.printRoleCommandOrder(LOG);
       }

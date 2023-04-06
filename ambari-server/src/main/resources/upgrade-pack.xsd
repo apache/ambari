@@ -22,7 +22,7 @@
     This document describes the schema for an Upgrade Pack
     </xs:documentation>
   </xs:annotation>
-  
+
   <!-- FIXME case sensitivity -->
   <xs:simpleType name="upgrade-kind-type">
     <xs:restriction base="xs:string">
@@ -174,7 +174,6 @@
           <xs:attribute name="name" type="xs:NMTOKEN" />
         </xs:complexType>
       </xs:element>
-      
     </xs:sequence>
     <xs:attribute name="name" type="xs:string" use="required" />
     <xs:attribute name="title" type="xs:string" use="required" />
@@ -240,12 +239,6 @@
           </xs:element>
         </xs:sequence>
       </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  
-  <xs:complexType name="parallel-client">
-    <xs:complexContent>
-      <xs:extension base="abstract-group-type" />
     </xs:complexContent>
   </xs:complexType>
 
@@ -470,15 +463,8 @@
     
     <xs:complexType>
       <xs:sequence>
-        <xs:choice>
-          <xs:element name="source" type="xs:string" />
-          <xs:element name="target" type="xs:string" />
-        </xs:choice>
-        <xs:choice>
-          <xs:element name="source-stack" type="xs:string" />
-          <xs:element name="target-stack" type="xs:string" />
-        </xs:choice>
-        <xs:element name="orchestration-options-class" minOccurs="0" type="xs:string" />
+        <xs:element name="target" type="xs:string" />
+        <xs:element name="target-stack" type="xs:string" />
         <xs:element name="skip-failures" minOccurs="0" type="xs:boolean" />
         <xs:element name="skip-service-check-failures" minOccurs="0" type="xs:boolean" />
         <xs:element name="downgrade-allowed" minOccurs="0" type="xs:boolean" />

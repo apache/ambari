@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+  <property>
+    <name>tez.am.view-acls</name>
+    <value>*</value>
+    <description>AM view ACLs. This allows the specified users/groups to view the status of the AM and all DAGs that run within this AM.
+      Value format: Comma separated list of users, followed by whitespace, followed by a comma separated list of groups.
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tez.cluster.additional.classpath.prefix</name>
+    <value>C:\hdp\hadoop\share\hadoop\common\lib\hadoop-lzo-0.4.19.{{hdp_stack_version}}.jar</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tez.lib.uris</name>
+    <display-name>TEZ Lib URIs</display-name>
+    <value>file:///C:/hdp/tez-0.7.0.{{hdp_stack_version}}/tez-0.7.0.{{hdp_stack_version}}.tar.gz</value>
+    <description>Comma-delimited list of the location of the Tez libraries which will be localized for DAGs.
+      Specifying a single .tar.gz or .tgz assumes that a compressed version of the tez libs is being used. This is uncompressed into a tezlibs directory when running containers, and tezlibs/;tezlibs/lib/ are added to the classpath (after . and .*).
+      If multiple files are specified - files are localized as regular files, contents of directories are localized as regular files (non-recursive).
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tez.runtime.optimize.local.fetch</name>
+    <value>true</value>
+    <description>If the shuffle input is on the local host bypass the http fetch and access the files directly.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tez.task.generate.counters.per.io</name>
+    <value>true</value>
+    <description>Whether to generate counters on a per-edge basis for a Tez DAG. Helpful for in-depth analysis.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tez.runtime.sorter.class</name>
+    <value>PIPELINED</value>
+    <description>Which sorter implementation to use</description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>PIPELINED</value>
+          <label>Pipelined Sorter</label>
+        </entry>
+        <entry>
+          <value>LEGACY</value>
+          <label>Legacy Sorter</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tez.runtime.pipelined.sorter.sort.threads</name>
+    <value>2</value>
+    <description>Tez runtime pipelined sorter sort threads</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>tez-site</type>
+        <name>tez.runtime.sorter.class</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tez.runtime.io.sort.mb</name>
+    <value>272</value>
+    <description>The size of the sort buffer when output needs to be sorted</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>tez-site</type>
+        <name>tez.runtime.sorter.class</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

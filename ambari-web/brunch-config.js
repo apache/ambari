@@ -33,14 +33,13 @@ module.exports.config = {
       }
     }
   },
-  conventions: {
-    ignored: [/^(app\/assets\/test|test)/]
-  },
   files: {
     javascripts: {
       joinTo: {
         'javascripts/app.js': /^app/,
-        'javascripts/vendor.js': /^vendor/
+        'javascripts/vendor.js': /^vendor/,
+        'test/javascripts/test.js': /^test(\/|\\)(?!vendor)/,
+        'test/javascripts/test-vendor.js': /^test(\/|\\)(?=vendor)/
       },
       order: {
         before: [
@@ -77,7 +76,7 @@ module.exports.config = {
           'vendor/scripts/diffview.js',
           'vendor/scripts/visualsearch.js',
           'vendor/scripts/moment.min.js',
-          'vendor/scripts/moment-timezone-with-data-2020-2030.js',
+          'vendor/scripts/moment-timezone-with-data-2010-2020.js',
           'vendor/scripts/workflow_visualization.js',
           'vendor/scripts/rickshaw.js',
           'vendor/scripts/spin.js',
@@ -104,7 +103,6 @@ module.exports.config = {
           'vendor/styles/bootstrap.css',
           'vendor/styles/font-awesome.css',
           'vendor/styles/font-awesome-ie7.css',
-          'vendor/styles/font-awesome-4.css',
           'vendor/styles/cubism.css',
           'vendor/styles/rickshaw.css',
           'vendor/styles/bootstrap-combobox.css',

@@ -47,9 +47,6 @@ public interface ResourceProviderFactory {
   @Named("user")
   ResourceProvider getUserResourceProvider(AmbariManagementController managementController);
 
-  @Named("auth")
-  ResourceProvider getAuthResourceProvider(AmbariManagementController managementController);
-
   @Named("userAuthenticationSource")
   ResourceProvider getUserAuthenticationSourceResourceProvider();
 

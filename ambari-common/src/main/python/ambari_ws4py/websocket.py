@@ -18,7 +18,7 @@ from ambari_ws4py.exc import HandshakeError, StreamClosed
 from ambari_ws4py.streaming import Stream
 from ambari_ws4py.messaging import Message, PingControlMessage,\
     PongControlMessage
-from ambari_ws4py.compat import basestring, unicode
+from ambari_ws4py.compat import str, str
 
 DEFAULT_READING_SIZE = 2
 
@@ -308,7 +308,7 @@ class WebSocket(object):
         """
         message_sender = self.stream.binary_message if binary else self.stream.text_message
 
-        if isinstance(payload, basestring) or isinstance(payload, bytearray):
+        if isinstance(payload, str) or isinstance(payload, bytearray):
             m = message_sender(payload).single(mask=self.stream.always_mask)
             with self.lock:
                 self._write(m)

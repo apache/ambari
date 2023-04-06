@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="true">
+  <property>
+    <name>nimbus.impersonation.acl</name>
+    <description>
+      The ImpersonationAuthorizer uses nimbus.impersonation.acl as the acl to authorize users. Following is a sample nimbus config for supporting impersonation:
+      nimbus.impersonation.acl:
+      impersonating_user1:
+      hosts:
+      [comma separated list of hosts from which impersonating_user1 is allowed to impersonate other users]
+      groups:
+      [comma separated list of groups whose users impersonating_user1 is allowed to impersonate]
+      impersonating_user2:
+      hosts:
+      [comma separated list of hosts from which impersonating_user2 is allowed to impersonate other users]
+      groups:
+      [comma separated list of groups whose users impersonating_user2 is allowed to impersonate]
+    </description>
+    <!-- The depends-on section is new in this version, required so Stack Advisor can include streamline-env and streamline-common configs. -->
+    <depends-on>
+      <property>
+        <type>streamline-env</type>
+        <name>streamline_principal_name</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

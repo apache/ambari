@@ -24,24 +24,22 @@ import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.serveraction.upgrades.DeleteUnsupportedServicesAndComponents;
-import org.apache.ambari.server.stack.upgrade.ClusterGrouping;
-import org.apache.ambari.server.stack.upgrade.Direction;
-import org.apache.ambari.server.stack.upgrade.ExecuteStage;
-import org.apache.ambari.server.stack.upgrade.ServerActionTask;
-import org.apache.ambari.server.stack.upgrade.UpgradePack;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.ServiceComponentSupport;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.spi.ClusterInformation;
-import org.apache.ambari.spi.RepositoryType;
-import org.apache.ambari.spi.RepositoryVersion;
-import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
-import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.ambari.server.state.UpgradeHelper;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.ServerActionTask;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -62,9 +60,8 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
   private ServiceComponentSupport serviceComponentSupport;
   @Mock
   private UpgradeHelper upgradeHelper;
-  private UpgradeCheckRequest request;
-
-  private StackId sourceStackId = new StackId(STACK_NAME, "1.0");
+  private PrerequisiteCheck prereq = new PrerequisiteCheck(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
+  private PrereqCheckRequest request = new PrereqCheckRequest("cluster");
 
   @Before
   public void before() throws Exception {
@@ -72,19 +69,16 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     check.serviceComponentSupport = serviceComponentSupport;
     check.upgradeHelper = upgradeHelper;
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
-
-    expect(cluster.getCurrentStackVersion()).andReturn(sourceStackId).anyTimes();
-
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
-    request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, repoVersion(), null, null);
+    request.setTargetRepositoryVersion(repoVersion());
+    request.setSourceStackId(new StackId(STACK_NAME, "1.0"));
   }
 
   @Test
   public void testPassesWhenNoUnsupportedInTargetStack() throws Exception {
     expect(serviceComponentSupport.allUnsupported(cluster, STACK_NAME, STACK_VERSION)).andReturn(emptyList()).anyTimes();
     replayAll();
-    UpgradeCheckResult result = check.perform(request);
-    assertEquals(UpgradeCheckStatus.PASS, result.getStatus());
+    check.perform(prereq, request);
+    assertEquals(PrereqCheckStatus.PASS, prereq.getStatus());
   }
 
   @Test
@@ -92,8 +86,8 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     expect(serviceComponentSupport.allUnsupported(cluster, STACK_NAME, STACK_VERSION)).andReturn(singletonList("ANY_SERVICE")).anyTimes();
     suggestedUpgradePackIs(new UpgradePack());
     replayAll();
-    UpgradeCheckResult result = check.perform(request);
-    assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
+    check.perform(prereq, request);
+    assertEquals(PrereqCheckStatus.FAIL, prereq.getStatus());
   }
 
   @Test
@@ -101,22 +95,25 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     expect(serviceComponentSupport.allUnsupported(cluster, STACK_NAME, STACK_VERSION)).andReturn(singletonList("ANY_SERVICE")).anyTimes();
     suggestedUpgradePackIs(upgradePackWithDeleteUnsupportedTask());
     replayAll();
-    UpgradeCheckResult result = check.perform(request);
-    assertEquals(UpgradeCheckStatus.WARNING, result.getStatus());
+    check.perform(prereq, request);
+    assertEquals(PrereqCheckStatus.WARNING, prereq.getStatus());
   }
 
-  private RepositoryVersion repoVersion() {
-    RepositoryVersion repositoryVersion = new RepositoryVersion(1, STACK_NAME, STACK_VERSION,
-        new StackId(STACK_NAME, STACK_VERSION).getStackId(), STACK_VERSION,
-        RepositoryType.STANDARD);
+  private RepositoryVersionEntity repoVersion() {
+    RepositoryVersionEntity repositoryVersion = new RepositoryVersionEntity();
+    repositoryVersion.setType(RepositoryType.STANDARD);
+    StackEntity stack = new StackEntity();
+    repositoryVersion.setStack(stack);
+    stack.setStackName(STACK_NAME);
+    stack.setStackVersion(STACK_VERSION);
     return repositoryVersion;
   }
 
   private void suggestedUpgradePackIs(UpgradePack upgradePack) throws AmbariException {
     expect(upgradeHelper.suggestUpgradePack(
       "cluster",
-      sourceStackId,
-      new StackId(request.getTargetRepositoryVersion().getStackId()),
+      request.getSourceStackId(),
+      request.getTargetRepositoryVersion().getStackId(),
       Direction.UPGRADE,
       request.getUpgradeType(),
       null)).andReturn(upgradePack).anyTimes();
@@ -125,7 +122,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
   private UpgradePack upgradePackWithDeleteUnsupportedTask() {
     UpgradePack upgradePack = new UpgradePack();
     ClusterGrouping group = new ClusterGrouping();
-    ExecuteStage stage = new ExecuteStage();
+    ClusterGrouping.ExecuteStage stage = new ClusterGrouping.ExecuteStage();
     ServerActionTask task = new ServerActionTask();
     task.setImplClass(DeleteUnsupportedServicesAndComponents.class.getName());
     stage.task = task;

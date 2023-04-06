@@ -18,7 +18,6 @@
 var App = require('app');
 var string_utils = require('utils/string_utils');
 var dateUtils = require('utils/date/date');
-var chartUtils = require('utils/chart_utils');
 
 /**
  * @class
@@ -671,7 +670,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
    */
   dataPreProcess: function (data) {
     var self = this;
-    var palette = new Rickshaw.Color.Palette({scheme: chartUtils.getColorSchemeForChart(data.length)});
+    var palette = new Rickshaw.Color.Palette({scheme: 'munin'});
     // Format series for display
     var series_min_length = 100000000;
     data.forEach(function (series) {

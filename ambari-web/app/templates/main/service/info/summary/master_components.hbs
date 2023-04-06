@@ -37,11 +37,9 @@
                   data-original-title="comp.passiveTooltip"}}></span>
               <span class="main-info">{{comp.componentTextStatus}}</span>
               {{#if comp.alertsCount}}
-                <span {{action "showServiceAlertsPopup" comp target="controller"}}>
-                {{view App.AlertBadgeView
-                       classNames="small-size"
-                       criticalCountBinding="comp.criticalCount"
-                       warningCountBinding="comp.warningCount"}}
+                <span {{action "showServiceAlertsPopup" comp target="controller"}}
+                  {{bindAttr class=":label comp.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
+                  {{comp.alertsCount}}
                 </span>
               {{/if}}
             </div>
@@ -64,8 +62,6 @@
     {{/if}}
   {{/if}}
 {{/each}}
-{{#if view.parentView.parentView.service.hasMasterOrSlaveComponent}}
-  {{#if view.componentCommonWidgetsView}}
-    {{view view.componentCommonWidgetsView}}
-  {{/if}}
+{{#if view.componentCommonWidgetsView}}
+  {{view view.componentCommonWidgetsView}}
 {{/if}}

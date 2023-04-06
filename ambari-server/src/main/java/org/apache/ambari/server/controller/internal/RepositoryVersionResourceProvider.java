@@ -29,7 +29,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
 import org.apache.ambari.server.api.resources.RepositoryResourceDefinition;
@@ -57,7 +56,6 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
-import org.apache.ambari.server.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -65,13 +63,13 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.ManifestServiceInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.utils.URLCredentialsHider;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -106,10 +104,10 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   public static final String REPOSITORY_VERSION_HAS_CHILDREN                   = "RepositoryVersions/has_children";
 
   @SuppressWarnings("serial")
-  private static final Set<String> pkPropertyIds = ImmutableSet.of(REPOSITORY_VERSION_ID_PROPERTY_ID);
+  private static Set<String> pkPropertyIds = Sets.newHashSet(REPOSITORY_VERSION_ID_PROPERTY_ID);
 
   @SuppressWarnings("serial")
-  public static final Set<String> propertyIds = ImmutableSet.of(
+  public static Set<String> propertyIds = Sets.newHashSet(
       REPOSITORY_VERSION_ID_PROPERTY_ID,
       REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
       REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID,
@@ -129,7 +127,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       REPOSITORY_VERSION_RESOLVED_PROPERTY_ID);
 
   @SuppressWarnings("serial")
-  public static final Map<Type, String> keyPropertyIds = new ImmutableMap.Builder<Type, String>()
+  public static Map<Type, String> keyPropertyIds = new ImmutableMap.Builder<Type, String>()
       .put(Type.Stack, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID)
       .put(Type.StackVersion, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID)
       .put(Type.RepositoryVersion, REPOSITORY_VERSION_ID_PROPERTY_ID)
@@ -203,10 +201,10 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
           RepositoryVersionEntity entity = toRepositoryVersionEntity(properties);
 
           if (repositoryVersionDAO.findByDisplayName(entity.getDisplayName()) != null) {
-            throw new DuplicateResourceException("Repository version with name " + entity.getDisplayName() + " already exists");
+            throw new AmbariException("Repository version with name " + entity.getDisplayName() + " already exists");
           }
           if (repositoryVersionDAO.findByStackAndVersion(entity.getStack(), entity.getVersion()) != null) {
-            throw new DuplicateResourceException("Repository version for stack " + entity.getStack() + " and version " + entity.getVersion() + " already exists");
+            throw new AmbariException("Repository version for stack " + entity.getStack() + " and version " + entity.getVersion() + " already exists");
           }
 
           validateRepositoryVersion(repositoryVersionDAO, ambariMetaInfo, entity);
@@ -481,8 +479,8 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       for (RepoDefinitionEntity repositoryEntity : os.getRepoDefinitionEntities()) {
         String baseUrl = repositoryEntity.getBaseUrl();
         if (!skipUrlCheck && os.isAmbariManaged() && existingRepoUrls.contains(baseUrl)) {
-          throw new DuplicateResourceException("Base url " + URLCredentialsHider.hideCredentials(baseUrl) +
-                  " is already defined for another repository version. " +
+          throw new AmbariException("Base url " + URLCredentialsHider.hideCredentials(baseUrl) +
+                                      " is already defined for another repository version. " +
                   "Setting up base urls that contain the same versions of components will cause stack upgrade to fail.");
         }
       }

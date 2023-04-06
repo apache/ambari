@@ -82,8 +82,8 @@ public class MetricsCollectorHAManager {
         if (externalMetricCollectorsState.get(clusterName).get(externalCollectorHost)) {
           return externalCollectorHost;
         }
+        return refreshAndReturnRandomExternalCollectorHost(clusterName);
       }
-      return refreshAndReturnRandomExternalCollectorHost(clusterName);
     }
 
     if (! clusterCollectorHAState.containsKey(clusterName)) {

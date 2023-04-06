@@ -26,17 +26,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
 import org.apache.ambari.server.events.JpaInitializedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
-import org.apache.ambari.server.security.encryption.Encryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.google.inject.name.Named;
-import com.google.inject.persist.jpa.AmbariJpaPersistService;
 
 /**
  * AmbariServerConfigurationProvider is an abstract class to be extended by Ambari server configuration
@@ -56,16 +54,13 @@ public abstract class AmbariServerConfigurationProvider<T extends AmbariServerCo
   @Inject
   private Provider<AmbariConfigurationDAO> ambariConfigurationDAOProvider;
 
-  @Inject @Named("AmbariServerConfigurationEncryptor")
-  private Encryptor<AmbariServerConfiguration> encryptor;
-
-  private final AtomicBoolean jpaStarted = new AtomicBoolean(false);
+  private final AtomicBoolean jpaInitialized = new AtomicBoolean(false);
 
   private final AmbariServerConfigurationCategory configurationCategory;
 
   private T instance = null;
 
-  protected AmbariServerConfigurationProvider(AmbariServerConfigurationCategory configurationCategory, AmbariEventPublisher publisher, AmbariJpaPersistService persistService) {
+  protected AmbariServerConfigurationProvider(AmbariServerConfigurationCategory configurationCategory, AmbariEventPublisher publisher, GuiceJpaInitializer guiceJpaInitializer) {
     this.configurationCategory = configurationCategory;
 
     if (publisher != null) {
@@ -73,8 +68,8 @@ public abstract class AmbariServerConfigurationProvider<T extends AmbariServerCo
       LOGGER.info("Registered {} in event publisher", this.getClass().getName());
     }
 
-    if (persistService != null) {
-      jpaStarted.set(persistService.isStarted());
+    if (guiceJpaInitializer != null) {
+      jpaInitialized.set(guiceJpaInitializer.isInitialized());
     }
   }
 
@@ -89,7 +84,6 @@ public abstract class AmbariServerConfigurationProvider<T extends AmbariServerCo
     if (configurationCategory.getCategoryName().equalsIgnoreCase(event.getCategoryName())) {
       LOGGER.info("Ambari configuration changed event received: {}", event);
       instance = loadInstance();
-      
     }
   }
 
@@ -102,7 +96,7 @@ public abstract class AmbariServerConfigurationProvider<T extends AmbariServerCo
   @Subscribe
   public void jpaInitialized(JpaInitializedEvent event) {
     LOGGER.info("JPA initialized event received: {}", event);
-    jpaStarted.set(true);
+    jpaInitialized.getAndSet(true);
     instance = loadInstance();
   }
 
@@ -124,11 +118,9 @@ public abstract class AmbariServerConfigurationProvider<T extends AmbariServerCo
    * @return the loaded instance data
    */
   private T loadInstance() {
-    if (jpaStarted.get()) {
+    if (jpaInitialized.get()) {
       LOGGER.info("Loading {} configuration data", configurationCategory.getCategoryName());
-      T instance = loadInstance(ambariConfigurationDAOProvider.get().findByCategory(configurationCategory.getCategoryName()));
-      encryptor.decryptSensitiveData(instance);
-      return instance;
+      return loadInstance(ambariConfigurationDAOProvider.get().findByCategory(configurationCategory.getCategoryName()));
     } else {
       LOGGER.info("Cannot load {} configuration data since JPA is not initialized", configurationCategory.getCategoryName());
       if (instance == null) {

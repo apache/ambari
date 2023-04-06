@@ -21,6 +21,8 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGUR
 import static org.apache.ambari.server.upgrade.UpgradeCatalog272.BLUEPRINT_PROVISIONING_STATE_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog272.CLUSTERS_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog272.HOST_COMPONENT_DESIRED_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog272.HOST_COMPONENT_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog272.LAST_LIVE_STATE_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog272.RENAME_COLLISION_BEHAVIOR_PROPERTY_SQL;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
@@ -57,6 +59,34 @@ public class UpgradeCatalog272Test {
   }
 
   @Test
+  public void testExecuteDDLUpdates() throws Exception {
+    dbAccessor.dropColumn(eq(CLUSTERS_TABLE), eq(BLUEPRINT_PROVISIONING_STATE_COLUMN));
+    expectLastCall().once();
+
+    Capture<DBAccessor.DBColumnInfo> blueprintProvisioningStateColumnCapture = newCapture(CaptureType.ALL);
+    dbAccessor.addColumn(eq(HOST_COMPONENT_DESIRED_STATE_TABLE), capture(blueprintProvisioningStateColumnCapture));
+    expectLastCall().once();
+
+    dbAccessor.dropColumn(eq(HOST_COMPONENT_STATE_TABLE), eq(LAST_LIVE_STATE_COLUMN));
+    expectLastCall().once();
+
+    replay(dbAccessor, injector);
+
+    UpgradeCatalog272 upgradeCatalog272 = new UpgradeCatalog272(injector);
+    upgradeCatalog272.dbAccessor = dbAccessor;
+    upgradeCatalog272.executeDDLUpdates();
+
+    DBAccessor.DBColumnInfo capturedBlueprintProvisioningStateColumn =
+        blueprintProvisioningStateColumnCapture.getValue();
+    assertEquals(BLUEPRINT_PROVISIONING_STATE_COLUMN,
+        capturedBlueprintProvisioningStateColumn.getName());
+    assertEquals(BlueprintProvisioningState.NONE, capturedBlueprintProvisioningStateColumn.getDefaultValue());
+    assertEquals(String.class, capturedBlueprintProvisioningStateColumn.getType());
+
+    verify(dbAccessor);
+  }
+
+  @Test
   public void testExecuteDMLUpdates() throws Exception {
     final Method renameLdapSynchCollisionBehaviorValue = UpgradeCatalog272.class.getDeclaredMethod("renameLdapSynchCollisionBehaviorValue");
     final Method createRoleAuthorizations = UpgradeCatalog272.class.getDeclaredMethod("createRoleAuthorizations");
@@ -74,31 +104,6 @@ public class UpgradeCatalog272Test {
     upgradeCatalog272.executeDMLUpdates();
 
     verify(upgradeCatalog272);
-  }
-
-  @Test
-  public void testExecuteDDLUpdates() throws Exception {
-    dbAccessor.dropColumn(eq(CLUSTERS_TABLE), eq(BLUEPRINT_PROVISIONING_STATE_COLUMN));
-    expectLastCall().once();
-
-    Capture<DBAccessor.DBColumnInfo> blueprintProvisioningStateColumnCapture = newCapture(CaptureType.ALL);
-    dbAccessor.addColumn(eq(HOST_COMPONENT_DESIRED_STATE_TABLE), capture(blueprintProvisioningStateColumnCapture));
-    expectLastCall().once();
-
-    replay(dbAccessor, injector);
-
-    UpgradeCatalog272 upgradeCatalog272 = new UpgradeCatalog272(injector);
-    upgradeCatalog272.dbAccessor = dbAccessor;
-    upgradeCatalog272.executeDDLUpdates();
-
-    DBAccessor.DBColumnInfo capturedBlueprintProvisioningStateColumn =
-        blueprintProvisioningStateColumnCapture.getValue();
-    assertEquals(BLUEPRINT_PROVISIONING_STATE_COLUMN,
-        capturedBlueprintProvisioningStateColumn.getName());
-    assertEquals(BlueprintProvisioningState.NONE, capturedBlueprintProvisioningStateColumn.getDefaultValue());
-    assertEquals(String.class, capturedBlueprintProvisioningStateColumn.getType());
-
-    verify(dbAccessor);
   }
 
   @Test
@@ -123,7 +128,7 @@ public class UpgradeCatalog272Test {
     assertEquals(expectedResult, upgradeCatalog272.renameLdapSynchCollisionBehaviorValue());
     verify(dbAccessor);
   }
-
-
+  
+  
 
 }

@@ -1,0 +1,21 @@
+{
+  "PERF": {
+    "stack_features": [
+      {
+        "name": "rolling_upgrade",
+        "description": "Rolling upgrade support",
+        "min_version": "1.0.0.0"
+      },
+      {
+        "name": "secure_zookeeper",
+        "description": "Protect ZNodes with SASL acl in secure clusters",
+        "min_version": "2.6.0.0"
+      },
+      {
+        "name": "config_versioning",
+        "description": "Configurable versions support",
+        "min_version": "1.0.0.0"
+      }
+    ]
+  }
+}

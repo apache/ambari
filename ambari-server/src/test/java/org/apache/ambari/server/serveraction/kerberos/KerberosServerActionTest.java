@@ -75,7 +75,6 @@ public class KerberosServerActionTest extends EasyMockSupport {
 
   @Before
   public void setUp() throws Exception {
-
     Config kerberosEnvConfig = createMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(KERBEROS_ENV_PROPERTIES).anyTimes();
 
@@ -172,6 +171,7 @@ public class KerberosServerActionTest extends EasyMockSupport {
     expect(mockExecutionCommand.getClusterId()).andReturn("1").anyTimes();
     expect(mockExecutionCommand.getConfigurations()).andReturn(Collections.emptyMap()).anyTimes();
     expect(mockExecutionCommand.getRoleCommand()).andReturn(null).anyTimes();
+    expect(mockExecutionCommand.getConfigurationTags()).andReturn(null).anyTimes();
     expect(mockExecutionCommand.getRole()).andReturn(null).anyTimes();
     expect(mockExecutionCommand.getServiceName()).andReturn(null).anyTimes();
     expect(mockExecutionCommand.getTaskId()).andReturn(1L).anyTimes();
@@ -276,7 +276,7 @@ public class KerberosServerActionTest extends EasyMockSupport {
     expectLastCall().atLeastOnce();
 
     KerberosOperationHandlerFactory factory = injector.getInstance(KerberosOperationHandlerFactory.class);
-    expect(factory.getKerberosOperationHandler(KDCType.MIT_KDC)).andReturn(kerberosOperationHandler).anyTimes();
+    expect(factory.getKerberosOperationHandler(KDCType.MIT_KDC)).andReturn(kerberosOperationHandler).once();
 
     replayAll();
 

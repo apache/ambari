@@ -1,0 +1,148 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false" supports_adding_forbidden="false">
+   <property>
+    <name>oozie_log_maxhistory</name>
+    <value>720</value>
+    <description>The number of hours for which log files will be retained</description>
+    <display-name>Oozie Log: # Hours of Log Rentention</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>content</name>
+    <display-name>oozie-log4j template</display-name>
+    <description>Custom log4j.properties</description>
+    <value>
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License. See accompanying LICENSE file.
+#
+
+# If the Java System property 'oozie.log.dir' is not defined at Oozie start up time
+# XLogService sets its value to '${oozie.home}/logs'
+
+# The appender that Oozie uses must be named 'oozie' (i.e. log4j.appender.oozie)
+
+# Using the RollingFileAppender with the OozieRollingPolicy will roll the log file every hour and retain up to MaxHistory number of
+# log files. If FileNamePattern ends with ".gz" it will create gzip files.
+log4j.appender.oozie=org.apache.log4j.rolling.RollingFileAppender
+log4j.appender.oozie.RollingPolicy=org.apache.oozie.util.OozieRollingPolicy
+log4j.appender.oozie.File=${oozie.log.dir}/oozie.log
+log4j.appender.oozie.Append=true
+log4j.appender.oozie.layout=org.apache.log4j.PatternLayout
+log4j.appender.oozie.layout.ConversionPattern=%d{ISO8601} %5p %c{1}:%L - SERVER[${oozie.instance.id}] %m%n
+# The FileNamePattern must end with "-%d{yyyy-MM-dd-HH}.gz" or "-%d{yyyy-MM-dd-HH}" and also start with the
+# value of log4j.appender.oozie.File
+log4j.appender.oozie.RollingPolicy.FileNamePattern=${log4j.appender.oozie.File}-%d{yyyy-MM-dd-HH}
+# The MaxHistory controls how many log files will be retained (720 hours / 24 hours per day = 30 days); -1 to disable
+log4j.appender.oozie.RollingPolicy.MaxHistory={{oozie_log_maxhistory}}
+
+
+
+log4j.appender.oozieError=org.apache.log4j.rolling.RollingFileAppender
+log4j.appender.oozieError.RollingPolicy=org.apache.oozie.util.OozieRollingPolicy
+log4j.appender.oozieError.File=${oozie.log.dir}/oozie-error.log
+log4j.appender.oozieError.Append=true
+log4j.appender.oozieError.layout=org.apache.log4j.PatternLayout
+log4j.appender.oozieError.layout.ConversionPattern=%d{ISO8601} %5p %c{1}:%L - SERVER[${oozie.instance.id}] %m%n
+# The FileNamePattern must end with "-%d{yyyy-MM-dd-HH}.gz" or "-%d{yyyy-MM-dd-HH}" and also start with the
+# value of log4j.appender.oozieError.File
+log4j.appender.oozieError.RollingPolicy.FileNamePattern=${log4j.appender.oozieError.File}-%d{yyyy-MM-dd-HH}
+# The MaxHistory controls how many log files will be retained (720 hours / 24 hours per day = 30 days); -1 to disable
+log4j.appender.oozieError.RollingPolicy.MaxHistory=720
+log4j.appender.oozieError.filter.1 = org.apache.log4j.varia.LevelMatchFilter
+log4j.appender.oozieError.filter.1.levelToMatch = WARN
+log4j.appender.oozieError.filter.2 = org.apache.log4j.varia.LevelMatchFilter
+log4j.appender.oozieError.filter.2.levelToMatch = ERROR
+log4j.appender.oozieError.filter.3 = org.apache.log4j.varia.LevelMatchFilter
+log4j.appender.oozieError.filter.3.levelToMatch = FATAL
+log4j.appender.oozieError.filter.4 = org.apache.log4j.varia.DenyAllFilter
+
+
+
+# Uncomment the below two lines to use the DailyRollingFileAppender instead
+# The DatePattern must end with either "dd" or "HH"
+#log4j.appender.oozie=org.apache.log4j.DailyRollingFileAppender
+#log4j.appender.oozie.DatePattern='.'yyyy-MM-dd-HH
+
+log4j.appender.oozieops=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.oozieops.DatePattern='.'yyyy-MM-dd
+log4j.appender.oozieops.File=${oozie.log.dir}/oozie-ops.log
+log4j.appender.oozieops.Append=true
+log4j.appender.oozieops.layout=org.apache.log4j.PatternLayout
+log4j.appender.oozieops.layout.ConversionPattern=%d{ISO8601} %5p %c{1}:%L - %m%n
+
+log4j.appender.oozieinstrumentation=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.oozieinstrumentation.DatePattern='.'yyyy-MM-dd
+log4j.appender.oozieinstrumentation.File=${oozie.log.dir}/oozie-instrumentation.log
+log4j.appender.oozieinstrumentation.Append=true
+log4j.appender.oozieinstrumentation.layout=org.apache.log4j.PatternLayout
+log4j.appender.oozieinstrumentation.layout.ConversionPattern=%d{ISO8601} %5p %c{1}:%L - %m%n
+
+log4j.appender.oozieaudit=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.oozieaudit.DatePattern='.'yyyy-MM-dd
+log4j.appender.oozieaudit.File=${oozie.log.dir}/oozie-audit.log
+log4j.appender.oozieaudit.Append=true
+log4j.appender.oozieaudit.layout=org.apache.log4j.PatternLayout
+log4j.appender.oozieaudit.layout.ConversionPattern=%d{ISO8601} %5p %c{1}:%L - %m%n
+
+log4j.appender.openjpa=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.openjpa.DatePattern='.'yyyy-MM-dd
+log4j.appender.openjpa.File=${oozie.log.dir}/oozie-jpa.log
+log4j.appender.openjpa.Append=true
+log4j.appender.openjpa.layout=org.apache.log4j.PatternLayout
+log4j.appender.openjpa.layout.ConversionPattern=%d{ISO8601} %5p %c{1}:%L - %m%n
+
+log4j.logger.openjpa=INFO, openjpa
+log4j.logger.oozieops=INFO, oozieops
+log4j.logger.oozieinstrumentation=ALL, oozieinstrumentation
+log4j.logger.oozieaudit=ALL, oozieaudit
+log4j.logger.org.apache.oozie=INFO, oozie, oozieError
+log4j.logger.org.apache.hadoop=WARN, oozie
+log4j.logger.org.mortbay=WARN, oozie
+log4j.logger.org.hsqldb=WARN, oozie
+log4j.logger.org.apache.hadoop.security.authentication.server=WARN, oozie
+    </value>
+    <value-attributes>
+      <type>content</type>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

@@ -62,22 +62,22 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
   /**
    * Data access object used to obtain privilege entities.
    */
-  private static PrivilegeDAO privilegeDAO;
+  protected static PrivilegeDAO privilegeDAO;
 
   /**
    * Data access object used to obtain user entities.
    */
-  private static UserDAO userDAO;
+  protected static UserDAO userDAO;
 
   /**
    * Data access object used to obtain group entities.
    */
-  private static GroupDAO groupDAO;
+  protected static GroupDAO groupDAO;
 
   /**
    * Data access object used to obtain principal entities.
    */
-  private static PrincipalDAO principalDAO;
+  protected static PrincipalDAO principalDAO;
 
   /**
    * Data access object used to obtain permission entities.
@@ -87,7 +87,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
   /**
    * Data access object used to obtain resource entities.
    */
-  private static ResourceDAO resourceDAO;
+  protected static ResourceDAO resourceDAO;
 
   public static final String PRIVILEGE_INFO = "PrivilegeInfo";
 
@@ -491,7 +491,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
           Set<Long> resourceIds = getResourceEntities(properties).keySet();
           Long      resourceId  = resourceIds.iterator().next();
 
-          if (resource != null && ! resourceId.equals(resource)) {
+          if (resource != null && resourceId != resource) {
             throw new AmbariException("Can't update privileges of multiple resources in one request");
           }
           resource = resourceId;

@@ -180,11 +180,7 @@ public class ConfigurationDirectory extends StackDefinitionDirectory {
           LOG.error("Failed to load value from property file. Properties file {} does not exist", propertyFilePath);
         }
       } else {
-        if (propertiesDirFile == null) {
-          LOG.error("Failed to load value from property file. Properties directory is null");
-        } else {
-          LOG.error("Failed to load value from property file. Properties directory {} does not exist", propertiesDirFile.getAbsolutePath());
-        }
+        LOG.error("Failed to load value from property file. Properties directory {} does not exist", propertiesDirFile.getAbsolutePath());
       }
     }
     props.add(pi);

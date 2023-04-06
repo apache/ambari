@@ -22,7 +22,7 @@ import logging
 import os
 import string
 import signal
-from ambari_commons import subprocess32 as subprocess
+import subprocess as subprocess
 import threading
 from contextlib import contextmanager
 import copy
@@ -104,11 +104,10 @@ class RepoCallContext(object):
   use_repos = None
   skip_repos = None
   is_upgrade = False
-  action_force = False  # currently only for install action
 
   def __init__(self, ignore_errors=True, retry_count=2, retry_sleep=30, retry_on_repo_unavailability=False,
                retry_on_locked=True, log_output=True, use_repos=None, skip_repos=None,
-               is_upgrade=False, action_force=False):
+               is_upgrade=False):
     """
     :type ignore_errors bool
     :type retry_count int
@@ -129,7 +128,6 @@ class RepoCallContext(object):
     self.use_repos = use_repos
     self.skip_repos = skip_repos
     self.is_upgrade = is_upgrade
-    self.action_force = action_force
 
   @property
   def retry_count(self):
@@ -182,7 +180,7 @@ class PopenEx(subprocess.Popen):
   Same nice Popen with stdout handles hack to allow pty instead of pipe. This will allow to control terminal geometry
   to eliminate some applications bugs with output formatting according to terminal width.
 
-  TODO: move the code directly to subprocess32.py
+  TODO: move the code directly to subprocess.py
   """
 
   def _get_handles(self, stdin, stdout, stderr):
@@ -229,7 +227,7 @@ def quote_bash_args(command):
   if not command:
     return "''"
 
-  if not isinstance(command, basestring):
+  if not isinstance(command, str):
     raise ValueError("Command should be a list of strings, found '{0}' in command list elements".format(str(command)))
 
   valid = set(string.ascii_letters + string.digits + '@%_-+=:,./')
@@ -452,8 +450,7 @@ def subprocess_executor(command, timeout=__TIMEOUT_SECONDS, strategy=ReaderStrat
 
 
 @contextmanager
-def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, strategy=ReaderStrategy.BufferedQueue,
-                     env=None, silent=False):
+def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, strategy=ReaderStrategy.BufferedQueue, env=None):
   """
   Context manager for command execution
 
@@ -461,14 +458,12 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
   :param timeout execution time limit in seconds. If None will default to TIMEOUT_SECONDS, -1 disable feature
   :param strategy the way how to process output. Available methods listed in ReaderStrategy
   :param env Environment variable for new spawned process
-  :param silent no error logging if command execution failed, do not affect `error_callback` param
 
   :type command list|str
   :type timeout None|int
   :type error_callback func
   :type strategy int
   :type env dict
-  :type silent bool
 
   :rtype stdout collections.Iterable
 
@@ -520,8 +515,7 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
     if error_callback and cmd.returncode and cmd.returncode > 0:
       error_callback(command, cmd.stderr.readlines(), cmd.returncode)
   except Exception as e:
-    if not silent:
-      _logger.error("Exception during command '{0}' execution: {1}".format(command, str(e)))
+    _logger.error("Exception during command '{0}' execution: {1}".format(command, str(e)))
     if error_callback:
       error_callback(command, [str(e)], -1)
 
@@ -655,7 +649,7 @@ def kill_process_with_children(base_pid):
   all_child_pids = [item[0] for item in full_child_pids if item[1].lower() not in exception_list and item[0] != os.getpid()]
   error_log = []
 
-  for sig_name, sig in signals_to_post.items():
+  for sig_name, sig in list(signals_to_post.items()):
     # we need to kill processes from the bottom of the tree
     pids_to_kill = sorted(get_existing_pids(all_child_pids), reverse=True)
     for pid in pids_to_kill:

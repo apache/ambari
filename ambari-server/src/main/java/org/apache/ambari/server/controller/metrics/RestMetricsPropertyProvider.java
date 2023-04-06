@@ -303,15 +303,15 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
       portPropertyName = metricsProperties.get(portPropertyNameInMetricsProperties);
     }
     String portStr = getPropertyValueByNameAndConfigType(portPropertyName, portConfigType, cluster, hostname);
-    if (portStr == null) {
+    if (portStr == null && metricsProperties.containsKey(DEFAULT_PORT_PROPERTY)) {
       if (metricsProperties.containsKey(DEFAULT_PORT_PROPERTY)) {
         portStr = metricsProperties.get(DEFAULT_PORT_PROPERTY);
       } else {
         String message = String.format("Can not determine REST port for " +
-                "component %s. " +
-                "Default REST port property %s is not defined at metrics.json " +
-                "file for service, and there is no any other available ways " +
-                "to determine port information.",
+            "component %s. " +
+            "Default REST port property %s is not defined at metrics.json " +
+            "file for service, and there is no any other available ways " +
+            "to determine port information.",
             componentName, DEFAULT_PORT_PROPERTY);
         throw new AmbariException(message);
       }
@@ -332,7 +332,7 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
     if (configType != null && propertyName != null) {
       try {
         Map<String, Map<String, String>> configTags =
-                amc.findConfigurationTagsWithOverrides(cluster, hostname, null);
+                amc.findConfigurationTagsWithOverrides(cluster, hostname);
         if (configTags.containsKey(configType)) {
           Map<String, Map<String, String>> properties = amc.getConfigHelper().getEffectiveConfigProperties(cluster,
                   Collections.singletonMap(configType, configTags.get(configType)));

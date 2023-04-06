@@ -29,10 +29,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
@@ -54,13 +50,13 @@ public class ConfigurationRecommendationCommandTest {
             null, null);
 
     StackAdvisorRequest request = mock(StackAdvisorRequest.class);
-    SortedMap<String, SortedSet<String>> componentHostGroupMap = new TreeMap<>();
-    SortedSet<String> components1 = new TreeSet<>();
+    Map<String, Set<String>> componentHostGroupMap = new HashMap<>();
+    Set<String> components1 = new HashSet<>();
     components1.add("component1");
     components1.add("component4");
     components1.add("component5");
     componentHostGroupMap.put("group1", components1);
-    SortedSet<String> components2 = new TreeSet<>();
+    Set<String> components2 = new HashSet<>();
     components2.add("component2");
     components2.add("component3");
     componentHostGroupMap.put("group2", components2);

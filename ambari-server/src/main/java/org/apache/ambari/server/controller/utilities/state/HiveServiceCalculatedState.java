@@ -105,10 +105,10 @@ public final class HiveServiceCalculatedState extends DefaultServiceCalculatedSt
 
         if (nonStartedState == null ||
           (hiveServerComponentStarted && webHcatComponentStarted && activeHiveMetastoreComponentCount > 0 &&
-            (!embeddedMysqlComponentExists || mysqlComponentStarted))) {
+            (embeddedMysqlComponentExists ? mysqlComponentStarted : true))) {
           return State.STARTED;
         }
-        return nonStartedState;
+        return nonStartedState == null ? State.INSTALLED : nonStartedState;
       }
     } catch (AmbariException e) {
       LOG.error("Can't determine service state.", e);

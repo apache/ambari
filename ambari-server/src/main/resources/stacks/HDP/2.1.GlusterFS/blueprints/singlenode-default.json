@@ -1,0 +1,128 @@
+{
+    "configurations" : [
+    ],
+    "host_groups" : [
+        {
+            "name" : "host_group_1",
+            "components" : [
+                {
+                    "name" : "GLUSTERFS_CLIENT"
+                },
+                {
+                    "name" : "STORM_REST_API"
+                },
+                {
+                    "name" : "PIG"
+                },
+                {
+                    "name" : "HISTORYSERVER"
+                },
+                {
+                    "name" : "HBASE_REGIONSERVER"
+                },
+                {
+                    "name" : "OOZIE_CLIENT"
+                },
+                {
+                    "name" : "HBASE_CLIENT"
+                },
+                {
+                    "name" : "NAMENODE"
+                },
+                {
+                    "name" : "SUPERVISOR"
+                },
+                {
+                    "name" : "FALCON_SERVER"
+                },
+                {
+                    "name" : "HCAT"
+                },
+                {
+                    "name" : "AMBARI_SERVER"
+                },
+                {
+                    "name" : "APP_TIMELINE_SERVER"
+                },
+                {
+                    "name" : "HDFS_CLIENT"
+                },
+                {
+                    "name" : "HIVE_CLIENT"
+                },
+                {
+                    "name" : "NODEMANAGER"
+                },
+                {
+                    "name" : "DATANODE"
+                },
+                {
+                    "name" : "WEBHCAT_SERVER"
+                },
+                {
+                    "name" : "RESOURCEMANAGER"
+                },
+                {
+                    "name" : "ZOOKEEPER_SERVER"
+                },
+                {
+                    "name" : "ZOOKEEPER_CLIENT"
+                },
+                {
+                    "name" : "STORM_UI_SERVER"
+                },
+                {
+                    "name" : "HBASE_MASTER"
+                },
+                {
+                    "name" : "HIVE_SERVER"
+                },
+                {
+                    "name" : "OOZIE_SERVER"
+                },
+                {
+                    "name" : "FALCON_CLIENT"
+                },
+                {
+                    "name" : "SECONDARY_NAMENODE"
+                },
+                {
+                    "name" : "TEZ_CLIENT"
+                },
+                {
+                    "name" : "HIVE_METASTORE"
+                },
+                {
+                    "name" : "GANGLIA_SERVER"
+                },
+                {
+                    "name" : "SQOOP"
+                },
+                {
+                    "name" : "YARN_CLIENT"
+                },
+                {
+                    "name" : "MAPREDUCE2_CLIENT"
+                },
+                {
+                    "name" : "MYSQL_SERVER"
+                },
+                {
+                    "name" : "GANGLIA_MONITOR"
+                },
+                {
+                    "name" : "DRPC_SERVER"
+                },
+                {
+                    "name" : "NIMBUS"
+                }
+            ],
+            "cardinality" : "1"
+        }
+    ],
+    "Blueprints" : {
+        "blueprint_name" : "blueprint-singlenode-default",
+        "stack_name" : "HDP",
+        "stack_version" : "2.1"
+    }
+}

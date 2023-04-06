@@ -144,25 +144,16 @@ App.HostComponent = DS.Model.extend({
   }.property('componentName', 'App.components.nonHDP'),
 
   /**
-   * @type {number}
-   */
-  warningCount: 0,
-  /**
-   * @type {number}
-   */
-  criticalCount: 0,
-
-  /**
    * Does component have Critical Alerts
    * @type {boolean}
    */
-  hasCriticalAlerts: Em.computed.gte('criticalCount', 0),
+  hasCriticalAlerts: false,
 
   /**
    * Number of the Critical and Warning alerts for current component
    * @type {number}
    */
-  alertsCount: Em.computed.sumProperties('warningCount', 'criticalCount'),
+  alertsCount: 0,
 
   statusClass: function () {
     return this.get('isActive') ? this.get('workStatus') : 'icon-medkit';
@@ -355,16 +346,6 @@ App.HostComponentActionMap = {
         disabled: false,
         hasSubmenu: hasMultipleMasterComponentGroups,
         submenuOptions: hasMultipleMasterComponentGroups ? this.getMastersSubmenu(ctx, 'restartCertainHostComponents') : []
-      },
-      //Ongoing feature. Will later replace RESTART_ALL
-      RESTART_SERVICE: {
-        action: 'restartServiceAllComponents',
-        context: ctx.get('serviceName'),
-        label: Em.I18n.t('restart.service.rest.context').format(ctx.get('displayName')),
-        cssClass: 'glyphicon glyphicon-time',
-        disabled: false,
-        hasSubmenu: true,
-        submenuOptions: ctx.get('controller.restartOptions')
       },
       RESTART_NAMENODES: {
         action: '',
@@ -573,23 +554,7 @@ App.HostComponentActionMap = {
         action: 'openNameNodeFederationWizard',
         label: Em.I18n.t('admin.nameNodeFederation.button.enable'),
         cssClass: 'icon icon-sitemap',
-        disabled: !App.get('isHaEnabled') || App.get('allHostNames.length') < 4
-      },
-      UPDATE_REPLICATION: {
-        action: 'updateHBaseReplication',
-        customCommand: 'UPDATE_REPLICATION',
-        context: Em.I18n.t('services.service.actions.run.updateHBaseReplication.context'),
-        label: Em.I18n.t('services.service.actions.run.updateHBaseReplication.label'),
-        cssClass: 'glyphicon glyphicon-refresh',
-        disabled: false
-      },
-      STOP_REPLICATION: {
-        action: 'stopHBaseReplication',
-        customCommand: 'STOP_REPLICATION',
-        context: Em.I18n.t('services.service.actions.run.stopHBaseReplication.context'),
-        label: Em.I18n.t('services.service.actions.run.stopHBaseReplication.label'),
-        cssClass: 'glyphicon glyphicon-refresh',
-        disabled: false
+        disabled: !App.get('isHaEnabled')
       }
     };
   },

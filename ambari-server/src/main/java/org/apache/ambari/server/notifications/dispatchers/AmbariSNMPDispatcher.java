@@ -99,7 +99,6 @@ public class AmbariSNMPDispatcher extends SNMPDispatcher {
      * {@inheritDoc}
      * Uses default Ambari OIDs
      */
-    @Override
     protected PDU prepareTrap(Notification notification, SnmpVersion snmpVersion) throws InvalidSnmpConfigurationException {
         AlertNotification alertNotification;
         PDU pdu = DefaultPDUFactory.createPDU(snmpVersion.getTargetVersion());
@@ -119,8 +118,8 @@ public class AmbariSNMPDispatcher extends SNMPDispatcher {
         pdu.setType(snmpVersion.getTrapType());
     
         RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
-        long uptimeInHundredthsOfSecond = runtimeMXBean.getUptime() / 10;
-        pdu.add(new VariableBinding(SnmpConstants.sysUpTime, new TimeTicks(uptimeInHundredthsOfSecond)));
+        long uptimeInMillis = runtimeMXBean.getUptime();
+        pdu.add(new VariableBinding(SnmpConstants.sysUpTime, new TimeTicks(uptimeInMillis)));
 
        // Set trap oid for PDU
         pdu.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(AMBARI_ALERT_TRAP_OID)));

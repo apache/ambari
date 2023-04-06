@@ -31,7 +31,8 @@
 # /etc/init.d/ambari-server
 set -u # fail on unset variables
 VERSION="${ambariFullVersion}"
-HASH="${buildNumber}"
+#HASH="${buildNumber}"
+HASH="${VERSION}"
 
 case "${1:-}" in
   --version)
@@ -131,10 +132,6 @@ case "${1:-}" in
         ;;
   setup-jce)
         echo -e "Updating jce policy"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
-        ;;
-  setup-jdbc)
-        echo -e "Setting up JDBC driver"
         $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   setup-pam)

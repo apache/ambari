@@ -112,7 +112,7 @@ public class ConfigGroupResourceProvider extends
   /**
    * The key property ids for a ConfigGroup resource.
    */
-  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Cluster, CLUSTER_NAME)
       .put(Resource.Type.ConfigGroup, ID)
       .build();
@@ -120,7 +120,7 @@ public class ConfigGroupResourceProvider extends
   /**
    * The property ids for a ConfigGroup resource.
    */
-  private static final Set<String> propertyIds = Sets.newHashSet(
+  private static Set<String> propertyIds = Sets.newHashSet(
     CLUSTER_NAME,
     ID,
     GROUP_NAME,
@@ -248,7 +248,7 @@ public class ConfigGroupResourceProvider extends
       }
     }
 
-    updateResources(requests);
+    RequestStatus status = updateResources(requests);
 
     Set<Resource> associatedResources = new HashSet<>();
     for (ConfigGroupRequest configGroupRequest : requests) {
@@ -519,6 +519,8 @@ public class ConfigGroupResourceProvider extends
         cluster.getClusterName(), getManagementController().getAuthName(), configGroup.getName(), request.getId());
 
     cluster.deleteConfigGroup(request.getId());
+
+    m_configHelper.get().updateAgentConfigs(Collections.singleton(request.getClusterName()));
   }
 
   private void validateRequest(ConfigGroupRequest request) {

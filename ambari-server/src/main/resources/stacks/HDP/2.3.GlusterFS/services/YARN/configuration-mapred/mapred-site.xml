@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<!-- Put site-specific property overrides in this file. -->
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
+  <!-- GLUSTERFS properties -->
+  <property>
+    <name>mapreduce.jobhistory.intermediate-done-dir</name>
+    <display-name>Mapreduce JobHistory Intermediate Done directory</display-name>
+    <value>glusterfs:///mr-history/tmp</value>
+    <description>
+      Directory where history files are written by MapReduce jobs.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>mapreduce.jobhistory.done-dir</name>
+    <display-name>Mapreduce JobHistory Done directory</display-name>
+    <value>glusterfs:///mr-history/done</value>
+    <description>
+      Directory where history files are managed by the MR JobHistory Server.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.app.mapreduce.am.staging-dir</name>
+    <display-name>YARN App Mapreduce AM Staging directory</display-name>
+    <value>glusterfs:///user</value>
+    <description>
+       The staging dir used while submitting jobs.
+     </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>mapred.healthChecker.script.path</name>
+    <value>glusterfs:///mapred/jobstatus</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>mapred.job.tracker.history.completed.location</name>
+    <value>glusterfs:///mapred/history/done</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>mapred.system.dir</name>
+    <value>glusterfs:///mapred/system</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>mapreduce.jobtracker.staging.root.dir</name>
+    <value>glusterfs:///user</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>mapred.healthChecker.script.path</name>
+    <value>glusterfs:///mapred/jobstatus</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>mapred.job.tracker.history.completed.location</name>
+    <value>glusterfs:///mapred/history/done</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>mapred.system.dir</name>
+    <value>glusterfs:///mapred/system</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>mapreduce.jobtracker.staging.root.dir</name>
+    <value>glusterfs:///user</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

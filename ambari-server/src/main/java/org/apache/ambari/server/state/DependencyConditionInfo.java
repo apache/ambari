@@ -60,6 +60,7 @@ class PropertyExists implements DependencyConditionInfo {
    */
   protected String type = this.getClass().getSimpleName();
 
+  @XmlTransient
   public String getType() {
     return type;
   }

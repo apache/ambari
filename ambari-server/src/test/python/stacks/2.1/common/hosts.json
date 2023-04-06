@@ -1,0 +1,563 @@
+{
+  "href" : "/api/v1/hosts?fields=*&Hosts/host_name.in(ipan10-10.c.pramod-thangali.internal,ipan10-2.c.pramod-thangali.internal,ipan10-3.c.pramod-thangali.internal,ipan10-4.c.pramod-thangali.internal,ipan10-5.c.pramod-thangali.internal,ipan10-6.c.pramod-thangali.internal,ipan10-7.c.pramod-thangali.internal,ipan10-8.c.pramod-thangali.internal,ipan10-9.c.pramod-thangali.internal)",
+  "items" : [
+    {
+      "href" : "/api/v1/hosts/ipan10-10.c.pramod-thangali.internal",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "desired_configs" : null,
+        "disk_info" : [
+          {
+            "available" : "8643532",
+            "used" : "1151444",
+            "percent" : "12%",
+            "size" : "10319160",
+            "type" : "ext4",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "1832436",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "1832436",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "ipan10-10.c.pramod-thangali.internal",
+        "host_state" : "HEALTHY",
+        "host_status" : "HEALTHY",
+        "ip" : "10.240.189.116",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [ ],
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [ ],
+            "agentTimeStampAtReporting" : 1412083457014,
+            "serverTimeStampAtReporting" : 1412083457068,
+            "liveServices" : [
+              {
+                "desc" : "",
+                "name" : "ntpd",
+                "status" : "Healthy"
+              }
+            ]
+          },
+          "umask" : 18,
+          "transparentHugePage" : "always",
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
+          "reverseLookup" : true
+        },
+        "last_heartbeat_time" : 1412083477169,
+        "last_registration_time" : 1412083350432,
+        "os_arch" : "x86_64",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 1,
+        "public_host_name" : "ipan10-10.c.pramod-thangali.internal",
+        "rack_info" : "/default-rack",
+        "total_mem" : 3664872
+      }
+    },
+    {
+      "href" : "/api/v1/hosts/ipan10-2.c.pramod-thangali.internal",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "desired_configs" : null,
+        "disk_info" : [
+          {
+            "available" : "8643552",
+            "used" : "1151424",
+            "percent" : "12%",
+            "size" : "10319160",
+            "type" : "ext4",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "1832436",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "1832436",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "ipan10-2.c.pramod-thangali.internal",
+        "host_state" : "HEALTHY",
+        "host_status" : "HEALTHY",
+        "ip" : "10.240.54.211",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [ ],
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [ ],
+            "agentTimeStampAtReporting" : 1412083466260,
+            "serverTimeStampAtReporting" : 1412083466310,
+            "liveServices" : [
+              {
+                "desc" : "",
+                "name" : "ntpd",
+                "status" : "Healthy"
+              }
+            ]
+          },
+          "umask" : 18,
+          "transparentHugePage" : "always",
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
+          "reverseLookup" : true
+        },
+        "last_heartbeat_time" : 1412083476356,
+        "last_registration_time" : 1412083349885,
+        "os_arch" : "x86_64",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 1,
+        "public_host_name" : "ipan10-2.c.pramod-thangali.internal",
+        "rack_info" : "/default-rack",
+        "total_mem" : 3664872
+      }
+    },
+    {
+      "href" : "/api/v1/hosts/ipan10-3.c.pramod-thangali.internal",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "desired_configs" : null,
+        "disk_info" : [
+          {
+            "available" : "8643552",
+            "used" : "1151424",
+            "percent" : "12%",
+            "size" : "10319160",
+            "type" : "ext4",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "1832436",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "1832436",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "ipan10-3.c.pramod-thangali.internal",
+        "host_state" : "HEALTHY",
+        "host_status" : "HEALTHY",
+        "ip" : "10.240.91.97",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [ ],
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [ ],
+            "agentTimeStampAtReporting" : 1412083471227,
+            "serverTimeStampAtReporting" : 1412083471272,
+            "liveServices" : [
+              {
+                "desc" : "",
+                "name" : "ntpd",
+                "status" : "Healthy"
+              }
+            ]
+          },
+          "umask" : 18,
+          "transparentHugePage" : "always",
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
+          "reverseLookup" : true
+        },
+        "last_heartbeat_time" : 1412083481320,
+        "last_registration_time" : 1412083354395,
+        "os_arch" : "x86_64",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 1,
+        "public_host_name" : "ipan10-3.c.pramod-thangali.internal",
+        "rack_info" : "/default-rack",
+        "total_mem" : 3664872
+      }
+    },
+    {
+      "href" : "/api/v1/hosts/ipan10-4.c.pramod-thangali.internal",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "desired_configs" : null,
+        "disk_info" : [
+          {
+            "available" : "8643552",
+            "used" : "1151424",
+            "percent" : "12%",
+            "size" : "10319160",
+            "type" : "ext4",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "1832436",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "1832436",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "ipan10-4.c.pramod-thangali.internal",
+        "host_state" : "HEALTHY",
+        "host_status" : "HEALTHY",
+        "ip" : "10.240.245.18",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [ ],
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [ ],
+            "agentTimeStampAtReporting" : 1412083457128,
+            "serverTimeStampAtReporting" : 1412083457186,
+            "liveServices" : [
+              {
+                "desc" : "",
+                "name" : "ntpd",
+                "status" : "Healthy"
+              }
+            ]
+          },
+          "umask" : 18,
+          "transparentHugePage" : "always",
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
+          "reverseLookup" : true
+        },
+        "last_heartbeat_time" : 1412083477282,
+        "last_registration_time" : 1412083350393,
+        "os_arch" : "x86_64",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 1,
+        "public_host_name" : "ipan10-4.c.pramod-thangali.internal",
+        "rack_info" : "/default-rack",
+        "total_mem" : 3664872
+      }
+    },
+    {
+      "href" : "/api/v1/hosts/ipan10-5.c.pramod-thangali.internal",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "desired_configs" : null,
+        "disk_info" : [
+          {
+            "available" : "8643552",
+            "used" : "1151424",
+            "percent" : "12%",
+            "size" : "10319160",
+            "type" : "ext4",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "1832436",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "1832436",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "ipan10-5.c.pramod-thangali.internal",
+        "host_state" : "HEALTHY",
+        "host_status" : "HEALTHY",
+        "ip" : "10.240.159.192",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [ ],
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [ ],
+            "agentTimeStampAtReporting" : 1412083468316,
+            "serverTimeStampAtReporting" : 1412083468358,
+            "liveServices" : [
+              {
+                "desc" : "",
+                "name" : "ntpd",
+                "status" : "Healthy"
+              }
+            ]
+          },
+          "umask" : 18,
+          "transparentHugePage" : "always",
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
+          "reverseLookup" : true
+        },
+        "last_heartbeat_time" : 1412083478406,
+        "last_registration_time" : 1412083351596,
+        "os_arch" : "x86_64",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 1,
+        "public_host_name" : "ipan10-5.c.pramod-thangali.internal",
+        "rack_info" : "/default-rack",
+        "total_mem" : 3664872
+      }
+    },
+    {
+      "href" : "/api/v1/hosts/ipan10-6.c.pramod-thangali.internal",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "desired_configs" : null,
+        "disk_info" : [
+          {
+            "available" : "8643552",
+            "used" : "1151424",
+            "percent" : "12%",
+            "size" : "10319160",
+            "type" : "ext4",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "1832436",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "1832436",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "ipan10-6.c.pramod-thangali.internal",
+        "host_state" : "HEALTHY",
+        "host_status" : "HEALTHY",
+        "ip" : "10.240.185.216",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [ ],
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [ ],
+            "agentTimeStampAtReporting" : 1412083469031,
+            "serverTimeStampAtReporting" : 1412083469087,
+            "liveServices" : [
+              {
+                "desc" : "",
+                "name" : "ntpd",
+                "status" : "Healthy"
+              }
+            ]
+          },
+          "umask" : 18,
+          "transparentHugePage" : "always",
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
+          "reverseLookup" : true
+        },
+        "last_heartbeat_time" : 1412083479135,
+        "last_registration_time" : 1412083351880,
+        "os_arch" : "x86_64",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 1,
+        "public_host_name" : "ipan10-6.c.pramod-thangali.internal",
+        "rack_info" : "/default-rack",
+        "total_mem" : 3664872
+      }
+    },
+    {
+      "href" : "/api/v1/hosts/ipan10-7.c.pramod-thangali.internal",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "desired_configs" : null,
+        "disk_info" : [
+          {
+            "available" : "8643552",
+            "used" : "1151424",
+            "percent" : "12%",
+            "size" : "10319160",
+            "type" : "ext4",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "1832436",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "1832436",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "ipan10-7.c.pramod-thangali.internal",
+        "host_state" : "HEALTHY",
+        "host_status" : "HEALTHY",
+        "ip" : "10.240.182.17",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [ ],
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [ ],
+            "agentTimeStampAtReporting" : 1412083457228,
+            "serverTimeStampAtReporting" : 1412083457274,
+            "liveServices" : [
+              {
+                "desc" : "",
+                "name" : "ntpd",
+                "status" : "Healthy"
+              }
+            ]
+          },
+          "umask" : 18,
+          "transparentHugePage" : "always",
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
+          "reverseLookup" : true
+        },
+        "last_heartbeat_time" : 1412083477378,
+        "last_registration_time" : 1412083350373,
+        "os_arch" : "x86_64",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 1,
+        "public_host_name" : "ipan10-7.c.pramod-thangali.internal",
+        "rack_info" : "/default-rack",
+        "total_mem" : 3664872
+      }
+    },
+    {
+      "href" : "/api/v1/hosts/ipan10-8.c.pramod-thangali.internal",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "desired_configs" : null,
+        "disk_info" : [
+          {
+            "available" : "8643540",
+            "used" : "1151436",
+            "percent" : "12%",
+            "size" : "10319160",
+            "type" : "ext4",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "1832436",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "1832436",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "ipan10-8.c.pramod-thangali.internal",
+        "host_state" : "HEALTHY",
+        "host_status" : "HEALTHY",
+        "ip" : "10.240.85.2",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [ ],
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [ ],
+            "agentTimeStampAtReporting" : 1412083457151,
+            "serverTimeStampAtReporting" : 1412083457196,
+            "liveServices" : [
+              {
+                "desc" : "",
+                "name" : "ntpd",
+                "status" : "Healthy"
+              }
+            ]
+          },
+          "umask" : 18,
+          "transparentHugePage" : "always",
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
+          "reverseLookup" : true
+        },
+        "last_heartbeat_time" : 1412083477295,
+        "last_registration_time" : 1412083350316,
+        "os_arch" : "x86_64",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 1,
+        "public_host_name" : "ipan10-8.c.pramod-thangali.internal",
+        "rack_info" : "/default-rack",
+        "total_mem" : 3664872
+      }
+    },
+    {
+      "href" : "/api/v1/hosts/ipan10-9.c.pramod-thangali.internal",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "desired_configs" : null,
+        "disk_info" : [
+          {
+            "available" : "8643548",
+            "used" : "1151428",
+            "percent" : "12%",
+            "size" : "10319160",
+            "type" : "ext4",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "1832436",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "1832436",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "ipan10-9.c.pramod-thangali.internal",
+        "host_state" : "HEALTHY",
+        "host_status" : "HEALTHY",
+        "ip" : "10.240.19.21",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [ ],
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [ ],
+            "agentTimeStampAtReporting" : 1412083468240,
+            "serverTimeStampAtReporting" : 1412083468295,
+            "liveServices" : [
+              {
+                "desc" : "",
+                "name" : "ntpd",
+                "status" : "Healthy"
+              }
+            ]
+          },
+          "umask" : 18,
+          "transparentHugePage" : "always",
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
+          "reverseLookup" : true
+        },
+        "last_heartbeat_time" : 1412083478342,
+        "last_registration_time" : 1412083351675,
+        "os_arch" : "x86_64",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 1,
+        "public_host_name" : "ipan10-9.c.pramod-thangali.internal",
+        "rack_info" : "/default-rack",
+        "total_mem" : 3664872
+      }
+    }
+  ]
+}

@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.IntStream.range;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +28,7 @@ import java.util.Optional;
 import org.apache.ambari.server.controller.jmx.JMXMetricHolder;
 import org.apache.ambari.server.state.UriInfo;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.SimpleEvaluationContext;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -146,11 +148,7 @@ public class MetricSource extends Source {
 
       // !!! even if out of order, this is enough to fail
       return list1.equals(list2);
-    }
 
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(propertyList);
     }
 
     public String getUrlSuffix() {
@@ -182,10 +180,8 @@ public class MetricSource extends Source {
      * then it is evaluated in the context of the metrics parameters.
      */
     public Object eval(List<Object> metrics) {
-      SimpleEvaluationContext context = SimpleEvaluationContext.forReadWriteDataBinding().build();
-      for(int i = 0; i < metrics.size(); i++) {
-        context.setVariable("var" + i, metrics.get(i));
-      }
+      StandardEvaluationContext context = new StandardEvaluationContext();
+      context.setVariables(range(0, metrics.size()).boxed().collect(toMap(i -> "var" + i, metrics::get)));
       return new SpelExpressionParser()
         .parseExpression(value.replaceAll("(\\{(\\d+)\\})", "#var$2"))
         .getValue(context);

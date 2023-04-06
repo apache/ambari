@@ -21,8 +21,6 @@ package org.apache.ambari.server.state;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Nullable;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
@@ -423,7 +421,7 @@ public interface Host extends Comparable {
    * @throws AmbariException
    */
   Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster,
-      @Nullable Map<String, DesiredConfig> clusterDesiredConfigs) throws AmbariException;
+      Map<String, DesiredConfig> clusterDesiredConfigs) throws AmbariException;
 
   /**
    * Sets the maintenance state for the host.

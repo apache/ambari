@@ -40,18 +40,6 @@ import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
-import org.apache.ambari.server.stack.upgrade.ConfigUpgradeChangeDefinition.ConditionalField;
-import org.apache.ambari.server.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
-import org.apache.ambari.server.stack.upgrade.ConfigUpgradeChangeDefinition.IfValueMatchType;
-import org.apache.ambari.server.stack.upgrade.ConfigUpgradeChangeDefinition.Insert;
-import org.apache.ambari.server.stack.upgrade.ConfigUpgradeChangeDefinition.Masked;
-import org.apache.ambari.server.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
-import org.apache.ambari.server.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
-import org.apache.ambari.server.stack.upgrade.ConfigureTask;
-import org.apache.ambari.server.stack.upgrade.Direction;
-import org.apache.ambari.server.stack.upgrade.PropertyKeyState;
-import org.apache.ambari.server.stack.upgrade.TransferOperation;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -60,6 +48,18 @@ import org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConditionalField;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.IfValueMatchType;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Insert;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Masked;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
+import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.PropertyKeyState;
+import org.apache.ambari.server.state.stack.upgrade.TransferOperation;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -416,7 +416,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     }
 
     // set all key/value pairs
-    if (!keyValuePairs.isEmpty()) {
+    if (null != keyValuePairs && !keyValuePairs.isEmpty()) {
       for (ConfigurationKeyValue keyValuePair : keyValuePairs) {
         String key = keyValuePair.key;
         String value = keyValuePair.value;

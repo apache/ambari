@@ -25,12 +25,7 @@ var view;
 
 function getView() {
   return App.WizardStep6View.create({
-    controller: App.WizardStep6Controller.create(),
-    $: function () {
-      return {
-        on: Em.K
-      };
-    }
+    controller: App.WizardStep6Controller.create()
   });
 }
 
@@ -146,6 +141,20 @@ describe('App.WizardStep6View', function() {
     });
   });
 
+  describe("#columnCount", function() {
+    it("hosts present", function() {
+      view.set('controller.hosts', [
+        Em.Object.create({checkboxes: [{}, {}, {}]})
+      ]);
+      view.propertyDidChange('columnCount');
+      expect(view.get('columnCount')).to.equal(4);
+    });
+    it("hosts absent", function() {
+      view.set('controller.hosts', []);
+      view.propertyDidChange('columnCount');
+      expect(view.get('columnCount')).to.equal(1);
+    });
+  });
 });
 
 describe('App.WizardStep6HostView', function() {

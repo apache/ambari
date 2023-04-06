@@ -29,6 +29,7 @@ import java.util.Collections;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO.LastServiceCheckDTO;
@@ -40,11 +41,8 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.spi.ClusterInformation;
-import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
-import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -143,15 +141,13 @@ public class ServiceCheckValidityCheckTest {
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(asList(lastServiceCheckDTO1, lastServiceCheckDTO2));
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null, null);
-
+    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
     try {
-      UpgradeCheckResult result = serviceCheckValidityCheck.perform(request);
-      Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
+      serviceCheckValidityCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
     } catch (NullPointerException ex){
       Assert.fail("serviceCheckValidityCheck failed due to null at start_time were not handled");
     }
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
   }
 
   @Test
@@ -171,11 +167,9 @@ public class ServiceCheckValidityCheckTest {
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(singletonList(lastServiceCheckDTO));
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null, null);
-
-    UpgradeCheckResult result =  serviceCheckValidityCheck.perform(request);
-    Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
+    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
+    serviceCheckValidityCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
   }
 
 
@@ -194,11 +188,9 @@ public class ServiceCheckValidityCheckTest {
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(Collections.<LastServiceCheckDTO>emptyList());
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null, null);
-
-    UpgradeCheckResult result =  serviceCheckValidityCheck.perform(request);
-    Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
+    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
+    serviceCheckValidityCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
   }
 
   @Test
@@ -219,11 +211,9 @@ public class ServiceCheckValidityCheckTest {
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(asList(lastServiceCheckDTO1, lastServiceCheckDTO2));
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null, null);
-
-    UpgradeCheckResult result =  serviceCheckValidityCheck.perform(request);
-    Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
+    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
+    serviceCheckValidityCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
   }
 
   /**
@@ -257,9 +247,7 @@ public class ServiceCheckValidityCheckTest {
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(asList(lastServiceCheckDTO1, lastServiceCheckDTO2));
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null, null);
-
-    UpgradeCheckResult result =  serviceCheckValidityCheck.perform(request);
-    Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());  }
+    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
+    serviceCheckValidityCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());  }
 }

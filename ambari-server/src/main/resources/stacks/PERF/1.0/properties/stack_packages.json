@@ -1,0 +1,267 @@
+{
+  "PERF": {
+    "stack-select": {
+      "FAKEHDFS": {
+        "FAKEDATANODE": {
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-datanode",
+          "LEGACY": "hadoop-hdfs-datanode",
+          "INSTALL": [
+            "hadoop-hdfs-datanode"
+          ],
+          "PATCH": [
+            "hadoop-hdfs-datanode"
+          ],
+          "STANDARD": [
+            "hadoop-hdfs-datanode"
+          ]
+        },
+        "FAKEHDFS_CLIENT": {
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-client",
+          "LEGACY": "hadoop-hdfs-client",
+          "INSTALL": [
+            "hadoop-hdfs-client"
+          ],
+          "PATCH": [
+            "hadoop-hdfs-client"
+          ],
+          "STANDARD": [
+            "hadoop-client"
+          ]
+        },
+        "FAKENAMENODE": {
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-namenode",
+          "LEGACY": "hadoop-hdfs-namenode",
+          "INSTALL": [
+            "hadoop-hdfs-namenode"
+          ],
+          "PATCH": [
+            "hadoop-hdfs-namenode"
+          ],
+          "STANDARD": [
+            "hadoop-hdfs-namenode"
+          ]
+        },
+        "FAKENFS_GATEWAY": {
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-nfs3",
+          "LEGACY": "hadoop-hdfs-nfs3",
+          "INSTALL": [
+            "hadoop-hdfs-nfs3"
+          ],
+          "PATCH": [
+            "hadoop-hdfs-nfs3"
+          ],
+          "STANDARD": [
+            "hadoop-hdfs-nfs3"
+          ]
+        },
+        "FAKEJOURNALNODE": {
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-journalnode",
+          "LEGACY": "hadoop-hdfs-journalnode",
+          "INSTALL": [
+            "hadoop-hdfs-journalnode"
+          ],
+          "PATCH": [
+            "hadoop-hdfs-journalnode"
+          ],
+          "STANDARD": [
+            "hadoop-hdfs-journalnode"
+          ]
+        },
+        "SECONDARY_FAKENAMENODE": {
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-secondarynamenode",
+          "LEGACY": "hadoop-hdfs-secondarynamenode",
+          "INSTALL": [
+            "hadoop-hdfs-secondarynamenode"
+          ],
+          "PATCH": [
+            "hadoop-hdfs-secondarynamenode"
+          ],
+          "STANDARD": [
+            "hadoop-hdfs-secondarynamenode"
+          ]
+        },
+        "FAKEZKFC": {
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-zkfc",
+          "LEGACY": "hadoop-hdfs-zkfc",
+          "INSTALL": [
+            "hadoop-hdfs-zkfc"
+          ],
+          "PATCH": [
+            "hadoop-hdfs-zkfc"
+          ],
+          "STANDARD": [
+            "hadoop-hdfs-zkfc"
+          ]
+        }
+      },
+      "FAKEHBASE": {
+        "FAKEHBASE_CLIENT": {
+          "STACK-SELECT-PACKAGE": "hbase-client",
+          "LEGACY": "hbase-client",
+          "INSTALL": [
+            "hbase-client"
+          ],
+          "PATCH": [
+            "hbase-client"
+          ],
+          "STANDARD": [
+            "hbase-client",
+            "phoenix-client",
+            "hadoop-client"
+          ]
+        },
+        "FAKEHBASE_MASTER": {
+          "STACK-SELECT-PACKAGE": "hbase-master",
+          "LEGACY": "hbase-master",
+          "INSTALL": [
+            "hbase-master"
+          ],
+          "PATCH": [
+            "hbase-master"
+          ],
+          "STANDARD": [
+            "hbase-master"
+          ]
+        },
+        "FAKEHBASE_REGIONSERVER": {
+          "STACK-SELECT-PACKAGE": "hbase-regionserver",
+          "LEGACY": "hbase-regionserver",
+          "INSTALL": [
+            "hbase-regionserver"
+          ],
+          "PATCH": [
+            "hbase-regionserver"
+          ],
+          "STANDARD": [
+            "hbase-regionserver"
+          ]
+        },
+        "FAKEPHOENIX_QUERY_SERVER": {
+          "STACK-SELECT-PACKAGE": "phoenix-server",
+          "LEGACY": "phoenix-server",
+          "INSTALL": [
+            "phoenix-server"
+          ],
+          "PATCH": [
+            "phoenix-server"
+          ],
+          "STANDARD": [
+            "phoenix-server"
+          ]
+        }
+      },
+      "FAKEYARN": {
+        "FAKEAPP_TIMELINE_SERVER": {
+          "STACK-SELECT-PACKAGE": "hadoop-yarn-timelineserver",
+          "LEGACY": "hadoop-yarn-timelineserver",
+          "INSTALL": [
+            "hadoop-yarn-timelineserver"
+          ],
+          "PATCH": [
+            "hadoop-yarn-timelineserver"
+          ],
+          "STANDARD": [
+            "hadoop-yarn-timelineserver"
+          ]
+        },
+        "FAKENODEMANAGER": {
+          "STACK-SELECT-PACKAGE": "hadoop-yarn-nodemanager",
+          "LEGACY": "hadoop-yarn-nodemanager",
+          "INSTALL": [
+            "hadoop-yarn-nodemanager"
+          ],
+          "PATCH": [
+            "hadoop-yarn-nodemanager"
+          ],
+          "STANDARD": [
+            "hadoop-yarn-nodemanager"
+          ]
+        },
+        "FAKERESOURCEMANAGER": {
+          "STACK-SELECT-PACKAGE": "hadoop-yarn-resourcemanager",
+          "LEGACY": "hadoop-yarn-resourcemanager",
+          "INSTALL": [
+            "hadoop-yarn-resourcemanager"
+          ],
+          "PATCH": [
+            "hadoop-yarn-resourcemanager"
+          ],
+          "STANDARD": [
+            "hadoop-yarn-resourcemanager"
+          ]
+        },
+        "FAKEYARN_CLIENT": {
+          "STACK-SELECT-PACKAGE": "hadoop-yarn-client",
+          "LEGACY": "hadoop-yarn-client",
+          "INSTALL": [
+            "hadoop-yarn-client"
+          ],
+          "PATCH": [
+            "hadoop-yarn-client"
+          ],
+          "STANDARD": [
+            "hadoop-client"
+          ]
+        }
+      },
+      "FAKEMAPREDUCE2": {
+        "FAKEHISTORYSERVER": {
+          "STACK-SELECT-PACKAGE": "hadoop-mapreduce-historyserver",
+          "LEGACY": "hadoop-mapreduce-historyserver",
+          "INSTALL": [
+            "hadoop-mapreduce-historyserver"
+          ],
+          "PATCH": [
+            "hadoop-mapreduce-historyserver"
+          ],
+          "STANDARD": [
+            "hadoop-mapreduce-historyserver"
+          ]
+        },
+        "FAKEMAPREDUCE2_CLIENT": {
+          "STACK-SELECT-PACKAGE": "hadoop-mapreduce-client",
+          "LEGACY": "hadoop-mapreduce-client",
+          "INSTALL": [
+            "hadoop-mapreduce-client"
+          ],
+          "PATCH": [
+            "hadoop-mapreduce-client"
+          ],
+          "STANDARD": [
+            "hadoop-client"
+          ]
+        }
+      },
+      "ZOOKEEPER": {
+        "ZOOKEEPER_CLIENT": {
+          "STACK-SELECT-PACKAGE": "zookeeper-client",
+          "LEGACY": "zookeeper-client",
+          "INSTALL": [
+            "zookeeper-client"
+          ],
+          "PATCH": [
+            "zookeeper-client"
+          ],
+          "STANDARD": [
+            "zookeeper-client"
+          ]
+        },
+        "ZOOKEEPER_SERVER": {
+          "STACK-SELECT-PACKAGE": "zookeeper-server",
+          "LEGACY": "zookeeper-server",
+          "INSTALL": [
+            "zookeeper-server"
+          ],
+          "PATCH": [
+            "zookeeper-server"
+          ],
+          "STANDARD": [
+            "zookeeper-server"
+          ]
+        }
+      }
+    },
+    "upgrade-dependencies" : {
+    }
+  }
+}

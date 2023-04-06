@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<!-- Solr managed schema - automatically generated - DO NOT EDIT -->
+<schema name="audit-logs-schema" version="1.6">
+  <uniqueKey>id</uniqueKey>
+  <fieldType name="binary" class="solr.BinaryField"/>
+  <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
+  <fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
+  <fieldType name="date" class="solr.DatePointField" docValues="true"/>
+  <fieldType name="double" class="solr.DoublePointField" docValues="true"/>
+  <fieldType name="float" class="solr.FloatPointField" docValues="true"/>
+  <fieldType name="ignored" class="solr.StrField" indexed="false" stored="false" multiValued="true"/>
+  <fieldType name="int" class="solr.IntPointField" docValues="true"/>
+  <fieldType name="long" class="solr.LongPointField" docValues="true"/>
+  <fieldType name="random" class="solr.RandomSortField" indexed="true"/>
+  <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true"/>
+  <fieldType name="strings" class="solr.StrField" sortMissingLast="true" docValues="true" multiValued="true"/>
+  <fieldType name="tdate" class="solr.DatePointField" docValues="true"/>
+  <fieldType name="tdates" class="solr.DatePointField" multiValued="true" docValues="true"/>
+  <fieldType name="tdouble" class="solr.DoublePointField" docValues="true"/>
+  <fieldType name="tdoubles" class="solr.DoublePointField" multiValued="true"/>
+  <fieldType name="tfloat" class="solr.FloatPointField" docValues="true"/>
+  <fieldType name="tfloats" class="solr.FloatPointField" multiValued="true" docValues="true"/>
+  <fieldType name="tint" class="solr.IntPointField" docValues="true"/>
+  <fieldType name="tints" class="solr.IntPointField" multiValued="true" docValues="true"/>
+  <fieldType name="tlong" class="solr.LongPointField" docValues="true"/>
+  <fieldType name="tlongs" class="solr.LongPointField" multiValued="true" docValues="true"/>
+  <fieldType name="key_lower_case" class="solr.TextField" omitNorms="true" sortMissingLast="true" multiValued="false">
+    <analyzer>
+      <tokenizer class="solr.KeywordTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.LengthFilterFactory" min="0" max="2500"/>
+    </analyzer>
+  </fieldType>
+  <fieldType name="n_gram" class="solr.TextField" omitNorms="true" sortMissingLast="true">
+    <analyzer>
+      <tokenizer class="solr.NGramTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
+  <fieldType name="text_std_token_lower_case" class="solr.TextField" positionIncrementGap="100" multiValued="true">
+    <analyzer>
+      <tokenizer class="solr.StandardTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
+  <fieldType name="text_ws" class="solr.TextField" positionIncrementGap="100">
+    <analyzer>
+      <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
+  <field name="_expire_at_" type="tdate" multiValued="false" stored="true"/>
+  <field name="_router_field_" type="int" multiValued="false" indexed="false" stored="false"/>
+  <field name="_ttl_" type="string" multiValued="false" indexed="true" stored="true"/>
+  <field name="_version_" type="long" indexed="false" stored="false"/>
+  <field name="access" type="key_lower_case" multiValued="false"/>
+  <field name="action" type="key_lower_case" multiValued="false"/>
+  <field name="agent" type="key_lower_case" multiValued="false"/>
+  <field name="agentHost" type="key_lower_case" multiValued="false"/>
+  <field name="authType" type="key_lower_case"/>
+  <field name="bundle_id" type="key_lower_case" multiValued="false"/>
+  <field name="case_id" type="key_lower_case" multiValued="false"/>
+  <field name="cliIP" type="key_lower_case" multiValued="false"/>
+  <field name="cliType" type="key_lower_case" multiValued="false"/>
+  <field name="cluster" type="key_lower_case" multiValued="false"/>
+  <field name="dst" type="key_lower_case"/>
+  <field name="enforcer" type="key_lower_case" multiValued="false"/>
+  <field name="event_count" type="tlong" default="1" docValues="true" multiValued="false"/>
+  <field name="event_dur_ms" type="tlong" multiValued="false" docValues="true"/>
+  <field name="event_md5" type="string" multiValued="false"/>
+  <field name="evtTime" type="tdate" docValues="true"/>
+  <field name="file" type="key_lower_case" multiValued="false"/>
+  <field name="host" type="key_lower_case"/>
+  <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
+  <field name="ip" type="key_lower_case"/>
+  <field name="level" type="key_lower_case"/>
+  <field name="logType" type="key_lower_case" multiValued="false"/>
+  <field name="log_message" type="text_std_token_lower_case" multiValued="false" omitNorms="false"/>
+  <field name="logfile_line_number" type="tint" omitNorms="false"/>
+  <field name="logger_name" type="key_lower_case"/>
+  <field name="message_md5" type="string" multiValued="false"/>
+  <field name="path" type="key_lower_case"/>
+  <field name="perm" type="key_lower_case"/>
+  <field name="policy" type="tlong" docValues="true"/>
+  <field name="proxyUsers" type="key_lower_case" multiValued="true"/>
+  <field name="reason" type="text_std_token_lower_case" multiValued="false" omitNorms="false"/>
+  <field name="repo" type="key_lower_case" multiValued="false"/>
+  <field name="repoType" type="tint" multiValued="false" docValues="true"/>
+  <field name="reqContext" type="key_lower_case" multiValued="true"/>
+  <field name="reqData" type="text_std_token_lower_case" multiValued="false"/>
+  <field name="reqUser" type="key_lower_case" multiValued="false"/>
+  <field name="req_caller_id" type="key_lower_case" multiValued="false"/>
+  <field name="req_self_id" type="key_lower_case" multiValued="false"/>
+  <field name="resType" type="key_lower_case" multiValued="false"/>
+  <field name="resource" type="key_lower_case" multiValued="false"/>
+  <field name="result" type="tint" multiValued="false"/>
+  <field name="seq_num" type="tlong" multiValued="false" docValues="true"/>
+  <field name="sess" type="key_lower_case" multiValued="false"/>
+  <field name="tags" type="key_lower_case" multiValued="true"/>
+  <field name="tags_str" type="text_std_token_lower_case" multiValued="false"/>
+  <field name="task_id" type="tlong"/>
+  <field name="text" type="text_std_token_lower_case" multiValued="true" indexed="true" stored="false"/>
+  <field name="type" type="key_lower_case" multiValued="false"/>
+  <field name="ugi" type="key_lower_case"/>
+
+  <dynamicField name="ngram_*" type="n_gram" multiValued="false" stored="true"/>
+  <dynamicField name="std_*" type="text_std_token_lower_case" multiValued="false" stored="true"/>
+  <dynamicField name="key_*" type="key_lower_case" multiValued="false" stored="true"/>
+  <dynamicField name="ws_*" type="string" indexed="true" multiValued="false" stored="true"/>
+
+  <dynamicField name="*_i"  type="tint" indexed="true"  stored="true"/>
+  <dynamicField name="*_is" type="tints" indexed="true"  stored="true"/>
+  <dynamicField name="*_s"  type="string" indexed="true"  stored="true" />
+  <dynamicField name="*_ss" type="strings" indexed="true"  stored="true"/>
+  <dynamicField name="*_l"  type="tlong" indexed="true"  stored="true"/>
+  <dynamicField name="*_ls" type="tlongs" indexed="true"  stored="true"/>
+  <dynamicField name="*_t" type="text_std_token_lower_case" indexed="true" stored="true" multiValued="false"/>
+  <dynamicField name="*_txt" type="text_std_token_lower_case" indexed="true" stored="true"/>
+  <dynamicField name="*_b"  type="boolean" indexed="true" stored="true"/>
+  <dynamicField name="*_bs" type="booleans" indexed="true" stored="true"/>
+  <dynamicField name="*_f"  type="tfloat" indexed="true"  stored="true"/>
+  <dynamicField name="*_fs" type="tfloats" indexed="true"  stored="true"/>
+  <dynamicField name="*_d"  type="tdouble" indexed="true"  stored="true"/>
+  <dynamicField name="*_ds" type="tdoubles" indexed="true"  stored="true"/>
+  <dynamicField name="random_*" type="random"/>
+
+</schema>

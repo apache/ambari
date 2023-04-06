@@ -1,0 +1,33 @@
+{
+    "services": [
+        {
+            "components": [
+                {
+                    "identities": [
+                        {
+                            "keytab": {
+                                "configuration": "pxf-site/pxf.service.kerberos.keytab",
+                                "file": "${keytab_dir}/pxf.service.keytab",
+                                "group": {
+                                    "name": "${cluster-env/user_group}"
+                                },
+                                "owner": {
+                                    "access": "r",
+                                    "name": "pxf"
+                                }
+                            },
+                            "name": "pxf_client_pxf",
+                            "principal": {
+                                "configuration": "pxf-site/pxf.service.kerberos.principal",
+                                "type": "service",
+                                "value": "pxf/_HOST@${realm}"
+                            }
+                        }
+                    ],
+                    "name": "PXF"
+                }
+            ],
+            "name": "PXF"
+        }
+    ]
+}

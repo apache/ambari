@@ -1,0 +1,220 @@
+{
+  "href" : "/api/v1/hosts?fields=Hosts/*&Hosts/host_name.in(jerryshao-sts-test-1.c.pramod-thangali.internal)",
+  "items" : [
+    {
+      "href" : "/api/v1/hosts/jerryshao-sts-test-1.c.pramod-thangali.internal",
+      "Hosts" : {
+        "cluster_name" : "test",
+        "cpu_count" : 2,
+        "desired_configs" : null,
+        "disk_info" : [
+          {
+            "available" : "5646396",
+            "device" : "/dev/sda1",
+            "used" : "4017508",
+            "percent" : "42%",
+            "size" : "10188088",
+            "type" : "ext4",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "3771720",
+            "device" : "tmpfs",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "3771720",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "jerryshao-sts-test-1.c.pramod-thangali.internal",
+        "host_state" : "HEALTHY",
+        "host_status" : "HEALTHY",
+        "ip" : "10.240.0.122",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [
+            {
+              "name" : "/etc/hadoop",
+              "type" : "directory"
+            },
+            {
+              "name" : "/etc/zookeeper",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/run/hadoop",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/run/zookeeper",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/run/hadoop-yarn",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/run/hadoop-mapreduce",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/log/hadoop",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/log/zookeeper",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/log/hadoop-yarn",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/log/hadoop-mapreduce",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/lib/hadoop-hdfs",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/lib/hadoop-yarn",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/lib/hadoop-mapreduce",
+              "type" : "directory"
+            },
+            {
+              "name" : "/tmp/hadoop-hdfs",
+              "type" : "directory"
+            },
+            {
+              "name" : "/hadoop/zookeeper",
+              "type" : "directory"
+            },
+            {
+              "name" : "/hadoop/hdfs",
+              "type" : "directory"
+            },
+            {
+              "name" : "/hadoop/yarn",
+              "type" : "directory"
+            }
+          ],
+          "alternatives" : [ ],
+          "existingUsers" : [
+            {
+              "userHomeDir" : "/home/zookeeper",
+              "userStatus" : "Available",
+              "userName" : "zookeeper"
+            },
+            {
+              "userHomeDir" : "/home/ambari-qa",
+              "userStatus" : "Available",
+              "userName" : "ambari-qa"
+            },
+            {
+              "userHomeDir" : "/home/hdfs",
+              "userStatus" : "Available",
+              "userName" : "hdfs"
+            },
+            {
+              "userHomeDir" : "/home/yarn",
+              "userStatus" : "Available",
+              "userName" : "yarn"
+            },
+            {
+              "userHomeDir" : "/home/mapred",
+              "userStatus" : "Available",
+              "userName" : "mapred"
+            }
+          ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [
+              {
+                "user" : "hdfs",
+                "pid" : 4485,
+                "command" : "/usr/jdk64/jdk1.8.0_60/bin/java -Dproc_datanode -Xmx1024m -Dhdp.version=2.3.4.0-3335 -Djava.net.preferIPv4Stack=true -Dhdp.version= -Djava.net.preferIPv4Stack=true -Dhdp.version= -Djava.net.preferIPv4Stack=true -Dhadoop.log.dir=/var/log/hadoop/hdfs -Dhadoop.log.file=hadoop.log -Dhadoop.home.dir=/usr/hdp/2.3.4.0-3335/hadoop -Dhadoop.id.str=hdfs -Dhadoop.root.logger=INFO,console -Djava.library.path=:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native -Dhadoop.policy.file=hadoop-policy.xml -Djava.net.preferIPv4Stack=true -Dhdp.version=2.3.4.0-3335 -Dhadoop.log.dir=/var/log/hadoop/hdfs -Dhadoop.log.file=hadoop-hdfs-datanode-jerryshao-sts-test-1.log -Dhadoop.home.dir=/usr/hdp/2.3.4.0-3335/hadoop -Dhadoop.id.str=hdfs -Dhadoop.root.logger=INFO,RFA -Djava.library.path=:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native -Dhadoop.policy.file=hadoop-policy.xml -Djava.net.preferIPv4Stack=true -server -server -XX:ParallelGCThreads=4 -XX:+UseConcMarkSweepGC -XX:ErrorFile=/var/log/hadoop/hdfs/hs_err_pid%p.log -XX:NewSize=200m -XX:MaxNewSize=200m -Xloggc:/var/log/hadoop/hdfs/gc.log-201511260315 -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms1024m -Xmx1024m -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT -server -XX:ParallelGCThreads=4 -XX:+UseConcMarkSweepGC -XX:ErrorFile=/var/log/hadoop/hdfs/hs_err_pid%p.log -XX:NewSize=200m -XX:MaxNewSize=200m -Xloggc:/var/log/hadoop/hdfs/gc.log-201511260315 -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms1024m -Xmx1024m -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT -server -XX:ParallelGCThreads=4 -XX:+UseConcMarkSweepGC -XX:ErrorFile=/var/log/hadoop/hdfs/hs_err_pid%p.log -XX:NewSize=200m -XX:MaxNewSize=200m -Xloggc:/var/log/hadoop/hdfs/gc.log-201511260315 -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms1024m -Xmx1024m -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT -Dhadoop.security.logger=INFO,RFAS org.apache.hadoop.hdfs.server.datanode.DataNode",
+                "hadoop" : true
+              },
+              {
+                "user" : "zookeeper",
+                "pid" : 4621,
+                "command" : "/usr/jdk64/jdk1.8.0_60/bin/java -Dzookeeper.log.dir=/var/log/zookeeper -Dzookeeper.log.file=zookeeper-zookeeper-server-jerryshao-sts-test-1.log -Dzookeeper.root.logger=INFO,CONSOLE -cp /usr/hdp/current/zookeeper-server/bin/../build/classes:/usr/hdp/current/zookeeper-server/bin/../build/lib/*.jar:/usr/hdp/current/zookeeper-server/bin/../lib/xercesMinimal-1.9.6.2.jar:/usr/hdp/current/zookeeper-server/bin/../lib/wagon-provider-api-2.4.jar:/usr/hdp/current/zookeeper-server/bin/../lib/wagon-http-shared4-2.4.jar:/usr/hdp/current/zookeeper-server/bin/../lib/wagon-http-shared-1.0-beta-6.jar:/usr/hdp/current/zookeeper-server/bin/../lib/wagon-http-lightweight-1.0-beta-6.jar:/usr/hdp/current/zookeeper-server/bin/../lib/wagon-http-2.4.jar:/usr/hdp/current/zookeeper-server/bin/../lib/wagon-file-1.0-beta-6.jar:/usr/hdp/current/zookeeper-server/bin/../lib/slf4j-log4j12-1.6.1.jar:/usr/hdp/current/zookeeper-server/bin/../lib/slf4j-api-1.6.1.jar:/usr/hdp/current/zookeeper-server/bin/../lib/plexus-utils-3.0.8.jar:/usr/hdp/current/zookeeper-server/bin/../lib/plexus-interpolation-1.11.jar:/usr/hdp/current/zookeeper-server/bin/../lib/plexus-container-default-1.0-alpha-9-stable-1.jar:/usr/hdp/current/zookeeper-server/bin/../lib/netty-3.7.0.Final.jar:/usr/hdp/current/zookeeper-server/bin/../lib/nekohtml-1.9.6.2.jar:/usr/hdp/current/zookeeper-server/bin/../lib/maven-settings-2.2.1.jar:/usr/hdp/current/zookeeper-server/bin/../lib/maven-repository-metadata-2.2.1.jar:/usr/hdp/current/zookeeper-server/bin/../lib/maven-project-2.2.1.jar:/usr/hdp/current/zookeeper-server/bin/../lib/maven-profile-2.2.1.jar:/usr/hdp/current/zookeeper-server/bin/../lib/maven-plugin-registry-2.2.1.jar:/usr/hdp/current/zookeeper-server/bin/../lib/maven-model-2.2.1.jar:/usr/hdp/current/zookeeper-server/bin/../lib/maven-error-diagnostics-2.2.1.jar:/usr/hdp/current/zookeeper-server/bin/../lib/maven-artifact-manager-2.2.1.jar:/usr/hdp/current/zookeeper-server/bin/../lib/maven-artifact-2.2.1.jar:/usr/hdp/current/zookeeper-server/bin/../lib/maven-ant-tasks-2.1.3.jar:/usr/hdp/current/zookeeper-server/bin/../lib/log4j-1.2.16.jar:/usr/hdp/current/zookeeper-server/bin/../lib/jsoup-1.7.1.jar:/usr/hdp/current/zookeeper-server/bin/../lib/jline-0.9.94.jar:/usr/hdp/current/zookeeper-server/bin/../lib/httpcore-4.2.3.jar:/usr/hdp/current/zookeeper-server/bin/../lib/httpclient-4.2.3.jar:/usr/hdp/current/zookeeper-server/bin/../lib/commons-logging-1.1.1.jar:/usr/hdp/current/zookeeper-server/bin/../lib/commons-io-2.2.jar:/usr/hdp/current/zookeeper-server/bin/../lib/commons-codec-1.6.jar:/usr/hdp/current/zookeeper-server/bin/../lib/classworlds-1.1-alpha-2.jar:/usr/hdp/current/zookeeper-server/bin/../lib/backport-util-concurrent-3.1.jar:/usr/hdp/current/zookeeper-server/bin/../lib/ant-launcher-1.8.0.jar:/usr/hdp/current/zookeeper-server/bin/../lib/ant-1.8.0.jar:/usr/hdp/current/zookeeper-server/bin/../zookeeper-3.4.6.2.3.4.0-3335.jar:/usr/hdp/current/zookeeper-server/bin/../src/java/lib/*.jar:/usr/hdp/current/zookeeper-server/conf::/usr/share/zookeeper/*:/usr/share/zookeeper/* -Xmx1024m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false org.apache.zookeeper.server.quorum.QuorumPeerMain /usr/hdp/current/zookeeper-server/conf/zoo.cfg",
+                "hadoop" : true
+              },
+              {
+                "user" : "hdfs",
+                "pid" : 4798,
+                "command" : "/usr/jdk64/jdk1.8.0_60/bin/java -Dproc_namenode -Xmx1024m -Dhdp.version=2.3.4.0-3335 -Djava.net.preferIPv4Stack=true -Dhdp.version= -Djava.net.preferIPv4Stack=true -Dhdp.version= -Djava.net.preferIPv4Stack=true -Dhadoop.log.dir=/var/log/hadoop/hdfs -Dhadoop.log.file=hadoop.log -Dhadoop.home.dir=/usr/hdp/2.3.4.0-3335/hadoop -Dhadoop.id.str=hdfs -Dhadoop.root.logger=INFO,console -Djava.library.path=:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native -Dhadoop.policy.file=hadoop-policy.xml -Djava.net.preferIPv4Stack=true -Dhdp.version=2.3.4.0-3335 -Dhadoop.log.dir=/var/log/hadoop/hdfs -Dhadoop.log.file=hadoop-hdfs-namenode-jerryshao-sts-test-1.log -Dhadoop.home.dir=/usr/hdp/2.3.4.0-3335/hadoop -Dhadoop.id.str=hdfs -Dhadoop.root.logger=INFO,RFA -Djava.library.path=:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native -Dhadoop.policy.file=hadoop-policy.xml -Djava.net.preferIPv4Stack=true -server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile=/var/log/hadoop/hdfs/hs_err_pid%p.log -XX:NewSize=128m -XX:MaxNewSize=128m -Xloggc:/var/log/hadoop/hdfs/gc.log-201511260315 -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms1024m -Xmx1024m -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT -XX:OnOutOfMemoryError=\"/usr/hdp/current/hadoop-hdfs-namenode/bin/kill-name-node\" -Dorg.mortbay.jetty.Request.maxFormContentSize=-1 -server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile=/var/log/hadoop/hdfs/hs_err_pid%p.log -XX:NewSize=128m -XX:MaxNewSize=128m -Xloggc:/var/log/hadoop/hdfs/gc.log-201511260315 -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms1024m -Xmx1024m -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT -XX:OnOutOfMemoryError=\"/usr/hdp/current/hadoop-hdfs-namenode/bin/kill-name-node\" -Dorg.mortbay.jetty.Request.maxFormContentSize=-1 -server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile=/var/log/hadoop/hdfs/hs_err_pid%p.log -XX:NewSize=128m -XX:MaxNewSize=128m -Xloggc:/var/log/hadoop/hdfs/gc.log-201511260315 -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms1024m -Xmx1024m -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT -XX:OnOutOfMemoryError=\"/usr/hdp/current/hadoop-hdfs-namenode/bin/kill-name-node\" -Dorg.mortbay.jetty.Request.maxFormContentSize=-1 -Dhadoop.security.logger=INFO,RFAS org.apache.hadoop.hdfs.server.namenode.NameNode",
+                "hadoop" : true
+              },
+              {
+                "user" : "yarn",
+                "pid" : 5976,
+                "command" : "/usr/jdk64/jdk1.8.0_60/bin/java -Dproc_timelineserver -Xmx1024m -Dhdp.version=2.3.4.0-3335 -Dhadoop.log.dir=/var/log/hadoop-yarn/yarn -Dyarn.log.dir=/var/log/hadoop-yarn/yarn -Dhadoop.log.file=yarn-yarn-timelineserver-jerryshao-sts-test-1.log -Dyarn.log.file=yarn-yarn-timelineserver-jerryshao-sts-test-1.log -Dyarn.home.dir= -Dyarn.id.str=yarn -Dhadoop.root.logger=INFO,EWMA,RFA -Dyarn.root.logger=INFO,EWMA,RFA -Djava.library.path=:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir -Dyarn.policy.file=hadoop-policy.xml -Djava.io.tmpdir=/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir -Dhadoop.log.dir=/var/log/hadoop-yarn/yarn -Dyarn.log.dir=/var/log/hadoop-yarn/yarn -Dhadoop.log.file=yarn-yarn-timelineserver-jerryshao-sts-test-1.log -Dyarn.log.file=yarn-yarn-timelineserver-jerryshao-sts-test-1.log -Dyarn.home.dir=/usr/hdp/current/hadoop-yarn-timelineserver -Dhadoop.home.dir=/usr/hdp/2.3.4.0-3335/hadoop -Dhadoop.root.logger=INFO,EWMA,RFA -Dyarn.root.logger=INFO,EWMA,RFA -Djava.library.path=:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir -classpath /usr/hdp/current/hadoop-client/conf:/usr/hdp/current/hadoop-client/conf:/usr/hdp/current/hadoop-client/conf:/usr/hdp/2.3.4.0-3335/hadoop/lib/*:/usr/hdp/2.3.4.0-3335/hadoop/.//*:/usr/hdp/2.3.4.0-3335/hadoop-hdfs/./:/usr/hdp/2.3.4.0-3335/hadoop-hdfs/lib/*:/usr/hdp/2.3.4.0-3335/hadoop-hdfs/.//*:/usr/hdp/2.3.4.0-3335/hadoop-yarn/lib/*:/usr/hdp/2.3.4.0-3335/hadoop-yarn/.//*:/usr/hdp/2.3.4.0-3335/hadoop-mapreduce/lib/*:/usr/hdp/2.3.4.0-3335/hadoop-mapreduce/.//*:/usr/hdp/current/hadoop-yarn-timelineserver/.//*:/usr/hdp/current/hadoop-yarn-timelineserver/lib/*:/usr/hdp/current/hadoop-client/conf/timelineserver-config/log4j.properties org.apache.hadoop.yarn.server.applicationhistoryservice.ApplicationHistoryServer",
+                "hadoop" : true
+              },
+              {
+                "user" : "mapred",
+                "pid" : 6811,
+                "command" : "/usr/jdk64/jdk1.8.0_60/bin/java -Dproc_historyserver -Xmx900m -Dhdp.version=2.3.4.0-3335 -Djava.net.preferIPv4Stack=true -Djava.io.tmpdir=/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir -Dhdp.version= -Dhdp.version= -Djava.net.preferIPv4Stack=true -Dhadoop.log.dir=/var/log/hadoop/mapred -Dhadoop.log.file=hadoop.log -Dhadoop.home.dir=/usr/hdp/2.3.4.0-3335/hadoop -Dhadoop.id.str=mapred -Dhadoop.root.logger=INFO,console -Djava.library.path=:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native -Dhadoop.policy.file=hadoop-policy.xml -Djava.net.preferIPv4Stack=true -Dhadoop.log.dir=/var/log/hadoop-mapreduce/mapred -Dhadoop.log.file=hadoop.log -Dhadoop.root.logger=INFO,console -Dhadoop.id.str=mapred -Dhdp.version=2.3.4.0-3335 -Dhadoop.log.dir=/var/log/hadoop/mapred -Dhadoop.log.file=hadoop.log -Dhadoop.home.dir=/usr/hdp/2.3.4.0-3335/hadoop -Dhadoop.id.str=mapred -Dhadoop.root.logger=INFO,console -Djava.library.path=:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native -Dhadoop.policy.file=hadoop-policy.xml -Djava.net.preferIPv4Stack=true -Dhadoop.log.dir=/var/log/hadoop-mapreduce/mapred -Dhadoop.log.file=mapred-mapred-historyserver-jerryshao-sts-test-1.log -Dhadoop.root.logger=INFO,RFA -Dmapred.jobsummary.logger=INFO,JSA -Dhadoop.security.logger=INFO,NullAppender org.apache.hadoop.mapreduce.v2.hs.JobHistoryServer",
+                "hadoop" : true
+              },
+              {
+                "user" : "yarn",
+                "pid" : 7032,
+                "command" : "/usr/jdk64/jdk1.8.0_60/bin/java -Dproc_resourcemanager -Xmx1024m -Dhdp.version=2.3.4.0-3335 -Dhadoop.log.dir=/var/log/hadoop-yarn/yarn -Dyarn.log.dir=/var/log/hadoop-yarn/yarn -Dhadoop.log.file=yarn-yarn-resourcemanager-jerryshao-sts-test-1.log -Dyarn.log.file=yarn-yarn-resourcemanager-jerryshao-sts-test-1.log -Dyarn.home.dir= -Dyarn.id.str=yarn -Dhadoop.root.logger=INFO,EWMA,RFA -Dyarn.root.logger=INFO,EWMA,RFA -Djava.library.path=:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir -Dyarn.policy.file=hadoop-policy.xml -Djava.io.tmpdir=/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir -Dyarn.server.resourcemanager.appsummary.logger=INFO,RMSUMMARY -Dhadoop.log.dir=/var/log/hadoop-yarn/yarn -Dyarn.log.dir=/var/log/hadoop-yarn/yarn -Dhadoop.log.file=yarn-yarn-resourcemanager-jerryshao-sts-test-1.log -Dyarn.log.file=yarn-yarn-resourcemanager-jerryshao-sts-test-1.log -Dyarn.home.dir=/usr/hdp/current/hadoop-yarn-resourcemanager -Dhadoop.home.dir=/usr/hdp/2.3.4.0-3335/hadoop -Dhadoop.root.logger=INFO,EWMA,RFA -Dyarn.root.logger=INFO,EWMA,RFA -Djava.library.path=:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir -classpath /usr/hdp/current/hadoop-client/conf:/usr/hdp/current/hadoop-client/conf:/usr/hdp/current/hadoop-client/conf:/usr/hdp/2.3.4.0-3335/hadoop/lib/*:/usr/hdp/2.3.4.0-3335/hadoop/.//*:/usr/hdp/2.3.4.0-3335/hadoop-hdfs/./:/usr/hdp/2.3.4.0-3335/hadoop-hdfs/lib/*:/usr/hdp/2.3.4.0-3335/hadoop-hdfs/.//*:/usr/hdp/2.3.4.0-3335/hadoop-yarn/lib/*:/usr/hdp/2.3.4.0-3335/hadoop-yarn/.//*:/usr/hdp/2.3.4.0-3335/hadoop-mapreduce/lib/*:/usr/hdp/2.3.4.0-3335/hadoop-mapreduce/.//*:/usr/hdp/current/hadoop-yarn-resourcemanager/.//*:/usr/hdp/current/hadoop-yarn-resourcemanager/lib/*:/usr/hdp/current/hadoop-client/conf/rm-config/log4j.properties org.apache.hadoop.yarn.server.resourcemanager.ResourceManager",
+                "hadoop" : true
+              },
+              {
+                "user" : "hdfs",
+                "pid" : 7178,
+                "command" : "/usr/jdk64/jdk1.8.0_60/bin/java -Dproc_secondarynamenode -Xmx1024m -Dhdp.version=2.3.4.0-3335 -Djava.net.preferIPv4Stack=true -Dhdp.version= -Djava.net.preferIPv4Stack=true -Dhdp.version= -Djava.net.preferIPv4Stack=true -Dhadoop.log.dir=/var/log/hadoop/hdfs -Dhadoop.log.file=hadoop.log -Dhadoop.home.dir=/usr/hdp/2.3.4.0-3335/hadoop -Dhadoop.id.str=hdfs -Dhadoop.root.logger=INFO,console -Djava.library.path=:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native -Dhadoop.policy.file=hadoop-policy.xml -Djava.net.preferIPv4Stack=true -Dhdp.version=2.3.4.0-3335 -Dhadoop.log.dir=/var/log/hadoop/hdfs -Dhadoop.log.file=hadoop-hdfs-secondarynamenode-jerryshao-sts-test-1.log -Dhadoop.home.dir=/usr/hdp/2.3.4.0-3335/hadoop -Dhadoop.id.str=hdfs -Dhadoop.root.logger=INFO,RFA -Djava.library.path=:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native -Dhadoop.policy.file=hadoop-policy.xml -Djava.net.preferIPv4Stack=true -server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile=/var/log/hadoop/hdfs/hs_err_pid%p.log -XX:NewSize=128m -XX:MaxNewSize=128m -Xloggc:/var/log/hadoop/hdfs/gc.log-201511260316 -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms1024m -Xmx1024m -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT -XX:OnOutOfMemoryError=\"/usr/hdp/current/hadoop-hdfs-secondarynamenode/bin/kill-secondary-name-node\" -server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile=/var/log/hadoop/hdfs/hs_err_pid%p.log -XX:NewSize=128m -XX:MaxNewSize=128m -Xloggc:/var/log/hadoop/hdfs/gc.log-201511260316 -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms1024m -Xmx1024m -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT -XX:OnOutOfMemoryError=\"/usr/hdp/current/hadoop-hdfs-secondarynamenode/bin/kill-secondary-name-node\" -server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile=/var/log/hadoop/hdfs/hs_err_pid%p.log -XX:NewSize=128m -XX:MaxNewSize=128m -Xloggc:/var/log/hadoop/hdfs/gc.log-201511260316 -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms1024m -Xmx1024m -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT -XX:OnOutOfMemoryError=\"/usr/hdp/current/hadoop-hdfs-secondarynamenode/bin/kill-secondary-name-node\" -Dhadoop.security.logger=INFO,RFAS org.apache.hadoop.hdfs.server.namenode.SecondaryNameNode",
+                "hadoop" : true
+              },
+              {
+                "user" : "yarn",
+                "pid" : 7792,
+                "command" : "/usr/jdk64/jdk1.8.0_60/bin/java -Dproc_nodemanager -Xmx1024m -Dhdp.version=2.3.4.0-3335 -Dhadoop.log.dir=/var/log/hadoop-yarn/yarn -Dyarn.log.dir=/var/log/hadoop-yarn/yarn -Dhadoop.log.file=yarn-yarn-nodemanager-jerryshao-sts-test-1.log -Dyarn.log.file=yarn-yarn-nodemanager-jerryshao-sts-test-1.log -Dyarn.home.dir= -Dyarn.id.str=yarn -Dhadoop.root.logger=INFO,EWMA,RFA -Dyarn.root.logger=INFO,EWMA,RFA -Djava.library.path=:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir -Dyarn.policy.file=hadoop-policy.xml -Djava.io.tmpdir=/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir -server -Dhadoop.log.dir=/var/log/hadoop-yarn/yarn -Dyarn.log.dir=/var/log/hadoop-yarn/yarn -Dhadoop.log.file=yarn-yarn-nodemanager-jerryshao-sts-test-1.log -Dyarn.log.file=yarn-yarn-nodemanager-jerryshao-sts-test-1.log -Dyarn.home.dir=/usr/hdp/current/hadoop-yarn-nodemanager -Dhadoop.home.dir=/usr/hdp/2.3.4.0-3335/hadoop -Dhadoop.root.logger=INFO,EWMA,RFA -Dyarn.root.logger=INFO,EWMA,RFA -Djava.library.path=:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir:/usr/hdp/2.3.4.0-3335/hadoop/lib/native/Linux-amd64-64:/usr/hdp/2.3.4.0-3335/hadoop/lib/native:/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir -classpath /usr/hdp/current/hadoop-client/conf:/usr/hdp/current/hadoop-client/conf:/usr/hdp/current/hadoop-client/conf:/usr/hdp/2.3.4.0-3335/hadoop/lib/*:/usr/hdp/2.3.4.0-3335/hadoop/.//*:/usr/hdp/2.3.4.0-3335/hadoop-hdfs/./:/usr/hdp/2.3.4.0-3335/hadoop-hdfs/lib/*:/usr/hdp/2.3.4.0-3335/hadoop-hdfs/.//*:/usr/hdp/2.3.4.0-3335/hadoop-yarn/lib/*:/usr/hdp/2.3.4.0-3335/hadoop-yarn/.//*:/usr/hdp/2.3.4.0-3335/hadoop-mapreduce/lib/*:/usr/hdp/2.3.4.0-3335/hadoop-mapreduce/.//*:/usr/hdp/current/hadoop-yarn-nodemanager/.//*:/usr/hdp/current/hadoop-yarn-nodemanager/lib/*:/usr/hdp/current/hadoop-client/conf/nm-config/log4j.properties org.apache.hadoop.yarn.server.nodemanager.NodeManager",
+                "hadoop" : true
+              }
+            ],
+            "agentTimeStampAtReporting" : 1448509855951,
+            "serverTimeStampAtReporting" : 1448509856029,
+            "liveServices" : [
+              {
+                "desc" : "",
+                "name" : "ntpd",
+                "status" : "Healthy"
+              }
+            ]
+          },
+          "umask" : 18,
+          "transparentHugePage" : "always",
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
+          "reverseLookup" : true
+        },
+        "last_heartbeat_time" : 1448509896318,
+        "last_registration_time" : 1448509844933,
+        "os_arch" : "x86_64",
+        "os_family" : "redhat6",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 2,
+        "public_host_name" : "jerryshao-sts-test-1.c.pramod-thangali.internal",
+        "rack_info" : "/default-rack",
+        "recovery_report" : {
+          "summary" : "RECOVERABLE",
+          "component_reports" : [ ]
+        },
+        "recovery_summary" : "RECOVERABLE",
+        "total_mem" : 7543444
+      }
+    }
+  ]
+}

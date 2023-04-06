@@ -1,0 +1,542 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements. See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<configuration supports_final="true">
+  <property>
+    <name>hive.heapsize</name>
+    <value>1024</value>
+    <description>Hive Java heap size</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- Begin changes metastore database to postgres -->
+  <property>
+    <name>ambari.hive.db.schema.name</name>
+    <value>hive</value>
+    <description>Database name used as the Hive Metastore</description>
+    <value-attributes>
+      <type>database</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>javax.jdo.option.ConnectionURL</name>
+    <value>jdbc:postgresql://localhost/hive</value>
+    <description>JDBC connect string for a JDBC metastore</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>javax.jdo.option.ConnectionDriverName</name>
+    <value>org.postgresql.Driver</value>
+    <description>Driver class name for a JDBC metastore</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- End changes metastore database to postgres -->
+  <property>
+    <name>javax.jdo.option.ConnectionUserName</name>
+    <value>hive</value>
+    <description>username to use against metastore database</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property require-input="true">
+    <name>javax.jdo.option.ConnectionPassword</name>
+    <value/>
+    <property-type>PASSWORD</property-type>
+    <description>password to use against metastore database</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.metastore.warehouse.dir</name>
+    <display-name>Hive Metastore Warehouse directory</display-name>
+    <value>/apps/hive/warehouse</value>
+    <description>location of default database for the warehouse</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.metastore.sasl.enabled</name>
+    <value>false</value>
+    <description>If true, the metastore thrift interface will be secured with SASL.
+     Clients must authenticate with Kerberos.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.metastore.cache.pinobjtypes</name>
+    <value>Table,Database,Type,FieldSchema,Order</value>
+    <description>List of comma separated metastore object types that should be pinned in the cache</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.metastore.uris</name>
+    <value>thrift://localhost:9083</value>
+    <description>URI for client to contact metastore server</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.metastore.client.socket.timeout</name>
+    <value>60</value>
+    <description>MetaStore Client socket timeout in seconds</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.metastore.execute.setugi</name>
+    <value>true</value>
+    <description>In unsecure mode, setting this property to true will cause the metastore to execute DFS operations using the client's reported user and group permissions. Note that this property must be set on both the client and     server sides. Further note that its best effort. If client sets its to true and server sets it to false, client setting will be ignored.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.security.authorization.enabled</name>
+    <value>false</value>
+    <description>enable or disable the hive client authorization</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.security.authorization.manager</name>
+    <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider</value>
+    <description>the hive client authorization manager class name.
+    The user defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.  </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.security.metastore.authorization.manager</name>
+    <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider</value>
+    <description>The authorization manager class name to be used in the metastore for authorization. The user-defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveMetastoreAuthorizationProvider.  </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.metastore.pre.event.listeners</name>
+    <value>org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener</value>
+    <description>Pre-event listener classes to be loaded on the metastore side to run code
+      whenever databases, tables, and partitions are created, altered, or dropped.
+      Set to org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener
+      if metastore-side authorization is desired.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.metastore.pre.event.listeners</name>
+    <value>org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener</value>
+    <description>Pre-event listener classes to be loaded on the metastore side to run code
+      whenever databases, tables, and partitions are created, altered, or dropped.
+      Set to org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener
+      if metastore-side authorization is desired.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.security.authenticator.manager</name>
+    <value>org.apache.hadoop.hive.ql.security.ProxyUserAuthenticator</value>
+    <description>Hive client authenticator manager class name. The user-defined authenticator class should implement interface org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider.  </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.server2.enable.doAs</name>
+    <value>true</value>
+    <description>Impersonate the connected user. By default HiveServer2 performs the query processing as the user who
+      submitted the query. But if the parameter is set to false, the query will run as the user that the hiveserver2
+      process runs as.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.server2.enable.impersonation</name>
+    <description>Enable user impersonation for HiveServer2</description>
+    <value>true</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.server2.authentication</name>
+    <description>Authentication mode, default NONE. Options are NONE, NOSASL, KERBEROS, LDAP, PAM and CUSTOM</description>
+    <value>NOSASL</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>fs.hdfs.impl.disable.cache</name>
+    <value>true</value>
+    <description>Disable HDFS filesystem cache.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>fs.file.impl.disable.cache</name>
+    <value>true</value>
+    <description>Disable local filesystem cache.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.enforce.bucketing</name>
+    <value>true</value>
+    <description>Whether bucketing is enforced. If true, while inserting into the table, bucketing is enforced.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.enforce.sorting</name>
+    <value>true</value>
+    <description>Whether sorting is enforced. If true, while inserting into the table, sorting is enforced.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.enforce.sortmergebucketmapjoin</name>
+    <value>true</value>
+    <description>If the user asked for sort-merge bucketed map-side join, and it cannot be performed, should the query fail or not</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.map.aggr</name>
+    <value>true</value>
+    <description>Whether to use map-side aggregation in Hive Group By queries.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.optimize.bucketmapjoin</name>
+    <value>true</value>
+    <description>If the tables being joined are bucketized on the join columns, and the number of buckets in one table
+      is a multiple of the number of buckets in the other table, the buckets can be joined with each other by setting
+      this parameter as true.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.optimize.bucketmapjoin.sortedmerge</name>
+    <value>false</value>
+    <description> If the tables being joined are sorted and bucketized on the join columns, and they have the same number
+    of buckets, a sort-merge join can be performed by setting this parameter as true.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.mapred.reduce.tasks.speculative.execution</name>
+    <value>false</value>
+    <description>Whether speculative execution for reducers should be turned on.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.auto.convert.join</name>
+    <value>true</value>
+    <description>Whether Hive enable the optimization about converting common
+      join into mapjoin based on the input file size.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.auto.convert.sortmerge.join</name>
+    <value>true</value>
+    <description>Will the join be automatically converted to a sort-merge join, if the joined tables pass
+      the criteria for sort-merge join.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.auto.convert.sortmerge.join.noconditionaltask</name>
+    <value>true</value>
+    <description>Required to Enable the conversion of an SMB (Sort-Merge-Bucket) to a map-join SMB.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.auto.convert.join.noconditionaltask</name>
+    <value>true</value>
+    <description>Whether Hive enable the optimization about converting common join into mapjoin based on the input file
+      size. If this paramater is on, and the sum of size for n-1 of the tables/partitions for a n-way join is smaller than the
+      specified size, the join is directly converted to a mapjoin (there is no conditional task).
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.auto.convert.join.noconditionaltask.size</name>
+    <value>1000000000</value>
+    <description>If hive.auto.convert.join.noconditionaltask is off, this parameter does not take affect. However, if it
+      is on, and the sum of size for n-1 of the tables/partitions for a n-way join is smaller than this size, the join is directly
+      converted to a mapjoin(there is no conditional task). The default is 10MB.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.optimize.reducededuplication.min.reducer</name>
+    <value>4</value>
+    <description>Reduce deduplication merges two RSs by moving key/parts/reducer-num of the child RS to parent RS.
+      That means if reducer-num of the child RS is fixed (order by or forced bucketing) and small, it can make very slow, single MR.
+      The optimization will be disabled if number of reducers is less than specified value.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.optimize.mapjoin.mapreduce</name>
+    <value>true</value>
+    <description>If hive.auto.convert.join is off, this parameter does not take
+      affect. If it is on, and if there are map-join jobs followed by a map-reduce
+      job (for e.g a group by), each map-only job is merged with the following
+      map-reduce job.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.mapjoin.bucket.cache.size</name>
+    <value>10000</value>
+    <description>
+      Size per reducer.The default is 1G, i.e if the input size is 10G, it
+      will use 10 reducers.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.vectorized.execution.enabled</name>
+    <value>true</value>
+    <description>This flag controls the vectorized mode of query execution as documented in HIVE-4160 (as of Hive 0.13.0)
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.optimize.reducededuplication</name>
+    <value>true</value>
+    <description>Remove extra map-reduce jobs if the data is already clustered by the same key which needs to be used again.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.optimize.index.filter</name>
+    <value>true</value>
+    <description>
+    Whether to enable automatic use of indexes
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.execution.engine</name>
+    <value>mr</value>
+    <description>Whether to use MR or Tez</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- 
+  <property>
+    <name>hive.exec.post.hooks</name>
+    <value>org.apache.hadoop.hive.ql.hooks.ATSHook</value>
+    <description>Comma-separated list of post-execution hooks to be invoked for each statement.</description>
+  </property>
+
+  <property>
+    <name>hive.exec.pre.hooks</name>
+    <value>org.apache.hadoop.hive.ql.hooks.ATSHook</value>
+    <description>Comma-separated list of pre-execution hooks to be invoked for each statement.</description>
+  </property>
+
+  <property>
+    <name>hive.exec.failure.hooks</name>
+    <value>org.apache.hadoop.hive.ql.hooks.ATSHook</value>
+    <description>Comma-separated list of on-failure hooks to be invoked for each statement.</description>
+  </property>
+  -->
+  <property>
+    <name>hive.vectorized.groupby.maxentries</name>
+    <value>100000</value>
+    <description>Max number of entries in the vector group by aggregation hashtables.
+      Exceeding this will trigger a flush irrelevant of memory pressure condition.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.vectorized.groupby.checkinterval</name>
+    <value>1024</value>
+    <description>Number of entries added to the group by aggregation hash before a reocmputation of average entry size is performed.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.vectorized.groupby.flush.percent</name>
+    <value>0.1</value>
+    <description>Percent of entries in the group by aggregation hash flushed when the memory treshold is exceeded.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.stats.autogather</name>
+    <value>true</value>
+    <description>A flag to gather statistics automatically during the INSERT OVERWRITE command.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.tez.container.size</name>
+    <value>682</value>
+    <description>By default, Tez uses the java options from map tasks. Use this property to override that value. Assigned value must match value specified for mapreduce.map.child.java.opts.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.tez.input.format</name>
+    <value>org.apache.hadoop.hive.ql.io.HiveInputFormat</value>
+    <description>The default input format for Tez. Tez groups splits in the Application Master.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.tez.java.opts</name>
+    <value>-server -Xmx1024m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC</value>
+    <description>Java command line options for Tez. Must be assigned the same value as mapreduce.map.child.java.opts.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.compute.query.using.stats</name>
+    <value>true</value>
+    <description>
+      When set to true Hive will answer a few queries like count(1) purely using stats
+      stored in metastore. For basic stats collection turn on the config hive.stats.autogather to true.
+      For more advanced stats collection need to run analyze table queries.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.orc.splits.include.file.footer</name>
+    <value>false</value>
+    <description>
+      If turned on splits generated by orc will include metadata about the stripes in the file. This
+      data is read remotely (from the client or HS2 machine) and sent to all the tasks.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.limit.optimize.enable</name>
+    <value>true</value>
+    <description>Whether to enable the optimization of trying a smaller subset of data for simple LIMIT first.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.limit.pushdown.memory.usage</name>
+    <value>0.04</value>
+    <description>The max memory to be used for hash in RS operator for top K selection.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.server2.tez.default.queues</name>
+    <value>default</value>
+    <description>A comma-separated list of queues configured for the cluster.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.server2.tez.sessions.per.default.queue</name>
+    <value>1</value>
+    <description>The number of sessions for each queue named in the hive.server2.tez.default.queues.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.server2.tez.initialize.default.sessions</name>
+    <value>false</value>
+    <description>Enables a user to use HiveServer2 without enabling Tez for HiveServer2. Users may potentially may want to run queries with Tez without a pool of sessions.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.txn.manager</name>
+    <value>org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager</value>
+    <description>Select the class to do transaction management. The default DummyTxnManager does no transactions and retains the legacy behavior.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.txn.timeout</name>
+    <value>300</value>
+    <description>Time after which transactions are declared aborted if the client has not sent a heartbeat, in seconds.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.txn.max.open.batch</name>
+    <value>1000</value>
+    <description>Maximum number of transactions that can be fetched in one call to open_txns(). Increasing this will decrease the number of delta files created when streaming data into Hive. But it will also increase the number of open transactions at any given time, possibly impacting read performance.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.compactor.initiator.on</name>
+    <value>false</value>
+    <description>Whether to run the compactor's initiator thread in this metastore instance or not. If there is more than one instance of the thrift metastore this should only be set to true for one of them.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.compactor.worker.threads</name>
+    <value>0</value>
+    <description>Number of compactor worker threads to run on this metastore instance. Can be different values on different metastore instances.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.compactor.worker.timeout</name>
+    <value>86400L</value>
+    <description>Time, in seconds, before a given compaction in working state is declared a failure and returned to the initiated state.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.compactor.check.interval</name>
+    <value>300L</value>
+    <description>Time in seconds between checks to see if any partitions need compacted. This should be kept high because each check for compaction requires many calls against the NameNode.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.compactor.delta.num.threshold</name>
+    <value>10</value>
+    <description>Number of delta files that must exist in a directory before the compactor will attempt a minor compaction.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.compactor.delta.pct.threshold</name>
+    <value>0.1f</value>
+    <description>Percentage (by size) of base that deltas can be before major compaction is initiated.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.compactor.abortedtxn.threshold</name>
+    <value>1000</value>
+    <description>Number of aborted transactions involving a particular table or partition before major compaction is initiated.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>datanucleus.cache.level2.type</name>
+    <value>none</value>
+    <description>Determines caching mechanism DataNucleus L2 cache will use. It is strongly recommended to use default value of 'none' as other values may cause consistency errors in Hive.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.server2.thrift.port</name>
+    <value>10000</value>
+    <description>
+      TCP port number to listen on, default 10000.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.server2.authentication.spnego.principal</name>
+    <value>HTTP/_HOST@EXAMPLE.COM</value>
+    <description>
+          This keytab would be used by HiveServer2 when Kerberos security is enabled and HTTP transport mode is used.
+      </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.server2.authentication.spnego.keytab</name>
+    <value>/etc/security/keytabs/spnego.service.keytab</value>
+    <description>
+          The SPNEGO service principal would be used by HiveServer2 when Kerberos security is enabled and HTTP transport mode is used.
+      </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.server2.support.dynamic.service.discovery</name>
+    <value>false</value>
+    <description>Whether HiveServer2 supports dynamic service discovery for its
+      clients. To support this, each instance of HiveServer2 currently uses
+      ZooKeeper to register itself, when it is brought up. JDBC/ODBC clients
+      should use the ZooKeeper ensemble: hive.zookeeper.quorum in their
+      connection string.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.server2.zookeeper.namespace</name>
+    <value>hiveserver2</value>
+    <description>The parent node in ZooKeeper used by HiveServer2 when
+      supporting dynamic service discovery.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

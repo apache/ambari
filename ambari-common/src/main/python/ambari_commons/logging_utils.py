@@ -69,22 +69,22 @@ def set_debug_mode_from_options(options):
 #
 def print_info_msg(msg, forced=False):
   if forced:
-    print("INFO: " + msg)
+    print(("INFO: " + msg))
     return
   if _VERBOSE:
-    print("INFO: " + msg)
+    print(("INFO: " + msg))
 
 #
 # Prints an "error" messsage.
 #
 def print_error_msg(msg):
-  print("ERROR: " + msg)
+  print(("ERROR: " + msg))
 
 #
 # Prints a "warning" messsage.
 #
 def print_warning_msg(msg, bold=False):
   if bold:
-    print(BOLD_ON + "WARNING: " + msg + BOLD_OFF)
+    print((BOLD_ON + "WARNING: " + msg + BOLD_OFF))
   else:
-    print("WARNING: " + msg)
+    print(("WARNING: " + msg))

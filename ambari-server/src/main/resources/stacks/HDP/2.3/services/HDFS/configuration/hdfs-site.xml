@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<!-- Put site-specific property overrides in this file. -->
+<configuration supports_final="true">
+  <property>
+    <name>nfs.file.dump.dir</name>
+    <value>/tmp/.hdfs-nfs</value>
+    <display-name>NFSGateway dump directory</display-name>
+    <description>
+      This directory is used to temporarily save out-of-order writes before
+      writing to HDFS. For each file, the out-of-order writes are dumped after
+      they are accumulated to exceed certain threshold (e.g., 1MB) in memory.
+      One needs to make sure the directory has enough space.
+    </description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>nfs.exports.allowed.hosts</name>
+    <value>* rw</value>
+    <description>
+      By default, the export can be mounted by any client. To better control the access,
+      users can update the following property. The value string contains machine name and access privilege,
+      separated by whitespace characters. Machine name format can be single host, wildcards, and IPv4
+      networks.The access privilege uses rw or ro to specify readwrite or readonly access of the machines
+      to exports. If the access privilege is not provided, the default is read-only. Entries are separated
+      by &quot;;&quot;. For example: &quot;192.168.0.0/22 rw ; host*.example.com ; host1.test.org ro;&quot;.
+    </description>
+    <display-name>Allowed hosts</display-name>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.encrypt.data.transfer.cipher.suites</name>
+    <value>AES/CTR/NoPadding</value>
+    <description>
+      This value may be either undefined or AES/CTR/NoPadding. If defined, then 
+      dfs.encrypt.data.transfer uses the specified cipher suite for data encryption. 
+      If not defined, then only the algorithm specified in dfs.encrypt.data.transfer.algorithm 
+      is used. By default, the property is not defined.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.namenode.inode.attributes.provider.class</name>
+    <description>Enable ranger hdfs plugin</description>
+    <depends-on>
+      <property>
+        <type>ranger-hdfs-plugin-properties</type>
+        <name>ranger-hdfs-plugin-enabled</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hadoop.caller.context.enabled</name>
+    <value>true</value>
+    <on-ambari-upgrade add="false"/>
+    <supported-refresh-commands>
+      <refresh-command componentName="NAMENODE" command="reload_configs" />
+    </supported-refresh-commands>
+  </property>
+</configuration>

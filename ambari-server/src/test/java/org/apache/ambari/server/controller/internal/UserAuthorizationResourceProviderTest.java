@@ -36,7 +36,6 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
@@ -49,13 +48,11 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
@@ -70,15 +67,14 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
-import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.stack.StackManagerFactory;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -97,9 +93,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.name.Names;
 
 
 /**
@@ -435,11 +429,7 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
         bind(HookService.class).toInstance(createMock(HookService.class));
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
         bind(PersistedState.class).to(PersistedStateImpl.class);
-        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
         bind(AmbariLdapConfigurationProvider.class).toInstance(createMock(AmbariLdapConfigurationProvider.class));
-
-        bind(new TypeLiteral<Encryptor<AgentConfigsUpdateEvent>>() {}).annotatedWith(Names.named("AgentConfigEncryptor")).toInstance(Encryptor.NONE);
-        bind(new TypeLiteral<Encryptor<AmbariServerConfiguration>>() {}).annotatedWith(Names.named("AmbariServerConfigurationEncryptor")).toInstance(Encryptor.NONE);
       }
     });
   }

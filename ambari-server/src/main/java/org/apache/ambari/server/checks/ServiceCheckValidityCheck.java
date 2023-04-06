@@ -30,8 +30,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
-import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO.LastServiceCheckDTO;
@@ -42,19 +42,14 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
-import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
-import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
-import org.apache.ambari.spi.upgrade.UpgradeCheckType;
-import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -65,10 +60,10 @@ import com.google.inject.Singleton;
  * That is a potential problem when doing stack update.
  */
 @Singleton
-@UpgradeCheckInfo(
+@UpgradeCheck(
     group = UpgradeCheckGroup.DEFAULT,
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
-public class ServiceCheckValidityCheck extends ClusterCheck {
+public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
 
   private static final Logger LOG = LoggerFactory.getLogger(ServiceCheckValidityCheck.class);
 
@@ -83,27 +78,19 @@ public class ServiceCheckValidityCheck extends ClusterCheck {
   @Inject
   Provider<ActionMetadata> actionMetadataProvider;
 
-  static final UpgradeCheckDescription SERVICE_CHECK = new UpgradeCheckDescription("SERVICE_CHECK",
-      UpgradeCheckType.SERVICE,
-      "Last Service Check should be more recent than the last configuration change for the given service",
-      new ImmutableMap.Builder<String, String>()
-        .put(UpgradeCheckDescription.DEFAULT,
-            "The following service configurations have been updated and their Service Checks should be run again: %s").build());
-
   /**
    * Constructor.
    */
   public ServiceCheckValidityCheck() {
-    super(SERVICE_CHECK);
+    super(CheckDescription.SERVICE_CHECK);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public UpgradeCheckResult perform(UpgradeCheckRequest request)
+  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
       throws AmbariException {
-    UpgradeCheckResult result = new UpgradeCheckResult(this);
 
     ServiceConfigDAO serviceConfigDAO = serviceConfigDAOProvider.get();
     HostRoleCommandDAO hostRoleCommandDAO = hostRoleCommandDAOProvider.get();
@@ -163,18 +150,16 @@ public class ServiceCheckValidityCheck extends ClusterCheck {
     }
 
     if (!failures.isEmpty()) {
-      result.getFailedDetail().addAll(failures);
+      prerequisiteCheck.getFailedDetail().addAll(failures);
 
       LinkedHashSet<String> failedServiceNames = failures.stream().map(
           failure -> failure.serviceName).collect(Collectors.toCollection(LinkedHashSet::new));
 
-      result.setFailedOn(failedServiceNames);
-      result.setStatus(UpgradeCheckStatus.FAIL);
-      String failReason = getFailReason(result, request);
-      result.setFailReason(String.format(failReason, StringUtils.join(failedServiceNames, ", ")));
+      prerequisiteCheck.setFailedOn(failedServiceNames);
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      String failReason = getFailReason(prerequisiteCheck, request);
+      prerequisiteCheck.setFailReason(String.format(failReason, StringUtils.join(failedServiceNames, ", ")));
     }
-
-    return result;
   }
 
   private boolean hasAtLeastOneComponentVersionAdvertised(Service service) {

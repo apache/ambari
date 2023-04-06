@@ -25,7 +25,7 @@ import copy
 from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 from ambari_agent import Constants
 from ambari_agent.Utils import Utils
-from Queue import Queue
+from queue import Queue
 import threading
 
 logger = logging.getLogger(__name__)
@@ -79,8 +79,7 @@ class EventListener(ambari_stomp.ConnectionListener):
         self.report_status_to_sender(headers, message, ex)
         return
 
-      if destination != Constants.ENCRYPTION_KEY_TOPIC:
-        logger.info("Event from server at {0}{1}".format(destination, self.get_log_message(headers, copy.deepcopy(message_json))))
+      logger.info("Event from server at {0}{1}".format(destination, self.get_log_message(headers, copy.deepcopy(message_json))))
 
       if not self.enabled:
         with self.event_queue_lock:

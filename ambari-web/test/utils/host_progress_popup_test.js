@@ -316,6 +316,12 @@ describe('App.HostPopup', function () {
   });
 
   describe('#abortRequestSuccessCallback', function () {
+    beforeEach(function () {
+      sinon.spy(App.ModalPopup, 'show');
+    });
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+    });
     it('should open popup', function () {
       App.HostPopup.abortRequestSuccessCallback(null, null, {
         requestName: 'name',
@@ -332,8 +338,10 @@ describe('App.HostPopup', function () {
         if (k === 'modalPopup') return null;
         return Em.get(App, k);
       });
+      sinon.spy(App.ModalPopup, 'show');
     });
     afterEach(function () {
+      App.ModalPopup.show.restore();
       App.ajax.get.restore();
     });
     it('should open popup', function () {

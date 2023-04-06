@@ -64,13 +64,12 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
-import org.apache.ambari.server.stack.upgrade.Direction;
-import org.apache.ambari.server.stack.upgrade.UpgradePack;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -81,9 +80,10 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
-import org.apache.ambari.spi.RepositoryType;
-import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.After;
@@ -618,7 +618,12 @@ public class UpgradeActionTest {
     // repo 2110 - CURRENT
     // repo 2111 - CURRENT (PATCH)
     for (HostVersionEntity hostVersion : hostVersions) {
-      hostVersion.setState(RepositoryVersionState.CURRENT);
+      RepositoryVersionEntity hostRepoVersion = hostVersion.getRepositoryVersion();
+      if (repositoryVersion2110.equals(hostRepoVersion)) {
+        hostVersion.setState(RepositoryVersionState.CURRENT);
+      } else {
+        hostVersion.setState(RepositoryVersionState.CURRENT);
+      }
 
       hostVersionDAO.merge(hostVersion);
     }
@@ -778,7 +783,6 @@ public class UpgradeActionTest {
     upgradeEntity.setClusterId(cluster.getClusterId());
     upgradeEntity.setRequestEntity(requestEntity);
     upgradeEntity.setUpgradePackage("");
-    upgradeEntity.setUpgradePackStackId(new StackId((String) null));
     upgradeEntity.setRepositoryVersion(repositoryVersion);
     upgradeEntity.setUpgradeType(UpgradeType.NON_ROLLING);
 
@@ -823,7 +827,6 @@ public class UpgradeActionTest {
     revert.setClusterId(cluster.getClusterId());
     revert.setRequestEntity(requestEntity);
     revert.setUpgradePackage("");
-    revert.setUpgradePackStackId(new StackId((String) null));
     revert.setRepositoryVersion(upgradeToRevert.getRepositoryVersion());
     revert.setUpgradeType(upgradeToRevert.getUpgradeType());
     revert.setOrchestration(upgradeToRevert.getOrchestration());

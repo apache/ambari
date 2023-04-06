@@ -1,0 +1,693 @@
+{
+  "name": "default",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "ranger_audit_settings",
+            "display-name": "Ranger Audit",
+            "layout": {
+              "tab-columns": "2",
+              "tab-rows": "2",
+              "sections": [
+                {
+                  "name": "section-ranger-audit-solr",
+                  "display-name": "Audit to Solr",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-ranger-solr-row1-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-ranger-audit-hdfs",
+                  "display-name": "Audit to HDFS",
+                  "row-index": "0",
+                  "column-index": "1",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-ranger-hdfs-row1-col2",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "ranger_tagsync",
+            "display-name": "Ranger Tagsync",
+            "layout": {
+              "tab-columns": "2",
+              "tab-rows": "2",
+              "sections": [
+                {
+                  "name": "section-tagsync-atlas",
+                  "display-name": "Atlas Tag Source",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-ranger-tagsync-row1-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-tagsync-atlasrest",
+                  "display-name": "AtlasRest Tag Source",
+                  "row-index": "0",
+                  "column-index": "1",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-ranger-tagsync-row1-col2",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-tagsync-file",
+                  "display-name": "File Tag Source",
+                  "row-index": "1",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-ranger-tagsync-row2-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "ranger-env/ranger-atlas-plugin-enabled",
+          "subsection-name": "section-ranger-plugin-row1-col2",
+          "depends-on": [
+            {
+              "resource": "service",
+              "if": "ATLAS",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-tagsync-site/ranger.tagsync.source.atlas",
+          "subsection-name": "subsection-ranger-tagsync-row1-col1"
+        },
+        {
+          "config": "tagsync-application-properties/atlas.kafka.bootstrap.servers",
+          "subsection-name": "subsection-ranger-tagsync-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-tagsync-site/ranger.tagsync.source.atlas"
+              ],
+              "if": "${ranger-tagsync-site/ranger.tagsync.source.atlas}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "tagsync-application-properties/atlas.kafka.zookeeper.connect",
+          "subsection-name": "subsection-ranger-tagsync-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-tagsync-site/ranger.tagsync.source.atlas"
+              ],
+              "if": "${ranger-tagsync-site/ranger.tagsync.source.atlas}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "tagsync-application-properties/atlas.kafka.entities.group.id",
+          "subsection-name": "subsection-ranger-tagsync-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-tagsync-site/ranger.tagsync.source.atlas"
+              ],
+              "if": "${ranger-tagsync-site/ranger.tagsync.source.atlas}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-tagsync-site/ranger.tagsync.source.atlasrest",
+          "subsection-name": "subsection-ranger-tagsync-row1-col2"
+        },
+        {
+          "config": "ranger-tagsync-site/ranger.tagsync.source.atlasrest.endpoint",
+          "subsection-name": "subsection-ranger-tagsync-row1-col2",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-tagsync-site/ranger.tagsync.source.atlasrest"
+              ],
+              "if": "${ranger-tagsync-site/ranger.tagsync.source.atlasrest}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-tagsync-site/ranger.tagsync.source.atlasrest.download.interval.millis",
+          "subsection-name": "subsection-ranger-tagsync-row1-col2",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-tagsync-site/ranger.tagsync.source.atlasrest"
+              ],
+              "if": "${ranger-tagsync-site/ranger.tagsync.source.atlasrest}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-tagsync-site/ranger.tagsync.source.file",
+          "subsection-name": "subsection-ranger-tagsync-row2-col1"
+        },
+        {
+          "config": "ranger-tagsync-site/ranger.tagsync.source.file.check.interval.millis",
+          "subsection-name": "subsection-ranger-tagsync-row2-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-tagsync-site/ranger.tagsync.source.file"
+              ],
+              "if": "${ranger-tagsync-site/ranger.tagsync.source.file}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-tagsync-site/ranger.tagsync.source.file.filename",
+          "subsection-name": "subsection-ranger-tagsync-row2-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-tagsync-site/ranger.tagsync.source.file"
+              ],
+              "if": "${ranger-tagsync-site/ranger.tagsync.source.file}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-ugsync-site/ranger.usersync.user.searchenabled",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-user-configs",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-ugsync-site/ranger.usersync.group.search.first.enabled"
+              ],
+              "if": "${ranger-ugsync-site/ranger.usersync.group.search.first.enabled}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-ugsync-site/ranger.usersync.group.search.first.enabled",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-group-configs",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-ugsync-site/ranger.usersync.group.searchenabled"
+              ],
+              "if": "${ranger-ugsync-site/ranger.usersync.group.searchenabled}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-env/xasecure.audit.destination.solr",
+          "subsection-name": "subsection-ranger-solr-row1-col1"
+        },
+        {
+          "config": "ranger-env/is_solrCloud_enabled",
+          "subsection-name": "subsection-ranger-solr-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-env/xasecure.audit.destination.solr"
+              ],
+              "if": "${ranger-env/xasecure.audit.destination.solr}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-env/is_external_solrCloud_enabled",
+          "subsection-name": "subsection-ranger-solr-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-env/xasecure.audit.destination.solr",
+                "ranger-env/is_solrCloud_enabled"
+              ],
+              "if": "${ranger-env/xasecure.audit.destination.solr} && ${ranger-env/is_solrCloud_enabled}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-env/is_external_solrCloud_kerberos",
+          "subsection-name": "subsection-ranger-solr-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-env/xasecure.audit.destination.solr",
+                "ranger-env/is_solrCloud_enabled",
+                "ranger-env/is_external_solrCloud_enabled"
+              ],
+              "if": "${ranger-env/xasecure.audit.destination.solr} && ${ranger-env/is_solrCloud_enabled} && ${ranger-env/is_external_solrCloud_enabled}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-admin-site/ranger.audit.solr.urls",
+          "subsection-name": "subsection-ranger-solr-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-env/is_solrCloud_enabled",
+                "ranger-env/xasecure.audit.destination.solr"
+              ],
+              "if": "${ranger-env/is_solrCloud_enabled} === false && ${ranger-env/xasecure.audit.destination.solr}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-admin-site/ranger.audit.solr.zookeepers",
+          "subsection-name": "subsection-ranger-solr-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-env/is_solrCloud_enabled",
+                "ranger-env/xasecure.audit.destination.solr"
+              ],
+              "if": "${ranger-env/is_solrCloud_enabled} && ${ranger-env/xasecure.audit.destination.solr}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-admin-site/ranger.audit.solr.username",
+          "subsection-name": "subsection-ranger-solr-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-env/xasecure.audit.destination.solr"
+              ],
+              "if": "${ranger-env/xasecure.audit.destination.solr}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-admin-site/ranger.audit.solr.password",
+          "subsection-name": "subsection-ranger-solr-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-env/xasecure.audit.destination.solr"
+              ],
+              "if": "${ranger-env/xasecure.audit.destination.solr}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-env/xasecure.audit.destination.hdfs",
+          "subsection-name": "subsection-ranger-hdfs-row1-col2"
+        },
+        {
+          "config": "ranger-env/xasecure.audit.destination.hdfs.dir",
+          "subsection-name": "subsection-ranger-hdfs-row1-col2",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-env/xasecure.audit.destination.hdfs"
+              ],
+              "if": "${ranger-env/xasecure.audit.destination.hdfs}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "ranger-tagsync-site/ranger.tagsync.source.file.check.interval.millis",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "ranger-tagsync-site/ranger.tagsync.source.file.filename",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "ranger-tagsync-site/ranger.tagsync.source.atlasrest.download.interval.millis",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "ranger-tagsync-site/ranger.tagsync.source.atlasrest.endpoint",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "tagsync-application-properties/atlas.kafka.entities.group.id",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "tagsync-application-properties/atlas.kafka.bootstrap.servers",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "tagsync-application-properties/atlas.kafka.zookeeper.connect",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "ranger-tagsync-site/ranger.tagsync.source.atlas",
+        "widget": {
+          "type": "checkbox"
+        }
+      },
+      {
+        "config": "ranger-tagsync-site/ranger.tagsync.source.atlasrest",
+        "widget": {
+          "type": "checkbox"
+        }
+      },
+      {
+        "config": "ranger-tagsync-site/ranger.tagsync.source.file",
+        "widget": {
+          "type": "checkbox"
+        }
+      },
+      {
+        "config": "ranger-env/ranger-atlas-plugin-enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-ugsync-site/ranger.usersync.user.searchenabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-ugsync-site/ranger.usersync.group.search.first.enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/xasecure.audit.destination.solr",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/is_solrCloud_enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/is_external_solrCloud_enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/is_external_solrCloud_kerberos",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-admin-site/ranger.audit.solr.urls",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "ranger-admin-site/ranger.audit.solr.zookeepers",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "ranger-admin-site/ranger.audit.solr.username",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "ranger-admin-site/ranger.audit.solr.password",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "ranger-env/xasecure.audit.destination.hdfs",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/xasecure.audit.destination.hdfs.dir",
+        "widget": {
+          "type": "text-field"
+        }
+      }
+    ]
+  }
+}

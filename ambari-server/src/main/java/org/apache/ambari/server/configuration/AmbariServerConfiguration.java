@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.configuration;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -33,14 +32,6 @@ import org.slf4j.LoggerFactory;
 public abstract class AmbariServerConfiguration {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AmbariServerConfiguration.class);
-  
-  protected final Map<String, String> configurationMap = new HashMap<>();
-
-  protected AmbariServerConfiguration(Map<String, String> configurationMap) {
-    if (configurationMap != null) {
-      this.configurationMap.putAll(configurationMap);
-    }
-  }
 
   /**
    * Gets the configuration value for given {@link AmbariServerConfigurationKey}.
@@ -73,52 +64,5 @@ public abstract class AmbariServerConfiguration {
       return defaultValue;
     }
   }
-  
-  /**
-   * @return this configuration represented as a map
-   */
-  public Map<String, String> toMap() {
-    return new HashMap<>(configurationMap);
-  }
-
-  /**
-   * Sets the given value for the given configuration
-   * 
-   * @param configName
-   *          the name of the configuration to set the value for
-   * @param value
-   *          the new value
-   *
-   * @throws IllegalArgumentException
-   *           in case the supplied configuration does not belong to the
-   *           configuration category of this instance
-   */
-  public void setValueFor(String configName, String value) {
-    AmbariServerConfigurationKey ambariServerConfigurationKey = AmbariServerConfigurationKey.translate(getCategory(), configName);
-    if (ambariServerConfigurationKey != null) {
-      setValueFor(ambariServerConfigurationKey, value);
-    }
-  }
-
-  /**
-   * Sets the given value for the given configuration
-   * 
-   * @param ambariServerConfigurationKey
-   *          the configuration key to set the value for
-   * @param value
-   *          the new value
-   *
-   * @throws IllegalArgumentException
-   *           in case the supplied configuration does not belong to the
-   *           configuration category of this instance
-   */
-  public void setValueFor(AmbariServerConfigurationKey ambariServerConfigurationKey, String value) {
-    if (ambariServerConfigurationKey.getConfigurationCategory() != getCategory()) {
-      throw new IllegalArgumentException(ambariServerConfigurationKey.key() + " is not a valid " + getCategory().getCategoryName());
-    }
-    configurationMap.put(ambariServerConfigurationKey.key(), value);
-  }
-  
-  protected abstract AmbariServerConfigurationCategory getCategory();
 
 }

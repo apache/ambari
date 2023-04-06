@@ -22,7 +22,7 @@ from stacks.utils.RMFTestCase import *
 import json
 import os
 import socket
-from ambari_commons import subprocess32
+import subprocess
 from ambari_commons import inet_utils, OSCheck
 from resource_management import Script, ConfigDictionary
 from resource_management.core.exceptions import Fail
@@ -57,7 +57,7 @@ class TestCheckHost(TestCase):
     checkHost = CheckHost()
     checkHost.actionexecute(None)
 
-    self.assertEquals(structured_out_mock.call_args[0][0], {'java_home_check': {'message': 'Java home exists!',
+    self.assertEqual(structured_out_mock.call_args[0][0], {'java_home_check': {'message': 'Java home exists!',
                                                                                 'exit_code': 0}})
     # test, java home doesn't exist
     os_isfile_mock.reset_mock()
@@ -65,7 +65,7 @@ class TestCheckHost(TestCase):
 
     checkHost.actionexecute(None)
 
-    self.assertEquals(structured_out_mock.call_args[0][0], {'java_home_check': {"message": "Java home doesn't exist!",
+    self.assertEqual(structured_out_mock.call_args[0][0], {'java_home_check': {"message": "Java home doesn't exist!",
                                                                                 "exit_code" : 1}})
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -102,7 +102,7 @@ class TestCheckHost(TestCase):
     except Fail:
       pass
 
-    self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'Error downloading ' \
+    self.assertEqual(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'Error downloading ' \
                      'DBConnectionVerification.jar from Ambari Server resources. Check network access to Ambari ' \
                      'Server.\ntest exception', 'exit_code': 1}})
 
@@ -129,12 +129,12 @@ class TestCheckHost(TestCase):
     except Fail:
       pass
 
-    self.assertEquals(format_mock.call_args[0][0], 'Error: Ambari Server cannot download the database JDBC driver '
+    self.assertEqual(format_mock.call_args[0][0], 'Error: Ambari Server cannot download the database JDBC driver '
                   'and is unable to test the database connection. You must run ambari-server setup '
                   '--jdbc-db={db_name} --jdbc-driver=/path/to/your/{db_name}/driver.jar on the Ambari '
                   'Server host to make the JDBC driver available for download and to enable testing '
                   'the database connection.\n')
-    self.assertEquals(structured_out_mock.call_args[0][0]['db_connection_check']['exit_code'], 1)
+    self.assertEqual(structured_out_mock.call_args[0][0]['db_connection_check']['exit_code'], 1)
 
     # test, no connection to remote db
     mock_config.return_value = {"commandParams" : {"check_execute_list" : "db_connection_check",
@@ -159,9 +159,9 @@ class TestCheckHost(TestCase):
     except Fail:
       pass
 
-    self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'test message',
+    self.assertEqual(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'test message',
                                                                                     'exit_code': 1}})
-    self.assertEquals(format_mock.call_args[0][0],'{java_exec} -cp {check_db_connection_path}{class_path_delimiter}'
+    self.assertEqual(format_mock.call_args[0][0],'{java_exec} -cp {check_db_connection_path}{class_path_delimiter}'
             '{jdbc_jar_path} -Djava.library.path={java_library_path} org.apache.ambari.server.DBConnectionVerification'
             ' "{db_connection_url}" "{user_name}" {user_passwd!p} {jdbc_driver_class}')
 
@@ -172,7 +172,7 @@ class TestCheckHost(TestCase):
 
     checkHost.actionexecute(None)
 
-    self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check':
+    self.assertEqual(structured_out_mock.call_args[0][0], {'db_connection_check':
                                         {'message': 'DB connection check completed successfully!', 'exit_code': 0}})
 
     #test jdk_name and java home are not available
@@ -195,7 +195,7 @@ class TestCheckHost(TestCase):
     except Fail:
       pass
 
-    self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'Custom java is not ' \
+    self.assertEqual(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'Custom java is not ' \
             'available on host. Please install it. Java home should be the same as on server. \n', 'exit_code': 1}})
     pass
 
@@ -234,16 +234,16 @@ class TestCheckHost(TestCase):
     
     structured_out_mock.assert_called_with({'host_resolution_check': 
       {'failures': [
-                    {'cause': (), 'host': u'c6401.ambari.apache.org', 'type': 'FORWARD_LOOKUP'}, 
-                    {'cause': (), 'host': u'c6402.ambari.apache.org', 'type': 'FORWARD_LOOKUP'}, 
-                    {'cause': (), 'host': u'c6403.ambari.apache.org', 'type': 'FORWARD_LOOKUP'}, 
-                    {'cause': (), 'host': u'foobar', 'type': 'FORWARD_LOOKUP'}, 
-                    {'cause': (), 'host': u'!!!', 'type': 'FORWARD_LOOKUP'}], 
+                    {'cause': (), 'host': 'c6401.ambari.apache.org', 'type': 'FORWARD_LOOKUP'}, 
+                    {'cause': (), 'host': 'c6402.ambari.apache.org', 'type': 'FORWARD_LOOKUP'}, 
+                    {'cause': (), 'host': 'c6403.ambari.apache.org', 'type': 'FORWARD_LOOKUP'}, 
+                    {'cause': (), 'host': 'foobar', 'type': 'FORWARD_LOOKUP'}, 
+                    {'cause': (), 'host': '!!!', 'type': 'FORWARD_LOOKUP'}], 
        'message': 'There were 5 host(s) that could not resolve to an IP address.', 
-       'failed_count': 5, 'success_count': 0, 'exit_code': 0, 'hosts_with_failures': [u'c6401.ambari.apache.org',
-                                                                                      u'c6402.ambari.apache.org',
-                                                                                      u'c6403.ambari.apache.org',
-                                                                                      u'foobar', u'!!!']}})
+       'failed_count': 5, 'success_count': 0, 'exit_code': 0, 'hosts_with_failures': ['c6401.ambari.apache.org',
+                                                                                      'c6402.ambari.apache.org',
+                                                                                      'c6403.ambari.apache.org',
+                                                                                      'foobar', '!!!']}})
     pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -382,7 +382,7 @@ class TestCheckHost(TestCase):
   @patch.object(Script, 'get_tmp_dir')
   @patch.object(Script, 'get_config')
   @patch("os.path.isfile")
-  @patch('__builtin__.open')
+  @patch('builtins.open')
   def testTransparentHugePage(self, open_mock, os_path_isfile_mock, mock_config,
                               get_tmp_dir_mock, structured_out_mock,
                               resolve_config_mock):
@@ -404,13 +404,13 @@ class TestCheckHost(TestCase):
     checkHost = CheckHost()
     checkHost.actionexecute(None)
 
-    self.assertEquals(structured_out_mock.call_args[0][0], {'transparentHugePage' : {'message': 'never', 'exit_code': 0}})
+    self.assertEqual(structured_out_mock.call_args[0][0], {'transparentHugePage' : {'message': 'never', 'exit_code': 0}})
 
     # case 2, file not exists
     os_path_isfile_mock.return_value = False
     checkHost.actionexecute(None)
 
-    self.assertEquals(structured_out_mock.call_args[0][0], {'transparentHugePage' : {'message': '', 'exit_code': 0}})
+    self.assertEqual(structured_out_mock.call_args[0][0], {'transparentHugePage' : {'message': '', 'exit_code': 0}})
 
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -445,14 +445,14 @@ class TestCheckHost(TestCase):
     except Fail:
       pass
 
-    self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': '\'unsupported_db\' database type not supported.', 'exit_code': 1}})
+    self.assertEqual(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': '\'unsupported_db\' database type not supported.', 'exit_code': 1}})
 
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def testBuildUrl(self, ):
     checkHost = CheckHost()
 
-    self.assertEquals('base_url/path', checkHost.build_url('base_url', 'path'))
-    self.assertEquals('base_url/path', checkHost.build_url('base_url/', 'path'))
-    self.assertEquals('base_url/path', checkHost.build_url('base_url/', '/path'))
-    self.assertEquals('base_url/path', checkHost.build_url('base_url', '/path'))
+    self.assertEqual('base_url/path', checkHost.build_url('base_url', 'path'))
+    self.assertEqual('base_url/path', checkHost.build_url('base_url/', 'path'))
+    self.assertEqual('base_url/path', checkHost.build_url('base_url/', '/path'))
+    self.assertEqual('base_url/path', checkHost.build_url('base_url', '/path'))

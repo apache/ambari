@@ -34,7 +34,7 @@ def get_port_from_url(address):
   if is_empty(address):
     return address
 
-  if isinstance(address, (int, long)):
+  if isinstance(address, int):
     return address
 
   if address is None or address.strip() == "":

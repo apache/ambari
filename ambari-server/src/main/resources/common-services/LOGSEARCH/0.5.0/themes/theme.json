@@ -1,0 +1,480 @@
+{
+  "name": "default",
+  "description": "Default theme for LOGSEARCH service",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "settings",
+            "display-name": "Settings",
+            "layout": {
+              "tab-columns": "2",
+              "tab-rows": "2",
+              "sections": [
+                {
+                  "name": "section-logsearch-server",
+                  "display-name": "Log Search Server",
+                  "row-index": "0",
+                  "column-index": "1",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "5",
+                  "subsections": [
+                    {
+                      "name": "subsection-logsearch-server-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-logsearch-server-col2",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-logsearch-sso",
+                  "display-name": "Single Sign-On",
+                  "row-index": "1",
+                  "column-index": "1",
+                  "row-span": "3",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "5",
+                  "subsections": [
+                    {
+                      "name": "subsection-logsearch-server-sso-col1",
+                      "row-index": "1",
+                      "column-index": "0",
+                      "row-span": "3",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-logsearch-solr-connection",
+                  "display-name": "Solr Connection",
+                  "row-index": "4",
+                  "column-index": "1",
+                  "row-span": "3",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "4",
+                  "subsections": [
+                    {
+                      "name": "subsection-logsearch-solr-connection-col1",
+                      "row-index": "4",
+                      "column-index": "0",
+                      "row-span": "3",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config" : "logfeeder-properties/logfeeder.include.default.level",
+          "subsection-name": "subsection-logsearch-server-col1"
+        },
+        {
+          "config": "logsearch-env/logsearch_app_max_memory",
+          "subsection-name": "subsection-logsearch-server-col1"
+        },
+        {
+          "config": "logsearch-properties/logsearch.collection.service.logs.numshards",
+          "subsection-name": "subsection-logsearch-server-col2"
+        },
+        {
+          "config": "logsearch-properties/logsearch.collection.service.logs.replication.factor",
+          "subsection-name": "subsection-logsearch-server-col2"
+        },
+        {
+          "config": "logsearch-properties/logsearch.collection.audit.logs.numshards",
+          "subsection-name": "subsection-logsearch-server-col2"
+        },
+        {
+          "config": "logsearch-properties/logsearch.collection.audit.logs.replication.factor",
+          "subsection-name": "subsection-logsearch-server-col2"
+        },
+        {
+          "config": "logsearch-properties/logsearch.auth.jwt.enabled",
+          "subsection-name": "subsection-logsearch-server-sso-col1"
+        },
+        {
+          "config": "logsearch-properties/logsearch.auth.jwt.provider_url",
+          "subsection-name": "subsection-logsearch-server-sso-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "logsearch-properties/logsearch.auth.jwt.enabled"
+              ],
+              "if": "${logsearch-properties/logsearch.auth.jwt.enabled}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "logsearch-properties/logsearch.auth.jwt.public_key",
+          "subsection-name": "subsection-logsearch-server-sso-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "logsearch-properties/logsearch.auth.jwt.enabled"
+              ],
+              "if": "${logsearch-properties/logsearch.auth.jwt.enabled}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "logsearch-common-env/logsearch_use_external_solr",
+          "subsection-name": "subsection-logsearch-solr-connection-col1"
+        },
+        {
+          "config": "logsearch-common-env/logsearch_external_solr_zk_znode",
+          "subsection-name": "subsection-logsearch-solr-connection-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "logsearch-common-env/logsearch_use_external_solr"
+              ],
+              "if": "${logsearch-common-env/logsearch_use_external_solr}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "logsearch-common-env/logsearch_external_solr_zk_quorum",
+          "subsection-name": "subsection-logsearch-solr-connection-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "logsearch-common-env/logsearch_use_external_solr"
+              ],
+              "if": "${logsearch-common-env/logsearch_use_external_solr}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "logsearch-common-env/logsearch_external_solr_ssl_enabled",
+          "subsection-name": "subsection-logsearch-solr-connection-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "logsearch-common-env/logsearch_use_external_solr"
+              ],
+              "if": "${logsearch-common-env/logsearch_use_external_solr}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "logsearch-common-env/logsearch_external_solr_kerberos_enabled",
+          "subsection-name": "subsection-logsearch-solr-connection-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "logsearch-common-env/logsearch_use_external_solr"
+              ],
+              "if": "${logsearch-common-env/logsearch_use_external_solr}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "logsearch-env/logsearch_external_solr_kerberos_keytab",
+          "subsection-name": "subsection-logsearch-solr-connection-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "logsearch-common-env/logsearch_external_solr_kerberos_enabled"
+              ],
+              "if": "${logsearch-common-env/logsearch_external_solr_kerberos_enabled}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "logsearch-env/logsearch_external_solr_kerberos_principal",
+          "subsection-name": "subsection-logsearch-solr-connection-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "logsearch-common-env/logsearch_external_solr_kerberos_enabled"
+              ],
+              "if": "${logsearch-common-env/logsearch_external_solr_kerberos_enabled}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "logfeeder-env/logfeeder_external_solr_kerberos_keytab",
+          "subsection-name": "subsection-logsearch-solr-connection-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "logsearch-common-env/logsearch_external_solr_kerberos_enabled"
+              ],
+              "if": "${logsearch-common-env/logsearch_external_solr_kerberos_enabled}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "logfeeder-env/logfeeder_external_solr_kerberos_principal",
+          "subsection-name": "subsection-logsearch-solr-connection-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "logsearch-common-env/logsearch_external_solr_kerberos_enabled"
+              ],
+              "if": "${logsearch-common-env/logsearch_external_solr_kerberos_enabled}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "logsearch-env/logsearch_app_max_memory",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "GB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "logfeeder-properties/logfeeder.include.default.level",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "logsearch-properties/logsearch.collection.service.logs.numshards",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "logsearch-properties/logsearch.collection.service.logs.replication.factor",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "logsearch-properties/logsearch.collection.audit.logs.numshards",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "logsearch-properties/logsearch.collection.audit.logs.replication.factor",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "logsearch-properties/logsearch.auth.jwt.enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "logsearch-properties/logsearch.auth.jwt.provider_url",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "logsearch-properties/logsearch.auth.jwt.public_key",
+        "widget": {
+          "type": "directories"
+        }
+      },
+      {
+        "config": "logsearch-common-env/logsearch_use_external_solr",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "logsearch-common-env/logsearch_external_solr_zk_znode",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "logsearch-common-env/logsearch_external_solr_zk_quorum",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "logsearch-common-env/logsearch_external_solr_ssl_enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "logsearch-common-env/logsearch_external_solr_kerberos_enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "logsearch-env/logsearch_external_solr_kerberos_keytab",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "logsearch-env/logsearch_external_solr_kerberos_principal",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "logfeeder-env/logfeeder_external_solr_kerberos_keytab",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "logfeeder-env/logfeeder_external_solr_kerberos_principal",
+        "widget": {
+          "type": "text-field"
+        }
+      }
+    ]
+  }
+}
+

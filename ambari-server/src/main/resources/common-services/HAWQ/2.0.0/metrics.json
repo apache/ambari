@@ -1,0 +1,109 @@
+{
+  "HAWQSEGMENT": {
+    "Component": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/cpu/cpu_system":{
+              "metric":"cpu_system",
+              "pointInTime":true,
+              "temporal":true,
+              "amsHostMetric":true
+            },
+            "metrics/cpu/cpu_user":{
+              "metric":"cpu_user",
+              "pointInTime":true,
+              "temporal":true,
+              "amsHostMetric":true
+            },
+            "metrics/cpu/cpu_nice":{
+              "metric":"cpu_nice",
+              "pointInTime":true,
+              "temporal":true,
+              "amsHostMetric":true
+            },
+            "metrics/cpu/cpu_idle":{
+              "metric":"cpu_idle",
+              "pointInTime":true,
+              "temporal":true,
+              "amsHostMetric":true
+            },
+            "metrics/cpu/cpu_wio":{
+              "metric":"cpu_wio",
+              "pointInTime":true,
+              "temporal":true,
+              "amsHostMetric":true
+            },
+            "metrics/network/bytes_in":{
+              "metric":"bytes_in",
+              "pointInTime":true,
+              "temporal":true,
+              "amsHostMetric":true
+            },
+            "metrics/network/bytes_out":{
+              "metric":"bytes_out",
+              "pointInTime":true,
+              "temporal":true,
+              "amsHostMetric":true
+            },
+            "metrics/disk/read_bps":{
+              "metric":"read_bps",
+              "pointInTime":true,
+              "temporal":true,
+              "amsHostMetric":true
+            },
+            "metrics/disk/write_bps":{
+              "metric":"write_bps",
+              "pointInTime":true,
+              "temporal":true,
+              "amsHostMetric":true
+            },
+            "metrics/memory/mem_buffers": {
+              "metric": "mem_buffers",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/mem_cached": {
+              "metric": "mem_cached",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/mem_free": {
+              "metric": "mem_free",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/mem_shared": {
+              "metric": "mem_shared",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/mem_total": {
+              "metric": "mem_total",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/swap_total": {
+              "metric": "swap_total",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/swap_free": {
+              "metric": "swap_free",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            }
+          }
+        }
+      }
+    ]
+  }
+}

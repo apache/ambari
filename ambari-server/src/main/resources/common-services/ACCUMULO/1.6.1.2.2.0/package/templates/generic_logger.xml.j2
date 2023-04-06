@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+  <!-- Write out everything at the DEBUG level to the debug log -->
+  <appender name="A2" class="org.apache.log4j.RollingFileAppender">
+     <param name="File"           value="${org.apache.accumulo.core.dir.log}/${org.apache.accumulo.core.application}_${org.apache.accumulo.core.ip.localhost.hostname}.debug.log"/>
+     <param name="MaxFileSize"    value="{{debug_log_size}}"/>
+     <param name="MaxBackupIndex" value="{{debug_num_logs}}"/>
+     <param name="Threshold"      value="DEBUG"/>
+     <layout class="org.apache.log4j.PatternLayout">
+       <param name="ConversionPattern" value="%d{ISO8601} [%-8c{2}] %-5p: %m%n"/>
+     </layout>
+  </appender>
+
+  <!--  Write out INFO and higher to the regular log -->
+  <appender name="A3" class="org.apache.log4j.RollingFileAppender">
+     <param name="File"           value="${org.apache.accumulo.core.dir.log}/${org.apache.accumulo.core.application}_${org.apache.accumulo.core.ip.localhost.hostname}.log"/>
+     <param name="MaxFileSize"    value="{{info_log_size}}"/>
+     <param name="MaxBackupIndex" value="{{info_num_logs}}"/>
+     <param name="Threshold"      value="INFO"/>
+     <layout class="org.apache.log4j.PatternLayout">
+       <param name="ConversionPattern" value="%d{ISO8601} [%-8c{2}] %-5p: %m%n"/>
+     </layout>
+  </appender>
+
+  <!-- Send all logging data to a centralized logger -->
+  <appender name="N1" class="org.apache.log4j.net.SocketAppender">
+     <param name="remoteHost"     value="${org.apache.accumulo.core.host.log}"/>
+     <param name="port"           value="${org.apache.accumulo.core.host.log.port}"/>
+     <param name="application"    value="${org.apache.accumulo.core.application}:${org.apache.accumulo.core.ip.localhost.hostname}"/>
+     <param name="Threshold"      value="{{monitor_forwarding_log_level}}"/>
+  </appender>
+
+  <!--  If the centralized logger is down, buffer the log events, but drop them if it stays down -->
+  <appender name="ASYNC" class="org.apache.log4j.AsyncAppender">
+     <appender-ref ref="N1" />
+  </appender>
+
+  <!-- Log accumulo events to the debug, normal and remote logs. -->
+  <logger name="org.apache.accumulo" additivity="false">
+     <level value="DEBUG"/>
+     <appender-ref ref="A2" />
+     <appender-ref ref="A3" />
+     <appender-ref ref="ASYNC" />
+  </logger>
+
+  <logger name="org.apache.accumulo.core.file.rfile.bcfile">
+     <level value="INFO"/>
+  </logger>
+
+  <logger name="org.mortbay.log">
+     <level value="WARN"/>
+  </logger>
+
+  <logger name="org.apache.zookeeper">
+     <level value="ERROR"/>
+  </logger>
+
+  <!-- Log non-accumulo events to the debug and normal logs. -->
+  <root>
+     <level value="INFO"/>
+     <appender-ref ref="A2" />
+     <appender-ref ref="A3" />
+  </root>
+
+</log4j:configuration>

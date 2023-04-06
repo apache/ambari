@@ -1,0 +1,120 @@
+{
+  "name": "default",
+  "description": "Default theme for Superset service",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "superset_metadata_storage",
+            "display-name": "SUPERSET META DATA STORAGE CONFIG",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-superset-metadata-storage",
+                  "display-name": "",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-superset-metadata-storage-row1-col1",
+                      "display-name": "SUPERSET META DATA STORAGE",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "superset/SUPERSET_DATABASE_NAME",
+          "subsection-name": "subsection-superset-metadata-storage-row1-col1"
+        },
+        {
+          "config": "superset/SUPERSET_DATABASE_TYPE",
+          "subsection-name": "subsection-superset-metadata-storage-row1-col1"
+        },
+        {
+          "config": "superset/SUPERSET_DATABASE_USER",
+          "subsection-name": "subsection-superset-metadata-storage-row1-col1"
+        },
+        {
+          "config": "superset/SUPERSET_DATABASE_PASSWORD",
+          "subsection-name": "subsection-superset-metadata-storage-row1-col1"
+        },
+        {
+          "config": "superset/SUPERSET_DATABASE_HOSTNAME",
+          "subsection-name": "subsection-superset-metadata-storage-row1-col1"
+        },
+        {
+          "config": "superset/SUPERSET_DATABASE_PORT",
+          "subsection-name": "subsection-superset-metadata-storage-row1-col1"
+        },
+        {
+          "config": "superset/SECRET_KEY",
+          "subsection-name": "subsection-superset-metadata-storage-row1-col1"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "superset/SUPERSET_DATABASE_NAME",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "superset/SUPERSET_DATABASE_TYPE",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "superset/SUPERSET_DATABASE_USER",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "superset/SUPERSET_DATABASE_PASSWORD",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "superset/SUPERSET_DATABASE_HOSTNAME",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "superset/SUPERSET_DATABASE_PORT",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "superset/SECRET_KEY",
+        "widget": {
+          "type": "password"
+        }
+      }
+    ]
+  }
+}

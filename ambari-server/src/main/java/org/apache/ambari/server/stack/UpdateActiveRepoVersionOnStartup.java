@@ -30,10 +30,10 @@ import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,15 +88,15 @@ public class UpdateActiveRepoVersionOnStartup {
 
           StackId stackId = repositoryVersion.getStackId();
           StackInfo stack = stackManager.getStack(stackId.getStackName(), stackId.getStackVersion());
-        
+
           if (stack !=null) {
             if (updateRepoVersion(stack, repositoryVersion)) {
               repositoryVersionDao.merge(repositoryVersion);
             }
           } else {
-	    throw new AmbariException(String.format("Stack %s %s was not found on the file system. In the event that it was removed, " +
+            throw new AmbariException(String.format("Stack %s %s was not found on the file system. In the event that it was removed, " +
               "please ensure that it exists before starting Ambari Server.",  stackId.getStackName(), stackId.getStackVersion()));
-          } 
+          }
         }
       }
     }

@@ -61,6 +61,8 @@ import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.ClientConfigFileDefinition;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -596,7 +598,7 @@ public class DatabaseConsistencyCheckHelper {
     List<ClusterConfigEntity> notMappedClusterConfigs = getNotMappedClusterConfigsToService();
 
     for (ClusterConfigEntity clusterConfigEntity : notMappedClusterConfigs){
-      if (clusterConfigEntity.isUnmapped()){
+      if (!clusterConfigEntity.isUnmapped()){
         continue; // skip clusterConfigs that did not leave after service deletion
       }
       List<String> types = new ArrayList<>();
@@ -677,6 +679,8 @@ public class DatabaseConsistencyCheckHelper {
     }
 
     for (HostComponentDesiredStateEntity hostComponentDesiredStateEntity : missedHostComponentDesiredStates) {
+      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = hostComponentDesiredStateEntity.getServiceComponentDesiredStateEntity();
+
       HostComponentStateEntity stateEntity = new HostComponentStateEntity();
       stateEntity.setClusterId(hostComponentDesiredStateEntity.getClusterId());
       stateEntity.setComponentName(hostComponentDesiredStateEntity.getComponentName());
@@ -814,7 +818,8 @@ public class DatabaseConsistencyCheckHelper {
     }
   }
 
-  /**
+
+   /**
    * This method checks for stale alert definitions..
    * */
   static Map<String, String>  checkForStalealertdefs () {
@@ -859,8 +864,8 @@ public class DatabaseConsistencyCheckHelper {
     }
     return alertInfo;
   }
-
-  /**
+  
+   /**
    * Fix inconsistencies found by {@code checkForConfigsSelectedMoreThanOnce}
    * selecting latest one by selectedTimestamp
    */
@@ -870,6 +875,8 @@ public class DatabaseConsistencyCheckHelper {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
 
     Clusters clusters = injector.getInstance(Clusters.class);
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
 
     Multimap<String, String> clusterConfigTypeMap = HashMultimap.create();
     ResultSet rs = null;
@@ -1282,6 +1289,55 @@ public class DatabaseConsistencyCheckHelper {
     }
   }
 
+  @Transactional
+  static void fixAlertsForDeletedServices() {
+
+    Configuration conf = injector.getInstance(Configuration.class);
+
+    LOG.info("fixAlertsForDeletedServices stale alert definitions for deleted services");
+
+    ensureConnection();
+
+    String SELECT_STALE_ALERT_DEFINITIONS = "select definition_id from alert_definition where service_name not in " +
+            "(select service_name from clusterservices) and service_name not in ('AMBARI')";
+
+    int recordsCount = 0;
+    Statement statement = null;
+    ResultSet rs = null;
+    List<Integer> alertIds = new ArrayList<Integer>();
+    try {
+      statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+      rs = statement.executeQuery(SELECT_STALE_ALERT_DEFINITIONS);
+      while (rs.next()) {
+        alertIds.add(rs.getInt("definition_id"));
+      }
+
+    } catch (SQLException e) {
+      warning("Exception occurred during fixing stale alert definitions: ", e);
+    } finally {
+      if (statement != null) {
+        try {
+          statement.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during fixing stale alert definitions: ", e);
+        }
+      }
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during fixing stale alert definitions: ", e);
+        }
+      }
+    }
+
+    for(Integer alertId : alertIds) {
+      final AlertDefinitionEntity entity = alertDefinitionDAO.findById(alertId.intValue());
+      alertDefinitionDAO.remove(entity);
+    }
+    warning("fixAlertsForDeletedServices - {}  Stale alerts were deleted", alertIds.size());
+
+  }
   /**
    * This method checks if there are any ConfigGroup host mappings with hosts
    * that are not longer a part of the cluster.
@@ -1392,6 +1448,8 @@ public class DatabaseConsistencyCheckHelper {
           try {
             Cluster cluster = clusters.getCluster(configGroup.getClusterName());
             cluster.deleteConfigGroup(id);
+          } catch (AuthorizationException e) {
+            // This call does not thrown Authorization Exception
           } catch (AmbariException e) {
             // Ignore if cluster not found
           }
@@ -1404,55 +1462,6 @@ public class DatabaseConsistencyCheckHelper {
     }
   }
 
-  @Transactional
-  static void fixAlertsForDeletedServices() {
-
-    Configuration conf = injector.getInstance(Configuration.class);
-
-    LOG.info("fixAlertsForDeletedServices stale alert definitions for deleted services");
-
-    ensureConnection();
-
-    String SELECT_STALE_ALERT_DEFINITIONS = "select definition_id from alert_definition where service_name not in " +
-            "(select service_name from clusterservices) and service_name not in ('AMBARI')";
-
-    int recordsCount = 0;
-    Statement statement = null;
-    ResultSet rs = null;
-    List<Integer> alertIds = new ArrayList<Integer>();
-    try {
-      statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-      rs = statement.executeQuery(SELECT_STALE_ALERT_DEFINITIONS);
-      while (rs.next()) {
-        alertIds.add(rs.getInt("definition_id"));
-      }
-
-    } catch (SQLException e) {
-      warning("Exception occurred during fixing stale alert definitions: ", e);
-    } finally {
-      if (statement != null) {
-        try {
-          statement.close();
-        } catch (SQLException e) {
-          LOG.error("Exception occurred during fixing stale alert definitions: ", e);
-        }
-      }
-      if (rs != null) {
-        try {
-          rs.close();
-        } catch (SQLException e) {
-          LOG.error("Exception occurred during fixing stale alert definitions: ", e);
-        }
-      }
-    }
-
-    for(Integer alertId : alertIds) {
-      final AlertDefinitionEntity entity = alertDefinitionDAO.findById(alertId.intValue());
-      alertDefinitionDAO.remove(entity);
-    }
-    warning("fixAlertsForDeletedServices - {}  Stale alerts were deleted", alertIds.size());
-
-  }
   /**
    * Fix inconsistencies found by @checkConfigGroupHostMapping
    */

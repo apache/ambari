@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!-- Put site-specific property overrides in this file. -->
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude">
+  <property>
+    <name>mapreduce.cluster.local.dir</name>
+    <value>c:\hadoop\temp\local\hadoop-mapreduce</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>mapred.local.dir</name>
+    <value>c:\hadoop\temp\local\hadoop-mapreduce</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>mapred.child.tmp</name>
+    <value>c:\hadoop\temp\hadoop-mapred</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

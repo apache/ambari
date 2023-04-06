@@ -20,20 +20,15 @@ package org.apache.ambari.server.checks;
 import java.text.MessageFormat;
 import java.util.LinkedHashSet;
 
-import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
-import org.apache.ambari.server.stack.upgrade.Direction;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
-import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
-import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
-import org.apache.ambari.spi.upgrade.UpgradeCheckType;
-import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 
 /**
@@ -42,18 +37,11 @@ import com.google.inject.Singleton;
  * upgrade/downgrade is in a non-completed state, then this check will fail.
  */
 @Singleton
-@UpgradeCheckInfo(
+@UpgradeCheck(
     group = UpgradeCheckGroup.DEFAULT,
     order = 4.0f,
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
-public class PreviousUpgradeCompleted extends ClusterCheck {
-
-  static final UpgradeCheckDescription PREVIOUS_UPGRADE_COMPLETED = new UpgradeCheckDescription("PREVIOUS_UPGRADE_COMPLETED",
-      UpgradeCheckType.CLUSTER,
-      "A previous upgrade did not complete.",
-      new ImmutableMap.Builder<String, String>()
-        .put(UpgradeCheckDescription.DEFAULT,
-            "The last upgrade attempt did not complete. {{fails}}").build());
+public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
 
   /**
    * The message displayed as part of this pre-upgrade check.
@@ -64,13 +52,11 @@ public class PreviousUpgradeCompleted extends ClusterCheck {
    * Constructor.
    */
   public PreviousUpgradeCompleted() {
-    super(PREVIOUS_UPGRADE_COMPLETED);
+    super(CheckDescription.PREVIOUS_UPGRADE_COMPLETED);
   }
 
   @Override
-  public UpgradeCheckResult perform(UpgradeCheckRequest request) throws AmbariException {
-    UpgradeCheckResult result = new UpgradeCheckResult(this);
-
+  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
 
@@ -88,11 +74,9 @@ public class PreviousUpgradeCompleted extends ClusterCheck {
     if (null != errorMessage) {
       LinkedHashSet<String> failedOn = new LinkedHashSet<>();
       failedOn.add(cluster.getClusterName());
-      result.setFailedOn(failedOn);
-      result.setStatus(UpgradeCheckStatus.FAIL);
-      result.setFailReason(errorMessage);
+      prerequisiteCheck.setFailedOn(failedOn);
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      prerequisiteCheck.setFailReason(errorMessage);
     }
-
-    return result;
   }
 }

@@ -37,11 +37,11 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
    */
   componentsConfigsCachedMap: function() {
     const map = {};
-    this.get('componentsConfigsCached').forEach((component) => {
+    this.get('componentsConfigsCached').mapProperty('ServiceComponentInfo').forEach((component) => {
       map[component.component_name] = component.recovery_enabled === 'true'
     });
     return map;
-  }.property('componentsConfigsCached.@each.recovery_enabled'),
+  }.property('componentsConfigsCached.@each.ServiceComponentInfo.recovery_enabled'),
 
   /**
    * @type {Array}
@@ -94,11 +94,12 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
   }.property('componentsConfigsGrouped.@each.recoveryEnabled', 'componentsConfigsCachedMap'),
 
   parseComponentConfigs: function(componentsConfigsCached) {
-    componentsConfigsCached.sortPropertyLight('service_name');
+    componentsConfigsCached.sortPropertyLight('ServiceComponentInfo.service_name');
     const componentsConfigsGrouped = [];
-    const servicesMap = componentsConfigsCached.mapProperty('service_name').uniq().toWickMap();
-  
-    componentsConfigsCached.forEach((component) => {
+    const servicesMap = componentsConfigsCached
+      .mapProperty('ServiceComponentInfo.service_name').uniq().toWickMap();
+
+    componentsConfigsCached.mapProperty('ServiceComponentInfo').forEach((component) => {
       componentsConfigsGrouped.push(Em.Object.create({
         serviceDisplayName: App.format.role(component.service_name, true),
         isFirst: servicesMap[component.service_name],
@@ -112,21 +113,19 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
   },
 
   load: function() {
-    const dfd = $.Deferred();
+    const self = this;
     const clusterConfigController = App.router.get('configurationController');
-    clusterConfigController.updateConfigTags().always(() => {
+    clusterConfigController.updateConfigTags().always(function () {
       clusterConfigController.getCurrentConfigsBySites(['cluster-env']).done((data) => {
-        this.set('clusterConfigs', data[0].properties);
-        this.set('isGeneralRecoveryEnabled', data[0].properties.recovery_enabled === 'true');
-        this.set('isGeneralRecoveryEnabledCached', this.get('isGeneralRecoveryEnabled'));
-        this.loadComponentsConfigs().then(() => {
-          this.set('isLoaded', true);
-          dfd.resolve();
-        }, () => dfd.reject());
+        self.set('clusterConfigs', data[0].properties);
+        self.set('isGeneralRecoveryEnabled', data[0].properties.recovery_enabled === 'true');
+        self.set('isGeneralRecoveryEnabledCached', self.get('isGeneralRecoveryEnabled'));
+        self.loadComponentsConfigs().then(() => {
+          self.set('isLoaded', true);
+        });
       });
     });
-    
-    return dfd;
+
   },
 
   loadComponentsConfigs: function () {
@@ -138,12 +137,8 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
   },
 
   loadComponentsConfigsSuccess: function (data) {
-    const restartableComponents = data.items.mapProperty('ServiceComponentInfo').filter((component) => {
-      // Hide clients, as the are not restartable, components which are not installed
-      return App.StackServiceComponent.find(component.component_name).get('isRestartable') && component.total_count > 0;
-    });
-    this.set('componentsConfigsCached', restartableComponents);
-    this.set('componentsConfigsGrouped', this.parseComponentConfigs(restartableComponents));
+    this.set('componentsConfigsCached', data.items);
+    this.set('componentsConfigsGrouped', this.parseComponentConfigs(data.items));
   },
 
   saveClusterConfigs: function (clusterConfigs, recoveryEnabled) {
@@ -174,9 +169,9 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
   syncStatus: function () {
     const componentsConfigsGrouped = this.get('componentsConfigsGrouped');
     this.set('isGeneralRecoveryEnabledCached', this.get('isGeneralRecoveryEnabled'));
-    this.get('componentsConfigsCached').forEach((component) => {
+    this.get('componentsConfigsCached').mapProperty('ServiceComponentInfo').forEach((component) => {
       const actualComponent = componentsConfigsGrouped.findProperty('componentName', component.component_name);
-      Ember.set(component, 'recovery_enabled', String(actualComponent.get('recoveryEnabled')));
+      component.recovery_enabled = String(actualComponent.get('recoveryEnabled'));
     });
     this.propertyDidChange('componentsConfigsCached');
   },

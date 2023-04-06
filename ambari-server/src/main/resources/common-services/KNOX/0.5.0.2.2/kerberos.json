@@ -1,0 +1,63 @@
+{
+  "services": [
+    {
+      "name": "KNOX",
+      "components": [
+        {
+          "name": "KNOX_GATEWAY",
+          "identities": [
+            {
+              "name": "knox_principal",
+              "principal": {
+                "value": "${knox-env/knox_user}/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "knox-env/knox_principal_name",
+                "local_username": "${knox-env/knox_user}"
+
+              },
+              "keytab": {
+                "file": "${keytab_dir}/knox.service.keytab",
+                "owner": {
+                  "name": "${knox-env/knox_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "knox-env/knox_keytab_path"
+              }
+            }
+          ],
+          "configurations": [
+            {
+              "gateway-site": {
+                "gateway.hadoop.kerberos.secured": "true",
+                "java.security.krb5.conf": "/etc/krb5.conf"
+              }
+            },
+            {
+              "core-site": {
+                "hadoop.proxyuser.${knox-env/knox_user}.groups": "${hadoop-env/proxyuser_group}",
+                "hadoop.proxyuser.${knox-env/knox_user}.hosts": "${clusterHostInfo/knox_gateway_hosts}"
+              }
+            },
+            {
+              "webhcat-site": {
+                "webhcat.proxyuser.${knox-env/knox_user}.groups": "${hadoop-env/proxyuser_group}",
+                "webhcat.proxyuser.${knox-env/knox_user}.hosts": "${clusterHostInfo/knox_gateway_hosts}"
+              }
+            },
+            {
+              "oozie-site": {
+                "oozie.service.ProxyUserService.proxyuser.${knox-env/knox_user}.groups": "${hadoop-env/proxyuser_group}",
+                "oozie.service.ProxyUserService.proxyuser.${knox-env/knox_user}.hosts": "${clusterHostInfo/knox_gateway_hosts}"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

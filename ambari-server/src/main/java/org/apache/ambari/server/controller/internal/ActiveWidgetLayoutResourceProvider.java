@@ -53,8 +53,6 @@ import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.commons.lang3.StringUtils;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
@@ -79,28 +77,28 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
   public static final String ID = "id";
 
   @SuppressWarnings("serial")
-  private static final Set<String> pkPropertyIds = ImmutableSet.<String>builder()
-    .add(WIDGETLAYOUT_ID_PROPERTY_ID)
-    .build();
+  private static Set<String> pkPropertyIds = new HashSet<>();
 
   @SuppressWarnings("serial")
-  public static final Set<String> propertyIds = ImmutableSet.<String>builder()
-    .add(WIDGETLAYOUT_ID_PROPERTY_ID)
-    .add(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID)
-    .add(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID)
-    .add(WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID)
-    .add(WIDGETLAYOUT_WIDGETS_PROPERTY_ID)
-    .add(WIDGETLAYOUT_SCOPE_PROPERTY_ID)
-    .add(WIDGETLAYOUT_USERNAME_PROPERTY_ID)
-    .add(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID)
-    .add(WIDGETLAYOUT)
-    .build();
+  public static Set<String> propertyIds = new HashSet<>();
 
   @SuppressWarnings("serial")
-  public static final Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String>builder()
-    .put(Type.ActiveWidgetLayout, WIDGETLAYOUT_ID_PROPERTY_ID)
-    .put(Type.User, WIDGETLAYOUT_USERNAME_PROPERTY_ID)
-    .build();
+  public static Map<Type, String> keyPropertyIds = new HashMap<>();
+
+  static {
+    pkPropertyIds.add(WIDGETLAYOUT_ID_PROPERTY_ID);
+    propertyIds.add(WIDGETLAYOUT_ID_PROPERTY_ID);
+    propertyIds.add(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID);
+    propertyIds.add(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID);
+    propertyIds.add(WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID);
+    propertyIds.add(WIDGETLAYOUT_WIDGETS_PROPERTY_ID);
+    propertyIds.add(WIDGETLAYOUT_SCOPE_PROPERTY_ID);
+    propertyIds.add(WIDGETLAYOUT_USERNAME_PROPERTY_ID);
+    propertyIds.add(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID);
+    propertyIds.add(WIDGETLAYOUT);
+    keyPropertyIds.put(Type.ActiveWidgetLayout, WIDGETLAYOUT_ID_PROPERTY_ID);
+    keyPropertyIds.put(Type.User, WIDGETLAYOUT_USERNAME_PROPERTY_ID);
+  }
 
   @Inject
   private static UserDAO userDAO;
@@ -146,6 +144,7 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Resource> resources = new HashSet<>();
+    final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
     List<WidgetLayoutEntity> layoutEntities = new ArrayList<>();

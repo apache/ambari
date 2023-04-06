@@ -1,0 +1,282 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>hive.atlas.hook</name>
+    <value>false</value>
+    <display-name>Enable Atlas Hook</display-name>
+    <description>Enable Atlas Hook</description>
+    <value-attributes>
+      <type>boolean</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+    <depends-on>
+      <property>
+        <type>application-properties</type>
+        <name>atlas.rest.address</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hive.client.heapsize</name>
+    <value>512</value>
+    <description>Hive Client Java heap size</description>
+    <display-name>Client Heap Size</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>512</minimum>
+      <maximum>2048</maximum>
+      <unit>MB</unit>
+      <increment-step>512</increment-step>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.metastore.heapsize</name>
+    <value>1024</value>
+    <description>Hive Metastore Java heap size</description>
+    <display-name>Metastore Heap Size</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>512</minimum>
+      <maximum>2048</maximum>
+      <unit>MB</unit>
+      <increment-step>512</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_database_type</name>
+    <value>mysql</value>
+    <display-name>Hive Database Type</display-name>
+    <description>Default HIVE DB type.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_database</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_database</name>
+    <value>New MySQL Database</value>
+    <display-name>Hive Database</display-name>
+    <description>
+      Property that determines whether the HIVE DB is managed by Ambari.
+    </description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries_editable>false</entries_editable>
+      <entries>
+        <entry>
+          <value>New MySQL Database</value>
+          <label>New MySQL</label>
+        </entry>
+        <entry>
+          <value>Existing MySQL / MariaDB Database</value>
+          <label>Existing MySQL / MariaDB</label>
+        </entry>
+        <entry>
+          <value>Existing PostgreSQL Database</value>
+          <label>Existing PostgreSQL</label>
+        </entry>
+        <entry>
+          <value>Existing Oracle Database</value>
+          <label>Existing Oracle</label>
+        </entry>
+      </entries>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_ambari_database</name>
+    <value>MySQL</value>
+    <description>Database type.</description>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive_database_name</name>
+    <value>hive</value>
+    <description>Database name.</description>
+    <value-attributes>
+      <type>database</type>
+      <visible>false</visible>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_log_dir</name>
+    <value>/var/log/hive</value>
+    <display-name>Hive Log Dir</display-name>
+    <description>Directory for Hive Log files.</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_pid_dir</name>
+    <value>/var/run/hive</value>
+    <display-name>Hive PID Dir</display-name>
+    <description>Hive PID Dir.</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_user</name>
+    <display-name>Hive User</display-name>
+    <value>hive</value>
+    <property-type>USER</property-type>
+    <description>Hive User.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!--HCAT-->
+  <property>
+    <name>hcat_log_dir</name>
+    <value>/var/log/webhcat</value>
+    <display-name>WebHCat Log Dir</display-name>
+    <description>WebHCat Log Dir.</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hcat_pid_dir</name>
+    <value>/var/run/webhcat</value>
+    <display-name>WebHCat Pid Dir</display-name>
+    <description>WebHCat Pid Dir.</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>webhcat_user</name>
+    <display-name>WebHCat User</display-name>
+    <value>hcat</value>
+    <property-type>USER</property-type>
+    <description>WebHCat User.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_user_nofile_limit</name>
+    <value>32000</value>
+    <description>Max open files limit setting for HIVE user.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_user_nproc_limit</name>
+    <value>16000</value>
+    <description>Max number of processes limit setting for HIVE user.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- hive-env.sh -->
+  <property>
+    <name>content</name>
+    <display-name>hive-env template</display-name>
+    <description>This is the jinja template for hive-env.sh file</description>
+    <value>
+ export JAVA_HOME={{java64_home}}
+ if [ "$SERVICE" = "cli" ]; then
+   if [ -z "$DEBUG" ]; then
+     export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:+UseParNewGC -XX:-UseGCOverheadLimit"
+   else
+     export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:-UseGCOverheadLimit"
+   fi
+ fi
+
+# The heap size of the jvm stared by hive shell script can be controlled via:
+
+if [ "$SERVICE" = "metastore" ]; then
+  export HADOOP_HEAPSIZE={{hive_metastore_heapsize}} # Setting for HiveMetastore
+else
+  export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client
+fi
+
+export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m"
+
+# Larger heap size may be required when running queries over large number of files or partitions.
+# By default hive shell scripts use a heap size of 256 (MB).  Larger heap size would also be
+# appropriate for hive server (hwi etc).
+
+
+# Set HADOOP_HOME to point to a specific hadoop install directory
+HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
+
+# Hive Configuration Directory can be controlled by:
+export HIVE_CONF_DIR={{hive_config_dir}}
+
+# Folder containing extra ibraries required for hive compilation/execution can be controlled by:
+if [ "${HIVE_AUX_JARS_PATH}" != "" ]; then
+  export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}
+elif [ -d "/usr/lib/hive-hcatalog/" ]; then
+  export HIVE_AUX_JARS_PATH=/usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core-*.jar
+else
+  export HIVE_AUX_JARS_PATH=/usr/lib/hcatalog/share/hcatalog/hcatalog-core.jar
+fi
+export METASTORE_PORT={{hive_metastore_port}}
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

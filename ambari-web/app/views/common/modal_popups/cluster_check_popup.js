@@ -17,52 +17,9 @@
  */
 
 var App = require('app');
-require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_view');
-require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_autostart_view');
-require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_maintenance_view');
-require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_services_checks');
-require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_prev_upgrade_view');
-require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_host_version_view');
-require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_snn');
-require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_atlas_view');
-require('views/main/admin/stack_upgrade/custom_cluster_checks/add_metastore_view');
-require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_ckecks_host_hearbeat_view');
-require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_ckecks_alerts_view');
-require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_service_warning_view');
-require('views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_components_installation');
-
-const customCheckViewsMap = {
-  'SERVICES_UP': App.ServiceUpCheckView,
-  'AUTO_START_DISABLED': App.AutostartDisabledCheckView,
-  'HOSTS_MASTER_MAINTENANCE': App.MasterMaintenanceDisabledCheckView,
-  'PREVIOUS_UPGRADE_COMPLETED': App.PrevUpgradeNotCompletedView,
-  'HOSTS_REPOSITORY_VERSION': App.HostHaveVersionInstalledCheckView,
-  'SECONDARY_NAMENODE_MUST_BE_DELETED': App.deleteSNNView,
-  'SERVICES_HIVE_MULTIPLE_METASTORES': App.addMetastoreView,
-  'SERVICE_CHECK' : App.ServicesChecksView,
-  'SERVICE_PRESENCE_CHECK': App.AtlasInstalledCheckView,
-  'HOSTS_HEARTBEAT' : App.HostsHeartbeatView,
-  'HEALTH': App.AlertsChecksView,
-  'COMPONENTS_INSTALLATION': App.ComponentsInstallationFailedView
-};
 
 function mapUpgradeChecks(items) {
-  return items.map(item => Em.getProperties(item.UpgradeChecks, ['failed_on', 'reason', 'check', 'customView']));
-}
-
-function setCustomCheckViews(checks) {
-  checks.forEach(function (item) {
-    const check = item.UpgradeChecks;
-    if (customCheckViewsMap[check.id]) {
-      check.customView = customCheckViewsMap[check.id].extend({check: check});
-    }
-    else{
-      if (check.status == 'WARNING' && check.check_type == 'SERVICE'){
-        check.customView = App.servicesWarningView.extend({check: check});
-      }
-    }
-
-  })
+  return items.map(item => Em.getProperties(item.UpgradeChecks, ['failed_on', 'reason', 'check']));
 }
 
 /**
@@ -82,9 +39,6 @@ App.showClusterCheckPopup = function (data, popup, configs) {
     primary,
     secondary;
   popup = popup || {};
-  
-  setCustomCheckViews(fails);
-  setCustomCheckViews(warnings);
 
   if (Em.isNone(popup.primary)) {
     primary = fails.length ? Em.I18n.t('common.dismiss') : Em.I18n.t('common.proceedAnyway');
@@ -105,7 +59,6 @@ App.showClusterCheckPopup = function (data, popup, configs) {
     secondary: secondary,
     header: popup.header,
     classNames: ['cluster-check-popup'],
-    modalDialogClasses: ['modal-xlg'],
     bodyClass: Em.View.extend({
       failTitle: popup.failTitle,
       failAlert: popup.failAlert,
@@ -119,13 +72,9 @@ App.showClusterCheckPopup = function (data, popup, configs) {
       hasConfigsRecommendations: configsRecommendations.length > 0,
       configsMergeTable: App.getMergeConflictsView(configsMergeConflicts),
       configsRecommendTable: App.getNewStackRecommendationsView(configsRecommendations),
-      servicesChecksView: App.ServicesChecksView,
       isAllPassed: !fails.length && !warnings.length && !bypass.length
       && !configsMergeConflicts.length && !configsRecommendations.length
     }),
-    closeParent: function () {
-      popup.closeParent();
-    },
     onPrimary: function () {
       this._super();
       if (!popup.noCallbackCondition && popup.callback) {

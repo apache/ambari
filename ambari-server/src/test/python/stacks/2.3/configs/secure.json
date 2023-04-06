@@ -1,0 +1,492 @@
+{
+  "roleCommand": "SERVICE_CHECK",
+  "clusterName": "c1",
+  "hostname": "c6401.ambari.apache.org",
+    "clusterLevelParams": {
+        "stack_version": "2.3", 
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "hooks_folder": "stack-hooks", 
+        "stack_name": "HDP", 
+        "group_list": "[\"hdfs\",\"hadoop\",\"users\"]", 
+        "user_groups": "{\"hive\":[\"hadoop\"], \"oozie\":[\"hadoop\",\"users\"], \"nobody\":[\"hadoop\",\"nobody\"], \"ambari-qa\":[\"hadoop\",\"users\"], \"flume\":[\"hadoop\"], \"hdfs\":[\"hadoop\"], \"storm\":[\"hadoop\"], \"mapred\":[\"hadoop\"], \"hbase\":[\"hadoop\"], \"tez\":[\"hadoop\",\"users\"], \"zookeeper\":[\"hadoop\"], \"falcon\":[\"hadoop\",\"users\"], \"sqoop\":[\"hadoop\"], \"yarn\":[\"hadoop\"], \"hcat\":[\"hadoop\"]}", 
+        "cluster_name": "c1", 
+        "user_list": "[\"ambari-qa\",\"hdfs\"]"
+    },
+    "ambariLevelParams": {
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources",
+        "agent_stack_retry_count": "5", 
+        "db_driver_filename": "mysql-connector-java.jar", 
+        "agent_stack_retry_on_unavailability": "false", 
+        "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
+        "jce_name": "jce_policy-7.zip", 
+        "java_version": "7", 
+        "ambari_db_rca_password": "mapred", 
+        "host_sys_prepped": "false", 
+        "db_name": "ambari", 
+        "oracle_jdbc_url": "http://c6401.ambari.apache.org/resources/ojdbc6.jar",
+        "ambari_db_rca_driver": "org.postgresql.Driver", 
+        "ambari_db_rca_username": "mapred", 
+        "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
+        "java_home": "/usr/jdk64/jdk1.7.0_45", 
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources/mysql-connector-java.jar"
+    },
+    "repositoryFile": {
+        "resolved": true, 
+        "repoVersion": "2.6.4.0-60", 
+        "repositories": [
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60", 
+                "repoName": "HDP", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-2.6-repo-1"
+            }, 
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60", 
+                "repoName": "HDP-GPL", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-2.6-GPL-repo-1"
+            }, 
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6", 
+                "repoName": "HDP-UTILS", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-UTILS-1.1.0.22-repo-1"
+            }
+        ], 
+        "feature": {
+            "m_isScoped": true, 
+            "m_isPreInstalled": false
+        }, 
+        "stackName": "HDP", 
+        "repoVersionId": 1
+    },
+    "agentLevelParams": {
+        "public_hostname": "c6401.ambari.apache.org", 
+        "hostname": "c6401.ambari.apache.org", 
+        "agentConfigParams": {
+            "agent": {
+                "parallel_execution": 0, 
+                "use_system_proxy_settings": true
+            }
+        }, 
+        "agentCacheDir": "/var/lib/ambari-agent/cache"
+    },
+    "hostLevelParams": {
+        "recoveryConfig": {
+            "retryGap": "5", 
+            "windowInMinutes": "60", 
+            "maxLifetimeCount": "1024", 
+            "components": "", 
+            "maxCount": "6", 
+            "type": "AUTO_START"
+        }, 
+        "hostRepositories": {
+            "componentRepos": {
+                "NAMENODE": 1, 
+                "SECONDARY_NAMENODE": 1, 
+                "DATANODE": 1, 
+                "HDFS_CLIENT": 1
+            }, 
+            "commandRepos": {
+                "1": {
+                    "resolved": true, 
+                    "repoVersion": "2.1.4.0-60", 
+                    "repositories": [
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60", 
+                            "repoName": "HDP", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-2.6-repo-1"
+                        }, 
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60", 
+                            "repoName": "HDP-GPL", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-2.6-GPL-repo-1"
+                        }, 
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6", 
+                            "repoName": "HDP-UTILS", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-UTILS-1.1.0.22-repo-1"
+                        }
+                    ], 
+                    "feature": {
+                        "m_isScoped": true, 
+                        "m_isPreInstalled": false
+                    }, 
+                    "stackName": "HDP", 
+                    "repoVersionId": 1
+                }
+            }
+        }
+    },
+    "serviceLevelParams": {
+        "credentialStoreEnabled": false, 
+        "status_commands_timeout": 300, 
+        "version": "2.7.3", 
+        "service_package_folder": "common-services/HDFS/2.1.0.2.0/package"
+    },
+  "commandType": "EXECUTION_COMMAND",
+  "roleParams": {},
+  "serviceName": "SLIDER",
+  "role": "SLIDER",
+  "commandParams": {
+    "version": "2.2.1.0-2067",
+    "command_timeout": "300",
+    "service_package_folder": "OOZIE",
+    "script_type": "PYTHON",
+    "script": "scripts/service_check.py",
+    "excluded_hosts": "host1,host2"
+  },
+  "taskId": 152,
+  "public_hostname": "c6401.ambari.apache.org",
+  "configurations": {
+    "slider-client": {
+      "slider.yarn.queue": "default"
+    },
+    "mahout-env": {
+      "mahout_user": "mahout"
+    },
+    "hbase-env": {
+      "hbase_user": "hbase"
+    },
+    "mahout-log4j": {
+      "content": "\n            #\n            #\n            # Licensed to the Apache Software Foundation (ASF) under one\n            # or more contributor license agreements.  See the NOTICE file\n            # distributed with this work for additional information\n            # regarding copyright ownership.  The ASF licenses this file\n            # to you under the Apache License, Version 2.0 (the\n            # \"License\"); you may not use this file except in compliance\n            # with the License.  You may obtain a copy of the License at\n            #\n            #   http://www.apache.org/licenses/LICENSE-2.0\n            #\n            # Unless required by applicable law or agreed to in writing,\n            # software distributed under the License is distributed on an\n            # \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n            # KIND, either express or implied.  See the License for the\n            # specific language governing permissions and limitations\n            # under the License.\n            #\n            #\n            #\n\n            # Set everything to be logged to the console\n            log4j.rootCategory=WARN, console\n            log4j.appender.console=org.apache.log4j.ConsoleAppender\n            log4j.appender.console.target=System.err\n            log4j.appender.console.layout=org.apache.log4j.PatternLayout\n            log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n\n\n            # Settings to quiet third party logs that are too verbose\n            log4j.logger.org.eclipse.jetty=WARN\n            log4j.logger.org.apache.spark.repl.SparkIMain$exprTyper=WARN\n            log4j.logger.org.apache.spark.repl.SparkILoop$SparkILoopInterpreter=WARN"
+    },
+    "hadoop-env": {
+      "hdfs_user": "hdfs"
+    },
+    "core-site": {
+      "fs.defaultFS": "hdfs://c6401.ambari.apache.org:8020"
+    },
+    "hdfs-site": {
+      "a": "b"
+    },
+    "yarn-site": {
+      "yarn.application.classpath": "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*,/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*",
+      "yarn.resourcemanager.address": "c6401.ambari.apache.org:8050",
+      "yarn.resourcemanager.scheduler.address": "c6401.ambari.apache.org:8030"
+    },
+    "cluster-env": {
+      "security_enabled": "true",
+      "ignore_groupsusers_create": "false",
+      "smokeuser": "ambari-qa",
+      "smokeuser_principal_name": "ambari-qa@EXAMPLE.COM",
+      "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab",
+      "kerberos_domain": "EXAMPLE.COM",
+      "user_group": "hadoop"
+    },
+    "webhcat-site": {
+      "templeton.jar": "/usr/hdp/current/hive-webhcat/share/webhcat/svr/lib/hive-webhcat-*.jar",
+      "templeton.pig.archive": "hdfs:///hdp/apps/{{ hdp_stack_version }}/pig/pig.tar.gz",
+      "templeton.hive.archive": "hdfs:///hdp/apps/{{ hdp_stack_version }}/hive/hive.tar.gz",
+      "templeton.sqoop.archive": "hdfs:///hdp/apps/{{ hdp_stack_version }}/sqoop/sqoop.tar.gz",
+      "templeton.streaming.jar": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mr/hadoop-streaming.jar"
+    },
+    "slider-log4j": {
+      "content": "log4jproperties\nline2"
+    },
+    "slider-env": {
+      "content": "envproperties\nline2"
+    },
+    "gateway-site": {
+      "java.security.auth.login.config": "/etc/knox/conf/krb5JAASLogin.conf",
+      "gateway.hadoop.kerberos.secured": "false",
+      "gateway.gateway.conf.dir": "deployments",
+      "gateway.path": "gateway",
+      "sun.security.krb5.debug": "true",
+      "java.security.krb5.conf": "/etc/knox/conf/krb5.conf",
+      "gateway.port": "8443"
+    },
+
+    "users-ldif": {
+      "content": "\n            # Licensed to the Apache Software Foundation (ASF) under one\n            # or more contributor license agreements.  See the NOTICE file\n            # distributed with this work for additional information\n            # regarding copyright ownership.  The ASF licenses this file\n            # to you under the Apache License, Version 2.0 (the\n            # \"License\"); you may not use this file except in compliance\n            # with the License.  You may obtain a copy of the License at\n            #\n            #     http://www.apache.org/licenses/LICENSE-2.0\n            #\n            # Unless required by applicable law or agreed to in writing, software\n            # distributed under the License is distributed on an \"AS IS\" BASIS,\n            # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n            # See the License for the specific language governing permissions and\n            # limitations under the License.\n\n            version: 1\n\n            # Please replace with site specific values\n            dn: dc=hadoop,dc=apache,dc=org\n            objectclass: organization\n            objectclass: dcObject\n            o: Hadoop\n            dc: hadoop\n\n            # Entry for a sample people container\n            # Please replace with site specific values\n            dn: ou=people,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass:organizationalUnit\n            ou: people\n\n            # Entry for a sample end user\n            # Please replace with site specific values\n            dn: uid=guest,ou=people,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass:person\n            objectclass:organizationalPerson\n            objectclass:inetOrgPerson\n            cn: Guest\n            sn: User\n            uid: guest\n            userPassword:guest-password\n\n            # entry for sample user admin\n            dn: uid=admin,ou=people,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass:person\n            objectclass:organizationalPerson\n            objectclass:inetOrgPerson\n            cn: Admin\n            sn: Admin\n            uid: admin\n            userPassword:admin-password\n\n            # entry for sample user sam\n            dn: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass:person\n            objectclass:organizationalPerson\n            objectclass:inetOrgPerson\n            cn: sam\n            sn: sam\n            uid: sam\n            userPassword:sam-password\n\n            # entry for sample user tom\n            dn: uid=tom,ou=people,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass:person\n            objectclass:organizationalPerson\n            objectclass:inetOrgPerson\n            cn: tom\n            sn: tom\n            uid: tom\n            userPassword:tom-password\n\n            # create FIRST Level groups branch\n            dn: ou=groups,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass:organizationalUnit\n            ou: groups\n            description: generic groups branch\n\n            # create the analyst group under groups\n            dn: cn=analyst,ou=groups,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass: groupofnames\n            cn: analyst\n            description:analyst  group\n            member: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org\n            member: uid=tom,ou=people,dc=hadoop,dc=apache,dc=org\n\n\n            # create the scientist group under groups\n            dn: cn=scientist,ou=groups,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass: groupofnames\n            cn: scientist\n            description: scientist group\n            member: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org"
+    },
+
+    "topology": {
+      "content": "\n        <topology>\n\n            <gateway>\n\n                <provider>\n                    <role>authentication</role>\n                    <name>ShiroProvider</name>\n                    <enabled>true</enabled>\n                    <param>\n                        <name>sessionTimeout</name>\n                        <value>30</value>\n                    </param>\n                    <param>\n                        <name>main.ldapRealm</name>\n                        <value>org.apache.hadoop.gateway.shirorealm.KnoxLdapRealm</value>\n                    </param>\n                    <param>\n                        <name>main.ldapRealm.userDnTemplate</name>\n                        <value>uid={0},ou=people,dc=hadoop,dc=apache,dc=org</value>\n                    </param>\n                    <param>\n                        <name>main.ldapRealm.contextFactory.url</name>\n                        <value>ldap://{{knox_host_name}}:33389</value>\n                    </param>\n                    <param>\n                        <name>main.ldapRealm.contextFactory.authenticationMechanism</name>\n                        <value>simple</value>\n                    </param>\n                    <param>\n                        <name>urls./**</name>\n                        <value>authcBasic</value>\n                    </param>\n                </provider>\n\n                <provider>\n                    <role>identity-assertion</role>\n                    <name>Default</name>\n                    <enabled>true</enabled>\n                </provider>\n\n            </gateway>\n\n            <service>\n                <role>NAMENODE</role>\n                <url>hdfs://{{namenode_host}}:{{namenode_rpc_port}}</url>\n            </service>\n\n            <service>\n                <role>JOBTRACKER</role>\n                <url>rpc://{{rm_host}}:{{jt_rpc_port}}</url>\n            </service>\n\n            <service>\n                <role>WEBHDFS</role>\n                <url>http://{{namenode_host}}:{{namenode_http_port}}/webhdfs</url>\n            </service>\n\n            <service>\n                <role>WEBHCAT</role>\n                <url>http://{{webhcat_server_host}}:{{templeton_port}}/templeton</url>\n            </service>\n\n            <service>\n                <role>OOZIE</role>\n                <url>http://{{oozie_server_host}}:{{oozie_server_port}}/oozie</url>\n            </service>\n\n            <service>\n                <role>WEBHBASE</role>\n                <url>http://{{hbase_master_host}}:{{hbase_master_port}}</url>\n            </service>\n\n            <service>\n                <role>HIVE</role>\n                <url>http://{{hive_server_host}}:{{hive_http_port}}/{{hive_http_path}}</url>\n            </service>\n\n            <service>\n                <role>RESOURCEMANAGER</role>\n                <url>http://{{rm_host}}:{{rm_port}}/ws</url>\n            </service>\n        </topology>"
+    },
+
+    "ldap-log4j": {
+      "content": "\n        # Licensed to the Apache Software Foundation (ASF) under one\n        # or more contributor license agreements.  See the NOTICE file\n        # distributed with this work for additional information\n        # regarding copyright ownership.  The ASF licenses this file\n        # to you under the Apache License, Version 2.0 (the\n        # \"License\"); you may not use this file except in compliance\n        # with the License.  You may obtain a copy of the License at\n        #\n        #     http://www.apache.org/licenses/LICENSE-2.0\n        #\n        # Unless required by applicable law or agreed to in writing, software\n        # distributed under the License is distributed on an \"AS IS\" BASIS,\n        # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n        # See the License for the specific language governing permissions and\n        # limitations under the License.\n        #testing\n\n        app.log.dir=${launcher.dir}/../logs\n        app.log.file=${launcher.name}.log\n\n        log4j.rootLogger=ERROR, drfa\n        log4j.logger.org.apache.directory.server.ldap.LdapServer=INFO\n        log4j.logger.org.apache.directory=WARN\n\n        log4j.appender.stdout=org.apache.log4j.ConsoleAppender\n        log4j.appender.stdout.layout=org.apache.log4j.PatternLayout\n        log4j.appender.stdout.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n\n\n        log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender\n        log4j.appender.drfa.File=${app.log.dir}/${app.log.file}\n        log4j.appender.drfa.DatePattern=.yyyy-MM-dd\n        log4j.appender.drfa.layout=org.apache.log4j.PatternLayout\n        log4j.appender.drfa.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n"
+    },
+
+    "gateway-log4j": {
+      "content": "\n\n      # Licensed to the Apache Software Foundation (ASF) under one\n      # or more contributor license agreements. See the NOTICE file\n      # distributed with this work for additional information\n      # regarding copyright ownership. The ASF licenses this file\n      # to you under the Apache License, Version 2.0 (the\n      # \"License\"); you may not use this file except in compliance\n      # with the License. You may obtain a copy of the License at\n      #\n      # http://www.apache.org/licenses/LICENSE-2.0\n      #\n      # Unless required by applicable law or agreed to in writing, software\n      # distributed under the License is distributed on an \"AS IS\" BASIS,\n      # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n      # See the License for the specific language governing permissions and\n      # limitations under the License.\n\n      app.log.dir=${launcher.dir}/../logs\n      app.log.file=${launcher.name}.log\n      app.audit.file=${launcher.name}-audit.log\n\n      log4j.rootLogger=ERROR, drfa\n\n      log4j.logger.org.apache.hadoop.gateway=INFO\n      #log4j.logger.org.apache.hadoop.gateway=DEBUG\n\n      #log4j.logger.org.eclipse.jetty=DEBUG\n      #log4j.logger.org.apache.shiro=DEBUG\n      #log4j.logger.org.apache.http=DEBUG\n      #log4j.logger.org.apache.http.client=DEBUG\n      #log4j.logger.org.apache.http.headers=DEBUG\n      #log4j.logger.org.apache.http.wire=DEBUG\n\n      log4j.appender.stdout=org.apache.log4j.ConsoleAppender\n      log4j.appender.stdout.layout=org.apache.log4j.PatternLayout\n      log4j.appender.stdout.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n\n\n      log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender\n      log4j.appender.drfa.File=${app.log.dir}/${app.log.file}\n      log4j.appender.drfa.DatePattern=.yyyy-MM-dd\n      log4j.appender.drfa.layout=org.apache.log4j.PatternLayout\n      log4j.appender.drfa.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n\n\n      log4j.logger.audit=INFO, auditfile\n      log4j.appender.auditfile=org.apache.log4j.DailyRollingFileAppender\n      log4j.appender.auditfile.File=${app.log.dir}/${app.audit.file}\n      log4j.appender.auditfile.Append = true\n      log4j.appender.auditfile.DatePattern = '.'yyyy-MM-dd\n      log4j.appender.auditfile.layout = org.apache.hadoop.gateway.audit.log4j.layout.AuditLayout"
+    },
+    "knox-env": {
+      "knox_master_secret": "sa",
+      "knox_group": "knox",
+      "knox_pid_dir": "/var/run/knox",
+      "knox_user": "knox"
+    },
+    "kafka-env": {
+      "content": "\n#!/bin/bash\n\n# Set KAFKA specific environment variables here.\n\n# The java implementation to use.\nexport JAVA_HOME={{java64_home}}\nexport PATH=$PATH:$JAVA_HOME/bin",
+      "kafka_user": "kafka",
+      "kafka_log_dir": "/var/log/kafka",
+      "kafka_pid_dir": "/var/run/kafka"
+    },
+    "kafka-log4j": {
+      "content": "\n#\n#\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n#\n#\n#\nkafka.logs.dir=logs\n\nlog4j.rootLogger=INFO, stdout\n\nlog4j.appender.stdout=org.apache.log4j.ConsoleAppender\nlog4j.appender.stdout.layout=org.apache.log4j.PatternLayout\nlog4j.appender.stdout.layout.ConversionPattern=[%d] %p %m (%c)%n\n\nlog4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.kafkaAppender.DatePattern='.'yyyy-MM-dd-HH\nlog4j.appender.kafkaAppender.File=${kafka.logs.dir}/server.log\nlog4j.appender.kafkaAppender.layout=org.apache.log4j.PatternLayout\nlog4j.appender.kafkaAppender.layout.ConversionPattern=[%d] %p %m (%c)%n\n\nlog4j.appender.stateChangeAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.stateChangeAppender.DatePattern='.'yyyy-MM-dd-HH\nlog4j.appender.stateChangeAppender.File=${kafka.logs.dir}/state-change.log\nlog4j.appender.stateChangeAppender.layout=org.apache.log4j.PatternLayout\nlog4j.appender.stateChangeAppender.layout.ConversionPattern=[%d] %p %m (%c)%n\n\nlog4j.appender.requestAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.requestAppender.DatePattern='.'yyyy-MM-dd-HH\nlog4j.appender.requestAppender.File=${kafka.logs.dir}/kafka-request.log\nlog4j.appender.requestAppender.layout=org.apache.log4j.PatternLayout\nlog4j.appender.requestAppender.layout.ConversionPattern=[%d] %p %m (%c)%n\n\nlog4j.appender.cleanerAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.cleanerAppender.DatePattern='.'yyyy-MM-dd-HH\nlog4j.appender.cleanerAppender.File=${kafka.logs.dir}/log-cleaner.log\nlog4j.appender.cleanerAppender.layout=org.apache.log4j.PatternLayout\nlog4j.appender.cleanerAppender.layout.ConversionPattern=[%d] %p %m (%c)%n\n\nlog4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.controllerAppender.DatePattern='.'yyyy-MM-dd-HH\nlog4j.appender.controllerAppender.File=${kafka.logs.dir}/controller.log\nlog4j.appender.controllerAppender.layout=org.apache.log4j.PatternLayout\nlog4j.appender.controllerAppender.layout.ConversionPattern=[%d] %p %m (%c)%n\n\n# Turn on all our debugging info\n#log4j.logger.kafka.producer.async.DefaultEventHandler=DEBUG, kafkaAppender\n#log4j.logger.kafka.client.ClientUtils=DEBUG, kafkaAppender\n#log4j.logger.kafka.perf=DEBUG, kafkaAppender\n#log4j.logger.kafka.perf.ProducerPerformance$ProducerThread=DEBUG, kafkaAppender\n#log4j.logger.org.I0Itec.zkclient.ZkClient=DEBUG\nlog4j.logger.kafka=INFO, kafkaAppender\nlog4j.logger.kafka.network.RequestChannel$=WARN, requestAppender\nlog4j.additivity.kafka.network.RequestChannel$=false\n\n#log4j.logger.kafka.network.Processor=TRACE, requestAppender\n#log4j.logger.kafka.server.KafkaApis=TRACE, requestAppender\n#log4j.additivity.kafka.server.KafkaApis=false\nlog4j.logger.kafka.request.logger=WARN, requestAppender\nlog4j.additivity.kafka.request.logger=false\n\nlog4j.logger.kafka.controller=TRACE, controllerAppender\nlog4j.additivity.kafka.controller=false\n\nlog4j.logger.kafka.log.LogCleaner=INFO, cleanerAppender\nlog4j.additivity.kafka.log.LogCleaner=false\n\nlog4j.logger.state.change.logger=TRACE, stateChangeAppender\nlog4j.additivity.state.change.logger=false"
+    },
+    "kafka-broker": {
+      "log.segment.bytes": "1073741824",
+      "socket.send.buffer.bytes": "102400",
+      "num.network.threads": "3",
+      "log.flush.scheduler.interval.ms": "3000",
+      "kafka.ganglia.metrics.host": "localhost",
+      "zookeeper.session.timeout.ms": "6000",
+      "replica.lag.time.max.ms": "10000",
+      "num.io.threads": "8",
+      "kafka.ganglia.metrics.group": "kafka",
+      "replica.lag.max.messages": "4000",
+      "port": "6667",
+      "log.retention.bytes": "-1",
+      "fetch.purgatory.purge.interval.requests": "10000",
+      "producer.purgatory.purge.interval.requests": "10000",
+      "default.replication.factor": "1",
+      "replica.high.watermark.checkpoint.interval.ms": "5000",
+      "zookeeper.connect": "c6402.ambari.apache.org:2181",
+      "controlled.shutdown.retry.backoff.ms": "5000",
+      "num.partitions": "1",
+      "log.flush.interval.messages": "10000",
+      "replica.fetch.min.bytes": "1",
+      "queued.max.requests": "500",
+      "controlled.shutdown.max.retries": "3",
+      "replica.fetch.wait.max.ms": "500",
+      "controlled.shutdown.enable": "false",
+      "log.roll.hours": "168",
+      "log.cleanup.interval.mins": "10",
+      "replica.socket.receive.buffer.bytes": "65536",
+      "zookeeper.connection.timeout.ms": "6000",
+      "replica.fetch.max.bytes": "1048576",
+      "num.replica.fetchers": "1",
+      "socket.request.max.bytes": "104857600",
+      "message.max.bytes": "1000000",
+      "zookeeper.sync.time.ms": "2000",
+      "socket.receive.buffer.bytes": "102400",
+      "controller.message.queue.size": "10",
+      "log.flush.interval.ms": "3000",
+      "log.dirs": "/tmp/log/dir",
+      "controller.socket.timeout.ms": "30000",
+      "replica.socket.timeout.ms": "30000",
+      "auto.create.topics.enable": "true",
+      "log.index.size.max.bytes": "10485760",
+      "kafka.ganglia.metrics.port": "8649",
+      "log.index.interval.bytes": "4096",
+      "log.retention.hours": "168"
+    },
+    "infra-solr-env": {
+      "infra_solr_znode": "/infra-solr",
+      "infra_solr_user": "solr",
+      "infra_solr_group": "solr",
+      "infra_solr_client_log_dir" :"/var/log/ambari-infra-solr-client",
+      "infra_solr_kerberos_principal" : "infra-solr/c6401.ambari.apache.org@EXAMPLE.COM",
+      "infra_solr_kerberos_keytab" : "/etc/security/keytabs/ambari-infra-solr.keytab"
+    },
+    "infra-solr-client-log4j" : {
+      "infra_solr_client_log_dir" : "/var/log/ambari-infra-solr-client",
+      "content" : "content"
+    },
+    "application-properties": {
+      "atlas.cluster.name" : "c2",
+      "atlas.graph.storage.backend": "berkeleyje",
+      "atlas.graph.storage.directory": "data/berkley",
+      "atlas.graph.index.search.backend": "solr5",
+      "atlas.graph.index.search.directory": "data/es",
+      "atlas.graph.index.search.elasticsearch.client-only": false,
+      "atlas.graph.index.search.elasticsearch.local-mode": true,
+      "atlas.lineage.hive.table.type.name": "Table",
+      "atlas.lineage.hive.column.type.name": "Column",
+      "atlas.lineage.hive.table.column.name": "columns",
+      "atlas.lineage.hive.process.type.name": "LoadProcess",
+      "atlas.lineage.hive.process.inputs.name": "inputTables",
+      "atlas.lineage.hive.process.outputs.name": "outputTables",
+      "atlas.enableTLS": true,
+      "atlas.authentication.method": "simple",
+      "atlas.authentication.principal": "atlas",
+      "atlas.authentication.keytab": "/etc/security/keytabs/atlas.service.keytab",
+      "atlas.http.authentication.enabled": false,
+      "atlas.http.authentication.type": "simple",
+      "atlas.http.authentication.kerberos.principal": "HTTP/_HOST@EXAMPLE.COM",
+      "atlas.http.authentication.kerberos.keytab": "/etc/security/keytabs/spnego.service.keytab",
+      "atlas.http.authentication.kerberos.name.rules": "DEFAULT",
+      "atlas.server.http.port" : "21000",
+      "atlas.server.https.port" : "21443",
+      "atlas.notification.embedded" : false,
+      "atlas.kafka.bootstrap.servers" : "c6401.ambari.apache.org:6667",
+      "atlas.kafka.data" : "/usr/hdp/current/atlas-server/data/kafka",
+      "atlas.kafka.entities.group.id" : "entities",
+      "atlas.kafka.hook.group.id" : "atlas",
+      "atlas.kafka.zookeeper.connect" : "c6401.ambari.apache.org:2181"
+    },
+    "atlas-env": {
+      "content": "# The java implementation to use. If JAVA_HOME is not found we expect java and jar to be in path\nexport JAVA_HOME={{java64_home}}\n# any additional java opts you want to set. This will apply to both client and server operations\nexport METADATA_OPTS={{metadata_opts}}\n# metadata configuration directory\nexport METADATA_CONF={{conf_dir}}\n# Where log files are stored. Defatult is logs directory under the base install location\nexport METADATA_LOG_DIR={{log_dir}}\n# additional classpath entries\nexport METADATACPPATH={{metadata_classpath}}\n# data dir\nexport METADATA_DATA_DIR={{data_dir}}\n# Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.\nexport METADATA_EXPANDED_WEBAPP_DIR={{expanded_war_dir}}",
+      "metadata_user": "atlas",
+      "metadata_port": 21000,
+      "metadata_pid_dir": "/var/run/atlas",
+      "metadata_log_dir": "/var/log/atlas",
+      "metadata_data_dir": "/var/lib/atlas/data",
+      "metadata_expanded_war_dir": "/var/lib/atlas/server/webapp",
+      "metadata_conf_file": "application.properties"
+    },
+    "atlas-log4j": {
+      "content": "<property><name>content</name><description>Custom log4j.properties</description><value></value></property>",
+      "atlas_log_level": "debug",
+      "audit_log_level": "OFF"
+    },
+    "atlas-solrconfig": {
+      "content": "<property><name>content</name><description>Custom solrconfig properties</description><value></value></property>"
+    },
+    "zoo.cfg": {
+      "clientPort": "2181"
+    },
+    "ranger-hbase-plugin-properties": {
+      "ranger-hbase-plugin-enabled":"yes"
+    },
+    "ranger-hive-plugin-properties": {
+      "ranger-hive-plugin-enabled":"yes"
+    },
+    "ranger-env": {
+      "xml_configurations_supported" : "true"
+    },
+    "kerberos-env" : {
+      "realm" : "EXAMPLE.COM"
+    }
+  },
+  "configurationAttributes": {
+    "yarn-site": {
+      "final": {
+        "yarn.nodemanager.disk-health-checker.min-healthy-disks": "true",
+        "yarn.nodemanager.container-executor.class": "true",
+        "yarn.nodemanager.local-dirs": "true"
+      }
+    },
+    "yarn-site": {
+      "final": {
+        "is_supported_yarn_ranger": "true"
+      }
+    },
+    "hdfs-site": {
+      "final": {
+        "dfs.web.ugi": "true",
+        "dfs.support.append": "true",
+        "dfs.cluster.administrators": "true"
+      }
+    },
+    "core-site": {
+      "final": {
+        "hadoop.proxyuser.hive.groups": "true",
+        "webinterface.private.actions": "true",
+        "hadoop.proxyuser.oozie.hosts": "true"
+      }
+    },
+    "knox-env": {},
+    "gateway-site": {},
+    "users-ldif": {},
+    "kafka-env": {},
+    "kafka-log4j": {},
+    "kafka-broker": {},
+    "atlas-hbase-site": {},
+    "metadata-env": {}
+  },
+  "configurationTags": {
+    "slider-client": {
+      "tag": "version1"
+    },
+    "slider-log4j": {
+      "tag": "version1"
+    },
+    "slider-env": {
+      "tag": "version1"
+    },
+    "core-site": {
+      "tag": "version1"
+    },
+    "hdfs-site": {
+      "tag": "version1"
+    },
+    "yarn-site": {
+      "tag": "version1"
+    },
+    "gateway-site": {
+      "tag": "version1"
+    },
+    "topology": {
+      "tag": "version1"
+    },
+    "users-ldif": {
+      "tag": "version1"
+    },
+    "kafka-env": {
+      "tag": "version1"
+    },
+    "kafka-log4j": {
+      "tag": "version1"
+    },
+    "kafka-broker": {
+      "tag": "version1"
+    },
+    "metadata-env": {
+      "tag": "version1"
+    }
+  },
+  "commandId": "7-1",
+  "clusterHostInfo": {
+    "ambari_server_host": [
+      "c6401.ambari.apache.org"
+    ],
+    "all_ping_ports": [
+      "8670",
+      "8670"
+    ],
+    "resourcemanager_hosts": [
+      "c6402.ambari.apache.org"
+    ],
+    "all_hosts": [
+      "c6401.ambari.apache.org",
+      "c6402.ambari.apache.org"
+    ],
+    "knox_gateway_hosts": [
+      "jaimin-knox-1.c.pramod-thangali.internal"
+    ],
+    "kafka_broker_hosts": [
+      "c6401.ambari.apache.org"
+    ],
+    "infra_solr_hosts": [
+      "c6401.ambari.apache.org"
+    ],
+    "zookeeper_server_hosts": [
+      "c6401.ambari.apache.org"
+    ],
+    "atlas_server_hosts": [
+      "c6401.ambari.apache.org"
+    ]
+
+  }
+}

@@ -302,11 +302,9 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
     else if (this.get('isAddServiceWizard')) services = installedServices.concat(selectedServices);
 
     var headers = Em.A([]);
-    let doHideOzoneDataNodes = !!services.findProperty('serviceName', 'HDFS');
     services.forEach(function (stackService) {
       stackService.get('serviceComponents').forEach(function (serviceComponent) {
-        let hideComponent = serviceComponent.get('componentName') === 'OZONE_DATANODE' ? doHideOzoneDataNodes : false;
-        if (serviceComponent.get('isShownOnInstallerSlaveClientPage') && !hideComponent) {
+        if (serviceComponent.get('isShownOnInstallerSlaveClientPage')) {
           headers.pushObject(Em.Object.create({
             name: serviceComponent.get('componentName'),
             label: App.format.role(serviceComponent.get('componentName'), false),
@@ -340,7 +338,6 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
       this.callValidation();
     }
   },
-
 
   /**
    * Returns list of new hosts

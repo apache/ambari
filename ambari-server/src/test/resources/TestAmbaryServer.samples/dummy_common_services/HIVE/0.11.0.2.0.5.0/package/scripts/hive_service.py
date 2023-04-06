@@ -25,7 +25,7 @@ def hive_service(
     name,
     action='start'):
 
-  import params
+  from . import params
 
   if name == 'metastore':
     pid_file = format("{hive_pid_dir}/{hive_metastore_pid}")

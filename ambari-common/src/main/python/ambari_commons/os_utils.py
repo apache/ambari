@@ -33,21 +33,15 @@ else:
 
 if OSCheck.is_windows_family():
   from ambari_commons.os_windows import os_change_owner, os_getpass, os_is_root, os_run_os_command, \
-    os_set_open_files_limit, os_set_file_permissions, os_is_service_exist
+    os_set_open_files_limit, os_set_file_permissions
 else:
   # MacOS not supported
   from ambari_commons.os_linux import os_change_owner, os_getpass, os_is_root, os_run_os_command, \
-    os_set_open_files_limit, os_set_file_permissions, os_is_service_exist
+    os_set_open_files_limit, os_set_file_permissions
   pass
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg
-
-def current_user():
-  if OSCheck.is_windows_family():
-    return None
-  else:
-    return pwd.getpwuid(os.geteuid())[0]
 
 def get_used_ram():
   """
@@ -57,7 +51,7 @@ def get_used_ram():
 
 def is_valid_filepath(filepath):
   if not filepath or not os.path.exists(filepath) or os.path.isdir(filepath):
-    print 'Invalid path, please provide the absolute file path.'
+    print('Invalid path, please provide the absolute file path.')
     return False
   else:
     return True
@@ -75,7 +69,7 @@ def trim_uri(file_uri):
   return file_uri
 
 def _search_file(filename, search_path, pathsep):
-  for path in string.split(search_path, pathsep):
+  for path in str.split(search_path, pathsep):
     candidate = os.path.join(path, filename)
     if os.path.exists(candidate):
       return os.path.abspath(candidate)
@@ -88,9 +82,9 @@ def search_file(filename, search_path, pathsep=os.pathsep):
 def copy_file(src, dest_file):
   try:
     shutil.copyfile(src, dest_file)
-  except Exception, e:
+  except Exception as e:
     err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
-              "permissions and free disk space.".format(src, dest_file, e.message)
+              "permissions and free disk space.".format(src, dest_file, e)
     raise FatalException(1, err)
 
 def copy_files(files, dest_dir):
@@ -105,7 +99,7 @@ def remove_file(filePath):
   if os.path.exists(filePath):
     try:
       os.remove(filePath)
-    except Exception, e:
+    except Exception as e:
       print_warning_msg('Unable to remove file: ' + str(e))
       return 1
   pass
@@ -136,9 +130,6 @@ def set_open_files_limit(maxOpenFiles):
 
 def get_password(prompt):
   return os_getpass(prompt)
-
-def is_service_exist(serviceName):
-  return os_is_service_exist(serviceName)
 
 def find_in_path(file):
   full_path = _search_file(file, os.environ["PATH"], os.pathsep)
@@ -173,6 +164,8 @@ def get_ambari_repo_file_full_name():
     ambari_repo_file = "/etc/yum.repos.d/ambari.repo"
   elif OSCheck.is_suse_family():
     ambari_repo_file = "/etc/zypp/repos.d/ambari.repo"
+  elif OSCheck.is_openeuler_family():
+    ambari_repo_file = "/etc/yum.repos.d/ambari.repo"
   elif OSCheck.is_windows_family():
     ambari_repo_file = os.path.join(os.environ[ChocolateyConsts.CHOCOLATEY_INSTALL_VAR_NAME],
                                     ChocolateyConsts.CHOCOLATEY_CONFIG_DIR, ChocolateyConsts.CHOCOLATEY_CONFIG_FILENAME)
@@ -200,7 +193,7 @@ def parse_log4j_file(filename):
   properties = {}
   
   Template.idpattern = r'[_a-z][_a-z0-9\.]*'
-  with open(filename, "rb") as fp:
+  with open(filename, "rt") as fp:
     lines = fp.readlines()
     
   for line in lines:

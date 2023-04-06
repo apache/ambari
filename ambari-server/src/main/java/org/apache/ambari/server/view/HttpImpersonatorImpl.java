@@ -143,12 +143,14 @@ public class HttpImpersonatorImpl implements HttpImpersonator {
 
       rd = new BufferedReader(new InputStreamReader(resultInputStream));
 
-      line = rd.readLine();
-      while (line != null) {
-        result += line;
+      if (rd != null) {
         line = rd.readLine();
+        while (line != null) {
+          result += line;
+          line = rd.readLine();
+        }
+        rd.close();
       }
-      rd.close();
     } catch (Exception e) {
       LOG.error("Exception caught processing impersonator request.", e);
     }

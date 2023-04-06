@@ -63,12 +63,14 @@ public class HTTPUtils {
 
       rd = new BufferedReader(new InputStreamReader(resultInputStream));
 
-      line = rd.readLine();
-      while (line != null) {
-        result += line;
+      if (rd != null) {
         line = rd.readLine();
+        while (line != null) {
+          result += line;
+          line = rd.readLine();
+        }
+        rd.close();
       }
-      rd.close();
     } catch (Exception e) {
       e.printStackTrace();
     }

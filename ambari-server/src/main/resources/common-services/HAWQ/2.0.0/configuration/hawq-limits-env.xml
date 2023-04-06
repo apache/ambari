@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <display-name>soft nofile</display-name>
+    <name>soft_nofile</name>
+    <value>2900000</value>
+    <description>
+      Soft limit integer value for the maximum number of file handles or open files allowed for user gpadmin.
+      The default is 2900000. This value is set in the file /etc/security/limits.d/gpadmin.conf.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <display-name>hard nofile</display-name>
+    <name>hard_nofile</name>
+    <value>2900000</value>
+    <description>
+      Hard limit integer value for the maximum number of file handles or open files allowed for user gpadmin.
+      The default is 2900000. This value is set in the file /etc/security/limits.d/gpadmin.conf.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <display-name>soft nproc</display-name>
+    <name>soft_nproc</name>
+    <value>131072</value>
+    <description>
+      Soft limit integer value for the maximum number of processes allowed for user gpadmin.
+      The default is 131072. This value is set in the file /etc/security/limits.d/gpadmin.conf
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <display-name>hard nproc</display-name>
+    <name>hard_nproc</name>
+    <value>131072</value>
+    <description>
+      Hard limit integer value for the maximum number of processes allowed for user gpadmin.
+      The default is 131072. This value is set in the file /etc/security/limits.d/gpadmin.conf
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

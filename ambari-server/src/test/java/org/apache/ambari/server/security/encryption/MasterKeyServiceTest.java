@@ -28,7 +28,6 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import org.apache.ambari.server.configuration.Configuration;
@@ -65,10 +64,9 @@ public class MasterKeyServiceTest extends TestCase {
   @Test
   public void testInitializeMasterKey() throws Exception {
     File masterKeyFile = new File(fileDir, "master");
-    MasterKeyServiceImpl ms = new MasterKeyServiceImpl("dummyKey");
-    Assert.assertTrue(ms.initializeMasterKeyFile(masterKeyFile, "ThisisSomePassPhrase"));
+    Assert.assertTrue(MasterKeyServiceImpl.initializeMasterKeyFile(masterKeyFile, "ThisisSomePassPhrase"));
 
-    ms = new MasterKeyServiceImpl(masterKeyFile);
+    MasterKeyService ms = new MasterKeyServiceImpl(masterKeyFile);
     Assert.assertTrue(ms.isMasterKeyInitialized());
 
     Assert.assertTrue(masterKeyFile.exists());
@@ -102,8 +100,7 @@ public class MasterKeyServiceTest extends TestCase {
     mockStatic(System.class);
     expect(System.getenv()).andReturn(mapRet);
     replayAll();
-    Configuration configuration = new Configuration(new Properties());
-    MasterKeyService ms = new MasterKeyServiceImpl(configuration);
+    MasterKeyService ms = new MasterKeyServiceImpl();
     verifyAll();
     Assert.assertTrue(ms.isMasterKeyInitialized());
     Assert.assertNotNull(ms.getMasterSecret());
@@ -115,10 +112,9 @@ public class MasterKeyServiceTest extends TestCase {
   public void testReadFromEnvAsPath() throws Exception {
     // Create a master key
     File masterKeyFile = new File(fileDir, "master");
-    MasterKeyServiceImpl ms = new MasterKeyServiceImpl("dummyKey");
-    Assert.assertTrue(ms.initializeMasterKeyFile(masterKeyFile, "ThisisSomePassPhrase"));
+    Assert.assertTrue(MasterKeyServiceImpl.initializeMasterKeyFile(masterKeyFile, "ThisisSomePassPhrase"));
 
-    ms = new MasterKeyServiceImpl(masterKeyFile);
+    MasterKeyService ms = new MasterKeyServiceImpl(masterKeyFile);
     Assert.assertTrue(ms.isMasterKeyInitialized());
     Assert.assertTrue(masterKeyFile.exists());
 
@@ -127,13 +123,12 @@ public class MasterKeyServiceTest extends TestCase {
     mockStatic(System.class);
     expect(System.getenv()).andReturn(mapRet);
     replayAll();
-    Configuration configuration = new Configuration(new Properties());
-    ms = new MasterKeyServiceImpl(configuration);
+    ms = new MasterKeyServiceImpl();
     verifyAll();
     Assert.assertTrue(ms.isMasterKeyInitialized());
     Assert.assertNotNull(ms.getMasterSecret());
     Assert.assertEquals("ThisisSomePassPhrase", new String(ms.getMasterSecret()));
-    Assert.assertTrue(masterKeyFile.exists());
+    Assert.assertFalse(masterKeyFile.exists());
   }
 
   @Override

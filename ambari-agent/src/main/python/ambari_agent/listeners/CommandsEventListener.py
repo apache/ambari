@@ -44,7 +44,7 @@ class CommandsEventListener(EventListener):
     ""
     commands = []
     cancel_commands = []
-    for cluster_id in message['clusters'].keys():
+    for cluster_id in list(message['clusters'].keys()):
       cluster_dict = message['clusters'][cluster_id]
 
       if 'commands' in cluster_dict:
@@ -74,10 +74,6 @@ class CommandsEventListener(EventListener):
             command['repositoryFile'] = '...'
           if 'commandParams' in command:
             command['commandParams'] = '...'
-          if 'clusterHostInfo' in command:
-            command['clusterHostInfo'] = '...'
-          if 'componentVersionMap' in command:
-            command['componentVersionMap'] = '...'
     except KeyError:
       pass
       

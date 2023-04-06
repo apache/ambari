@@ -1,0 +1,177 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+       http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <artifactId>ambari-logsearch</artifactId>
+    <groupId>org.apache.ambari</groupId>
+    <version>2.7.5.0.0</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>ambari-logsearch-web</artifactId>
+  <name>Ambari Logsearch Web</name>
+  <version>2.7.5.0.0</version>
+  <groupId>org.apache.ambari</groupId>
+  <description>Ambari Logsearch Web</description>
+
+  <properties>
+    <logsearch.npm.config.tmp>/tmp/logsearch_npm_config_tmp</logsearch.npm.config.tmp>
+    <node.version>v8.6.0</node.version>
+    <yarn.version>v1.1.0</yarn.version>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>1.6</version>
+        <configuration>
+          <nodeVersion>${node.version}</nodeVersion>
+          <yarnVersion>${yarn.version}</yarnVersion>
+          <workingDirectory>${project.build.directory}/webapp-build</workingDirectory>
+          <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
+          <!-- setting npm_config_tmp environment variable is a workaround for
+               https://github.com/Medium/phantomjs/issues/673 -->
+          <environmentVariables>
+            <npm_config_tmp>${logsearch.npm.config.tmp}</npm_config_tmp>
+          </environmentVariables>
+        </configuration>
+        <executions>
+          <execution>
+            <id>install node and yarn</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>install-node-and-yarn</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>yarn install</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <configuration>
+              <arguments>install --ignore-engines --pure-lockfile</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>webpack build</id>
+            <goals>
+              <goal>webpack</goal>
+            </goals>
+            <!-- optional: the default phase is "generate-resources" -->
+            <phase>generate-resources</phase>
+            <configuration>
+              <environmentVariables>
+                <NODE_ENV>production</NODE_ENV>
+              </environmentVariables>
+              <!-- optional: if not specified, it will run webpack's default
+              build (and you can remove this whole <configuration> section.) -->
+              <arguments>-p</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>run tests</id>
+            <phase>test</phase>
+            <goals>
+            <goal>yarn</goal>
+           </goals>
+           <configuration>
+            <arguments>test</arguments>
+            <skip>${skipTests}</skip>
+           </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <execution>
+            <id>process-webapp-sources</id>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/webapp-build</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}</directory>
+                  <includes>
+                    <include>e2e/**</include>
+                    <include>src/**</include>
+                    <include>.*</include>
+                    <include>package.json</include>
+                    <include>protactor.conf.js</include>
+                    <include>yarn.lock</include>
+                    <include>karma.conf.js</include>
+                    <include>tsconfig.json</include>
+                    <include>tslint.json</include>
+                    <include>webpack.config.js</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-resources</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/classes/dist</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}/target/webapp-build/dist</directory>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>README.md</exclude>
+            <exclude>*.editorconfig</exclude>
+            <exclude>src/vendor/**</exclude>
+            <exclude>yarn.lock</exclude>
+            <exclude>node_modules/**</exclude>
+            <exclude>dist/**</exclude>
+            <exclude>**/*.json</exclude>
+            <exclude>**/*.log</exclude>
+            <exclude>**/*.txt</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>test</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

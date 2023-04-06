@@ -103,10 +103,12 @@ describe('App.AssignMasterOnStep7Controller', function () {
 
     beforeEach(function() {
       sinon.stub(view, 'loadMasterComponentHosts');
+      sinon.stub(App.ModalPopup, 'show');
     });
 
     afterEach(function() {
       view.loadMasterComponentHosts.restore();
+      App.ModalPopup.show.restore();
     });
 
     it("loadMasterComponentHosts should be called", function() {
@@ -149,6 +151,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
       sinon.stub(mock, 'setValue');
       sinon.stub(mock, 'toggleProperty');
       sinon.stub(mock, 'sendRequestRorDependentConfigs');
+      sinon.spy(App.ModalPopup, 'show');
     });
 
     afterEach(function() {
@@ -156,6 +159,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
       mock.setValue.restore();
       mock.toggleProperty.restore();
       mock.sendRequestRorDependentConfigs.restore();
+      App.ModalPopup.show.restore();
     });
 
     it("test", function() {

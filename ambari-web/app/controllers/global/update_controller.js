@@ -685,11 +685,10 @@ App.UpdateController = Em.Controller.extend({
   },
 
   configsChangedHandler: function(event) {
-    App.router.get('configurationController').updateConfigTags().always(() => {
-      if (event.configs && event.configs.someProperty('type', 'cluster-env')) {
-        this.updateClusterEnv();
-      }
-    });
+    if (event.configs && event.configs.someProperty('type', 'cluster-env')) {
+      this.updateClusterEnv();
+    }
+    App.router.get('configurationController').updateConfigTags();
   },
 
   //TODO - update service auto-start to use this

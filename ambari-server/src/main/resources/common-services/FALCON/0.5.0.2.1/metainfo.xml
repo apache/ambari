@@ -1,0 +1,151 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>FALCON</name>
+      <displayName>Falcon</displayName>
+      <comment>Data management and processing platform</comment>
+      <version>0.5.0.2.1</version>
+      <components>
+        <component>
+          <name>FALCON_CLIENT</name>
+          <displayName>Falcon Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/falcon_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>env</type>
+              <fileName>falcon-env.sh</fileName>
+              <dictionaryName>falcon-env</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>properties</type>
+              <fileName>runtime.properties</fileName>
+              <dictionaryName>falcon-runtime.properties</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>properties</type>
+              <fileName>startup.properties</fileName>
+              <dictionaryName>falcon-startup.properties</dictionaryName>
+            </configFile>
+          </configFiles>
+        </component>
+        <component>
+          <name>FALCON_SERVER</name>
+          <displayName>Falcon Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>OOZIE/OOZIE_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>OOZIE/OOZIE_CLIENT</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/falcon_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>falcon_app</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+      </components>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>falcon</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+      
+      <requiredServices>
+        <service>OOZIE</service>
+      </requiredServices>
+
+      <configuration-dependencies>
+        <config-type>falcon-env</config-type>
+        <config-type>falcon-startup.properties</config-type>
+        <config-type>falcon-runtime.properties</config-type>
+        <config-type>falcon-client.properties</config-type>
+        <config-type>falcon-log4j.xml</config-type>
+        <config-type>falcon-atlas-application.properties</config-type>
+        <config-type>application.properties</config-type>
+      </configuration-dependencies>
+
+      <!-- Make a new config version when these config types are changed. -->
+      <excluded-config-types>
+        <config-type>oozie-site</config-type>
+      </excluded-config-types>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+
+      <themes>
+        <theme>
+          <fileName>directories.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
+    </service>
+  </services>
+</metainfo>

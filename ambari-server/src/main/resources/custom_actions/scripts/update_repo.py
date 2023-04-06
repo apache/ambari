@@ -63,7 +63,7 @@ class UpdateRepo(Script):
         )
         structured_output["repo_update"] = {"exit_code" : 0, "message": format("Repository files successfully updated!")}
       Repository(None, action="create")
-    except Exception, exception:
+    except Exception as exception:
       Logger.logger.exception("ERROR: There was an unexpected error while updating repositories")
       raise Fail("Failed to update repo files!")
 

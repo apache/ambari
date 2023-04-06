@@ -119,11 +119,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    */
   public static final String QUICKLINKS_PROFILE_SERVICES_PROPERTY = "quicklinks_profile/services";
 
-  public static final String ALIAS = "alias";
-  public static final String PRINCIPAL = "principal";
-  public static final String KEY = "key";
-  public static final String TYPE = "type";
-
 
   /**
    * configuration factory
@@ -222,19 +217,19 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     Set<Map<String, String>> credentialsSet = (Set<Map<String, String>>) properties.get(ClusterResourceProvider.CREDENTIALS);
     if (credentialsSet != null) {
       for (Map<String, String> credentialMap : credentialsSet) {
-        String alias = Strings.emptyToNull(credentialMap.get(ALIAS));
+        String alias = Strings.emptyToNull(credentialMap.get("alias"));
         if (alias == null) {
           throw new InvalidTopologyTemplateException("credential.alias property is missing.");
         }
-        String principal = Strings.emptyToNull(credentialMap.get(PRINCIPAL));
+        String principal = Strings.emptyToNull(credentialMap.get("principal"));
         if (principal == null) {
           throw new InvalidTopologyTemplateException("credential.principal property is missing.");
         }
-        String key = Strings.emptyToNull(credentialMap.get(KEY));
+        String key = Strings.emptyToNull(credentialMap.get("key"));
         if (key == null) {
           throw new InvalidTopologyTemplateException("credential.key is missing.");
         }
-        String typeString = Strings.emptyToNull(credentialMap.get(TYPE));
+        String typeString = Strings.emptyToNull(credentialMap.get("type"));
         if (typeString == null) {
           throw new InvalidTopologyTemplateException("credential.type is missing.");
         }
@@ -361,7 +356,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     throws InvalidTopologyTemplateException {
 
     if (hostGroupProperties.containsKey(HOSTGROUP_HOST_COUNT_PROPERTY)) {
-      hostGroupInfo.setRequestedCount(Integer.parseInt(String.valueOf(
+      hostGroupInfo.setRequestedCount(Integer.valueOf(String.valueOf(
         hostGroupProperties.get(HOSTGROUP_HOST_COUNT_PROPERTY))));
       LOG.info("Stored expected hosts count {} for group {}",
         hostGroupInfo.getRequestedHostCount(), hostGroupInfo.getHostGroupName());

@@ -77,7 +77,7 @@ class AptParser(GenericParser):
                       MD5: 000000000000000000000000000
     """
     fields = {"Package": 0, "Version": 1, "File": 2}
-    field_names = fields.keys()
+    field_names = list(fields.keys())
     field_count = len(field_names)
     item_set = [None] * field_count
 
@@ -137,7 +137,7 @@ class AptParser(GenericParser):
 
       line = line[2:].lstrip()
       data = line.partition(" ")
-      pkg_name = data[0].partition(":")[0]  # for system packages in format "libuuid1:amd64"
+      pkg_name = data[0]
       version = data[2].strip().partition(" ")[0]
 
       if pkg_name and version:

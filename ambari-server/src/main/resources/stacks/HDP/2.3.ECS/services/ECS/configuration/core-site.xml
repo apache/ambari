@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one or more
+    contributor license agreements.  See the NOTICE file distributed with
+    this work for additional information regarding copyright ownership.
+    The ASF licenses this file to You under the Apache License, Version 2.0
+    (the "License"); you may not use this file except in compliance with
+    the License.  You may obtain a copy of the License at
+ 
+        http://www.apache.org/licenses/LICENSE-2.0
+ 
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+ -->
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
+  <!-- HDFS Configurations -->
+  <property>
+    <name>fs.defaultFS</name>
+    <value/>
+    <description>Provide VIPRFS bucket details using the format viprfs://$BUCKET_NAME.$NAMESPACE.$SITE_NAME_from_fs.vipr.installations</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hadoop.security.authentication</name>
+    <value>simple</value>
+    <description>Supported values: simple, kerberos</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hadoop.security.authorization</name>
+    <value>false</value>
+    <description>Supported values true, false</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hadoop.security.auth_to_local</name>
+    <value>DEFAULT</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>fs.permissions.umask-mode</name>
+    <value>022</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- VIPRFS Configurations -->
+  <property>
+    <name>fs.vipr.installations</name>
+    <value>Site1</value>
+    <description>Provide site name of the tenant</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>fs.vipr.installation.Site1.hosts</name>
+    <value/>
+    <description>Provide ECS node IPs or VIP</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>fs.vipr.installation.Site1.resolution</name>
+    <value>dynamic</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>fs.vipr.installation.Site1.resolution.dynamic.time_to_live_ms</name>
+    <value>900000</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>fs.viprfs.auth.anonymous_translation</name>
+    <value>LOCAL_USER</value>
+    <final>true</final>
+    <description>Supported values are LOCAL_USER. Applicable only for insecure cluster deployment.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>fs.viprfs.auth.identity_translation</name>
+    <value>NONE</value>
+    <description>Supported values are NONE(default), FIXED_REALM, and CURRENT_USER_REALM</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!--  Moving the configuration to kerberos.json as this is applicable to only secure cluster
+    <property>
+      <name>viprfs.security.principal</name>
+      <value>NONE</value>
+	  <description>Modify the value for secure cluster setup. Provide object engine security principal name using the format: vipr/_HOST@ECS_REALM</description>
+    </property>
+    -->
+  <property>
+    <name>fs.viprfs.impl</name>
+    <value>com.emc.hadoop.fs.vipr.ViPRFileSystem</value>
+    <final>true</final>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>fs.AbstractFileSystem.viprfs.impl</name>
+    <value>com.emc.hadoop.fs.vipr.ViPRAbstractFileSystem</value>
+    <final>true</final>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>fs.trace.viprfs.dfs.impl</name>
+    <value>com.emc.hadoop.fs.trace.TraceDistributedFileSystem</value>
+    <final>true</final>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>fs.trace.viprfs.dfs.inner</name>
+    <value>org.apache.hadoop.hdfs.DistributedFileSystemShim</value>
+    <final>true</final>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>fs.viprfs.dfs.impl</name>
+    <value>org.apache.hadoop.hdfs.DistributedFileSystemShim</value>
+    <final>true</final>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

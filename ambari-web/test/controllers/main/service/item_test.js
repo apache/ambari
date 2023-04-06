@@ -1487,6 +1487,7 @@ describe('App.MainServiceItemController', function () {
       this.mockService = sinon.stub(App.Service, 'find');
       this.mockRangerPluginEnabled = sinon.stub(mainServiceItemController, 'isRangerPluginEnabled');
       sinon.stub(App, 'showConfirmationPopup');
+      sinon.stub(App.ModalPopup, 'show');
       sinon.stub(App.format, 'role', function(name) {return name});
       sinon.stub(mainServiceItemController, 'kerberosDeleteWarning');
       sinon.stub(mainServiceItemController, 'showLastWarning');
@@ -1502,6 +1503,7 @@ describe('App.MainServiceItemController', function () {
       this.mockService.restore();
       mainServiceItemController.dependentServicesWarning.restore();
       App.showConfirmationPopup.restore();
+      App.ModalPopup.show.restore();
       App.format.role.restore();
       mainServiceItemController.kerberosDeleteWarning.restore();
       this.mockRangerPluginEnabled.restore();
@@ -1577,10 +1579,12 @@ describe('App.MainServiceItemController', function () {
 
     beforeEach(function() {
       mainServiceItemController = App.MainServiceItemController.create({});
+      sinon.spy(App.ModalPopup, 'show');
       sinon.stub(App.router, 'transitionTo');
     });
 
     afterEach(function() {
+      App.ModalPopup.show.restore();
       App.router.transitionTo.restore();
     });
 
@@ -1597,9 +1601,11 @@ describe('App.MainServiceItemController', function () {
 
     beforeEach(function() {
       mainServiceItemController = App.MainServiceItemController.create({});
+      sinon.stub(App.ModalPopup, 'show');
       sinon.stub(App.format, 'role', function(name) {return name});
     });
     afterEach(function() {
+      App.ModalPopup.show.restore();
       App.format.role.restore();
     });
 
@@ -1613,8 +1619,11 @@ describe('App.MainServiceItemController', function () {
     var mainServiceItemController;
 
     beforeEach(function () {
-      App.ModalPopup.show.restore();
       mainServiceItemController = App.MainServiceItemController.create();
+    });
+
+    afterEach(function () {
+      App.ModalPopup.show.restore();
     });
 
     describe('confirmation popup', function () {
@@ -1825,10 +1834,10 @@ describe('App.MainServiceItemController', function () {
       }
     ].forEach(function (test) {
         it(test.m, function () {
-          this.mockService.returns(Em.Object.create({
+          this.mockService.returns([Em.Object.create({
             serviceName: 'YARN',
             isRestartRequired: test.isRestartRequired
-          }));
+          })]);
           var confirmationPopup = mainServiceItemController.restartLLAP();
           confirmationPopup.onPrimary();
           expect(mainServiceItemController[test.toCall].calledOnce).to.be.true;
@@ -2081,495 +2090,5 @@ describe('App.MainServiceItemController', function () {
     });
 
   });
-  
-  describe('#clientComponents', function() {
-    beforeEach(function() {
-      sinon.stub(App.StackServiceComponent, 'find').returns([
-        Em.Object.create({
-          componentName: 'C1',
-          displayName: 'c1',
-          serviceName: 'S1',
-          isClient: true
-        })
-      ]);
-    });
-    afterEach(function() {
-      App.StackServiceComponent.find.restore();
-    });
-    
-    it('should return list of clients', function() {
-      var ctrl = App.MainServiceItemController.create({
-        content: {
-          serviceName: 'S1'
-        }
-      });
-      ctrl.propertyDidChange('clientComponents');
-      expect(ctrl.get('clientComponents')).to.be.eql([
-        {
-          action:  'downloadAllClientConfigs',
-          context: {
-            label: Em.I18n.t('common.all.clients')
-          }
-        },
-        {
-          action: 'downloadClientConfigs',
-          context: {
-            name: 'C1',
-            label: 'c1'
-          }
-        }
-      ]);
-    });
-  });
-  
-  describe('#sitesToLoad', function() {
-    beforeEach(function() {
-      sinon.stub(App.StackService, 'find').returns([
-        Em.Object.create({
-          serviceName: 'S1',
-          configTypeList: ['type1']
-        })
-      ]);
-    });
-    afterEach(function() {
-      App.StackService.find.restore();
-    });
-    
-    it('should return sites', function() {
-      var ctrl = App.MainServiceItemController.create({
-        content: {
-          serviceName: 'S1'
-        },
-        configDependentServiceNames: ['S1'],
-        serviceConfigsMap: {
-          'S1': ['type2']
-        }
-      });
-      ctrl.propertyDidChange('sitesToLoad');
-      expect(ctrl.get('sitesToLoad')).to.be.eql(['type1', 'type2', 'cluster-env']);
-    });
-  });
-  
-  describe('#startStopPopupSuccessCallback', function() {
-    var ctrl;
-    var mock = {
-      dataLoading: function() {
-        return {
-          done: function(callback) {
-            callback(true);
-          }
-        }
-      },
-      showPopup: sinon.spy()
-    };
-    beforeEach(function() {
-      ctrl = App.MainServiceItemController.create();
-      sinon.stub(App.router, 'get').returns(mock);
-    });
-    afterEach(function() {
-      App.router.get.restore();
-    });
-    
-    it('showPopup should be called when call successful', function() {
-      var params = {query: Em.Object.create()};
-      ctrl.startStopPopupSuccessCallback({Requests: []}, {}, params);
-      expect(params.query.get('status')).to.be.equal('SUCCESS');
-      expect(mock.showPopup.calledOnce).to.be.true;
-    });
-    it('should set FAIL status when call failed', function() {
-      var params = {query: Em.Object.create()};
-      ctrl.startStopPopupSuccessCallback(null, {}, params);
-      expect(params.query.get('status')).to.be.equal('FAIL');
-    });
-  });
-  
-  describe('#checkNnLastCheckpointTime', function() {
-    var ctrl;
-    var callback = sinon.spy();
-    beforeEach(function() {
-      ctrl = App.MainServiceItemController.create();
-      sinon.stub(ctrl, 'pullNnCheckPointTime').returns({complete: Em.clb});
-      sinon.stub(ctrl, 'getHdfsUser').returns({done: Em.clb});
-      sinon.stub(ctrl, 'getMessageForOldCheckpoints').returns('message');
-      sinon.stub(App, 'showConfirmationFeedBackPopup');
-      sinon.stub(App, 'showConfirmationPopup');
-    });
-    afterEach(function() {
-      ctrl.pullNnCheckPointTime.restore();
-      ctrl.getHdfsUser.restore();
-      ctrl.getMessageForOldCheckpoints.restore();
-      App.showConfirmationFeedBackPopup.restore();
-      App.showConfirmationPopup.restore();
-    });
-    
-    it('showConfirmationFeedBackPopup should be called', function() {
-      ctrl.set('nameNodesWithOldCheckpoints', [{}]);
-      ctrl.checkNnLastCheckpointTime(callback);
-      expect(App.showConfirmationFeedBackPopup.calledWith(callback, 'message')).to.be.true;
-    });
-    it('callback should be called', function() {
-      ctrl.set('nameNodesWithOldCheckpoints', []);
-      ctrl.set('isNameNodeCheckpointUnavailable', false);
-      ctrl.checkNnLastCheckpointTime(callback);
-      expect(callback.calledOnce).to.be.true;
-    });
-    it('showConfirmationPopup should be called', function() {
-      ctrl.set('nameNodesWithOldCheckpoints', []);
-      ctrl.set('isNameNodeCheckpointUnavailable', true);
-      ctrl.checkNnLastCheckpointTime(callback);
-      expect(App.showConfirmationPopup.calledWith(
-        callback, Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointNA'), null,
-        Em.I18n.t('common.warning'), Em.I18n.t('common.proceedAnyway'), 'danger')
-      ).to.be.true;
-    });
-  });
-  
-  describe('#pullNnCheckPointTime', function() {
-    beforeEach(function() {
-      sinon.stub(App.HDFSService, 'find').returns([
-        Em.Object.create({
-          hostComponents: [
-            Em.Object.create({
-              haNameSpace: 'ha',
-              clusterIdValue: 'c1'
-            })
-          ]
-        })
-      ]);
-    });
-    afterEach(function() {
-      App.HDFSService.find.restore();
-    });
-    
-    it('App.ajax.send should be called', function() {
-      var ctrl = App.MainServiceItemController.create();
-      ctrl.pullNnCheckPointTime('ha');
-      expect(testHelpers.findAjaxRequest('name', 'common.service.hdfs.getNnCheckPointTime')[0].data).to.be.eql({
-        clusterIdValue: 'c1'
-      });
-    });
-  });
-  
-  describe('#startStopWithMmode', function() {
-    var ctrl;
-    beforeEach(function() {
-      ctrl = App.MainServiceItemController.create({
-        content: {
-          serviceName: 's1'
-        }
-      });
-      sinon.stub(ctrl, 'startStopPopupPrimary').returns({
-        complete: Em.clb
-      });
-      sinon.stub(batchUtils, 'turnOnOffPassiveRequest').returns({
-        complete: Em.clb
-      });
-    });
-    afterEach(function() {
-      ctrl.startStopPopupPrimary.restore();
-      batchUtils.turnOnOffPassiveRequest.restore();
-    });
-    
-    it('turnOnOffPassiveRequest should be called when turning off maintenance', function() {
-      ctrl.startStopWithMmode('STARTED', '', true, [], [], '');
-      expect(batchUtils.turnOnOffPassiveRequest.calledWith('OFF', Em.I18n.t('passiveState.turnOff'), 'S1')).to.be.true;
-    });
-    it('startStopPopupPrimary should be called when turning on maintenance', function() {
-      ctrl.startStopWithMmode('INSTALLED', '', true, [], [], '');
-      expect(ctrl.startStopPopupPrimary.calledWith('INSTALLED', '', [], [], '')).to.be.true;
-    });
-    it('startStopPopupPrimary should be called', function() {
-      ctrl.startStopWithMmode('INSTALLED', '', false, [], [], '');
-      expect(ctrl.startStopPopupPrimary.calledWith('INSTALLED', '', [], [], '')).to.be.true;
-    });
-  });
-  
-  describe('#refreshYarnQueues', function() {
-    beforeEach(function() {
-      sinon.stub(App, 'showConfirmationPopup', Em.clb);
-      sinon.stub(App.MasterComponent, 'find').returns(Em.Object.create({
-        hostNames: ['host1']
-      }));
-    });
-    afterEach(function() {
-      App.showConfirmationPopup.restore();
-      App.MasterComponent.find.restore();
-    });
-    
-    it('App.ajax.send should be called', function() {
-      var ctrl = App.MainServiceItemController.create();
-      ctrl.refreshYarnQueues();
-      expect(testHelpers.findAjaxRequest('name', 'service.item.refreshQueueYarnRequest')[0].data).to.be.eql({
-        command: "REFRESHQUEUES",
-        context: Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context'),
-        hosts: 'host1',
-        serviceName: "YARN",
-        componentName: "RESOURCEMANAGER",
-        forceRefreshConfigTags: "capacity-scheduler"
-      });
-    });
-  });
-  
-  describe('#refreshYarnQueuesSuccessCallback', function() {
-    beforeEach(function() {
-      sinon.stub(App.router, 'get').returns({showPopup: sinon.spy()});
-    });
-    afterEach(function() {
-      App.router.get.restore();
-    });
-    
-    it('showPopup should be called', function() {
-      var ctrl = App.MainServiceItemController.create();
-      ctrl.refreshYarnQueuesSuccessCallback({Requests: {id: 1}});
-      expect(App.router.get('backgroundOperationsController').showPopup.calledOnce).to.be.true;
-    });
-  });
-  
-  describe('#refreshYarnQueuesErrorCallback', function() {
-    beforeEach(function() {
-      sinon.stub(App, 'showAlertPopup');
-    });
-    afterEach(function() {
-      App.showAlertPopup.restore();
-    });
-    
-    it('showAlertPopup should be called', function() {
-      var ctrl = App.MainServiceItemController.create();
-      ctrl.refreshYarnQueuesErrorCallback({
-        responseText: JSON.stringify({
-          message: 'hello'
-        })
-      });
-      expect(App.showAlertPopup.calledWith(
-        Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error'),
-        Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error') + 'hello'
-      )).to.be.true;
-    });
-  });
-  
-  describe('#startStopLdapKnox', function() {
-    beforeEach(function() {
-      sinon.stub(App.HostComponent, 'find').returns([
-        Em.Object.create({
-          componentName: 'KNOX_GATEWAY',
-          hostName: 'host1'
-        })
-      ]);
-      sinon.stub(App, 'showConfirmationPopup', Em.clb);
-    });
-    afterEach(function() {
-      App.HostComponent.find.restore();
-      App.showConfirmationPopup.restore();
-    });
-    
-    it('App.ajax.send should be called after confirmation', function() {
-      var ctrl = App.MainServiceItemController.create();
-      ctrl.startStopLdapKnox('command1', 'context1');
-      expect(testHelpers.findAjaxRequest('name', 'service.item.startStopLdapKnox')[0].data).to.be.eql({
-        command: 'command1',
-        context: 'context1',
-        host: 'host1',
-        serviceName: "KNOX",
-        componentName: "KNOX_GATEWAY"
-      });
-    });
-  });
-  
-  describe('#startStopLdapKnoxSuccessCallback', function() {
-    beforeEach(function() {
-      sinon.stub(App.router, 'get').returns({showPopup: sinon.spy()});
-    });
-    afterEach(function() {
-      App.router.get.restore();
-    });
-    
-    it('showPopup should be called', function() {
-      var ctrl = App.MainServiceItemController.create();
-      ctrl.startStopLdapKnoxSuccessCallback({Requests: {id: 1}});
-      expect(App.router.get('backgroundOperationsController').showPopup.calledOnce).to.be.true;
-    });
-  });
-  
-  describe('#startStopLdapKnoxErrorCallback', function() {
-    beforeEach(function() {
-      sinon.stub(App, 'showAlertPopup');
-    });
-    afterEach(function() {
-      App.showAlertPopup.restore();
-    });
-    
-    it('showAlertPopup should be called', function() {
-      var ctrl = App.MainServiceItemController.create();
-      ctrl.startStopLdapKnoxErrorCallback({
-        responseText: JSON.stringify({
-          message: 'hello'
-        })
-      });
-      expect(App.showAlertPopup.calledWith(
-        Em.I18n.t('services.service.actions.run.startStopLdapKnox.error'),
-        Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error') + 'hello'
-      )).to.be.true;
-    });
-  });
-  
-  describe('#restartLLAPRequest', function() {
-    beforeEach(function() {
-      sinon.stub(App.HostComponent, 'find').returns([
-        Em.Object.create({
-          componentName: 'HIVE_SERVER_INTERACTIVE',
-          hostName: 'host1'
-        })
-      ]);
-    });
-    afterEach(function() {
-      App.HostComponent.find.restore();
-    });
-    
-    it('App.ajax.send should be called', function() {
-      var ctrl = App.MainServiceItemController.create();
-      ctrl.restartLLAPRequest();
-      expect(testHelpers.findAjaxRequest('name', 'service.item.executeCustomCommand')[0].data).to.be.eql({
-        command: 'RESTART_LLAP',
-        context: Em.I18n.t('services.service.actions.run.restartLLAP'),
-        hosts: 'host1',
-        serviceName: "HIVE",
-        componentName: "HIVE_SERVER_INTERACTIVE"
-      });
-    });
-  });
-  
-  describe('#restartLLAPAndRefreshQueueRequest', function() {
-    beforeEach(function() {
-      sinon.stub(App.MasterComponent, 'find').returns(Em.Object.create({
-        hostNames: ['host1']
-      }));
-    });
-    afterEach(function() {
-      App.MasterComponent.find.restore();
-    });
-    
-    it('App.ajax.send should be called', function() {
-      var ctrl = App.MainServiceItemController.create();
-      ctrl.restartLLAPAndRefreshQueueRequest();
-      expect(testHelpers.findAjaxRequest('name', 'common.batch.request_schedules')[0].data).to.be.eql({
-        intervalTimeSeconds: 1,
-        tolerateSize: 0,
-        batches: [
-          {
-            "order_id": 1,
-            "type": "POST",
-            "uri": "/clusters/mycluster/requests",
-            "RequestBodyInfo": {
-              "RequestInfo": {
-                "context": "Refresh YARN Capacity Scheduler",
-                "command": "REFRESHQUEUES",
-                "parameters/forceRefreshConfigTags": "capacity-scheduler"
-              },
-              "Requests/resource_filters": [{
-                "service_name": "YARN",
-                "component_name": "RESOURCEMANAGER",
-                "hosts": 'host1'
-              }]
-            }
-          },
-          {
-            "order_id": 2,
-            "type": "POST",
-            "uri": "/clusters/mycluster/requests",
-            "RequestBodyInfo": {
-              "RequestInfo": {"context": "Restart LLAP", "command": "RESTART_LLAP"},
-              "Requests/resource_filters": [{
-                "service_name": "HIVE",
-                "component_name": "HIVE_SERVER_INTERACTIVE",
-                "hosts": 'host1'
-              }]
-            }
-          }
-        ]
-      });
-    });
-  });
-  
-  describe('#requestSuccessCallback', function() {
-    var mock = {
-      dataLoading: function() {
-        return {
-          done: function(clb) {
-            clb(true);
-          }
-        }
-      },
-      showPopup: sinon.spy()
-    };
-    beforeEach(function() {
-      sinon.stub(App.router, 'get').returns(mock);
-    });
-    afterEach(function() {
-      App.router.get.restore();
-    });
-    
-    it('showPopup should be called', function() {
-      var ctrl = App.MainServiceItemController.create();
-      ctrl.requestSuccessCallback();
-      expect(mock.showPopup.calledOnce).to.be.true;
-    });
-  });
-  
-  describe('#rebalanceHdfsNodesSuccessCallback', function() {
-    var mock = {
-      showPopup: sinon.spy()
-    };
-    beforeEach(function() {
-      sinon.stub(App.router, 'get').returns(mock);
-    });
-    afterEach(function() {
-      App.router.get.restore();
-    });
-    
-    it('showPopup should be called', function() {
-      var ctrl = App.MainServiceItemController.create();
-      ctrl.rebalanceHdfsNodesSuccessCallback({Requests: {id: 1}});
-      expect(mock.showPopup.calledOnce).to.be.true;
-    });
-  });
-  
-  describe('#regenerateKeytabFileOperationsRequestSuccess', function() {
-    var mock = {
-      showPopup: sinon.spy()
-    };
-    beforeEach(function() {
-      sinon.stub(App.router, 'get').returns(mock);
-    });
-    afterEach(function() {
-      App.router.get.restore();
-    });
-    
-    it('showPopup should be called', function() {
-      var ctrl = App.MainServiceItemController.create();
-      ctrl.regenerateKeytabFileOperationsRequestSuccess();
-      expect(mock.showPopup.calledOnce).to.be.true;
-    });
-  });
-  
-  describe('#regenerateKeytabFileOperationsRequestError', function() {
-    beforeEach(function() {
-      sinon.stub(App, 'showAlertPopup');
-    });
-    afterEach(function() {
-      App.showAlertPopup.restore();
-    });
-    
-    it('showAlertPopup should be called', function() {
-      var ctrl = App.MainServiceItemController.create({
-        content: {
-          serviceName: 'S1'
-        }
-      });
-      ctrl.regenerateKeytabFileOperationsRequestError();
-      expect(App.showAlertPopup.calledWith(
-        Em.I18n.t('common.error'), Em.I18n.t('alerts.notifications.regenerateKeytab.service.error').format('S1')
-      )).to.be.true;
-    });
-  });
-  
+
 });

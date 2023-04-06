@@ -1,0 +1,62 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol": {
+      "type":"HTTP_ONLY"
+    },
+
+    "links": [
+      {
+        "name": "metrics_ui_server",
+        "label": "Hive Dashboard (Grafana)",
+        "requires_user_name": "false",
+        "component_name": "METRICS_GRAFANA",
+        "url":"%@://%@:%@",
+        "port": {
+          "http_property": "port",
+          "http_default_port": "3000",
+          "https_property": "port",
+          "https_default_port": "3000",
+          "regex": "^(\\d+)$",
+          "site": "ams-grafana-ini"
+        },
+        "protocol":{
+          "type":"https",
+          "checks":[
+            {
+              "property":"protocol",
+              "desired":"https",
+              "site":"ams-grafana-ini"
+            }
+          ]
+        }
+      },
+      {
+        "name": "hiveserver2_ui",
+        "label": "HiveServer2 Interactive UI",
+        "requires_user_name": "false",
+        "component_name": "HIVE_SERVER_INTERACTIVE",
+        "url": "%@://%@:%@/llap.html",
+        "port":{
+          "http_property": "hive.server2.webui.port",
+          "http_default_port": "10502",
+          "https_property": "hive.server2.webui.port",
+          "https_default_port": "10502",
+          "regex": "\\w*:(\\d+)",
+          "site": "hive-interactive-site"
+        },
+        "protocol":{
+          "type":"https",
+          "checks":[
+            {
+              "property":"hive.server2.webui.use.ssl",
+              "desired":"true",
+              "site":"hive-interactive-site"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

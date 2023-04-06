@@ -21,19 +21,13 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Set;
 
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
-import org.apache.ambari.spi.ClusterInformation;
-import org.apache.ambari.spi.RepositoryType;
-import org.apache.ambari.spi.RepositoryVersion;
-import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
-import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,12 +51,7 @@ public class RequiredServicesInRepositoryCheckTest {
   private VersionDefinitionXml m_vdfXml;
 
   @Mock
-  private RepositoryVersion m_repositoryVersion;
-
-  @Mock
-  private RepositoryVersionEntity m_repositoryVersionEntity;
-
-  private MockCheckHelper m_checkHelper = new MockCheckHelper();
+  private RepositoryVersionEntity m_repositoryVersion;
 
   private RequiredServicesInRepositoryCheck m_requiredServicesCheck;
 
@@ -86,31 +75,8 @@ public class RequiredServicesInRepositoryCheckTest {
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster(CLUSTER_NAME)).thenReturn(cluster);
 
-    Mockito.when(m_repositoryVersion.getId()).thenReturn(1L);
-    Mockito.when(m_repositoryVersion.getRepositoryType()).thenReturn(RepositoryType.STANDARD);
-
-    Mockito.when(m_repositoryVersionEntity.getRepositoryXml()).thenReturn(m_vdfXml);
-    Mockito.when(m_vdfXml.getMissingDependencies(Mockito.eq(cluster), Mockito.any(AmbariMetaInfo.class))).thenReturn(m_missingDependencies);
-
-
-    m_checkHelper.m_clusters = clusters;
-    Mockito.when(m_checkHelper.m_repositoryVersionDAO.findByPK(Mockito.anyLong())).thenReturn(m_repositoryVersionEntity);
-
-    final AmbariMetaInfo metaInfo = Mockito.mock(AmbariMetaInfo.class);
-    m_requiredServicesCheck.ambariMetaInfo = new Provider<AmbariMetaInfo>() {
-      @Override
-      public AmbariMetaInfo get() {
-        return metaInfo;
-      }
-    };
-
-
-    m_requiredServicesCheck.checkHelperProvider = new Provider<CheckHelper>() {
-      @Override
-      public CheckHelper get() {
-        return m_checkHelper;
-      }
-    };
+    Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
+    Mockito.when(m_vdfXml.getMissingDependencies(Mockito.eq(cluster))).thenReturn(m_missingDependencies);
   }
 
   /**
@@ -120,12 +86,12 @@ public class RequiredServicesInRepositoryCheckTest {
    */
   @Test
   public void testNoMissingServices() throws Exception {
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, null, null);
+    PrereqCheckRequest request = new PrereqCheckRequest(CLUSTER_NAME);
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
-    UpgradeCheckResult check = m_requiredServicesCheck.perform(request);
-    Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
+    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
+    m_requiredServicesCheck.perform(check, request);
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
     Assert.assertTrue(check.getFailedDetail().isEmpty());
   }
 
@@ -136,14 +102,14 @@ public class RequiredServicesInRepositoryCheckTest {
    */
   @Test
   public void testMissingRequiredService() throws Exception {
+    PrereqCheckRequest request = new PrereqCheckRequest(CLUSTER_NAME);
+    request.setTargetRepositoryVersion(m_repositoryVersion);
+
     m_missingDependencies.add("BAR");
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, null, null);
-
-    UpgradeCheckResult check = m_requiredServicesCheck.perform(request);
-    Assert.assertEquals(UpgradeCheckStatus.FAIL, check.getStatus());
+    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
+    m_requiredServicesCheck.perform(check, request);
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     Assert.assertFalse(check.getFailedDetail().isEmpty());
   }
 }

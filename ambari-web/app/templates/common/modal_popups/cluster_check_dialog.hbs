@@ -21,25 +21,18 @@
   {{/if}}
   {{#if view.fails.length}}
     {{#if view.failTitle}}
-      <h4><i class="glyphicon glyphicon-exclamation-sign"></i> {{view.failTitle}} ({{view.fails.length}})</h4>
+      <h4>{{view.failTitle}}</h4>
     {{/if}}
     {{#if view.failAlert}}
-      <div class="description">
+      <div class="alert alert-warning">
         {{view.failAlert}}
       </div>
     {{/if}}
     <div class="limited-height-2">
-      <ol class="checks-list">
-        {{#each item in view.fails}}
-          <li>
-            {{#if item.customView}}
-              {{view item.customView}}
-            {{else}}
-              {{item.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.failed_on}}
-            {{/if}}
-          </li>
-        {{/each}}
-      </ol>
+      {{#each item in view.fails}}
+        <i class="glyphicon glyphicon-remove"></i>&nbsp;<span>{{item.check}}</span>
+        <pre>{{t popup.clusterCheck.reason}}{{item.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.failed_on}}</pre>
+      {{/each}}
     </div>
   {{/if}}
 
@@ -49,9 +42,9 @@
       <h4>{{view.failTitle}}</h4>
     {{/if}}
     {{#if view.failAlert}}
-      <p>
+      <div class="alert alert-warning">
         {{view.failAlert}}
-      </p>
+      </div>
     {{/if}}
     <div class="limited-height-2">
       {{#each item in view.bypass}}
@@ -66,18 +59,14 @@
       <h4>{{view.warningTitle}}</h4>
     {{/if}}
     {{#if view.warningAlert}}
-      <p>
+      <div class="alert alert-warning">
         {{view.warningAlert}}
-      </p>
+      </div>
     {{/if}}
     <div class="limited-height-2">
       {{#each item in view.warnings}}
         <i class="glyphicon glyphicon-warning-sign"></i>&nbsp;<span>{{item.check}}</span>
-        {{#if item.customView}}
-          {{view item.customView}}
-        {{else}}
-          <pre>{{t popup.clusterCheck.reason}}{{item.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.failed_on}}</pre>
-        {{/if}}
+        <pre>{{t popup.clusterCheck.reason}}{{item.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.failed_on}}</pre>
       {{/each}}
     </div>
   {{/if}}
@@ -85,6 +74,6 @@
     {{view view.configsMergeTable}}
   {{/if}}
   {{#if view.hasConfigsRecommendations}}
-    {{view view.configsRecommendTable}}
+      {{view view.configsRecommendTable}}
   {{/if}}
 </div>

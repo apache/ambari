@@ -10,7 +10,8 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
+ * distributed under the License is distribut
+ * ed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -27,6 +28,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
@@ -220,4 +222,26 @@ public class BlueprintFactory {
     blueprintDAO   = dao;
   }
 
+  /**
+   * Internal interface used to abstract out the process of creating the Stack object.
+   *
+   * This is used to simplify unit testing, since a new Factory can be provided to
+   * simulate various Stack or error conditions.
+   */
+  interface StackFactory {
+      Stack createStack(String stackName, String stackVersion, AmbariManagementController managementController) throws AmbariException;
+  }
+
+  /**
+   * Default implementation of StackFactory.
+   *
+   * Calls the Stack constructor to create the Stack instance.
+   *
+   */
+  private static class DefaultStackFactory implements StackFactory {
+    @Override
+    public Stack createStack(String stackName, String stackVersion, AmbariManagementController managementController) throws AmbariException {
+      return new Stack(stackName, stackVersion, managementController);
+    }
+  }
 }

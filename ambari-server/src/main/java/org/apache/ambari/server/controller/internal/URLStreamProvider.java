@@ -46,9 +46,7 @@ import javax.net.ssl.X509TrustManager;
 
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
-import org.apache.ambari.server.proxy.ProxyService;
 import org.apache.ambari.server.utils.URLCredentialsHider;
-import org.apache.ambari.spi.net.HttpURLConnectionProvider;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
@@ -108,20 +106,20 @@ public class URLStreamProvider implements StreamProvider {
   public URLStreamProvider(int connectionTimeout, int readTimeout, String trustStorePath,
                            String trustStorePassword, String trustStoreType) {
 
-    connTimeout        = connectionTimeout;
+    this.connTimeout        = connectionTimeout;
     this.readTimeout        = readTimeout;
     this.trustStorePath     = trustStorePath;
     this.trustStorePassword = trustStorePassword;
     this.trustStoreType     = trustStoreType;
-    setupTruststoreForHttps = true;
+    this.setupTruststoreForHttps = true;
   }
 
   public void setSetupTruststoreForHttps(boolean setupTruststoreForHttps) {
     this.setupTruststoreForHttps = setupTruststoreForHttps;
   }
-
+  
   public boolean getSetupTruststoreForHttps() {
-    return setupTruststoreForHttps;
+    return this.setupTruststoreForHttps;
   }
 
   // ----- StreamProvider ----------------------------------------------------
@@ -194,7 +192,7 @@ public class URLStreamProvider implements StreamProvider {
     }
 
     URL url = new URL(spec);
-    HttpURLConnection connection = (spec.startsWith("https") && setupTruststoreForHttps) ?
+    HttpURLConnection connection = (spec.startsWith("https") && this.setupTruststoreForHttps) ?
             getSSLConnection(url) : getConnection(url);
 
     AppCookieManager appCookieManager = getAppCookieManager();
@@ -241,11 +239,12 @@ public class URLStreamProvider implements StreamProvider {
       String wwwAuthHeader = connection.getHeaderField(WWW_AUTHENTICATE);
       if (LOG.isInfoEnabled()) {
         LOG.info("Received WWW-Authentication header:" + wwwAuthHeader + ", for URL:" +
-                URLCredentialsHider.hideCredentials(spec));
+                   URLCredentialsHider.hideCredentials(spec));
       }
       if (wwwAuthHeader != null &&
         wwwAuthHeader.trim().startsWith(NEGOTIATE)) {
-        connection = spec.startsWith("https") ? getSSLConnection(url) : getConnection(url);
+        connection = spec.startsWith("https") ?
+           getSSLConnection(url) : getConnection(url);
         appCookie = appCookieManager.getAppCookie(spec, true);
         connection.setRequestProperty(COOKIE, appCookie);
         connection.setConnectTimeout(connTimeout);
@@ -257,7 +256,7 @@ public class URLStreamProvider implements StreamProvider {
         // no supported authentication type found
         // we would let the original response propagate
         LOG.error("Unsupported WWW-Authentication header:" + wwwAuthHeader+ ", for URL:" +
-                URLCredentialsHider.hideCredentials(spec));
+                    URLCredentialsHider.hideCredentials(spec));
         return connection;
       }
     } else {
@@ -265,7 +264,7 @@ public class URLStreamProvider implements StreamProvider {
         // we would let the original response propagate
         if (statusCode == HttpStatus.SC_NOT_FOUND || statusCode == HttpStatus.SC_FORBIDDEN){
           LOG.error(String.format("Received HTTP %s response from URL: %s", statusCode,
-                  URLCredentialsHider.hideCredentials(spec)));
+                                  URLCredentialsHider.hideCredentials(spec)));
         }
         return connection;
     }
@@ -352,8 +351,8 @@ public class URLStreamProvider implements StreamProvider {
 
           if (trustStorePath == null || trustStorePassword == null) {
             String msg =
-                    String.format("Can't get secure connection to %s.  Truststore path or password is not set.",
-                            URLCredentialsHider.hideCredentials(url.toString()));
+                String.format("Can't get secure connection to %s.  Truststore path or password is not set.",
+                              URLCredentialsHider.hideCredentials(url.toString()));
 
             LOG.error(msg);
             throw new IllegalStateException(msg);
@@ -384,39 +383,7 @@ public class URLStreamProvider implements StreamProvider {
         .openConnection());
 
     connection.setSSLSocketFactory(sslSocketFactory);
-
+ 
     return connection;
-  }
-
-  /**
-   * A default implementation of {@link HttpURLConnectionProvider}, this class
-   * will use the {@link URLStreamProvider} in order to provide an
-   * {@link HttpURLConnection} which is able to use Ambari's cookie store,
-   * truststore, and timeout values.
-   */
-  public static final class AmbariHttpUrlConnectionProvider implements HttpURLConnectionProvider {
-
-    /**
-     * The stream provider.
-     */
-    private final URLStreamProvider m_streamProvider;
-
-    /**
-     * Constructor.
-     *
-     */
-    public AmbariHttpUrlConnectionProvider() {
-      m_streamProvider = new URLStreamProvider(ProxyService.URL_CONNECT_TIMEOUT,
-          ProxyService.URL_READ_TIMEOUT, ComponentSSLConfiguration.instance());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public HttpURLConnection getConnection(String url, Map<String, List<String>> headers)
-        throws IOException {
-      return m_streamProvider.processURL(url, "GET", (InputStream) null, headers);
-    }
   }
 }

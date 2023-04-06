@@ -1,0 +1,456 @@
+{
+    "configurationAttributes": {
+        "falcon-startup.properties": {},
+        "falcon-runtime.properties": {},
+        "hdfs-site": {
+            "final": {
+                "dfs.support.append": "true", 
+                "dfs.namenode.http-address": "true"
+            }
+        }, 
+        "falcon-env": {}, 
+        "core-site": {
+            "final": {
+                "fs.defaultFS": "true"
+            }
+        }, 
+        "cluster-env": {}
+    },
+    "commandParams": {
+        "service_package_folder": "common-services/FALCON/0.5.0.2.1/package", 
+        "script": "scripts/falcon_server.py", 
+        "hooks_folder": "HDP/2.0.6/hooks", 
+        "upgrade_type": "rolling_upgrade",
+        "version": "2.2.1.0-2135", 
+        "command_timeout": "1200", 
+        "script_type": "PYTHON"
+    }, 
+    "roleCommand": "CUSTOM_COMMAND", 
+    "kerberosCommandParams": [], 
+    "clusterName": "c1", 
+    "hostname": "c6402.ambari.apache.org", 
+    "clusterLevelParams": {
+        "stack_version": "2.2", 
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "hooks_folder": "stack-hooks", 
+        "stack_name": "HDP", 
+        "group_list": "[\"hdfs\",\"hadoop\",\"users\"]", 
+        "user_groups": "{\"hive\":[\"hadoop\"], \"oozie\":[\"hadoop\",\"users\"], \"nobody\":[\"hadoop\",\"nobody\"], \"ambari-qa\":[\"hadoop\",\"users\"], \"flume\":[\"hadoop\"], \"hdfs\":[\"hadoop\"], \"storm\":[\"hadoop\"], \"mapred\":[\"hadoop\"], \"hbase\":[\"hadoop\"], \"tez\":[\"hadoop\",\"users\"], \"zookeeper\":[\"hadoop\"], \"falcon\":[\"hadoop\",\"users\"], \"sqoop\":[\"hadoop\"], \"yarn\":[\"hadoop\"], \"hcat\":[\"hadoop\"]}", 
+        "cluster_name": "c1", 
+        "user_list": "[\"ambari-qa\",\"hdfs\"]"
+    },
+    "ambariLevelParams": {
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources",
+        "agent_stack_retry_count": "5", 
+        "db_driver_filename": "mysql-connector-java.jar", 
+        "agent_stack_retry_on_unavailability": "false", 
+        "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
+        "jce_name": "jce_policy-7.zip", 
+        "java_version": "7", 
+        "ambari_db_rca_password": "mapred", 
+        "host_sys_prepped": "false", 
+        "db_name": "ambari", 
+        "oracle_jdbc_url": "http://c6401.ambari.apache.org/resources/ojdbc6.jar",
+        "ambari_db_rca_driver": "org.postgresql.Driver", 
+        "ambari_db_rca_username": "mapred", 
+        "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
+        "java_home": "/usr/jdk64/jdk1.7.0_45", 
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources/mysql-connector-java.jar"
+    },
+    "repositoryFile": {
+        "resolved": true, 
+        "repoVersion": "2.6.4.0-60", 
+        "repositories": [
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60", 
+                "repoName": "HDP", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-2.6-repo-1"
+            }, 
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60", 
+                "repoName": "HDP-GPL", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-2.6-GPL-repo-1"
+            }, 
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6", 
+                "repoName": "HDP-UTILS", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-UTILS-1.1.0.22-repo-1"
+            }
+        ], 
+        "feature": {
+            "m_isScoped": true, 
+            "m_isPreInstalled": false
+        }, 
+        "stackName": "HDP", 
+        "repoVersionId": 1
+    },
+    "agentLevelParams": {
+        "public_hostname": null, 
+        "hostname": "c6401.ambari.apache.org", 
+        "agentConfigParams": {
+            "agent": {
+                "parallel_execution": 0, 
+                "use_system_proxy_settings": true
+            }
+        }, 
+        "agentCacheDir": "/var/lib/ambari-agent/cache"
+    },
+    "hostLevelParams": {
+        "recoveryConfig": {
+            "retryGap": "5", 
+            "windowInMinutes": "60", 
+            "maxLifetimeCount": "1024", 
+            "components": "", 
+            "maxCount": "6", 
+            "type": "AUTO_START"
+        }, 
+        "hostRepositories": {
+            "componentRepos": {
+                "NAMENODE": 1, 
+                "SECONDARY_NAMENODE": 1, 
+                "DATANODE": 1, 
+                "HDFS_CLIENT": 1
+            }, 
+            "commandRepos": {
+                "1": {
+                    "resolved": true, 
+                    "repoVersion": "2.1.4.0-60", 
+                    "repositories": [
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60", 
+                            "repoName": "HDP", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-2.6-repo-1"
+                        }, 
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60", 
+                            "repoName": "HDP-GPL", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-2.6-GPL-repo-1"
+                        }, 
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6", 
+                            "repoName": "HDP-UTILS", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-UTILS-1.1.0.22-repo-1"
+                        }
+                    ], 
+                    "feature": {
+                        "m_isScoped": true, 
+                        "m_isPreInstalled": false
+                    }, 
+                    "stackName": "HDP", 
+                    "repoVersionId": 1
+                }
+            }
+        }
+    },
+    "serviceLevelParams": {
+        "credentialStoreEnabled": false, 
+        "status_commands_timeout": 300, 
+        "version": "2.7.3", 
+        "service_package_folder": "common-services/HDFS/2.1.0.2.0/package"
+    },
+    "commandType": "EXECUTION_COMMAND", 
+    "roleParams": {
+        "component_category": "MASTER"
+    }, 
+    "serviceName": "FALCON", 
+    "role": "FALCON_SERVER", 
+    "forceRefreshConfigTags": [], 
+    "taskId": 305, 
+    "public_hostname": "c6402.ambari.apache.org", 
+    "configurations": {
+        "falcon-startup.properties": {
+            "*.falcon.security.authorization.superusergroup": "falcon", 
+            "*.oozie.process.workflow.builder": "org.apache.falcon.workflow.OozieProcessWorkflowBuilder", 
+            "*.falcon.security.authorization.provider": "org.apache.falcon.security.DefaultAuthorizationProvider", 
+            "*.falcon.enableTLS": "false", 
+            "*.falcon.http.authentication.token.validity": "36000", 
+            "*.domain": "${falcon.app.type}", 
+            "*.broker.impl.class": "org.apache.activemq.ActiveMQConnectionFactory", 
+            "*.ProcessInstanceManager.impl": "org.apache.falcon.resource.InstanceManager", 
+            "*.falcon.http.authentication.simple.anonymous.allowed": "true", 
+            "*.falcon.graph.preserve.history": "false", 
+            "*.broker.url": "tcp://c6402.ambari.apache.org:61616", 
+            "*.system.lib.location": "${falcon.home}/server/webapp/${falcon.app.type}/WEB-INF/lib", 
+            "*.falcon.http.authentication.blacklisted.users": "", 
+            "*.falcon.graph.serialize.path": "/hadoop/falcon/data/lineage", 
+            "*.entity.topic": "FALCON.ENTITY.TOPIC", 
+            "*.falcon.http.authentication.kerberos.keytab": "/etc/security/keytabs/spnego.service.keytab", 
+            "*.dfs.namenode.kerberos.principal": "nn/_HOST@EXAMPLE.COM", 
+            "*.falcon.http.authentication.cookie.domain": "EXAMPLE.COM", 
+            "*.falcon.graph.blueprints.graph": "com.thinkaurelius.titan.core.TitanFactory", 
+            "*.falcon.http.authentication.kerberos.principal": "HTTP/_HOST@EXAMPLE.COM", 
+            "*.ConfigSyncService.impl": "org.apache.falcon.resource.ConfigSyncService", 
+            "*.workflow.engine.impl": "org.apache.falcon.workflow.engine.OozieWorkflowEngine", 
+            "*.falcon.http.authentication.signature.secret": "falcon", 
+            "*.retry.recorder.path": "${falcon.log.dir}/retry", 
+            "*.broker.ttlInMins": "4320", 
+            "*.configstore.listeners": "org.apache.falcon.entity.v0.EntityGraph,\\\n      org.apache.falcon.entity.ColoClusterRelation,\\\n      org.apache.falcon.group.FeedGroupMap,\\\n      org.apache.falcon.service.SharedLibraryHostingService", 
+            "*.catalog.service.impl": "org.apache.falcon.catalog.HiveCatalogService", 
+            "*.falcon.graph.storage.directory": "/hadoop/falcon/data/lineage/graphdb", 
+            "*.falcon.http.authentication.kerberos.name.rules": "DEFAULT", 
+            "*.application.services": "org.apache.falcon.security.AuthenticationInitializationService,\\\n      org.apache.falcon.workflow.WorkflowJobEndNotificationService, \\\n      org.apache.falcon.service.ProcessSubscriberService,\\\n      org.apache.falcon.entity.store.ConfigurationStore,\\\n      org.apache.falcon.rerun.service.RetryService,\\\n      org.apache.falcon.rerun.service.LateRunService,\\\n      org.apache.falcon.service.LogCleanupService,\\\n      org.apache.falcon.metadata.MetadataMappingService", 
+            "*.falcon.service.authentication.kerberos.principal": "falcon/_HOST@EXAMPLE.COM", 
+            "*.SchedulableEntityManager.impl": "org.apache.falcon.resource.SchedulableEntityManager", 
+            "*.max.retry.failure.count": "1", 
+            "*.falcon.http.authentication.type": "simple", 
+            "*.falcon.security.authorization.admin.users": "falcon,ambari-qa", 
+            "*.journal.impl": "org.apache.falcon.transaction.SharedFileSystemJournal", 
+            "*.oozie.feed.workflow.builder": "org.apache.falcon.workflow.OozieFeedWorkflowBuilder", 
+            "prism.application.services": "org.apache.falcon.entity.store.ConfigurationStore", 
+            "*.shared.libs": "activemq-core,ant,geronimo-j2ee-management,hadoop-distcp,jms,json-simple,oozie-client,spring-jms", 
+            "*.falcon.cleanup.service.frequency": "days(1)", 
+            "*.falcon.graph.storage.backend": "berkeleyje", 
+            "prism.configstore.listeners": "org.apache.falcon.entity.v0.EntityGraph,\\\n      org.apache.falcon.entity.ColoClusterRelation,\\\n      org.apache.falcon.group.FeedGroupMap", 
+            "*.config.store.uri": "file:///hadoop/falcon/store", 
+            "*.falcon.security.authorization.enabled": "false", 
+            "*.falcon.security.authorization.admin.groups": "falcon", 
+            "*.internal.queue.size": "1000", 
+            "*.falcon.authentication.type": "simple", 
+            "*.falcon.service.authentication.kerberos.keytab": "/etc/security/keytabs/falcon.service.keytab"
+        },
+        "falcon-runtime.properties": {
+            "*.log.cleanup.frequency.hours.retention": "minutes(1)", 
+            "*.log.cleanup.frequency.days.retention": "days(7)", 
+            "*.log.cleanup.frequency.months.retention": "months(3)", 
+            "*.log.cleanup.frequency.minutes.retention": "hours(6)", 
+            "*.domain": "${falcon.app.type}"
+        },
+        "falcon-client.properties": {
+            "falcon.url": "http://{{falcon_host}}:{{falcon_port}}"
+        },
+        "falcon-log4j": {
+            "content": "<?xml version=1.0 encoding=UTF-8 ?> <!--   Licensed to the Apache Software Foundation (ASF) under one   or more contributor license agreements.  See the NOTICE file   distributed with this work for additional information   regarding copyright ownership.  The ASF licenses this file   to you under the Apache License, Version 2.0 (the   License); you may not use this file except in compliance   with the License.  You may obtain a copy of the License at        http://www.apache.org/licenses/LICENSE-2.0    Unless required by applicable law or agreed to in writing, software   distributed under the License is distributed on an AS IS BASIS,   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   See the License for the specific language governing permissions and   limitations under the License.   -->  <!--     This is used for falcon packaging only.   -->  <!DOCTYPE log4j:configuration SYSTEM log4j.dtd>  <log4j:configuration xmlns:log4j=http://jakarta.apache.org/log4j/>     <appender name=FILE class=org.apache.log4j.DailyRollingFileAppender>         <param name=File value=${falcon.log.dir}/${falcon.app.type}.application.log/>         <param name=Append value=true/>         <param name=Threshold value=debug/>         <param name=MaxFileSize value={{falcon_log_maxfilesize}}MB />         <param name=MaxBackupIndex value={{falcon_log_maxbackupindex}} />         <layout class=org.apache.log4j.PatternLayout>             <param name=ConversionPattern value=%d %-5p - [%t:%x] ~ %m (%c{1}:%L)%n/>         </layout>     </appender>      <appender name=AUDIT class=org.apache.log4j.DailyRollingFileAppender>         <param name=File value=${falcon.log.dir}/${falcon.app.type}.audit.log/>         <param name=Append value=true/>         <param name=Threshold value=debug/>         <layout class=org.apache.log4j.PatternLayout>             <param name=ConversionPattern value=%d %x %m%n/>         </layout>     </appender>      <appender name=METRIC class=org.apache.log4j.DailyRollingFileAppender>         <param name=File value=${falcon.log.dir}/${falcon.app.type}.metric.log/>         <param name=Append value=true/>         <param name=Threshold value=debug/>         <layout class=org.apache.log4j.PatternLayout>             <param name=ConversionPattern value=%d %m%n/>         </layout>     </appender>      <appender name=FeedSLA class=org.apache.log4j.DailyRollingFileAppender>         <param name=File value=${falcon.log.dir}/${falcon.app.type}.feed.sla.log/>         <param name=Append value=true/>         <param name=Threshold value=debug/>         <layout class=org.apache.log4j.PatternLayout>             <param name=ConversionPattern value=%d %m%n/>         </layout>     </appender>      <appender name=ALERT class=org.apache.log4j.DailyRollingFileAppender>         <param name=File value=${falcon.log.dir}/${falcon.app.type}.alerts.log/>         <param name=Append value=true/>         <param name=Threshold value=debug/>         <layout class=org.apache.log4j.PatternLayout>             <param name=ConversionPattern value=%d %m%n/>         </layout>     </appender>      <appender name=SECURITY class=org.apache.log4j.DailyRollingFileAppender>         <param name=File value=${falcon.log.dir}/${falcon.app.type}.security.audit.log/>         <param name=Append value=true/>         <param name=Threshold value=debug/>         <param name=MaxFileSize value={{falcon_security_log_maxfilesize}}MB/>         <param name=MaxBackupIndex value={{falcon_security_log_maxbackupindex}}/>         <layout class=org.apache.log4j.PatternLayout>             <param name=ConversionPattern value=%d %x %m%n/>         </layout>     </appender>      <logger name=org.apache.falcon additivity=false>         <level value=debug/>         <appender-ref ref=FILE/>     </logger>      <logger name=AUDIT>         <level value=info/>         <appender-ref ref=AUDIT/>     </logger>      <logger name=METRIC>         <level value=info/>         <appender-ref ref=METRIC/>     </logger>      <logger name=FeedSLA>         <level value=debug/>         <appender-ref ref=FeedSLA/>     </logger>      <logger name=org.apache.hadoop.security additivity=false>         <level value=info/>         <appender-ref ref=SECURITY/>     </logger>      <logger name=org.apache.hadoop additivity=false>         <level value=info/>         <appender-ref ref=FILE/>     </logger>      <logger name=org.apache.oozie additivity=false>         <level value=info/>         <appender-ref ref=FILE/>     </logger>      <logger name=org.apache.hadoop.hive additivity=false>         <level value=info/>         <appender-ref ref=FILE/>     </logger>      <root>         <priority value=info/>         <appender-ref ref=FILE/>     </root>  </log4j:configuration>     ]]></value>     <value-attributes>       <type>content</type>       <show-property-name>false</show-property-name>     </value-attributes>     <on-ambari-upgrade add=true/>   </property> </configuration> "
+        },
+
+        "hdfs-site": {
+            "dfs.namenode.checkpoint.period": "21600", 
+            "dfs.namenode.avoid.write.stale.datanode": "true", 
+            "dfs.namenode.startup.delay.block.deletion.sec": "3600", 
+            "dfs.namenode.checkpoint.txns": "1000000", 
+            "dfs.block.access.token.enable": "true", 
+            "dfs.support.append": "true", 
+            "dfs.datanode.address": "0.0.0.0:50010", 
+            "dfs.cluster.administrators": " hdfs", 
+            "dfs.replication": "3", 
+            "dfs.datanode.balance.bandwidthPerSec": "6250000", 
+            "dfs.namenode.safemode.threshold-pct": "1.0f", 
+            "dfs.namenode.checkpoint.edits.dir": "${dfs.namenode.checkpoint.dir}", 
+            "dfs.permissions.enabled": "true", 
+            "dfs.client.read.shortcircuit": "true", 
+            "dfs.namenode.https-address": "c6401.ambari.apache.org:50470", 
+            "dfs.journalnode.edits.dir": "/hadoop/hdfs/journalnode", 
+            "dfs.blocksize": "134217728", 
+            "dfs.datanode.max.transfer.threads": "16384", 
+            "dfs.heartbeat.interval": "3", 
+            "dfs.webhdfs.enabled": "true", 
+            "dfs.namenode.handler.count": "40", 
+            "dfs.namenode.checkpoint.dir": "/hadoop/hdfs/namesecondary", 
+            "fs.permissions.umask-mode": "022", 
+            "dfs.datanode.http.address": "0.0.0.0:50075", 
+            "dfs.datanode.ipc.address": "0.0.0.0:8010", 
+            "dfs.datanode.data.dir": "/hadoop/hdfs/data", 
+            "dfs.namenode.http-address": "c6401.ambari.apache.org:50070", 
+            "dfs.blockreport.initialDelay": "120", 
+            "dfs.datanode.failed.volumes.tolerated": "0", 
+            "dfs.namenode.accesstime.precision": "0", 
+            "dfs.datanode.https.address": "0.0.0.0:50475", 
+            "dfs.namenode.avoid.read.stale.datanode": "true", 
+            "dfs.namenode.secondary.http-address": "c6402.ambari.apache.org:50090", 
+            "dfs.namenode.stale.datanode.interval": "30000", 
+            "dfs.datanode.du.reserved": "1073741824", 
+            "dfs.client.read.shortcircuit.streams.cache.size": "4096", 
+            "dfs.http.policy": "HTTP_ONLY", 
+            "dfs.permissions.superusergroup": "hdfs", 
+            "dfs.https.port": "50470", 
+            "dfs.journalnode.http-address": "0.0.0.0:8480", 
+            "dfs.domain.socket.path": "/var/lib/hadoop-hdfs/dn_socket", 
+            "dfs.namenode.write.stale.datanode.ratio": "1.0f", 
+            "dfs.hosts.exclude": "/etc/hadoop/conf/dfs.exclude", 
+            "dfs.datanode.data.dir.perm": "750", 
+            "dfs.namenode.name.dir.restore": "true", 
+            "dfs.replication.max": "50", 
+            "dfs.namenode.name.dir": "/hadoop/hdfs/namenode"
+        }, 
+        "falcon-env": {
+            "falcon_apps_hdfs_dir": "/apps/falcon",
+            "falcon_port": "15000", 
+            "falcon_pid_dir": "/var/run/falcon", 
+            "falcon_log_dir": "/var/log/falcon", 
+            "falcon.emeddedmq.port": "61616", 
+            "falcon_user": "falcon", 
+            "falcon_local_dir": "/hadoop/falcon", 
+            "content": "\n# The java implementation to use. If JAVA_HOME is not found we expect java and jar to be in path\nexport JAVA_HOME={{java_home}}\n\n# any additional java opts you want to set. This will apply to both client and server operations\n#export FALCON_OPTS=\n\n# any additional java opts that you want to set for client only\n#export FALCON_CLIENT_OPTS=\n\n# java heap size we want to set for the client. Default is 1024MB\n#export FALCON_CLIENT_HEAP=\n\n# any additional opts you want to set for prisim service.\n#export FALCON_PRISM_OPTS=\n\n# java heap size we want to set for the prisim service. Default is 1024MB\n#export FALCON_PRISM_HEAP=\n\n# any additional opts you want to set for falcon service.\nexport FALCON_SERVER_OPTS=\"-Dfalcon.embeddedmq={{falcon_embeddedmq_enabled}} -Dfalcon.emeddedmq.port={{falcon_emeddedmq_port}}\"\n\n# java heap size we want to set for the falcon server. Default is 1024MB\n#export FALCON_SERVER_HEAP=\n\n# What is is considered as falcon home dir. Default is the base location of the installed software\n#export FALCON_HOME_DIR=\n\n# Where log files are stored. Defatult is logs directory under the base install location\nexport FALCON_LOG_DIR={{falcon_log_dir}}\n\n# Where pid files are stored. Defatult is logs directory under the base install location\nexport FALCON_PID_DIR={{falcon_pid_dir}}\n\n# where the falcon active mq data is stored. Defatult is logs/data directory under the base install location\nexport FALCON_DATA_DIR={{falcon_embeddedmq_data}}\n\n# Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.\n#export FALCON_EXPANDED_WEBAPP_DIR=", 
+            "falcon.embeddedmq.data": "/hadoop/falcon/embeddedmq/data", 
+            "falcon.embeddedmq": "true", 
+            "falcon_store_uri": "file:///hadoop/falcon/store",
+            "supports_hive_dr": "true"
+        }, 
+        "core-site": {
+            "proxyuser_group": "users", 
+            "hadoop.proxyuser.falcon.hosts": "*", 
+            "hadoop.proxyuser.hcat.hosts": "c6402.ambari.apache.org", 
+            "hadoop.proxyuser.falcon.groups": "users", 
+            "hadoop.proxyuser.hcat.groups": "users", 
+            "fs.trash.interval": "360", 
+            "hadoop.proxyuser.hive.groups": "users", 
+            "ipc.server.tcpnodelay": "true", 
+            "io.compression.codecs": "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec", 
+            "ipc.client.idlethreshold": "8000", 
+            "io.file.buffer.size": "131072", 
+            "io.serializations": "org.apache.hadoop.io.serializer.WritableSerialization", 
+            "hadoop.security.authentication": "simple", 
+            "mapreduce.jobtracker.webinterface.trusted": "false", 
+            "hadoop.proxyuser.hive.hosts": "c6402.ambari.apache.org", 
+            "fs.defaultFS": "hdfs://c6401.ambari.apache.org:8020", 
+            "hadoop.proxyuser.oozie.groups": "*", 
+            "hadoop.security.authorization": "false", 
+            "hadoop.http.authentication.simple.anonymous.allowed": "true", 
+            "ipc.client.connect.max.retries": "50", 
+            "hadoop.security.auth_to_local": "\n        RULE:[2:$1@$0]([rn]m@.*)s/.*/yarn/\n        RULE:[2:$1@$0](jhs@.*)s/.*/mapred/\n        RULE:[2:$1@$0]([nd]n@.*)s/.*/hdfs/\n        RULE:[2:$1@$0](hm@.*)s/.*/hbase/\n        RULE:[2:$1@$0](rs@.*)s/.*/hbase/\n        DEFAULT", 
+            "hadoop.proxyuser.oozie.hosts": "c6402.ambari.apache.org", 
+            "ipc.client.connection.maxidletime": "30000"
+        }, 
+        "hadoop-env": {
+            "dtnode_heapsize": "1024m", 
+            "namenode_opt_maxnewsize": "200m", 
+            "hdfs_log_dir_prefix": "/var/log/hadoop", 
+            "namenode_heapsize": "1024m", 
+            "proxyuser_group": "users", 
+            "hadoop_pid_dir_prefix": "/var/run/hadoop", 
+            "content": "\n# Set Hadoop-specific environment variables here.\n\n# The only required environment variable is JAVA_HOME.  All others are\n# optional.  When running a distributed configuration it is best to\n# set JAVA_HOME in this file, so that it is correctly defined on\n# remote nodes.\n\n# The java implementation to use.  Required.\nexport JAVA_HOME={{java_home}}\nexport HADOOP_HOME_WARN_SUPPRESS=1\n\n# Hadoop home directory\nexport HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n\n# Hadoop Configuration Directory\n\n{# this is different for HDP1 #}\n# Path to jsvc required by secure HDP 2.0 datanode\nexport JSVC_HOME={{jsvc_path}}\n\n\n# The maximum amount of heap to use, in MB. Default is 1000.\nexport HADOOP_HEAPSIZE=\"{{hadoop_heapsize}}\"\n\nexport HADOOP_NAMENODE_INIT_HEAPSIZE=\"-Xms{{namenode_heapsize}}\"\n\n# Extra Java runtime options.  Empty by default.\nexport HADOOP_OPTS=\"-Djava.net.preferIPv4Stack=true ${HADOOP_OPTS}\"\n\n# Command specific options appended to HADOOP_OPTS when specified\nexport HADOOP_NAMENODE_OPTS=\"-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{namenode_opt_newsize}} -XX:MaxNewSize={{namenode_opt_maxnewsize}} -XX:PermSize={{namenode_opt_permsize}} -XX:MaxPermSize={{namenode_opt_maxpermsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms{{namenode_heapsize}} -Xmx{{namenode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_NAMENODE_OPTS}\"\nHADOOP_JOBTRACKER_OPTS=\"-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{jtnode_opt_newsize}} -XX:MaxNewSize={{jtnode_opt_maxnewsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xmx{{jtnode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dmapred.audit.logger=INFO,MRAUDIT -Dhadoop.mapreduce.jobsummary.logger=INFO,JSA ${HADOOP_JOBTRACKER_OPTS}\"\n\nHADOOP_TASKTRACKER_OPTS=\"-server -Xmx{{ttnode_heapsize}} -Dhadoop.security.logger=ERROR,console -Dmapred.audit.logger=ERROR,console ${HADOOP_TASKTRACKER_OPTS}\"\nexport HADOOP_DATANODE_OPTS=\"-server -XX:ParallelGCThreads=4 -XX:+UseConcMarkSweepGC -XX:ErrorFile=/var/log/hadoop/$USER/hs_err_pid%p.log -XX:NewSize=200m -XX:MaxNewSize=200m -XX:PermSize=128m -XX:MaxPermSize=256m -Xloggc:/var/log/hadoop/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms{{dtnode_heapsize}} -Xmx{{dtnode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_DATANODE_OPTS}\"\nHADOOP_BALANCER_OPTS=\"-server -Xmx{{hadoop_heapsize}}m ${HADOOP_BALANCER_OPTS}\"\n\nexport HADOOP_SECONDARYNAMENODE_OPTS=$HADOOP_NAMENODE_OPTS\n\n# The following applies to multiple commands (fs, dfs, fsck, distcp etc)\nexport HADOOP_CLIENT_OPTS=\"-Xmx${HADOOP_HEAPSIZE}m -XX:MaxPermSize=512m $HADOOP_CLIENT_OPTS\"\n\n# On secure datanodes, user to run the datanode as after dropping privileges\nexport HADOOP_SECURE_DN_USER=${HADOOP_SECURE_DN_USER:-{{hadoop_secure_dn_user}}}\n\n# Extra ssh options.  Empty by default.\nexport HADOOP_SSH_OPTS=\"-o ConnectTimeout=5 -o SendEnv=HADOOP_CONF_DIR\"\n\n# Where log files are stored.  $HADOOP_HOME/logs by default.\nexport HADOOP_LOG_DIR={{hdfs_log_dir_prefix}}/$USER\n\n# History server logs\nexport HADOOP_MAPRED_LOG_DIR={{mapred_log_dir_prefix}}/$USER\n\n# Where log files are stored in the secure data environment.\nexport HADOOP_SECURE_DN_LOG_DIR={{hdfs_log_dir_prefix}}/$HADOOP_SECURE_DN_USER\n\n# File naming remote slave hosts.  $HADOOP_HOME/conf/slaves by default.\n# export HADOOP_SLAVES=${HADOOP_HOME}/conf/slaves\n\n# host:path where hadoop code should be rsync'd from.  Unset by default.\n# export HADOOP_MASTER=master:/home/$USER/src/hadoop\n\n# Seconds to sleep between slave commands.  Unset by default.  This\n# can be useful in large clusters, where, e.g., slave rsyncs can\n# otherwise arrive faster than the master can service them.\n# export HADOOP_SLAVE_SLEEP=0.1\n\n# The directory where pid files are stored. /tmp by default.\nexport HADOOP_PID_DIR={{hadoop_pid_dir_prefix}}/$USER\nexport HADOOP_SECURE_DN_PID_DIR={{hadoop_pid_dir_prefix}}/$HADOOP_SECURE_DN_USER\n\n# History server pid\nexport HADOOP_MAPRED_PID_DIR={{mapred_pid_dir_prefix}}/$USER\n\nYARN_RESOURCEMANAGER_OPTS=\"-Dyarn.server.resourcemanager.appsummary.logger=INFO,RMSUMMARY\"\n\n# A string representing this instance of hadoop. $USER by default.\nexport HADOOP_IDENT_STRING=$USER\n\n# The scheduling priority for daemon processes.  See 'man nice'.\n\n# export HADOOP_NICENESS=10\n\n# Use libraries from standard classpath\nJAVA_JDBC_LIBS=\"\"\n#Add libraries required by mysql connector\nfor jarFile in `ls /usr/share/java/*mysql* 2>/dev/null`\ndo\n  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile\ndone\n# Add libraries required by oracle connector\nfor jarFile in `ls /usr/share/java/*ojdbc* 2>/dev/null`\ndo\n  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile\ndone\n# Add libraries required by nodemanager\nMAPREDUCE_LIBS={{mapreduce_libs_path}}\nexport HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}\n\n# added to the HADOOP_CLASSPATH\nif [ -d \"/usr/hdp/current/tez-client\" ]; then\n  if [ -d \"/etc/tez/conf/\" ]; then\n    # When using versioned RPMs, the tez-client will be a symlink to the current folder of tez in HDP.\n    export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:/usr/hdp/current/tez-client/*:/usr/hdp/current/tez-client/lib/*:/etc/tez/conf/\n  fi\nfi\n\n\n# Setting path to hdfs command line\nexport HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}\n\n# Mostly required for hadoop 2.0\nexport JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}\n\nexport HADOOP_OPTS=\"-Dhdp.version=$HDP_VERSION $HADOOP_OPTS\"", 
+            "hdfs_user": "hdfs", 
+            "namenode_opt_newsize": "200m", 
+            "hadoop_root_logger": "INFO,RFA", 
+            "hadoop_heapsize": "1024", 
+            "namenode_opt_maxpermsize": "256m", 
+            "namenode_opt_permsize": "128m"
+        }, 
+        "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
+            "security_enabled": "false",
+            "ignore_groupsusers_create": "false",
+            "kerberos_domain": "EXAMPLE.COM",
+            "user_group": "hadoop",
+            "smokeuser": "ambari-qa"
+        }
+
+    }, 
+    "configurationTags": {
+        "falcon-startup.properties": {
+            "tag": "version1419351442644"
+        }, 
+        "falcon-runtime.properties": {
+            "tag": "version1419351442644"
+        }, 
+        "falcon-env": {
+            "tag": "version1419351442644"
+        }, 
+        "cluster-env": {
+            "tag": "version1"
+        }
+    }, 
+    "commandId": "30-1", 
+    "clusterHostInfo": {
+        "snamenode_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "nm_hosts": [
+            "c6403.ambari.apache.org"
+        ], 
+        "falcon_server_hosts": [
+            "c6402.ambari.apache.org"
+        ], 
+        "hive_metastore_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "ganglia_monitor_hosts": [
+            "c6403.ambari.apache.org", 
+            "c6401.ambari.apache.org", 
+            "c6402.ambari.apache.org"
+        ], 
+        "all_ping_ports": [
+            "8670", 
+            "8670", 
+            "8670"
+        ], 
+        "ambari_server_host": [
+            "hw10897.ix"
+        ], 
+        "resourcemanager_hosts": [
+            "c6402.ambari.apache.org"
+        ], 
+        "all_hosts": [
+            "c6403.ambari.apache.org", 
+            "c6401.ambari.apache.org", 
+            "c6402.ambari.apache.org"
+        ], 
+        "hbase_rs_hosts": [
+            "c6403.ambari.apache.org"
+        ], 
+        "slave_hosts": [
+            "c6403.ambari.apache.org"
+        ], 
+        "namenode_host": [
+            "c6401.ambari.apache.org"
+        ], 
+        "ganglia_server_host": [
+            "c6401.ambari.apache.org"
+        ], 
+        "hbase_master_hosts": [
+            "c6401.ambari.apache.org"
+        ], 
+        "hive_mysql_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "oozie_server": [
+            "c6402.ambari.apache.org"
+        ], 
+        "webhcat_server_hosts": [
+            "c6402.ambari.apache.org"
+        ], 
+        "zookeeper_server_hosts": [
+            "c6403.ambari.apache.org", 
+            "c6401.ambari.apache.org", 
+            "c6402.ambari.apache.org"
+        ], 
+        "app_timeline_server_hosts": [
+            "c6402.ambari.apache.org"
+        ], 
+        "hs_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "hive_server_hosts": [
+            "c6402.ambari.apache.org"
+        ]
+    }
+}

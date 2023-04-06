@@ -20,13 +20,11 @@ package org.apache.ambari.server.api.resources;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 import org.apache.ambari.server.api.query.render.ClusterBlueprintRenderer;
 import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.controller.KerberosHelper;
-import org.apache.ambari.server.controller.internal.BlueprintExportType;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -53,10 +51,11 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public Renderer getRenderer(String name) {
-    Optional<BlueprintExportType> blueprintExportType = BlueprintExportType.parse(name);
-    return blueprintExportType.isPresent()
-      ? new ClusterBlueprintRenderer(blueprintExportType.get())
-      : super.getRenderer(name);
+    if (name != null && name.equals("blueprint")) {
+      return new ClusterBlueprintRenderer();
+    } else {
+      return super.getRenderer(name);
+    }
   }
 
   @Override

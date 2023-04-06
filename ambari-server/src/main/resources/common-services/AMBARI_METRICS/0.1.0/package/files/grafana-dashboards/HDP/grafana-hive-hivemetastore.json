@@ -1,0 +1,587 @@
+{
+  "id": null,
+  "title": "Hive - HiveMetaStore",
+  "originalTitle": "Hive - HiveMetaStore",
+  "tags": [
+    "hive"
+  ],
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "hideControls": false,
+  "sharedCrosshair": false,
+  "rows": [
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "100px",
+      "panels": [
+        {
+          "content": "<h4 align=\"center\">Metrics to see the overall status for Hive Metastore. Click on each row title to expand on demand to look at various metrics. </h4>\n<h6 style=\"color:red;\" align=\"center\">This dashboard is managed by Ambari.  You may lose any changes made to this dashboard.  If you want to customize, make your own copy.</h6>",
+          "editable": true,
+          "error": false,
+          "id": 22,
+          "isNew": true,
+          "links": [],
+          "mode": "html",
+          "span": 12,
+          "style": {},
+          "title": "",
+          "type": "text"
+        }
+      ],
+      "title": "New row"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 9,
+          "isNew": true,
+          "leftYAxisLabel": "",
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "typical",
+              "app": "hivemetastore",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "default.General.api_get_all_databases_75thpercentile",
+              "precision": "default",
+              "refId": "A",
+              "templatedHost": ""
+            },
+            {
+              "aggregator": "max",
+              "alias": "max",
+              "app": "hivemetastore",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "default.General.api_get_all_databases_999thpercentile",
+              "precision": "default",
+              "refId": "B",
+              "templatedHost": ""
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "API call times - Health Check roundtrip (get_all_databases)",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ms",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 19,
+          "isNew": true,
+          "leftYAxisLabel": "",
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "typical",
+              "app": "hivemetastore",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "default.General.api_get_partitions_by_names_75thpercentile",
+              "precision": "default",
+              "refId": "C",
+              "templatedHost": ""
+            },
+            {
+              "aggregator": "max",
+              "alias": "max",
+              "app": "hivemetastore",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "default.General.api_get_partitions_by_names_999thpercentile",
+              "precision": "default",
+              "refId": "D",
+              "templatedHost": ""
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "API call times - Moderate size call (get_partitions_by_names)",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ms",
+            "short"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "API Times"
+    },
+    {
+      "collapse": true,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 21,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 12,
+          "stack": false,
+          "steppedLine": true,
+          "targets": [
+            {
+              "aggregator": "max",
+              "alias": "GC app stop time",
+              "app": "hivemetastore",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "default.General.jvm.pause.extraSleepTime",
+              "precision": "default",
+              "refId": "A",
+              "templatedHost": ""
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "App Stop times (due to GC)",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ms",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 15,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "max",
+              "alias": "MemHeapMax",
+              "app": "hivemetastore",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "default.General.memory.heap.max",
+              "precision": "default",
+              "refId": "A",
+              "templatedHost": ""
+            },
+            {
+              "aggregator": "max",
+              "alias": "MemHeapUsed",
+              "app": "hivemetastore",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "default.General.memory.heap.used",
+              "precision": "default",
+              "refId": "B",
+              "templatedHost": ""
+            },
+            {
+              "aggregator": "max",
+              "alias": "MemHeapCommitted",
+              "app": "hivemetastore",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "default.General.memory.heap.committed",
+              "precision": "default",
+              "refId": "C",
+              "templatedHost": ""
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Heap Usage",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "bytes",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 16,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "max",
+              "alias": "MemNonHeapMax",
+              "app": "hivemetastore",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "default.General.memory.non-heap.max",
+              "precision": "default",
+              "refId": "A",
+              "templatedHost": ""
+            },
+            {
+              "aggregator": "max",
+              "alias": "MemNonHeapUsed",
+              "app": "hivemetastore",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "default.General.memory.non-heap.used",
+              "precision": "default",
+              "refId": "B",
+              "templatedHost": ""
+            },
+            {
+              "aggregator": "max",
+              "alias": "MemNonHeapCommitted",
+              "app": "hivemetastore",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "default.General.memory.non-heap.committed",
+              "precision": "default",
+              "refId": "C",
+              "templatedHost": ""
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Off-Heap Usage",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "bytes",
+            "short"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "Memory Pressure"
+    }
+  ],
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "now": true,
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "allFormat": "glob",
+        "current": {
+          "text": "hivemetastore",
+          "value": "hivemetastore"
+        },
+        "datasource": null,
+        "hideLabel": true,
+        "includeAll": false,
+        "multi": false,
+        "multiFormat": "glob",
+        "name": "components",
+        "options": [
+          {
+            "selected": true,
+            "text": "hivemetastore",
+            "value": "hivemetastore"
+          }
+        ],
+        "query": "hivemetastore",
+        "refresh": false,
+        "type": "custom"
+      },
+      {
+        "allFormat": "glob",
+        "current": null,
+        "datasource": null,
+        "includeAll": false,
+        "label": "Cluster",
+        "multi": false,
+        "multiFormat": "glob",
+        "name": "cluster",
+        "options": [],
+        "query": "cluster",
+        "refresh": true,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "allFormat": "glob",
+        "current": {
+          "text": "All",
+          "value": ""
+        },
+        "datasource": null,
+        "includeAll": true,
+        "multi": true,
+        "multiFormat": "glob",
+        "name": "hosts",
+        "options": [
+          {
+            "text": "All",
+            "value": "",
+            "selected": true
+          }
+        ],
+        "label": "Hosts",
+        "query": "hosts.$cluster",
+        "refresh": true,
+        "regex": "",
+        "type": "query",
+        "useTags": false
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "refresh": false,
+  "schemaVersion": 8,
+  "version": 18,
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "keepTime": true,
+      "tags": [
+        "hive"
+      ],
+      "title": "Hive Dashboards",
+      "type": "dashboards"
+    }
+  ]
+}

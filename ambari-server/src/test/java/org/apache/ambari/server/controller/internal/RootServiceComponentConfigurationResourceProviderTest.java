@@ -25,6 +25,8 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.newCapture;
 
+import java.io.File;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,9 +40,9 @@ import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.api.services.RootServiceComponentConfigurationService;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
-import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
@@ -58,8 +60,7 @@ import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
-import org.apache.ambari.server.security.encryption.AmbariServerConfigurationEncryptor;
-import org.apache.ambari.server.security.encryption.Encryptor;
+import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -70,6 +71,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.security.core.Authentication;
@@ -80,6 +82,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import junit.framework.Assert;
+import junit.framework.AssertionFailedError;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileUtils.class, AmbariServerConfigurationHandler.class})
@@ -93,6 +96,7 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
   private RootServiceComponentConfigurationHandlerFactory factory;
   private Request request;
   private AmbariConfigurationDAO dao;
+  private Configuration configuration;
   private AmbariEventPublisher publisher;
   private AmbariServerLDAPConfigurationHandler ambariServerLDAPConfigurationHandler;
   private AmbariServerSSOConfigurationHandler ambariServerSSOConfigurationHandler;
@@ -104,6 +108,7 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     predicate = createPredicate(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), LDAP_CONFIG_CATEGORY);
     request = createMock(Request.class);
     dao = injector.getInstance(AmbariConfigurationDAO.class);
+    configuration = injector.getInstance(Configuration.class);
     factory = injector.getInstance(RootServiceComponentConfigurationHandlerFactory.class);
     publisher = injector.getInstance(AmbariEventPublisher.class);
     ambariServerLDAPConfigurationHandler = injector.getInstance(AmbariServerLDAPConfigurationHandler.class);
@@ -432,6 +437,7 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
       expect(dao.reconcileCategory(eq(LDAP_CONFIG_CATEGORY), capture(capturedProperties1), eq(false)))
           .andReturn(true)
           .once();
+
       publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
       expectLastCall().times(1);
     }
@@ -467,6 +473,83 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     } else {
       Assert.assertFalse(capturedProperties1.hasCaptured());
     }
+  }
+
+  @Test
+  public void shouldNotUpdatePasswordIfItHasNotBeenChanged() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+    Set<Map<String, Object>> propertySets = new HashSet<>();
+    Map<String, String> properties = new HashMap<>();
+    properties.put(AmbariServerConfigurationKey.BIND_PASSWORD.key(), "passwd");
+    propertySets.add(toRequestProperties(LDAP_CONFIG_CATEGORY, properties));
+    setupBasicExpectations(properties, propertySets);
+    expect(configuration.isSecurityPasswordEncryptionEnabled()).andThrow(new AssertionFailedError()).anyTimes(); //this call should never have never been hit
+
+    replayAll();
+    resourceProvider.updateResources(request, predicate);
+    verifyAll();
+  }
+
+  @Test
+  public void shouldUpdatePasswordFileIfSecurityPasswordEncryptionIsDisabled() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+    Map<String, String> properties = new HashMap<>();
+    Set<Map<String, Object>> propertySets = new HashSet<>();
+    properties.put(AmbariServerConfigurationKey.BIND_PASSWORD.key(), "newPasswd");
+    propertySets.add(toRequestProperties(LDAP_CONFIG_CATEGORY, properties));
+    Map<String, String> expectedProperties = new HashMap<>();
+    expectedProperties.put(AmbariServerConfigurationKey.BIND_PASSWORD.key(), "currentPasswd");
+    setupBasicExpectations(expectedProperties, propertySets);
+    expect(configuration.isSecurityPasswordEncryptionEnabled()).andReturn(false).once();
+    PowerMock.mockStatic(FileUtils.class);
+    FileUtils.writeStringToFile(new File("currentPasswd"), "newPasswd", Charset.defaultCharset());
+    PowerMock.expectLastCall().once();
+    PowerMock.replay(FileUtils.class);
+    publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
+    expectLastCall().once();
+
+    replayAll();
+    resourceProvider.updateResources(request, predicate);
+    verifyAll();
+  }
+
+  @Test
+  public void shouldUpdatePasswordInCredentialStoreIfSecurityPasswordEncryptionIsEnabled() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+    Map<String, String> properties = new HashMap<>();
+    Set<Map<String, Object>> propertySets = new HashSet<>();
+    properties.put(AmbariServerConfigurationKey.BIND_PASSWORD.key(), "newPasswd");
+    propertySets.add(toRequestProperties(LDAP_CONFIG_CATEGORY, properties));
+    Map<String, String> expectedProperties = new HashMap<>();
+    expectedProperties.put(AmbariServerConfigurationKey.BIND_PASSWORD.key(), "currentPasswd");
+    setupBasicExpectations(expectedProperties, propertySets);
+    expect(configuration.isSecurityPasswordEncryptionEnabled()).andReturn(true).once();
+
+    File masterKeyLocation = createNiceMock(File.class);
+    File masterKeyStoreLocation = createNiceMock(File.class);
+    expect(configuration.getMasterKeyLocation()).andReturn(masterKeyLocation).once();
+    expect(configuration.isMasterKeyPersisted()).andReturn(false).once();
+    expect(configuration.getMasterKeyStoreLocation()).andReturn(masterKeyStoreLocation).once();
+    CredentialProvider credentialProvider = PowerMock.createMock(CredentialProvider.class);
+    PowerMock.expectNew(CredentialProvider.class, null, null, masterKeyLocation, false, masterKeyStoreLocation).andReturn(credentialProvider);
+    credentialProvider.addAliasToCredentialStore("currentPasswd", "newPasswd");
+    PowerMock.expectLastCall().once();
+    PowerMock.replay(credentialProvider, CredentialProvider.class);
+
+    publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
+    expectLastCall().once();
+
+    replayAll();
+    resourceProvider.updateResources(request, predicate);
+    verifyAll();
+    PowerMock.verify(credentialProvider, CredentialProvider.class);
+  }
+
+  private void setupBasicExpectations(Map<String, String> expectedProperties, Set<Map<String, Object>> propertySets) {
+    expect(request.getProperties()).andReturn(propertySets).once();
+    expect(request.getRequestInfoProperties()).andReturn(new HashMap<>());
+    expect(dao.findByCategory(LDAP_CONFIG_CATEGORY)).andReturn(createEntities(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), expectedProperties)).times(2);
+    expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), LDAP_CONFIG_CATEGORY)).andReturn(ambariServerLDAPConfigurationHandler).once();
   }
 
   private Predicate createPredicate(String serviceName, String componentName, String categoryName) {
@@ -528,22 +611,22 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
       protected void configure() {
         AmbariEventPublisher publisher = createMock(AmbariEventPublisher.class);
         AmbariConfigurationDAO ambariConfigurationDAO = createMock(AmbariConfigurationDAO.class);
+        Configuration configuration = createNiceMock(Configuration.class);
         Clusters clusters = createNiceMock(Clusters.class);
         ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
         AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
         StackAdvisorHelper stackAdvisorHelper = createNiceMock(StackAdvisorHelper.class);
         LdapFacade ldapFacade = createNiceMock(LdapFacade.class);
-        Encryptor<AmbariServerConfiguration> encryptor = createNiceMock(AmbariServerConfigurationEncryptor.class);
 
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(Configuration.class).toInstance(configuration);
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(AmbariConfigurationDAO.class).toInstance(ambariConfigurationDAO);
         bind(AmbariEventPublisher.class).toInstance(publisher);
 
-        bind(AmbariServerConfigurationHandler.class).toInstance(new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher));
-        bind(AmbariServerSSOConfigurationHandler.class).toInstance(new AmbariServerSSOConfigurationHandler(clusters, configHelper, managementController, stackAdvisorHelper, ambariConfigurationDAO, publisher));
-        bind(AmbariServerLDAPConfigurationHandler.class).toInstance(new AmbariServerLDAPConfigurationHandler(clusters, configHelper, managementController,
-            stackAdvisorHelper, ambariConfigurationDAO, publisher, ldapFacade, encryptor));
+        bind(AmbariServerConfigurationHandler.class).toInstance(new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration));
+        bind(AmbariServerSSOConfigurationHandler.class).toInstance(new AmbariServerSSOConfigurationHandler(clusters, configHelper, managementController, stackAdvisorHelper, ambariConfigurationDAO, publisher, configuration));
+        bind(AmbariServerLDAPConfigurationHandler.class).toInstance(new AmbariServerLDAPConfigurationHandler(ldapFacade, ambariConfigurationDAO, publisher, configuration));
         bind(RootServiceComponentConfigurationHandlerFactory.class).toInstance(createMock(RootServiceComponentConfigurationHandlerFactory.class));
       }
     });

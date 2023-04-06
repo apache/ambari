@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>ATLAS</name>
+      <displayName>Atlas</displayName>
+      <comment>Atlas Metadata and Governance platform</comment>
+      <version>0.1.0.2.3</version>
+      
+      <components>
+        <component>
+          <name>ATLAS_SERVER</name>
+          <displayName>Atlas Metadata Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <dependencies>
+          </dependencies>
+          <commandScript>
+            <script>scripts/metadata_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>atlas_app</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>ATLAS_CLIENT</name>
+          <displayName>Atlas Metadata Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <dependencies>
+          </dependencies>
+          <commandScript>
+            <script>scripts/atlas_client.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>properties</type>
+              <fileName>application.properties</fileName>
+              <dictionaryName>application-properties</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>atlas-env.sh</fileName>
+              <dictionaryName>atlas-env</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>atlas-log4j.xml</fileName>
+              <dictionaryName>atlas-log4j</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>atlas-solrconfig.xml</fileName>
+              <dictionaryName>atlas-solrconfig</dictionaryName>
+            </configFile>
+          </configFiles>
+        </component>
+      </components>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>atlas-metadata</name>
+            </package>
+            <package>
+              <name>ambari-infra-solr-client</name>
+              <condition>should_install_infra_solr_client</condition>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <configuration-dependencies>
+        <config-type>application-properties</config-type>
+        <config-type>atlas-env</config-type>
+        <config-type>atlas-log4j</config-type>
+        <config-type>core-site</config-type>
+        <config-type>atlas-solrconfig</config-type>
+      </configuration-dependencies>
+
+    </service>
+  </services>
+</metainfo>

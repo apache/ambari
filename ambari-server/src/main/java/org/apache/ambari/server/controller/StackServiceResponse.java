@@ -41,7 +41,6 @@ public class StackServiceResponse {
   private String comments;
   private String serviceVersion;
   private ServiceInfo.Selection selection;
-  private String maintainer;
   private boolean serviceCheckSupported;
   private List<String> customCommands;
 
@@ -78,16 +77,10 @@ public class StackServiceResponse {
    */
   private boolean credentialStoreRequired;
 
-  /**
-   * Whether the service supports rolling restart.
-   * */
-  private boolean rollingRestartSupported;
-
   private boolean isSupportDeleteViaUI;
 
   private final boolean ssoIntegrationSupported;
   private final boolean ssoIntegrationRequiresKerberos;
-  private final boolean ldapIntegrationSupported;
 
   /**
    * Constructor.
@@ -107,7 +100,6 @@ public class StackServiceResponse {
     requiredServices = service.getRequiredServices();
     serviceCheckSupported = null != service.getCommandScript();
     selection = service.getSelection();
-    maintainer = service.getMaintainer();
 
     // the custom command names defined at the service (not component) level
     List<CustomCommandDefinition> definitions = service.getCustomCommands();
@@ -127,8 +119,6 @@ public class StackServiceResponse {
     isSupportDeleteViaUI = service.isSupportDeleteViaUI();
     ssoIntegrationSupported = service.isSingleSignOnSupported();
     ssoIntegrationRequiresKerberos = service.isKerberosRequiredForSingleSignOnIntegration();
-    ldapIntegrationSupported = service.isLdapSupported();
-    rollingRestartSupported = service.isRollingRestartSupported();
   }
 
   @ApiModelProperty(name = "selection")
@@ -138,11 +128,6 @@ public class StackServiceResponse {
 
   public void setSelection(ServiceInfo.Selection selection) {
     this.selection = selection;
-  }
-
-  @ApiModelProperty(name = "maintainer")
-  public String getMaintainer(){
-    return maintainer;
   }
 
   @ApiModelProperty(name = "stack_name")
@@ -366,23 +351,6 @@ public class StackServiceResponse {
   @ApiModelProperty(name = "sso_integration_requires_kerberos")
   public boolean isSsoIntegrationRequiresKerberos() {
     return ssoIntegrationRequiresKerberos;
-  }
-
-  /**
-   * Indicates if this service supports LDAP integration.
-   */
-  @ApiModelProperty(name = "ldap_integration_supported")
-  public boolean isLdapIntegrationSupported() {
-    return ldapIntegrationSupported;
-  }
-
-  @ApiModelProperty(name = "rolling_restart_supported")
-  public boolean isRollingRestartSupported() {
-    return rollingRestartSupported;
-  }
-
-  public void setRollingRestartSupported(boolean rollingRestartSupported) {
-    this.rollingRestartSupported = rollingRestartSupported;
   }
 
   public interface StackServiceResponseSwagger extends ApiModel {

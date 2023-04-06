@@ -42,14 +42,14 @@ class TestCommandHooksOrchestrator(TestCase):
     is_file_mock.return_value = True
 
     ret = self._orchestrator.resolve_hooks({
-     "commandType": "EXECUTION_COMMAND",
-     "serviceName": "ZOOKEEPER",
-     "role": "ZOOKEEPER_SERVER"
+      "commandType": "EXECUTION_COMMAND",
+      "serviceName": "ZOOKEEPER",
+      "role": "ZOOKEEPER_SERVER"
     }, "START")
 
     self.assertTrue(ret)
-    self.assertEquals(len(ret.post_hooks), 3)
-    self.assertEquals(len(ret.pre_hooks), 3)
+    self.assertEqual(len(ret.post_hooks), 3)
+    self.assertEqual(len(ret.pre_hooks), 3)
 
   def test_hook_seq_builder(self):
     seq = list(HookSequenceBuilder().build(HookPrefix.pre, "cmd", "srv", "role"))
@@ -68,8 +68,8 @@ class TestCommandHooksOrchestrator(TestCase):
       "after-cmd"
     ]
 
-    self.assertEquals(seq, check_list)
-    self.assertEquals(seq_rev, check_list_1)
+    self.assertEqual(seq, check_list)
+    self.assertEqual(seq_rev, check_list_1)
 
   def test_hook_resolved(self):
     def pre():
@@ -84,6 +84,3 @@ class TestCommandHooksOrchestrator(TestCase):
 
     self.assertEqual(ret.pre_hooks, list(pre()))
     self.assertEqual(ret.post_hooks, list(post()))
-
-
-

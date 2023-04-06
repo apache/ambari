@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.UserRequest;
@@ -122,11 +121,11 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
   /**
    * The key property ids for a User resource.
    */
-  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.User, USER_USERNAME_PROPERTY_ID)
       .build();
 
-  private static final Set<String> propertyIds = Sets.newHashSet(
+  private static Set<String> propertyIds = Sets.newHashSet(
       USER_USERNAME_PROPERTY_ID,
       USER_DISPLAY_NAME_PROPERTY_ID,
       USER_LOCAL_USERNAME_PROPERTY_ID,
@@ -171,7 +170,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
       public Void invoke() throws AmbariException {
         try {
           createUsers(requests);
-        } catch (AuthorizationException e) {
+        } catch (ResourceAlreadyExistsException | AuthorizationException e) {
           throw new AmbariException(e.getMessage(), e);
         }
         return null;
@@ -355,7 +354,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
    * @param requests the request objects which define the user.
    * @throws AmbariException when the user cannot be created.
    */
-  private void createUsers(Set<UserRequest> requests) throws AmbariException, AuthorizationException {
+  private void createUsers(Set<UserRequest> requests) throws AmbariException, ResourceAlreadyExistsException, AuthorizationException {
     // First check for obvious issues... then try to create the accounts.  This will help to avoid
     // some accounts being created and some not due to an issue with one or more of the users.
     for (UserRequest request : requests) {
@@ -372,7 +371,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
         } else {
           message = "One or more of the requested usernames already exists.";
         }
-        throw new DuplicateResourceException(message);
+        throw new ResourceAlreadyExistsException(message);
       }
     }
 

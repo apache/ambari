@@ -40,6 +40,7 @@ class TestRemoveStackVersion(RMFTestCase):
       ["hdp-select2_1_0_1_885", "2.0", "repo2"]
     ]
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -51,11 +52,12 @@ class TestRemoveStackVersion(RMFTestCase):
                        write_actual_version_to_history_file_mock,
                        read_actual_version_from_history_file_mock,
                        stack_versions_mock,
-                       put_structured_out_mock, get_provider_mock):
+                       put_structured_out_mock, get_provider_mock, list_ambari_managed_repos_mock):
     m = MagicMock()
     m.all_installed_packages.side_effect = TestRemoveStackVersion._add_packages
     get_provider_mock.return_value = m
     stack_versions_mock.return_value = [VERSION_STUB, OLD_VERSION_STUB]
+    list_ambari_managed_repos_mock.return_value = []
 
     self.executeScript("scripts/remove_previous_stacks.py",
                        classname="RemovePreviousStacks",
@@ -65,11 +67,11 @@ class TestRemoveStackVersion(RMFTestCase):
                        os_type=('Redhat', '6.4', 'Final')
                        )
     self.assertTrue(stack_versions_mock.called)
-    self.assertEquals(stack_versions_mock.call_args[0][0], '/usr/hdp')
+    self.assertEqual(stack_versions_mock.call_args[0][0], '/usr/hdp')
 
     self.assertResourceCalled('Package', "pkg12_1_0_0_400", action=["remove"])
     self.assertTrue(put_structured_out_mock.called)
-    self.assertEquals(put_structured_out_mock.call_args[0][0],
+    self.assertEqual(put_structured_out_mock.call_args[0][0],
                       {'remove_previous_stacks': {'exit_code': 0,
                        'message': 'Stack version 2.1.0.0-400 successfully removed!'}})
     self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp2.1.0.0-400'),
@@ -77,6 +79,7 @@ class TestRemoveStackVersion(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -88,13 +91,15 @@ class TestRemoveStackVersion(RMFTestCase):
                        write_actual_version_to_history_file_mock,
                        read_actual_version_from_history_file_mock,
                        stack_versions_mock,
-                       put_structured_out_mock, get_provider_mock):
+                       put_structured_out_mock, get_provider_mock, list_ambari_managed_repos_mock ):
 
     stack_versions_mock.return_value = [VERSION_STUB]
 
     m = MagicMock()
     m.all_installed_packages.side_effect = TestRemoveStackVersion._add_packages
     get_provider_mock.return_value = m
+
+    list_ambari_managed_repos_mock.return_value = []
 
     self.executeScript("scripts/remove_previous_stacks.py",
                        classname="RemovePreviousStacks",
@@ -104,9 +109,10 @@ class TestRemoveStackVersion(RMFTestCase):
                        os_type=('Redhat', '6.4', 'Final')
                        )
     self.assertTrue(stack_versions_mock.called)
-    self.assertEquals(stack_versions_mock.call_args[0][0], '/usr/hdp')
+    self.assertEqual(stack_versions_mock.call_args[0][0], '/usr/hdp')
     self.assertNoMoreResources()
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -118,13 +124,15 @@ class TestRemoveStackVersion(RMFTestCase):
                        write_actual_version_to_history_file_mock,
                        read_actual_version_from_history_file_mock,
                        stack_versions_mock,
-                       put_structured_out_mock, get_provider_mock):
+                       put_structured_out_mock, get_provider_mock, list_ambari_managed_repos_mock, ):
 
     stack_versions_mock.return_value = [VERSION_STUB, OLD_VERSION_STUB]
 
     m = MagicMock()
     m.all_installed_packages.side_effect = TestRemoveStackVersion._add_packages
     get_provider_mock.return_value = m
+
+    list_ambari_managed_repos_mock.return_value = []
 
     try:
       self.executeScript("scripts/remove_previous_stacks.py",
@@ -135,10 +143,10 @@ class TestRemoveStackVersion(RMFTestCase):
                        os_type=('Redhat', '6.4', 'Final')
                        )
       self.fail("Should throw exception")
-    except Fail, e:
-      self.assertEquals(str(e), '/usr/hdp/current/ contains symlink to version for remove! 2.1.0.0-400')
+    except Fail as e:
+      self.assertEqual(str(e), '/usr/hdp/current/ contains symlink to version for remove! 2.1.0.0-400')
       pass  # Expected
 
     self.assertTrue(stack_versions_mock.called)
-    self.assertEquals(stack_versions_mock.call_args[0][0], '/usr/hdp')
+    self.assertEqual(stack_versions_mock.call_args[0][0], '/usr/hdp')
     self.assertNoMoreResources()

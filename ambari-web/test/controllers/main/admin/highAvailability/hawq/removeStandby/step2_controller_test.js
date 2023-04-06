@@ -20,18 +20,13 @@ var App = require('app');
 require('controllers/main/admin/highAvailability/hawq/removeStandby/step2_controller');
 
 describe('App.RemoveHawqStandbyWizardStep2Controller', function () {
-  
-  var controller;
-  
-  beforeEach(function() {
-    controller = App.RemoveHawqStandbyWizardStep2Controller.create({
-      content: Em.Object.create({})
-    })
-  });
-  
+
   describe('#isSubmitDisabled', function () {
 
-    var cases = [
+    var controller = App.RemoveHawqStandbyWizardStep2Controller.create({
+        content: Em.Object.create({})
+      }),
+      cases = [
         {
           isLoaded: false,
           isSubmitDisabled: true,
@@ -50,26 +45,8 @@ describe('App.RemoveHawqStandbyWizardStep2Controller', function () {
         expect(controller.get('isSubmitDisabled')).to.equal(item.isSubmitDisabled);
       });
     });
+
   });
 
-  
-  describe('#submit', function() {
-    beforeEach(function() {
-      sinon.stub(App, 'get').returns({
-        getKDCSessionState: Em.clb
-      });
-      sinon.stub(App.router, 'send');
-    });
-    afterEach(function() {
-      App.get.restore();
-      App.router.send.restore();
-    });
-    
-    it('App.router.send should be called', function() {
-      controller.set('isLoaded', true);
-      controller.submit();
-      expect(App.router.send.calledWith('next')).to.be.true;
-    });
-  });
 
 });

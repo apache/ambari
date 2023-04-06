@@ -31,14 +31,11 @@ public class AmbariServerConfigurationTest {
 
   @Test
   public void testGetValue() {
-    final Map<String, String> configurationMap = Collections.singletonMap(TPROXY_AUTHENTICATION_ENABLED.key(), "true");
+    AmbariServerConfiguration ambariServerConfiguration = new AmbariServerConfiguration() {
 
-    final AmbariServerConfiguration ambariServerConfiguration = new AmbariServerConfiguration(configurationMap) {
-      @Override
-      protected AmbariServerConfigurationCategory getCategory() {
-        return null;
-      }
     };
+
+    Map<String, String> configurationMap = Collections.singletonMap(TPROXY_AUTHENTICATION_ENABLED.key(), "true");
 
     // Get the value specified in the configuration map
     Assert.assertEquals("true", ambariServerConfiguration.getValue(TPROXY_AUTHENTICATION_ENABLED, configurationMap));
@@ -51,8 +48,5 @@ public class AmbariServerConfigurationTest {
     Assert.assertEquals("defaultValue", ambariServerConfiguration.getValue(null, configurationMap, "defaultValue"));
     Assert.assertEquals("defaultValue", ambariServerConfiguration.getValue("property.name", null, "defaultValue"));
     Assert.assertNull(ambariServerConfiguration.getValue("property.name", Collections.emptyMap(), null));
-
-    // check toMap()
-    Assert.assertEquals(configurationMap, ambariServerConfiguration.toMap());
   }
 }

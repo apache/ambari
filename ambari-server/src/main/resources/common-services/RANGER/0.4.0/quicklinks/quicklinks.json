@@ -1,0 +1,36 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol":
+    {
+      "type":"https",
+      "checks":[
+        {
+          "property":"https.enabled",
+          "desired":"true",
+          "site":"ranger-site"
+        }
+      ]
+    },
+
+    "links": [
+      {
+        "name": "ranger_admin_ui",
+        "label": "Ranger Admin UI",
+        "requires_user_name": "false",
+        "component_name": "RANGER_ADMIN",
+        "url": "%@://%@:%@",
+        "attributes": ["authenticated", "sso"],
+        "port":{
+          "http_property": "http.service.port",
+          "http_default_port": "6080",
+          "https_property": "https.service.port",
+          "https_default_port": "6182",
+          "regex": "(\\d*)+",
+          "site": "ranger-site"
+        }
+      }
+    ]
+  }
+}

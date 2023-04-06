@@ -1,0 +1,251 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <parent>
+    <artifactId>ambari-metrics</artifactId>
+    <groupId>org.apache.ambari</groupId>
+    <version>2.7.5.0.0</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <packaging>pom</packaging>
+  <version>2.7.5.0.0</version>
+  <artifactId>ambari-metrics-host-monitoring</artifactId>
+  <name>Ambari Metrics Monitor</name>
+  <properties>
+    <resmonitor.install.dir>
+      /usr/lib/python2.6/site-packages/resource_monitoring
+    </resmonitor.install.dir>
+    <final.name>${project.artifactId}-${project.version}</final.name>
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${project.basedir}/src/main/python/psutil/build/</directory>
+              <includes>
+                <include>**/*</include>
+              </includes>
+              <followSymlinks>false</followSymlinks>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>parse-version</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>regex-property</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>ambariVersion</name>
+              <value>${project.version}</value>
+              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
+              <replacement>$1.$2.$3.$4</replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.2</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <workingDirectory>src/test/python</workingDirectory>
+              <arguments>
+                <argument>unitTests.py</argument>
+              </arguments>
+              <environmentVariables>
+                <PYTHONPATH>../../main/python:$PYTHONPATH</PYTHONPATH>
+              </environmentVariables>
+              <skip>${skipTests}</skip>
+            </configuration>
+            <id>python-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>conf/unix/metric_groups.conf</exclude>
+            <exclude>conf/windows/metric_groups.conf</exclude>
+            <exclude>src/main/python/psutil/**</exclude>
+            <exclude>.pydevproject</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>test</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.vafer</groupId>
+        <artifactId>jdeb</artifactId>
+        <executions>
+          <execution>
+            <!--Stub execution on direct plugin call - workaround for ambari deb build process-->
+            <id>stub-execution</id>
+            <phase>none</phase>
+            <goals>
+              <goal>jdeb</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <skip>true</skip>
+          <attach>false</attach>
+          <submodules>false</submodules>
+          <controlDir>${project.basedir}/../src/main/package/deb/control</controlDir>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <profiles>
+    <profile>
+      <id>windows</id>
+      <activation>
+        <os>
+          <family>win</family>
+        </os>
+      </activation>
+      <properties>
+        <envClassifier>win</envClassifier>
+        <dirsep>\</dirsep>
+        <pathsep>;</pathsep>
+        <executable.python>python</executable.python>
+        <executable.shell>cmd</executable.shell>
+        <fileextension.shell>cmd</fileextension.shell>
+        <fileextension.dot.shell-default>.cmd</fileextension.dot.shell-default>
+        <assemblydescriptor>src/main/assemblies/amhm-windows.xml</assemblydescriptor>
+        <packagingFormat>jar</packagingFormat>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.7</version>
+            <executions>
+              <execution>
+                <id>psutils-compile</id>
+                <phase>process-test-classes</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target name="psutils-compile">
+                    <exec dir="${basedir}/src/main/python/psutil" executable="${executable.python}" failonerror="true">
+                      <arg value="setup.py" />
+                      <arg value="build" />
+                      <arg value="--build-temp" />
+                      <arg value="${basedir}\target\psutil_build_temp" />
+                      <arg value="--build-base" />
+                      <arg value="${basedir}/target/psutil_build" />
+                    </exec>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>linux</id>
+      <activation>
+        <os>
+          <family>unix</family>
+        </os>
+      </activation>
+      <properties>
+        <envClassifier>linux</envClassifier>
+        <dirsep>/</dirsep>
+        <pathsep>:</pathsep>
+        <executable.python>${project.basedir}/../../ambari-common/src/main/unix/ambari-python-wrap</executable.python>
+        <executable.shell>sh</executable.shell>
+        <fileextension.shell>sh</fileextension.shell>
+        <fileextension.dot.shell-default></fileextension.dot.shell-default>
+        <assemblydescriptor>src/main/assemblies/empty.xml</assemblydescriptor>
+        <packagingFormat>jar</packagingFormat>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.7</version>
+            <executions>
+              <execution>
+                <id>psutils-compile</id>
+                <phase>process-test-classes</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target name="psutils-compile">
+                    <exec dir="${basedir}/src/main/python/psutil" executable="${executable.python}" failonerror="true">
+                      <arg value="setup.py" />
+                      <arg value="build" />
+                      <arg value="--build-platlib" />
+                      <arg value="${basedir}/target/psutil_build" />
+                    </exec>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

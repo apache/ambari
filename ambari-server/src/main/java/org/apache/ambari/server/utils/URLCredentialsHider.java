@@ -45,9 +45,9 @@ public class URLCredentialsHider {
     String userInfo = url.getUserInfo();
     if (StringUtils.isNotEmpty(userInfo)) {
       if (userInfo.contains(":")) {
-        return StringUtils.replaceOnce(urlString, userInfo, HIDDEN_CREDENTIALS);
+        return urlString.replaceFirst(userInfo, HIDDEN_CREDENTIALS);
       } else {
-        return StringUtils.replaceOnce(urlString, userInfo, HIDDEN_USER);
+        return urlString.replaceFirst(userInfo, HIDDEN_USER);
       }
     }
     return urlString;

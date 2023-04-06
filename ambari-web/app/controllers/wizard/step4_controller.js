@@ -59,27 +59,11 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   errorStack: [],
 
-  isAddServiceWizard: Em.computed.equal('content.controllerName', 'addServiceController'),
-
-  isOzoneInstalled: function() {
-    let isOzone = this.findProperty('serviceName', 'OZONE');
-    return isOzone && isOzone.get('isInstalled');
-  }.property('@each.isInstalled'),
-
   /**
    * Services which are HDFS compatible
    */
   fileSystems: function() {
-    let fileSystems = [];
-    const self = this;
-    this.filterProperty('isDFS', true).forEach((fs) => {
-      if (self.get('isAddServiceWizard') && self.get('isOzoneInstalled') &&
-        fs.get('serviceName') === 'HDFS') {
-        return;
-      }
-      fileSystems.push(fs);
-    });
-
+    var fileSystems = this.filterProperty('isDFS', true);;
     return fileSystems.map(function(fs) {
       return App.FileSystem.create({content: fs, services: fileSystems});
     });
@@ -334,7 +318,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   isDFSStack: function () {
 	  var bDFSStack = false;
-    var dfsServices = ['HDFS', 'GLUSTERFS', 'OZONE'];
+    var dfsServices = ['HDFS', 'GLUSTERFS'];
     var availableServices = this.filterProperty('isInstalled',false);
     availableServices.forEach(function(service){
       if (dfsServices.contains(service.get('serviceName')) || service.get('serviceType') == 'HCFS' ) {
@@ -351,26 +335,12 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   fileSystemServiceValidation: function(callback) {
     if(this.isDFSStack()){
-      const self = this;
       var primaryDFS = this.findProperty('isPrimaryDFS',true);
       if (primaryDFS) {
         var primaryDfsDisplayName = primaryDFS.get('displayNameOnSelectServicePage');
         var primaryDfsServiceName = primaryDFS.get('serviceName');
-        //if multiple DFS are not selected, remove the related error from the error array
-        let removeFsError = function () {
-          let fsError = self.get('errorStack').findProperty('id',"multipleDFS");
-          if(fsError)
-          {
-            self.get('errorStack').removeObject(fsError);
-          }
-        };
         if (this.multipleDFSs()) {
           var dfsServices = this.filterProperty('isDFS',true).filterProperty('isSelected',true).mapProperty('serviceName');
-          //special case for HDFS and OZONE
-          if (dfsServices.length === 2 && dfsServices.includes('HDFS') && dfsServices.includes('OZONE')) {
-            removeFsError();
-            return;
-          }
           var services = dfsServices.map(function (item){
             return {
               serviceName: item,
@@ -385,7 +355,12 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         }
         else
         {
-          removeFsError();
+          //if multiple DFS are not selected, remove the related error from the error array
+          var fsError = this.get('errorStack').filterProperty('id',"multipleDFS");
+          if(fsError)
+          {
+             this.get('errorStack').removeObject(fsError[0]);
+          }
         }
       }
     }

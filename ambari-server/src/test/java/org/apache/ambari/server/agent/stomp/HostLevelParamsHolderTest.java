@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.agent.RecoveryConfig;
 import org.apache.ambari.server.agent.stomp.dto.HostLevelParamsCluster;
+import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
 import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.junit.Test;
@@ -39,7 +40,9 @@ public class HostLevelParamsHolderTest {
   public void testHandleUpdateEmptyCurrent() {
     HostLevelParamsUpdateEvent current = new HostLevelParamsUpdateEvent(HOST_ID, Collections.emptyMap());
     Map<String, HostLevelParamsCluster> clusters = new HashMap<>();
-    HostLevelParamsCluster cluster = new HostLevelParamsCluster(new RecoveryConfig(null), Collections.emptyMap());
+    HostRepositories hostRepositories = new HostRepositories(Collections.emptySortedMap(), Collections.emptySortedMap());
+    HostLevelParamsCluster cluster = new HostLevelParamsCluster(hostRepositories,
+        new RecoveryConfig(null), Collections.emptyMap());
     clusters.put("1", cluster);
     HostLevelParamsUpdateEvent update = new HostLevelParamsUpdateEvent(HOST_ID, clusters);
 
@@ -54,7 +57,9 @@ public class HostLevelParamsHolderTest {
   @Test
   public void testHandleUpdateEmptyUpdate() {
     Map<String, HostLevelParamsCluster> clusters = new HashMap<>();
-    HostLevelParamsCluster cluster = new HostLevelParamsCluster(new RecoveryConfig(null), Collections.emptyMap());
+    HostRepositories hostRepositories = new HostRepositories(Collections.emptySortedMap(), Collections.emptySortedMap());
+    HostLevelParamsCluster cluster = new HostLevelParamsCluster(hostRepositories,
+        new RecoveryConfig(null), Collections.emptyMap());
     clusters.put("1", cluster);
     HostLevelParamsUpdateEvent current = new HostLevelParamsUpdateEvent(HOST_ID, clusters);
     HostLevelParamsUpdateEvent update = new HostLevelParamsUpdateEvent(HOST_ID, Collections.emptyMap());
@@ -70,12 +75,16 @@ public class HostLevelParamsHolderTest {
   @Test
   public void testHandleUpdateNoChanges() {
     Map<String, HostLevelParamsCluster> currentClusters = new HashMap<>();
-    HostLevelParamsCluster currentCluster = new HostLevelParamsCluster(new RecoveryConfig(null), Collections.emptyMap());
+    HostRepositories currentHostRepositories = new HostRepositories(Collections.emptySortedMap(), Collections.emptySortedMap());
+    HostLevelParamsCluster currentCluster = new HostLevelParamsCluster(currentHostRepositories,
+        new RecoveryConfig(null), Collections.emptyMap());
     currentClusters.put("1", currentCluster);
     HostLevelParamsUpdateEvent current = new HostLevelParamsUpdateEvent(HOST_ID, currentClusters);
 
     Map<String, HostLevelParamsCluster> updateClusters = new HashMap<>();
-    HostLevelParamsCluster updateCluster = new HostLevelParamsCluster(new RecoveryConfig(null), Collections.emptyMap());
+    HostRepositories updateHostRepositories = new HostRepositories(Collections.emptySortedMap(), Collections.emptySortedMap());
+    HostLevelParamsCluster updateCluster = new HostLevelParamsCluster(updateHostRepositories,
+        new RecoveryConfig(null), Collections.emptyMap());
     updateClusters.put("1", updateCluster);
     HostLevelParamsUpdateEvent update = new HostLevelParamsUpdateEvent(HOST_ID, updateClusters);
 
@@ -90,12 +99,16 @@ public class HostLevelParamsHolderTest {
   @Test
   public void testHandleUpdateOnChanges() {
     Map<String, HostLevelParamsCluster> currentClusters = new HashMap<>();
-    HostLevelParamsCluster currentCluster = new HostLevelParamsCluster(new RecoveryConfig(null), Collections.emptyMap());
+    HostRepositories currentHostRepositories = new HostRepositories(Collections.emptySortedMap(), Collections.emptySortedMap());
+    HostLevelParamsCluster currentCluster = new HostLevelParamsCluster(currentHostRepositories,
+        new RecoveryConfig(null), Collections.emptyMap());
     currentClusters.put("1", currentCluster);
     HostLevelParamsUpdateEvent current = new HostLevelParamsUpdateEvent(HOST_ID, currentClusters);
 
     Map<String, HostLevelParamsCluster> updateClusters = new HashMap<>();
-    HostLevelParamsCluster updateCluster = new HostLevelParamsCluster(new RecoveryConfig(null), Collections.emptyMap());
+    HostRepositories updateHostRepositories = new HostRepositories(Collections.emptySortedMap(), Collections.emptySortedMap());
+    HostLevelParamsCluster updateCluster = new HostLevelParamsCluster(updateHostRepositories,
+        new RecoveryConfig(null), Collections.emptyMap());
     updateClusters.put("2", updateCluster);
     HostLevelParamsUpdateEvent update = new HostLevelParamsUpdateEvent(HOST_ID, updateClusters);
 

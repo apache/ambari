@@ -242,7 +242,15 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String WIDGET_TABLE = "widget";
   protected static final String WIDGET_TAG_COLUMN = "tag";
 
+  protected static final String CLUSTER_ID_COLUMN = "cluster_id";
+  public static final String[] COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS = {COMPONENT_NAME_COLUMN, SERVICE_NAME_COLUMN, CLUSTER_ID_COLUMN};
+  public static final String[] SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS = {SERVICE_NAME_COLUMN, CLUSTER_ID_COLUMN};
   protected static final String SERVICE_COMPONENT_DESIRED_STATE_TABLE = "servicecomponentdesiredstate";
+  protected static final String CLUSTER_SERVICES_TABLE = "clusterservices";
+  protected static final String SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK = "srvccmponentdesiredstatesrvcnm";
+  protected static final String SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK = "servicedesiredstateservicename";
+  protected static final String COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK = "hstcmpnntdesiredstatecmpnntnme";
+  protected static final String COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK = "hstcomponentstatecomponentname";
   protected static final String HIVE_SERVICE_COMPONENT_WEBHCAT_SERVER = "WEBHCAT_SERVER";
   protected static final String CONFIGURATION_CORE_SITE = "core-site";
   protected static final String CONFIGURATION_WEBHCAT_SITE = "webhcat-site";
@@ -1619,7 +1627,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
             Map<String, Map<String, String>> kerberosConfigurations = new HashMap<>();
             Map<String, Set<String>> propertiesToIgnore = new HashMap<>();
             List<ServiceComponentHost> schToProcess = kerberosHelper.getServiceComponentHostsToProcess(cluster, kerberosDescriptor, null, null);
-            Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, false, false, null);
+            Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, false, false);
             boolean includeAmbariIdentity = true;
             String dataDirectory = kerberosHelper.createTemporaryDirectory().getAbsolutePath();
             try {
@@ -1682,14 +1690,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
             // Add the new properties to tell Ambari that SSO is enabled:
             populateConfigurationToBeMoved(propertiesToBeMoved, null, AmbariServerConfigurationKey.SSO_MANAGE_SERVICES, "true");
             populateConfigurationToBeMoved(propertiesToBeMoved, null, AmbariServerConfigurationKey.SSO_ENABLED_SERVICES, "AMBARI");
-          }
-        } else if (AmbariServerConfigurationKey.LDAP_ENABLED == key) {
-          populateConfigurationToBeMoved(propertiesToBeMoved, oldPropertyName, key, propertyValue);
-
-          if ("true".equalsIgnoreCase(propertyValue)) {
-            // Add the new properties to tell Ambari that LDAP is enabled:
-            populateConfigurationToBeMoved(propertiesToBeMoved, null, AmbariServerConfigurationKey.AMBARI_MANAGES_LDAP_CONFIGURATION, "true");
-            populateConfigurationToBeMoved(propertiesToBeMoved, null, AmbariServerConfigurationKey.LDAP_ENABLED_SERVICES, "AMBARI");
           }
         } else {
           populateConfigurationToBeMoved(propertiesToBeMoved, oldPropertyName, key, propertyValue);
@@ -1785,9 +1785,10 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       return;
 
     Map<String, Cluster> clusterMap = clusters.getClusters();
-    if (clusterMap == null || clusterMap.isEmpty()) {
+
+    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+    if (clusterMap == null || clusterMap.isEmpty())
       return;
-    }
 
     for (final Cluster cluster : clusterMap.values()) {
       updateConfig(cluster, "logsearch-service_logs-solrconfig", (content) -> {

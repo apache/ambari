@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.metrics;
 
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
@@ -161,7 +160,7 @@ public class RestMetricsPropertyProviderTest {
     ConfigHelper configHelperMock = createNiceMock(ConfigHelper.class);
     expect(amc.getClusters()).andReturn(clusters).anyTimes();
     expect(amc.getAmbariEventPublisher()).andReturn(createNiceMock(AmbariEventPublisher.class)).anyTimes();
-    expect(amc.findConfigurationTagsWithOverrides(eq(c1), anyString(), anyObject())).andReturn(Collections.singletonMap("storm-site",
+    expect(amc.findConfigurationTagsWithOverrides(eq(c1), anyString())).andReturn(Collections.singletonMap("storm-site",
         Collections.singletonMap("tag", "version1"))).anyTimes();
     expect(amc.getConfigHelper()).andReturn(configHelperMock).anyTimes();
     expect(configHelperMock.getEffectiveConfigProperties(eq(c1),
@@ -491,35 +490,30 @@ public class RestMetricsPropertyProviderTest {
     RestMetricsPropertyProvider restMetricsPropertyProvider = createRestMetricsPropertyProvider(metricDefinition, componentMetrics, streamProvider,
         metricsHostProvider);
 
-    // set the provider timeout to -1 millis to guarantee timeout
-    restMetricsPropertyProvider.setPopulateTimeout(-1L);
-    try {
-      Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+    // set the provider timeout to 50 millis
+    restMetricsPropertyProvider.setPopulateTimeout(50L);
 
-      resource.setProperty("HostRoles/cluster_name", "c1");
-      resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
-      resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "STORM_REST_API");
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-      resources.add(resource);
+    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "STORM_REST_API");
 
-      // request with an empty set should get all supported properties
-      Request request = PropertyHelper.getReadRequest(Collections.emptySet());
+    resources.add(resource);
 
-      Set<Resource> resourceSet = restMetricsPropertyProvider.populateResources(resources, request, null);
+    // request with an empty set should get all supported properties
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
-      // make sure that the thread running the stream provider has completed
-      Thread.sleep(150L);
+    Set<Resource> resourceSet = restMetricsPropertyProvider.populateResources(resources, request, null);
 
-      Assert.assertEquals(0, resourceSet.size());
+    // make sure that the thread running the stream provider has completed
+    Thread.sleep(150L);
 
-      // assert that properties never get set on the resource
-      Assert.assertNull(resource.getPropertyValue("metrics/api/cluster/summary/tasks.total"));
-      Assert.assertNull(resource.getPropertyValue("metrics/api/cluster/summary/supervisors"));
-    } finally {
-      // reset default value
-      restMetricsPropertyProvider.setPopulateTimeout(injector.getInstance(Configuration.class)
-          .getPropertyProvidersCompletionServiceTimeout());
-    }
+    Assert.assertEquals(0, resourceSet.size());
+
+    // assert that properties never get set on the resource
+    Assert.assertNull(resource.getPropertyValue("metrics/api/cluster/summary/tasks.total"));
+    Assert.assertNull(resource.getPropertyValue("metrics/api/cluster/summary/supervisors"));
   }
 
   public static class TestMetricsHostProvider implements MetricHostProvider {

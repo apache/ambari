@@ -19,7 +19,6 @@
 package org.apache.ambari.server.orm.dao;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -224,9 +223,6 @@ public class ClusterDAO {
   @RequiresSession
   public List<ClusterConfigEntity> getLatestConfigurationsWithTypes(long clusterId, StackId stackId, Collection<String> configTypes) {
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
-    if (configTypes.isEmpty()) {
-      return Collections.emptyList();
-    }
     return daoUtils.selectList(
       entityManagerProvider.get()
       .createNamedQuery("ClusterConfigEntity.findLatestConfigsByStackWithTypes", ClusterConfigEntity.class)

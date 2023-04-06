@@ -59,7 +59,7 @@ public class ApiStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/v1")
-      .setAllowedOriginPatterns("*")
+      .setAllowedOrigins("*")
       .withSockJS().setHeartbeatTime(configuration.getAPIHeartbeatInterval());
   }
 
@@ -70,7 +70,7 @@ public class ApiStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
     taskScheduler.setThreadNamePrefix(HEARTBEAT_THREAD_NAME);
     taskScheduler.initialize();
 
-    registry.setPreservePublishOrder(true).enableSimpleBroker("/").setTaskScheduler(taskScheduler)
+    registry.enableSimpleBroker("/").setTaskScheduler(taskScheduler)
         .setHeartbeatValue(new long[]{configuration.getAPIHeartbeatInterval(), configuration.getAPIHeartbeatInterval()});
   }
 }

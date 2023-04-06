@@ -26,13 +26,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
-import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
-import org.apache.ambari.server.mpack.MpackManager;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
-import org.apache.ambari.server.mpack.MpackManagerMock;
-import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stack.StackManagerMock;
@@ -40,9 +35,7 @@ import org.easymock.EasyMock;
 import org.springframework.beans.factory.config.BeanDefinition;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.name.Names;
 import com.google.inject.util.Modules;
 
 public class InMemoryDefaultTestModule extends AbstractModule {
@@ -108,10 +101,6 @@ public class InMemoryDefaultTestModule extends AbstractModule {
       properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), version);
     }
 
-    if (!properties.containsKey(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey())) {
-      properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(), mpacksv2);
-    }
-
     if (!properties.containsKey(Configuration.OS_VERSION.getKey())) {
       properties.setProperty(Configuration.OS_VERSION.getKey(), "centos5");
     }
@@ -131,7 +120,6 @@ public class InMemoryDefaultTestModule extends AbstractModule {
         protected void configure() {
           // Cache parsed stacks.
           install(new FactoryModuleBuilder().implement(StackManager.class, StackManagerMock.class).build(StackManagerFactory.class));
-          install(new FactoryModuleBuilder().implement(MpackManager.class, MpackManagerMock.class).build(MpackManagerFactory.class));
         }
       }));
       AuditLogger al = EasyMock.createNiceMock(AuditLogger.class);
@@ -139,7 +127,6 @@ public class InMemoryDefaultTestModule extends AbstractModule {
       bind(AuditLogger.class).toInstance(al);
       bind(AmbariLdapConfigurationProvider.class).toInstance(EasyMock.createMock(AmbariLdapConfigurationProvider.class));
 
-      bind(new TypeLiteral<Encryptor<AgentConfigsUpdateEvent>>() {}).annotatedWith(Names.named("AgentConfigEncryptor")).toInstance(Encryptor.NONE);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

@@ -102,7 +102,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   loadClusterName: function (reload, deferred) {
     var dfd = deferred || $.Deferred();
 
-    if (App.get('clusterName') && App.get('clusterId') && !reload) {
+    if (App.get('clusterName') && !reload) {
       App.set('clusterName', this.get('clusterName'));
       this.set('isClusterNameLoaded', true);
       dfd.resolve();
@@ -376,6 +376,13 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
    * */
   isSuspendedState: function(status){
     return "ABORTED" === status;
+  },
+
+  loadRootService: function () {
+    return App.ajax.send({
+      name: 'service.ambari',
+      sender: this
+    });
   },
 
   requestHosts: function (realUrl, callback) {

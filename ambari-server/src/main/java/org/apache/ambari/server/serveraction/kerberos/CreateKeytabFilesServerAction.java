@@ -57,7 +57,6 @@ import com.google.inject.Inject;
  * {@link KerberosServerAction#processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, boolean, Map)}
  * is invoked attempting the creation of the relevant keytab file.
  */
-@SuppressWarnings("UnstableApiUsage")
 public class CreateKeytabFilesServerAction extends KerberosServerAction {
   private final static Logger LOG = LoggerFactory.getLogger(CreateKeytabFilesServerAction.class);
 
@@ -159,8 +158,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
     CommandReport commandReport = null;
     String message = null;
 
-    Set<ResolvedKerberosKeytab> keytabsToCreate = kerberosKeytabController.getFromPrincipalExceptServiceMapping(resolvedPrincipal);
-    KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(resolvedPrincipal.getPrincipal());
+    Set<ResolvedKerberosKeytab> keytabsToCreate = kerberosKeytabController.getFromPrincipal(resolvedPrincipal);
 
     try {
       String dataDirectory = getDataDirectoryPath();
@@ -182,7 +180,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
           String hostName = resolvedPrincipal.getHostName();
           String keytabFilePath = rkk.getFile();
 
-          if (hostName != null && !hostName.isEmpty() && keytabFilePath != null && !keytabFilePath.isEmpty()) {
+          if ((hostName != null) && !hostName.isEmpty() && (keytabFilePath != null) && !keytabFilePath.isEmpty()) {
             Lock lock = m_locksByKeytab.get(keytabFilePath);
             lock.lock();
 
@@ -221,6 +219,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                     regenerateKeytabs = false;
                   }
 
+                  KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(resolvedPrincipal.getPrincipal());
                   String cachedKeytabPath = (principalEntity == null) ? null : principalEntity.getCachedKeytabPath();
 
                   if (password == null) {
@@ -247,8 +246,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                       }
                     }
                   } else {
-                    Keytab keytab = createKeytab(resolvedPrincipal.getPrincipal(), principalEntity, password,
-                      keyNumber, operationHandler, visitedPrincipalKeys != null, true, actionLog);
+                    Keytab keytab = createKeytab(resolvedPrincipal.getPrincipal(), password, keyNumber, operationHandler, visitedPrincipalKeys != null, true, actionLog);
 
                     if (keytab != null) {
                       try {
@@ -321,23 +319,30 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
    * @return a Keytab
    * @throws AmbariException
    */
-  public Keytab createKeytab(String principal, KerberosPrincipalEntity principalEntity, String password,
-                             Integer keyNumber, KerberosOperationHandler operationHandler, boolean checkCache,
+  public Keytab createKeytab(String principal, String password, Integer keyNumber,
+                             KerberosOperationHandler operationHandler, boolean checkCache,
                              boolean canCache, ActionLog actionLog) throws AmbariException {
-
     LOG.debug("Creating keytab for {} with kvno {}", principal, keyNumber);
     Keytab keytab = null;
 
     // Possibly get the keytab from the cache
     if (checkCache) {
       // Attempt to pull the keytab from the cache...
+      KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(principal);
       String cachedKeytabPath = (principalEntity == null) ? null : principalEntity.getCachedKeytabPath();
 
       if (cachedKeytabPath != null) {
         try {
           keytab = Keytab.read(new File(cachedKeytabPath));
         } catch (IOException e) {
-          LOG.warn("Failed to read the cached keytab for {}, recreating if possible - {}", principal, e.getMessage());
+          String message = String.format("Failed to read the cached keytab for %s, recreating if possible - %s",
+              principal, e.getMessage());
+
+          if (LOG.isDebugEnabled()) {
+            LOG.warn(message, e);
+          } else {
+            LOG.warn(message, e);
+          }
         }
       }
     }
@@ -349,16 +354,17 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
 
         // If the current identity does not represent a service, copy it to a secure location
         // and store that location so it can be reused rather than recreate it.
+        KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(principal);
         if (principalEntity != null) {
           if (canCache) {
             File cachedKeytabFile = cacheKeytab(principal, keytab);
             String previousCachedFilePath = principalEntity.getCachedKeytabPath();
-            String cachedKeytabFilePath = (cachedKeytabFile.exists()) ? cachedKeytabFile.getAbsolutePath() : null;
+            String cachedKeytabFilePath = ((cachedKeytabFile == null) || !cachedKeytabFile.exists())
+                ? null
+                : cachedKeytabFile.getAbsolutePath();
 
-            if (previousCachedFilePath == null || !previousCachedFilePath.equals(cachedKeytabFilePath)) {
-              principalEntity.setCachedKeytabPath(cachedKeytabFilePath);
-              kerberosPrincipalDAO.merge(principalEntity);
-            }
+            principalEntity.setCachedKeytabPath(cachedKeytabFilePath);
+            kerberosPrincipalDAO.merge(principalEntity);
 
             if (previousCachedFilePath != null) {
               if (!new File(previousCachedFilePath).delete()) {

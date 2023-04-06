@@ -139,12 +139,12 @@ public class RoleCommandOrder implements Cloneable {
     }
 
     for (StackId stackId : stackIds) {
-      StackInfo stack;
+      StackInfo stack = null;
       try {
         stack = ambariMetaInfo.getStack(stackId.getStackName(),
           stackId.getStackVersion());
       } catch (AmbariException ignored) {
-        throw new NullPointerException("Stack not found: " + stackId);
+        // initialize() will fail with NPE
       }
 
       Map<String,Object> userData = stack.getRoleCommandOrder().getContent();

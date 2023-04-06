@@ -19,7 +19,7 @@ limitations under the License.
 '''
 import json
 import os
-from ambari_commons import subprocess32
+import subprocess
 import select
 
 from stacks.utils.RMFTestCase import *
@@ -42,7 +42,7 @@ subproc_mock.return_value.stdout = subproc_stdout
 @patch.object(select, "select", new=MagicMock(return_value=([subproc_stdout], None, None)))
 @patch("pty.openpty", new = MagicMock(return_value=(1,5)))
 @patch.object(os, "close", new=MagicMock())
-@patch.object(subprocess32, "Popen", new=subproc_mock)
+@patch.object(subprocess, "Popen", new=subproc_mock)
 class TestInstallPackages(RMFTestCase):
 
   def setUp(self):
@@ -78,9 +78,10 @@ class TestInstallPackages(RMFTestCase):
     with patch("ambari_commons.shell.subprocess_executor") as checked_call_mock:
       checked_call_mock.return_value = r
       expected_version = pkg_manager.get_installed_package_version("test")
-      self.assertEquals("3.1.0.0-54", expected_version)
+      self.assertEqual("3.1.0.0-54", expected_version)
 
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -93,7 +94,7 @@ class TestInstallPackages(RMFTestCase):
                             read_actual_version_from_history_file_mock,
                             stack_versions_mock,
                             put_structured_out_mock,
-                            get_provider):
+                            get_provider, list_ambari_managed_repos_mock):
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
       [VERSION_STUB]
@@ -105,16 +106,14 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages, \
-      patch.object(pkg_manager, "_check_existence") as check_existence:
-
+      patch.object(pkg_manager, "installed_packages") as installed_packages:
       all_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
       available_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
       installed_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
-      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
 
+      list_ambari_managed_repos_mock.return_value = []
       repo_file_name = 'ambari-hdp-1'
       use_repos = { 'HDP-UTILS-1.1.0.20': repo_file_name, 'HDP-2.2': repo_file_name }
       self.executeScript("scripts/install_packages.py",
@@ -125,22 +124,22 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
       )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP-UTILS', 'main'],
+                                components=['HDP-UTILS', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
       )
       self.assertResourceCalled('Repository', 'HDP-2.2',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP', 'main'],
+                                components=['HDP', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
@@ -196,13 +195,14 @@ class TestInstallPackages(RMFTestCase):
                            os_type=('Redhat', '6.4', 'Final'),
         )
       except Fail as e:
-        self.assertEquals(e.message, "Failed to distribute repositories/install packages")
+        self.assertEqual(str(e), "Failed to distribute repositories/install packages")
       else:
         self.assertFalse("Packages can't be installed without repos")
 
       self.assertNoMoreResources()
 
   @patch("ambari_commons.os_check.OSCheck.is_suse_family")
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -212,7 +212,7 @@ class TestInstallPackages(RMFTestCase):
   def test_normal_flow_sles(self, subprocess_with_timeout, write_actual_version_to_history_file_mock,
                             read_actual_version_from_history_file_mock,
                             stack_versions_mock, put_structured_out_mock,
-                            get_provider, is_suse_family_mock):
+                            get_provider, list_ambari_managed_repos_mock, is_suse_family_mock):
     is_suse_family_mock = True
     Script.stack_version_from_distro_select = VERSION_STUB
     stack_versions_mock.side_effect = [
@@ -226,16 +226,14 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages, \
-      patch.object(pkg_manager, "_check_existence") as check_existence:
-
+      patch.object(pkg_manager, "installed_packages") as installed_packages:
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
 
+      list_ambari_managed_repos_mock.return_value=[]
       repo_file_name = 'ambari-hdp-1'
       use_repos = { 'HDP-UTILS-1.1.0.20': repo_file_name, 'HDP-2.2': repo_file_name }
       self.executeScript("scripts/install_packages.py",
@@ -246,23 +244,23 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Suse', '11', 'SP1'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP-UTILS', 'main'],
+                                components=['HDP-UTILS', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 )
       self.assertResourceCalled('Repository', 'HDP-2.2',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                components=['HDP', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 )
@@ -271,6 +269,7 @@ class TestInstallPackages(RMFTestCase):
       )
       self.assertNoMoreResources()
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.os_check.OSCheck.is_redhat_family")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
@@ -282,7 +281,7 @@ class TestInstallPackages(RMFTestCase):
                                  read_actual_version_from_history_file_mock,
                                  stack_versions_mock,
                                  get_provider, put_structured_out_mock,
-                                 is_redhat_family_mock):
+                                 is_redhat_family_mock, list_ambari_managed_repos_mock):
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
       [VERSION_STUB]
@@ -295,15 +294,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages, \
-      patch.object(pkg_manager, "_check_existence") as check_existence:
-
+      patch.object(pkg_manager, "installed_packages") as installed_packages:
       all_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
       available_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
       installed_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
-      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
+      list_ambari_managed_repos_mock.return_value=["HDP-UTILS-2.2.0.1-885"]
       is_redhat_family_mock.return_value = True
       repo_file_name = 'ambari-hdp-1'
       use_repos = { 'HDP-UTILS-1.1.0.20': repo_file_name, 'HDP-2.2': repo_file_name }
@@ -315,23 +312,23 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
       )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP-UTILS', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                components=['HDP-UTILS', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
       )
       self.assertResourceCalled('Repository', 'HDP-2.2',
                                 base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                components=['HDP', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
       )
@@ -365,13 +362,14 @@ class TestInstallPackages(RMFTestCase):
       TestInstallPackages._install_failed = True
       raise Exception()
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.os_check.OSCheck.is_redhat_family")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.core.resources.packaging.Package.__new__")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("ambari_commons.shell.launch_subprocess")
   def test_fail(self, subprocess_with_timeout, put_structured_out_mock, Package__mock, get_provider,
-                is_redhat_family_mock):
+                is_redhat_family_mock, list_ambari_managed_repos_mock):
     from ambari_commons.os_check import OSConst
     from ambari_commons.repo_manager import ManagerFactory
 
@@ -387,6 +385,7 @@ class TestInstallPackages(RMFTestCase):
       get_provider.return_value = pkg_manager
 
       is_redhat_family_mock.return_value = True
+      list_ambari_managed_repos_mock.return_value = []
 
       def side_effect(retcode):
         TestInstallPackages._install_failed = True
@@ -401,23 +400,23 @@ class TestInstallPackages(RMFTestCase):
                         os_type=('Redhat', '6.4', 'Final'))
 
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'repository_version_id': 1,
                         'package_installation_result': 'FAIL'})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP-UTILS', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name=u'ambari-hdp-1',
+                                components=['HDP-UTILS', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                repo_file_name='ambari-hdp-1',
                                 mirror_list=None,
                                 )
       self.assertResourceCalled('Repository', 'HDP-2.2',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name=u'ambari-hdp-1',
+                                components=['HDP', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                repo_file_name='ambari-hdp-1',
                                 mirror_list=None,
                                 )
       self.assertResourceCalled('Repository', None,
@@ -454,12 +453,10 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages, \
-      patch.object(pkg_manager, "_check_existence") as check_existence:
+      patch.object(pkg_manager, "installed_packages") as installed_packages:
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
       is_suse_family_mock.return_value = True
@@ -473,23 +470,23 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Suse', '11', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP-UTILS', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                components=['HDP-UTILS', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 )
       self.assertResourceCalled('Repository', 'HDP-2.2',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                components=['HDP', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 )
@@ -526,12 +523,10 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages, \
-      patch.object(pkg_manager, "_check_existence") as check_existence:
+      patch.object(pkg_manager, "installed_packages") as installed_packages:
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
       is_suse_family_mock.return_value = True
@@ -553,23 +548,23 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Suse', '11', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 4,
                          'actual_version': VERSION_STUB})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20-repo-4',
-                                base_url=u'http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP-UTILS', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                components=['HDP-UTILS', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 )
       self.assertResourceCalled('Repository', 'HDP-2.2-repo-4',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                components=['HDP', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 )
@@ -578,6 +573,7 @@ class TestInstallPackages(RMFTestCase):
       )
       self.assertNoMoreResources()
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -588,7 +584,7 @@ class TestInstallPackages(RMFTestCase):
                                                          write_actual_version_to_history_file_mock,
                                                          read_actual_version_from_history_file_mock,
                                                          stack_versions_mock,
-                                                         put_structured_out_mock, get_provider):
+                                                         put_structured_out_mock, get_provider, list_ambari_managed_repos_mock):
     stack_versions_mock.side_effect = [
       [OLD_VERSION_STUB],  # before installation attempt
       [OLD_VERSION_STUB, VERSION_STUB]
@@ -607,15 +603,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages, \
-      patch.object(pkg_manager, "_check_existence") as check_existence:
-
+      patch.object(pkg_manager, "installed_packages") as installed_packages:
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
+      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -624,12 +618,12 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertTrue(write_actual_version_to_history_file_mock.called)
-      self.assertEquals(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
+      self.assertEqual(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
 
       stack_versions_mock.reset_mock()
       write_actual_version_to_history_file_mock.reset_mock()
@@ -651,6 +645,7 @@ class TestInstallPackages(RMFTestCase):
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -659,7 +654,7 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
@@ -667,6 +662,7 @@ class TestInstallPackages(RMFTestCase):
       self.assertFalse(write_actual_version_to_history_file_mock.called)
 
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -680,7 +676,7 @@ class TestInstallPackages(RMFTestCase):
                                                                             write_actual_version_to_history_file_mock,
                                                                             read_actual_version_from_history_file_mock,
                                                                             stack_versions_mock,
-                                                                            put_structured_out_mock, get_provider):
+                                                                            put_structured_out_mock, get_provider, list_ambari_managed_repos_mock):
     exists_mock.return_value = True
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
@@ -692,7 +688,6 @@ class TestInstallPackages(RMFTestCase):
     with open(config_file, "r") as f:
       command_json = json.load(f)
 
-
     command_json['roleParams']['repository_version'] = VERSION_STUB_WITHOUT_BUILD_NUMBER
 
     from ambari_commons.os_check import OSConst
@@ -702,15 +697,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages, \
-      patch.object(pkg_manager, "_check_existence") as check_existence:
-
+      patch.object(pkg_manager, "installed_packages") as installed_packages:
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
+      list_ambari_managed_repos_mock.return_value = []
 
       try:
         self.executeScript("scripts/install_packages.py",
@@ -726,7 +719,7 @@ class TestInstallPackages(RMFTestCase):
 
 
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args_list[-1][0][0],
+      self.assertEqual(put_structured_out_mock.call_args_list[-1][0][0],
                         { 'actual_version': '2.2.0.1-885',
                           'package_installation_result': 'FAIL',
                           'repository_version_id': 1})
@@ -738,6 +731,7 @@ class TestInstallPackages(RMFTestCase):
       put_structured_out_mock.reset_mock()
 
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -751,7 +745,7 @@ class TestInstallPackages(RMFTestCase):
                                                                         write_actual_version_to_history_file_mock,
                                                                         read_actual_version_from_history_file_mock,
                                                                         stack_versions_mock,
-                                                                        put_structured_out_mock, get_provider):
+                                                                        put_structured_out_mock, get_provider, list_ambari_managed_repos_mock):
     exists_mock.return_value = False
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
@@ -772,16 +766,14 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages, \
-      patch.object(pkg_manager, "_check_existence") as check_existence:
-
+      patch.object(pkg_manager, "installed_packages") as installed_packages:
       all_packages.side_effect = TestInstallPackages._add_packages
       available_packages.side_effect = TestInstallPackages._add_packages
       installed_packages.side_effect = TestInstallPackages._add_packages
-      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
 
+      list_ambari_managed_repos_mock.return_value = []
       try:
         self.executeScript("scripts/install_packages.py",
                            classname="InstallPackages",
@@ -795,7 +787,7 @@ class TestInstallPackages(RMFTestCase):
         pass  # Expected
 
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args_list[-1][0][0],
+      self.assertEqual(put_structured_out_mock.call_args_list[-1][0][0],
                         {'package_installation_result': 'FAIL',
                          'repository_version_id': 1})
 
@@ -822,6 +814,7 @@ class TestInstallPackages(RMFTestCase):
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      list_ambari_managed_repos_mock.return_value = []
       try:
         self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
@@ -835,7 +828,7 @@ class TestInstallPackages(RMFTestCase):
         pass  # Expected
 
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'FAIL',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
@@ -843,6 +836,7 @@ class TestInstallPackages(RMFTestCase):
       self.assertFalse(write_actual_version_to_history_file_mock.called)
 
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -854,7 +848,7 @@ class TestInstallPackages(RMFTestCase):
                                                                     write_actual_version_to_history_file_mock,
                                                                     read_actual_version_from_history_file_mock,
                                                                     stack_versions_mock,
-                                                                    put_structured_out_mock, get_provider):
+                                                                    put_structured_out_mock, get_provider, list_ambari_managed_repos_mock):
     stack_versions_mock.side_effect = [
       [OLD_VERSION_STUB],  # before installation attempt
       [OLD_VERSION_STUB, VERSION_STUB]
@@ -873,15 +867,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages, \
-      patch.object(pkg_manager, "_check_existence") as check_existence:
-
+      patch.object(pkg_manager, "installed_packages") as installed_packages:
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
+      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -890,12 +882,12 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertTrue(write_actual_version_to_history_file_mock.called)
-      self.assertEquals(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
+      self.assertEqual(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
 
       stack_versions_mock.reset_mock()
       write_actual_version_to_history_file_mock.reset_mock()
@@ -917,6 +909,7 @@ class TestInstallPackages(RMFTestCase):
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -925,7 +918,7 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
@@ -933,6 +926,7 @@ class TestInstallPackages(RMFTestCase):
       self.assertFalse(write_actual_version_to_history_file_mock.called)
 
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -944,7 +938,7 @@ class TestInstallPackages(RMFTestCase):
                                                                         write_actual_version_to_history_file_mock,
                                                                         read_actual_version_from_history_file_mock,
                                                                         stack_versions_mock,
-                                                                        put_structured_out_mock, get_provider):
+                                                                        put_structured_out_mock, get_provider, list_ambari_managed_repos_mock):
     stack_versions_mock.side_effect = [
       [OLD_VERSION_STUB],  # before installation attempt
       [OLD_VERSION_STUB, VERSION_STUB]
@@ -963,15 +957,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages, \
-      patch.object(pkg_manager, "_check_existence") as check_existence:
-
+      patch.object(pkg_manager, "installed_packages") as installed_packages:
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
+      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -980,12 +972,12 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertTrue(write_actual_version_to_history_file_mock.called)
-      self.assertEquals(write_actual_version_to_history_file_mock.call_args[0], ('2.2.0.1', VERSION_STUB))
+      self.assertEqual(write_actual_version_to_history_file_mock.call_args[0], ('2.2.0.1', VERSION_STUB))
 
       stack_versions_mock.reset_mock()
       write_actual_version_to_history_file_mock.reset_mock()
@@ -1007,6 +999,7 @@ class TestInstallPackages(RMFTestCase):
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -1015,7 +1008,7 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
@@ -1023,6 +1016,7 @@ class TestInstallPackages(RMFTestCase):
       self.assertFalse(write_actual_version_to_history_file_mock.called)
 
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -1036,7 +1030,7 @@ class TestInstallPackages(RMFTestCase):
                                                                             write_actual_version_to_history_file_mock,
                                                                             read_actual_version_from_history_file_mock,
                                                                             stack_versions_mock,
-                                                                            put_structured_out_mock, get_provider):
+                                                                            put_structured_out_mock, get_provider, list_ambari_managed_repos_mock):
     exists_mock.return_value = False
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
@@ -1057,15 +1051,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages, \
-      patch.object(pkg_manager, "_check_existence") as check_existence:
-
+      patch.object(pkg_manager, "installed_packages") as installed_packages:
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
+      list_ambari_managed_repos_mock.return_value = []
       try:
         self.executeScript("scripts/install_packages.py",
                            classname="InstallPackages",
@@ -1079,7 +1071,7 @@ class TestInstallPackages(RMFTestCase):
         pass  # Expected
 
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args_list[-1][0][0],
+      self.assertEqual(put_structured_out_mock.call_args_list[-1][0][0],
                         {'package_installation_result': 'FAIL',
                          'repository_version_id': 1})
 
@@ -1106,6 +1098,7 @@ class TestInstallPackages(RMFTestCase):
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      list_ambari_managed_repos_mock.return_value = []
       try:
         self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
@@ -1119,13 +1112,14 @@ class TestInstallPackages(RMFTestCase):
         pass  # Expected
 
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'FAIL',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
 
       self.assertFalse(write_actual_version_to_history_file_mock.called)
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -1137,7 +1131,7 @@ class TestInstallPackages(RMFTestCase):
                                                      write_actual_version_to_history_file_mock,
                                                      read_actual_version_from_history_file_mock,
                                                      stack_versions_mock,
-                                                     put_structured_out_mock, get_provider):
+                                                     put_structured_out_mock, get_provider, list_ambari_managed_repos_mock):
     stack_versions_mock.side_effect = [
       [OLD_VERSION_STUB],  # before installation attempt
       [OLD_VERSION_STUB, VERSION_STUB]
@@ -1157,15 +1151,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages, \
-      patch.object(pkg_manager, "_check_existence") as check_existence:
-
+      patch.object(pkg_manager, "installed_packages") as installed_packages:
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
+      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -1174,12 +1166,12 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertTrue(write_actual_version_to_history_file_mock.called)
-      self.assertEquals(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
+      self.assertEqual(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
 
       stack_versions_mock.reset_mock()
       write_actual_version_to_history_file_mock.reset_mock()
@@ -1202,6 +1194,7 @@ class TestInstallPackages(RMFTestCase):
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -1210,13 +1203,14 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
 
       self.assertFalse(write_actual_version_to_history_file_mock.called)
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -1229,7 +1223,8 @@ class TestInstallPackages(RMFTestCase):
                                               read_actual_version_from_history_file_mock,
                                               stack_versions_mock,
                                               put_structured_out_mock,
-                                              get_provider):
+                                              get_provider,
+                                              list_ambari_managed_repos_mock):
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
       [VERSION_STUB]
@@ -1242,15 +1237,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages, \
-      patch.object(pkg_manager, "_check_existence") as check_existence:
-
+      patch.object(pkg_manager, "installed_packages") as installed_packages:
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
-      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
+      list_ambari_managed_repos_mock.return_value=[]
       repo_file_name = 'ambari-hdp-4'
       use_repos = { 'HDP-UTILS-1.1.0.20-repo-4': repo_file_name, 'HDP-2.2-repo-4': repo_file_name }
       self.executeScript("scripts/install_packages.py",
@@ -1261,23 +1254,23 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
       )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 4,
                          'actual_version': VERSION_STUB})
 
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20-repo-4',
-                                base_url=u'http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP-UTILS', 'main'],
+                                components=['HDP-UTILS', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
       )
       self.assertResourceCalled('Repository', 'HDP-2.2-repo-4',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP', 'main'],
+                                components=['HDP', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
@@ -1290,6 +1283,6 @@ class TestInstallPackages(RMFTestCase):
   def test_os_family_check_with_inheritance(self):
     from ambari_commons.os_check import OSConst
     from ambari_commons.repo_manager import ManagerFactory
-    self.assertEquals(
+    self.assertEqual(
       ManagerFactory.get_new_instance(OSConst.DEBIAN_FAMILY).__class__,
       ManagerFactory.get_new_instance(OSConst.UBUNTU_FAMILY).__class__)

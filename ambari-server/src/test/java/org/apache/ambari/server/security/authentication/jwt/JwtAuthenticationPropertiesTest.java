@@ -23,32 +23,30 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.junit.Test;
 
 public class JwtAuthenticationPropertiesTest {
 
   @Test
   public void testSetNullAudiences() {
-    assertNull(new JwtAuthenticationProperties(Collections.emptyMap()).getAudiences());
+    JwtAuthenticationProperties jwtAuthenticationProperties = new JwtAuthenticationProperties(Collections.emptyMap());
+    jwtAuthenticationProperties.setAudiencesString(null);
+    assertNull(jwtAuthenticationProperties.getAudiences());
   }
 
   @Test
   public void testSetEmptyAudiences() {
-    final Map<String, String> configurationMap = new HashMap<>();
-    configurationMap.put(AmbariServerConfigurationKey.SSO_JWT_AUDIENCES.key(), "");
-    assertNull(new JwtAuthenticationProperties(configurationMap).getAudiences());
+    JwtAuthenticationProperties jwtAuthenticationProperties = new JwtAuthenticationProperties(Collections.emptyMap());
+    jwtAuthenticationProperties.setAudiencesString("");
+    assertNull(jwtAuthenticationProperties.getAudiences());
   }
 
   @Test
   public void testSetValidAudiences() {
-    final String[] expectedAudiences = {"first", "second", "third"};
-    final Map<String, String> configurationMap = new HashMap<>();
-    configurationMap.put(AmbariServerConfigurationKey.SSO_JWT_AUDIENCES.key(), "first,second,third");
-    final JwtAuthenticationProperties jwtAuthenticationProperties = new JwtAuthenticationProperties(configurationMap);
+    String[] expectedAudiences = {"first", "second", "third"};
+    JwtAuthenticationProperties jwtAuthenticationProperties = new JwtAuthenticationProperties(Collections.emptyMap());
+    jwtAuthenticationProperties.setAudiencesString("first,second,third");
     assertNotNull(jwtAuthenticationProperties.getAudiences());
     assertArrayEquals(expectedAudiences, jwtAuthenticationProperties.getAudiences().toArray(new String[]{}));
   }

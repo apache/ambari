@@ -17,16 +17,11 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.apache</groupId>
-    <artifactId>apache</artifactId>
-    <version>21</version>
-  </parent>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari</artifactId>
   <packaging>pom</packaging>
   <name>Ambari Main</name>
-  <version>${revision}</version>
+  <version>2.7.5.0.0</version>
   <description>Ambari</description>
   <url>https://ambari.apache.org/</url>
   <scm>
@@ -40,36 +35,6 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-  <mailingLists>
-    <mailingList>
-      <name>Dev</name>
-      <subscribe>dev-subscribe@ambari.apache.org</subscribe>
-      <unsubscribe>dev-unsubscribe@ambari.apache.org</unsubscribe>
-      <post>dev@ambari.apache.org</post>
-      <archive>http://mail-archives.apache.org/mod_mbox/ambari-dev/</archive>
-    </mailingList>
-    <mailingList>
-      <name>Users</name>
-      <subscribe>users-subscribe@ambari.apache.org</subscribe>
-      <unsubscribe>users-unsubscribe@ambari.apache.org</unsubscribe>
-      <post>users@ambari.apache.org</post>
-      <archive>http://mail-archives.apache.org/mod_mbox/ambari-users</archive>
-    </mailingList>
-    <mailingList>
-      <name>Commits</name>
-      <subscribe>commits-subscribe@ambari.apache.org</subscribe>
-      <unsubscribe>commits-unsubscribe@ambari.apache.org</unsubscribe>
-      <post>commits@ambari.apache.org</post>
-      <archive>http://mail-archives.apache.org/mod_mbox/ambari-commits</archive>
-    </mailingList>
-    <mailingList>
-      <name>Issues</name>
-      <subscribe>issues-subscribe@ambari.apache.org</subscribe>
-      <unsubscribe>issues-unsubscribe@ambari.apache.org</unsubscribe>
-      <post>issues@ambari.apache.org</post>
-      <archive>http://mail-archives.apache.org/mod_mbox/ambari-issues</archive>
-    </mailingList>
-  </mailingLists>
   <organization>
     <name>Apache Software Foundation</name>
     <url>https://www.apache.org</url>
@@ -79,36 +44,26 @@
     <url>https://issues.apache.org/jira/browse/AMBARI</url>
   </issueManagement>
   <properties>
-    <revision>3.0.0.0-SNAPSHOT</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <clover.license>${user.home}/clover.license</clover.license>
-    <jdk.version>1.8</jdk.version>
     <buildnumber-maven-plugin-version>1.2</buildnumber-maven-plugin-version>
     <deb.publisher>Hortonworks</deb.publisher>
     <deb.section>universe/admin</deb.section>
     <deb.architecture>i386 amd64</deb.architecture>
     <deb.priority>extra</deb.priority>
-    <stack.distribution>BIGTOP</stack.distribution>
+    <stack.distribution>HDP</stack.distribution>
     <ambari.dir>${project.basedir}</ambari.dir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
     <distMgmtSnapshotsName>Apache Development Snapshot Repository</distMgmtSnapshotsName>
     <distMgmtSnapshotsUrl>https://repository.apache.org/content/repositories/snapshots</distMgmtSnapshotsUrl>
+    <distMgmtStagingId>apache.staging.https</distMgmtStagingId>
+    <distMgmtStagingName>Apache Release Distribution Repository</distMgmtStagingName>
+    <distMgmtStagingUrl>https://repository.apache.org/service/local/staging/deploy/maven2</distMgmtStagingUrl>
     <assemblyPhase>package</assemblyPhase> <!-- use -DassemblyPhase=none to skip building tarball, useful when you want purely compile jar -->
     <eclipselink.version>2.6.2</eclipselink.version>
   </properties>
   <pluginRepositories>
-    <pluginRepository>
-      <id>maven2-repository.dev.java.net</id>
-      <name>Java.net Repository for Maven</name>
-      <url>https://download.java.net/maven/2/</url>
-      <layout>default</layout>
-    </pluginRepository>
-    <pluginRepository>
-      <id>maven2-glassfish-repository.dev.java.net</id>
-      <name>Java.net Repository for Maven</name>
-      <url>https://download.java.net/maven/glassfish/</url>
-    </pluginRepository>
     <pluginRepository>
       <id>maven2-repository.atlassian</id>
       <name>Atlassian Maven Repository</name>
@@ -123,12 +78,20 @@
     </pluginRepository>
   </pluginRepositories>
 
-  <repositories>
+  <distributionManagement>
     <repository>
-      <id>oss.sonatype.org</id>
-      <name>OSS Sonatype Staging</name>
-      <url>https://oss.sonatype.org/content/groups/staging</url>
+      <id>${distMgmtStagingId}</id>
+      <name>${distMgmtStagingName}</name>
+      <url>${distMgmtStagingUrl}</url>
     </repository>
+    <snapshotRepository>
+      <id>${distMgmtSnapshotsId}</id>
+      <name>${distMgmtSnapshotsName}</name>
+      <url>${distMgmtSnapshotsUrl}</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <repositories>
     <repository>
       <id>spring-milestones</id>
       <name>Spring Milestones</name>
@@ -226,8 +189,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.2</version>
         <configuration>
-          <source>${jdk.version}</source>
-          <target>${jdk.version}</target>
+          <source>1.8</source>
+          <target>1.8</target>
         </configuration>
       </plugin>
       <plugin>
@@ -287,6 +250,7 @@
             <exclude>CHANGES.txt</exclude>
             <exclude>pass.txt</exclude>
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
+            <exclude>contrib/fast-hdfs-resource/dependency-reduced-pom.xml</exclude>
             <exclude>contrib/agent-simulator/docker_image/package_list.txt</exclude>
             <exclude>contrib/agent-simulator/config/cluster.txt</exclude>
             <exclude>version</exclude>
@@ -319,13 +283,10 @@
             <!--Jinja2 library (BSD license)-->
             <exclude>ambari-common/src/main/python/ambari_jinja2/**</exclude>
             <exclude>ambari-common/src/main/python/jinja2/**</exclude>
-            <exclude>ambari-common/src/main/python/ambari_pyaes/**</exclude>
-            <exclude>ambari-common/src/main/python/ambari_pbkdf2/**</exclude>
-            <exclude>**/.metadata_never_index</exclude>
             <!--Simplejson library (MIT license)-->
             <exclude>ambari-common/src/main/python/ambari_simplejson/**</exclude>
             <!--Subprocess32 library (PSF license)-->
-            <exclude>ambari-common/src/main/python/ambari_commons/subprocess32.py</exclude>
+            <exclude>ambari-common/src/main/python/ambari_commons/subprocess.py</exclude>
             <exclude>ambari-common/src/main/python/ambari_commons/_posixsubprocess.so</exclude>
             <!--Stomp library (Apache license)-->
             <exclude>ambari-common/src/main/python/ambari_stomp/**</exclude>
@@ -335,15 +296,12 @@
             <exclude>ambari-web/node_modules/**</exclude>
 
             <!--Contributions-->
-            <exclude>contrib/**/bower_components/**</exclude>
-            <exclude>contrib/**/dist/**</exclude>
             <exclude>contrib/management-packs/hdf-ambari-mpack/src/main/resources/stacks/HDF/2.0/hooks/before-START/files/fast-hdfs-resource.jar</exclude>
             <exclude>contrib/ambari-scom/management-pack/Hadoop_MP/**</exclude>
             <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
             <exclude>contrib/ambari-scom/ambari-scom-server/pass.txt</exclude>
             <exclude>contrib/ambari-scom/*/rat.txt</exclude>
-            <exclude>contrib/views/capacity-scheduler/src/main/resources/ui/node_modules/**</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/.bowerrc</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/bower_components/**</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/node/**</exclude>
@@ -382,6 +340,19 @@
 
             <!--Velocity log -->
             <exclude>**/velocity.log*</exclude>
+            <!-- Metrics module -->
+            <!-- grafana -->
+            <exclude>ambari-metrics/ambari-metrics-grafana/conf/unix/ams-grafana.ini</exclude>
+            <!-- psutil : external lib, Apache 2.0 license included as a source file -->
+            <exclude>ambari-metrics/target/**</exclude>
+            <exclude>ambari-metrics/ambari-metrics-host-monitoring/src/main/python/psutil/**</exclude>
+            <exclude>ambari-metrics/target/rpm/ambari-metrics/SPECS/ambari-metrics.spec</exclude>
+            <exclude>ambari-metrics/ambari-metrics-timelineservice/src/test/resources/lib/org/apache/phoenix/phoenix-core-tests/4.2.0/phoenix-core-tests-4.2.0.pom</exclude>
+            <exclude>ambari-metrics/ambari-metrics-timelineservice/src/test/resources/lib/org/apache/phoenix/phoenix-core-tests/maven-metadata-local.xml</exclude>
+            <exclude>ambari-metrics/ambari-metrics-alertservice/*.iml</exclude>
+            <exclude>ambari-metrics/*/target/**</exclude>
+            <!-- ignore .settings and .project  -->
+            <exclude>ambari-metrics/**/.*/**</exclude>
             <!-- generated DDL-->
             <exclude>**/createDDL.jdbc</exclude>
             <exclude>**/yarn.lock</exclude>
@@ -433,60 +404,6 @@
           </filesets>
         </configuration>
       </plugin>
-
-      <!--
-      Required when using the ${revision} placeholder to generate target/.flattened-pom.xml
-      See: https://maven.apache.org/maven-ci-friendly.html
-      -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>flatten-maven-plugin</artifactId>
-        <version>1.0.1</version>
-        <configuration>
-          <flattenMode>oss</flattenMode>
-          <updatePomFile>true</updatePomFile>
-          <outputDirectory>${project.build.directory}</outputDirectory>
-        </configuration>
-        <executions>
-          <execution>
-            <id>flatten</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>flatten</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>flatten.clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>clean</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.0.0-M2</version>
-        <executions>
-          <execution>
-            <id>enforce-versions</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireMavenVersion>
-                  <version>3.5.0</version>
-                </requireMavenVersion>
-                <requireJavaVersion>
-                  <version>1.8</version>
-                </requireJavaVersion>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
   <profiles>
@@ -499,16 +416,17 @@
       </activation>
       <modules>
         <module>ambari-serviceadvisor</module>
-        <module>ambari-utility</module>
         <module>ambari-web</module>
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
         <module>contrib/views</module>
+        <module>ambari-metrics</module>
         <module>ambari-server</module>
-        <module>ambari-server-spi</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
+        <module>ambari-logsearch</module>
+        <module>ambari-infra</module>
       </modules>
     </profile>
     <profile>
@@ -520,14 +438,13 @@
       </activation>
       <modules>
         <module>ambari-serviceadvisor</module>
-        <module>ambari-utility</module>
         <module>ambari-web</module>
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
         <module>ambari-views/examples</module>
+        <module>ambari-metrics</module>
         <module>ambari-server</module>
-        <module>ambari-server-spi</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
       </modules>
@@ -538,12 +455,13 @@
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
+        <module>ambari-metrics</module>
         <module>ambari-server</module>
-        <module>ambari-server-spi</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
+        <module>ambari-logsearch</module>
+        <module>ambari-infra</module>
         <module>ambari-serviceadvisor</module>
-        <module>ambari-utility</module>
       </modules>
     </profile>
     <profile>
@@ -558,13 +476,20 @@
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
+        <module>ambari-metrics</module>
         <module>ambari-server</module>
-        <module>ambari-server-spi</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
+        <module>ambari-logsearch</module>
+        <module>ambari-infra</module>
         <module>ambari-serviceadvisor</module>
-        <module>ambari-utility</module>
         </modules>
+    </profile>
+    <profile>
+      <id>ambari-metrics</id>
+      <modules>
+        <module>ambari-metrics</module>
+      </modules>
     </profile>
     <profile>
       <id>ambari-serviceadvisor</id>
@@ -581,13 +506,12 @@
       </activation>
       <modules>
         <module>ambari-serviceadvisor</module>
-        <module>ambari-utility</module>
         <module>ambari-web</module>
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
+        <module>ambari-metrics</module>
         <module>ambari-server</module>
-        <module>ambari-server-spi</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
       </modules>

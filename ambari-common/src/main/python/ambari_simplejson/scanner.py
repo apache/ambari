@@ -1,30 +1,16 @@
 """JSON token scanner
 """
 import re
-from .errors import JSONDecodeError
+try:
+    from ambari_simplejson._speedups import make_scanner as c_make_scanner
+except ImportError:
+    c_make_scanner = None
 
-
-def _import_c_make_scanner():
-    from . import c_extension
-    _speedups = c_extension.get()
-
-    if _speedups:
-        try:
-            return _speedups.make_scanner
-        except AttributeError:
-            pass
-
-    return None
-
-
-c_make_scanner = _import_c_make_scanner()
-
-__all__ = ['make_scanner', 'JSONDecodeError']
+__all__ = ['make_scanner']
 
 NUMBER_RE = re.compile(
     r'(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]?\d+)?',
     (re.VERBOSE | re.MULTILINE | re.DOTALL))
-
 
 def py_make_scanner(context):
     parse_object = context.parse_object
@@ -37,21 +23,17 @@ def py_make_scanner(context):
     parse_int = context.parse_int
     parse_constant = context.parse_constant
     object_hook = context.object_hook
-    object_pairs_hook = context.object_pairs_hook
-    memo = context.memo
 
     def _scan_once(string, idx):
-        errmsg = 'Expecting value'
         try:
             nextchar = string[idx]
         except IndexError:
-            raise JSONDecodeError(errmsg, string, idx)
+            raise StopIteration
 
         if nextchar == '"':
             return parse_string(string, idx + 1, encoding, strict)
         elif nextchar == '{':
-            return parse_object((string, idx + 1), encoding, strict,
-                _scan_once, object_hook, object_pairs_hook, memo)
+            return parse_object((string, idx + 1), encoding, strict, _scan_once, object_hook)
         elif nextchar == '[':
             return parse_array((string, idx + 1), _scan_once)
         elif nextchar == 'n' and string[idx:idx + 4] == 'null':
@@ -76,20 +58,8 @@ def py_make_scanner(context):
         elif nextchar == '-' and string[idx:idx + 9] == '-Infinity':
             return parse_constant('-Infinity'), idx + 9
         else:
-            raise JSONDecodeError(errmsg, string, idx)
+            raise StopIteration
 
-    def scan_once(string, idx):
-        if idx < 0:
-            # Ensure the same behavior as the C speedup, otherwise
-            # this would work for *some* negative string indices due
-            # to the behavior of __getitem__ for strings. #98
-            raise JSONDecodeError('Expecting value', string, idx)
-        try:
-            return _scan_once(string, idx)
-        finally:
-            memo.clear()
-
-    return scan_once
-
+    return _scan_once
 
 make_scanner = c_make_scanner or py_make_scanner

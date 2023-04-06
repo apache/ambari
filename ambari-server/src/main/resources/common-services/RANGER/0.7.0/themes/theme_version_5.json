@@ -1,0 +1,89 @@
+{
+  "name": "default",
+  "configuration": {
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "ranger-ugsync-site/ranger.usersync.ldap.deltasync",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-common-configs"
+        },
+        {
+          "config": "ranger-env/is_nested_groupsync_enabled",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-group-configs"
+        },
+        {
+          "config": "ranger-ugsync-site/ranger.usersync.ldap.grouphierarchylevels",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-group-configs",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-env/is_nested_groupsync_enabled"
+              ],
+              "if": "${ranger-env/is_nested_groupsync_enabled}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-env/ranger-nifi-plugin-enabled",
+          "subsection-name": "section-ranger-plugin-row1-col1",
+          "depends-on": [
+            {
+              "resource": "service",
+              "if": "NIFI",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "ranger-ugsync-site/ranger.usersync.ldap.deltasync",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/is_nested_groupsync_enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-ugsync-site/ranger.usersync.ldap.grouphierarchylevels",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "ranger-env/ranger-nifi-plugin-enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      }
+    ]
+  }
+}

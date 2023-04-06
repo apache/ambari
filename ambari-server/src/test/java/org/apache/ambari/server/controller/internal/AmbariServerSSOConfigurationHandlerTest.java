@@ -37,6 +37,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
 import org.apache.ambari.server.events.AmbariEvent;
@@ -74,6 +75,7 @@ public class AmbariServerSSOConfigurationHandlerTest extends EasyMockSupport {
     expect(ambariConfigurationDAO.findByCategory(SSO_CONFIGURATION.getCategoryName())).andReturn(entities).once();
 
     AmbariEventPublisher publisher = createMock(AmbariEventPublisher.class);
+    Configuration configuration = createMock(Configuration.class);
     Clusters clusters = createMock(Clusters.class);
     ConfigHelper configHelper = createMock(ConfigHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
@@ -81,7 +83,7 @@ public class AmbariServerSSOConfigurationHandlerTest extends EasyMockSupport {
 
     replayAll();
 
-    AmbariServerSSOConfigurationHandler handler = new AmbariServerSSOConfigurationHandler(clusters, configHelper, managementController, stackAdvisorHelper, ambariConfigurationDAO, publisher);
+    AmbariServerSSOConfigurationHandler handler = new AmbariServerSSOConfigurationHandler(clusters, configHelper, managementController, stackAdvisorHelper, ambariConfigurationDAO, publisher, configuration);
     handler.updateComponentCategory(SSO_CONFIGURATION.getCategoryName(), ssoConfigurationProperties, true);
 
     verifyAll();
@@ -132,6 +134,7 @@ public class AmbariServerSSOConfigurationHandlerTest extends EasyMockSupport {
     Capture<Map<String, String>> capturedUpdates = newCapture();
     Capture<Collection<String>> capturedRemovals = newCapture();
 
+    Configuration configuration = createMock(Configuration.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     AmbariConfigurationDAO ambariConfigurationDAO = createMock(AmbariConfigurationDAO.class);
@@ -164,7 +167,7 @@ public class AmbariServerSSOConfigurationHandlerTest extends EasyMockSupport {
 
     replayAll();
 
-    AmbariServerSSOConfigurationHandler handler = new AmbariServerSSOConfigurationHandler(clusters, configHelper, managementController, stackAdvisorHelper, ambariConfigurationDAO, publisher);
+    AmbariServerSSOConfigurationHandler handler = new AmbariServerSSOConfigurationHandler(clusters, configHelper, managementController, stackAdvisorHelper, ambariConfigurationDAO, publisher, configuration);
     handler.updateComponentCategory(SSO_CONFIGURATION.getCategoryName(), ssoConfigurationProperties, true);
 
     verifyAll();
@@ -190,6 +193,7 @@ public class AmbariServerSSOConfigurationHandlerTest extends EasyMockSupport {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     StackAdvisorHelper stackAdvisorHelper = createMock(StackAdvisorHelper.class);
     AmbariEventPublisher publisher = createMock(AmbariEventPublisher.class);
+    Configuration configuration = createMock(Configuration.class);
 
     List<AmbariConfigurationEntity> entities = new ArrayList<>();
     AmbariConfigurationEntity entity;
@@ -211,7 +215,7 @@ public class AmbariServerSSOConfigurationHandlerTest extends EasyMockSupport {
 
     replayAll();
 
-    AmbariServerSSOConfigurationHandler handler = new AmbariServerSSOConfigurationHandler(clusters, configHelper, managementController, stackAdvisorHelper, ambariConfigurationDAO, publisher);
+    AmbariServerSSOConfigurationHandler handler = new AmbariServerSSOConfigurationHandler(clusters, configHelper, managementController, stackAdvisorHelper, ambariConfigurationDAO, publisher, configuration);
 
     Assert.assertTrue(handler.getSSOEnabledServices().contains("SERVICE1"));
     Assert.assertTrue(handler.getSSOEnabledServices().contains("SERVICE2"));

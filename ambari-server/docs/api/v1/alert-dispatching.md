@@ -68,7 +68,7 @@ Or it can be created with all valid properties. In this example, a group is bein
 
 
 ##### Update Request
-    PUT api/v1/clusters/<cluster>/alert_groups/<group-id>
+    POST api/v1/clusters/<cluster>/alert_groups/<group-id>
 
     {
       "AlertGroup": {

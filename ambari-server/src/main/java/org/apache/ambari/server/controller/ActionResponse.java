@@ -171,7 +171,7 @@ public class ActionResponse {
 
   @Override
   public int hashCode() {
-    int result;
+    int result = 1;
     result = 31 + (actionName != null ? actionName.hashCode() : 0);
     result = result + (actionType != null ? actionType.hashCode() : 0);
     result = result + (inputs != null ? inputs.hashCode() : 0);

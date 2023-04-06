@@ -70,7 +70,7 @@ import junit.framework.Assert;
 @PrepareForTest({ Configuration.class, PasswordUtils.class })
 @PowerMockIgnore( {"javax.management.*", "javax.crypto.*"})
 public class ConfigurationTest {
-  public TemporaryFolder temp = new TemporaryFolder();
+   public TemporaryFolder temp = new TemporaryFolder();
 
   @Before
   public void setup() throws Exception {
@@ -158,16 +158,6 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void testGetMpacksV2StagingPath() {
-    Properties ambariProperties = new Properties();
-    ambariProperties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(), "/var/lib/ambari-server/resources/mpacks-v2/");
-    Configuration conf = new Configuration(ambariProperties);
-    Assert.assertEquals("/var/lib/ambari-server/resources/mpacks-v2/", conf.getMpacksV2StagingPath());
-    conf = new Configuration();
-    Assert.assertEquals(null, conf.getMpacksV2StagingPath());
-  }
-
-  @Test
   public void testGetClientHTTPSSettings() throws IOException {
 
     File passFile = File.createTempFile("https.pass.", "txt");
@@ -232,7 +222,7 @@ public class ConfigurationTest {
     String encrypted = "fake-encrypted-password";
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PASSWORD.getKey(), unencrypted);
     Configuration conf = spy(new Configuration(ambariProperties));
-    PowerMock.stub(PowerMock.method(PasswordUtils.class, "readPasswordFromStore", String.class, Configuration.class)).toReturn(null);
+    PowerMock.stub(PowerMock.method(PasswordUtils.class, "readPasswordFromStore", String.class, File.class, boolean.class, File.class)).toReturn(null);
     conf.loadSSLParams();
     Assert.assertEquals(System.getProperty(Configuration.JAVAX_SSL_TRUSTSTORE_PASSWORD, "unknown"), unencrypted);
   }
@@ -244,7 +234,7 @@ public class ConfigurationTest {
     String encrypted = "fake-encrypted-password";
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PASSWORD.getKey(), unencrypted);
     Configuration conf = spy(new Configuration(ambariProperties));
-    PowerMock.stub(PowerMock.method(PasswordUtils.class, "readPasswordFromStore", String.class, Configuration.class)).toReturn(encrypted);
+    PowerMock.stub(PowerMock.method(PasswordUtils.class, "readPasswordFromStore", String.class, File.class, boolean.class, File.class)).toReturn(encrypted);
     conf.loadSSLParams();
     Assert.assertEquals(System.getProperty(Configuration.JAVAX_SSL_TRUSTSTORE_PASSWORD, "unknown"), encrypted);
   }
@@ -290,7 +280,7 @@ public class ConfigurationTest {
       passwordFile);
 
     Configuration conf = new Configuration(ambariProperties);
-    PowerMock.stub(PowerMock.method(PasswordUtils.class,"readPasswordFromStore", String.class, Configuration.class)).toReturn(null);
+    PowerMock.stub(PowerMock.method(PasswordUtils.class,"readPasswordFromStore", String.class, File.class, boolean.class, File.class)).toReturn(null);
 
     Assert.assertEquals("ambaritest", conf.getDatabasePassword());
   }
@@ -976,32 +966,5 @@ public class ConfigurationTest {
     } catch (NumberFormatException e) {
       // This is expected
     }
-  }
-
-  @Test
-  public void testServerShowErrorStacksEnabled() throws  Exception {
-    // given
-    final Properties ambariProperties = new Properties();
-    ambariProperties.setProperty(Configuration.SERVER_SHOW_ERROR_STACKS.getKey(), "true");
-    final Configuration configuration = new Configuration(ambariProperties);
-
-    // when
-    boolean result = configuration.isServerShowErrorStacks();
-
-    // then
-    Assert.assertTrue(result);
-  }
-
-  @Test
-  public void testServerShowErrorStacksDefault() throws  Exception {
-    // given
-    final Properties ambariProperties = new Properties();
-    final Configuration configuration = new Configuration(ambariProperties);
-
-    // when
-    boolean result = configuration.isServerShowErrorStacks();
-
-    // then
-    Assert.assertEquals(result, Boolean.parseBoolean(Configuration.SERVER_SHOW_ERROR_STACKS.getDefaultValue()));
   }
 }

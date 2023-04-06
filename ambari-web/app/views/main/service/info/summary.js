@@ -51,11 +51,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
    */
   clientObj: [],
   clientsLength: 0,
-  
-  /**
-   * @type {boolean}
-   */
-  hasComponents: Em.computed.or('mastersLength', 'slavesLength', 'clientsLength'),
 
   /**
    *  @property {String} templatePathPrefix - base path for custom templates
@@ -356,10 +351,13 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   componentsCount: null,
   hostsCount: null,
 
-  /**
-   * @type {boolean}
-   */
-  shouldShowNoneCount: true,
+  alertsCount: Em.computed.alias('controller.content.alertsCount'),
+
+  hasNoAlerts: Em.computed.equal('alertsCount', 0),
+
+  hasCriticalAlerts: Em.computed.alias('controller.content.hasCriticalAlerts'),
+
+  hasNonCriticalAlertsOnly: Em.computed.and('!hasNoAlerts', '!hasCriticalAlerts'),
 
   /**
    * Define if service has alert definitions defined

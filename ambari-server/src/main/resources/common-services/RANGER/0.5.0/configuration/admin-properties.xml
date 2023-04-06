@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false">
+  <property>
+    <name>DB_FLAVOR</name>
+    <value>MYSQL</value>
+    <display-name>DB FLAVOR</display-name>
+    <description>The database type to be used (mysql/oracle)</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>MYSQL</value>
+          <label>MYSQL</label>
+        </entry>
+        <entry>
+          <value>ORACLE</value>
+          <label>ORACLE</label>
+        </entry>
+        <entry>
+          <value>POSTGRES</value>
+          <label>POSTGRES</label>
+        </entry>
+        <entry>
+          <value>MSSQL</value>
+          <label>MSSQL</label>
+        </entry>
+        <entry>
+          <value>SQLA</value>
+          <label>SQL Anywhere</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>policymgr_external_url</name>
+    <value/>
+    <display-name>External URL</display-name>
+    <description>Policy Manager external url eg: http://RANGER_HOST:6080</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-admin-site</type>
+        <name>ranger.service.http.enabled</name>
+      </property>
+      <property>
+        <type>ranger-admin-site</type>
+        <name>ranger.service.http.port</name>
+      </property>
+      <property>
+        <type>ranger-admin-site</type>
+        <name>ranger.service.https.port</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>policymgr_http_enabled</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>authentication_method</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>remoteLoginEnabled</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>authServiceHostName</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>authServicePort</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>xa_ldap_url</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>xa_ldap_userDNpattern</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>xa_ldap_groupSearchBase</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>xa_ldap_groupSearchFilter</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>xa_ldap_groupRoleAttribute</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>xa_ldap_ad_domain</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>xa_ldap_ad_url</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SQL_COMMAND_INVOKER</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

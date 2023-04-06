@@ -159,10 +159,7 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
               cluster,
               getEvaluateWhen(requestInfoProperties),
               getAdditionalServices(requestInfoProperties),
-              false,
-             null,
-             null
-             );
+              false);
         } catch (AmbariException e) {
           throw new SystemException("An unexpected error occurred building the cluster's composite Kerberos Descriptor", e);
         }

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<!-- The default settings for Knox. -->
+<!-- Edit gateway-site.xml to change settings for your local -->
+<!-- install. -->
+<configuration supports_final="false">
+  <property>
+    <name>gateway.port</name>
+    <value>8443</value>
+    <description>The HTTP port for the Gateway.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>gateway.path</name>
+    <value>gateway</value>
+    <description>The default context path for the gateway.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>gateway.gateway.conf.dir</name>
+    <display-name>Gateway Conf directory</display-name>
+    <value>deployments</value>
+    <description>The directory within GATEWAY_HOME that contains gateway topology files and deployments.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>gateway.hadoop.kerberos.secured</name>
+    <value>false</value>
+    <description>Boolean flag indicating whether the Hadoop cluster protected by Gateway is secured with Kerberos</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>java.security.krb5.conf</name>
+    <value>/etc/knox/conf/krb5.conf</value>
+    <description>Absolute path to krb5.conf file</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>java.security.auth.login.config</name>
+    <value>/etc/knox/conf/krb5JAASLogin.conf</value>
+    <description>Absolute path to JASS login config file</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>sun.security.krb5.debug</name>
+    <value>false</value>
+    <description>Boolean flag indicating whether to enable debug messages for krb5 authentication</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>gateway.websocket.feature.enabled</name>
+    <value>{{websocket_support}}</value>
+    <description>Enable this if you want websocket support</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

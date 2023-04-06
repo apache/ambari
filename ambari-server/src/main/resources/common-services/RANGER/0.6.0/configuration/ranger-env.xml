@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property>
+    <name>xasecure.audit.destination.db</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger_solr_config_set</name>
+    <value>ranger_audits</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ranger_solr_collection_name</name>
+    <value>ranger_audits</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ranger_solr_shards</name>
+    <value>1</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ranger_solr_replication_factor</name>
+    <value>1</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ranger-atlas-plugin-enabled</name>
+    <value>No</value>
+    <display-name>Atlas Ranger Plugin</display-name>
+    <description>Enable Atlas Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>is_external_solrCloud_enabled</name>
+    <display-name>External SolrCloud</display-name>
+    <value>false</value>
+    <description>Using Externally managed solr cloud ?</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>is_external_solrCloud_kerberos</name>
+    <display-name>External SolrCloud kerberos</display-name>
+    <value>false</value>
+    <description>Is Externally managed solr cloud kerberos ?</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+</configuration>

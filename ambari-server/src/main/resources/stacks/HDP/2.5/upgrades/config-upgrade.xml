@@ -1,0 +1,631 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-config.xsd">
+  <services>
+    <service name="STORM">
+      <component name="NIMBUS">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"
+                      summary="Removing empty storm.topology.submission.notifier.plugin.class property">
+            <type>storm-site</type>
+            <transfer operation="delete" delete-key="storm.topology.submission.notifier.plugin.class" if-key="storm.topology.submission.notifier.plugin.class"
+                      if-type="storm-site" if-value=" "/>
+          </definition>
+          <definition xsi:type="configure" id="increase_storm_zookeeper_timeouts"
+                      summary="Increase storm.zookeeper.session.timeout and storm.zookeeper.connection.timeout property">
+            <type>storm-site</type>
+            <set key="storm.zookeeper.session.timeout"
+                 value="30000"
+                 if-key="storm.zookeeper.session.timeout"
+                 if-type="storm-site"
+                 if-value="20000" />
+            <set key="storm.zookeeper.connection.timeout"
+                 value="30000"
+                 if-key="storm.zookeeper.connection.timeout"
+                 if-type="storm-site"
+                 if-value="15000" />
+          </definition>
+          <definition xsi:type="configure" id="storm_worker_log4j_parameterize" summary="Parameterizing Storm Worker Log4J Properties">
+            <type>storm-worker-log4j</type>
+            <set key="storm_wrkr_a1_maxfilesize" value="100"/>
+            <set key="storm_wrkr_a1_maxbackupindex" value="9"/>
+            <set key="storm_wrkr_out_maxfilesize" value="100"/>
+            <set key="storm_wrkr_out_maxbackupindex" value="4"/>
+            <set key="storm_wrkr_err_maxfilesize" value="100"/>
+            <set key="storm_wrkr_err_maxbackupindex" value="4"/>
+            <regex-replace key="content" find="}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;\$\{pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;(?:[0-9]+) MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;([0-9]+)"
+                                         replace-with="}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;${pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;{{storm_wrkr_a1_maxfilesize}} MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;{{storm_wrkr_a1_maxbackupindex}}"/>
+            <regex-replace key="content" find="}.out.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;\$\{patternNoTime}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;(?:[0-9]+) MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;([0-9]+)"
+                                         replace-with="}.out.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;${patternNoTime}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;{{storm_wrkr_out_maxfilesize}} MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;{{storm_wrkr_out_maxbackupindex}}"/>
+            <regex-replace key="content" find="}.err.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;\$\{patternNoTime}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;(?:[0-9]+) MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;([0-9]+)"
+                                         replace-with="}.err.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;${patternNoTime}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;{{storm_wrkr_err_maxfilesize}} MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;{{storm_wrkr_err_maxbackupindex}}"/>
+          </definition>
+          <definition xsi:type="configure" id="storm_cluster_log4j_parameterize" summary="Parameterizing Storm Cluster Log4J Properties">
+            <type>storm-cluster-log4j</type>
+            <set key="storm_a1_maxfilesize" value="100"/>
+            <set key="storm_a1_maxbackupindex" value="9"/>
+            <regex-replace key="content" find="A1&quot; immediateFlush=&quot;false&quot;&#xA;                 fileName=&quot;\$\{sys:storm.log.dir}/\$\{sys:logfile.name}&quot;&#xA;                 filePattern=&quot;\$\{sys:storm.log.dir}/\$\{sys:logfile.name}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;\$\{pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;(?:[0-9]+) MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;([0-9]+)"
+                                         replace-with="A1&quot; immediateFlush=&quot;false&quot;&#xA;                 fileName=&quot;${sys:storm.log.dir}/${sys:logfile.name}&quot;&#xA;                 filePattern=&quot;${sys:storm.log.dir}/${sys:logfile.name}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;${pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;{{storm_a1_maxfilesize}} MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;{{storm_a1_maxbackupindex}}"/>
+          </definition>
+          <definition xsi:type="configure" id="storm_nimbus_autocred_config" summary="Update Storm's Nimbus AutoCred config">
+            <type>storm-site</type>
+            <set key="nimbus.autocredential.plugins.classes" value="['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']" if-type="streamline-common" if-key="authorizer.class.name" if-key-state="present"/>
+            <set key="nimbus.credential.renewers.classes" value="['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']" if-type="streamline-common" if-key="authorizer.class.name" if-key-state="present"/>
+            <set key="nimbus.credential.renewers.freq.secs" value="82800" if-type="streamline-common" if-key="authorizer.class.name" if-key-state="present"/>
+          </definition>
+          <definition xsi:type="configure" id="storm_remove_jmxetric" summary="Removing jmxetric from childopts.">
+            <type>storm-site</type>
+            <regex-replace key="nimbus.childopts" find=" -javaagent:(.*)JVM" replace-with=""/>
+            <regex-replace key="supervisor.childopts" find=" -javaagent:(.*)JVM" replace-with=""/>
+            <regex-replace key="worker.childopts" find=" -javaagent:(.*)JVM" replace-with=""/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="SPARK">
+      <component name="LIVY_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_rename_spark_livy_configs">
+            <type>livy-conf</type>
+            <transfer operation="move" from-key="livy.server.kerberos.keytab" to-key="livy.server.launch.kerberos.keytab" />
+            <transfer operation="move" from-key="livy.server.kerberos.principal" to-key="livy.server.launch.kerberos.principal" />
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_add_spark_conf_dir_livy_configs">
+            <type>livy-env</type>
+            <insert key="content" value="export SPARK_CONF_DIR=/usr/hdp/current/spark-client/conf" insert-type="append" newline-before="true" newline-after="true" />
+          </definition>
+        </changes>
+      </component>
+      <component name="SPARK_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_spark_yarn_queue">
+            <type>spark-defaults</type>
+            <set key="spark.yarn.queue" value="default" if-type="spark-defaults" if-key="spark.yarn.queue" if-key-state="absent"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="SPARK2">
+      <component name="SPARK2_JOBHISTORYSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_spark2_jobhistoryserver_log4j">
+            <type>spark2-log4j-properties</type>
+            <replace key="content" find="log4j.logger.org.eclipse.jetty=WARN" replace-with="log4j.logger.org.spark_project.jetty=WARN"/>
+            <replace key="content" find="log4j.logger.org.eclipse.jetty.util.component.AbstractLifeCycle=ERROR" replace-with="log4j.logger.org.spark_project.jetty.util.component.AbstractLifeCycle=ERROR"/>
+          </definition>
+        </changes>
+      </component>
+      <component name="SPARK2_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_spark2_client_log4j">
+            <type>spark2-log4j-properties</type>
+            <replace key="content" find="log4j.logger.org.eclipse.jetty=WARN" replace-with="log4j.logger.org.spark_project.jetty=WARN"/>
+            <replace key="content" find="log4j.logger.org.eclipse.jetty.util.component.AbstractLifeCycle=ERROR" replace-with="log4j.logger.org.spark_project.jetty.util.component.AbstractLifeCycle=ERROR"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_spark2_yarn_queue">
+            <type>spark2-defaults</type>
+            <set key="spark.yarn.queue" value="default" if-type="spark-defaults" if-key="spark.yarn.queue" if-key-state="absent"/>
+          </definition>
+        </changes>
+      </component>
+      <component name="SPARK2_THRIFTSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_spark2_thriftserver_log4j">
+            <type>spark2-log4j-properties</type>
+            <replace key="content" find="log4j.logger.org.eclipse.jetty=WARN" replace-with="log4j.logger.org.spark_project.jetty=WARN"/>
+            <replace key="content" find="log4j.logger.org.eclipse.jetty.util.component.AbstractLifeCycle=ERROR" replace-with="log4j.logger.org.spark_project.jetty.util.component.AbstractLifeCycle=ERROR"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="TEZ">
+      <component name="TEZ_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_tez_queue_name">
+            <type>tez-site</type>
+            <set key="tez.queue.name" value="default" if-type="tez-site" if-key="tez.queue.name" if-key-state="absent"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="ZOOKEEPER">
+          <component name="ZOOKEEPER_SERVER">
+            <changes>
+              <!-- Zookeeper Rolling properties for log4j need to be parameterized. -->
+              <definition xsi:type="configure" id="zookeeper_log4j_parameterize" summary="Parameterizing ZooKeeper Log4J Properties">
+                <type>zookeeper-log4j</type>
+                <set key="zookeeper_log_max_backup_size" value="10"/>
+                <set key="zookeeper_log_number_of_backup_files" value="10"/>
+                <regex-replace  key="content" find="^log4j.appender.ROLLINGFILE.MaxFileSize=([0-9]+)MB" replace-with="log4j.appender.ROLLINGFILE.MaxFileSize={{zookeeper_log_max_backup_size}}MB"/>
+                <regex-replace key="content" find="^#log4j.appender.ROLLINGFILE.MaxBackupIndex=([0-9]+)" replace-with="#log4j.appender.ROLLINGFILE.MaxBackupIndex={{zookeeper_log_number_of_backup_files}}"/>
+              </definition>
+            </changes>
+          </component>
+    </service>
+    <service name="ATLAS">
+      <component name="ATLAS_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="atlas_log4j_parameterize" summary="Parameterizing Atlas Log4J Properties">
+            <type>atlas-log4j</type>
+            <set key="atlas_log_max_backup_size" value="256"/>
+            <set key="atlas_log_number_of_backup_files" value="20"/>
+            <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;param name=&quot;MaxFileSize&quot; value=&quot;{{atlas_log_max_backup_size}}MB&quot; /&gt;"/>
+            <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;param name=&quot;MaxBackupIndex&quot; value=&quot;{{atlas_log_number_of_backup_files}}&quot; /&gt;"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_4_0_atlas_exclude_tls_protocol" summary="Excluding TLS v1.2 Protocol">
+            <type>application-properties</type>
+            <set key="atlas.ssl.exclude.protocols" value="TLSv1.2" if-type="application-properties" if-key="atlas.ssl.exclude.protocols" if-key-state="absent"/>
+          </definition>
+
+          <definition xsi:type="configure" id="increase_atlas_zookeeper_timeouts" summary="Updating Atlas zookeeper timeout values">
+            <type>application-properties</type>
+            <set key="atlas.kafka.zookeeper.connection.timeout.ms" value="30000" if-type="application-properties" if-key="atlas.kafka.zookeeper.connection.timeout.ms" if-key-state="present"/>
+            <set key="atlas.kafka.zookeeper.session.timeout.ms" value="60000" if-type="application-properties" if-key="atlas.kafka.zookeeper.session.timeout.ms" if-key-state="present"/>
+            <set key="atlas.audit.zookeeper.session.timeout.ms" value="60000" if-type="application-properties" if-key="atlas.audit.zookeeper.session.timeout.ms" if-key-state="present"/>
+          </definition>
+          <definition xsi:type="configure" id="atlas_env_gc_worker" summary="Updating Atlas Env gc-worker configuration">
+            <type>atlas-env</type>
+            <replace key="content" find="-Xloggc:$ATLAS_LOG_DIRgc-worker.log" replace-with="-Xloggc:$ATLAS_LOG_DIR/gc-worker.log"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_atlas_kafka_auto_commit_enable_property_delete" summary="Updating Atlas Kafka configurations.">
+            <type>application-properties</type>
+            <transfer operation="delete" delete-key="atlas.kafka.auto.commit.enable"/>
+          </definition>
+
+          <definition xsi:type="configure" id="atlas_log4j_update_logger_settings" summary="Updating logger configurations for Atlas.">
+            <type>atlas-log4j</type>
+            <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.RollingFileAppender&quot;&gt;"/>
+            <replace key="content" find="&lt;logger name=&quot;com.thinkaurelius.titan&quot; additivity=&quot;false&quot;&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;level value=&quot;info&quot;/&gt;" replace-with="&lt;logger name=&quot;com.thinkaurelius.titan&quot; additivity=&quot;false&quot;&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;level value=&quot;warn&quot;/&gt;"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+     <service name="OOZIE">
+      <component name="OOZIE_SERVER">
+        <changes>
+          <!-- Oozie Rolling properties for log4j need to be parameterized. -->
+          <definition xsi:type="configure" id="oozie_log4j_parameterize" summary="Parameterizing Oozie Log4J Properties">
+            <type>oozie-log4j</type>
+            <set key="oozie_log_maxhistory" value="720"/>
+            <regex-replace key="content" find="^log4j.appender.oozie.RollingPolicy.MaxHistory=([0-9]+)" replace-with="log4j.appender.oozie.RollingPolicy.MaxHistory={{oozie_log_maxhistory}}"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+    <service name="YARN">
+      <component name="RESOURCEMANAGER">
+        <changes>
+          <!-- Yarn Rolling properties for log4j need to be parameterized. -->
+          <definition xsi:type="configure" id="yarn_log4j_parameterize" summary="Parameterizing Yarn Log4J Properties">
+            <type>yarn-log4j</type>
+            <set key="yarn_rm_summary_log_max_backup_size" value="256"/>
+            <set key="yarn_rm_summary_log_number_of_backup_files" value="20"/>
+            <regex-replace key="content" find="^log4j.appender.RMSUMMARY.MaxFileSize=([0-9]+)MB" replace-with="log4j.appender.RMSUMMARY.MaxFileSize={{yarn_rm_summary_log_max_backup_size}}MB"/>
+            <regex-replace key="content" find="^log4j.appender.RMSUMMARY.MaxBackupIndex=([0-9]+)" replace-with="log4j.appender.RMSUMMARY.MaxBackupIndex={{yarn_rm_summary_log_number_of_backup_files}}"/>
+          </definition>
+          <definition xsi:type="configure" id="yarn_env_security_opts" summary="Adding YARN Security ACLs">
+            <type>yarn-env</type>
+            <insert key="content" value="{% if rm_security_opts is defined %} YARN_OPTS=&quot;{{rm_security_opts}} $YARN_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_yarn_priority_utilization_underutilized_preemption">
+            <type>yarn-site</type>
+            <transfer operation="copy"
+                      from-key="yarn.resourcemanager.scheduler.monitor.enable"
+                      to-key="yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled"
+                      default-value="false"/>
+          </definition>
+          <definition xsi:type="configure" id="yarn_site_retained_log_count" summary="Updating Yarn retained file count for continuous Log Aggregation">
+            <type>yarn-site</type>
+            <set key="yarn.nodemanager.log-aggregation.num-log-files-per-app"
+                 value="336" />
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_service_check_queue_name">
+            <type>yarn-env</type>
+            <set key="service_check.queue.name" value="default" if-type="yarn-env" if-key="service_check.queue.name" if-key-state="absent"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_ats_scan_interval_default">
+            <type>yarn-site</type>
+            <set key="yarn.timeline-service.entity-group-fs-store.scan-interval-seconds" value="15"
+                 if-type="yarn-site" if-key="yarn.timeline-service.entity-group-fs-store.scan-interval-seconds" if-value="60"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="MAPREDUCE2">
+      <component name="MAPREDUCE2_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_mapreduce_job_queuename">
+            <type>mapred-site</type>
+            <set key="mapreduce.job.queuename" value="default" if-type="mapred-site" if-key="mapreduce.job.queuename" if-key-state="absent"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="HDFS">
+      <component name="NAMENODE">
+        <changes>
+          <!-- HDFS Rolling properties for log4j need to be parameterized. -->
+          <definition xsi:type="configure" id="hdfs_log4j_parameterize" summary="Parameterizing Hdfs Log4J Properties">
+            <type>hdfs-log4j</type>
+            <set key="hadoop_log_max_backup_size" value="256"/>
+            <set key="hadoop_log_number_of_backup_files" value="10"/>
+            <set key="hadoop_security_log_max_backup_size" value="256"/>
+            <set key="hadoop_security_log_number_of_backup_files" value="20"/>
+            <regex-replace  key="content" find="log4j.appender.RFA.MaxFileSize=([0-9]+)MB" replace-with="log4j.appender.RFA.MaxFileSize={{hadoop_log_max_backup_size}}MB"/>
+            <regex-replace  key="content" find="log4j.appender.RFA.MaxBackupIndex=([0-9]+)" replace-with="log4j.appender.RFA.MaxBackupIndex={{hadoop_log_number_of_backup_files}}"/>
+            <regex-replace  key="content" find="hadoop.security.log.maxfilesize=([0-9]+)MB" replace-with="hadoop.security.log.maxfilesize={{hadoop_security_log_max_backup_size}}MB"/>
+            <regex-replace  key="content" find="hadoop.security.log.maxbackupindex=([0-9]+)" replace-with="hadoop.security.log.maxbackupindex={{hadoop_security_log_number_of_backup_files}}"/>
+          </definition>
+          <definition xsi:type="configure" id="hadoop_env_zkfc_security_opts" summary="Adding HDFS ZKFC Security ACLs">
+            <type>hadoop-env</type>
+            <insert key="content" value="{% if hadoop_zkfc_opts is defined %} export HADOOP_ZKFC_OPTS=&quot;{{hadoop_zkfc_opts}} $HADOOP_ZKFC_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
+          </definition>
+          <definition xsi:type="configure" id="hdfs_securitylogger_additivity" summary="Set additivity of SecurityLogger to false">
+            <type>hdfs-log4j</type>
+            <regex-replace  key="content" find="hadoop.security.log.file=SecurityAuth.audit" replace-with="hadoop.security.log.file=SecurityAuth.audit&#10;log4j.additivity.SecurityLogger=false"/>
+            <regex-replace  key="content" find="log4j.additivity.SecurityLogger=true" replace-with="log4j.additivity.SecurityLogger=false"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics" summary="Prevent Garbage Collection Heuristics">
+            <type>hadoop-env</type>
+            <replace  key="content" find="-XX:+PrintGCDateStamps -Xms{{namenode_heapsize}}" replace-with="-XX:+PrintGCDateStamps -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{namenode_heapsize}}"/>
+            <replace  key="content" find="-XX:+PrintGCDateStamps ${HADOOP_NAMENODE_INIT_HEAPSIZE}" replace-with="-XX:+PrintGCDateStamps -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly ${HADOOP_NAMENODE_INIT_HEAPSIZE}"/>
+          </definition>
+        </changes>
+      </component>
+      <component name="HDFS_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="hdfs_user_agent" summary="Set User-Agent">
+            <type>core-site</type>
+            <set key="fs.azure.user.agent.prefix" value="User-Agent: APN/1.0 Hortonworks/1.0 HDP/{{version}}" if-type="core-site" if-key="fs.azure.user.agent.prefix" if-key-state="absent" />
+            <set key="fs.gs.application.name.suffix" value=" (GPN:Hortonworks; version 1.0) HDP/{{version}}" if-type="core-site" if-key="fs.gs.application.name.suffix" if-key-state="absent" />
+            <set key="fs.s3a.user.agent.prefix" value="User-Agent: APN/1.0 Hortonworks/1.0 HDP/{{version}}" if-type="core-site" if-key="fs.s3a.user.agent.prefix" if-key-state="absent" />
+          </definition>
+
+          <definition xsi:type="configure" id="gcs_properties" summary="Set properties for GCS">
+            <type>core-site</type>
+            <set key="fs.gs.path.encoding" value="uri-path" if-type="core-site" if-key="fs.gs.path.encoding" if-key-state="absent" />
+            <set key="fs.gs.working.dir" value="/" if-type="core-site" if-key="fs.gs.working.dir" if-key-state="absent" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+    <service name="HBASE">
+      <component name="HBASE_MASTER">
+      <changes>
+      <!-- HBase Rolling properties for log4j need to be parameterized. -->
+        <definition xsi:type="configure" id="hbase_log4j_parameterize" summary="Parameterizing HBase Log4J Properties">
+            <type>hbase-log4j</type>
+            <set key="hbase_log_maxfilesize" value="256"/>
+            <set key="hbase_log_maxbackupindex" value="20"/>
+            <set key="hbase_security_log_maxfilesize" value="256"/>
+            <set key="hbase_security_log_maxbackupindex" value="20"/>
+            <regex-replace key="content" find="hbase.log.maxfilesize=([0-9]+)MB" replace-with="hbase.log.maxfilesize={{hbase_log_maxfilesize}}MB"/>
+            <regex-replace key="content" find="hbase.log.maxbackupindex=([0-9]+)" replace-with="hbase.log.maxbackupindex={{hbase_log_maxbackupindex}}"/>
+            <regex-replace key="content" find="hbase.security.log.maxfilesize=([0-9]+)MB" replace-with="hbase.security.log.maxfilesize={{hbase_security_log_maxfilesize}}MB"/>
+            <regex-replace key="content" find="hbase.security.log.maxbackupindex=([0-9]+)" replace-with="hbase.security.log.maxbackupindex={{hbase_security_log_maxbackupindex}}"/>
+        </definition>
+      </changes>
+      </component>
+    </service>
+    <service name="FALCON">
+      <component name="FALCON_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="falcon_log4j_parameterize" summary="Parameterizing Falcon Log4J Properties">
+          <type>falcon-log4j</type>
+          <set key="falcon_log_maxfilesize" value="256"/>
+          <set key="falcon_log_maxbackupindex" value="20"/>
+          <set key="falcon_security_log_maxfilesize" value="256"/>
+          <set key="falcon_security_log_maxbackupindex" value="20"/>
+          <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;&#xA;&lt;param name=&quot;MaxFileSize&quot; value=&quot;{{falcon_log_maxfilesize}}MB&quot; /&gt;"/>
+          <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;&#xA;&lt;param name=&quot;MaxBackupIndex&quot; value=&quot;{{falcon_log_maxbackupindex}}&quot; /&gt;"/>
+          <replace key="content" find="&lt;appender name=&quot;SECURITY&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;SECURITY&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;&#xA;&lt;param name=&quot;MaxFileSize&quot; value=&quot;{{falcon_security_log_maxfilesize}}MB&quot;/&gt;"/>
+          <replace key="content" find="&lt;appender name=&quot;SECURITY&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;SECURITY&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;&#xA;&lt;param name=&quot;MaxBackupIndex&quot; value=&quot;{{falcon_security_log_maxbackupindex}}&quot;/&gt;"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+    <service name="RANGER">
+      <component name="RANGER_ADMIN">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_bind_anonymous">
+            <type>ranger-env</type>
+            <transfer operation="delete" delete-key="bind_anonymous" />
+          </definition>
+          <definition xsi:type="configure" id="admin_log4j_parameterize" summary="Parameterizing Ranger Log4J Properties">
+            <type>admin-log4j</type>
+            <set key="ranger_xa_log_maxfilesize" value="256"/>
+            <set key="ranger_xa_log_maxbackupindex" value="20"/>
+            <replace key="content" find="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.xa_log_appender.MaxFileSize={{ranger_xa_log_maxfilesize}}MB"/>
+          </definition>
+        </changes>
+      </component>
+      <component name="RANGER_USERSYNC">
+        <changes>
+          <definition xsi:type="configure" id="usersync_log4j_parameterize" summary="Parameterizing Ranger Usersync Log4J Properties">
+            <type>usersync-log4j</type>
+            <set key="ranger_usersync_log_maxfilesize" value="256"/>
+            <set key="ranger_usersync_log_maxbackupindex" value="20"/>
+            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize={{ranger_usersync_log_maxfilesize}}MB"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0_disable_delta_sync_during_upgrade">
+            <type>ranger-ugsync-site</type>
+            <set key="ranger.usersync.ldap.deltasync" value="false"
+              if-type="ranger-ugsync-site" if-key="ranger.usersync.source.impl.class" if-value="org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder"/>
+          </definition>
+        </changes>
+      </component>
+      <component name="RANGER_TAGSYNC">
+        <changes>
+          <definition xsi:type="configure" id="tagsync_log4j_parameterize" summary="Parameterizing Ranger Tagsync Log4J Properties">
+            <type>tagsync-log4j</type>
+            <set key="ranger_tagsync_log_maxfilesize" value="256"/>
+            <set key="ranger_tagsync_log_number_of_backup_files" value="20"/>
+            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize={{ranger_tagsync_log_maxfilesize}}MB"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+    <service name="RANGER_KMS">
+    <component name="RANGER_KMS_SERVER">
+    <changes>
+      <definition xsi:type="configure" id="kms_log4j_parameterize" summary="Parameterizing Ranger KMS Log4J Properties">
+        <type>kms-log4j</type>
+        <set key="ranger_kms_log_maxfilesize" value="256"/>
+        <set key="ranger_kms_log_maxbackupindex" value="20"/>
+        <set key="ranger_kms_audit_log_maxfilesize" value="256"/>
+        <set key="ranger_kms_audit_log_maxbackupindex" value="20"/>
+        <replace key="content" find="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms.MaxFileSize={{ranger_kms_log_maxfilesize}}MB"/>
+        <replace key="content" find="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms-audit.MaxFileSize={{ranger_kms_audit_log_maxfilesize}}MB"/>
+      </definition>
+      <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_duplicate_ssl">
+        <type>ranger-kms-site</type>
+        <transfer operation="delete" delete-key="ranger.https.attrib.keystore.file"
+          if-type="ranger-kms-site" if-key="ranger.service.https.attrib.keystore.file" if-key-state="present"/>
+        <transfer operation="delete" delete-key="ranger.service.https.attrib.clientAuth"
+          if-type="ranger-kms-site" if-key="ranger.service.https.attrib.client.auth" if-key-state="present"/>
+      </definition>
+    </changes>
+    </component>
+    </service>
+    <service name="KAFKA">
+    <component name="KAFKA_BROKER">
+    <changes>
+      <definition xsi:type="configure" id="kafka_log4j_parameterize" summary="Parameterizing Kafka Log4J Properties">
+        <type>kafka-log4j</type>
+        <set key="kafka_log_maxfilesize" value="256"/>
+        <set key="kafka_log_maxbackupindex" value="20"/>
+        <set key="controller_log_maxfilesize" value="256"/>
+        <set key="controller_log_maxbackupindex" value="20"/>
+        <replace key="content" find="log4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kafkaAppender.MaxFileSize = {{kafka_log_maxfilesize}}MB"/>
+        <replace key="content" find="log4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kafkaAppender.MaxBackupIndex = {{kafka_log_maxbackupindex}}"/>
+        <replace key="content" find="log4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.controllerAppender.MaxFileSize = {{controller_log_maxfilesize}}MB"/>
+        <replace key="content" find="log4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.controllerAppender.MaxBackupIndex = {{controller_log_maxbackupindex}}"/>
+      </definition>
+    </changes>
+    </component>
+    </service>
+    <service name="KNOX">
+      <component name="KNOX_GATEWAY">
+        <changes>
+          <definition xsi:type="configure" id="knox_gateway_log4j_parameterize" summary="Parameterizing Knox Gateway Log4J Properties">
+            <type>gateway-log4j</type>
+            <set key="knox_gateway_log_maxfilesize" value="256"/>
+            <set key="knox_gateway_log_maxbackupindex" value="20"/>
+            <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxFileSize = {{knox_gateway_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxBackupIndex = {{knox_gateway_log_maxbackupindex}}"/>
+            </definition>
+          <definition xsi:type="configure" id="knox_ldap_log4j_parameterize" summary="Parameterizing Knox Ldap Log4J Properties">
+            <type>ldap-log4j</type>
+            <set key="knox_ldap_log_maxfilesize" value="256"/>
+            <set key="knox_ldap_log_maxbackupindex" value="20"/>
+            <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxFileSize = {{knox_ldap_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxBackupIndex = {{knox_ldap_log_maxbackupindex}}"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="PIG">
+      <component name="PIG">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_pig_use_tez">
+            <type>pig-properties</type>
+            <regex-replace key="content" find=" *#* *exectype=(\w+)" replace-with="exectype=tez" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="HIVE">
+      <component name="HIVE_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_hive_append_heap_dump_options" summary="Appending optional Java heap dump parameters" >
+            <type>hive-env</type>
+            <insert key="content" value="export HADOOP_CLIENT_OPTS=&quot;$HADOOP_CLIENT_OPTS{{heap_dump_opts}}&quot;" insert-type="append" newline-before="true" newline-after="true" />
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_tez_append_heap_dump_options_for_tez_task">
+            <type>tez-site</type>
+            <insert key="tez.task.launch.cmd-opts" value="{{heap_dump_opts}}" insert-type="append" newline-before="false" newline-after="false" />
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_tez_append_heap_dump_options_for_tez_am">
+            <type>tez-site</type>
+            <insert key="tez.am.launch.cmd-opts" value="{{heap_dump_opts}}" insert-type="append" newline-before="false" newline-after="false" />
+          </definition>
+          <definition xsi:type="configure" id="hive_log4j_parameterize" summary="Parameterizing Hive Log4J Properties">
+            <type>hive-log4j</type>
+            <set key="hive_log_maxfilesize" value="256"/>
+            <set key = "hive_log_maxbackupindex" value="30"/>
+            <regex-replace key="content" find="#log4j.appender.DRFA.MaxBackupIndex=([0-9]+)" replace-with="#log4j.appender.DRFA.MaxBackupIndex={{hive_log_maxbackupindex}}"/>
+            <replace key="content" find="log4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.DRFA.MaxFileSize = {{hive_log_maxfilesize}}MB"/>
+          </definition>
+          <definition xsi:type="configure" id="hive_llap_log4j_parameterize" summary="Parameterizing Hive llap Log4J Properties">
+            <type>llap-daemon-log4j</type>
+            <set key="hive_llap_log_maxfilesize" value="256"/>
+            <set key = "hive_llap_log_maxbackupindex" value="240"/>
+            <regex-replace key="content" find="property.llap.daemon.log.maxfilesize = ([0-9]+)MB" replace-with="property.llap.daemon.log.maxfilesize = {{hive_llap_log_maxfilesize}}MB"/>
+            <regex-replace key="content" find="property.llap.daemon.log.maxbackupindex = ([0-9]+)" replace-with="property.llap.daemon.log.maxbackupindex = {{hive_llap_log_maxbackupindex}}"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_maint_jaas_config_for_hive_hook" summary="Updating hive atlas application properties">
+            <type>hive-atlas-application.properties</type>
+            <set key ="atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag" value="required"
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
+            <set key ="atlas.jaas.ticketBased-KafkaClient.loginModuleName" value="com.sun.security.auth.module.Krb5LoginModule"
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
+            <set key ="atlas.jaas.ticketBased-KafkaClient.option.useTicketCache" value="true"
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0_hive_set_hive_enforce_bucketing_property">
+            <type>hive-site</type>
+            <set key="hive.enforce.bucketing" value="true"/>
+          </definition>
+        </changes>
+      </component>
+      <component name="HIVE_SERVER_INTERACTIVE">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_hive_llap_append_heap_dump_options" summary="Appending optional Java heap dump parameters" >
+            <type>hive-interactive-env</type>
+            <insert key="content" value="export HADOOP_CLIENT_OPTS=&quot;$HADOOP_CLIENT_OPTS{{heap_dump_opts}}&quot;" insert-type="append" newline-before="true" newline-after="true" />
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_hive_llap_append_java_heap_dump_options">
+            <type>hive-interactive-env</type>
+            <insert key="llap_java_opts" value="{{heap_dump_opts}}" insert-type="append" newline-before="false" newline-after="false" />
+          </definition>
+
+          <definition xsi:type="configure" id="hive_log4j2_parameterize" summary="Parameterizing Hive Log4J2 Properties">
+            <type>hive-log4j2</type>
+            <set key="hive2_log_maxfilesize" value="256"/>
+            <set key = "hive2_log_maxbackupindex" value="30"/>
+            <regex-replace key="content" find="appender.DRFA.strategy.max = ([0-9]+)" replace-with="appender.DRFA.strategy.max = {{hive2_log_maxbackupindex}}"/>
+            <replace key="content" find="appender.DRFA.strategy.type = DefaultRolloverStrategy" replace-with="appender.DRFA.strategy.type = DefaultRolloverStrategy&#xA;appender.DRFA.policies.fsize.type = SizeBasedTriggeringPolicy&#xA;appender.DRFA.policies.fsize.size = {{hive2_log_maxfilesize}}MB"/>
+          </definition>
+
+          <definition xsi:type="configure" id="llap_cli_log4j2_parameterize" summary="Parameterizing LLAP Cli Log4J2 Properties">
+            <type>llap-cli-log4j2</type>
+            <set key="llap_cli_log_maxfilesize" value="256"/>
+            <set key = "llap_cli_log_maxbackupindex" value="30"/>
+            <regex-replace key="content" find="appender.DRFA.strategy.max = ([0-9]+)" replace-with="appender.DRFA.strategy.max = {{llap_cli_log_maxbackupindex}}"/>
+            <replace key="content" find="appender.DRFA.strategy.type = DefaultRolloverStrategy" replace-with="appender.DRFA.strategy.type = DefaultRolloverStrategy&#xA;appender.DRFA.policies.fsize.type = SizeBasedTriggeringPolicy&#xA;appender.DRFA.policies.fsize.size = {{llap_cli_log_maxfilesize}}MB"/>
+          </definition>
+
+          <definition xsi:type="configure" id="llap_update_headroom" summary="Update headroom for LLAP">
+            <type>hive-interactive-env</type>
+            <set key="llap_headroom_space" value="12288"/>
+          </definition>
+
+          <definition xsi:type="configure" id="llap_update_hashaggregation" summary="Update Hash Aggregation settings for LLAP">
+            <type>hive-interactive-site</type>
+            <set key="hive.map.aggr.hash.min.reduction" value="0.99"/>
+            <set key="hive.vectorized.groupby.maxentries" value="1000000"/>
+          </definition>
+
+          <definition xsi:type="configure" id="llap_update_settings" summary="Update additional LLAP settings">
+            <type>hive-interactive-site</type>
+            <set key="hive.llap.task.scheduler.locality.delay" value="-1"/>
+            <set key="hive.mapjoin.hybridgrace.hashtable" value="false"/>
+            <set key="hive.merge.nway.joins" value="false"/>
+            <set key="hive.llap.daemon.rpc.port" value="0"/>
+          </definition>
+
+          <definition xsi:type="configure" id="llap_update_tez_settings" summary="Update additional LLAP-Tez settings">
+            <type>tez-interactive-site</type>
+            <set key="tez.runtime.shuffle.keep-alive.enabled" value="true"/>
+            <set key="tez.am.am-rm.heartbeat.interval-ms.max" value="10000"/>
+            <set key="tez.session.am.dag.submit.timeout.secs" value="1209600"/>
+            <set key="tez.runtime.enable.final-merge.in.output" value="false"/>
+            <set key="tez.am.task.reschedule.higher.priority" value="false"/>
+            <set key="tez.runtime.shuffle.connect.timeout" value ="30000"/>
+            <set key="tez.runtime.shuffle.read.timeout" value="30000"/>
+          </definition>
+
+          <definition xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable" summary="Update additional LLAP-Tez settings">
+            <type>tez-interactive-site</type>
+            <set key="tez.runtime.shuffle.ssl.enable" value="false"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0_copy_hive_tez_container_size_to_hiveInteractive">
+            <type>hive-interactive-site</type>
+            <transfer operation="copy" from-type="hive-site" from-key="hive.tez.container.size" to-key="hive.tez.container.size" default-value="682"  if-type="hive-interactive-site" if-key="hive.tez.container.size" if-key-state="absent"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_atlas_cluster_name">
+            <type>hive-site</type>
+            <transfer operation="delete" delete-key="atlas.cluster.name"/>
+          </definition>
+
+          <definition xsi:type="configure" id="llap_append_stack_size_java_opts" summary="Update JVM stack size for LLAP">
+            <type>hive-interactive-env</type>
+            <insert key="llap_java_opts" value=" -Xss512k " insert-type="append" newline-before="false" newline-after="false" />
+          </definition>
+
+          <definition xsi:type="configure" id="llap_update_shuffle_parallel_copies" summary="Update tez shuffle parallel copies for LLAP">
+            <type>hive-interactive-site</type>
+            <set key="tez.runtime.shuffle.parallel.copies" value="8"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_maint_llap_config" summary="Updating LLAP configuration">
+            <type>hive-interactive-site</type>
+            <set key="dfs.short.circuit.shared.memory.watcher.interrupt.check.ms" value="0" />
+            <set key="dfs.client.mmap.enabled" value="false" />
+          </definition>
+
+        </changes>
+
+      </component>
+      <component name = "WEBHCAT_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="webhcat_log4j_parameterize" summary="Parameterizing Webhcat Log4J Properties">
+            <type>webhcat-log4j</type>
+            <set key="webhcat_log_maxfilesize" value="256"/>
+            <set key = "webhcat_log_maxbackupindex" value="20"/>
+            <replace key="content" find="log4j.appender.standard  =  org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.standard  =  org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.standard.MaxFileSize = {{webhcat_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.standard  =  org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.standard  =  org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.standard.MaxBackupIndex = {{webhcat_log_maxbackupindex}}"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_templeton_hadoop_queue_name">
+            <type>webhcat-site</type>
+            <set key="templeton.hadoop.queue.name" value="default" if-type="webhcat-site" if-key="templeton.hadoop.queue.name" if-key-state="absent"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="ZEPPELIN">
+      <component name="ZEPPELIN_MASTER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0__zeppelin_external_dependency_configs" summary="Apply external depedency config 1">
+            <type>zeppelin-env</type>
+            <insert key="zeppelin_env_content"
+              value='export ZEPPELIN_INTP_CLASSPATH_OVERRIDES="{{external_dependency_conf}}"'
+              insert-type="append" newline-before="true" newline-after="true"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+  </services>
+</upgrade-config-changes>

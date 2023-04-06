@@ -22,21 +22,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.ConfigMergeHelper;
 import org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.spi.RepositoryVersion;
-import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
-import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
-import org.apache.ambari.spi.upgrade.UpgradeCheckType;
-import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -44,23 +39,16 @@ import com.google.inject.Singleton;
  * Checks for configuration merge conflicts.
  */
 @Singleton
-@UpgradeCheckInfo(
+@UpgradeCheck(
     order = 99.0f,
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
-public class ConfigurationMergeCheck extends ClusterCheck {
+public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
 
   @Inject
   ConfigMergeHelper m_mergeHelper;
 
-  static final UpgradeCheckDescription CONFIG_MERGE = new UpgradeCheckDescription("CONFIG_MERGE",
-      UpgradeCheckType.CLUSTER,
-      "Configuration Merge Check",
-      new ImmutableMap.Builder<String, String>()
-        .put(UpgradeCheckDescription.DEFAULT,
-            "The following config types will have values overwritten: %s").build());
-
   public ConfigurationMergeCheck() {
-    super(CONFIG_MERGE);
+    super(CheckDescription.CONFIG_MERGE);
   }
 
   /**
@@ -72,14 +60,13 @@ public class ConfigurationMergeCheck extends ClusterCheck {
    * </ul>
    */
   @Override
-  public UpgradeCheckResult perform(UpgradeCheckRequest request)
+  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
       throws AmbariException {
-    UpgradeCheckResult result = new UpgradeCheckResult(this);
 
-    RepositoryVersion repositoryVersion = request.getTargetRepositoryVersion();
+    RepositoryVersionEntity rve = request.getTargetRepositoryVersion();
 
-    Map<String, Map<String, ThreeWayValue>> changes = m_mergeHelper.getConflicts(
-        request.getClusterName(), new StackId(repositoryVersion.getStackId()));
+    Map<String, Map<String, ThreeWayValue>> changes =
+        m_mergeHelper.getConflicts(request.getClusterName(), rve.getStackId());
 
     Set<String> failedTypes = new HashSet<>();
 
@@ -90,7 +77,7 @@ public class ConfigurationMergeCheck extends ClusterCheck {
         if (null == twv.oldStackValue) { // !!! did not exist and in the map means changed
           failedTypes.add(entry.getKey());
 
-          result.getFailedOn().add(entry.getKey() + "/" + configEntry.getKey());
+          prerequisiteCheck.getFailedOn().add(entry.getKey() + "/" + configEntry.getKey());
 
           MergeDetail md = new MergeDetail();
           md.type = entry.getKey();
@@ -98,14 +85,14 @@ public class ConfigurationMergeCheck extends ClusterCheck {
           md.current = twv.savedValue;
           md.new_stack_value = twv.newStackValue;
           md.result_value = md.current;
-          result.getFailedDetail().add(md);
+          prerequisiteCheck.getFailedDetail().add(md);
 
         } else if (!twv.oldStackValue.equals(twv.savedValue)) {  // !!! value customized
           if (null == twv.newStackValue || // !!! not in new stack
               !twv.oldStackValue.equals(twv.newStackValue)) { // !!! or the default value changed
             failedTypes.add(entry.getKey());
 
-            result.getFailedOn().add(entry.getKey() + "/" + configEntry.getKey());
+            prerequisiteCheck.getFailedOn().add(entry.getKey() + "/" + configEntry.getKey());
 
             MergeDetail md = new MergeDetail();
             md.type = entry.getKey();
@@ -113,24 +100,22 @@ public class ConfigurationMergeCheck extends ClusterCheck {
             md.current = twv.savedValue;
             md.new_stack_value = twv.newStackValue;
             md.result_value = md.current;
-            result.getFailedDetail().add(md);
+            prerequisiteCheck.getFailedDetail().add(md);
           }
         }
       }
     }
 
-    if (result.getFailedOn().size() > 0) {
-      result.setStatus(UpgradeCheckStatus.WARNING);
-      String failReason = getFailReason(result, request);
+    if (prerequisiteCheck.getFailedOn().size() > 0) {
+      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
+      String failReason = getFailReason(prerequisiteCheck, request);
 
-      result.setFailReason(String.format(failReason, StringUtils.join(
+      prerequisiteCheck.setFailReason(String.format(failReason, StringUtils.join(
           failedTypes, ", ")));
 
     } else {
-      result.setStatus(UpgradeCheckStatus.PASS);
+      prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
     }
-
-    return result;
   }
 
   /**

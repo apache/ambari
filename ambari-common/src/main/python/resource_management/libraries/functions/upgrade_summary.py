@@ -89,7 +89,7 @@ def get_upgrade_summary():
   service_summary_dict = {}
 
   service_summary = upgrade_summary["services"]
-  for service_name, service_summary_json in service_summary.iteritems():
+  for service_name, service_summary_json in service_summary.items():
     service_summary =  UpgradeServiceSummary(service_name = service_name,
       source_stack = service_summary_json["sourceStackId"],
       source_version = service_summary_json["sourceVersion"],

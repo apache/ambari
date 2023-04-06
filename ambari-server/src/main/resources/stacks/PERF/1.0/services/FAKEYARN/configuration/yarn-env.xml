@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="true" supports_adding_forbidden="true">
+  <!-- These properties exist in HDP 2.1 and higher. -->
+  <property>
+    <name>apptimelineserver_heapsize</name>
+    <value>1024</value>
+    <display-name>AppTimelineServer Java heap size</display-name>
+    <description>Max heapsize for AppTimelineServer using a numerical value in the scale of MB</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <unit>MB</unit>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- These properties exist in HDP 2.2 and higher. -->
+  <property>
+    <name>yarn_cgroups_enabled</name>
+    <value>false</value>
+    <description>You can use CGroups to isolate CPU-heavy processes in a Hadoop cluster.</description>
+    <display-name>CPU Isolation</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- These properties exist in HDP 2.3 and higher. -->
+  <property>
+    <name>is_supported_yarn_ranger</name>
+    <value>true</value>
+    <description>Set to false by default,  needs to be set to true in stacks that use Ranger Yarn Plugin</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- yarn-env.sh -->
+  <property>
+    <name>content</name>
+    <display-name>yarn-env template</display-name>
+    <description>This is the jinja template for yarn-env.sh file</description>
+    <value>
+      export HADOOP_FAKEYARN_HOME={{hadoop_yarn_home}}
+      export FAKEYARN_LOG_DIR={{yarn_log_dir_prefix}}/$USER
+      export FAKEYARN_PID_DIR={{yarn_pid_dir_prefix}}/$USER
+      export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
+      export JAVA_HOME={{java64_home}}
+      export JAVA_LIBRARY_PATH="${JAVA_LIBRARY_PATH}:{{hadoop_java_io_tmpdir}}"
+
+      # We need to add the EWMA appender for the yarn daemons only;
+      # however, FAKEYARN_ROOT_LOGGER is shared by the yarn client and the
+      # daemons. This is restrict the EWMA appender to daemons only.
+      INVOKER="${0##*/}"
+      if [ "$INVOKER" == "yarn-daemon.sh" ]; then
+        export FAKEYARN_ROOT_LOGGER=${FAKEYARN_ROOT_LOGGER:-INFO,EWMA,RFA}
+      fi
+
+      # User for FAKEYARN daemons
+      export HADOOP_FAKEYARN_USER=${HADOOP_FAKEYARN_USER:-yarn}
+
+      # resolve links - $0 may be a softlink
+      export FAKEYARN_CONF_DIR="${FAKEYARN_CONF_DIR:-$HADOOP_FAKEYARN_HOME/conf}"
+
+      # some Java parameters
+      # export JAVA_HOME=/home/y/libexec/jdk1.6.0/
+      if [ "$JAVA_HOME" != "" ]; then
+      #echo "run java in $JAVA_HOME"
+      JAVA_HOME=$JAVA_HOME
+      fi
+
+      if [ "$JAVA_HOME" = "" ]; then
+      echo "Error: JAVA_HOME is not set."
+      exit 1
+      fi
+
+      JAVA=$JAVA_HOME/bin/java
+      JAVA_HEAP_MAX=-Xmx1000m
+
+      # For setting FAKEYARN specific HEAP sizes please use this
+      # Parameter and set appropriately
+      FAKEYARN_HEAPSIZE={{yarn_heapsize}}
+
+      # check envvars which might override default args
+      if [ "$FAKEYARN_HEAPSIZE" != "" ]; then
+      JAVA_HEAP_MAX="-Xmx""$FAKEYARN_HEAPSIZE""m"
+      fi
+
+      # Resource Manager specific parameters
+
+      # Specify the max Heapsize for the FAKEResourceManager using a numerical value
+      # in the scale of MB. For example, to specify an jvm option of -Xmx1000m, set
+      # the value to 1000.
+      # This value will be overridden by an Xmx setting specified in either FAKEYARN_OPTS
+      # and/or FAKEYARN_FAKERESOURCEMANAGER_OPTS.
+      # If not specified, the default value will be picked from either FAKEYARN_HEAPMAX
+      # or JAVA_HEAP_MAX with FAKEYARN_HEAPMAX as the preferred option of the two.
+      export FAKEYARN_FAKERESOURCEMANAGER_HEAPSIZE={{resourcemanager_heapsize}}
+
+      # Specify the JVM options to be used when starting the FAKEResourceManager.
+      # These options will be appended to the options specified as FAKEYARN_OPTS
+      # and therefore may override any similar flags set in FAKEYARN_OPTS
+      #export FAKEYARN_FAKERESOURCEMANAGER_OPTS=
+
+      # Node Manager specific parameters
+
+      # Specify the max Heapsize for the FAKENodeManager using a numerical value
+      # in the scale of MB. For example, to specify an jvm option of -Xmx1000m, set
+      # the value to 1000.
+      # This value will be overridden by an Xmx setting specified in either FAKEYARN_OPTS
+      # and/or FAKEYARN_FAKENODEMANAGER_OPTS.
+      # If not specified, the default value will be picked from either FAKEYARN_HEAPMAX
+      # or JAVA_HEAP_MAX with FAKEYARN_HEAPMAX as the preferred option of the two.
+      export FAKEYARN_FAKENODEMANAGER_HEAPSIZE={{nodemanager_heapsize}}
+
+      # Specify the max Heapsize for the timeline server using a numerical value
+      # in the scale of MB. For example, to specify an jvm option of -Xmx1000m, set
+      # the value to 1024.
+      # This value will be overridden by an Xmx setting specified in either FAKEYARN_OPTS
+      # and/or FAKEYARN_TIMELINESERVER_OPTS.
+      # If not specified, the default value will be picked from either FAKEYARN_HEAPMAX
+      # or JAVA_HEAP_MAX with FAKEYARN_HEAPMAX as the preferred option of the two.
+      export FAKEYARN_TIMELINESERVER_HEAPSIZE={{apptimelineserver_heapsize}}
+
+      # Specify the JVM options to be used when starting the FAKENodeManager.
+      # These options will be appended to the options specified as FAKEYARN_OPTS
+      # and therefore may override any similar flags set in FAKEYARN_OPTS
+      #export FAKEYARN_FAKENODEMANAGER_OPTS=
+
+      # so that filenames w/ spaces are handled correctly in loops below
+      IFS=
+
+
+      # default log directory and file
+      if [ "$FAKEYARN_LOG_DIR" = "" ]; then
+      FAKEYARN_LOG_DIR="$HADOOP_FAKEYARN_HOME/logs"
+      fi
+      if [ "$FAKEYARN_LOGFILE" = "" ]; then
+      FAKEYARN_LOGFILE='yarn.log'
+      fi
+
+      # default policy file for service-level authorization
+      if [ "$FAKEYARN_POLICYFILE" = "" ]; then
+      FAKEYARN_POLICYFILE="hadoop-policy.xml"
+      fi
+
+      # restore ordinary behaviour
+      unset IFS
+
+
+      FAKEYARN_OPTS="$FAKEYARN_OPTS -Dhadoop.log.dir=$FAKEYARN_LOG_DIR"
+      FAKEYARN_OPTS="$FAKEYARN_OPTS -Dyarn.log.dir=$FAKEYARN_LOG_DIR"
+      FAKEYARN_OPTS="$FAKEYARN_OPTS -Dhadoop.log.file=$FAKEYARN_LOGFILE"
+      FAKEYARN_OPTS="$FAKEYARN_OPTS -Dyarn.log.file=$FAKEYARN_LOGFILE"
+      FAKEYARN_OPTS="$FAKEYARN_OPTS -Dyarn.home.dir=$FAKEYARN_COMMON_HOME"
+      FAKEYARN_OPTS="$FAKEYARN_OPTS -Dyarn.id.str=$FAKEYARN_IDENT_STRING"
+      FAKEYARN_OPTS="$FAKEYARN_OPTS -Dhadoop.root.logger=${FAKEYARN_ROOT_LOGGER:-INFO,console}"
+      FAKEYARN_OPTS="$FAKEYARN_OPTS -Dyarn.root.logger=${FAKEYARN_ROOT_LOGGER:-INFO,console}"
+      export FAKEYARN_FAKENODEMANAGER_OPTS="$FAKEYARN_FAKENODEMANAGER_OPTS -Dnm.audit.logger=INFO,NMAUDIT"
+      export FAKEYARN_FAKERESOURCEMANAGER_OPTS="$FAKEYARN_FAKERESOURCEMANAGER_OPTS -Drm.audit.logger=INFO,RMAUDIT"
+      if [ "x$JAVA_LIBRARY_PATH" != "x" ]; then
+      FAKEYARN_OPTS="$FAKEYARN_OPTS -Djava.library.path=$JAVA_LIBRARY_PATH"
+      fi
+      FAKEYARN_OPTS="$FAKEYARN_OPTS -Dyarn.policy.file=$FAKEYARN_POLICYFILE"
+      FAKEYARN_OPTS="$FAKEYARN_OPTS -Djava.io.tmpdir={{hadoop_java_io_tmpdir}}"
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

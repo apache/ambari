@@ -1,0 +1,7 @@
+{
+  "general_deps" : {
+    "_comment" : "dependencies for KAFKA",
+    "KAFKA_BROKER-START" : ["ZOOKEEPER_SERVER-START", "RANGER_USERSYNC-START"],
+    "KAFKA_SERVICE_CHECK-SERVICE_CHECK": ["KAFKA_BROKER-START"]
+  }
+}

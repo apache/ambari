@@ -39,11 +39,11 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
-import org.apache.ambari.server.stack.upgrade.Direction;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
-import org.apache.ambari.spi.RepositoryType;
-import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -102,7 +102,6 @@ public class UpgradeDAOTest {
     entity.setRepositoryVersion(repositoryVersion2200);
     entity.setUpgradeType(UpgradeType.ROLLING);
     entity.setUpgradePackage("test-upgrade");
-    entity.setUpgradePackStackId(new StackId((String) null));
     entity.setDowngradeAllowed(true);
 
     UpgradeGroupEntity group = new UpgradeGroupEntity();
@@ -180,10 +179,8 @@ public class UpgradeDAOTest {
     entity1.setRepositoryVersion(repositoryVersion2500);
     entity1.setUpgradeType(UpgradeType.ROLLING);
     entity1.setUpgradePackage("test-upgrade");
-    entity1.setUpgradePackStackId(new StackId((String) null));
     entity1.setDowngradeAllowed(true);
     dao.create(entity1);
-
     UpgradeEntity entity2 = new UpgradeEntity();
     entity2.setId(22L);
     entity2.setClusterId(clusterId.longValue());
@@ -192,10 +189,8 @@ public class UpgradeDAOTest {
     entity2.setRepositoryVersion(repositoryVersion2200);
     entity2.setUpgradeType(UpgradeType.ROLLING);
     entity2.setUpgradePackage("test-upgrade");
-    entity2.setUpgradePackStackId(new StackId((String) null));
     entity2.setDowngradeAllowed(true);
     dao.create(entity2);
-
     UpgradeEntity entity3 = new UpgradeEntity();
     entity3.setId(33L);
     entity3.setClusterId(clusterId.longValue());
@@ -204,10 +199,8 @@ public class UpgradeDAOTest {
     entity3.setRepositoryVersion(repositoryVersion2511);
     entity3.setUpgradeType(UpgradeType.ROLLING);
     entity3.setUpgradePackage("test-upgrade");
-    entity3.setUpgradePackStackId(new StackId((String) null));
     entity3.setDowngradeAllowed(true);
     dao.create(entity3);
-
     UpgradeEntity lastUpgradeForCluster = dao.findLastUpgradeForCluster(clusterId.longValue(), Direction.UPGRADE);
     assertNotNull(lastUpgradeForCluster);
     assertEquals(33L, (long)lastUpgradeForCluster.getId());
@@ -235,7 +228,6 @@ public class UpgradeDAOTest {
     upgradeEntity.setRepositoryVersion(repositoryVersion2500);
     upgradeEntity.setUpgradeType(UpgradeType.ROLLING);
     upgradeEntity.setUpgradePackage("test-upgrade");
-    upgradeEntity.setUpgradePackStackId(new StackId((String) null));
     dao.create(upgradeEntity);
 
     UpgradeEntity lastUpgradeForCluster = dao.findLastUpgradeForCluster(1, Direction.UPGRADE);
@@ -279,7 +271,6 @@ public class UpgradeDAOTest {
     entity1.setRepositoryVersion(repositoryVersion2500);
     entity1.setUpgradeType(UpgradeType.ROLLING);
     entity1.setUpgradePackage("test-upgrade");
-    entity1.setUpgradePackStackId(new StackId((String) null));
     entity1.setDowngradeAllowed(true);
     entity1.setOrchestration(RepositoryType.PATCH);
     entity1.setRevertAllowed(true);
@@ -298,7 +289,6 @@ public class UpgradeDAOTest {
     entity2.setRepositoryVersion(repositoryVersion2511);
     entity2.setUpgradeType(UpgradeType.ROLLING);
     entity2.setUpgradePackage("test-upgrade");
-    entity2.setUpgradePackStackId(new StackId((String) null));
     entity2.setDowngradeAllowed(true);
     entity2.setOrchestration(RepositoryType.MAINT);
     entity2.setRevertAllowed(true);
@@ -322,7 +312,6 @@ public class UpgradeDAOTest {
     entity3.setRepositoryVersion(repositoryVersion2511);
     entity3.setUpgradeType(UpgradeType.ROLLING);
     entity3.setUpgradePackage("test-upgrade");
-    entity3.setUpgradePackStackId(new StackId((String) null));
     entity3.setOrchestration(RepositoryType.MAINT);
     entity3.setDowngradeAllowed(false);
     dao.create(entity3);
@@ -345,7 +334,6 @@ public class UpgradeDAOTest {
     entity4.setRepositoryVersion(repositoryVersion2500);
     entity4.setUpgradeType(UpgradeType.ROLLING);
     entity4.setUpgradePackage("test-upgrade");
-    entity4.setUpgradePackStackId(new StackId((String) null));
     entity4.setOrchestration(RepositoryType.MAINT);
     entity4.setDowngradeAllowed(false);
     dao.create(entity4);

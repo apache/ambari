@@ -49,9 +49,9 @@ angular.module('ambariAdminConsole')
           $scope.form.$setPristine();
           $location.path('/remoteClusters/'+ $scope.cluster.cluster_name +'/edit')
         })
-        .catch(function(data) {
+        .catch(function(resp) {
           console.log(data);
-          Alert.error(data.message);
+          Alert.error(resp.data.message);
        });
 
     }

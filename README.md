@@ -1,43 +1,37 @@
-<!---
-   Licensed to the Apache Software Foundation (ASF) under one or more
-   contributor license agreements.  See the NOTICE file distributed with
-   this work for additional information regarding copyright ownership.
-   The ASF licenses this file to You under the Apache License, Version 2.0
-   (the "License"); you may not use this file except in compliance with
-   the License.  You may obtain a copy of the License at
+# Ambari_2.7.5_python3
 
-       http://www.apache.org/licenses/LICENSE-2.0
+#### 介绍
+Ambari 2.7.5 适配 Python3.
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
---->
-# Apache Ambari
-[![Build Status](https://builds.apache.org/buildStatus/icon?job=Ambari-trunk-Commit)](https://builds.apache.org/view/A/view/Ambari/job/Ambari-trunk-Commit/)
-![license](http://img.shields.io/badge/license-Apache%20v2-blue.svg)
+#### 软件架构
+软件架构说明
 
-Apache Ambari is a tool for provisioning, managing, and monitoring Apache Hadoop clusters. Ambari consists of a set of RESTful APIs and a browser-based management interface.
 
-## Sub-projects
+#### 安装教程
 
-- Ambari Metrics ([GitHub](https://github.com/apache/ambari-metrics), [GitBox](https://gitbox.apache.org/repos/asf?p=ambari-metrics.git))
-- Ambari Log Search ([GitHub](https://github.com/apache/ambari-logsearch), [GitBox](https://gitbox.apache.org/repos/asf?p=ambari-logsearch.git)) 
-- Ambari Infra ([GitHub](https://github.com/apache/ambari-infra), [GitBox](https://gitbox.apache.org/repos/asf?p=ambari-infra.git))
+1.  xxxx
+2.  xxxx
+3.  xxxx
 
-## Getting Started
+#### 使用说明
 
-https://cwiki.apache.org/confluence/display/AMBARI/Quick+Start+Guide
+1.  xxxx
+2.  xxxx
+3.  xxxx
 
-## Built With
+#### 参与贡献
 
-https://cwiki.apache.org/confluence/display/AMBARI/Technology+Stack
+1.  Fork 本仓库
+2.  新建 Feat_xxx 分支
+3.  提交代码
+4.  新建 Pull Request
 
-## Contributing
 
-https://cwiki.apache.org/confluence/display/AMBARI/How+to+Contribute
+#### 特技
 
-## License
-
-http://ambari.apache.org/license.html
+1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
+2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
+3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
+4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
+5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
+6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)

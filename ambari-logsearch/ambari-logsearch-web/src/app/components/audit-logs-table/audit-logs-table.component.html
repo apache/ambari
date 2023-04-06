@@ -1,0 +1,55 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<dropdown-button class="pull-right" label="{{'logs.columns' | translate}}" (selectItem)="updateSelectedColumns($event)"
+                 [options]="columns" [isRightAlign]="true" [isMultipleChoice]="true"></dropdown-button>
+<form *ngIf="logs && logs.length" [formGroup]="filtersForm" class="row pull-right">
+  <filter-dropdown class="col-md-12" label="{{filters.auditLogsSorting.label | translate}}"
+                   formControlName="auditLogsSorting" [options]="filters.auditLogsSorting.options"
+                   [isRightAlign]="true" [showCommonLabelWithSelection]="true"></filter-dropdown>
+</form>
+<div class="panel panel-default">
+  <div class="panel-body">
+    <table class="table">
+      <thead>
+        <tr>
+          <th *ngIf="isColumnDisplayed('evtTime')">{{getColumnByName('evtTime').label | translate}}</th>
+          <ng-container *ngFor="let column of displayedColumns">
+            <th *ngIf="customProcessedColumns.indexOf(column.value) === -1">{{column.label | translate}}</th>
+          </ng-container>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of logs">
+          <td *ngIf="isColumnDisplayed('evtTime')">{{log.evtTime | amTz: timeZone | amDateFormat: timeFormat}}</td>
+          <ng-container *ngFor="let column of displayedColumns">
+            <td *ngIf="customProcessedColumns.indexOf(column.value) === -1">{{log[column.value]}}</td>
+          </ng-container>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td attr.colspan="{{displayedColumns.length + 1}}">
+            <pagination class="col-md-12" *ngIf="logs && logs.length" [totalCount]="totalCount"
+                        [filtersForm]="filtersForm" [filterInstance]="filters.pageSize"
+                        [currentCount]="logs.length"></pagination>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>

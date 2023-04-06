@@ -50,7 +50,6 @@ import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
@@ -260,7 +259,6 @@ public class HostUpdateHelperTest {
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(ClusterDAO.class).toInstance(mockClusterDAO);
         bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
-        bind(MpackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(MpackManagerFactory.class));
         bind(AmbariMetaInfo.class).toInstance(EasyMock.createNiceMock(AmbariMetaInfo.class));
         bind(AgentConfigsHolder.class).toInstance(EasyMock.createNiceMock(AgentConfigsHolder.class));
 
@@ -269,7 +267,7 @@ public class HostUpdateHelperTest {
     });
 
     hosts.put("host11","host55");
-    hosts.put("HOST5","host1");
+    hosts.put("host5","host1");
     hosts.put("host1","host5");
     hosts.put("host55","host11");
 
@@ -295,7 +293,7 @@ public class HostUpdateHelperTest {
     expect(mockClusterConfigEntity1.getConfigId()).andReturn(1L).atLeastOnce();
     expect(mockClusterConfigEntity1.getStack()).andReturn(mockStackEntity).atLeastOnce();
     expect(mockClusterConfigEntity1.getData()).andReturn("{\"testProperty1\" : \"testValue_host1\", " +
-            "\"testProperty2\" : \"testValue_HOST5\", \"testProperty3\" : \"testValue_host11\", " +
+            "\"testProperty2\" : \"testValue_host5\", \"testProperty3\" : \"testValue_host11\", " +
             "\"testProperty4\" : \"testValue_host55\"}").atLeastOnce();
     expect(mockClusterConfigEntity1.getTag()).andReturn("testTag1").atLeastOnce();
     expect(mockClusterConfigEntity1.getType()).andReturn("testType1").atLeastOnce();
@@ -305,7 +303,7 @@ public class HostUpdateHelperTest {
     expect(mockClusterConfigEntity2.getClusterId()).andReturn(1L).atLeastOnce();
     expect(mockClusterConfigEntity2.getConfigId()).andReturn(2L).anyTimes();
     expect(mockClusterConfigEntity2.getStack()).andReturn(mockStackEntity).atLeastOnce();
-    expect(mockClusterConfigEntity2.getData()).andReturn("{\"testProperty5\" : \"test_host1_test_HOST5_test_host11_test_host55\"}").atLeastOnce();
+    expect(mockClusterConfigEntity2.getData()).andReturn("{\"testProperty5\" : \"test_host1_test_host5_test_host11_test_host55\"}").atLeastOnce();
     expect(mockClusterConfigEntity2.getTag()).andReturn("testTag2").atLeastOnce();
     expect(mockClusterConfigEntity2.getType()).andReturn("testType2").atLeastOnce();
     expect(mockClusterConfigEntity2.getVersion()).andReturn(2L).atLeastOnce();
@@ -411,8 +409,8 @@ public class HostUpdateHelperTest {
     final EntityManager entityManager = createNiceMock(EntityManager.class);
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     ClusterEntity mockClusterEntity = easyMockSupport.createNiceMock(ClusterEntity.class);
-    HostEntity mockHostEntity1 = new HostEntity();
-    HostEntity mockHostEntity2 = new HostEntity();
+    HostEntity mockHostEntity1 = easyMockSupport.createNiceMock(HostEntity.class);
+    HostEntity mockHostEntity2 = easyMockSupport.createNiceMock(HostEntity.class);
     Map<String, Map<String, String>> clusterHostsToChange = new HashMap<>();
     List<HostEntity> hostEntities = new ArrayList<>();
     Map<String, String> hosts = new HashMap<>();
@@ -437,10 +435,15 @@ public class HostUpdateHelperTest {
     });
 
     expect(mockClusterDAO.findByName("cl1")).andReturn(mockClusterEntity).once();
-    expect(mockClusterEntity.getHostEntities()).andReturn(hostEntities).times(2);
-    mockHostEntity1.setHostName("host1");
-    mockHostEntity2.setHostName("host2");
+    expect(mockClusterEntity.getHostEntities()).andReturn(hostEntities).once();
+    expect(mockHostEntity1.getHostName()).andReturn("host1").atLeastOnce();
+    expect(mockHostEntity2.getHostName()).andReturn("host2").atLeastOnce();
 
+    mockHostEntity1.setHostName("host10");
+    expectLastCall();
+
+    mockHostEntity2.setHostName("host11");
+    expectLastCall();
 
     HostUpdateHelper hostUpdateHelper = new HostUpdateHelper(null, null, mockInjector);
 
@@ -449,11 +452,6 @@ public class HostUpdateHelperTest {
     easyMockSupport.replayAll();
     hostUpdateHelper.updateHostsInDB();
     easyMockSupport.verifyAll();
-
-
-    Assert.assertEquals(mockHostEntity1.getHostName(),"host10");
-    Assert.assertEquals(mockHostEntity2.getHostName(),"host11");
-
   }
 
   @Test
@@ -495,8 +493,7 @@ public class HostUpdateHelperTest {
       @Override
       protected void configure() {
 
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().addPasswordEncryptorBindings()
-        .addLdapBindings().build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addLdapBindings().addFactoriesInstallBinding().build().configure(binder());
 
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(EntityManager.class).toInstance(entityManager);
@@ -509,7 +506,6 @@ public class HostUpdateHelperTest {
         bind(AlertDefinitionDAO.class).toInstance(mockAlertDefinitionDAO);
         bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
         bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
         bind(UnitOfWork.class).toInstance(createNiceMock(UnitOfWork.class));

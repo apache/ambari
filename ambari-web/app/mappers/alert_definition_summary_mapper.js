@@ -73,23 +73,43 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
     Object.keys(groupedByServiceName).forEach(function(serviceName) {
       var service = servicesMap[serviceName];
       if (service) {
+        var hasCriticalAlerts = false;
+
+        var alertsCount = groupedByServiceName[serviceName].map(function (alertDefinition) {
+
+          var criticalCount = alertDefinition.getWithDefault('summary.CRITICAL.count', 0);
+          var warningCount = alertDefinition.getWithDefault('summary.WARNING.count', 0);
+
+          if (criticalCount) {
+            hasCriticalAlerts = true;
+          }
+          return criticalCount + warningCount;
+
+        }).reduce(Em.sum, 0);
+
         service.setProperties({
-          criticalCount: groupedByServiceName[serviceName].map((alertDefinition) => {
-            return alertDefinition.getWithDefault('summary.CRITICAL.count', 0);
-          }).reduce(Em.sum, 0),
-          warningCount: groupedByServiceName[serviceName].map((alertDefinition) => {
-            return alertDefinition.getWithDefault('summary.WARNING.count', 0);
-          }).reduce(Em.sum, 0)
+          alertsCount: alertsCount,
+          hasCriticalAlerts: hasCriticalAlerts
         });
 
         service.get('hostComponents').filterProperty('isMaster').forEach(function (master) {
+
+          hasCriticalAlerts = false;
+          alertsCount = (groupedByComponentName[master.get('componentName')] || []).map(function (alertDefinition) {
+
+            var criticalCount = alertDefinition.getWithDefault('summary.CRITICAL.count', 0);
+            var warningCount = alertDefinition.getWithDefault('summary.WARNING.count', 0);
+
+            if (criticalCount) {
+              hasCriticalAlerts = true;
+            }
+            return criticalCount + warningCount;
+
+          }).reduce(Em.sum, 0);
+
           master.setProperties({
-            criticalCount: groupedByServiceName[serviceName].map((alertDefinition) => {
-              return alertDefinition.getWithDefault('summary.CRITICAL.count', 0);
-            }).reduce(Em.sum, 0),
-            warningCount: groupedByServiceName[serviceName].map((alertDefinition) => {
-              return alertDefinition.getWithDefault('summary.WARNING.count', 0);
-            }).reduce(Em.sum, 0)
+            alertsCount: alertsCount,
+            hasCriticalAlerts: hasCriticalAlerts
           });
         });
       }

@@ -40,7 +40,7 @@ version = default("/commandParams/version", None)
 
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
-smoke_hdfs_user_mode = 0770
+smoke_hdfs_user_mode = 0o770
 user_group = config['configurations']['cluster-env']['user_group']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']

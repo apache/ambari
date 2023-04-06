@@ -103,7 +103,6 @@ describe('App.alertGroupsMapper', function () {
       App.store.loadMany.restore();
       App.alertGroupsMapper.set('model', App.AlertGroup);
       App.cache.previousAlertGroupsMap = {};
-      App.cache.alertNotificationsGroupsMap = {};
 
     });
 

@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <parent>
+    <artifactId>ambari-infra</artifactId>
+    <groupId>org.apache.ambari</groupId>
+    <version>2.7.5.0.0</version>
+  </parent>
+
+  <name>Ambari Infra Manager Integration Tests</name>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>ambari-infra-manager-it</artifactId>
+
+  <properties>
+    <jbehave.version>4.0.5</jbehave.version>
+    <failsafePlugin.version>3.0.0-M1</failsafePlugin.version>
+    <infraManager.docker.host>localhost</infraManager.docker.host>
+    <stories.location>NONE</stories.location>
+    <okhttp.version>2.7.5</okhttp.version>
+    <generatedSourcesPath>${project.build.directory}/generated-sources</generatedSourcesPath>
+    <generatedSourcesJavaPath>main/java</generatedSourcesJavaPath>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-solrj</artifactId>
+      <version>${solr.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.minio</groupId>
+      <artifactId>minio</artifactId>
+      <version>5.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.5</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.20</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.20</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jbehave</groupId>
+      <artifactId>jbehave-core</artifactId>
+      <version>${jbehave.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>3.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sparkjava</groupId>
+      <artifactId>spark-core</artifactId>
+      <version>2.7.1</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- Hadoop -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>jetty</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>jetty-util</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jetty-util</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jersey-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jersey-json</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jersey-server</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-server</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-util</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-servlet</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-security</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs-client</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>2.11.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.11.1</version>
+    </dependency>
+    <!-- swagger client related -->
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger</groupId>
+      <artifactId>swagger-annotations</artifactId>
+      <version>1.5.21</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.gsonfire</groupId>
+      <artifactId>gson-fire</artifactId>
+      <version>1.8.3</version>
+    </dependency>
+    <dependency>
+      <groupId>com.squareup.okhttp</groupId>
+      <artifactId>okhttp</artifactId>
+      <version>${okhttp.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.squareup.okhttp</groupId>
+      <artifactId>logging-interceptor</artifactId>
+      <version>${okhttp.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.annotation</groupId>
+      <artifactId>javax.annotation-api</artifactId>
+      <version>1.3.2</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <testOutputDirectory>target/classes</testOutputDirectory>
+    <testResources>
+      <testResource>
+        <directory>src/test/java/</directory>
+        <includes>
+          <include>**/*.story</include>
+        </includes>
+      </testResource>
+      <testResource>
+        <directory>src/test/resources</directory>
+      </testResource>
+    </testResources>
+    <plugins>
+      <plugin>
+        <groupId>io.swagger</groupId>
+        <artifactId>swagger-codegen-maven-plugin</artifactId>
+        <version>2.3.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <inputSpec>${project.parent.basedir}/ambari-infra-manager/src/main/resources/swagger/swagger.yaml</inputSpec>
+              <language>java</language>
+              <generateApiTests>false</generateApiTests>
+              <generateModelTests>false</generateModelTests>
+              <output>${generatedSourcesPath}</output>
+              <configOptions>
+                <sourceFolder>${generatedSourcesJavaPath}</sourceFolder>
+                <apiPackage>org.apache.ambari.infra.client.api</apiPackage>
+                <modelPackage>org.apache.ambari.infra.client.model</modelPackage>
+                <invokerPackage>org.apache.ambari.infra.client.invoker</invokerPackage>
+                <dateLibrary>java8</dateLibrary>
+              </configOptions>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>add-generated-source</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${generatedSourcesPath}/${generatedSourcesJavaPath}</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>it</id>
+      <activation>
+        <property>
+          <name>it</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>${failsafePlugin.version}</version>
+            <executions>
+              <execution>
+                <id>run-integration-tests</id>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>integration-test</goal>
+                </goals>
+                <configuration>
+                  <includes>
+                    <include>**/*Stories.java</include>
+                    <include>**/*IT.java</include>
+                  </includes>
+                  <systemPropertyVariables>
+                    <log4j.configuration>file:${project.build.testOutputDirectory}/log4j.properties</log4j.configuration>
+                    <docker.host>${infraManager.docker.host}</docker.host>
+                    <backend.stories.location>${stories.location}</backend.stories.location>
+                  </systemPropertyVariables>
+                </configuration>
+              </execution>
+              <execution>
+                <id>verify-integration-tests</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>verify</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

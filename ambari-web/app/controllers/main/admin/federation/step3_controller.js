@@ -105,9 +105,7 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     var hdfsSiteConfigs = configsFromServer.findProperty('type', 'hdfs-site').properties;
     var nameServices = App.HDFSService.find().objectAt(0).get('masterComponentGroups').mapProperty('name');
     ret.nameServicesList = nameServices.join(',');
-    ret.nameservice1 = nameServices.find(function (ns){
-      return hdfsSiteConfigs['dfs.namenode.rpc-address.' + ns + '.nn1'];
-    });
+    ret.nameservice1 = nameServices[0];
     ret.newNameservice = this.get('content.nameServiceId');
     ret.namenode1 = hdfsSiteConfigs['dfs.namenode.rpc-address.' + ret.nameservice1 + '.nn1'].split(':')[0];
     ret.namenode2 = hdfsSiteConfigs['dfs.namenode.rpc-address.' + ret.nameservice1 + '.nn2'].split(':')[0];
@@ -142,6 +140,7 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     var result = [];
     var configsToRemove = [];
     var hdfsSiteConfigs = this.get('serverConfigData').items.findProperty('type', 'hdfs-site').properties;
+    var wizardController = App.router.get(this.get('content.controllerName'));
 
     if (!hdfsSiteConfigs['dfs.namenode.servicerpc-address.' + dependencies.nameservice1 + '.nn1'] && !hdfsSiteConfigs['dfs.namenode.servicerpc-address.' + dependencies.nameservice1 + '.nn2']) {
       configsToRemove = configsToRemove.concat([
@@ -207,10 +206,10 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     configs.forEach(function (config) {
       if (!configsToRemove.contains(config.name)) {
         config.isOverridable = false;
-        config.name = this.replaceDependencies(config.name, dependencies);
-        config.displayName = this.replaceDependencies(config.displayName, dependencies);
-        config.value = this.replaceDependencies(config.value, dependencies);
-        config.recommendedValue = this.replaceDependencies(config.recommendedValue, dependencies);
+        config.name = wizardController.replaceDependencies(config.name, dependencies);
+        config.displayName = wizardController.replaceDependencies(config.displayName, dependencies);
+        config.value = wizardController.replaceDependencies(config.value, dependencies);
+        config.recommendedValue = wizardController.replaceDependencies(config.recommendedValue, dependencies);
         result.push(config);
       }
     }, this);
@@ -229,13 +228,6 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
       "filename": "ranger-tagsync-site",
       "serviceName": 'MISC'
     };
-  },
-
-  replaceDependencies: function (value, dependencies) {
-    Em.keys(dependencies).forEach(function (key) {
-      value = value.replace(new RegExp('{{' + key + '}}', 'g'), dependencies[key]);
-    });
-    return value;
   },
 
   removeConfigs: function (configsToRemove, configs) {

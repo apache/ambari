@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CollectorHostDownRefreshCounter {
 
   private int collectorDownRefreshCounterLimit = 5;
-  private AtomicInteger collectorDownRefreshCounter = new AtomicInteger(0);
+  private AtomicInteger collectorDownRefreshCounter;
 
   CollectorHostDownRefreshCounter(int counter) {
     this.collectorDownRefreshCounterLimit = counter;

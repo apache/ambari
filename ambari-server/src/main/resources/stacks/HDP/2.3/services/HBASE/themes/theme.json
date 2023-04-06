@@ -1,0 +1,33 @@
+{
+  "configuration" : {
+    "placement" : {
+      "configs" : [
+        {
+          "config": "hbase-site/hbase.regionserver.global.memstore.size",
+          "subsection-name": "subsection-hbase-memory-col1"
+        },
+        {
+          "config": "hbase-site/hbase.regionserver.global.memstore.upperLimit",
+          "subsection-name": null
+        }
+      ]
+    },
+    "widgets" : [
+      {
+        "config": "hbase-site/hbase.regionserver.global.memstore.size",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "percent"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hbase-site/hbase.regionserver.global.memstore.upperLimit",
+        "widget": null
+      }
+    ]
+  }
+}

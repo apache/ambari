@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+  <property>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle,spark_shuffle,spark2_shuffle</value>
+    <description>Auxilliary services of NodeManager. A valid service name should only contain a-zA-Z0-9_ and cannot start with numbers</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.aux-services.spark2_shuffle.class</name>
+    <value>org.apache.spark.network.yarn.YarnShuffleService</value>
+    <description>The auxiliary service class to use for Spark 2</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.aux-services.spark_shuffle.classpath</name>
+    <value>{{stack_root}}/${hdp.version}/spark/aux/*</value>
+    <description>The auxiliary service classpath to use for Spark</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.aux-services.spark2_shuffle.classpath</name>
+    <value>{{stack_root}}/${hdp.version}/spark2/aux/*</value>
+    <description>The auxiliary service classpath to use for Spark 2</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.log-aggregation.roll-monitoring-interval-seconds</name>
+    <value>3600</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.log-aggregation.num-log-files-per-app</name>
+    <value>336</value>
+    <description>The number of files to retain per container when continuous log aggregation is used</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.container-metrics.unregister-delay-ms</name>
+    <value>60000</value>
+    <description>The delay time ms to unregister container metrics after completion.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath</name>
+    <value/>
+    <description>Classpath for all plugins defined in yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

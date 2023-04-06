@@ -128,7 +128,7 @@ public class CachedAlertFlushServiceTest extends EasyMockSupport {
 
       EasyMock.replay(configuration);
 
-      PartialNiceMockBinder.newBuilder().addDBAccessorBinding().addAlertDefinitionDAOBinding().addLdapBindings().build().configure(binder);
+      PartialNiceMockBinder.newBuilder().addDBAccessorBinding().addLdapBindings().addAlertDefinitionDAOBinding().build().configure(binder);
 
       binder.bind(Configuration.class).toInstance(configuration);
       binder.bind(Cluster.class).toInstance(cluster);

@@ -29,7 +29,6 @@ from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.functions.format import format
-from string import lower
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -59,14 +58,11 @@ logsearch_config_file_path = agent_cache_dir + "/" + service_package_folder + "/
 logsearch_config_file_exists = os.path.isfile(logsearch_config_file_path)
 
 # default hadoop params
-hadoop_home = stack_select.get_hadoop_dir("home")
-hadoop_hdfs_home = stack_select.get_hadoop_dir("hdfs_home")
-hadoop_mapred_home = stack_select.get_hadoop_dir("mapred_home")
-hadoop_yarn_home = stack_select.get_hadoop_dir("yarn_home")
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
-hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
-mapreduce_libs_path = format("{hadoop_mapred_home}/*,{hadoop_mapred_home}/lib/*")
+mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
+
+versioned_stack_root = '/usr/hdp/current'
 
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
@@ -101,10 +97,13 @@ mapred_log_dir_prefix = default("/configurations/mapred-env/mapred_log_dir_prefi
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 user_group = config['configurations']['cluster-env']['user_group']
 
-namenode_host = default("/clusterHostInfo/namenode_hosts", [])
-has_namenode = not len(namenode_host) == 0
+namenode_hosts = default("/clusterHostInfo/namenode_hosts", [])
+hdfs_client_hosts = default("/clusterHostInfo/hdfs_client_hosts", [])
+has_hdfs_clients = len(hdfs_client_hosts) > 0
+has_namenode = len(namenode_hosts) > 0
+has_hdfs = has_hdfs_clients or has_namenode
 
-if has_namenode or dfs_type == 'HCFS':
+if has_hdfs or dfs_type == 'HCFS':
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
   mount_table_xml_inclusion_file_full_path = None

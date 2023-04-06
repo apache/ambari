@@ -68,7 +68,6 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
@@ -1047,7 +1046,7 @@ public class HeartbeatProcessorTest {
     hostObject.setIPv6("ipv6");
     hostObject.setOsType(DummyOsType);
 
-    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am, Encryptor.NONE, injector);
+    HeartBeatHandler handler = new HeartBeatHandler(config, fsm, am, injector);
     Register reg = new Register();
     HostInfo hi = new HostInfo();
     hi.setHostName(DummyHostname1);

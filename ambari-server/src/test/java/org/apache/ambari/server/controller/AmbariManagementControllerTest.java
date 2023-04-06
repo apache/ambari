@@ -50,7 +50,6 @@ import java.util.UUID;
 
 import javax.persistence.EntityManager;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.H2DatabaseCleaner;
@@ -195,7 +194,7 @@ public class AmbariManagementControllerTest {
   private static final int STACK_VERSIONS_CNT = 17;
   private static final int REPOS_CNT = 3;
   private static final int STACK_PROPERTIES_CNT = 103;
-  private static final int STACK_COMPONENTS_CNT = 5;
+  private static final int STACK_COMPONENTS_CNT = 4;
   private static final int OS_CNT = 2;
 
   private static final String NON_EXT_VALUE = "XXX";
@@ -1302,7 +1301,13 @@ public class AmbariManagementControllerTest {
     assertEquals(cluster1, ec.getClusterName());
     Map<String, Map<String, String>> configurations = ec.getConfigurations();
     assertNotNull(configurations);
-    assertEquals(0, configurations.size());
+    assertEquals(3, configurations.size());
+    assertTrue(configurations.containsKey("hdfs-site"));
+    assertTrue(configurations.containsKey("core-site"));
+    assertTrue(configurations.containsKey("hadoop-env"));
+    assertTrue(ec.getConfigurationAttributes().containsKey("hdfs-site"));
+    assertTrue(ec.getConfigurationAttributes().containsKey("core-site"));
+    assertTrue(ec.getConfigurationAttributes().containsKey("hadoop-env"));
     assertTrue(ec.getCommandParams().containsKey("max_duration_for_retries"));
     assertEquals("0", ec.getCommandParams().get("max_duration_for_retries"));
     assertTrue(ec.getCommandParams().containsKey("command_retry_enabled"));
@@ -1525,46 +1530,6 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(clusters.getCluster(cluster1)
         .getService(serviceName).getServiceComponent(componentName2)
         .getServiceComponentHost(host2));
-  }
-
-  @Test(expected=AmbariException.class)
-  public void testCreateServiceComponentHostExclusiveAmbariException()
-      throws Exception {
-    String cluster1 = getUniqueName();
-    createCluster(cluster1);
-    String serviceName = "HDFS";
-    createService(cluster1, serviceName, null);
-    String componentName1 = "NAMENODE";
-    String componentName2 = "DATANODE";
-    String componentName3 = "EXCLUSIVE_DEPENDENCY_COMPONENT";
-    createServiceComponent(cluster1, serviceName, componentName1,
-        State.INIT);
-    createServiceComponent(cluster1, serviceName, componentName2,
-        State.INIT);
-    createServiceComponent(cluster1, serviceName, componentName3,
-        State.INIT);
-    String host1 = getUniqueName();
-    String host2 = getUniqueName();
-    addHostToCluster(host1, cluster1);
-    addHostToCluster(host2, cluster1);
-
-    Set<ServiceComponentHostRequest> set1 =
-      new HashSet<>();
-    ServiceComponentHostRequest r1 =
-        new ServiceComponentHostRequest(cluster1, serviceName,
-            componentName1, host1, State.INIT.toString());
-    ServiceComponentHostRequest r2 =
-        new ServiceComponentHostRequest(cluster1, serviceName,
-            componentName3, host1, State.INIT.toString());
-    ServiceComponentHostRequest r3 =
-        new ServiceComponentHostRequest(cluster1, serviceName,
-            componentName2, host1, State.INIT.toString());
-
-    set1.add(r1);
-    set1.add(r2);
-    set1.add(r3);
-
-    controller.createHostComponents(set1);
   }
 
   @Test
@@ -3399,6 +3364,7 @@ public class AmbariManagementControllerTest {
     Set<ServiceRequest> reqs = new HashSet<>();
     ServiceRequest req1, req2;
     try {
+      reqs.clear();
       req1 = new ServiceRequest(cluster1, serviceName1, repositoryVersion02.getId(),
           State.STARTED.toString(), null);
       reqs.add(req1);
@@ -4534,6 +4500,7 @@ public class AmbariManagementControllerTest {
     ExecutionCommand executionCommand = gson.fromJson(new StringReader(
         new String(commandEntity.getCommand())), ExecutionCommand.class);
 
+    assertFalse(executionCommand.getConfigurationTags().isEmpty());
     assertTrue(executionCommand.getConfigurations() == null || executionCommand.getConfigurations().isEmpty());
 
     assertEquals(1, storedTasks.size());
@@ -4551,7 +4518,7 @@ public class AmbariManagementControllerTest {
     assertEquals(Role.HDFS_CLIENT.name(), hostRoleCommand.getEvent().getEvent().getServiceComponentName());
     assertEquals(actionRequest.getParameters(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getRoleParams());
     assertNotNull(hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getConfigurations());
-    assertEquals(0, hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getConfigurations().size());
+    assertEquals(2, hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getConfigurations().size());
     assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), stage.getRequestContext());
     assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
@@ -5083,7 +5050,6 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  @Ignore // not actual because all configs/attributes/tags were moved to STOMP configurations topic
   public void testReConfigureServiceClient() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
@@ -5174,6 +5140,9 @@ public class AmbariManagementControllerTest {
     long requestId1 = installService(cluster1, serviceName1, true, false);
 
     List<Stage> stages = actionDB.getAllStages(requestId1);
+    Assert.assertEquals(3, stages.get(0).getOrderedHostRoleCommands().get(0)
+      .getExecutionCommandWrapper().getExecutionCommand()
+      .getConfigurationTags().size());
 
     installService(cluster1, serviceName2, false, false);
 
@@ -5228,6 +5197,11 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(hdfsCmdHost2);
     ExecutionCommand execCmd = hdfsCmdHost3.getExecutionCommandWrapper()
       .getExecutionCommand();
+    Assert.assertEquals(3, execCmd.getConfigurationTags().size());
+    Assert.assertEquals("version122", execCmd.getConfigurationTags().get
+      ("core-site").get("tag"));
+    Assert.assertEquals("d", execCmd.getConfigurations().get("core-site")
+      .get("c"));
     // Check if MapReduce client is reinstalled
     Assert.assertNotNull(mapRedCmdHost2);
     Assert.assertNotNull(mapRedCmdHost3);
@@ -5348,6 +5322,9 @@ public class AmbariManagementControllerTest {
         if (hrc.getHostName().equals(host2) && hrc.getRole().toString()
           .equals("HDFS_CLIENT")) {
           clientHrc = hrc;
+          Assert.assertEquals("version122", hrc.getExecutionCommandWrapper()
+            .getExecutionCommand().getConfigurationTags().get("core-site")
+            .get("tag"));
         }
       }
     }
@@ -5674,7 +5651,7 @@ public class AmbariManagementControllerTest {
     clusters.getHost(host3).setState(HostState.WAITING_FOR_HOST_STATUS_UPDATES);
     clusters.getHost(host2).setState(HostState.INIT);
     try {
-      controller.createAction(actionRequest, requestProperties);
+      response = controller.createAction(actionRequest, requestProperties);
       assertTrue("Exception should have been raised.", false);
     } catch (Exception e) {
       assertTrue(e.getMessage().contains("there were no healthy eligible hosts"));
@@ -5947,6 +5924,7 @@ public class AmbariManagementControllerTest {
     ExecutionCommand execCmd = storedTasks.get(0).getExecutionCommandWrapper
       ().getExecutionCommand();
     Assert.assertNotNull(storedTasks);
+    Assert.assertNotNull(execCmd.getConfigurationTags().get("hdfs-site"));
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
     Assert.assertEquals(MaintenanceState.ON, scHost.getMaintenanceState());
@@ -6025,7 +6003,8 @@ public class AmbariManagementControllerTest {
     scHost = s.getServiceComponent("DATANODE").getServiceComponentHost(host2);
     Assert.assertEquals(HostComponentAdminState.INSERVICE, scHost.getComponentAdminState());
     Assert.assertEquals(MaintenanceState.OFF, scHost.getMaintenanceState());
-    execCmd = storedTasks.get(0).getExecutionCommandWrapper().getExecutionCommand();
+    execCmd = storedTasks.get(0).getExecutionCommandWrapper
+        ().getExecutionCommand();
     Assert.assertNotNull(storedTasks);
     Assert.assertEquals(2, storedTasks.size());
     int countRefresh = 0;
@@ -6123,7 +6102,7 @@ public class AmbariManagementControllerTest {
     ExecuteActionRequest actionRequest = new ExecuteActionRequest(cluster1, null, action1, resourceFilters, null, params, false);
     RequestStatusResponse response = null;
     try {
-      controller.createAction(actionRequest, requestProperties);
+      response = controller.createAction(actionRequest, requestProperties);
     } catch (Exception ae) {
       LOG.info("Expected exception.", ae);
       Assert.assertTrue(ae.getMessage().contains("Custom action definition only " +
@@ -6374,6 +6353,8 @@ public class AmbariManagementControllerTest {
       for (HostRoleCommand hrc : stage.getOrderedHostRoleCommands()) {
         if (hrc.getRole().equals(Role.HDFS_SERVICE_CHECK)) {
           serviceCheckFound = true;
+          Assert.assertEquals(2, hrc.getExecutionCommandWrapper()
+            .getExecutionCommand().getConfigurationTags().size());
         }
       }
     }
@@ -6460,6 +6441,8 @@ public class AmbariManagementControllerTest {
       for (HostRoleCommand hrc : stage.getOrderedHostRoleCommands()) {
         if (hrc.getRole().equals(Role.HDFS_SERVICE_CHECK)) {
           serviceCheckFound = true;
+          Assert.assertEquals(2, hrc.getExecutionCommandWrapper()
+            .getExecutionCommand().getConfigurationTags().size());
         }
       }
     }
@@ -6525,7 +6508,6 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  @Ignore // not actual because all configs/attributes/tags were moved to STOMP configurations topic
   public void testConfigGroupOverridesWithHostActions() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
@@ -6778,6 +6760,7 @@ public class AmbariManagementControllerTest {
     ExecutionCommand execCmd = storedTasks.get(0).getExecutionCommandWrapper
         ().getExecutionCommand();
     Assert.assertNotNull(storedTasks);
+    Assert.assertNotNull(execCmd.getConfigurationTags().get("hdfs-site"));
     Assert.assertEquals(1, storedTasks.size());
     HostRoleCommand command =  storedTasks.get(0);
     Assert.assertEquals(Role.NAMENODE, command.getRole());
@@ -6788,7 +6771,6 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  @Ignore // not actual because all configs/attributes/tags were moved to STOMP configurations topic
   public void testConfigGroupOverridesWithServiceCheckActions() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
@@ -6867,6 +6849,8 @@ public class AmbariManagementControllerTest {
     for (Stage stage : stages) {
       for (HostRoleCommand hrc : stage.getOrderedHostRoleCommands()) {
         if (hrc.getRole().equals(Role.HDFS_SERVICE_CHECK)) {
+          Assert.assertEquals(2, hrc.getExecutionCommandWrapper()
+            .getExecutionCommand().getConfigurationTags().size());
           smokeTestCmd = hrc;
         }
       }
@@ -7927,7 +7911,7 @@ public class AmbariManagementControllerTest {
       Assert.fail("Expect failure while deleting.");
     } catch (Exception ex) {
       Assert.assertTrue(ex.getMessage().contains(
-          "Current host component state prohibiting component removal"));
+          "Host Component cannot be removed"));
     }
 
     sc1.getServiceComponentHosts().values().iterator().next().setDesiredState(State.STARTED);

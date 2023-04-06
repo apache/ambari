@@ -86,7 +86,7 @@ def write_krb5_conf(params):
             owner='root',
             create_parents=True,
             group='root',
-            mode=0755
+            mode=0o755
             )
 
   content = InlineTemplate(params.krb5_conf_template)
@@ -95,7 +95,7 @@ def write_krb5_conf(params):
        content=content,
        owner='root',
        group='root',
-       mode=0644
+       mode=0o644
        )
 
 
@@ -116,7 +116,7 @@ def write_keytab_file(params, output_hook=lambda principal, keytab_file_path: No
         if (keytab_file_path is not None) and (len(keytab_file_path) > 0):
           head, tail = os.path.split(keytab_file_path)
           if head:
-            Directory(head, create_parents=True, mode=0755, owner="root", group="root")
+            Directory(head, create_parents=True, mode=0o755, owner="root", group="root")
 
           owner = get_property_value(item, 'keytab_file_owner_name')
           if not owner:
@@ -169,22 +169,3 @@ def find_missing_keytabs(params, output_hook=lambda missing_keytabs: None):
   missing_keytabs = MissingKeytabs.from_kerberos_records(params.kerberos_command_params, params.hostname)
   Logger.info(str(missing_keytabs))
   output_hook(missing_keytabs.as_dict())
-
-# Encryption families from: http://web.mit.edu/KERBEROS/krb5-latest/doc/admin/conf_files/kdc_conf.html#encryption-types
-ENCRYPTION_FAMILY_MAP = {
-  'aes'       : ['aes256-cts-hmac-sha1-96', 'aes128-cts-hmac-sha1-96', 'aes256-cts-hmac-sha384-192', 'aes128-cts-hmac-sha256-128'],
-  'rc4'       : ['rc4-hmac'],
-  'camellia'  : ['camellia256-cts-cmac', 'camellia128-cts-cmac'],
-  'des3'      : ['des3-cbc-sha1'],
-  'des'       : ['des-cbc-crc', 'des-cbc-md5', 'des-cbc-md4']
-}
-
-def resolve_encryption_family_list(enc_types_list):
-  result = []
-  for each in enc_types_list:
-    result.extend(ENCRYPTION_FAMILY_MAP[each] if each in ENCRYPTION_FAMILY_MAP else [each])
-  return set(result)
-
-def resolve_encryption_families(enc_types_str):
-  return None if enc_types_str is None \
-    else ' '.join(resolve_encryption_family_list(enc_types_str.split()))

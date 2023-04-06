@@ -1,0 +1,121 @@
+{
+  "services": [
+    {
+      "name": "ACCUMULO",
+      "identities": [
+        {
+          "name": "accumulo",
+          "principal": {
+            "value": "${accumulo-env/accumulo_user}${principal_suffix}@${realm}",
+            "type" : "user",
+            "configuration": "accumulo-env/accumulo_principal_name",
+            "local_username": "${accumulo-env/accumulo_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/accumulo.headless.keytab",
+            "owner": {
+              "name": "${accumulo-env/accumulo_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": "r"
+            },
+            "configuration": "accumulo-env/accumulo_user_keytab"
+          }
+        },
+        {
+          "name": "accumulo_service",
+          "principal": {
+            "value": "${accumulo-env/accumulo_user}/_HOST@${realm}",
+            "type" : "service",
+            "configuration": "accumulo-site/general.kerberos.principal",
+            "local_username": "${accumulo-env/accumulo_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/accumulo.service.keytab",
+            "owner": {
+              "name": "${accumulo-env/accumulo_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "accumulo-site/general.kerberos.keytab"
+          }
+        },
+        {
+          "name": "accumulo_tracer",
+          "principal": {
+            "value": "tracer${principal_suffix}@${realm}",
+            "type" : "user",
+            "configuration": "accumulo-site/trace.user",
+            "local_username": "${accumulo-env/accumulo_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/accumulo-tracer.headless.keytab",
+            "owner": {
+              "name": "${accumulo-env/accumulo_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "accumulo-site/trace.token.property.keytab"
+          }
+        },
+        {
+          "name": "accumulo_smokeuser",
+          "reference": "/smokeuser"
+        }
+      ],
+      "configurations": [
+        {
+          "accumulo-site": {
+            "instance.rpc.sasl.enabled": "true",
+            "instance.security.authenticator": "org.apache.accumulo.server.security.handler.KerberosAuthenticator",
+            "instance.security.authorizor": "org.apache.accumulo.server.security.handler.KerberosAuthorizor",
+            "instance.security.permissionHandler": "org.apache.accumulo.server.security.handler.KerberosPermissionHandler",
+            "trace.token.type": "org.apache.accumulo.core.client.security.tokens.KerberosToken",
+            "general.delegation.token.lifetime": "7d",
+            "general.delegation.token.update.interval": "1d"
+          }
+        },
+        {
+          "client": {
+            "kerberos.server.primary": "{{bare_accumulo_principal}}"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "ACCUMULO_MASTER",
+          "identities": [
+            {
+              "name": "accumulo_accumulo_master_hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
+            }
+          ]
+        },
+        {
+          "name": "ACCUMULO_TSERVER"
+        },
+        {
+          "name": "ACCUMULO_MONITOR"
+        },
+        {
+          "name": "ACCUMULO_GC"
+        },
+        {
+          "name": "ACCUMULO_TRACER"
+        },
+        {
+          "name": "ACCUMULO_CLIENT"
+        }
+      ]
+    }
+  ]
+}
+

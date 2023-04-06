@@ -70,8 +70,6 @@ import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.state.services.RetryUpgradeActionService;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.topology.addservice.GroupByComponentsStrategy;
-import org.apache.ambari.server.topology.addservice.HostGroupStrategy;
 import org.apache.ambari.server.upgrade.AbstractUpgradeCatalog;
 import org.apache.ambari.server.utils.AmbariPath;
 import org.apache.ambari.server.utils.DateUtils;
@@ -326,10 +324,10 @@ public class Configuration {
   public static final String AMBARI_LOG_FILE = "log4j.properties";
 
   @Markdown(
-          description = "Interval for heartbeat presence checks.",
-          examples = {"60000","600000"} )
+    description = "Interval for heartbeat presence checks.",
+    examples = {"60000","600000"} )
   public static final ConfigurationProperty<Integer> HEARTBEAT_MONITORING_INTERVAL = new ConfigurationProperty<>(
-          "heartbeat.monitoring.interval",60000);
+    "heartbeat.monitoring.interval",60000);
 
   /**
    * The directory on the Ambari Server file system used for storing
@@ -740,15 +738,6 @@ public class Configuration {
       examples = { "/var/lib/ambari-server/resources/mpacks" })
   public static final ConfigurationProperty<String> MPACKS_STAGING_DIR_PATH = new ConfigurationProperty<>(
       "mpacks.staging.path", null);
-
-  /**
-   * The Ambari Management Pack v2 staging directory on the Ambari Server.
-   */
-  @Markdown(
-          description = "The Ambari Management Pack version-2 staging directory on the Ambari Server.",
-          examples = { "/var/lib/ambari-server/resources/mpacks-v2" })
-  public static final ConfigurationProperty<String> MPACKS_V2_STAGING_DIR_PATH = new ConfigurationProperty<>(
-          "mpacks-v2.staging.path", null);
 
   /**
    * The full path to the file which contains the Ambari Server version.
@@ -2234,13 +2223,6 @@ public class Configuration {
       "http.x-xss-protection", "1; mode=block");
 
   /**
-   * The value that will be used to set the {@code Content-Security-Policy} HTTP response header.
-   */
-  @Markdown(description = "The value that will be used to set the `Content-Security-Policy` HTTP response header.")
-  public static final ConfigurationProperty<String> HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE = new ConfigurationProperty<>(
-      "http.content-security-policy", "");
-
-  /**
    * The value that will be used to set the {@code X-Content-Type} HTTP response header.
    */
   @Markdown(description = "The value that will be used to set the `X-CONTENT-TYPE` HTTP response header.")
@@ -2293,14 +2275,6 @@ public class Configuration {
   @Markdown(description = "The value that will be used to set the `X-XSS-Protection` HTTP response header for Ambari View requests.")
   public static final ConfigurationProperty<String> VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE = new ConfigurationProperty<>(
       "views.http.x-xss-protection", "1; mode=block");
-
-  /**
-   * The value that will be used to set the {@code Content-Security-Policy}
-   * HTTP response header for Ambari View requests.
-   */
-  @Markdown(description = "The value that will be used to set the `Content-Security-Policy` HTTP response header for Ambari View requests.")
-  public static final ConfigurationProperty<String> VIEWS_HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE = new ConfigurationProperty<>(
-      "views.http.content-security-policy", "");
 
   /**
    * The value that will be used to set the {@code X-Content-Type} HTTP response header.
@@ -2481,6 +2455,16 @@ public class Configuration {
       "metrics.retrieval-service.request.ttl", 5);
 
   /**
+   * The number of tasks that can be queried from the database at once In the
+   * case of more tasks, multiple queries are issued
+   *
+   * @return
+   */
+  @Markdown(description = "The maximum number of tasks which can be queried by ID from the database.")
+  public static final ConfigurationProperty<Integer> TASK_ID_LIST_LIMIT = new ConfigurationProperty<>(
+      "task.query.parameterlist.size", 999);
+
+  /**
    * Indicates whether the current ambari server instance is the active instance.
    * If this property is missing, the value will be considered to be true.
    * If present, it should be explicitly set to "true" to set this as the active instance.
@@ -2603,9 +2587,6 @@ public class Configuration {
   @Markdown(description = "Whether security password encryption is enabled or not. In case it is we store passwords in their own file(s); otherwise we store passwords in the Ambari credential store.")
   public static final ConfigurationProperty<Boolean> SECURITY_PASSWORD_ENCRYPTON_ENABLED = new ConfigurationProperty<>("security.passwords.encryption.enabled", false);
 
-  @Markdown(description="Whether to encrypt sensitive data (at rest) on service level configuration.")
-  public static final ConfigurationProperty<Boolean> SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED = new ConfigurationProperty<>("security.server.encrypt_sensitive_data", false);
-
   /**
    * The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures
    */
@@ -2647,35 +2628,6 @@ public class Configuration {
   @Markdown(description = "The number of threads to use when executing server-side Kerberos commands, such as generate keytabs.")
   public static final ConfigurationProperty<Integer> KERBEROS_SERVER_ACTION_THREADPOOL_SIZE = new ConfigurationProperty<>(
     "server.kerberos.action.threadpool.size", 1);
-
-  @Markdown(description = "The Agent command publisher pool. Affects degree of parallelization for generating the commands.")
-  public static final ConfigurationProperty<Integer> AGENT_COMMAND_PUBLISHER_THREADPOOL_SIZE = new ConfigurationProperty<>(
-    "server.pools.agent.command.publisher.size", 5);
-
-  @Markdown(description = "Configures size of the default JOIN Fork pool used for Streams.")
-  public static final ConfigurationProperty<Integer> DEFAULT_FORK_JOIN_THREADPOOL_SIZE = new ConfigurationProperty<>(
-    "server.pools.default.size", 5);
-
-  /**
-   * A flag to determine whether error stacks appear on the error page
-   */
-  @Markdown(description = "Show or hide the error stacks on the error page")
-  public static final ConfigurationProperty<String> SERVER_SHOW_ERROR_STACKS = new ConfigurationProperty<>(
-    "server.show.error.stacks", "false");
-
-  /**
-   * Fully qualified class name of the strategy used to form host groups for add service request layout recommendation.
-   */
-  @Markdown(description = "Fully qualified class name of the strategy used to form host groups for add service request layout recommendation.")
-  public static final ConfigurationProperty<String> ADD_SERVICE_HOST_GROUP_STRATEGY = new ConfigurationProperty<>(
-    "addservice.hostgroup.strategy", GroupByComponentsStrategy.class.getName());
-
-  /**
-   * Gets whether file-based VDF are allowed to be used.
-   */
-  @Markdown(description = "Controls whether VDF can be read from the filesystem.")
-  public static final ConfigurationProperty<Boolean> VDF_FROM_FILESYSTEM = new ConfigurationProperty<>(
-      "server.version_definition.allow_from_filesystem", Boolean.FALSE);
 
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
@@ -3022,7 +2974,7 @@ public class Configuration {
       System.setProperty(JAVAX_SSL_TRUSTSTORE, getProperty(SSL_TRUSTSTORE_PATH));
     }
     if (getProperty(SSL_TRUSTSTORE_PASSWORD) != null) {
-      String ts_password = PasswordUtils.getInstance().readPasswordFromStore(getProperty(SSL_TRUSTSTORE_PASSWORD), this);
+      String ts_password = PasswordUtils.getInstance().readPasswordFromStore(getProperty(SSL_TRUSTSTORE_PASSWORD), getMasterKeyLocation(), isMasterKeyPersisted(), getMasterKeyStoreLocation());
       if (ts_password != null) {
         System.setProperty(JAVAX_SSL_TRUSTSTORE_PASSWORD, ts_password);
       } else {
@@ -3180,9 +3132,7 @@ public class Configuration {
         LOG.error("Unable to write data into " + ambariUpgradeConfigUpdatesFilePath, e);
       } finally {
         try {
-          if (fileWriter != null) {
-            fileWriter.close();
-          }
+          fileWriter.close();
         } catch (IOException e) {
           LOG.error("Unable to close file " + ambariUpgradeConfigUpdatesFilePath, e);
         }
@@ -3242,9 +3192,14 @@ public class Configuration {
   public Map<String, String> getDatabaseConnectorNames() {
     File file = getConfigFile();
     Long currentConfigLastModifiedDate = file.lastModified();
+    Properties properties = null;
     if (currentConfigLastModifiedDate.longValue() != configLastModifiedDateForCustomJDBC.longValue()) {
       LOG.info("Ambari properties config file changed.");
-      Properties properties = readConfigFile();
+      if (configLastModifiedDateForCustomJDBC != null) {
+        properties = readConfigFile();
+      } else {
+        properties = this.properties;
+      }
 
       for (String propertyName : dbConnectorPropertyNames) {
         String propertyValue = properties.getProperty(propertyName);
@@ -3266,9 +3221,14 @@ public class Configuration {
   public Map<String, String> getPreviousDatabaseConnectorNames() {
     File file = getConfigFile();
     Long currentConfigLastModifiedDate = file.lastModified();
+    Properties properties = null;
     if (currentConfigLastModifiedDate.longValue() != configLastModifiedDateForCustomJDBCToRemove.longValue()) {
       LOG.info("Ambari properties config file changed.");
-      Properties properties = readConfigFile();
+      if (configLastModifiedDateForCustomJDBCToRemove != null) {
+        properties = readConfigFile();
+      } else {
+        properties = this.properties;
+      }
 
       for (String propertyName : dbConnectorPropertyNames) {
         propertyName = "previous." + propertyName;
@@ -3294,7 +3254,7 @@ public class Configuration {
   private JsonObject readFileToJSON (String file) {
 
     // Read from File to String
-    JsonObject jsonObject;
+    JsonObject jsonObject = new JsonObject();
 
     try {
       JsonParser parser = new JsonParser();
@@ -3610,14 +3570,6 @@ public class Configuration {
     return getProperty(MPACKS_STAGING_DIR_PATH);
   }
 
-  /**
-   * Gets ambari v2 management packs staging directory
-   * @return String
-   */
-  public String getMpacksV2StagingPath() {
-    return getProperty(MPACKS_V2_STAGING_DIR_PATH);
-  }
-
 
   public String getServerVersionFilePath() {
     return getProperty(SERVER_VERSION_FILE);
@@ -3719,17 +3671,6 @@ public class Configuration {
    */
   public String getXXSSProtectionHTTPResponseHeader() {
     return getProperty(HTTP_X_XSS_PROTECTION_HEADER_VALUE);
-  }
-
-  /**
-   * Get the value that should be set for the <code>Content-Security-Policy</code> HTTP response header for Ambari Server UI.
-   * <p/>
-   * By default this will be empty.
-   *
-   * @return the Content-Security-Policy value - null or "" indicates that the value is not set
-   */
-  public String getContentSecurityPolicyHTTPResponseHeader() {
-    return getProperty(HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE);
   }
 
   /**
@@ -3837,17 +3778,6 @@ public class Configuration {
    */
   public String getViewsXXSSProtectionHTTPResponseHeader() {
     return getProperty(VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE);
-  }
-
-  /**
-   * Get the value that should be set for the <code>Content-Security-Policy</code> HTTP response header for Ambari Views.
-   * <p/>
-   * By default this will be empty.
-   *
-   * @return the Content-Security-Policy value - null or "" indicates that the value is not set
-   */
-  public String getViewsContentSecurityPolicyHTTPResponseHeader() {
-    return getProperty(VIEWS_HTTP_CONTENT_SECURITY_POLICY_HEADER_VALUE);
   }
 
   /**
@@ -4033,13 +3963,13 @@ public class Configuration {
     String dbpasswd = null;
     boolean isPasswordAlias = false;
     if (CredentialProvider.isAliasString(passwdProp)) {
-      dbpasswd = PasswordUtils.getInstance().readPasswordFromStore(passwdProp, this);
+      dbpasswd = PasswordUtils.getInstance().readPasswordFromStore(passwdProp, getMasterKeyLocation(), isMasterKeyPersisted(), getMasterKeyStoreLocation());
       isPasswordAlias =true;
     }
 
     if (dbpasswd != null) {
       return dbpasswd;
-    } else if (isPasswordAlias) {
+    } else if (dbpasswd == null && isPasswordAlias) {
       LOG.error("Can't read db password from keystore. Please, check master key was set correctly.");
       throw new RuntimeException("Can't read db password from keystore. Please, check master key was set correctly.");
     } else {
@@ -4439,7 +4369,7 @@ public class Configuration {
     long value = SERVER_EC_CACHE_SIZE.getDefaultValue();
     if (stringValue != null) {
       try {
-        value = Long.parseLong(stringValue);
+        value = Long.valueOf(stringValue);
       } catch (NumberFormatException ignored) {
       }
 
@@ -4482,7 +4412,7 @@ public class Configuration {
     long value = SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE.getDefaultValue();
     if (stringValue != null) {
       try {
-        value = Long.parseLong(stringValue);
+        value = Long.valueOf(stringValue);
       }
       catch (NumberFormatException ignored) {
       }
@@ -4503,7 +4433,7 @@ public class Configuration {
     long value = SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION.getDefaultValue();
     if (stringValue != null) {
       try {
-        value = Long.parseLong(stringValue);
+        value = Long.valueOf(stringValue);
       }
       catch (NumberFormatException ignored) {
       }
@@ -4594,10 +4524,10 @@ public class Configuration {
   public Long getExecutionSchedulerWait() {
 
     String stringValue = getProperty(EXECUTION_SCHEDULER_WAIT);
-    long sleepTime = EXECUTION_SCHEDULER_WAIT.getDefaultValue();
+    Long sleepTime = EXECUTION_SCHEDULER_WAIT.getDefaultValue();
     if (stringValue != null) {
       try {
-        sleepTime = Long.parseLong(stringValue);
+        sleepTime = Long.valueOf(stringValue);
       } catch (NumberFormatException ignored) {
         LOG.warn("Value of {} ({}) should be a number, " +
             "falling back to default value ({})", EXECUTION_SCHEDULER_WAIT.getKey(), stringValue,
@@ -5363,7 +5293,7 @@ public class Configuration {
   public int getOperationsRetryAttempts() {
     final int RETRY_ATTEMPTS_LIMIT = 10;
     String property = getProperty(OPERATIONS_RETRY_ATTEMPTS);
-    int attempts = Integer.parseInt(property);
+    Integer attempts = Integer.valueOf(property);
     if (attempts < 0) {
       LOG.warn("Invalid operations retry attempts number ({}), should be [0,{}]. Value reset to default {}",
           attempts, RETRY_ATTEMPTS_LIMIT, OPERATIONS_RETRY_ATTEMPTS.getDefaultValue());
@@ -5537,6 +5467,16 @@ public class Configuration {
   }
 
   /**
+   * Returns the number of tasks that can be queried from the database at once
+   * In the case of more tasks, multiple queries are issued
+   *
+   * @return
+   */
+  public int getTaskIdListLimit() {
+    return Integer.parseInt(getProperty(TASK_ID_LIST_LIMIT));
+  }
+
+  /**
    * Get whether the current ambari server instance the active instance
    *
    * @return true / false
@@ -5638,14 +5578,6 @@ public class Configuration {
     return Boolean.parseBoolean(getProperty(SECURITY_PASSWORD_ENCRYPTON_ENABLED));
   }
 
-  public boolean isSensitiveDataEncryptionEnabled() {
-    return Boolean.parseBoolean(getProperty(SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED));
-  }
-
-  public boolean shouldEncryptSensitiveData() {
-    return isSecurityPasswordEncryptionEnabled() && isSensitiveDataEncryptionEnabled();
-  }
-
   /**
    * @return default value of number of tasks to run in parallel during upgrades
    */
@@ -5659,22 +5591,8 @@ public class Configuration {
    *
    * @return the threadpool size, defaulting to 1
    */
-  public int getKerberosServerActionThreadPoolSize() {
+  public int getKerberosServerActionThreadpoolSize() {
     return Integer.parseInt(getProperty(KERBEROS_SERVER_ACTION_THREADPOOL_SIZE));
-  }
-
-  /**
-   * Determines the amount of threads dedicated for {@link org.apache.ambari.server.events.publishers.AgentCommandsPublisher}
-   */
-  public int getAgentCommandPublisherThreadPoolSize() {
-    return Integer.parseInt(getProperty(AGENT_COMMAND_PUBLISHER_THREADPOOL_SIZE));
-  }
-
-  /**
-   * Determines the amount of threads used by default ForJoin Pool
-   */
-  public int getDefaultForkJoinPoolSize(){
-    return Integer.parseInt(getProperty(DEFAULT_FORK_JOIN_THREADPOOL_SIZE));
   }
 
   /**
@@ -5685,15 +5603,6 @@ public class Configuration {
    */
   public int getKerberosServerActionFinalizeTimeout() {
     return Integer.parseInt(getProperty(KERBEROS_SERVER_ACTION_FINALIZE_SECONDS));
-  }
-
-  /**
-   * @return The class of the host group strategy for add service requests.
-   * @throws ClassNotFoundException if the specified class is not found
-   * @throws ClassCastException if the specified class is not a subclass of {@link HostGroupStrategy}
-   */
-  public Class<? extends HostGroupStrategy> getAddServiceHostGroupStrategyClass() throws ClassNotFoundException {
-    return Class.forName(getProperty(ADD_SERVICE_HOST_GROUP_STRATEGY)).asSubclass(HostGroupStrategy.class);
   }
 
   /**
@@ -5954,7 +5863,7 @@ public class Configuration {
     JETTY_THREAD_POOL("Jetty API & Agent Thread Pools");
 
     /**
-     * A description of the grouping.
+     * A decription of the grouping.
      */
     private String m_description;
 
@@ -6160,11 +6069,11 @@ public class Configuration {
   }
 
   public int getKerberosOperationRetries() {
-    return Integer.parseInt(getProperty(KERBEROS_OPERATION_RETRIES));
+    return Integer.valueOf(getProperty(KERBEROS_OPERATION_RETRIES));
   }
 
   public int getKerberosOperationRetryTimeout() {
-    return Integer.parseInt(getProperty(KERBEROS_OPERATION_RETRY_TIMEOUT));
+    return Integer.valueOf(getProperty(KERBEROS_OPERATION_RETRY_TIMEOUT));
   }
 
   public boolean validateKerberosOperationSSLCertTrust() {
@@ -6205,21 +6114,5 @@ public class Configuration {
 
   public int getAlertServiceCorePoolSize() {
     return Integer.parseInt(getProperty(SERVER_SIDE_ALERTS_CORE_POOL_SIZE));
-  }
-
-  /**
-   * Determines whether error stacks appear on the error page
-   *
-   * @return true if error stacks appear on the error page (defaults to {@code false})
-   */
-  public boolean isServerShowErrorStacks() {
-    return Boolean.parseBoolean(getProperty(SERVER_SHOW_ERROR_STACKS));
-  }
-
-  /**
-   * @return {@code true} if local files can be specified in the API to consume VDF
-   */
-  public boolean areFileVDFAllowed() {
-    return Boolean.parseBoolean(getProperty(VDF_FROM_FILESYSTEM));
   }
 }

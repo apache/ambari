@@ -29,23 +29,24 @@ describe('App.MainAdminServiceAutoStartController', function() {
   });
 
   describe('#parseComponentConfigs', function() {
-    var components = [
-      {
-        service_name: 'S1',
-        component_name: 'C1',
-        recovery_enabled: 'true',
-        category: 'SLAVE',
-        total_count: 1
-      },
-      {
-        service_name: 'S1',
-        component_name: 'C2',
-        recovery_enabled: 'false',
-        total_count: 2,
-        category: 'SLAVE',
-      }
-    ];
-    it('should return parsed components, filter out not installed components', function() {
+
+    it('should return parsed components', function() {
+      var components = [
+        {
+          ServiceComponentInfo: {
+            service_name: 'S1',
+            component_name: 'C1',
+            recovery_enabled: 'true'
+          }
+        },
+        {
+          ServiceComponentInfo: {
+            service_name: 'S1',
+            component_name: 'C2',
+            recovery_enabled: 'false'
+          }
+        }
+      ];
       expect(controller.parseComponentConfigs(components)).to.be.eql([
         Em.Object.create({
           "componentName": "C1",
@@ -129,24 +130,18 @@ describe('App.MainAdminServiceAutoStartController', function() {
 
     beforeEach(function() {
       sinon.stub(controller, 'parseComponentConfigs').returns({});
-      sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create({
-        isRestartable: true
-      }));
-      controller.loadComponentsConfigsSuccess({items: [
-          {ServiceComponentInfo:{total_count: 0}},
-          {ServiceComponentInfo:{total_count: 1}}
-        ]});
     });
     afterEach(function() {
       controller.parseComponentConfigs.restore();
-      App.StackServiceComponent.find.restore();
     });
 
     it('componentsConfigsCached should be set', function() {
-      expect(controller.get('componentsConfigsCached')).to.be.eql([{total_count: 1}]);
+      controller.loadComponentsConfigsSuccess({items: [{prop1: 'val1'}]});
+      expect(controller.get('componentsConfigsCached')).to.be.eql([{prop1: 'val1'}]);
     });
 
     it('componentsConfigsGrouped should be set', function() {
+      controller.loadComponentsConfigsSuccess({items: {prop1: 'val1'}});
       expect(controller.get('componentsConfigsGrouped')).to.be.eql({});
     });
   });
@@ -197,8 +192,10 @@ describe('App.MainAdminServiceAutoStartController', function() {
       controller.set('isGeneralRecoveryEnabled', true);
       controller.set('componentsConfigsCached', [
         {
-          component_name: 'C1',
-          recovery_enabled: 'false'
+          ServiceComponentInfo: {
+            component_name: 'C1',
+            recovery_enabled: 'false'
+          }
         }
       ]);
       controller.set('componentsConfigsGrouped', [
@@ -208,7 +205,7 @@ describe('App.MainAdminServiceAutoStartController', function() {
         })
       ]);
       controller.syncStatus();
-      expect(controller.get('componentsConfigsCached')[0].recovery_enabled).to.be.equal('true');
+      expect(controller.get('componentsConfigsCached')[0].ServiceComponentInfo.recovery_enabled).to.be.equal('true');
       expect(controller.get('isGeneralRecoveryEnabledCached')).to.be.true;
     });
   });

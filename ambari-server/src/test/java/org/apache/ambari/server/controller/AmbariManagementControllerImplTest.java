@@ -76,7 +76,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
@@ -95,8 +94,6 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.Module;
-import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
@@ -124,6 +121,7 @@ import com.google.gson.Gson;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.util.Modules;
 
@@ -545,53 +543,6 @@ public class AmbariManagementControllerImplTest {
   }
 
   /**
-   * Ensure that validateClusterName(String clusterName) work as expected.
-   * Character Requirements
-   * <p>
-   * A through Z
-   * a through z
-   * 0 through 9
-   * _ (underscore)
-   * - (dash)
-   * Length Requirements
-   * <p>
-   * Minimum: 1 character
-   * Maximum: 100 characters
-   */
-  @Test
-  public void testValidateClusterName() throws Exception {
-    AmbariManagementControllerImpl.validateClusterName("clustername");
-    AmbariManagementControllerImpl.validateClusterName("CLUSTERNAME");
-    AmbariManagementControllerImpl.validateClusterName("clustername123");
-    AmbariManagementControllerImpl.validateClusterName("cluster-name");
-    AmbariManagementControllerImpl.validateClusterName("cluster_name");
-    try {
-      AmbariManagementControllerImpl.validateClusterName(null);
-      Assert.fail("IllegalArgumentException not thrown");
-    } catch (IllegalArgumentException e) {
-      // This is expected
-    }
-    try {
-      AmbariManagementControllerImpl.validateClusterName("clusternameclusternameclusternameclusternameclusternameclusternameclusternameclusternameclusternameclustername");
-      Assert.fail("IllegalArgumentException not thrown");
-    } catch (IllegalArgumentException e) {
-      // This is expected
-    }
-    try {
-      AmbariManagementControllerImpl.validateClusterName("clustername@#$%");
-      Assert.fail("IllegalArgumentException not thrown");
-    } catch (IllegalArgumentException e) {
-      // This is expected
-    }
-    try {
-      AmbariManagementControllerImpl.validateClusterName("");
-      Assert.fail("IllegalArgumentException not thrown");
-    } catch (IllegalArgumentException e) {
-      // This is expected
-    }
-  }
-
-  /**
    * Ensure that when the cluster id is provided and the given cluster name is different from the cluster's name
    * then the cluster rename logic is executed.
    */
@@ -629,7 +580,7 @@ public class AmbariManagementControllerImplTest {
     agentConfigsHolder.updateData(anyLong(), anyObject(List.class));
     expectLastCall().anyTimes();
 
-    expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(5);
+    expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(3);
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusterRequest.getDesiredConfig()).andReturn(configRequests);
     expect(configurationRequest.getVersionTag()).andReturn(null).times(1);
@@ -755,6 +706,7 @@ public class AmbariManagementControllerImplTest {
 
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
+    expect(cluster.getClusterName()).andReturn("cluster").times(1);
 
     // replay mocks
     replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
@@ -810,6 +762,7 @@ public class AmbariManagementControllerImplTest {
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusterRequest.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
+    expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.KERBEROS, null))
@@ -872,6 +825,7 @@ public class AmbariManagementControllerImplTest {
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusterRequest.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
+    expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.KERBEROS, null))
@@ -968,6 +922,7 @@ public class AmbariManagementControllerImplTest {
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusterRequest.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
+    expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.NONE, null))
@@ -1031,11 +986,15 @@ public class AmbariManagementControllerImplTest {
     expect(clusterRequest.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
     expect(cluster.getResourceId()).andReturn(1L).times(3);
+    expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(null).anyTimes();
     expect(cluster.getDesiredStackVersion()).andReturn(null).anyTimes();
 
     cluster.setCurrentStackVersion(anyObject(StackId.class));
+    expectLastCall().once();
+
+    cluster.setClusterName(anyObject(String.class));
     expectLastCall().once();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.NONE, null))
@@ -1093,7 +1052,7 @@ public class AmbariManagementControllerImplTest {
     // expectations
     constructorInit(injector, controllerCapture, createNiceMock(KerberosHelper.class));
 
-    expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(5);
+    expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(3);
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
     expect(cluster.getClusterName()).andReturn("clusterOld").times(1);
@@ -2228,27 +2187,7 @@ public class AmbariManagementControllerImplTest {
   }
 
   @Test
-  public void testSynchronizeLdapUsersAndGroupsHookDisabled() throws Exception {
-    testSynchronizeLdapUsersAndGroups(false, false);
-  }
-
-  @Test
-  public void testSynchronizeLdapUsersAndGroupsHookEnabled() throws Exception {
-    testSynchronizeLdapUsersAndGroups(false, true);
-  }
-
-  @Test
-  public void testSynchronizeLdapUsersAndGroupsPostProcessExistingUsersHookDisabled() throws Exception {
-    testSynchronizeLdapUsersAndGroups(true, false);
-  }
-
-  @Test
-  public void testSynchronizeLdapUsersAndGroupsPostProcessExistingUsersHookEnabled() throws Exception {
-    testSynchronizeLdapUsersAndGroups(true, true);
-  }
-
-  private void testSynchronizeLdapUsersAndGroups(boolean postProcessExistingUsers, boolean postUserCreationHookEnabled) throws Exception {
-    boolean collectIgnoredUsers = postProcessExistingUsers && postUserCreationHookEnabled;
+  public void testSynchronizeLdapUsersAndGroups() throws Exception {
 
     Set<String> userSet = new HashSet<>();
     userSet.add("user1");
@@ -2266,14 +2205,14 @@ public class AmbariManagementControllerImplTest {
     Capture<LdapBatchDto> ldapBatchDtoCapture = EasyMock.newCapture();
 
     // set expectations
-    expect(ldapDataPopulator.synchronizeAllLdapUsers(capture(ldapBatchDtoCapture), eq(collectIgnoredUsers))).andReturn(ldapBatchDto);
-    expect(ldapDataPopulator.synchronizeAllLdapGroups(capture(ldapBatchDtoCapture), eq(collectIgnoredUsers))).andReturn(ldapBatchDto);
+    expect(ldapDataPopulator.synchronizeAllLdapUsers(capture(ldapBatchDtoCapture))).andReturn(ldapBatchDto);
+    expect(ldapDataPopulator.synchronizeAllLdapGroups(capture(ldapBatchDtoCapture))).andReturn(ldapBatchDto);
 
-    expect(ldapDataPopulator.synchronizeExistingLdapUsers(capture(ldapBatchDtoCapture), eq(collectIgnoredUsers))).andReturn(ldapBatchDto);
-    expect(ldapDataPopulator.synchronizeExistingLdapGroups(capture(ldapBatchDtoCapture), eq(collectIgnoredUsers))).andReturn(ldapBatchDto);
+    expect(ldapDataPopulator.synchronizeExistingLdapUsers(capture(ldapBatchDtoCapture))).andReturn(ldapBatchDto);
+    expect(ldapDataPopulator.synchronizeExistingLdapGroups(capture(ldapBatchDtoCapture))).andReturn(ldapBatchDto);
 
-    expect(ldapDataPopulator.synchronizeLdapUsers(eq(userSet), capture(ldapBatchDtoCapture), eq(collectIgnoredUsers))).andReturn(ldapBatchDto);
-    expect(ldapDataPopulator.synchronizeLdapGroups(eq(groupSet), capture(ldapBatchDtoCapture), eq(collectIgnoredUsers))).andReturn(ldapBatchDto);
+    expect(ldapDataPopulator.synchronizeLdapUsers(eq(userSet), capture(ldapBatchDtoCapture))).andReturn(ldapBatchDto);
+    expect(ldapDataPopulator.synchronizeLdapGroups(eq(groupSet), capture(ldapBatchDtoCapture))).andReturn(ldapBatchDto);
 
     users.processLdapSync(capture(ldapBatchDtoCapture));
     expectLastCall().anyTimes();
@@ -2281,23 +2220,20 @@ public class AmbariManagementControllerImplTest {
     //replay
     replay(ldapDataPopulator, clusters, actionDBAccessor, ambariMetaInfo, users, ldapBatchDto);
 
-    Configuration configs = injector.getInstance(Configuration.class);
-    configs.setProperty(Configuration.POST_USER_CREATION_HOOK_ENABLED.getKey(), String.valueOf(postUserCreationHookEnabled));
-
     AmbariManagementControllerImpl controller = injector.getInstance(AmbariManagementControllerImpl.class);
 
-    LdapSyncRequest userRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL, postProcessExistingUsers);
-    LdapSyncRequest groupRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL, postProcessExistingUsers);
+    LdapSyncRequest userRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL);
+    LdapSyncRequest groupRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL);
 
     controller.synchronizeLdapUsersAndGroups(userRequest, groupRequest);
 
-    userRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING, postProcessExistingUsers);
-    groupRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING, postProcessExistingUsers);
+    userRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING);
+    groupRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING);
 
     controller.synchronizeLdapUsersAndGroups(userRequest, groupRequest);
 
-    userRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, userSet, postProcessExistingUsers);
-    groupRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, groupSet, postProcessExistingUsers);
+    userRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, userSet);
+    groupRequest = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, groupSet);
 
     controller.synchronizeLdapUsersAndGroups(userRequest, groupRequest);
 
@@ -2312,14 +2248,13 @@ public class AmbariManagementControllerImplTest {
     f.set(controller, metaInfo);
   }
 
-  private class MockModule implements com.google.inject.Module {
+  private class MockModule implements Module {
 
     @Override
     public void configure(Binder binder) {
       binder.bind(AmbariLdapDataPopulator.class).toInstance(ldapDataPopulator);
       binder.bind(Clusters.class).toInstance(clusters);
       binder.bind(ActionDBAccessorImpl.class).toInstance(actionDBAccessor);
-      binder.bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
       binder.bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
       binder.bind(Users.class).toInstance(users);
       binder.bind(AmbariSessionManager.class).toInstance(sessionManager);
@@ -2490,52 +2425,6 @@ public class AmbariManagementControllerImplTest {
     verify(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion);
   }
 
-  @Test
-  public void testRegisterMpacks() throws Exception{
-    MpackRequest mpackRequest = createNiceMock(MpackRequest.class);
-    RequestStatusResponse response = new RequestStatusResponse(new Long(201));
-    Mpack mpack = new Mpack();
-    mpack.setResourceId((long)100);
-    mpack.setModules(new ArrayList<Module>());
-    mpack.setPrerequisites(new HashMap<String, String>());
-    mpack.setRegistryId(new Long(100));
-    mpack.setVersion("3.0");
-    mpack.setMpackUri("abc.tar.gz");
-    mpack.setDescription("Test mpack");
-    mpack.setName("testMpack");
-    MpackResponse mpackResponse = new MpackResponse(mpack);
-    Injector injector = createNiceMock(Injector.class);
-    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
-    expect(ambariMetaInfo.registerMpack(mpackRequest)).andReturn(mpackResponse);
-    ambariMetaInfo.init();
-    expectLastCall();
-    replay(ambariMetaInfo,injector);
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    setAmbariMetaInfo(ambariMetaInfo, controller);
-    Assert.assertEquals(mpackResponse,controller.registerMpack(mpackRequest));
-  }
-
-  @Test
-  public void testGetPacklets() throws Exception {
-    Long mpackId = new Long(100);
-    ArrayList<Module> packletArrayList = new ArrayList<>();
-    Module samplePacklet = new Module();
-    Injector injector = createNiceMock(Injector.class);
-    //samplePacklet.setType(Packlet.PackletType.SERVICE_PACKLET);
-    samplePacklet.setVersion("3.0.0");
-    samplePacklet.setName("NIFI");
-    samplePacklet.setDefinition("nifi.tar.gz");
-    packletArrayList.add(samplePacklet);
-    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
-    expect(ambariMetaInfo.getModules(mpackId)).andReturn(packletArrayList).atLeastOnce();
-    replay(ambariMetaInfo,injector);
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    setAmbariMetaInfo(ambariMetaInfo, controller);
-
-    Assert.assertEquals(packletArrayList,controller.getModules(mpackId));
-
-  }
-
   public static void constructorInit(Injector injector, Capture<AmbariManagementController> controllerCapture, Gson gson,
                                MaintenanceStateHelper maintenanceStateHelper, KerberosHelper kerberosHelper,
                                Provider<MetadataHolder> m_metadataHolder, Provider<AgentConfigsHolder> m_agentConfigsHolder) {
@@ -2544,7 +2433,6 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintenanceStateHelper);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
   }
-
 
   public static void constructorInit(Injector injector, Capture<AmbariManagementController> controllerCapture,
                                KerberosHelper kerberosHelper) {

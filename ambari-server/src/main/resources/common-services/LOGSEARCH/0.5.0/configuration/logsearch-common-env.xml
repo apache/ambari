@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<!-- This is a special config file for properties used to monitor status of the service -->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>logsearch_use_external_solr</name>
+    <value>false</value>
+    <display-name>Use External Solr</display-name>
+    <description>Use External Solr to store logs</description>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_external_solr_zk_znode</name>
+    <value></value>
+    <display-name>External Solr Logs Znode</display-name>
+    <description>Only needed if using custom solr cloud. E.g. /logsearch_solr</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_external_solr_zk_quorum</name>
+    <value></value>
+    <display-name>External Solr Logs ZK Quorum</display-name>
+    <description>Only needed if using custom solr cloud. E.g. zk1:2181,zk2:2182</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_external_solr_ssl_enabled</name>
+    <value>false</value>
+    <display-name>Log Search External Solr SSL Enabled</display-name>
+    <description>Use SSL to connect to the external solr</description>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_external_solr_kerberos_enabled</name>
+    <value>false</value>
+    <display-name>Log Search External Solr Kerberos Enabled</display-name>
+    <description>Use Kerberos to connect to the external solr</description>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>logsearch_zookeeper_external_principal</name>
+    <value>zookeeper/_HOST@EXAMPLE.COM</value>
+    <display-name>External ZK principal</display-name>
+    <description>The kerberos service principal name for external ZooKeeper.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>logsearch_zookeeper_external_enabled</name>
+    <value>false</value>
+    <display-name>Enable External ZK</display-name>
+    <description>Enable external ZooKeeper. If the Solr is secure, the external ZK should be secure as well.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+</configuration>

@@ -18,7 +18,6 @@
 package org.apache.ambari.server.orm.entities;
 
 import java.util.List;
-import java.util.Objects;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -257,12 +256,15 @@ public class WidgetEntity {
 
     WidgetEntity that = (WidgetEntity) o;
 
-    return Objects.equals(id, that.id);
+    if (id != that.id) return false;
+
+    return true;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(id);
+    int result = null != id ? id.hashCode() : 0;
+    return result;
   }
 
 }

@@ -163,13 +163,13 @@ public class HostKerberosIdentityResourceProvider extends ReadOnlyResourceProvid
 
         Clusters clusters = getManagementController().getClusters();        
         Cluster cluster = clusters.getCluster(clusterName);
-
+            
         KerberosDescriptor kerberosDescriptor = kerberosHelper.getKerberosDescriptor(cluster, false);
-
+        
         // Retrieve the active identities for the cluster filtered and grouped by hostname
         Map<String, Collection<KerberosIdentityDescriptor>> hostDescriptors =
             kerberosHelper.getActiveIdentities(clusterName, hostName, null, null, true, null, 
-                kerberosDescriptor, null);
+                kerberosDescriptor);
 
         if (hostDescriptors != null) {
           for (Map.Entry<String, Collection<KerberosIdentityDescriptor>> entry : hostDescriptors.entrySet()) {

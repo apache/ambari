@@ -25,20 +25,16 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
-import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
-import org.apache.ambari.spi.upgrade.UpgradeCheckType;
-import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 
 /**
@@ -48,27 +44,18 @@ import com.google.inject.Singleton;
  * That is a potential problem when doing stack update.
  */
 @Singleton
-@UpgradeCheckInfo(
+@UpgradeCheck(
     order = 98.0f,
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
-public class HardcodedStackVersionPropertiesCheck extends ClusterCheck {
-
-  static final UpgradeCheckDescription HARDCODED_STACK_VERSION_PROPERTIES_CHECK = new UpgradeCheckDescription("HARDCODED_STACK_VERSION_PROPERTIES_CHECK",
-      UpgradeCheckType.CLUSTER,
-      "Found hardcoded stack version in property value.",
-      new ImmutableMap.Builder<String, String>()
-        .put(UpgradeCheckDescription.DEFAULT,
-            "Some properties seem to contain hardcoded stack version string \"%s\"." +
-            " That is a potential problem when doing stack update.").build());
+public class HardcodedStackVersionPropertiesCheck extends AbstractCheckDescriptor {
 
   public HardcodedStackVersionPropertiesCheck() {
-    super(HARDCODED_STACK_VERSION_PROPERTIES_CHECK);
+    super(CheckDescription.HARDCODED_STACK_VERSION_PROPERTIES_CHECK);
   }
 
   @Override
-  public UpgradeCheckResult perform(UpgradeCheckRequest request)
+  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
       throws AmbariException {
-    UpgradeCheckResult result = new UpgradeCheckResult(this);
 
     Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
 
@@ -99,17 +86,16 @@ public class HardcodedStackVersionPropertiesCheck extends ClusterCheck {
     }
 
     if (failures.size() > 0) {
-      result.setStatus(UpgradeCheckStatus.WARNING);
-      String failReason = getFailReason(result, request);
+      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
+      String failReason = getFailReason(prerequisiteCheck, request);
 
-      result.setFailReason(String.format(failReason, StringUtils.join(failedVersions, ',')));
-      result.setFailedOn(new LinkedHashSet<>(failures));
+      prerequisiteCheck.setFailReason(String.format(failReason, StringUtils.join(failedVersions, ',')));
+      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(failures));
 
     } else {
-      result.setStatus(UpgradeCheckStatus.PASS);
+      prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
     }
 
-    return result;
   }
 
   /**

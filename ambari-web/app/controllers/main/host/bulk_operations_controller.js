@@ -68,7 +68,7 @@ App.BulkOperationsController = Em.Controller.extend({
           this._bulkOperationForHostsDelete(hosts);
         }
         else if (operationData.action === 'CONFIGURE') {
-            this.bulkOperationForHostsRefreshConfig(operationData, hosts);
+          this.bulkOperationForHostsRefreshConfig(operationData, hosts);
         }
         else {
           if (operationData.action === 'PASSIVE_STATE') {

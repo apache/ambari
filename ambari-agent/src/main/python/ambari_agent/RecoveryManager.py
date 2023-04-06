@@ -103,15 +103,6 @@ class RecoveryManager:
     self.actions = {}
     self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, auto_install_start)
 
-    # FIXME: Recovery manager does not support multiple clusters as of now.
-    if len(self.initializer_module.configurations_cache):
-      self.cluster_id = self.initializer_module.configurations_cache.keys()[0]
-      self.on_config_update()
-
-    if len(self.initializer_module.host_level_params_cache):
-      self.cluster_id = self.initializer_module.host_level_params_cache.keys()[0]
-      self.update_recovery_config(self.host_level_params_cache[self.cluster_id])
-
   def on_execution_command_start(self):
     with self.__active_command_lock:
       self.active_command_count += 1
@@ -174,6 +165,7 @@ class RecoveryManager:
           component_status = copy.deepcopy(self.default_component_status)
           component_status["current"] = state
           self.statuses[component] = component_status
+          logger.info("New status, current status is set to %s for %s", self.statuses[component]["current"], component)
       finally:
         self.__status_lock.release()
       pass
@@ -255,7 +247,7 @@ class RecoveryManager:
       report["componentReports"] = recovery_states
       self.__status_lock.acquire()
       try:
-        for component in self.actions.keys():
+        for component in list(self.actions.keys()):
           action = self.actions[component]
           recovery_state = {
             "name": component,
@@ -284,7 +276,7 @@ class RecoveryManager:
     INSTALLED_FAILED --> STARTED
     """
     commands = []
-    for component in self.statuses.keys():
+    for component in list(self.statuses.keys()):
       if self.configured_for_recovery(component) and self.requires_recovery(component) and self.may_execute(component):
         status = copy.deepcopy(self.statuses[component])
         command = None

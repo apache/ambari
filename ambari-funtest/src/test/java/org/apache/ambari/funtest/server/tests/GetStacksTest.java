@@ -18,32 +18,31 @@
 
 package org.apache.ambari.funtest.server.tests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
-import java.io.IOException;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
+
 import java.io.StringReader;
+import java.io.IOException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.stream.JsonReader;
+import org.apache.http.HttpStatus;
 
 /**
  * Simple test to get the list of stacks. Does not touch the DB.
  */
-@Ignore
 public class GetStacksTest extends ServerTestBase {
   /**
    * Waits for the ambari server to startup and then checks it's

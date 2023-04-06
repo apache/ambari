@@ -25,8 +25,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.models.HostComponentSummary;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -36,16 +36,11 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
-import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
-import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
-import org.apache.ambari.spi.upgrade.UpgradeCheckType;
-import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 
 /**
@@ -69,42 +64,34 @@ import com.google.inject.Singleton;
  * want hosts to be scehdule for upgrade of their other components.
  */
 @Singleton
-@UpgradeCheckInfo(
+@UpgradeCheck(
     group = UpgradeCheckGroup.LIVELINESS,
     order = 2.0f,
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
-public class ServicesUpCheck extends ClusterCheck {
+public class ServicesUpCheck extends AbstractCheckDescriptor {
 
   private static final float SLAVE_THRESHOLD = 0.5f;
-
-  static final UpgradeCheckDescription SERVICES_UP = new UpgradeCheckDescription("SERVICES_UP",
-      UpgradeCheckType.SERVICE,
-      "All services must be started",
-      new ImmutableMap.Builder<String, String>()
-        .put(UpgradeCheckDescription.DEFAULT,
-            "The following Services must be started: {{fails}}. Try to do a Stop & Start in case they were started outside of Ambari.").build());
 
   /**
    * Constructor.
    */
   public ServicesUpCheck() {
-    super(SERVICES_UP);
+    super(CheckDescription.SERVICES_UP);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public UpgradeCheckResult perform(UpgradeCheckRequest request)
+  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
       throws AmbariException {
-    UpgradeCheckResult result = new UpgradeCheckResult(this);
 
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     List<String> errorMessages = new ArrayList<>();
     LinkedHashSet<ServiceDetail> failedServices = new LinkedHashSet<>();
 
-    Set<String> servicesInUpgrade = checkHelperProvider.get().getServicesInUpgrade(request);
+    Set<String> servicesInUpgrade = getServicesInUpgrade(request);
     for (String serviceName : servicesInUpgrade) {
       final Service service = cluster.getService(serviceName);
 
@@ -197,18 +184,16 @@ public class ServicesUpCheck extends ClusterCheck {
     }
 
     if (!errorMessages.isEmpty()) {
-      result.setFailedOn(
+      prerequisiteCheck.setFailedOn(
           failedServices.stream().map(failedService -> failedService.serviceName).collect(
               Collectors.toCollection(LinkedHashSet::new)));
 
-      result.getFailedDetail().addAll(failedServices);
-      result.setStatus(UpgradeCheckStatus.FAIL);
-      result.setFailReason(
+      prerequisiteCheck.getFailedDetail().addAll(failedServices);
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      prerequisiteCheck.setFailReason(
           "The following Service Components should be in a started state.  Please invoke a service Stop and full Start and try again. "
               + StringUtils.join(errorMessages, ", "));
     }
-
-    return result;
   }
 
   /**

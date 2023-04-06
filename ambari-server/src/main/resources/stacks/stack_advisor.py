@@ -29,7 +29,7 @@ import json
 import sys
 import logging
 from math import ceil, floor
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 # Local imports
 from ambari_configuration import AmbariConfiguration
@@ -286,64 +286,6 @@ class StackAdvisor(object):
   def recommendConfigurationsForSSO(self, services, hosts):
     """
     Returns recommendation of SSO-related service configurations based on host-specific layout of components.
-
-    This function takes as input all details about services being installed, and hosts
-    they are being installed into, to recommend host-specific configurations.
-
-    @type services: dictionary
-    @param services: Dictionary containing all information about services and component layout selected by the user.
-    @type hosts: dictionary
-    @param hosts: Dictionary containing all information about hosts in this cluster
-    @rtype: dictionary
-    @return: Layout recommendation of service components on cluster hosts in Ambari Blueprints friendly format.
-        Example: {
-         "services": [
-          "HIVE",
-          "TEZ",
-          "YARN"
-         ],
-         "recommendations": {
-          "blueprint": {
-           "host_groups": [],
-           "configurations": {
-            "yarn-site": {
-             "properties": {
-              "yarn.scheduler.minimum-allocation-mb": "682",
-              "yarn.scheduler.maximum-allocation-mb": "2048",
-              "yarn.nodemanager.resource.memory-mb": "2048"
-             }
-            },
-            "tez-site": {
-             "properties": {
-              "tez.am.java.opts": "-server -Xmx546m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC",
-              "tez.am.resource.memory.mb": "682"
-             }
-            },
-            "hive-site": {
-             "properties": {
-              "hive.tez.container.size": "682",
-              "hive.tez.java.opts": "-server -Xmx546m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC",
-              "hive.auto.convert.join.noconditionaltask.size": "238026752"
-             }
-            }
-           }
-          },
-          "blueprint_cluster_binding": {
-           "host_groups": []
-          }
-         },
-         "hosts": [
-          "c6401.ambari.apache.org",
-          "c6402.ambari.apache.org",
-          "c6403.ambari.apache.org"
-         ]
-        }
-    """
-    pass
-
-  def recommendConfigurationsForLDAP(self, services, hosts):
-    """
-    Returns recommendation of LDAP related service configurations based on host-specific layout of components.
 
     This function takes as input all details about services being installed, and hosts
     they are being installed into, to recommend host-specific configurations.
@@ -867,7 +809,7 @@ class DefaultStackAdvisor(StackAdvisor):
         if hasattr(advisor, "heap_size_properties"):
           # Override the values in "default" with those from the service advisor
           default.update(advisor.heap_size_properties)
-    except Exception, e:
+    except Exception as e:
       self.logger.exception()
     return default
 
@@ -952,11 +894,11 @@ class DefaultStackAdvisor(StackAdvisor):
     host_groups = recommendations["blueprint"]["host_groups"]
     bindings = recommendations["blueprint_cluster_binding"]["host_groups"]
     index = 0
-    for key in hostsComponentsMap.keys():
+    for key in list(hostsComponentsMap.keys()):
       index += 1
       host_group_name = "host-group-{0}".format(index)
-      host_groups.append( { "name": host_group_name, "components": hostsComponentsMap[key] } )
-      bindings.append( { "name": host_group_name, "hosts": [{ "fqdn": key }] } )
+      host_groups.insert(0, { "name": host_group_name, "components": hostsComponentsMap[key] } )
+      bindings.insert(0, {"name": host_group_name, "hosts": [{"fqdn": key}]})
 
     return recommendations
 
@@ -1071,7 +1013,7 @@ class DefaultStackAdvisor(StackAdvisor):
         if (requiredComponent is not None) and (requiredComponent["component_category"] != "CLIENT"):
           scope = "cluster" if "scope" not in dependency["Dependencies"] else dependency["Dependencies"]["scope"]
           if scope == "host":
-            for host, hostComponents in hostsComponentsMap.iteritems():
+            for host, hostComponents in hostsComponentsMap.items():
               isRequiredIncluded = False
               for hostComponent in hostComponents:
                 currentComponentName = None if "name" not in hostComponent else hostComponent["name"]
@@ -1172,36 +1114,30 @@ class DefaultStackAdvisor(StackAdvisor):
             # account for only dependencies that are not conditional
             conditionsPresent =  "conditions" in dependency["Dependencies"] and dependency["Dependencies"]["conditions"]
             if not conditionsPresent:
-              dependentComponent = self.getRequiredComponent(services, dependency["Dependencies"]["component_name"])
+              requiredComponent = self.getRequiredComponent(services, dependency["Dependencies"]["component_name"])
               componentDisplayName = component["StackServiceComponents"]["display_name"]
-              dependentComponentDisplayName = dependentComponent["display_name"] \
-                                             if dependentComponent is not None else dependency["Dependencies"]["component_name"]
-              dependentComponentHosts = dependentComponent["hostnames"] if dependentComponent is not None else []
+              requiredComponentDisplayName = requiredComponent["display_name"] \
+                                             if requiredComponent is not None else dependency["Dependencies"]["component_name"]
+              requiredComponentHosts = requiredComponent["hostnames"] if requiredComponent is not None else []
 
               # Client dependencies are not included in validation
               # Client dependencies are auto-deployed in both UI deployements and blueprint deployments
-              if (dependentComponent is None) or \
-                (dependentComponent["component_category"] != "CLIENT"):
+              if (requiredComponent is None) or \
+                (requiredComponent["component_category"] != "CLIENT"):
                 scope = "cluster" if "scope" not in dependency["Dependencies"] else dependency["Dependencies"]["scope"]
-                type = "inclusive" if "type" not in dependency["Dependencies"] else dependency["Dependencies"]["type"]
                 if scope == "host":
                   componentHosts = component["StackServiceComponents"]["hostnames"]
-                  hostsWithIssues = []
-                  notMessagePart = ""
-                  if type == "exclusive":
-                    hostsWithIssues = list(set(componentHosts) & set(dependentComponentHosts))
-                    notMessagePart = "not"
-                  else:
-                    for componentHost in componentHosts:
-                      if componentHost not in dependentComponentHosts:
-                        hostsWithIssues.append(componentHost)
-                  if hostsWithIssues:
-                    message = "{0} requires {1} {2} to be co-hosted on following host(s): {3}.".format(componentDisplayName,
-                               dependentComponentDisplayName, notMessagePart, ', '.join(hostsWithIssues))
+                  requiredComponentHostsAbsent = []
+                  for componentHost in componentHosts:
+                    if componentHost not in requiredComponentHosts:
+                      requiredComponentHostsAbsent.append(componentHost)
+                  if requiredComponentHostsAbsent:
+                    message = "{0} requires {1} to be co-hosted on following host(s): {2}.".format(componentDisplayName,
+                               requiredComponentDisplayName, ', '.join(requiredComponentHostsAbsent))
                     items.append({ "type": 'host-component', "level": 'ERROR', "message": message,
                                    "component-name": component["StackServiceComponents"]["component_name"]})
-                elif scope == "cluster" and not dependentComponentHosts:
-                  message = "{0} requires {1} to be present in the cluster.".format(componentDisplayName, dependentComponentDisplayName)
+                elif scope == "cluster" and not requiredComponentHosts:
+                  message = "{0} requires {1} to be present in the cluster.".format(componentDisplayName, requiredComponentDisplayName)
                   items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": component["StackServiceComponents"]["component_name"]})
     return items
 
@@ -1240,12 +1176,12 @@ class DefaultStackAdvisor(StackAdvisor):
     nodeManagerHost = self.getHostWithComponent("YARN", "NODEMANAGER", services, hosts)
     if (nodeManagerHost is not None):
       if "yarn-site" in services["configurations"] and "yarn.nodemanager.resource.percentage-physical-cpu-limit" in services["configurations"]["yarn-site"]["properties"]:
-        putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'maximum', services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
-        putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'maximum', services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
+        putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
+        putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
 
 
 
-  def getConfigurationClusterSummary(self, servicesList, hosts, components, services, cpu_only_mode = False):
+  def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
     """
     Copied from HDP 2.0.6 so that it could be used by Service Advisors.
     :return: Dictionary of memory and CPU attributes in the cluster
@@ -1368,25 +1304,24 @@ class DefaultStackAdvisor(StackAdvisor):
 
 
     '''containers = max(3, min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE))))'''
-    core_multiplier = 2 if not cpu_only_mode else 1
     cluster["containers"] = int(round(max(3,
-                                          min(core_multiplier * cluster["cpu"],
+                                          min(2 * cluster["cpu"],
                                               min(ceil(1.8 * cluster["disk"]),
-                                                  cluster["totalAvailableRam"] / cluster["minContainerSize"])))))
+                                                  cluster["totalAvailableRam"] // cluster["minContainerSize"])))))
     self.logger.info("Containers per node - cluster[containers]: " + str(cluster["containers"]))
 
     if cluster["containers"] * cluster["minContainerSize"] > cluster["totalAvailableRam"]:
-      cluster["containers"] = int(ceil(cluster["totalAvailableRam"] / cluster["minContainerSize"]))
+      cluster["containers"] = int(ceil(cluster["totalAvailableRam"] // cluster["minContainerSize"]))
       self.logger.info("Modified number of containers based on provided value for yarn.scheduler.minimum-allocation-mb")
       pass
 
-    cluster["ramPerContainer"] = int(abs(cluster["totalAvailableRam"] / cluster["containers"]))
+    cluster["ramPerContainer"] = int(abs(cluster["totalAvailableRam"] // cluster["containers"]))
     cluster["yarnMinContainerSize"] = min(suggestedMinContainerRam, cluster["ramPerContainer"])
     self.logger.info("Ram per containers before normalization - cluster[ramPerContainer]: " + str(cluster["ramPerContainer"]))
 
     '''If greater than cluster["yarnMinContainerSize"], value will be in multiples of cluster["yarnMinContainerSize"]'''
     if cluster["ramPerContainer"] > cluster["yarnMinContainerSize"]:
-      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] / cluster["yarnMinContainerSize"]) * cluster["yarnMinContainerSize"]
+      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] // cluster["yarnMinContainerSize"]) * cluster["yarnMinContainerSize"]
 
 
     cluster["mapMemory"] = int(cluster["ramPerContainer"])
@@ -1412,7 +1347,7 @@ class DefaultStackAdvisor(StackAdvisor):
   # if serviceName is being added
   def isServiceBeingAdded(self, services, serviceName):
     if services:
-      if 'user-context' in services.keys():
+      if 'user-context' in list(services.keys()):
         userContext = services["user-context"]
         if DefaultStackAdvisor.OPERATION in userContext and \
               'AddService' == userContext[DefaultStackAdvisor.OPERATION] and \
@@ -1424,7 +1359,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def getUserOperationContext(self, services, contextName):
     if services:
-      if 'user-context' in services.keys():
+      if 'user-context' in list(services.keys()):
         userContext = services["user-context"]
         if contextName in userContext:
           return userContext[contextName]
@@ -1441,9 +1376,9 @@ class DefaultStackAdvisor(StackAdvisor):
       with open(login_defs, 'r') as f:
         data = f.read().split('\n')
         # look for uid_min_tag in file
-        uid = filter(lambda x: uid_min_tag in x, data)
+        uid = [x for x in data if uid_min_tag in x]
         # filter all lines, where uid_min_tag was found in comments
-        uid = filter(lambda x: x.find(comment_tag) > x.find(uid_min_tag) or x.find(comment_tag) == -1, uid)
+        uid = [x for x in uid if x.find(comment_tag) > x.find(uid_min_tag) or x.find(comment_tag) == -1]
 
       if uid is not None and len(uid) > 0:
         uid = uid[0]
@@ -1576,7 +1511,7 @@ class DefaultStackAdvisor(StackAdvisor):
     serviceName = service["StackServices"]["service_name"]
     validator = self.validateServiceConfigurations(serviceName)
     if validator is not None:
-      for siteName, method in validator.items():
+      for siteName, method in list(validator.items()):
         resultItems = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)
         items.extend(resultItems)
 
@@ -1593,7 +1528,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
       # Override configuration with the config group values
       cgServices = services.copy()
-      for configName in configGroup["configurations"].keys():
+      for configName in list(configGroup["configurations"].keys()):
         if configName in cgServices["configurations"]:
           cgServices["configurations"][configName]["properties"].update(
             configGroup["configurations"][configName]['properties'])
@@ -1639,15 +1574,15 @@ class DefaultStackAdvisor(StackAdvisor):
         cgRecommendation)
 
       # Parse results.
-      for config in configurations.keys():
+      for config in list(configurations.keys()):
         cgRecommendation["configurations"][config] = {}
         cgRecommendation["dependent_configurations"][config] = {}
         # property + property_attributes
-        for configElement in configurations[config].keys():
+        for configElement in list(configurations[config].keys()):
           cgRecommendation["configurations"][config][configElement] = {}
           cgRecommendation["dependent_configurations"][config][
             configElement] = {}
-          for property, value in configurations[config][configElement].items():
+          for property, value in list(configurations[config][configElement].items()):
             if config in configGroup["configurations"]:
               cgRecommendation["configurations"][config][configElement][
                 property] = value
@@ -1751,55 +1686,6 @@ class DefaultStackAdvisor(StackAdvisor):
             serviceAdvisors.append(serviceAdvisor)
       for serviceAdvisor in serviceAdvisors:
         serviceAdvisor.getServiceConfigurationRecommendationsForSSO(configurations, clusterSummary, services, hosts)
-
-    return recommendations
-
-  def recommendConfigurationsForLDAP(self, services, hosts):
-    self.services = services
-
-    stackName = services["Versions"]["stack_name"]
-    stackVersion = services["Versions"]["stack_version"]
-    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    servicesList, componentsList = self.get_service_and_component_lists(services["services"])
-
-    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, componentsList, services)
-
-    recommendations = {
-      "Versions": {"stack_name": stackName, "stack_version": stackVersion},
-      "hosts": hostsList,
-      "services": servicesList,
-      "recommendations": {
-        "blueprint": {
-          "configurations": {},
-          "host_groups": []
-        },
-        "blueprint_cluster_binding": {
-          "host_groups": []
-        }
-      }
-    }
-
-    # If recommendation for config groups
-    if "config-groups" in services:
-      self.recommendConfigGroupsConfigurations(recommendations, services, componentsList, hosts, servicesList)
-    else:
-      configurations = recommendations["recommendations"]["blueprint"]["configurations"]
-
-      # there can be dependencies between service recommendations which require special ordering
-      # for now, make sure custom services (that have service advisors) run after standard ones
-      serviceAdvisors = []
-      recommenderDict = self.getServiceConfigurationRecommenderForSSODict()
-      for service in services["services"]:
-        serviceName = service["StackServices"]["service_name"]
-        calculation = recommenderDict.get(serviceName, None)
-        if calculation is not None:
-          calculation(configurations, clusterSummary, services, hosts)
-        else:
-          serviceAdvisor = self.getServiceAdvisor(serviceName)
-          if serviceAdvisor is not None:
-            serviceAdvisors.append(serviceAdvisor)
-      for serviceAdvisor in serviceAdvisors:
-        serviceAdvisor.getServiceConfigurationRecommendationsForLDAP(configurations, clusterSummary, services, hosts)
 
     return recommendations
 
@@ -2012,7 +1898,7 @@ class DefaultStackAdvisor(StackAdvisor):
     if len(hostsList) != 1:
       scheme = self.getComponentLayoutSchemes().get(componentName, None)
       if scheme is not None:
-        hostIndex = next((index for key, index in scheme.iteritems() if isinstance(key, (int, long)) and len(hostsList) < key), scheme['else'])
+        hostIndex = next((index for key, index in scheme.items() if isinstance(key, int) and len(hostsList) < key), scheme['else'])
       else:
         hostIndex = 0
       for host in hostsList[hostIndex:]:
@@ -2093,22 +1979,22 @@ class DefaultStackAdvisor(StackAdvisor):
   def filterConfigs(self, configs, requestedProperties):
 
     filteredConfigs = {}
-    for type, names in configs.items():
-      if 'properties' in names.keys():
+    for type, names in list(configs.items()):
+      if 'properties' in list(names.keys()):
         for name in names['properties']:
-          if type in requestedProperties.keys() and \
+          if type in list(requestedProperties.keys()) and \
                   name in requestedProperties[type]:
-            if type not in filteredConfigs.keys():
+            if type not in list(filteredConfigs.keys()):
               filteredConfigs[type] = {'properties': {}}
             filteredConfigs[type]['properties'][name] = \
               configs[type]['properties'][name]
-      if 'property_attributes' in names.keys():
+      if 'property_attributes' in list(names.keys()):
         for name in names['property_attributes']:
-          if type in requestedProperties.keys() and \
+          if type in list(requestedProperties.keys()) and \
                   name in requestedProperties[type]:
-            if type not in filteredConfigs.keys():
+            if type not in list(filteredConfigs.keys()):
               filteredConfigs[type] = {'property_attributes': {}}
-            elif 'property_attributes' not in filteredConfigs[type].keys():
+            elif 'property_attributes' not in list(filteredConfigs[type].keys()):
               filteredConfigs[type]['property_attributes'] = {}
             filteredConfigs[type]['property_attributes'][name] = \
               configs[type]['property_attributes'][name]
@@ -2186,9 +2072,9 @@ class DefaultStackAdvisor(StackAdvisor):
     changedConfigs = []
     # if services parameter, prefer values, set by user
     if services:
-      if 'configurations' in services.keys():
+      if 'configurations' in list(services.keys()):
         userConfigs = services['configurations']
-      if 'changed-configurations' in services.keys():
+      if 'changed-configurations' in list(services.keys()):
         changedConfigs = services["changed-configurations"]
 
     if configType not in config:
@@ -2226,9 +2112,9 @@ class DefaultStackAdvisor(StackAdvisor):
     changedConfigs = []
     # if services parameter, prefer values, set by user
     if services:
-      if 'configurations' in services.keys():
+      if 'configurations' in list(services.keys()):
         userConfigs = services['configurations']
-      if 'changed-configurations' in services.keys():
+      if 'changed-configurations' in list(services.keys()):
         changedConfigs = services["changed-configurations"]
 
     if configType not in config:
@@ -2662,7 +2548,7 @@ class DefaultStackAdvisor(StackAdvisor):
   def getHadoopProxyUsersValidationItems(self, properties, services, hosts, configurations):
     validationItems = []
     users = self.getHadoopProxyUsers(services, hosts, configurations)
-    for user_name, user_properties in users.iteritems():
+    for user_name, user_properties in users.items():
       props = ["hadoop.proxyuser.{0}.hosts".format(user_name)]
       if "propertyGroups" in user_properties:
         props.append("hadoop.proxyuser.{0}.groups".format(user_name))
@@ -2682,7 +2568,7 @@ class DefaultStackAdvisor(StackAdvisor):
     servicesList = self.get_services_list(services)
     users = {}
 
-    for serviceName, serviceUserComponents in self.getServiceHadoopProxyUsersConfigurationDict().iteritems():
+    for serviceName, serviceUserComponents in self.getServiceHadoopProxyUsersConfigurationDict().items():
       users.update(self._getHadoopProxyUsersForService(serviceName, serviceUserComponents, services, hosts, configurations))
 
     return users
@@ -2751,10 +2637,10 @@ class DefaultStackAdvisor(StackAdvisor):
         if user:
           usersComponents[user] = (userNameConfig, userNameProperty, hostSelectorMap)
 
-      for user, (userNameConfig, userNameProperty, hostSelectorMap) in usersComponents.iteritems():
+      for user, (userNameConfig, userNameProperty, hostSelectorMap) in usersComponents.items():
         proxyUsers = {"config": userNameConfig, "propertyName": userNameProperty}
-        for proxyPropertyName, hostSelector in hostSelectorMap.iteritems():
-          componentHostNamesString = hostSelector if isinstance(hostSelector, basestring) else '*'
+        for proxyPropertyName, hostSelector in hostSelectorMap.items():
+          componentHostNamesString = hostSelector if isinstance(hostSelector, str) else '*'
           if isinstance(hostSelector, (list, tuple)):
             _, componentHostNames = self.get_data_for_proxyuser(user, services, configurations) # preserve old values
             for component in hostSelector:
@@ -2792,7 +2678,7 @@ class DefaultStackAdvisor(StackAdvisor):
       if hive_user and get_from_dict(users, (hive_user, "propertyHosts"), default_value=None):
         services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(hive_user)})
 
-    for user_name, user_properties in users.iteritems():
+    for user_name, user_properties in users.items():
 
       # Add properties "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" to core-site for all users
       self.put_proxyuser_value(user_name, user_properties["propertyHosts"], services=services, configurations=configurations, put_function=putCoreSiteProperty)
@@ -2880,7 +2766,7 @@ class DefaultStackAdvisor(StackAdvisor):
     :param replacement_dict:
     :return:
     """
-    for replacement, original in replacement_dict.iteritems():
+    for replacement, original in replacement_dict.items():
       data.remove(replacement)
       data.add(original)
 
@@ -2938,7 +2824,7 @@ class DefaultStackAdvisor(StackAdvisor):
   def merge_proxyusers_values(self, first, second):
     result = set()
     def append(data):
-      if isinstance(data, str) or isinstance(data, unicode):
+      if isinstance(data, str) or isinstance(data, str):
         if data != "*":
           result.update(data.split(","))
       else:
@@ -2949,7 +2835,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def getOldValue(self, services, configType, propertyName):
     if services:
-      if 'changed-configurations' in services.keys():
+      if 'changed-configurations' in list(services.keys()):
         changedConfigs = services["changed-configurations"]
         for changedConfig in changedConfigs:
           if changedConfig["type"] == configType and changedConfig["name"]== propertyName and "old_value" in changedConfig:
@@ -3110,18 +2996,18 @@ class DefaultStackAdvisor(StackAdvisor):
     mountPoints = {}
     for mountPoint in hostInfo["disk_info"]:
       mountPoints[mountPoint["mountpoint"]] = self.to_number(mountPoint["available"])
-    mountPoint = DefaultStackAdvisor.getMountPointForDir(dir, mountPoints.keys())
+    mountPoint = DefaultStackAdvisor.getMountPointForDir(dir, list(mountPoints.keys()))
 
     if not mountPoints:
       return self.getErrorItem("No disk info found on host %s" % hostInfo["host_name"])
 
     if mountPoint is None:
-      return self.getErrorItem("No mount point in directory %s. Mount points: %s" % (dir, ', '.join(mountPoints.keys())))
+      return self.getErrorItem("No mount point in directory %s. Mount points: %s" % (dir, ', '.join(list(mountPoints.keys()))))
 
     if mountPoints[mountPoint] < reqiuredDiskSpace:
       msg = "Ambari Metrics disk space requirements not met. \n" \
             "Recommended disk space for partition {0} is {1}G"
-      return self.getWarnItem(msg.format(mountPoint, reqiuredDiskSpace/1048576)) # in Gb
+      return self.getWarnItem(msg.format(mountPoint, reqiuredDiskSpace//1048576)) # in Gb
     return None
 
   @classmethod
@@ -3238,14 +3124,14 @@ class DefaultStackAdvisor(StackAdvisor):
       self.logger.error("Couldn't retrieve 'capacity-scheduler' from services.")
 
     self.logger.info("Retrieved 'capacity-scheduler' received as dictionary : '{0}'. configs : {1}" \
-                .format(received_as_key_value_pair, capacity_scheduler_properties.items()))
+                .format(received_as_key_value_pair, list(capacity_scheduler_properties.items())))
     return capacity_scheduler_properties, received_as_key_value_pair
 
   def getAllYarnLeafQueues(self, capacitySchedulerProperties):
     """
     Gets all YARN leaf queues.
     """
-    config_list = capacitySchedulerProperties.keys()
+    config_list = list(capacitySchedulerProperties.keys())
     yarn_queues = None
     leafQueueNames = set()
     if 'yarn.scheduler.capacity.root.queues' in config_list:
@@ -3270,7 +3156,7 @@ class DefaultStackAdvisor(StackAdvisor):
           #     (3). 'yarn.scheduler.capacity.root.default,
           # Added leaf queues names are as : d1, c2 and default for the 3 leaf queues.
           leafQueuePathSplits = queue.split(".")
-          if leafQueuePathSplits > 0:
+          if len(leafQueuePathSplits) > 0:
             leafQueueName = leafQueuePathSplits[-1]
             leafQueueNames.add(leafQueueName)
     return leafQueueNames

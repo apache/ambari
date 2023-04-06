@@ -534,7 +534,6 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
    *
    * @return true if this AbstractKerberosDescriptor is a container, false otherwise
    */
-  @Override
   public boolean isContainer() {
     return true;
   }

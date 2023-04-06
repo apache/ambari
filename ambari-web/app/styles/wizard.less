@@ -19,7 +19,6 @@
 @import 'common.less';
 
 @wizard-side-nav-width: 250px;
-@host-column-width: 210px;
 
 #enable_security {
   .step3 {
@@ -252,105 +251,56 @@
   }
   #step6 {
     .pre-scrollable {
-      width: 100%;
-      overflow: auto;
-      position: relative;
       max-height: 440px;
-      border-bottom: @table-footer-border;
+      position: relative;
+      display: flex;
+      overflow-y: auto;
       #component_assign_table {
-        margin-bottom: 0;
-        tr {
+        display: inline-block;
+        overflow-x: auto;
+        margin-left: 190px;
+        margin-bottom: 10px;
+        height: 100%;
+        tbody td, th {
+          white-space: nowrap;
+        }
+        tfoot td {
+          padding-bottom: 30px;
+        }
+        .trim_hostname {
+          .ellipsis-overflow-nowrap;
+          max-width: 180px;
+          float:left;
           display: block;
-          padding-left: @host-column-width;
-          td, th {
-            white-space: nowrap;
-          }
-          .freeze {
-            width: @host-column-width;
-            position: absolute;
-            left: 0;
-            background-color: #fff;
-            border-left: 1px solid transparent;
-          }
-          .trim_hostname {
-            .ellipsis-overflow-nowrap;
-            max-width: 180px;
-            float: left;
-            display: block;
-          }
-          .checkbox {
-            margin: 0;
-            position: static;
-            input[type="checkbox"] {
-              + label.host-component-checkbox {
-                display: inline;
-                line-height: 17px;
-                font-size: 12px;
-                position: static;
-                padding-left: 0;
-                &:before {
-                  position: static;
-                  display: inline-block;
-                  margin-top: @checkbox-top;
-                  margin-right: @checkbox-size;
-                }
-                &:after {
-                  background-color: @checkbox-color;
-                  border-color: @checkbox-color;
-                  position: static;
-                  display: inline-block;
-                  float: left;
-                  margin-right: @checkbox-size;
-                  width: @checkbox-size;
-                  height: @checkbox-size;
-                  border-radius: @checkbox-border-radius;
-                  margin-top: -1 * (@checkbox-size + @checkbox-top);
-                  line-height: 1.2em;
-                  padding-left: 2px;
-                }
-              }
-              &:checked + label:before {
-                visibility: hidden;
-              }
-              &:not(:checked) + label:after {
-                content: '';
-                visibility: hidden;
-              }
-            }
-          }
-          &:hover {
-            &:not(:first-of-type) {
-              margin-top: -1px;
-            }
-            td.freeze {
-              background-color: @table-hover-background-color;
-              border-color: @table-hover-border-color;
-            }
-            + tr {
-              border-top-width: 0;
-            }
-          }
-          &.last-row {
-            border-bottom-color: transparent;
-            td {
-              border-bottom-color: transparent;
-            }
-            &:hover {
-              border-bottom-color: @table-hover-border-color;
-            }
+        }
+        .checkbox {
+          margin: 0;
+        }
+        .host-component-checkbox {
+          line-height: 17px;
+          font-size: 12px;
+          top: 0;
+        }
+        .freeze {
+          position: absolute;
+          left: 0;
+          width: 210px;
+          border-top-color: #eee;
+          border-bottom: 1px solid #eee;
+        }
+        td.freeze {
+          padding-bottom: 11px;
+        }
+        tr.last-row {
+          td {
+            border-bottom: 2px solid #eee;
           }
         }
-        .host-messages {
-          margin-left: @host-column-width;
-          padding: @table-cell-padding;
+        .static-pagination {
+          position: absolute;
+          right: 10px;
         }
       }
-    }
-    .static-pagination {
-      margin-bottom: @table-margin-bottom;
-      font-size: @table-font-size;
-      color: @table-footer-color;
-      padding: @table-cell-padding;
     }
     .spinner-overlay {
       position: absolute;
@@ -1045,11 +995,6 @@
     overflow: hidden;
   }
 }
-.service-config-alert {
-  float: left;
-  width: 100%;
-  margin-bottom: 20px;
-}
 
 #directories {
   .config-actions {
@@ -1245,13 +1190,6 @@
   #issues-counter.animated {
     -webkit-animation: zoom-in 0.3s ease;
     animation: zoom-in 0.3s ease;
-  }
-  #issues-counter {
-    vertical-align: sub;
-    .alert-badge {
-      top: 2px;
-      margin: 0;
-    }
   }
 
   .service-name {

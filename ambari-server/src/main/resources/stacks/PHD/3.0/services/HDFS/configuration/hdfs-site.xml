@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<!-- Put site-specific property overrides in this file. -->
+<configuration supports_final="true">
+  <property>
+    <name>dfs.namenode.startup.delay.block.deletion.sec</name>
+    <value>3600</value>
+    <description>
+      The delay in seconds at which we will pause the blocks deletion
+      after Namenode startup. By default it's disabled.
+      In the case a directory has large number of directories and files are
+      deleted, suggested delay is one hour to give the administrator enough time
+      to notice large number of pending deletion blocks and take corrective
+      action.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.journalnode.edits.dir</name>
+    <display-name>JournalNode Edits directory</display-name>
+    <value>/hadoop/hdfs/journalnode</value>
+    <description>The path where the JournalNode daemon will store its local state. </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.client.retry.policy.enabled</name>
+    <value>false</value>
+    <description>Enables HDFS client retry in the event of a NameNode failure.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.content-summary.limit</name>
+    <value>5000</value>
+    <description>Dfs content summary limit.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.encryption.key.provider.uri</name>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hadoop-env</type>
+        <name>keyserver_host</name>
+      </property>
+      <property>
+        <type>hadoop-env</type>
+        <name>keyserver_port</name>
+      </property>
+      <property>
+        <type>kms-env</type>
+        <name>kms_port</name>
+      </property>
+      <property>
+        <type>ranger-kms-site</type>
+        <name>ranger.service.https.attrib.ssl.enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <!-- HDFS properties required for HAWQ -->
+  <property>
+    <name>dfs.allow.truncate</name>
+    <value>true</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.support.append</name>
+    <value>true</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.client.read.shortcircuit</name>
+    <value>true</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.block.local-path-access.user</name>
+    <value>gpadmin</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.datanode.data.dir.perm</name>
+    <value>750</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.datanode.handler.count</name>
+    <value>60</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.namenode.accesstime.precision</name>
+    <value>-1</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

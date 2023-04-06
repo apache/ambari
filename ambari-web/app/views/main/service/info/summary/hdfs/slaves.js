@@ -35,10 +35,6 @@ App.HDFSSlaveComponentsView = Em.View.extend({
   nfsGatewayComponent: Em.Object.create({
     componentName: 'NFS_GATEWAY'
   }),
-  
-  hdfsClientComponent: Em.Object.create({
-    componentName: 'HDFS_CLIENT'
-  }),
 
   service: Em.computed.alias('summaryView.service'),
 
@@ -48,10 +44,6 @@ App.HDFSSlaveComponentsView = Em.View.extend({
 
   isJournalNodeCreated: function () {
     return this.get('summaryView') ? this.get('summaryView').isServiceComponentCreated('JOURNALNODE') : false;
-  }.property('App.router.clusterController.isComponentsStateLoaded'),
-  
-  isHDFSClientCreated: function () {
-    return this.get('summaryView') ? this.get('summaryView').isServiceComponentCreated('HDFS_CLIENT') : false;
   }.property('App.router.clusterController.isComponentsStateLoaded'),
 
   journalNodesLive: function () {

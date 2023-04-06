@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property>
+    <name>hadoop.user.name</name>
+    <value>hadoop</value>
+    <display-name>Hadoop User Name</display-name>
+    <property-type>USER</property-type>
+    <description>User to run Hadoop services under</description>
+    <value-attributes>
+      <type>user</type>
+      <visible>false</visible>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property require-input="true">
+    <name>hadoop.user.password</name>
+    <display-name>Hadoop User Password</display-name>
+    <value> </value>
+    <property-type>PASSWORD</property-type>
+    <description>Password for hadoop user</description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>security_enabled</name>
+    <value>false</value>
+    <description>Hadoop Security</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>kerberos_domain</name>
+    <value>EXAMPLE.COM</value>
+    <description>Kerberos realm.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ignore_groupsusers_create</name>
+    <display-name>Use Ambari to Manage Group Memberships</display-name>
+    <property-type>ADDITIONAL_USER_PROPERTY</property-type>
+    <value>false</value>
+    <description>Ambari will add or remove service accounts from groups.</description>
+    <value-attributes>
+      <visible>false</visible>
+      <type>boolean-inverted</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>smokeuser</name>
+    <display-name>Smoke User</display-name>
+    <value>ambari-qa</value>
+    <property-type>USER</property-type>
+    <description>User executing service checks</description>
+    <value-attributes>
+      <type>user</type>
+      <visible>false</visible>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>smokeuser_keytab</name>
+    <value>/etc/security/keytabs/smokeuser.headless.keytab</value>
+    <description>Path to smoke test user keytab file</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>user_group</name>
+    <display-name>Hadoop Group</display-name>
+    <value>hadoop</value>
+    <property-type>GROUP</property-type>
+    <description>Hadoop user group.</description>
+    <value-attributes>
+      <type>user</type>
+      <visible>false</visible>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

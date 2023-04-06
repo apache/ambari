@@ -39,8 +39,6 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * Utility class that provides Property helper methods.
  */
@@ -55,10 +53,10 @@ public class PropertyHelper {
    * Aggregate functions implicitly supported by the Metrics Service
    */
   public static final List<String> AGGREGATE_FUNCTION_IDENTIFIERS =
-    ImmutableList.of("._sum", "._max", "._min", "._avg", "._rate");
+    Arrays.asList("._sum", "._max", "._min", "._avg", "._rate");
 
   private static final List<Resource.InternalType> REPORT_METRIC_RESOURCES =
-    ImmutableList.of(Resource.InternalType.Cluster, Resource.InternalType.Host);
+    Arrays.asList(Resource.InternalType.Cluster, Resource.InternalType.Host);
 
   private static final Map<Resource.InternalType, Set<String>> PROPERTY_IDS = new HashMap<>();
   private static final Map<Resource.InternalType, Map<String, Map<String, PropertyInfo>>> JMX_PROPERTY_IDS = readPropertyProviderIds(JMX_PROPERTIES_FILE);
@@ -95,8 +93,8 @@ public class PropertyHelper {
   private static final Pattern METRIC_CATEGORY_TOKENIZE_REGEX = Pattern.compile("/+(?=([^\"\\\\\\\\]*(\\\\\\\\.|\"([^\"\\\\\\\\]*\\\\\\\\.)*[^\"\\\\\\\\]*\"))*[^\"]*$)");
 
   static {
-    RPC_METRIC_SUFFIXES.put("metrics/rpc/", ImmutableList.of("client", "datanode", "healthcheck"));
-    RPC_METRIC_SUFFIXES.put("metrics/rpcdetailed/", ImmutableList.of("client", "datanode", "healthcheck"));
+    RPC_METRIC_SUFFIXES.put("metrics/rpc/", Arrays.asList("client", "datanode", "healthcheck"));
+    RPC_METRIC_SUFFIXES.put("metrics/rpcdetailed/", Arrays.asList("client", "datanode", "healthcheck"));
   }
 
   public static String getPropertyId(String category, String name) {

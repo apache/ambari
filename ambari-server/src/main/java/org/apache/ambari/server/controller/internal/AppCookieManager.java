@@ -196,12 +196,10 @@ public class AppCookieManager {
 
   private static class EmptyJaasCredentials implements Credentials {
 
-    @Override
     public String getPassword() {
       return null;
     }
 
-    @Override
     public Principal getUserPrincipal() {
       return null;
     }

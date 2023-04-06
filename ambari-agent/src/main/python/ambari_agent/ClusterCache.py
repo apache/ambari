@@ -80,7 +80,7 @@ class ClusterCache(dict):
     return self[ClusterCache.COMMON_DATA_CLUSTER]
 
   def get_cluster_ids(self):
-    cluster_ids = self.keys()[:]
+    cluster_ids = list(self.keys())[:]
     if ClusterCache.COMMON_DATA_CLUSTER in cluster_ids:
       cluster_ids.remove(ClusterCache.COMMON_DATA_CLUSTER)
     return cluster_ids
@@ -91,7 +91,7 @@ class ClusterCache(dict):
       if not existing_cluster_id in cache:
         cache_ids_to_delete.append(existing_cluster_id)
 
-    for cluster_id, cluster_cache in cache.iteritems():
+    for cluster_id, cluster_cache in cache.items():
       self.rewrite_cluster_cache(cluster_id, cluster_cache)
 
     with self._cache_lock:
@@ -99,7 +99,10 @@ class ClusterCache(dict):
         del self[cache_id_to_delete]
 
     self.on_cache_update()
-    self.persist_cache(cache_hash)
+    self.persist_cache()
+
+    # if all of above are sucessful finally set the hash
+    self.hash = cache_hash
 
   def cache_update(self, update_dict, cache_hash):
     """
@@ -128,7 +131,7 @@ class ClusterCache(dict):
     with self._cache_lock:
       self[cluster_id] = immutable_cache
 
-  def persist_cache(self, cache_hash):
+  def persist_cache(self):
     # ensure that our cache directory exists
     if not os.path.exists(self.cluster_cache_dir):
       os.makedirs(self.cluster_cache_dir)
@@ -139,10 +142,7 @@ class ClusterCache(dict):
 
       if self.hash is not None:
         with open(self.__current_cache_hash_file, 'w') as fp:
-          fp.write(cache_hash)
-
-    # if all of above are successful finally set the hash
-    self.hash = cache_hash
+          fp.write(self.hash)
 
   def _get_mutable_copy(self):
     with self._cache_lock:

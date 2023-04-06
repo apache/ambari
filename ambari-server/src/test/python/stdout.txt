@@ -1,0 +1,4 @@
+
+Calling API http://127.0.0.1:8080/api/v1/clusters/cc/stack_versions : {'ClusterStackVersions': {'repository_version': 'HDP-2.2.2.0-2561', 'state': 'CURRENT', 'force': True}}
+
+Current version successfully updated to HDP-2.2.2.0-2561

@@ -4,7 +4,7 @@ import logging
 from collections import OrderedDict
 import io
 
-import six
+from . import six
 
 SEND = 'SEND'
 CONNECT = 'CONNECT'
@@ -42,9 +42,7 @@ def parse_headers(buff):
     """
     Parses buffer and returns command and headers as strings
     """
-    preamble_lines = list(map(
-        lambda x: six.u(x).decode(),
-        iter(lambda: buff.readline().strip(), b''))
+    preamble_lines = list([six.u(x).decode() for x in iter(lambda: buff.readline().strip(), b'')]
     )
     if not preamble_lines:
         raise EmptyBuffer()
@@ -123,7 +121,7 @@ class Frame(object):
         # Convert and append any existing headers to a string as the
         # protocol describes.
         headerparts = ("{0}:{1}\n".format(key, value)
-                       for key, value in self.headers.items())
+                       for key, value in list(self.headers.items()))
 
         # Frame is Command + Header + EOF marker.
         return six.b("{0}\n{1}\n".format(self.cmd, "".join(headerparts))) + (self.body if isinstance(self.body, six.binary_type) else six.b(self.body)) + six.b('\x00')
@@ -355,5 +353,5 @@ class FrameBuffer(object):
             raise StopIteration()
         return msg
 
-    def next(self):
+    def __next__(self):
         return self.__next__()

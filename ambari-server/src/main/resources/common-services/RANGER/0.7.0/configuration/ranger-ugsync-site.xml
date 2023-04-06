@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration>
+  <property>
+    <name>ranger.usersync.ldap.deltasync</name>
+    <display-name>Incremental Sync</display-name>
+    <value>true</value>
+    <description>Enable Incremental Sync</description>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>ranger.usersync.group.searchenabled</name>
+    <display-name>Enable Group Sync</display-name>
+    <value>false</value>
+    <description>"# do we want to do ldapsearch to find groups instead of relying on user entry attributes
+    # valid values: true, false
+    # any value other than true would be treated as false
+    # default value: false"</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-ugsync-site</type>
+        <name>ranger.usersync.ldap.deltasync</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ranger.usersync.ldap.grouphierarchylevels</name>
+    <display-name>Group Hierarchy Levels</display-name>
+    <value>0</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

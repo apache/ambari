@@ -62,7 +62,6 @@ import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -88,6 +87,7 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

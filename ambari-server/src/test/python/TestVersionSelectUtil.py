@@ -36,7 +36,7 @@ class TestVersionSelectUtil(TestCase):
     with open(test_file_path, 'rb') as fp:
         self.module = imp.load_module('module', fp, test_file_path, ('.py', 'rb', imp.PY_SOURCE))
 
-  @patch('__builtin__.open')
+  @patch('builtins.open')
   @patch("resource_management.core.shell.call")
   @patch('os.path.exists')
   @patch("resource_management.libraries.functions.stack_tools.get_stack_tool")
@@ -80,25 +80,25 @@ class TestVersionSelectUtil(TestCase):
 
     # Missing stack name
     version = self.module.get_component_version_from_symlink(None, "hadoop-hdfs-datanode")
-    self.assertEquals(version, None)
+    self.assertEqual(version, None)
     # Missing component name
     version = self.module.get_component_version_from_symlink("HDP", None)
-    self.assertEquals(version, None)
+    self.assertEqual(version, None)
 
     # Invalid stack name
     version = self.module.get_component_version_from_symlink("StackDoesNotExist", "hadoop-hdfs-datanode")
-    self.assertEquals(version, None)
+    self.assertEqual(version, None)
     # Invalid component name
     version = self.module.get_component_version_from_symlink("HDP", "hadoop-nonexistent-component-name")
-    self.assertEquals(version, None)
+    self.assertEqual(version, None)
 
     # Pass
     version = self.module.get_component_version_from_symlink("HDP", "hadoop-hdfs-namenode")
-    self.assertEquals(version, stack_expected_version)
+    self.assertEqual(version, stack_expected_version)
     version = self.module.get_component_version_from_symlink("HDP", "hadoop-hdfs-datanode")
-    self.assertEquals(version, stack_expected_version)
+    self.assertEqual(version, stack_expected_version)
 
-  @patch('__builtin__.open')
+  @patch('builtins.open')
   @patch("resource_management.core.shell.call")
   @patch('os.path.exists')
   @patch("resource_management.libraries.functions.stack_tools.get_stack_tool")
@@ -134,6 +134,6 @@ class TestVersionSelectUtil(TestCase):
 
     # Pass
     version = self.module.get_component_version_from_symlink("HDP", "hive-server2")
-    self.assertEquals(version, stack_expected_version)
+    self.assertEqual(version, stack_expected_version)
     version = self.module.get_component_version_from_symlink("HDP", "zookeeper-server")
-    self.assertEquals(version, stack_expected_version)
+    self.assertEqual(version, stack_expected_version)

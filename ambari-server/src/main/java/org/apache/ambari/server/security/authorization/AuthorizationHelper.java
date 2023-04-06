@@ -336,7 +336,7 @@ public class AuthorizationHelper {
       attr.setAttribute(ambariUserName, loginAlias, RequestAttributes.SCOPE_SESSION);
     }
   }
-
+ 
   /**
    * Looks up the provided loginAlias in the current http session and return the ambari
    * user name that the alias is defined for.

@@ -1,0 +1,139 @@
+{
+  "ACCUMULO": {
+    "ACCUMULO_MASTER": [
+      {
+        "name": "accumulo_master_process",
+        "label": "Accumulo Master Process",
+        "description": "This alert is triggered if the Accumulo master process cannot be confirmed to be up and listening on the network for the configured critical threshold, given in seconds.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "PORT",
+          "uri": "{{accumulo-site/master.port.client}}",
+          "default_port": 9999,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ],
+    "ACCUMULO_TSERVER": [
+      {
+        "name": "accumulo_tserver_process",
+        "label": "Accumulo TServer Process",
+        "description": "This host-level alert is triggered if the TServer processes cannot be confirmed to be up and listening on the network for the configured critical threshold, given in seconds.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "PORT",
+          "uri": "{{accumulo-site/tserver.port.client}}",
+          "default_port": 9997,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ],
+    "ACCUMULO_GC": [
+      {
+        "name": "accumulo_gc_process",
+        "label": "Accumulo GC Process",
+        "description": "This host-level alert is triggered if the GC process cannot be confirmed to be up and listening on the network for the configured critical threshold, given in seconds.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "PORT",
+          "uri": "{{accumulo-site/gc.port.client}}",
+          "default_port": 50092,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ],
+    "ACCUMULO_MONITOR": [
+      {
+        "name": "accumulo_monitor_process",
+        "label": "Accumulo Monitor Process",
+        "description": "This host-level alert is triggered if the Monitor process cannot be confirmed to be up and listening on the network for the configured critical threshold, given in seconds.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "PORT",
+          "uri": "{{accumulo-site/monitor.port.client}}",
+          "default_port": 50095,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ],
+    "ACCUMULO_TRACER": [
+      {
+        "name": "accumulo_tracer_process",
+        "label": "Accumulo Tracer Process",
+        "description": "This host-level alert is triggered if the Tracer process cannot be confirmed to be up and listening on the network for the configured critical threshold, given in seconds.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "PORT",
+          "uri": "{{accumulo-site/trace.port.client}}",
+          "default_port": 12234,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ]
+  }
+}

@@ -41,7 +41,6 @@ public class ZkConnection {
   {
     final CountDownLatch connSignal = new CountDownLatch(1);
     ZooKeeper zooKeeper = new ZooKeeper(serverAddress, sessionTimeoutMillis, new Watcher() {
-      @Override
       public void process(WatchedEvent event) {
         if (event.getState() == SyncConnected) {
           connSignal.countDown();

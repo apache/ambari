@@ -23,8 +23,9 @@ from resource_management.core import sudo
 from resource_management import *
 from subprocess import call
 from setup_ranger_nifi import setup_ranger_nifi
+import importlib
 
-reload(sys)
+importlib.reload(sys)
 sys.setdefaultencoding('utf8')
 
 class Master(Script):
@@ -71,13 +72,13 @@ class Master(Script):
     File(os.path.join(params.limits_conf_dir, 'nifi.conf'),
          owner='root',
          group='root',
-         mode=0644,
+         mode=0o644,
          content=Template("nifi.conf.j2")
     )
 
 
     ca_client_script = nifi_ca_util.get_toolkit_script('tls-toolkit.sh')
-    File(ca_client_script, mode=0755)
+    File(ca_client_script, mode=0o755)
 
 
     if params.nifi_ca_host and params.nifi_ssl_enabled:
@@ -98,37 +99,37 @@ class Master(Script):
     #write out nifi.properties
     PropertiesFile(params.nifi_config_dir + '/nifi.properties',
                    properties = params.nifi_properties,
-                   mode = 0400,
+                   mode = 0o400,
                    owner = params.nifi_user,
                    group = params.nifi_group)
 
     #write out boostrap.conf
     bootstrap_content=InlineTemplate(params.nifi_boostrap_content)
-    File(format("{params.nifi_config_dir}/bootstrap.conf"), content=bootstrap_content, owner=params.nifi_user, group=params.nifi_group, mode=0400)
+    File(format("{params.nifi_config_dir}/bootstrap.conf"), content=bootstrap_content, owner=params.nifi_user, group=params.nifi_group, mode=0o400)
 
     #write out logback.xml
     logback_content=InlineTemplate(params.nifi_node_logback_content)
-    File(format("{params.nifi_config_dir}/logback.xml"), content=logback_content, owner=params.nifi_user, group=params.nifi_group, mode=0400)
+    File(format("{params.nifi_config_dir}/logback.xml"), content=logback_content, owner=params.nifi_user, group=params.nifi_group, mode=0o400)
 
     #write out state-management.xml
     statemgmt_content=InlineTemplate(params.nifi_state_management_content)
-    File(format("{params.nifi_config_dir}/state-management.xml"), content=statemgmt_content, owner=params.nifi_user, group=params.nifi_group, mode=0400)
+    File(format("{params.nifi_config_dir}/state-management.xml"), content=statemgmt_content, owner=params.nifi_user, group=params.nifi_group, mode=0o400)
 
     #write out authorizers file
     authorizers_content=InlineTemplate(params.nifi_authorizers_content)
-    File(format("{params.nifi_config_dir}/authorizers.xml"), content=authorizers_content, owner=params.nifi_user, group=params.nifi_group, mode=0400)
+    File(format("{params.nifi_config_dir}/authorizers.xml"), content=authorizers_content, owner=params.nifi_user, group=params.nifi_group, mode=0o400)
 
     #write out login-identity-providers.xml
     login_identity_providers_content=InlineTemplate(params.nifi_login_identity_providers_content)
-    File(format("{params.nifi_config_dir}/login-identity-providers.xml"), content=login_identity_providers_content, owner=params.nifi_user, group=params.nifi_group, mode=0400)
+    File(format("{params.nifi_config_dir}/login-identity-providers.xml"), content=login_identity_providers_content, owner=params.nifi_user, group=params.nifi_group, mode=0o400)
 
     #write out nifi-env in bin as 0755 (see BUG-61769)
     env_content=InlineTemplate(params.nifi_env_content)
-    File(format("{params.bin_dir}/nifi-env.sh"), content=env_content, owner=params.nifi_user, group=params.nifi_group, mode=0755) 
+    File(format("{params.bin_dir}/nifi-env.sh"), content=env_content, owner=params.nifi_user, group=params.nifi_group, mode=0o755) 
     
     #write out bootstrap-notification-services.xml
     boostrap_notification_content=InlineTemplate(params.nifi_boostrap_notification_content)
-    File(format("{params.nifi_config_dir}/bootstrap-notification-services.xml"), content=boostrap_notification_content, owner=params.nifi_user, group=params.nifi_group, mode=0400) 
+    File(format("{params.nifi_config_dir}/bootstrap-notification-services.xml"), content=boostrap_notification_content, owner=params.nifi_user, group=params.nifi_group, mode=0o400) 
 
   def stop(self, env):
     import params
@@ -149,7 +150,7 @@ class Master(Script):
     if params.metrics_collector_host and params.nifi_ambari_reporting_enabled and self.check_is_fresh_install(self):
       Execute('echo "First time setup so generating flow.xml.gz" >> ' + params.nifi_node_log_file, user=params.nifi_user)
       flow_content=InlineTemplate(params.nifi_flow_content)
-      File(format("{params.nifi_flow_config_dir}/flow.xml"), content=flow_content, owner=params.nifi_user, group=params.nifi_group, mode=0600)
+      File(format("{params.nifi_flow_config_dir}/flow.xml"), content=flow_content, owner=params.nifi_user, group=params.nifi_group, mode=0o600)
       Execute(format("cd {params.nifi_flow_config_dir}; mv flow.xml.gz flow_$(date +%d-%m-%Y).xml.gz ;"),user=params.nifi_user,ignore_failures=True)
       Execute(format("cd {params.nifi_flow_config_dir}; gzip flow.xml;"), user=params.nifi_user)
 

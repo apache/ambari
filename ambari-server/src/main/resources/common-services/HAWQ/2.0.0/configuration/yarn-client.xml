@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<configuration>
+  <!-- RPC client configuration -->
+  <property>
+    <name>rpc.client.timeout</name>
+    <value>3600000</value>
+    <description>
+      The timeout interval, in milliseconds, of a RPC invocation.
+      The default is 3600000 (1 hour).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.connect.tcpnodelay</name>
+    <value>true</value>
+    <description>
+      Determines whether to set socket TCP_NODELAY to true when connecting to RPC server.
+      The default is true.
+    </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.max.idle</name>
+    <value>10000</value>
+    <description>
+      Max idle time of a RPC connection in milliseconds. Default is 10000.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.ping.interval</name>
+    <value>10000</value>
+    <description>
+      Interval, in milliseconds, at which the RPC client sends a heartbeat to the server. Set this property to 0 to disable the heartbeat.
+      The default is 10000.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.connect.timeout</name>
+    <value>600000</value>
+    <description>
+      The timeout interval, in milliseconds, that the RPC client uses when trying to set up the connection.
+      The default is 600000.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.connect.retry</name>
+    <value>10</value>
+    <description>
+      The maximum number of times that the RPC client will retry after failing to set up the connection to the server.
+      The default is 10.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.read.timeout</name>
+    <value>3600000</value>
+    <description>
+      The timeout interval, in milliseconds, for when the RPC client is trying to read from the server.
+      The default is 3600000 (1 hour).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.write.timeout</name>
+    <value>3600000</value>
+    <description>
+      The timeout interval, in milliseconds, for when the RPC client is trying to write to the server.
+      The default is 3600000 (1 hour).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.socket.linger.timeout</name>
+    <value>-1</value>
+    <description>
+      Determines the timeout interval to set for the socket SO_LINGER when connecting to the RPC server. A value of -1 means to use the default OS value.
+      The default is -1.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.client.failover.max.attempts</name>
+    <value>15</value>
+    <description>
+      If multiple resource managers are configured, the maximum number of RPC calls that a yarn client will retry to issue.
+      The default is 15.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

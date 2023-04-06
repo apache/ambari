@@ -31,7 +31,6 @@ from ambari_commons.constants import AGENT_TMP_DIR
 logger = logging.getLogger(__name__)
 
 class ScriptAlert(BaseAlert):
-  PATH_TO_SCRIPT_REGEXP = re.compile(r'((.*)services(.*)package)')
 
   def __init__(self, alert_meta, alert_source_meta, config):
 
@@ -55,7 +54,7 @@ class ScriptAlert(BaseAlert):
     self.parameters = {}
 
     # will force a kinit even if klist says there are valid tickets (4 hour default)
-    self.kinit_timeout = long(config.get('agent', 'alert_kinit_timeout', BaseAlert._DEFAULT_KINIT_TIMEOUT))
+    self.kinit_timeout = int(config.get('agent', 'alert_kinit_timeout', BaseAlert._DEFAULT_KINIT_TIMEOUT))
 
     if 'path' in alert_source_meta:
       self.path = alert_source_meta['path']
@@ -113,7 +112,7 @@ class ScriptAlert(BaseAlert):
 
       # try to get basedir for scripts
       # it's needed for server side scripts to properly use resource management
-      matchObj = ScriptAlert.PATH_TO_SCRIPT_REGEXP.match(self.path_to_script)
+      matchObj = re.match( r'((.*)services(.*)package)', self.path_to_script)
       if matchObj:
         basedir = matchObj.group(1)
         with Environment(basedir, tmp_dir=AGENT_TMP_DIR, logger=logging.getLogger('alerts')) as env:

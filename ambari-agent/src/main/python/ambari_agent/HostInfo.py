@@ -25,7 +25,7 @@ import pwd
 import re
 import shlex
 import socket
-from ambari_commons import subprocess32
+import subprocess
 import time
 
 from ambari_commons import OSCheck, OSConst
@@ -34,15 +34,14 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core import shell
 
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
-from AmbariConfig import AmbariConfig
+from .AmbariConfig import AmbariConfig
 from resource_management.core.resources.jcepolicyinfo import JcePolicyInfo
-import Hardware
+from . import Hardware
 
 logger = logging.getLogger()
 
 # service cmd
 SERVICE_CMD = "service"
-REDHAT7_SERVICE_CMD = "systemctl"
 
 
 class HostInfo(object):
@@ -108,7 +107,7 @@ class HostInfo(object):
             svcCheckResult['desc'] = err
         else:
           svcCheckResult['status'] = "Healthy"
-      except Exception, e:
+      except Exception as e:
         svcCheckResult['status'] = "Unhealthy"
         svcCheckResult['desc'] = repr(e)
       result.append(svcCheckResult)
@@ -193,13 +192,9 @@ class HostInfoLinux(HostInfo):
   DEFAULT_SERVICE_NAME = "ntpd"
   SERVICE_STATUS_CMD = "%s %s status" % (SERVICE_CMD, DEFAULT_SERVICE_NAME)
   SERVICE_STATUS_CMD_LIST = shlex.split(SERVICE_STATUS_CMD)
-  REDHAT7_SERVICE_STATUS_CMD = "%s status %s" % (REDHAT7_SERVICE_CMD, DEFAULT_SERVICE_NAME)
-  REDHAT7_SERVICE_STATUS_CMD_LIST = shlex.split(REDHAT7_SERVICE_STATUS_CMD)
 
   THP_FILE_REDHAT = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
   THP_FILE_UBUNTU = "/sys/kernel/mm/transparent_hugepage/enabled"
-
-  THP_REGEXP = re.compile("\[(.+)\]")
 
   def __init__(self, config=None):
     super(HostInfoLinux, self).__init__(config)
@@ -262,6 +257,7 @@ class HostInfoLinux(HostInfo):
             for filter in self.PROC_FILTER:
               if filter in cmd:
                 metrics['hadoop'] = True
+            metrics['command'] = str(cmd.strip(), errors='ignore')
             for line in open(os.path.join('/proc', pid, 'status')):
               if line.startswith('Uid:'):
                 uid = int(line.split()[1])
@@ -271,6 +267,7 @@ class HostInfoLinux(HostInfo):
       logger.exception("Checking java processes failed")
 
   def getTransparentHugePage(self):
+    thp_regex = "\[(.+)\]"
     file_name = None
     if OSCheck.is_ubuntu_family():
       file_name = self.THP_FILE_UBUNTU
@@ -280,7 +277,7 @@ class HostInfoLinux(HostInfo):
     if file_name and os.path.isfile(file_name):
       with open(file_name) as f:
         file_content = f.read()
-        return HostInfoLinux.THP_REGEXP.search(file_content).groups()[0]
+        return re.search(thp_regex, file_content).groups()[0]
     else:
       return ""
 
@@ -370,14 +367,10 @@ class HostInfoLinux(HostInfo):
     pass
 
   def getServiceStatus(self, service_name):
-    if OSCheck.is_redhat_family() and int(OSCheck.get_os_major_version()) >= 7:
-      service_check_live = list(self.REDHAT7_SERVICE_STATUS_CMD_LIST)
-      service_check_live[2] = service_name
-    else:
-      service_check_live = list(self.SERVICE_STATUS_CMD_LIST)
-      service_check_live[1] = service_name
+    service_check_live = list(self.SERVICE_STATUS_CMD_LIST)
+    service_check_live[1] = service_name
     try:
-      code, out, err = shell.call(service_check_live, stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = 5, quiet = True)
+      code, out, err = shell.call(service_check_live, stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = 5, quiet = True)
       return out, err, code
     except Exception as ex:
       logger.warn("Checking service {0} status failed".format(service_name))
@@ -398,7 +391,7 @@ class HostInfoWindows(HostInfo):
   def checkUsers(self, user_mask, results):
     get_users_cmd = ["powershell", '-noProfile', '-NonInteractive', '-nologo', "-Command", self.GET_USERS_CMD.format(user_mask)]
     try:
-      osStat = subprocess32.Popen(get_users_cmd, stdout=subprocess32.PIPE, stderr=subprocess32.PIPE)
+      osStat = subprocess.Popen(get_users_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       out, err = osStat.communicate()
     except:
       raise Exception("Failed to get users.")
@@ -483,7 +476,7 @@ def main(argv=None):
   h = HostInfo()
   struct = {}
   h.register(struct)
-  print struct
+  print(struct)
 
 
 if __name__ == '__main__':

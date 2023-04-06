@@ -18,7 +18,7 @@
 -- DROP DATABASE IF EXISTS `ambari`;
 -- DROP USER `ambari`;
 
-# delimiter ;
+delimiter ;
 
 # CREATE DATABASE `ambari` /*!40100 DEFAULT CHARACTER SET utf8 */;
 #
@@ -31,35 +31,17 @@
 set @version_short = substring_index(@@version, '.', 2);
 set @major = cast(substring_index(@version_short, '.', 1) as SIGNED);
 set @minor = cast(substring_index(@version_short, '.', -1) as SIGNED);
-set @engine_stmt = IF((@major >= 5 AND @minor>=6) or @major >= 8, 'SET default_storage_engine=INNODB', 'SET storage_engine=INNODB');
+set @engine_stmt = IF(@major >= 5 AND @minor>=6, 'SET default_storage_engine=INNODB', 'SET storage_engine=INNODB');
 prepare statement from @engine_stmt;
 execute statement;
 DEALLOCATE PREPARE statement;
 
-CREATE TABLE registries(
- id BIGINT NOT NULL,
- registy_name VARCHAR(255) NOT NULL,
- registry_type VARCHAR(255) NOT NULL,
- registry_uri VARCHAR(255) NOT NULL,
- CONSTRAINT PK_registries PRIMARY KEY (id));
-
-CREATE TABLE mpacks(
- id BIGINT NOT NULL,
- mpack_name VARCHAR(255) NOT NULL,
- mpack_version VARCHAR(255) NOT NULL,
- mpack_uri VARCHAR(255),
- registry_id BIGINT,
- CONSTRAINT PK_mpacks PRIMARY KEY (id),
- CONSTRAINT uni_mpack_name_version UNIQUE(mpack_name, mpack_version),
- CONSTRAINT FK_registries FOREIGN KEY (registry_id) REFERENCES registries(id));
 
 CREATE TABLE stack(
   stack_id BIGINT NOT NULL,
   stack_name VARCHAR(100) NOT NULL,
   stack_version VARCHAR(100) NOT NULL,
-  mpack_id BIGINT,
   CONSTRAINT PK_stack PRIMARY KEY (stack_id),
-  CONSTRAINT FK_mpacks FOREIGN KEY (mpack_id) REFERENCES mpacks(id),
   CONSTRAINT UQ_stack UNIQUE (stack_name, stack_version));
 
 CREATE TABLE extension(
@@ -125,7 +107,7 @@ CREATE TABLE clusterconfig (
 CREATE TABLE ambari_configuration (
   category_name VARCHAR(100) NOT NULL,
   property_name VARCHAR(100) NOT NULL,
-  property_value VARCHAR(4000) NOT NULL,
+  property_value VARCHAR(4000),
   CONSTRAINT PK_ambari_configuration PRIMARY KEY (category_name, property_name));
 
 CREATE TABLE serviceconfig (
@@ -357,7 +339,7 @@ CREATE TABLE user_authentication (
   CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id)
 );
 
-CREATE TABLE `groups` (
+CREATE TABLE groups (
   group_id INTEGER,
   principal_id BIGINT NOT NULL,
   group_name VARCHAR(255) NOT NULL,
@@ -372,7 +354,7 @@ CREATE TABLE members (
   group_id INTEGER NOT NULL,
   user_id INTEGER NOT NULL,
   CONSTRAINT PK_members PRIMARY KEY (member_id),
-  CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES `groups` (group_id),
+  CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES groups (group_id),
   CONSTRAINT FK_members_user_id FOREIGN KEY (user_id) REFERENCES users (user_id),
   CONSTRAINT UNQ_members_0 UNIQUE (group_id, user_id));
 
@@ -383,8 +365,6 @@ CREATE TABLE requestschedule (
   status varchar(255),
   batch_separation_seconds smallint,
   batch_toleration_limit smallint,
-  batch_toleration_limit_per_batch smallint,
-  pause_after_first_batch VARCHAR(1),
   authenticated_user_id INTEGER,
   create_user varchar(255),
   create_timestamp bigint,
@@ -906,7 +886,6 @@ CREATE TABLE upgrade (
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
   orchestration VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
-  upgrade_package_stack VARCHAR(255) NOT NULL,
   upgrade_type VARCHAR(32) NOT NULL,
   repo_version_id BIGINT NOT NULL,
   skip_failures TINYINT(1) NOT NULL DEFAULT 0,
@@ -1194,7 +1173,6 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('upgrade_group_id_seq', 0),
   ('upgrade_item_id_seq', 0),
   ('stack_id_seq', 0),
-  ('mpack_id_seq', 0),
   ('extension_id_seq', 0),
   ('link_id_seq', 0),
   ('widget_id_seq', 0),

@@ -34,8 +34,8 @@ def fix_subprocess_racecondition():
   !!! PLEASE NOTE THIS SHOULD BE CALLED BEFORE ANY OTHER INITIALIZATION was done to avoid already created links to subprocess or subprocess.gc or gc
   """
   # monkey patching subprocess
-  import subprocess
-  subprocess.gc.isenabled = lambda: True
+  import gc
+  gc.isenabled = lambda: True
 
   # re-importing gc to have correct isenabled for non-subprocess contexts
   import sys
@@ -56,7 +56,7 @@ def fix_subprocess_popen():
 
   if os.name == 'posix' and sys.version_info[0] < 3:
     from multiprocessing import forking
-    from ambari_commons import subprocess
+    import subprocess
     import threading
 
     sp_original_init = subprocess.Popen.__init__
@@ -87,8 +87,7 @@ import os
 import time
 import locale
 import platform
-import ConfigParser
-import signal
+import configparser
 import resource
 from logging.handlers import SysLogHandler
 import AmbariConfig
@@ -113,7 +112,6 @@ from ambari_agent.InitializerModule import InitializerModule
 
 logger = logging.getLogger()
 alerts_logger = logging.getLogger('alerts')
-alerts_logger_2 = logging.getLogger('ambari_alerts')
 alerts_logger_global = logging.getLogger('ambari_agent.alerts')
 apscheduler_logger = logging.getLogger('apscheduler')
 apscheduler_logger_global = logging.getLogger('ambari_agent.apscheduler')
@@ -154,7 +152,7 @@ def setup_logging(logger, filename, logging_level):
 
   logging.basicConfig(format=formatstr, level=logging_level, filename=filename)
   logger.setLevel(logging_level)
-  logger.info("loglevel=logging.{0}".format(logging._levelNames[logging_level]))
+  logger.info("loglevel=logging.{0}".format(logging._levelToName[logging_level]))
 
 GRACEFUL_STOP_TRIES = 300
 GRACEFUL_STOP_TRIES_SLEEP = 0.1
@@ -195,7 +193,7 @@ def update_log_level(config):
           logging.basicConfig(format=formatstr, level=logging.INFO, filename=AmbariConfig.AmbariConfig.getLogFile())
           logger.setLevel(logging.INFO)
           logger.debug("Newloglevel=logging.INFO")
-    except Exception, err:
+    except Exception as err:
       logger.info("Default loglevel=DEBUG")
 
 
@@ -214,7 +212,7 @@ def resolve_ambari_config():
     else:
       raise Exception("No config found at {0}, use default".format(configPath))
 
-  except Exception, err:
+  except Exception as err:
     logger.warn(err)
 
 def check_sudo():
@@ -250,7 +248,7 @@ def update_open_files_ulimit(config):
     try:
       resource.setrlimit(resource.RLIMIT_NOFILE, (soft_limit, open_files_ulimit))
       logger.info('open files ulimit = {0}'.format(open_files_ulimit))
-    except ValueError, err:
+    except ValueError as err:
       logger.error('Unable to set open files ulimit to {0}: {1}'.format(open_files_ulimit, str(err)))
       logger.info('open files ulimit = {0}'.format(hard_limit))
 
@@ -272,7 +270,7 @@ def perform_prestart_checks(expected_hostname):
       sys.exit(1)
   # Check if there is another instance running
   if os.path.isfile(agent_pidfile) and not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
-    print("%s already exists, exiting" % agent_pidfile)
+    print(("%s already exists, exiting" % agent_pidfile))
     sys.exit(1)
   # check if ambari prefix exists
   elif config.has_option('agent', 'prefix') and not os.path.isdir(os.path.abspath(config.get('agent', 'prefix'))):
@@ -292,7 +290,8 @@ def perform_prestart_checks(expected_hostname):
 
 def daemonize():
   pid = str(os.getpid())
-  file(agent_pidfile, 'w').write(pid)
+  with open(agent_pidfile,'w') as f:
+    f.write(pid)
 
 def stop_agent():
 # stop existing Ambari agent
@@ -312,7 +311,7 @@ def stop_agent():
       time.sleep(GRACEFUL_STOP_TRIES_SLEEP)
     logger.info("Agent not going to die gracefully, going to execute kill -9")
     raise Exception("Agent is running")
-  except Exception, err:
+  except Exception as err:
     #raise
     if pid == -1:
       print ("Agent process is not running")
@@ -328,27 +327,27 @@ def reset_agent(options):
   global home_dir
   try:
     # update agent config file
-    agent_config = ConfigParser.ConfigParser()
+    agent_config = configparser.ConfigParser()
     # TODO AMBARI-18733, calculate configFile based on home_dir
     agent_config.read(configFile)
     server_host = agent_config.get('server', 'hostname')
     new_host = options[2]
     if new_host is not None and server_host != new_host:
-      print "Updating server host from " + server_host + " to " + new_host
+      print("Updating server host from " + server_host + " to " + new_host)
       agent_config.set('server', 'hostname', new_host)
       with (open(configFile, "wb")) as new_agent_config:
         agent_config.write(new_agent_config)
 
     # clear agent certs
     agent_keysdir = agent_config.get('security', 'keysdir')
-    print "Removing Agent certificates..."
+    print("Removing Agent certificates...")
     for root, dirs, files in os.walk(agent_keysdir, topdown=False):
       for name in files:
         os.remove(os.path.join(root, name))
       for name in dirs:
         os.rmdir(os.path.join(root, name))
-  except Exception, err:
-    print("A problem occurred while trying to reset the agent: " + str(err))
+  except Exception as err:
+    print(("A problem occurred while trying to reset the agent: " + str(err)))
     sys.exit(1)
 
   sys.exit(0)
@@ -365,7 +364,7 @@ def run_threads(initializer_module):
   initializer_module.action_queue.start()
 
   while not initializer_module.stop_event.is_set():
-    signal.pause()
+    time.sleep(0.1)
 
   initializer_module.action_queue.interrupt()
 
@@ -398,7 +397,6 @@ def main(initializer_module, heartbeat_stop_callback=None):
   global is_logger_setup
   is_logger_setup = True
   setup_logging(alerts_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
-  setup_logging(alerts_logger_2, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   setup_logging(alerts_logger_global, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   setup_logging(apscheduler_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   setup_logging(apscheduler_logger_global, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
@@ -476,7 +474,7 @@ def main(initializer_module, heartbeat_stop_callback=None):
   stopped = False
 
   # Keep trying to connect to a server or bail out if ambari-agent was stopped
-  while not connected and not stopped and not initializer_module.stop_event.is_set():
+  while not connected and not stopped:
     for server_hostname in server_hostnames:
       server_url = config.get_api_url(server_hostname)
       try:

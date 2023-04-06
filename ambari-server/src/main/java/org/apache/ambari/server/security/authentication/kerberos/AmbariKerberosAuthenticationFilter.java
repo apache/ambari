@@ -102,13 +102,15 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
     setFailureHandler(new AuthenticationFailureHandler() {
       @Override
       public void onAuthenticationFailure(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationException e) throws IOException, ServletException {
-        AmbariAuthenticationException cause;
-        if (e instanceof AmbariAuthenticationException) {
-          cause = (AmbariAuthenticationException) e;
-        } else {
-          cause = new AmbariAuthenticationException(null, e.getLocalizedMessage(), false, e);
+        if (eventHandler != null) {
+          AmbariAuthenticationException cause;
+          if (e instanceof AmbariAuthenticationException) {
+            cause = (AmbariAuthenticationException) e;
+          } else {
+            cause = new AmbariAuthenticationException(null, e.getLocalizedMessage(), false, e);
+          }
+          eventHandler.onUnsuccessfulAuthentication(AmbariKerberosAuthenticationFilter.this, httpServletRequest, httpServletResponse, cause);
         }
-        eventHandler.onUnsuccessfulAuthentication(AmbariKerberosAuthenticationFilter.this, httpServletRequest, httpServletResponse, cause);
 
         entryPoint.commence(httpServletRequest, httpServletResponse, e);
       }
@@ -117,7 +119,9 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
     setSuccessHandler(new AuthenticationSuccessHandler() {
       @Override
       public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
-        eventHandler.onSuccessfulAuthentication(AmbariKerberosAuthenticationFilter.this, httpServletRequest, httpServletResponse, authentication);
+        if (eventHandler != null) {
+          eventHandler.onSuccessfulAuthentication(AmbariKerberosAuthenticationFilter.this, httpServletRequest, httpServletResponse, authentication);
+        }
       }
     });
   }

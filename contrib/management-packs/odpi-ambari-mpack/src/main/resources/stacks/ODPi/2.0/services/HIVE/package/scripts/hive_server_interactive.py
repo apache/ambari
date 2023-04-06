@@ -53,11 +53,11 @@ from resource_management.libraries.functions.security_commons import build_expec
   FILE_TYPE_XML
 
 # Local Imports
-from setup_ranger_hive import setup_ranger_hive
-from hive_service_interactive import hive_service_interactive
-from hive_interactive import hive_interactive
-from hive_server import HiveServerDefault
-from setup_ranger_hive_interactive import setup_ranger_hive_interactive
+from .setup_ranger_hive import setup_ranger_hive
+from .hive_service_interactive import hive_service_interactive
+from .hive_interactive import hive_interactive
+from .hive_server import HiveServerDefault
+from .setup_ranger_hive_interactive import setup_ranger_hive_interactive
 
 import traceback
 
@@ -72,17 +72,17 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       return "hive-server2-hive2"
 
     def install(self, env):
-      import params
+      from . import params
       self.install_packages(env)
 
     def configure(self, env):
-      import params
+      from . import params
       env.set_params(params)
       hive_interactive(name='hiveserver2')
 
     def pre_upgrade_restart(self, env, upgrade_type=None):
       Logger.info("Executing Hive Server Interactive Stack Upgrade pre-restart")
-      import params
+      from . import params
       env.set_params(params)
 
       if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
@@ -105,7 +105,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
           params.HdfsResource(None, action="execute")
 
     def start(self, env, upgrade_type=None):
-      import params
+      from . import params
       env.set_params(params)
       self.configure(env)
 
@@ -127,7 +127,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
 
     def stop(self, env, upgrade_type=None):
-      import params
+      from . import params
       env.set_params(params)
 
       if params.security_enabled:
@@ -139,7 +139,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       self._llap_stop(env)
 
     def status(self, env):
-      import status_params
+      from . import status_params
       env.set_params(status_params)
 
       # We are not doing 'llap' status check done here as part of status check for 'HSI', as 'llap' status
@@ -150,7 +150,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       check_process_status(pid_file)
 
     def security_status(self, env):
-      import status_params
+      from . import status_params
       env.set_params(status_params)
 
       if status_params.security_enabled:
@@ -215,7 +215,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       Custom command to Restart LLAP
       """
       Logger.info("Custom Command to retart LLAP")
-      import params
+      from . import params
       env.set_params(params)
 
       if params.security_enabled:
@@ -225,7 +225,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       self._llap_start(env)
 
     def _llap_stop(self, env):
-      import params
+      from . import params
       Logger.info("Stopping LLAP")
       SLIDER_APP_NAME = "llap0"
 
@@ -250,7 +250,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
     Controls the start of LLAP.
     """
     def _llap_start(self, env, cleanup=False):
-      import params
+      from . import params
       env.set_params(params)
       Logger.info("Starting LLAP")
       LLAP_PACKAGE_CREATION_PATH = Script.get_tmp_dir()
@@ -315,7 +315,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
             parent_dir = os.path.dirname(run_file_path)
             if os.path.isdir(parent_dir):
               shutil.rmtree(parent_dir)
-          except Exception, e:
+          except Exception as e:
             Logger.error("Could not cleanup LLAP app package. Error: " + str(e))
 
         # throw the original exception
@@ -325,7 +325,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
     Does kinit and copies keytab for Hive/LLAP to HDFS.
     """
     def setup_security(self):
-      import params
+      from . import params
 
       self.do_kinit()
 
@@ -334,7 +334,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       Execute(slider_keytab_install_cmd, user=params.hive_user)
 
     def do_kinit(self):
-      import params
+      from . import params
 
       hive_interactive_kinit_cmd = format("{kinit_path_local} -kt {params.hive_server2_keytab} {params.hive_principal}; ")
       Execute(hive_interactive_kinit_cmd, user=params.hive_user)
@@ -346,7 +346,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
     Get llap app status data.
     """
     def _get_llap_app_status_info(self, app_name):
-      import status_params
+      from . import status_params
       LLAP_APP_STATUS_CMD_TIMEOUT = 0
 
       llap_status_cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llapstatus --name {app_name} --findAppTimeout {LLAP_APP_STATUS_CMD_TIMEOUT}")
@@ -510,18 +510,18 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       try:
         status = do_retries()
         return status
-      except Exception, e:
+      except Exception as e:
         Logger.info("LLAP app '{0}' did not come up after a wait of {1} seconds.".format(llap_app_name,
                                                                                           time.time() - curr_time))
         traceback.print_exc()
         return False
 
     def get_log_folder(self):
-      import params
+      from . import params
       return params.hive_log_dir
 
     def get_user(self):
-      import params
+      from . import params
       return params.hive_user
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)

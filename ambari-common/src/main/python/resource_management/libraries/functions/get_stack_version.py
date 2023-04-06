@@ -75,7 +75,7 @@ def get_stack_version(package_name):
     command = 'ambari-python-wrap {stack_selector_path} status {package_name}'.format(
             stack_selector_path=stack_selector_path, package_name=package_name)
     return_code, stack_output = shell.call(command, timeout=20)
-  except Exception, e:
+  except Exception as e:
     Logger.error(str(e))
     raise Fail('Unable to execute ' + stack_selector_path + ' command to retrieve the version.')
 
@@ -85,7 +85,7 @@ def get_stack_version(package_name):
 
   stack_version = re.sub(package_name + ' - ', '', stack_output)
   stack_version = stack_version.rstrip()
-  match = re.match('[0-9]+.[0-9]+.[0-9]+', stack_version)
+  match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+(-[0-9]+)?', stack_version)
 
   if match is None:
     Logger.info('Failed to get extracted version with ' + stack_selector_path)

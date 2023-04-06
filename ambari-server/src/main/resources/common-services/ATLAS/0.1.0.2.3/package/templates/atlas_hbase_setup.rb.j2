@@ -1,0 +1,42 @@
+{#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+
+_tbl_titan = '{{atlas_graph_storage_hbase_table}}'
+_tbl_audit = '{{atlas_audit_hbase_tablename}}'
+_usr_atlas = '{{metadata_user}}'
+
+
+if not list.include? _tbl_titan
+  begin
+    create _tbl_titan,{NAME => 'e',DATA_BLOCK_ENCODING => 'FAST_DIFF', COMPRESSION =>'GZ', BLOOMFILTER =>'ROW'},{NAME => 'g',DATA_BLOCK_ENCODING => 'FAST_DIFF', COMPRESSION =>'GZ', BLOOMFILTER =>'ROW'},{NAME => 'i',DATA_BLOCK_ENCODING => 'FAST_DIFF', COMPRESSION =>'GZ', BLOOMFILTER =>'ROW'},{NAME => 's',DATA_BLOCK_ENCODING => 'FAST_DIFF', COMPRESSION =>'GZ', BLOOMFILTER =>'ROW'},{NAME => 'm',DATA_BLOCK_ENCODING => 'FAST_DIFF', COMPRESSION =>'GZ', BLOOMFILTER =>'ROW'},{NAME => 'l',DATA_BLOCK_ENCODING => 'FAST_DIFF', COMPRESSION =>'GZ', BLOOMFILTER =>'ROW', TTL => 604800, KEEP_DELETED_CELLS =>false}
+  rescue RuntimeError => e
+    raise e if not e.message.include? "Table already exists"
+  end
+end
+
+
+if not list.include? _tbl_audit
+  begin
+    create _tbl_audit, {NAME => 'dt', DATA_BLOCK_ENCODING => 'FAST_DIFF', COMPRESSION =>'GZ', BLOOMFILTER =>'ROW'}
+  rescue RuntimeError => e
+    raise e if not e.message.include? "Table already exists"
+  end
+end
+
+grant _usr_atlas, 'RWCA', _tbl_titan
+grant _usr_atlas, 'RWCA', _tbl_audit

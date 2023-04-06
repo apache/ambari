@@ -66,7 +66,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
-import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -99,7 +98,6 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -115,12 +113,14 @@ public class AmbariCustomCommandExecutionHelper {
       AmbariCustomCommandExecutionHelper.class);
 
   // TODO: Remove the hard-coded mapping when stack definition indicates which slave types can be decommissioned
-  static final Map<String, String> masterToSlaveMappingForDecom = ImmutableMap.<String, String>builder()
-    .put("NAMENODE", "DATANODE")
-    .put("RESOURCEMANAGER", "NODEMANAGER")
-    .put("HBASE_MASTER", "HBASE_REGIONSERVER")
-    .put("JOBTRACKER", "TASKTRACKER")
-    .build();
+  public static final Map<String, String> masterToSlaveMappingForDecom = new HashMap<>();
+
+  static {
+    masterToSlaveMappingForDecom.put("NAMENODE", "DATANODE");
+    masterToSlaveMappingForDecom.put("RESOURCEMANAGER", "NODEMANAGER");
+    masterToSlaveMappingForDecom.put("HBASE_MASTER", "HBASE_REGIONSERVER");
+    masterToSlaveMappingForDecom.put("JOBTRACKER", "TASKTRACKER");
+  }
 
   public final static String DECOM_INCLUDED_HOSTS = "included_hosts";
   public final static String DECOM_EXCLUDED_HOSTS = "excluded_hosts";
@@ -342,13 +342,26 @@ public class AmbariCustomCommandExecutionHelper {
           new ServiceComponentHostOpInProgressEvent(componentName, hostName, nowTimestamp),
           cluster.getClusterName(), serviceName, retryAllowed, autoSkipFailure);
 
+      Map<String, Map<String, String>> configurations =
+          new TreeMap<>();
+      Map<String, Map<String, Map<String, String>>> configurationAttributes =
+          new TreeMap<>();
+      Map<String, Map<String, String>> configTags = new TreeMap<>();
+
       ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
           componentName).getExecutionCommand();
 
       // if the command should fetch brand new configuration tags before
       // execution, then we don't need to fetch them now
-      if(actionExecutionContext.getParameters() != null && actionExecutionContext.getParameters().containsKey(KeyNames.OVERRIDE_CONFIGS)){
-        execCmd.setOverrideConfigs(true);
+      if(actionExecutionContext.getParameters() != null && actionExecutionContext.getParameters().containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)){
+        execCmd.setForceRefreshConfigTagsBeforeExecution(true);
+      }
+
+      // when building complex orchestration ahead of time (such as when
+      // performing ugprades), fetching configuration tags can take a very long
+      // time - if it's not needed, then don't do it
+      if (!execCmd.getForceRefreshConfigTagsBeforeExecution()) {
+        configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
       }
 
       HostRoleCommand cmd = stage.getHostRoleCommand(hostName, componentName);
@@ -368,7 +381,9 @@ public class AmbariCustomCommandExecutionHelper {
 
       execCmd.setComponentVersions(cluster);
 
-      execCmd.setConfigurations(new TreeMap<>());
+      execCmd.setConfigurations(configurations);
+      execCmd.setConfigurationAttributes(configurationAttributes);
+      execCmd.setConfigurationTags(configTags);
 
       // Get the value of credential store enabled from the DB
       Service clusterService = cluster.getService(serviceName);
@@ -451,8 +466,8 @@ public class AmbariCustomCommandExecutionHelper {
         commandTimeout = Math.max(60, commandTimeout);
       }
 
-      if (requestParams != null && requestParams.containsKey(RequestResourceProvider.CONTEXT)) {
-        String requestContext = requestParams.get(RequestResourceProvider.CONTEXT);
+      if (requestParams != null && requestParams.containsKey("context")) {
+        String requestContext = requestParams.get("context");
         if (StringUtils.isNotEmpty(requestContext) && requestContext.toLowerCase().contains("rolling-restart")) {
           Config clusterEnvConfig = cluster.getDesiredConfigByType("cluster-env");
           if (clusterEnvConfig != null) {
@@ -713,17 +728,29 @@ public class AmbariCustomCommandExecutionHelper {
     // [ type -> [ key, value ] ]
     Map<String, Map<String, String>> configurations =
         new TreeMap<>();
+    Map<String, Map<String, Map<String, String>>> configurationAttributes =
+        new TreeMap<>();
+    Map<String, Map<String, String>> configTags = new TreeMap<>();
 
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostname,
         smokeTestRole).getExecutionCommand();
 
     // if the command should fetch brand new configuration tags before
     // execution, then we don't need to fetch them now
-    if(actionParameters != null && actionParameters.containsKey(KeyNames.OVERRIDE_CONFIGS)){
-      execCmd.setOverrideConfigs(true);
+    if(actionParameters != null && actionParameters.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)){
+      execCmd.setForceRefreshConfigTagsBeforeExecution(true);
+    }
+
+    // when building complex orchestration ahead of time (such as when
+    // performing ugprades), fetching configuration tags can take a very long
+    // time - if it's not needed, then don't do it
+    if (!execCmd.getForceRefreshConfigTagsBeforeExecution()) {
+      configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostname);
     }
 
     execCmd.setConfigurations(configurations);
+    execCmd.setConfigurationAttributes(configurationAttributes);
+    execCmd.setConfigurationTags(configTags);
 
     // Generate localComponents
     for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostname)) {
@@ -1143,8 +1170,8 @@ public class AmbariCustomCommandExecutionHelper {
           extraParams.put(KeyNames.LOG_OUTPUT, requestParams.get(KeyNames.LOG_OUTPUT));
         }
 
-        if(requestParams.containsKey(KeyNames.OVERRIDE_CONFIGS)){
-          actionExecutionContext.getParameters().put(KeyNames.OVERRIDE_CONFIGS, requestParams.get(KeyNames.OVERRIDE_CONFIGS));
+        if(requestParams.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)){
+          actionExecutionContext.getParameters().put(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION, requestParams.get(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION));
         }
 
         RequestOperationLevel operationLevel = actionExecutionContext.getOperationLevel();
@@ -1216,6 +1243,10 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
+
+      if (null == stackId && null != cluster) {
+        stackId = cluster.getDesiredStackVersion();
+      }
     }
 
     String hostParamsStageJson = StageUtils.getGson().toJson(hostParamsStage);

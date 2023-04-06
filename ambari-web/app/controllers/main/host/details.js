@@ -2900,7 +2900,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (!Em.isNone(component)) {
       return App.showConfirmationPopup(function () {
         var message = Em.I18n.t('rollingrestart.context.ClientOnSelectedHost')
-            .format(component.get('displayName'), self.get('content.hostName'));
+        .format(component.get('displayName'), self.get('content.hostName'));
         batchUtils.restartHostComponents([component], message, "HOST");
       }, Em.I18n.t('question.sure.refresh').format(component.get('displayName'), self.get('content.hostName')));
     }
@@ -2913,7 +2913,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     message = Em.I18n.t('passiveState.turn' + state.toCapital() + 'For').format(event.context.get('displayName'));
     return App.showConfirmationPopup(function () {
       self.updateComponentPassiveState(event.context, state, message);
-    }, Em.I18n.t('question.sure.maintenance').format(state.toLowerCase(), event.context.get('displayName')) );
+    }, Em.I18n.t('question.sure.maintenance').format(event.context.get('displayName')) );
   },
 
   downloadClientConfigs: function (event) {
@@ -3023,10 +3023,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         break;
     }
     var component = App.StackServiceComponent.find(componentName);
-    const excludeExclusiveDependencies = (d) => d.type !== 'exclusive';
-    return component.missingDependencies(installedComponents, opt)
-    .filter(excludeExclusiveDependencies) //If type is "exclusive" the dependent component should never be co-hosted.
-    .map(function(componentDependency) {
+    return component.missingDependencies(installedComponents, opt).map(function(componentDependency) {
       return componentDependency.chooseCompatible();
     });
   },

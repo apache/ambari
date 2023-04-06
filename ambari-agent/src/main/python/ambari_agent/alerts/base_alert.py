@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 AlertUri = namedtuple('AlertUri', 'uri is_ssl_enabled')
 
 class BaseAlert(object):
-  CONFIG_KEY_REGEXP = re.compile('{{(\S+?)}}')
   # will force a kinit even if klist says there are valid tickets (4 hour default)
   _DEFAULT_KINIT_TIMEOUT = 14400000
 
@@ -53,7 +52,7 @@ class BaseAlert(object):
 
   def interval(self):
     """ gets the defined interval this check should run """
-    if not self.alert_meta.has_key('interval'):
+    if 'interval' not in self.alert_meta:
       return 1
     else:
       interval = self.alert_meta['interval']
@@ -109,7 +108,7 @@ class BaseAlert(object):
     """
     safe way to get a value when outputting result json.  will not throw an exception
     """
-    if self.alert_meta.has_key(meta_key):
+    if meta_key in self.alert_meta:
       return self.alert_meta[meta_key]
     else:
       return None
@@ -156,7 +155,7 @@ class BaseAlert(object):
     data = {}
     data['name'] = self._get_alert_meta_value_safely('name')
     data['clusterId'] = self.cluster_id
-    data['timestamp'] = long(time.time() * 1000)
+    data['timestamp'] = int(time.time() * 1000)
     data['definitionId'] = self.get_definition_id()
 
     try:
@@ -166,18 +165,18 @@ class BaseAlert(object):
       # flatten the array and then try formatting it
       try:
         data['text'] = res_base_text.format(*res[1])
-      except ValueError, value_error:
+      except ValueError as value_error:
         logger.warn("[Alert][{0}] - {1}".format(self.get_name(), str(value_error)))
 
         # if there is a ValueError, it's probably because the text doesn't match the type of
         # positional arguemtns (ie {0:d} with a float)
         res_base_text = res_base_text.replace("d}", "s}")
-        data_as_strings = map(str, res[1])
+        data_as_strings = list(map(str, res[1]))
         data['text'] = res_base_text.format(*data_as_strings)
 
       if logger.isEnabledFor(logging.DEBUG):
         logger.debug("[Alert][{0}] text = {1}".format(self.get_name(), data['text']))
-    except Exception, exception:
+    except Exception as exception:
       logger.exception("[Alert][{0}] - The alert's data is not properly formatted".format(self.get_name()))
 
       # if there's a problem with getting the data returned from collect() then mark this
@@ -186,7 +185,6 @@ class BaseAlert(object):
       data['text'] = "There is a problem with the alert definition: {0}".format(str(exception))
     finally:
       # put the alert into the collector so it can be collected on the next run
-      data['text'] = data['text'].replace('\x00', '')
       self.collector.put(self.cluster_name, data)
 
 
@@ -216,7 +214,7 @@ class BaseAlert(object):
     # parse {{foo-bar/baz}}/whatever/{{foobar-site/blah}}
     # into
     # ['foo-bar/baz', 'foobar-site/blah']
-    placeholder_keys = BaseAlert.CONFIG_KEY_REGEXP.findall(key)
+    placeholder_keys = re.findall("{{(\S+?)}}", key)
 
     # if none found, then return the original
     if placeholder_keys is None or len(placeholder_keys) == 0:
@@ -256,7 +254,7 @@ class BaseAlert(object):
 
     try:
       curr_dict = configurations
-      subdicts = filter(None, key.split('/'))
+      subdicts = [_f for _f in key.split('/') if _f]
 
       for layer_key in subdicts:
         curr_dict = curr_dict[layer_key]
@@ -447,7 +445,7 @@ class BaseAlert(object):
         return None
 
       # convert dfs.ha.namenodes.{{ha-nameservice}} into dfs.ha.namenodes.c1ha
-      ha_nameservices = filter(None, ha_nameservice.split(','))
+      ha_nameservices = [_f for _f in ha_nameservice.split(',') if _f]
 
       for nameservice in ha_nameservices:
         ha_alias_key_nameservice = ha_alias_key.replace(self.HA_NAMESERVICE_PARAM, nameservice)
@@ -488,7 +486,7 @@ class BaseAlert(object):
       return None
 
     # for each alias, grab it and check to see if this host matches
-    for nameservice, aliases in ha_nameservice_aliases.iteritems():
+    for nameservice, aliases in ha_nameservice_aliases.items():
       for alias in aliases.split(','):
 
         # convert dfs.namenode.http-address.{{ha-nameservice}}.{{alias}} into

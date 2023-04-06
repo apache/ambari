@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property>
+    <name>hbase.rootdir</name>
+    <display-name>HBase root directory</display-name>
+    <value>file:///C:/hadoop/hbase-ams</value>
+    <description>
+      Ambari Metrics service uses HBase as default storage backend. Set the rootdir for
+      HBase to either local filesystem path if using Ambari Metrics in embedded mode or
+      to a HDFS dir, example: hdfs://namenode.example.org:9000/hbase.  By
+      default HBase writes into /tmp. Change this configuration else all data
+      will be lost on machine restart.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase.tmp.dir</name>
+    <value>c:/hadoop/hbase-ams/hbase-tmp</value>
+    <description>
+      Temporary directory on the local filesystem.
+      Change this setting to point to a location more permanent
+      than '/tmp' (The '/tmp' directory is often cleared on
+      machine restart).
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

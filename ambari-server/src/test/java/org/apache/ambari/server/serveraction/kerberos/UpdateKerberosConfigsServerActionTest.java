@@ -25,21 +25,21 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.StreamSupport;
 
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
@@ -78,14 +78,14 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
       @Override
       protected void configure() {
         PartialNiceMockBinder.newBuilder(UpdateKerberosConfigsServerActionTest.this)
-            .addClustersBinding().addLdapBindings().build().configure(binder());
+            .addLdapBindings()
+            .addClustersBinding().build().configure(binder());
 
         bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(Clusters.class).to(ClustersImpl.class);
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(StackManagerFactory.class).toInstance(EasyMock.createNiceMock(StackManagerFactory.class));
-        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
         bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
       }
     });
@@ -118,8 +118,8 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
     executionCommand.setCommandParams(commandParams);
 
     ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    configHelper.updateBulkConfigType(anyObject(), anyObject(), anyObject(), anyObject(), anyObject(), anyObject(),
-      anyObject(), anyObject());
+    configHelper.updateConfigType(anyObject(Cluster.class), anyObject(StackId.class), anyObject(AmbariManagementController.class),
+        anyObject(String.class), EasyMock.anyObject(), EasyMock.anyObject(), anyObject(String.class), anyObject(String.class));
     expectLastCall().atLeastOnce();
 
     replayAll();
@@ -160,7 +160,6 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testUpdateConfigForceSecurityEnabled() throws Exception {
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put(KerberosServerAction.DATA_DIRECTORY, dataDir);
@@ -170,19 +169,10 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
 
     ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
 
-    Capture<Iterable<String>> configTypes = Capture.newInstance(CaptureType.ALL);
-    Capture<Map<String, Map<String, String>>> configUpdates = Capture.newInstance(CaptureType.ALL);
-
-    configHelper.updateBulkConfigType(
-      anyObject(),
-      anyObject(),
-      anyObject(),
-      capture(configTypes),
-      capture(configUpdates),
-      anyObject(),
-      anyObject(),
-      anyObject()
-    );
+    Capture<String> configTypes = Capture.newInstance(CaptureType.ALL);
+    Capture<Map<String, String>> configUpdates = Capture.newInstance(CaptureType.ALL);
+    configHelper.updateConfigType(anyObject(Cluster.class), anyObject(StackId.class), anyObject(AmbariManagementController.class),
+        capture(configTypes), capture(configUpdates), anyObject(Collection.class), anyObject(String.class), anyObject(String.class));
     expectLastCall().atLeastOnce();
 
     replayAll();
@@ -190,17 +180,15 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
     action.setExecutionCommand(executionCommand);
     action.execute(null);
 
-    assertTrue(StreamSupport.stream(configTypes.getValues().get(0).spliterator(), false).anyMatch(
-      config -> config.equals("cluster-env")
-    ));
-
-    assertTrue(
-      configUpdates.getValues().stream()
-      .flatMap(x -> x.values().stream())
-      .flatMap(x -> x.entrySet().stream())
-      .anyMatch(property -> property.getKey().equals("security_enabled"))
-    );
-
+    assertTrue(configTypes.getValues().contains("cluster-env"));
+    boolean containsSecurityEnabled = false;
+    for(Map<String, String> properties: configUpdates.getValues()) {
+      if(properties.containsKey("security_enabled")) {
+        containsSecurityEnabled = true;
+        break;
+      }
+    }
+    assertTrue(containsSecurityEnabled);
     verifyAll();
   }
 

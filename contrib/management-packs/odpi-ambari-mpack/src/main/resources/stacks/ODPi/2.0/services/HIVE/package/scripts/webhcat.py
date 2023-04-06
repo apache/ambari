@@ -32,7 +32,7 @@ from ambari_commons.constants import SERVICE
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def webhcat():
-  import params
+  from . import params
   XmlConfig("webhcat-site.xml",
             conf_dir=params.hcat_config_dir,
             configurations=params.config['configurations']['webhcat-site']
@@ -46,17 +46,17 @@ def webhcat():
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def webhcat():
-  import params
+  from . import params
 
   Directory(params.templeton_pid_dir,
             owner=params.webhcat_user,
-            mode=0755,
+            mode=0o755,
             group=params.user_group,
             create_parents = True)
 
   Directory(params.templeton_log_dir,
             owner=params.webhcat_user,
-            mode=0755,
+            mode=0o755,
             group=params.user_group,
             create_parents = True)
 
@@ -125,14 +125,14 @@ def webhcat():
   log4j_webhcat_filename = 'webhcat-log4j.properties'
   if (params.log4j_webhcat_props != None):
     File(format("{config_dir}/{log4j_webhcat_filename}"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.webhcat_user,
          content=params.log4j_webhcat_props
     )
   elif (os.path.exists("{config_dir}/{log4j_webhcat_filename}.template")):
     File(format("{config_dir}/{log4j_webhcat_filename}"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.webhcat_user,
          content=StaticFile(format("{config_dir}/{log4j_webhcat_filename}.template"))

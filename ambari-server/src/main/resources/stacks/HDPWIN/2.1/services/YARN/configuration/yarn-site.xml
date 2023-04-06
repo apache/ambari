@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!-- Put site-specific property overrides in this file. -->
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
+  <property>
+    <name>yarn.nodemanager.pmem-check-enabled</name>
+    <value>true</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.vmem-check-enabled</name>
+    <value>true</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- NodeManager -->
+  <property>
+    <name>yarn.nodemanager.webapp.address</name>
+    <value>0.0.0.0:50060</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.generic-application-history.store-class</name>
+    <value>org.apache.hadoop.yarn.server.applicationhistoryservice.FileSystemApplicationHistoryStore</value>
+    <description>Store class name for history store, defaulting to file system store</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- Use a directory that is set up on HDFS to store generic history -->
+  <property>
+    <name>yarn.timeline-service.generic-application-history.fs-history-store.uri</name>
+    <value>/yarn/generic-history/</value>
+    <description>URI pointing to the location of the FileSystem path where the history will be persisted. This must be
+      supplied when using org.apache.hadoop.yarn.server.applicationhistoryservice.FileSystemApplicationHistoryStore as
+      the value for yarn.timeline-service.generic-application-history.store-class
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.generic-application-history.fs-history-store.compression-type</name>
+    <value>none</value>
+    <description>T-file compression types used to compress history data.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.generic-application-history.enabled</name>
+    <value>false</value>
+    <description>Indicate to ResourceManager as well as clients whether
+      history-service is enabled or not. If enabled, ResourceManager starts
+      recording historical data that ApplicationHistory service can consume.
+      Similarly, clients can redirect to the history service when applications
+      finish if this is enabled.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.enabled</name>
+    <value>false</value>
+    <description>Indicate to clients whether timeline service is enabled or not.
+      If enabled, clients will put entities and events to the timeline server.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.local-dirs</name>
+    <display-name>YARN NodeManager Local directories</display-name>
+    <value>c:\hadoop\temp\local\hadoop-yarn</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.webapp.https.address</name>
+    <value>localhost:8088</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.log-dirs</name>
+    <display-name>YARN NodeManager Log directories</display-name>
+    <value>c:\hadoop\logs\hadoop-yarn</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.hostname</name>
+    <value>localhost</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

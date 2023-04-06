@@ -1,0 +1,7 @@
+{
+  "general_deps" : {
+    "_comment" : "dependencies for Superset",
+    "SUPERSET-START" : ["DRUID_COORDINATOR-START", "DRUID_BROKER-START"],
+    "SUPERSET_SERVICE_CHECK-SERVICE_CHECK" : ["SUPERSET-START"]
+  }
+}

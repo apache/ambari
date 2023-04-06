@@ -40,27 +40,20 @@ public class LdapSyncSpecEntity {
    */
   private List<String> principalNames;
 
-  /**
-   * A Boolean value indicating whether to (re)exectue the post user creation hook on previously
-   * existing users (if the post user creation hook feature has been enabled)
-   */
-  private boolean postProcessExistingUsers;
 
   // ----- Constructors ------------------------------------------------------
 
   /**
    * Construct an LdapSyncSpecEntity.
    *
-   * @param principalType            the principal type
-   * @param syncType                 the sync type
-   * @param principalNames           the list of principal names; may not be null
-   * @param postProcessExistingUsers true, to process existing users; false, otherwise
+   * @param principalType   the principal type
+   * @param syncType        the sync type
+   * @param principalNames  the list of principal names; may not be null
    */
-  public LdapSyncSpecEntity(PrincipalType principalType, SyncType syncType, List<String> principalNames, boolean postProcessExistingUsers) {
+  public LdapSyncSpecEntity(PrincipalType principalType, SyncType syncType, List<String> principalNames) {
     this.principalType  = principalType;
     this.syncType       = syncType;
     this.principalNames = principalNames;
-    this.postProcessExistingUsers = postProcessExistingUsers;
 
     assert principalNames != null;
 
@@ -103,16 +96,6 @@ public class LdapSyncSpecEntity {
    */
   public List<String> getPrincipalNames() {
     return principalNames;
-  }
-
-  /**
-   * Gets whether to execute the post user creation hook on previously existing users
-   * (if the post user creation hook feature has been enabled), on not.
-   *
-   * @return true, to process existing users; false, otherwise
-   */
-  public boolean getPostProcessExistingUsers() {
-    return postProcessExistingUsers;
   }
 
 

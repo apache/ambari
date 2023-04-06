@@ -22,7 +22,7 @@ __all__ = ["select", "create", "get_hadoop_conf_dir", "get_hadoop_dir", "get_pac
 
 # Python Imports
 import os
-from ambari_commons import subprocess32
+import subprocess
 import ambari_simplejson as json
 
 # Local Imports
@@ -44,7 +44,7 @@ from resource_management.libraries.functions import StackFeature
 
 def _get_cmd(command, package, version):
   conf_selector_path = stack_tools.get_stack_tool_path(stack_tools.CONF_SELECTOR_NAME)
-  return ('ambari-python-wrap', conf_selector_path, command, '--package', package, '--stack-version', version)
+  return ('ambari-python-wrap', conf_selector_path, command, '--package', package, '--stack-version', version, '--conf-version', '0')
 
 def _valid(stack_name, package, ver):
   return (ver and check_stack_feature(StackFeature.CONFIG_VERSIONING, ver))
@@ -77,7 +77,7 @@ def get_package_dirs():
   package_dirs = data[conf_select_key]
 
   stack_root = Script.get_stack_root()
-  for package_name, directories in package_dirs.iteritems():
+  for package_name, directories in package_dirs.items():
     for dir in directories:
       current_dir = dir['current_dir']
       current_dir =  current_dir.format(stack_root)
@@ -107,7 +107,7 @@ def create(stack_name, package, version, dry_run = False):
 
   command = "dry-run-create" if dry_run else "create-conf-dir"
 
-  code, stdout, stderr = shell.call(_get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True, stderr = subprocess32.PIPE)
+  code, stdout, stderr = shell.call(_get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True, stderr = subprocess.PIPE)
 
   # <conf-selector-tool> can set more than one directory
   # per package, so return that list, especially for dry_run
@@ -123,7 +123,7 @@ def create(stack_name, package, version, dry_run = False):
   if not code and stdout and not dry_run:
     # take care of permissions if directories were created
     for directory in created_directories:
-      Directory(directory, mode=0755, cd_access='a', create_parents=True)
+      Directory(directory, mode=0o755, cd_access='a', create_parents=True)
 
     # seed the new directories with configurations from the old (current) directories
     _seed_new_configuration_directories(package, created_directories)
@@ -147,7 +147,7 @@ def select(stack_name, package, version, ignore_errors=False):
 
     create(stack_name, package, version)
     shell.checked_call(_get_cmd("set-conf-dir", package, version), logoutput=False, quiet=False, sudo=True)
-  except Exception, exception:
+  except Exception as exception:
     if ignore_errors is True:
       Logger.warning("Could not select the directory for package {0}. Error: {1}".format(package,
         str(exception)))
@@ -162,8 +162,21 @@ def get_hadoop_conf_dir():
   directory including the component's version is tried first, but if that doesn't exist,
   this will fallback to using "current".
   """
+  stack_root = Script.get_stack_root()
+  stack_version = Script.get_stack_version()
+
   hadoop_conf_dir = os.path.join(os.path.sep, "etc", "hadoop", "conf")
-  Logger.info("Using hadoop conf dir: {0}".format(hadoop_conf_dir))
+  if check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version):
+    # read the desired version from the component map and use that for building the hadoop home
+    version = component_version.get_component_repository_version()
+    if version is None:
+      version = default("/commandParams/version", None)
+
+    hadoop_conf_dir = os.path.join(stack_root, str(version), "hadoop", "conf")
+    if version is None or sudo.path_isdir(hadoop_conf_dir) is False:
+      hadoop_conf_dir = os.path.join(stack_root, "current", "hadoop-client", "conf")
+
+    Logger.info("Using hadoop conf dir: {0}".format(hadoop_conf_dir))
 
   return hadoop_conf_dir
 
@@ -284,7 +297,7 @@ def convert_conf_directories_to_symlinks(package, version, dirs):
           # Normal path for other packages
           Link(old_conf, to = current_dir)
 
-    except Exception, e:
+    except Exception as e:
       Logger.warning("Could not change symlink for package {0} to point to current directory. Error: {1}".format(package, e))
 
 
@@ -308,7 +321,7 @@ def get_restricted_packages():
   service_names = []
 
   # pick out the services that are targeted
-  for servicename, servicedetail in cluster_version_summary.iteritems():
+  for servicename, servicedetail in cluster_version_summary.items():
     if servicedetail['upgrade']:
       service_names.append(servicename)
 
@@ -395,7 +408,7 @@ def _seed_new_configuration_directories(package, created_directories):
             target_seed_directory = created_directory
             _copy_configurations(source_seed_directory, target_seed_directory)
 
-  except Exception, e:
+  except Exception as e:
     Logger.warning("Unable to seed new configuration directories for {0}. {1}".format(package, str(e)))
 
 

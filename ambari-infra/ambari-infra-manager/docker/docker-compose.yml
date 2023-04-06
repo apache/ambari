@@ -1,0 +1,110 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+version: '3.3'
+services:
+  zookeeper:
+    container_name: zookeeper
+    image: zookeeper:${ZOOKEEPER_VERSION:-3.4.10}
+    restart: always
+    hostname: zookeeper
+    networks:
+      - infra-network
+    ports:
+      - 2181:2181
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zookeeper:2888:3888
+  solr:
+#  TODO: use infra-solr
+    image: solr:${SOLR_VERSION:-7.7.0}
+    container_name: solr
+    restart: always
+    hostname: solr
+    ports:
+      - "8983:8983"
+    networks:
+      - infra-network
+    env_file:
+      - Profile
+    entrypoint:
+      - docker-entrypoint.sh
+      - solr
+      - start
+      - "-f"
+      - "-c"
+      - "-z"
+      - ${ZOOKEEPER_CONNECTION_STRING}
+    volumes:
+      - $AMBARI_INFRA_LOCATION/ambari-infra-manager/docker/configsets:/opt/solr/configsets
+  fakes3:
+    container_name: fakes3
+    image: localstack/localstack
+    hostname: fakes3
+    ports:
+      - "4569:4569"
+    environment:
+      - SERVICES=s3:4569
+      - DEBUG=s3
+    networks:
+      infra-network:
+        aliases:
+          - testbucket.fakes3
+    env_file:
+      - Profile
+  namenode:
+    container_name: hdfs_namenode
+    image: flokkr/hadoop-hdfs-namenode:${HADOOP_VERSION:-3.0.0}
+    hostname: namenode
+    ports:
+      - 9870:9870
+      - 9000:9000
+    env_file:
+      - Profile
+    environment:
+      ENSURE_NAMENODE_DIR: "/tmp/hadoop-hdfs/dfs/name"
+    networks:
+      - infra-network
+  datanode:
+    container_name: hdfs_datanode
+    image: flokkr/hadoop-hdfs-datanode:${HADOOP_VERSION:-3.0.0}
+    links:
+      - namenode
+    env_file:
+      - Profile
+    networks:
+      - infra-network
+  inframanager:
+    container_name: infra_manager
+    image: ambari-infra-manager:v1.0
+    restart: always
+    hostname: infra-manager.apache.org
+    networks:
+      - infra-network
+    env_file:
+      - Profile
+    ports:
+      - 61890:61890
+      - 5007:5007
+    environment:
+      COMPONENT: infra_manager
+      COMPONENT_LOG: infra_manager
+      ZK_CONNECT_STRING: ${ZOOKEEPER_CONNECTION_STRING}
+      DISPLAY: $DOCKERIP:0
+    volumes:
+      - $AMBARI_INFRA_LOCATION/ambari-infra-manager/target/package:/root/ambari-infra-manager
+      - $AMBARI_INFRA_LOCATION/ambari-infra-manager/docker/test-out:/root/archive
+networks:
+  infra-network:
+    driver: bridge

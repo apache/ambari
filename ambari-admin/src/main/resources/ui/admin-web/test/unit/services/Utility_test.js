@@ -24,7 +24,7 @@ describe('Utility Service', function () {
     };
 
   beforeEach(function () {
-    module('ambariAdminConsole', function ($provide, $routeProvider) {
+    module('ambariAdminConsole', function ($provide) {
       $provide.value('$window', {
         localStorage: {
           getItem: function() {return '{}';},
@@ -32,13 +32,12 @@ describe('Utility Service', function () {
         },
         location: {}
       });
-      $routeProvider.otherwise(function(){return false;});
     });
     inject(function (_Utility_, _$httpBackend_, $rootScope, $controller, _Cluster_, _$q_) {
       Utility = _Utility_;
       httpBackend = _$httpBackend_;
       deferred = _$q_.defer();
-      spyOn(_Cluster_, 'getStatus').and.returnValue(deferred.promise);
+      spyOn(_Cluster_, 'getStatus').andReturn(deferred.promise);
       deferred.resolve({
         Clusters: {
           provisioning_state: 'INIT'
@@ -82,7 +81,7 @@ describe('Utility Service', function () {
     });
 
     it('should pass the received value', function () {
-      expect(mock.callback.calls.mostRecent().args[0].data).toEqual(obj);
+      expect(mock.callback.mostRecentCall.args[0].data).toEqual(obj);
     });
 
   });
@@ -145,11 +144,11 @@ describe('Utility Service', function () {
         });
 
         it('success callback', function () {
-          expect(mock.successCallback.calls.count()).toEqual(item.successCallbackCallCount);
+          expect(mock.successCallback.callCount).toEqual(item.successCallbackCallCount);
         });
 
         it('error callback', function () {
-          expect(mock.errorCallback.calls.count()).toEqual(item.errorCallbackCallCount);
+          expect(mock.errorCallback.callCount).toEqual(item.errorCallbackCallCount);
         });
 
       });

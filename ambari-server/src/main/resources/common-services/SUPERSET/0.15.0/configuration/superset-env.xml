@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<configuration>
+  <property>
+    <name>superset_log_dir</name>
+    <value>/var/log/superset</value>
+    <display-name>Superset log dir</display-name>
+    <description>Superset log directory.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>superset_pid_dir</name>
+    <value>/var/run/superset</value>
+    <display-name>Superset pid dir</display-name>
+    <description>Superset pid directory.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>superset_admin_user</name>
+    <value>admin</value>
+    <display-name>Superset Admin Username</display-name>
+    <description>
+      Superset Username. This value cannot be modified by Ambari
+      except on initial install. Please make sure the username change in
+      Superset is reflected in Ambari.
+    </description>
+    <value-attributes>
+      <type>db_user</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property require-input="true">
+    <name>superset_admin_password</name>
+    <value/>
+    <property-type>PASSWORD</property-type>
+    <display-name>Superset Admin Password</display-name>
+    <description>
+      Superset password. This value cannot be modified by Ambari
+      except on initial install. Please make sure the password change in
+      Superset is reflected back in Ambari.
+    </description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>password</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>superset_admin_firstname</name>
+    <value></value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>superset_admin_lastname</name>
+    <value></value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>superset_admin_email</name>
+    <value></value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>superset_user</name>
+    <display-name>Superset User</display-name>
+    <value>superset</value>
+    <property-type>USER</property-type>
+    <description></description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>content</name>
+    <display-name>superset-env template</display-name>
+    <value>
+      # Set environment variables here.
+      
+      export LC_ALL=en_US.UTF-8
+      export LANG=en_US.UTF-8
+
+      # Superset Home Dir
+      export SUPERSET_CONFIG_DIR={{superset_config_dir}}
+
+      # Superset Log Dir
+      export SUPERSET_LOG_DIR={{superset_log_dir}}
+
+      # Superset Log Dir
+      export SUPERSET_BIN_DIR={{superset_bin_dir}}
+
+      # Superset PID Dir
+      export SUPERSET_PID_DIR={{superset_pid_dir}}
+
+      # Add superset_config.py to PYTHONPATH
+      export PYTHONPATH=$PYTHONPATH:{{superset_config_dir}}
+
+      export SUPERSET_WEBSERVER_PORT={{superset_webserver_port}}
+      export SUPERSET_WEBSERVER_ADDRESS={{superset_webserver_address}}
+      export SUPERSET_TIMEOUT={{superset_timeout}}
+      export SUPERSET_WORKERS={{superset_workers}}
+    </value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

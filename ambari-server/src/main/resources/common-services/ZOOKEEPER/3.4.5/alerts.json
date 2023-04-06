@@ -1,0 +1,78 @@
+{
+  "ZOOKEEPER": {
+    "service": [
+      {
+        "name": "zookeeper_server_process_percent",
+        "label": "Percent ZooKeeper Servers Available",
+        "description": "This alert is triggered if the number of down ZooKeeper servers in the cluster is greater than the configured critical threshold. It aggregates the results of ZooKeeper process checks.",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "zookeeper_server_process",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 35
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 70
+            },
+            "units" : "%",
+            "type": "PERCENT"
+          }
+        }
+      }  
+    ],
+    "ZOOKEEPER_SERVER": [
+      {
+        "name": "zookeeper_server_process",
+        "label": "ZooKeeper Server Process",
+        "description": "This host-level alert is triggered if the ZooKeeper server process cannot be determined to be up and listening on the network.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "PORT",
+          "uri": "{{zoo.cfg/clientPort}}",
+          "default_port": 2181,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          },
+          "parameters": [
+            {
+              "name": "socket.command",
+              "display_name": "Socket Command",
+              "value": "ruok",
+              "description": "A socket command which queries ZooKeeper to respond with its state. The expected response is imok.",
+              "type": "STRING",
+              "visibility": "HIDDEN"
+            },
+            {
+              "name": "socket.command.response",
+              "display_name": "Expected Response",
+              "value": "imok",
+              "description": "The expected response to the socket command.",
+              "type": "STRING",
+              "visibility": "HIDDEN"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

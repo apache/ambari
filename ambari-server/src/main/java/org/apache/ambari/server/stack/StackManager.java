@@ -73,7 +73,7 @@ public class StackManager {
    *  HDP/2.0.6/HDFS
    *  common-services/HDFS/2.1.0.2.0
    */
-  public static final String PATH_DELIMITER = "/";
+  public static String PATH_DELIMITER = "/";
 
   /**
    * Prefix used for common services parent path string
@@ -115,7 +115,7 @@ public class StackManager {
   /**
    * Constructor. Initialize stack manager.
    *
-   * @param stackRootDir
+   * @param stackRoot
    *          stack root directory
    * @param commonServicesRoot
    *          common services root directory
@@ -563,7 +563,7 @@ public class StackManager {
   private Map<String, ServiceModule> parseCommonServicesDirectory(File commonServicesRoot) throws AmbariException {
     Map<String, ServiceModule> commonServiceModules = new HashMap<>();
 
-    if(commonServicesRoot != null) {
+    if(commonServicesRoot != null && commonServicesRoot.exists()) {
       File[] commonServiceFiles = commonServicesRoot.listFiles(StackDirectory.FILENAME_FILTER);
       for (File commonService : commonServiceFiles) {
         if (commonService.isFile()) {
@@ -675,10 +675,5 @@ public class StackManager {
           "extensionRoot = " + extensionRoot.getAbsolutePath());
     }
     return extensionModules;
-  }
-
-  public void removeStack(StackEntity stackEntity) {
-    String stackKey = stackEntity.getStackName() + StackManager.PATH_DELIMITER +  stackEntity.getStackVersion();
-    stackMap.remove(stackKey);
   }
 }

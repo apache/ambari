@@ -20,11 +20,11 @@
   <div class="navigation-bar-container">
     <ul class="side-nav-header nav nav-pills nav-stacked">
       <li class="navigation-header active">
-        <a href="{{fromSiteRoot('/#!/main/dashboard')}}" class="ambari-logo">
+        <a href="{{fromSiteRoot('/#/main/dashboard')}}" class="ambari-logo">
           <img src="{{fromSiteRoot('/img/ambari-logo.png')}}" alt="{{'common.apacheAmbari' | translate}}" title="{{'common.apacheAmbari' | translate}}" data-qa="ambari-logo">
         </a>
         <div class="btn-group">
-          <a href="{{fromSiteRoot('/#!/main/dashboard')}}" class="ambari-header-link" title="{{'common.apacheAmbari' | translate}}" data-qa="ambari-title">
+          <a href="{{fromSiteRoot('/#/main/dashboard')}}" class="ambari-header-link" title="{{'common.apacheAmbari' | translate}}" data-qa="ambari-title">
             <span class="ambari-header">
               {{'common.ambari' | translate}}
             </span>
@@ -34,7 +34,7 @@
     </ul>
     <ul class="nav side-nav-menu nav-pills nav-stacked">
       <li class="mainmenu-li active" ng-show="cluster.Clusters.provisioning_state === 'INSTALLED'">
-        <a title="{{'common.dashboard' | translate}}" rel="tooltip" data-placement="right" href="{{fromSiteRoot('/#!/main/dashboard')}}" class="gotodashboard">
+        <a title="{{'common.dashboard' | translate}}" rel="tooltip" data-placement="right" href="{{fromSiteRoot('/#/dashboard')}}" class="gotodashboard">
           <i class="navigation-icon fa fa-tachometer" aria-hidden="true"></i>
           <span class="navigation-menu-item">{{'common.dashboard' | translate}}</span>
         </a>

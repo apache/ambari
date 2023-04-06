@@ -1,0 +1,139 @@
+{
+  "services": [
+    {
+      "name": "STORM",
+      "identities": [
+        {
+          "name": "storm_spnego",
+          "reference": "/spnego"
+        },
+        {
+          "name": "storm_smokeuser",
+          "reference": "/smokeuser"
+        },
+        {
+          "name": "storm_components",
+          "principal": {
+            "value": "${storm-env/storm_user}${principal_suffix}@${realm}",
+            "type": "user",
+            "configuration": "storm-env/storm_principal_name"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/storm.headless.keytab",
+            "owner": {
+              "name": "${storm-env/storm_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "storm-env/storm_keytab"
+          }
+        },
+        {
+          "name": "storm_storm_components",
+          "reference": "/STORM/storm_components",
+          "principal": {
+            "configuration": "storm-atlas-application.properties/atlas.jaas.KafkaClient.option.principal"
+          },
+          "keytab": {
+            "configuration": "storm-atlas-application.properties/atlas.jaas.KafkaClient.option.keyTab"
+          }
+        }
+      ],
+      "configurations": [
+        {
+          "storm-site": {
+            "nimbus.authorizer": "org.apache.storm.security.auth.authorizer.SimpleACLAuthorizer",
+            "drpc.authorizer": "org.apache.storm.security.auth.authorizer.DRPCSimpleACLAuthorizer",
+            "ui.filter": "org.apache.hadoop.security.authentication.server.AuthenticationFilter",
+            "storm.principal.tolocal": "org.apache.storm.security.auth.KerberosPrincipalToLocal",
+            "supervisor.enable": "true",
+            "storm.zookeeper.superACL": "sasl:{{storm_bare_jaas_principal}}",
+            "java.security.auth.login.config": "{{conf_dir}}/storm_jaas.conf",
+            "nimbus.impersonation.authorizer": "org.apache.storm.security.auth.authorizer.ImpersonationAuthorizer",
+            "nimbus.impersonation.acl": "{ {{storm_bare_jaas_principal}} : {hosts: ['*'], groups: ['*']}}",
+            "nimbus.admins": "['{{storm_bare_jaas_principal}}', '{{ambari_bare_jaas_principal}}']",
+            "nimbus.supervisor.users": "['{{storm_bare_jaas_principal}}']",
+            "ui.filter.params": "{'type': 'kerberos', 'kerberos.principal': '{{storm_ui_jaas_principal}}', 'kerberos.keytab': '{{storm_ui_keytab_path}}', 'kerberos.name.rules': 'DEFAULT'}"
+          }
+        },
+        {
+          "ranger-storm-audit": {
+            "xasecure.audit.jaas.Client.loginModuleName": "com.sun.security.auth.module.Krb5LoginModule",
+            "xasecure.audit.jaas.Client.loginModuleControlFlag": "required",
+            "xasecure.audit.jaas.Client.option.useKeyTab": "true",
+            "xasecure.audit.jaas.Client.option.storeKey": "false",
+            "xasecure.audit.jaas.Client.option.serviceName": "solr",
+            "xasecure.audit.destination.solr.force.use.inmemory.jaas.config": "true"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "STORM_UI_SERVER",
+          "identities": [
+            {
+              "name": "storm_storm_ui_server_spnego",
+              "reference": "/spnego",
+              "principal": {
+                "configuration": "storm-env/storm_ui_principal_name"
+              },
+              "keytab": {
+                "configuration": "storm-env/storm_ui_keytab"
+              }
+            }
+          ]
+        },
+        {
+          "name": "NIMBUS",
+          "identities": [
+            {
+              "name": "nimbus_server",
+              "principal": {
+                "value": "nimbus/_HOST@${realm}",
+                "type": "service",
+                "configuration": "storm-env/nimbus_principal_name"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/nimbus.service.keytab",
+                "owner": {
+                  "name": "${storm-env/storm_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "storm-env/nimbus_keytab"
+              }
+            },
+            {
+              "name": "storm_numbus_storm_components",
+              "reference": "/STORM/storm_components",
+              "principal": {
+                "configuration": "ranger-storm-audit/xasecure.audit.jaas.Client.option.principal"
+              },
+              "keytab": {
+                "configuration": "ranger-storm-audit/xasecure.audit.jaas.Client.option.keyTab"
+              }
+            }
+          ]
+        },
+        {
+          "name": "DRPC_SERVER",
+          "identities": [
+            {
+              "name": "drpc_server",
+              "reference": "/STORM/NIMBUS/nimbus_server"
+            }
+          ]
+        },
+        {
+          "name" : "SUPERVISOR"
+        }
+      ]
+    }
+  ]
+}

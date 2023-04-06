@@ -503,9 +503,8 @@ App.QueueController = Ember.ObjectController.extend({
 
     queue.set('name',name);
 
-    //new queue name has to be unique  
     foundWithName = this.store.all('queue').find(function (q) {
-      return q.get('name') === queue.get('name') && q.get('path') != queue.get('path');
+      return q.get('path') === [queue.get('parentPath'),queue.get('name')].join('.');
     });
 
     if (!Em.isEmpty(foundWithName) && queue.changedAttributes().hasOwnProperty('name')) {

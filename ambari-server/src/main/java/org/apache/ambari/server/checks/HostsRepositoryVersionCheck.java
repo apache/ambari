@@ -21,24 +21,19 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.spi.RepositoryVersion;
-import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
-import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
-import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
-import org.apache.ambari.spi.upgrade.UpgradeCheckType;
-import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 
 /**
@@ -48,31 +43,21 @@ import com.google.inject.Singleton;
  * orchstration, so no warning is required.
  */
 @Singleton
-@UpgradeCheckInfo(
+@UpgradeCheck(
     group = UpgradeCheckGroup.REPOSITORY_VERSION,
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
-public class HostsRepositoryVersionCheck extends ClusterCheck {
-
-  static final UpgradeCheckDescription HOSTS_REPOSITORY_VERSION = new UpgradeCheckDescription("HOSTS_REPOSITORY_VERSION",
-      UpgradeCheckType.HOST,
-      "All hosts should have target version installed",
-      new ImmutableMap.Builder<String, String>()
-        .put(UpgradeCheckDescription.DEFAULT,
-            "The following hosts must have version {{version}} installed: {{fails}}.").build());
-
+public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
 
   /**
    * Constructor.
    */
   public HostsRepositoryVersionCheck() {
-    super(HOSTS_REPOSITORY_VERSION);
+    super(CheckDescription.HOSTS_REPOSITORY_VERSION);
   }
 
   @Override
-  public UpgradeCheckResult perform(UpgradeCheckRequest request)
+  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
       throws AmbariException {
-    UpgradeCheckResult result = new UpgradeCheckResult(this);
-
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     final Map<String, Host> clusterHosts = clustersProvider.get().getHostsForCluster(clusterName);
@@ -84,8 +69,8 @@ public class HostsRepositoryVersionCheck extends ClusterCheck {
         continue;
       }
 
-      RepositoryVersion repositoryVersion = request.getTargetRepositoryVersion();
-      StackId repositoryStackId = new StackId(repositoryVersion.getStackId());
+      RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
+      StackId repositoryStackId = repositoryVersion.getStackId();
 
       // get the host version entity for this host and repository
       final HostVersionEntity hostVersion = hostVersionDaoProvider.get().findByClusterStackVersionAndHost(
@@ -96,18 +81,16 @@ public class HostsRepositoryVersionCheck extends ClusterCheck {
           RepositoryVersionState.NOT_REQUIRED);
 
       if (hostVersion == null || !okStates.contains(hostVersion.getState())) {
-        result.getFailedOn().add(host.getHostName());
+        prerequisiteCheck.getFailedOn().add(host.getHostName());
 
-        result.getFailedDetail().add(
+        prerequisiteCheck.getFailedDetail().add(
             new HostDetail(host.getHostId(), host.getHostName()));
       }
     }
 
-    if (!result.getFailedOn().isEmpty()) {
-      result.setStatus(UpgradeCheckStatus.FAIL);
-      result.setFailReason(getFailReason(result, request));
+    if (!prerequisiteCheck.getFailedOn().isEmpty()) {
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
     }
-
-    return result;
   }
 }

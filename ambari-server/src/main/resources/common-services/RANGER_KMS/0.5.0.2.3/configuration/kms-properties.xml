@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property>
+    <name>REPOSITORY_CONFIG_USERNAME</name>
+    <display-name>Repository config username</display-name>
+    <value>keyadmin</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>REPOSITORY_CONFIG_PASSWORD</name>
+    <display-name>Repository config password</display-name>
+    <value>keyadmin</value>
+    <property-type>PASSWORD</property-type>
+    <description/>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>DB_FLAVOR</name>
+    <display-name>DB FLAVOR</display-name>
+    <value>MYSQL</value>
+    <description>The database type to be used</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>MYSQL</value>
+          <label>MYSQL</label>
+        </entry>
+        <entry>
+          <value>ORACLE</value>
+          <label>ORACLE</label>
+        </entry>
+        <entry>
+          <value>POSTGRES</value>
+          <label>POSTGRES</label>
+        </entry>
+        <entry>
+          <value>MSSQL</value>
+          <label>MSSQL</label>
+        </entry>
+        <entry>
+          <value>SQLA</value>
+          <label>SQL Anywhere</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>SQL_CONNECTOR_JAR</name>
+    <display-name>SQL connector jar</display-name>
+    <value>{{driver_curl_target}}</value>
+    <description>Location of DB client library (please check the location of the jar file)</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>kms-properties</type>
+        <name>DB_FLAVOR</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true" update="true"/>
+  </property>
+  <property>
+    <name>db_root_user</name>
+    <display-name>Database Administrator (DBA) username</display-name>
+    <value>root</value>
+    <description>Database admin user. This user should have DBA permission to create the Ranger Database and Ranger Database User</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>db_root_password</name>
+    <display-name>Database Administrator (DBA) password</display-name>
+    <value/>
+    <property-type>PASSWORD</property-type>
+    <description>Database password for the database admin username</description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>db_host</name>
+    <display-name>Ranger KMS DB host</display-name>
+    <value/>
+    <description>Database host</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>db_name</name>
+    <display-name>Ranger KMS DB name</display-name>
+    <value>rangerkms</value>
+    <description>Database name</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>db_user</name>
+    <display-name>Ranger KMS DB username</display-name>
+    <value>rangerkms</value>
+    <description>Database username used for the Ranger KMS schema</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>db_password</name>
+    <display-name>Ranger KMS DB password</display-name>
+    <value/>
+    <property-type>PASSWORD</property-type>
+    <description>Database password for the Ranger KMS schema</description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>KMS_MASTER_KEY_PASSWD</name>
+    <display-name>KMS master key password</display-name>
+    <value/>
+    <property-type>PASSWORD</property-type>
+    <description/>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

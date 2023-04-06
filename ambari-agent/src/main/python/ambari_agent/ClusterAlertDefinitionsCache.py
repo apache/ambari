@@ -43,7 +43,7 @@ class ClusterAlertDefinitionsCache(ClusterCache):
 
   def get_alert_definition_index_by_id(self, alert_dict, cluster_id, alert_id):
     definitions = alert_dict[cluster_id]['alertDefinitions']
-    for i in xrange(len(definitions)):
+    for i in range(len(definitions)):
       if definitions[i]['definitionId'] == alert_id:
         return i
 
@@ -67,7 +67,7 @@ class ClusterAlertDefinitionsCache(ClusterCache):
           mutable_dict[cluster_id]['alertDefinitions'][index_of_alert] = alert_definition
           
       # for other non-definitions properties
-      for property, value in cache_update[cluster_id].iteritems():
+      for property, value in cache_update[cluster_id].items():
         if property == 'alertDefinitions':
           continue
         

@@ -17,12 +17,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import httplib
+import http.client
 
 import imp
 import time
-import urllib
-from alerts.metric_alert import MetricAlert, REALCODE_REGEXP
+import urllib.request, urllib.parse, urllib.error
+from alerts.metric_alert import MetricAlert
 import ambari_simplejson as json
 import logging
 import re
@@ -118,18 +118,18 @@ class AmsAlert(MetricAlert):
       "precision": "seconds",
       "grouped": "true",
       }
-    encoded_get_metrics_parameters = urllib.urlencode(get_metrics_parameters)
+    encoded_get_metrics_parameters = urllib.parse.urlencode(get_metrics_parameters)
 
     url = AMS_METRICS_GET_URL % encoded_get_metrics_parameters
 
     try:
       # TODO Implement HTTPS support
-      conn = httplib.HTTPConnection(host, port,
+      conn = http.client.HTTPConnection(host, port,
                                     timeout=self.connection_timeout)
       conn.request("GET", url)
       response = conn.getresponse()
       data = response.read()
-    except Exception, exception:
+    except Exception as exception:
       if logger.isEnabledFor(logging.DEBUG):
         logger.exception("[Alert][{0}] Unable to retrieve metrics from AMS: {1}".format(self.get_name(), str(exception)))
       status = response.status if 'response' in vars() else None
@@ -149,7 +149,7 @@ class AmsAlert(MetricAlert):
     json_is_valid = True
     try:
       data_json = json.loads(data)
-    except Exception, exception:
+    except Exception as exception:
       json_is_valid = False
       if logger.isEnabledFor(logging.DEBUG):
         logger.exception("[Alert][{0}] Convert response to json failed or json doesn't contain needed data: {1}".
@@ -212,17 +212,17 @@ def f(args):
     self.minimum_value = metric_info['minimum_value']
 
     if 'value' in metric_info:
-      realcode = REALCODE_REGEXP.sub('args[\g<2>][k]', metric_info['value'])
+      realcode = re.sub('(\{(\d+)\})', 'args[\g<2>][k]', metric_info['value'])
 
       self.custom_value_module =  imp.new_module(str(uuid.uuid4()))
       code = self.DYNAMIC_CODE_VALUE_TEMPLATE.format(realcode)
-      exec code in self.custom_value_module.__dict__
+      exec(code, self.custom_value_module.__dict__)
 
     if 'compute' in metric_info:
       realcode = metric_info['compute']
       self.custom_compute_module =  imp.new_module(str(uuid.uuid4()))
       code = self.DYNAMIC_CODE_COMPUTE_TEMPLATE.format(realcode)
-      exec code in self.custom_compute_module.__dict__
+      exec(code, self.custom_compute_module.__dict__)
 
 
   def calculate_value(self, args):

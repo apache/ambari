@@ -1,0 +1,23 @@
+{
+  "_comment" : "Record format:",
+  "_comment" : "blockedRole-blockedCommand: [blockerRole1-blockerCommand1, blockerRole2-blockerCommand2, ...]",
+  "general_deps" : {
+    "_comment" : "dependencies for all cases",
+    "NIMBUS-START" : ["ZOOKEEPER_SERVER-START"],
+    "SUPERVISOR-START" : ["NIMBUS-START"],
+    "STORM_UI_SERVER-START" : ["NIMBUS-START"],
+    "DRPC_SERVER-START" : ["NIMBUS-START"],
+    "STORM_REST_API-START" : ["NIMBUS-START", "STORM_UI_SERVER-START", "SUPERVISOR-START", "DRPC_SERVER-START"],
+    "STORM_SERVICE_CHECK-SERVICE_CHECK": ["NIMBUS-START", "SUPERVISOR-START", "STORM_UI_SERVER-START",
+        "DRPC_SERVER-START"],
+    "NIMBUS-STOP" : ["SUPERVISOR-STOP", "STORM_UI_SERVER-STOP", "DRPC_SERVER-STOP"],
+    "TEZ_SERVICE_CHECK-SERVICE_CHECK": ["NODEMANAGER-START", "HISTORYSERVER-START"],
+    "APP_TIMELINE_SERVER-RESTART": ["NAMENODE-RESTART"]
+  },
+  "_comment" : "Dependencies that are used when GLUSTERFS is not present in cluster",
+  "optional_no_glusterfs": {
+    "APP_TIMELINE_SERVER-START": ["NAMENODE-START", "DATANODE-START"],
+    "FALCON_SERVER-START": ["NAMENODE-START", "DATANODE-START"],
+    "FALCON_SERVICE_CHECK-SERVICE_CHECK": ["FALCON_SERVER-START"]
+  }
+}

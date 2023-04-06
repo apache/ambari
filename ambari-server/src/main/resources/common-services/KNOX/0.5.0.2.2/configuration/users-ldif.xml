@@ -1,0 +1,140 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false" supports_adding_forbidden="true">
+  <property>
+    <name>content</name>
+    <display-name>users-ldif template</display-name>
+    <value>
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+version: 1
+
+# Please replace with site specific values
+dn: dc=hadoop,dc=apache,dc=org
+objectclass: organization
+objectclass: dcObject
+o: Hadoop
+dc: hadoop
+
+# Entry for a sample people container
+# Please replace with site specific values
+dn: ou=people,dc=hadoop,dc=apache,dc=org
+objectclass:top
+objectclass:organizationalUnit
+ou: people
+
+# Entry for a sample end user
+# Please replace with site specific values
+dn: uid=guest,ou=people,dc=hadoop,dc=apache,dc=org
+objectclass:top
+objectclass:person
+objectclass:organizationalPerson
+objectclass:inetOrgPerson
+cn: Guest
+sn: User
+uid: guest
+userPassword:guest-password
+
+# entry for sample user admin
+dn: uid=admin,ou=people,dc=hadoop,dc=apache,dc=org
+objectclass:top
+objectclass:person
+objectclass:organizationalPerson
+objectclass:inetOrgPerson
+cn: Admin
+sn: Admin
+uid: admin
+userPassword:admin-password
+
+# entry for sample user sam
+dn: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org
+objectclass:top
+objectclass:person
+objectclass:organizationalPerson
+objectclass:inetOrgPerson
+cn: sam
+sn: sam
+uid: sam
+userPassword:sam-password
+
+# entry for sample user tom
+dn: uid=tom,ou=people,dc=hadoop,dc=apache,dc=org
+objectclass:top
+objectclass:person
+objectclass:organizationalPerson
+objectclass:inetOrgPerson
+cn: tom
+sn: tom
+uid: tom
+userPassword:tom-password
+
+# create FIRST Level groups branch
+dn: ou=groups,dc=hadoop,dc=apache,dc=org
+objectclass:top
+objectclass:organizationalUnit
+ou: groups
+description: generic groups branch
+
+# create the analyst group under groups
+dn: cn=analyst,ou=groups,dc=hadoop,dc=apache,dc=org
+objectclass:top
+objectclass: groupofnames
+cn: analyst
+description:analyst  group
+member: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org
+member: uid=tom,ou=people,dc=hadoop,dc=apache,dc=org
+
+
+# create the scientist group under groups
+dn: cn=scientist,ou=groups,dc=hadoop,dc=apache,dc=org
+objectclass:top
+objectclass: groupofnames
+cn: scientist
+description: scientist group
+member: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org
+
+        </value>
+    <description>
+            content for users-ldif file for the demo LDAP that comes with Knox.
+        </description>
+    <value-attributes>
+      <type>content</type>
+      <empty-value-valid>true</empty-value-valid>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

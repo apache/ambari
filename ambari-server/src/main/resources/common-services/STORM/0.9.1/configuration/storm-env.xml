@@ -1,0 +1,165 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>storm_user</name>
+    <display-name>Storm User</display-name>
+    <value>storm</value>
+    <property-type>USER</property-type>
+    <description/>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>storm_log_dir</name>
+    <display-name>Storm Log directory</display-name>
+    <value>/var/log/storm</value>
+    <description/>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>storm_pid_dir</name>
+    <display-name>Storm PID directory</display-name>
+    <value>/var/run/storm</value>
+    <description/>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>jmxremote_port</name>
+    <value>56431</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>storm_principal_name</name>
+    <description>Storm principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>storm_principal_name</name>
+    <description>Storm principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>storm_keytab</name>
+    <description>Storm keytab path</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>storm_ui_principal_name</name>
+    <description>Storm UI principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>storm_ui_keytab</name>
+    <description>Storm UI keytab path</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>nimbus_keytab</name>
+    <description>Nimbus keytab path</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>nimbus_principal_name</name>
+    <description>Nimbus principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>storm_user_nofile_limit</name>
+    <value>128000</value>
+    <description>Max open files limit setting for STORM user.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>storm_user_nproc_limit</name>
+    <value>65536</value>
+    <description>Max number of processes limit setting for STORM user.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- storm-env.sh -->
+  <property>
+    <name>content</name>
+    <display-name>storm-env template</display-name>
+    <description>This is the jinja template for storm-env.sh file</description>
+    <value>
+#!/bin/bash
+
+# Set Storm specific environment variables here.
+
+# The java implementation to use.
+export JAVA_HOME={{java64_home}}
+
+# Storm log folder
+export STORM_LOG_DIR={{log_dir}}
+
+export STORM_CONF_DIR={{conf_dir}}
+export STORM_HOME={{storm_component_home_dir}}
+
+#set storm-auto creds
+# check if storm_jaas.conf in config , only enable storm_auto_creds in secure mode.
+STORM_HOME="$(dirname $(cd "$( dirname "${BASH_SOURCE[0]}" )" &amp;&amp; pwd ))"
+STORM_JAAS_CONF=$STORM_HOME/config/storm_jaas.conf
+STORM_AUTOCREDS_LIB_DIR=/usr/hdp/current/storm-client/external/storm-autocreds
+
+if [ -f $STORM_JAAS_CONF ] &amp;&amp; [ -d $STORM_AUTOCREDS_LIB_DIR ]; then
+    export STORM_EXT_CLASSPATH=$STORM_AUTOCREDS_LIB_DIR
+fi
+
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>nimbus_seeds_supported</name>
+    <value>false</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>storm_logs_supported</name>
+    <value>false</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

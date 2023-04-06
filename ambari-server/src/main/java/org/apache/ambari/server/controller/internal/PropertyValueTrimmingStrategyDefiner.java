@@ -19,19 +19,19 @@
 package org.apache.ambari.server.controller.internal;
 
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.state.ValueAttributesInfo;
 
-import com.google.common.collect.ImmutableSet;
-
 public class PropertyValueTrimmingStrategyDefiner {
+  static final Set<String> setOfUrlProperties = new HashSet<>();
 
-  private static final Set<String> SET_OF_URL_PROPERTIES = ImmutableSet.of(
-    "javax.jdo.option.ConnectionURL",
-    "oozie.service.JPAService.jdbc.url"
-  );
+  static {
+    setOfUrlProperties.add("javax.jdo.option.ConnectionURL");
+    setOfUrlProperties.add("oozie.service.JPAService.jdbc.url");
+  }
 
   private static TrimmingStrategy getTrimmingStrategyForConfigProperty(Stack.ConfigProperty configProperty) {
     if (configProperty != null) {
@@ -39,24 +39,24 @@ public class PropertyValueTrimmingStrategyDefiner {
       if (valueAttributesInfo != null) {
         String type = valueAttributesInfo.getType();
         if ("directory".equals(type) || "directories".equals(type)) {
-          return TrimmingStrategy.DIRECTORIES;
+          return new DirectoriesTrimmingStrategy();
         } else if ("host".equals(type)) {
-          return TrimmingStrategy.DEFAULT;
+          return new DefaultTrimmingStrategy();
         }
       }
       if (configProperty.getPropertyTypes() != null && configProperty.getPropertyTypes().
               contains(org.apache.ambari.server.state.PropertyInfo.PropertyType.PASSWORD)) {
-        return TrimmingStrategy.PASSWORD;
+        return new PasswordTrimmingStrategy();
       }
     }
     return null;
   }
 
   private static TrimmingStrategy getTrimmingStrategyByPropertyName(String propertyName) {
-    if (SET_OF_URL_PROPERTIES.contains(propertyName)) {
-      return TrimmingStrategy.DEFAULT;
+    if (setOfUrlProperties.contains(propertyName)) {
+      return new DefaultTrimmingStrategy();
     } else {
-      return TrimmingStrategy.DELETE_SPACES_AT_END;
+      return new DeleteSpacesAtTheEndTrimmingStrategy();
     }
   }
 

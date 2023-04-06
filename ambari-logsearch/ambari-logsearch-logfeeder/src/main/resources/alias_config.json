@@ -1,0 +1,61 @@
+{
+"input": {
+    "file": {
+      "klass": "org.apache.ambari.logfeeder.input.InputFile"
+    },
+    "s3_file": {
+      "klass": "org.apache.ambari.logfeeder.input.InputS3File"
+    },
+    "simulate": {
+      "klass": "org.apache.ambari.logfeeder.input.InputSimulate"
+    }
+  },
+  "filter": {
+    "json": {
+      "klass": "org.apache.ambari.logfeeder.filter.FilterJSON"
+    },
+    "keyvalue": {
+      "klass": "org.apache.ambari.logfeeder.filter.FilterKeyValue"
+    },
+    "grok": {
+      "klass": "org.apache.ambari.logfeeder.filter.FilterGrok"
+    }
+  },
+  "mapper": {
+    "map_date": {
+      "klass": "org.apache.ambari.logfeeder.mapper.MapperDate"
+    },
+    "map_field_copy": {
+      "klass": "org.apache.ambari.logfeeder.mapper.MapperFieldCopy"
+    },
+    "map_field_name": {
+      "klass": "org.apache.ambari.logfeeder.mapper.MapperFieldName"
+    },
+    "map_field_value": {
+      "klass": "org.apache.ambari.logfeeder.mapper.MapperFieldValue"
+    },
+    "map_anonymize": {
+      "klass": "org.apache.ambari.logfeeder.mapper.MapperAnonymize"
+    }
+  },
+  "output": {
+    "solr": {
+      "klass": "org.apache.ambari.logfeeder.output.OutputSolr"
+    },
+    "file": {
+      "klass": "org.apache.ambari.logfeeder.output.OutputFile"
+    },
+    "kafka": {
+      "klass": "org.apache.ambari.logfeeder.output.OutputKafka"
+    },
+    "dev_null": {
+      "klass": "org.apache.ambari.logfeeder.output.OutputDevNull"
+    },
+    "s3_file": {
+      "klass": "org.apache.ambari.logfeeder.output.OutputS3File"
+    },
+    "hdfs": {
+      "klass": "org.apache.ambari.logfeeder.output.OutputHDFSFile"
+    }
+  }
+}

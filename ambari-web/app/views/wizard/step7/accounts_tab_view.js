@@ -44,12 +44,11 @@ App.AccountsTabOnStep7View = Em.View.extend(App.WizardMiscPropertyChecker, {
 
   checkboxes: function () {
     var miscConfigs = this.get('controller.stepConfigs').findProperty('serviceName', 'MISC').get('configs');
-    const miscProperties = ['sysprep_skip_create_users_and_groups', 'ignore_groupsusers_create', 'override_uid'];
-    const checkboxArr = [];
-    miscProperties.forEach(property => {
-      if (miscConfigs.findProperty('name', property)) checkboxArr.push(miscConfigs.findProperty('name', property));
-    });
-    return checkboxArr;
+    return [
+      miscConfigs.findProperty('name', 'sysprep_skip_create_users_and_groups'),
+      miscConfigs.findProperty('name', 'ignore_groupsusers_create'),
+      miscConfigs.findProperty('name', 'override_uid')
+    ];
   }.property('controller.stepConfigsCreated')
 
 });

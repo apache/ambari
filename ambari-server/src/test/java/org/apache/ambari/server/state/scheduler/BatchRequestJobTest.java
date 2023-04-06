@@ -63,7 +63,6 @@ public class BatchRequestJobTest {
 
     HashMap<String, Integer> taskCounts = new HashMap<String, Integer>()
     {{ put(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY, 0);
-      put(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_IN_CURRENT_BATCH_KEY, 0);
       put(BatchRequestJob.BATCH_REQUEST_TOTAL_TASKS_KEY, 0); }};
 
 

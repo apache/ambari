@@ -40,6 +40,7 @@ angular.module('ambariAdminConsole')
       return $http.get(
         Settings.baseUrl + '/users?'
         + 'Users/user_name.matches(.*'+name+'.*)'
+        + '&from=0&page_size=20'
       );
     },
     getWithRoles: function(userId) {

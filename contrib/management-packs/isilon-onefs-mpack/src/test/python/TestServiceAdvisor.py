@@ -45,23 +45,23 @@ class TestUri(TestCase):
     onefs_host = Uri.onefs(configs)
     default_fs = Uri.default_fs(configs)
     fixed = default_fs.fix_host(onefs_host)
-    self.assertEquals('hdfs://scisilon.fqdn:8020', fixed)
+    self.assertEqual('hdfs://scisilon.fqdn:8020', fixed)
 
   def test_skip_replacing_to_empty_host(self):
     default_fs = Uri.default_fs(configs)
-    self.assertEquals('hdfs://localhost:8020', default_fs.fix_host(Uri("")))
+    self.assertEqual('hdfs://localhost:8020', default_fs.fix_host(Uri("")))
 
   def test_skip_fixing_invalid_host(self):
     default_fs = Uri("hdfs://:8080")
-    self.assertEquals('hdfs://:8080', default_fs.fix_host(Uri("host")))
+    self.assertEqual('hdfs://:8080', default_fs.fix_host(Uri("host")))
 
   def test_core_site_validation_error_on_host_mismatch(self):
     core_site = CoreSite(configs)
     erros = core_site.validate()
-    self.assertEquals(len(erros), 1)
-    self.assertEquals(erros[0]['config-name'], 'fs.defaultFS')
+    self.assertEqual(len(erros), 1)
+    self.assertEqual(erros[0]['config-name'], 'fs.defaultFS')
 
   def test_hdfs_site_no_validation_error(self):
     hdfs_site = HdfsSite(configs)
     erros = hdfs_site.validate()
-    self.assertEquals(len(erros), 0)
+    self.assertEqual(len(erros), 0)

@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<!-- Put site-specific property overrides in this file. -->
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
+  <property>
+    <name>yarn.timeline-service.enabled</name>
+    <value>true</value>
+    <description>Indicate to clients whether timeline service is enabled or not.
+      If enabled, clients will put entities and events to the timeline server.
+    </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.store-class</name>
+    <value>org.apache.hadoop.yarn.server.timeline.LeveldbTimelineStore</value>
+    <description>
+      Store class name for timeline store
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.generic-application-history.store-class</name>
+    <value>org.apache.hadoop.yarn.server.applicationhistoryservice.NullApplicationHistoryStore</value>
+    <description>
+      Store class name for history store, defaulting to file system store
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.leveldb-timeline-store.path</name>
+    <value>/var/log/hadoop-yarn/timeline</value>
+    <description>
+      Store file name for leveldb timeline store
+    </description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.webapp.address</name>
+    <value>localhost:8188</value>
+    <description>
+      The http address of the timeline service web application.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.webapp.https.address</name>
+    <value>localhost:8190</value>
+    <description>
+      The http address of the timeline service web application.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.address</name>
+    <value>localhost:10200</value>
+    <description>
+      This is default address for the timeline server to start
+      the RPC server.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <description>Enable age off of timeline store data.</description>
+    <name>yarn.timeline-service.ttl-enable</name>
+    <value>true</value>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <description>Time to live for timeline store data in milliseconds.</description>
+    <name>yarn.timeline-service.ttl-ms</name>
+    <value>2678400000</value>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <description>Length of time to wait between deletion cycles of leveldb timeline store in milliseconds.</description>
+    <name>yarn.timeline-service.leveldb-timeline-store.ttl-interval-ms</name>
+    <value>300000</value>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

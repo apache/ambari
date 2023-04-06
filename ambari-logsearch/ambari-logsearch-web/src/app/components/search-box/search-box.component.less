@@ -1,0 +1,123 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import '../../modules/shared/mixins';
+
+@inactive-input-width: 1px;
+@label-margin: 2px;
+
+:host {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  border: @input-border;
+  cursor: text;
+
+  .parameter-label {
+    margin: @label-margin;
+    border-radius: @dropdown-border-radius;
+    padding: @search-parameter-padding;
+    background-color: @grey-color;
+    color: @base-font-color;
+    font-size: 0.8em;
+
+    .parameter-value {
+      font-weight: normal;
+    }
+
+    .action-icon {
+      cursor: pointer;
+    }
+    .fa-search-plus {
+      color: @form-success-color;
+    }
+    .fa-search-minus {
+      color: @form-error-color;
+    }
+  }
+
+  .active-parameter-label {
+    font-weight: bold;
+    margin: 0 @label-margin;
+  }
+
+  .search-item-container {
+    position: relative;
+    min-width: @inactive-input-width;
+    height: @input-height;
+    flex-grow: 1;
+
+    .search-item-input {
+      border: none;
+      box-shadow: none;
+    }
+
+    .parameter-input {
+      width: @inactive-input-width;
+    }
+
+    .value-input {
+      .collapsed-form-control;
+    }
+
+    &.active {
+      min-width: @dropdown-min-width;
+
+      .parameter-input {
+        width: 100%;
+      }
+
+      .value-input {
+        .collapsed-form-control;
+      }
+
+      &.value {
+        .parameter-input {
+          display: none;
+        }
+
+        .value-input {
+          width: 100%;
+        }
+      }
+    }
+
+    /deep/ typeahead-container .dropdown-menu {
+      .dropdown-list-default;
+      max-height: 80vh;
+      overflow-y: auto;
+
+      > li {
+        .dropdown-item-default;
+
+        > a{
+          .dropdown-item-child-default;
+        }
+      }
+    }
+  }
+
+  .clear-all-btn {
+    color: @unknown-color;
+    cursor: pointer;
+    height: 1em;
+    width: 1em;
+  }
+}

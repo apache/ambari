@@ -391,7 +391,7 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
   }
 
   /**
-   * Upgrade lucene version to 7.4.0 in Solr config of Log Search collections and Solr Log4j config
+   * Upgrade lucene version to 7.5.0 in Solr config of Log Search collections and Solr Log4j config
    */
   protected void updateSolrConfigurations() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
@@ -405,8 +405,8 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
       return;
 
     for (final Cluster cluster : clusterMap.values()) {
-      updateConfig(cluster, "logsearch-service_logs-solrconfig", (content) -> updateLuceneMatchVersion(content,"7.4.0"));
-      updateConfig(cluster, "logsearch-audit_logs-solrconfig", (content) -> updateLuceneMatchVersion(content,"7.4.0"));
+      updateConfig(cluster, "logsearch-service_logs-solrconfig", (content) -> updateLuceneMatchVersion(content,"7.5.0"));
+      updateConfig(cluster, "logsearch-audit_logs-solrconfig", (content) -> updateLuceneMatchVersion(content,"7.5.0"));
       updateConfig(cluster, "infra-solr-log4j", (content) -> SOLR_NEW_LOG4J2_XML);
     }
   }

@@ -28,21 +28,21 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.apache.ambari</groupId>
-    <version>2.7.6</version>
+    <version>2.7.5.0.0</version>
     <artifactId>ambari</artifactId>
     <packaging>pom</packaging>
 
     <properties>
         <buildtype>test</buildtype>
         <BUILD_NUMBER>${env.BUILD_NUMBER}</BUILD_NUMBER>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
         <package.prefix>/usr</package.prefix>
         <package.conf.dir>/etc/ambari</package.conf.dir>
         <package.log.dir>/var/log/ambari</package.log.dir>
         <package.pid.dir>/var/run/ambari</package.pid.dir>
         <package.release>1</package.release>
         <package.type>tar.gz</package.type>
-        <ambari.version>2.7.6.0.0</ambari.version>
+        <ambari.version>2.7.5.0.0</ambari.version>
         <final.name>${project.artifactId}-${ambari.version}</final.name>
     </properties>
 
@@ -203,10 +203,10 @@
             <email>aonishuk@apache.org</email>
             <timezone>+2</timezone>
             <roles>
-                <role>PMC</role>
+                <role>Committer</role>
             </roles>
             <organization>
-                Cloudera
+                Hortonworks
             </organization>
         </developer>
         <developer>
@@ -338,18 +338,6 @@
             </organization>
         </developer>
         <developer>
-            <id>brahma</id>
-            <name>Brahma Reddy Battula</name>
-            <email>brahma@apache.org</email>
-            <timezone>+5.5</timezone>
-            <roles>
-                <role>PMC</role>
-            </roles>
-            <organization>
-                VISA
-            </organization>
-        </developer>
-        <developer>
             <id>croberts</id>
             <name>Chad Roberts</name>
             <email>croberts@apache.org</email>
@@ -385,7 +373,7 @@
                 Hortonworks
             </organization>
         </developer>
-        <developer>
+        <developer>            
             <id>ddas</id>
             <name>Devaraj Das</name>
             <email>ddas@hortonworks.com</email>
@@ -394,8 +382,8 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks
-            </organization>
+                Hortonworks                
+            </organization>            
         </developer>
         <developer>
             <id>dgergely</id>
@@ -501,7 +489,7 @@
                 <role>Committer</role>
             </roles>
             <organization>
-
+                
             </organization>
         </developer>
         <developer>
@@ -534,12 +522,12 @@
             <email>hapylestat@apache.org</email>
             <timezone>+2</timezone>
             <roles>
-                <role>PMC</role>
+                <role>Committer</role>
             </roles>
             <organization>
-                Cloudera
+                Hortonworks
             </organization>
-        </developer>
+        </developer>        
         <developer>
             <id>hitesh</id>
             <name>Hitesh Shah</name>
@@ -549,7 +537,7 @@
                 <role>PMC</role>
             </roles>
             <organization>
-            </organization>
+            </organization>            
         </developer>
         <developer>
             <id>ishanbha</id>
@@ -572,8 +560,8 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                WANdisco
-            </organization>
+                WANdisco                
+            </organization>            
         </developer>
         <developer>
             <id>jaoki</id>
@@ -620,8 +608,8 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks
-            </organization>
+                Hortonworks                
+            </organization>            
         </developer>
         <developer>
             <id>jluniya</id>
@@ -629,10 +617,10 @@
             <email>jluniya@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>PMC Chair</role>
+                <role>PMC</role>
             </roles>
             <organization>
-                Cloudera
+                Hortonworks
             </organization>
         </developer>
         <developer>
@@ -671,17 +659,6 @@
             </organization>
         </developer>
         <developer>
-            <id>krisztiankasa</id>
-            <name>Krisztian Kasa</name>
-            <email>krisztiankasa@apache.org</email>
-            <timezone></timezone>
-            <roles>
-                <role>Committer</role>
-            </roles>
-            <organization>
-            </organization>
-        </developer>
-        <developer>
             <id>kzhang</id>
             <name>Kan Zhang</name>
             <email>kzhang@apache.org</email>
@@ -690,8 +667,8 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                IBM
-            </organization>
+                IBM                
+            </organization>            
         </developer>
         <developer>
             <id>lavjain</id>
@@ -738,8 +715,8 @@
                 <role>Committer</role>
             </roles>
             <organization>
-                Hortonworks
-            </organization>
+                Hortonworks                
+            </organization>            
         </developer>
         <developer>
             <id>matyix</id>
@@ -867,7 +844,7 @@
             <email>oleewere@apache.org</email>
             <timezone>+2</timezone>
             <roles>
-                <role>PMC</role>
+                <role>Committer</role>
             </roles>
             <organization>
                 Hortonworks
@@ -966,9 +943,9 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks
-            </organization>
-        </developer>
+                Hortonworks                
+            </organization>            
+        </developer>        
         <developer>
             <id>reznor</id>
             <name>Varun Kapoor</name>
@@ -978,8 +955,8 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                -
-            </organization>
+                - 
+            </organization>            
         </developer>
         <developer>
             <id>rkamath</id>
@@ -1179,7 +1156,7 @@
             <roles>
                 <role>PMC</role>
             </roles>
-            <organization>
+            <organization> 
             </organization>
         </developer>
         <developer>
@@ -1240,7 +1217,7 @@
             <organization>
                 Hortonworks
             </organization>
-        </developer>
+        </developer>        
         <developer>
             <id>vgogate</id>
             <name>Vitthal Suhas Gogate</name>
@@ -1251,7 +1228,7 @@
             </roles>
             <organization>
                 Pivotal
-            </organization>
+            </organization>           
         </developer>
         <developer>
             <id>vinodkv</id>
@@ -1262,9 +1239,9 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks
+                Hortonworks                
             </organization>
-        </developer>
+        </developer>       
         <developer>
             <id>vishalsuvagia</id>
             <name>Vishal Suvagia</name>
@@ -1300,14 +1277,14 @@
             <organization>
                 Hortonworks
             </organization>
-        </developer>
+        </developer> 
         <developer>
             <id>yusaku</id>
             <name>Yusaku Sako</name>
             <email>yusaku@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>PMC</role>
+                <role>PMC Chair</role>
             </roles>
             <organization>
                 Hortonworks
@@ -1324,78 +1301,10 @@
             <organization>
             </organization>
         </developer>
-        <developer>
-            <id>payert</id>
-            <name>Tamas Payer</name>
-            <email>payert@apache.org</email>
-            <timezone>+1</timezone>
-            <roles>
-                <role>Committer</role>
-            </roles>
-            <organization>
-                Cloudera
-            </organization>
-        </developer>
-        <developer>
-            <id>szabi</id>
-            <name>Szabolcs Beki</name>
-            <email>szabi@apache.org</email>
-            <timezone>+1</timezone>
-            <roles>
-                <role>PMC</role>
-            </roles>
-            <organization>
-                Cloudera
-            </organization>
-        </developer>
       </developers>
       <contributors>
         <contributor>
-          <name>Dhanya Balasundaran</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
-          <name>Shreya Bhat</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
-          <name>Anusha Bilgi</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
-          <name>Jasmeen Kaur</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
-          <name>Kishor Ramakrishnan</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
-          <name>Pradarttana Panda</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
-          <name>Srikanth Janardhan</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
-          <name>Vivek Rathod</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
-          <name>Supreeth Sharma</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
-          <name>Vivek Sharma</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
           <name>Sanket Shah</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
-          <name>Yesha Vora</name>
           <organization>Hortonworks</organization>
         </contributor>
         <contributor>
@@ -1666,38 +1575,6 @@
           <name>Hayat Behlim</name>
           <organization></organization>
         </contributor>
-        <contributor>
-          <name>Szilard Antal</name>
-          <organization>Cloudera</organization>
-        </contributor>
-        <contributor>
-          <name>Peter Eberhardt</name>
-          <organization>Cloudera</organization>
-        </contributor>
-        <contributor>
-          <name>Mariann Varga-Vakula</name>
-          <organization>Cloudera</organization>
-        </contributor>
-        <contributor>
-          <name>Dmytro Vitiuk</name>
-          <organization>Cloudera</organization>
-        </contributor>
-        <contributor>
-          <name>Dmytro Pidhaiets</name>
-          <organization>Cloudera</organization>
-        </contributor>
-        <contributor>
-          <name>David Sutta</name>
-          <organization>Cloudera</organization>
-        </contributor>
-        <contributor>
-          <name>Szabolcs Borbely</name>
-          <organization>Cloudera</organization>
-        </contributor>
-        <contributor>
-          <name>Imre Sos</name>
-          <organization>Cloudera</organization>
-        </contributor>
       </contributors>
 
     <organization>
@@ -1760,7 +1637,7 @@
         </plugin>
       </plugins>
     </reporting>
-
+    
   <distributionManagement>
     <site>
       <id>apache-website</id>

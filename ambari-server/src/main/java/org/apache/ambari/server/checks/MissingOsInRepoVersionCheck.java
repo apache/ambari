@@ -26,67 +26,47 @@ import static org.apache.ambari.server.state.MaintenanceState.OFF;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.spi.RepositoryVersion;
-import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
-import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
-import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
-import org.apache.ambari.spi.upgrade.UpgradeCheckType;
-import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 
 /**
  * This checks if the source and target version has an entry for each OS type in the cluster.
  */
 @Singleton
-@UpgradeCheckInfo(
+@UpgradeCheck(
   group = UpgradeCheckGroup.REPOSITORY_VERSION,
   required = { UpgradeType.NON_ROLLING, UpgradeType.ROLLING })
-public class MissingOsInRepoVersionCheck extends ClusterCheck {
+public class MissingOsInRepoVersionCheck extends AbstractCheckDescriptor {
   public static final String SOURCE_OS = "source_os";
   public static final String TARGET_OS = "target_os";
 
-  static final UpgradeCheckDescription MISSING_OS_IN_REPO_VERSION = new UpgradeCheckDescription("MISSING_OS_IN_REPO_VERSION",
-      UpgradeCheckType.CLUSTER,
-      "Missing OS in repository version.",
-      new ImmutableMap.Builder<String, String>()
-        .put(MissingOsInRepoVersionCheck.SOURCE_OS, "The source version must have an entry for each OS type in the cluster")
-        .put(MissingOsInRepoVersionCheck.TARGET_OS, "The target version must have an entry for each OS type in the cluster")
-        .build());
-
   public MissingOsInRepoVersionCheck() {
-    super(MISSING_OS_IN_REPO_VERSION);
+    super(CheckDescription.MISSING_OS_IN_REPO_VERSION);
   }
 
   @Override
-  public UpgradeCheckResult perform(UpgradeCheckRequest request) throws AmbariException {
-    UpgradeCheckResult result = new UpgradeCheckResult(this);
-
-    Set<String> osFamiliesInCluster = osFamiliesInCluster(cluster(request));
+  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+    Set<String> osFamiliesInCluster = osFamiliesInCluster(cluster(prerequisiteCheck));
     if (!targetOsFamilies(request).containsAll(osFamiliesInCluster)) {
-      result.setFailReason(getFailReason(TARGET_OS, result, request));
-      result.setStatus(UpgradeCheckStatus.FAIL);
-      result.setFailedOn(new LinkedHashSet<>(osFamiliesInCluster));
+      prerequisiteCheck.setFailReason(getFailReason(TARGET_OS, prerequisiteCheck, request));
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(osFamiliesInCluster));
     } else if (!sourceOsFamilies(request).containsAll(osFamiliesInCluster)) {
-      result.setFailReason(getFailReason(SOURCE_OS, result, request));
-      result.setStatus(UpgradeCheckStatus.FAIL);
-      result.setFailedOn(new LinkedHashSet<>(osFamiliesInCluster));
+      prerequisiteCheck.setFailReason(getFailReason(SOURCE_OS, prerequisiteCheck, request));
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(osFamiliesInCluster));
     }
-
-    return result;
   }
 
-  private Cluster cluster(UpgradeCheckRequest prerequisiteCheck) throws AmbariException {
+  private Cluster cluster(PrerequisiteCheck prerequisiteCheck) throws AmbariException {
     return clustersProvider.get().getCluster(prerequisiteCheck.getClusterName());
   }
 
@@ -103,20 +83,16 @@ public class MissingOsInRepoVersionCheck extends ClusterCheck {
   /**
    * @return set of each os family in the source stack
    */
-  private Set<String> sourceOsFamilies(UpgradeCheckRequest request) throws AmbariException {
-    StackId stackId = new StackId(request.getTargetRepositoryVersion().getStackId());
-    return ambariMetaInfo.get().getStack(stackId).getRepositoriesByOs().keySet();
+  private Set<String> sourceOsFamilies(PrereqCheckRequest request) throws AmbariException {
+    return ambariMetaInfo.get().getStack(request.getSourceStackId()).getRepositoriesByOs().keySet();
   }
 
   /**
    * @return set of each os family in the target repository
    */
-  private Set<String> targetOsFamilies(UpgradeCheckRequest request) {
-    RepositoryVersion repositoryVersion = request.getTargetRepositoryVersion();
-    RepositoryVersionEntity entity = repositoryVersionDaoProvider.get().findByPK(
-        repositoryVersion.getId());
-
-    return entity
+  private Set<String> targetOsFamilies(PrereqCheckRequest request) {
+    return request
+      .getTargetRepositoryVersion()
       .getRepoOsEntities()
       .stream()
       .map(RepoOsEntity::getFamily)

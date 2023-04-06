@@ -634,7 +634,7 @@ public class JMXHostProviderTest {
         maintenanceStateHelper, repositoryVersionDAO);
 
     ResourceProvider hostCompResourceProvider = new
-      HostComponentResourceProvider(controller);
+      HostComponentResourceProvider(controller, injector);
 
     ResourceProvider configResourceProvider = new ConfigurationResourceProvider(
         controller);

@@ -90,18 +90,6 @@
     <fileSet>
       <directoryMode>755</directoryMode>
       <fileMode>755</fileMode>
-      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_pbkdf2</directory>
-      <outputDirectory>${pbkdf2.install.dir}</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directoryMode>755</directoryMode>
-      <fileMode>755</fileMode>
-      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_pyaes</directory>
-      <outputDirectory>${pyaes.install.dir}</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directoryMode>755</directoryMode>
-      <fileMode>755</fileMode>
       <directory>src/examples</directory>
       <outputDirectory>${lib.dir}/examples</outputDirectory>
     </fileSet>
@@ -157,6 +145,12 @@
       <fileMode>755</fileMode>
       <directory>${pluggableStackDefinitionOutput}/custom_actions</directory>
       <outputDirectory>/var/lib/ambari-agent/cache/custom_actions</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directoryMode>755</directoryMode>
+      <fileMode>755</fileMode>
+      <directory>conf/unix/custom</directory>
+      <outputDirectory>/var/lib/${project.artifactId}/tmp</outputDirectory>
     </fileSet>
   </fileSets>
   <!-- Single files. Syntax:

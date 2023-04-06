@@ -366,7 +366,23 @@
 
 }
 
+.alert-mixin {
+  border-radius: 50%;
+  color: #ffffff;
+  text-align: center;
+  display: inline-block;
+  position: relative;
+}
+
 .service-block .summary-box-header {
+  .alerts-crit-count, .alerts-warn-count, .alerts-none-count {
+    .alert-mixin;
+    padding: 3px 5px;
+    font-size: 10px;
+    min-width: 16px;
+    height: 16px;
+    top: -3px;
+  }
   .glyphicon {
     color: #999999;
     cursor: pointer;
@@ -377,9 +393,25 @@
 }
 
 .alerts-block {
-  margin-right: 6px;
+  .alerts-crit-count, .alerts-warn-count, .alerts-none-count {
+    .alert-mixin;
+    padding: 3px 5px;
+    font-size: 10px;
+    min-width: 16px;
+    height: 16px;
+  }
 }
 
+.summary-value {
+  .alerts-crit-count, .alerts-warn-count, .alerts-none-count {
+    .alert-mixin;
+    padding: 3px 0;
+    font-size: 9px;
+    width: 15px;
+    height: 15px;
+    top: -3px;
+  }
+}
 
 .alerts-crit-count, .alerts-warn-count, .alerts-none-count {
   cursor: pointer;
@@ -494,26 +526,6 @@
   .ellipsis-overflow-nowrap;
   font-size: 0.8em;
   width: 95%;
-}
-
-.service-params-popup {
-  .modal {
-    .modal-dialog {
-      width: 55%;
-      .modal-content {
-        height: 60%;
-        .modal-body {
-          padding-left: 0;
-          padding-right: 0;
-          height: 75%;
-          font-size: 14px;
-          .definition-latest-text, .timeago {
-            font-size: 12px;
-          }
-        }
-      }
-    }
-  }
 }
 
 .alerts-popup-wrap {

@@ -312,28 +312,11 @@ public class Users {
     userDAO.create(userEntity);
 
     // execute user initialization hook if required ()
-    executeUserHook(validatedUserName);
+    hookServiceProvider.get().execute(hookContextFactory.createUserHookContext(validatedUserName));
 
     return userEntity;
   }
 
-  /**
-   * Triggers the post user creation hook, if enabled
-   *
-   * @param username the username of the user to process
-   */
-  public void executeUserHook(String username) {
-    hookServiceProvider.get().execute(hookContextFactory.createUserHookContext(username));
-  }
-
-  /**
-   * Triggers the post user creation hook, if enabled
-   *
-   * @param userGroupsMap a map of user names to relevant groups
-   */
-  public void executeUserHook(Map<String, Set<String>> userGroupsMap) {
-    hookServiceProvider.get().execute(hookContextFactory.createBatchUserHookContext(userGroupsMap));
-  }
 
   /**
    * Removes a user from the Ambari database.
@@ -1380,17 +1363,19 @@ public class Users {
     addAuthentication(userEntity,
         UserAuthenticationType.JWT,
         key,
-            (user, authKey) -> {
-              List<UserAuthenticationEntity> authenticationEntities = user.getAuthenticationEntities();
+        new Validator() {
+          public void validate(UserEntity userEntity, String key) throws AmbariException {
+            List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
 
-              // Ensure only one UserAuthenticationEntity exists for JWT for the user...
-              for (UserAuthenticationEntity entity : authenticationEntities) {
-                if ((entity.getAuthenticationType() == UserAuthenticationType.JWT) &&
-                    ((authKey == null) ? (entity.getAuthenticationKey() == null) : authKey.equals(entity.getAuthenticationKey()))) {
-                  throw new AmbariException("The authentication type already exists for this user");
-                }
+            // Ensure only one UserAuthenticationEntity exists for JWT for the user...
+            for (UserAuthenticationEntity entity : authenticationEntities) {
+              if ((entity.getAuthenticationType() == UserAuthenticationType.JWT) &&
+                  ((key == null) ? (entity.getAuthenticationKey() == null) : key.equals(entity.getAuthenticationKey()))) {
+                throw new AmbariException("The authentication type already exists for this user");
               }
-            },
+            }
+          }
+        },
         persist);
   }
 
@@ -1420,12 +1405,14 @@ public class Users {
     addAuthentication(userEntity,
         UserAuthenticationType.KERBEROS,
         principalName,
-            (user, key) -> {
-              // Ensure no other authentication entries exist for the same principal...
-              if (!CollectionUtils.isEmpty(userAuthenticationDAO.findByTypeAndKey(UserAuthenticationType.KERBEROS, key))) {
-                throw new AmbariException("The authentication type already exists for this principal");
-              }
-            },
+        new Validator() {
+          public void validate(UserEntity userEntity, String key) throws AmbariException {
+            // Ensure no other authentication entries exist for the same principal...
+            if (!CollectionUtils.isEmpty(userAuthenticationDAO.findByTypeAndKey(UserAuthenticationType.KERBEROS, key))) {
+              throw new AmbariException("The authentication type already exists for this principal");
+            }
+          }
+        },
         persist);
   }
 
@@ -1466,16 +1453,18 @@ public class Users {
     addAuthentication(userEntity,
         UserAuthenticationType.LOCAL,
         encodedPassword,
-            (user, key) -> {
-              List<UserAuthenticationEntity> authenticationEntities = user.getAuthenticationEntities();
+        new Validator() {
+          public void validate(UserEntity userEntity, String key) throws AmbariException {
+            List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
 
-              // Ensure only one UserAuthenticationEntity exists for LOCAL for the user...
-              for (UserAuthenticationEntity entity : authenticationEntities) {
-                if (entity.getAuthenticationType() == UserAuthenticationType.LOCAL) {
-                  throw new AmbariException("The authentication type already exists for this user");
-                }
+            // Ensure only one UserAuthenticationEntity exists for LOCAL for the user...
+            for (UserAuthenticationEntity entity : authenticationEntities) {
+              if (entity.getAuthenticationType() == UserAuthenticationType.LOCAL) {
+                throw new AmbariException("The authentication type already exists for this user");
               }
-            },
+            }
+          }
+        },
         persist);
   }
 
@@ -1505,16 +1494,18 @@ public class Users {
     addAuthentication(userEntity,
         UserAuthenticationType.PAM,
         userName,
-            (user, key) -> {
-              List<UserAuthenticationEntity> authenticationEntities = user.getAuthenticationEntities();
+        new Validator() {
+          public void validate(UserEntity userEntity, String key) throws AmbariException {
+            List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
 
-              // Ensure only one UserAuthenticationEntity exists for PAM for the user...
-              for (UserAuthenticationEntity entity : authenticationEntities) {
-                if (entity.getAuthenticationType() == UserAuthenticationType.PAM) {
-                  throw new AmbariException("The authentication type already exists for this user");
-                }
+            // Ensure only one UserAuthenticationEntity exists for PAM for the user...
+            for (UserAuthenticationEntity entity : authenticationEntities) {
+              if (entity.getAuthenticationType() == UserAuthenticationType.PAM) {
+                throw new AmbariException("The authentication type already exists for this user");
               }
-            },
+            }
+          }
+        },
         persist);
   }
 
@@ -1544,17 +1535,19 @@ public class Users {
     addAuthentication(userEntity,
         UserAuthenticationType.LDAP,
         StringUtils.lowerCase(dn), // DNs are case-insensitive and are stored internally as the bytes of lowercase characters
-            (user, key) -> {
-              List<UserAuthenticationEntity> authenticationEntities = user.getAuthenticationEntities();
+        new Validator() {
+          public void validate(UserEntity userEntity, String key) throws AmbariException {
+            List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
 
-              // Ensure only one UserAuthenticationEntity exists for LDAP for the user...
-              for (UserAuthenticationEntity entity : authenticationEntities) {
-                if ((entity.getAuthenticationType() == UserAuthenticationType.LDAP) &&
-                    ((key == null) ? (entity.getAuthenticationKey() == null) : key.equalsIgnoreCase(entity.getAuthenticationKey()))) {
-                  throw new AmbariException("The authentication type already exists for this user");
-                }
+            // Ensure only one UserAuthenticationEntity exists for LDAP for the user...
+            for (UserAuthenticationEntity entity : authenticationEntities) {
+              if ((entity.getAuthenticationType() == UserAuthenticationType.LDAP) &&
+                  ((key == null) ? (entity.getAuthenticationKey() == null) : key.equalsIgnoreCase(entity.getAuthenticationKey()))) {
+                throw new AmbariException("The authentication type already exists for this user");
               }
-            },
+            }
+          }
+        },
         persist);
   }
 
@@ -1759,7 +1752,7 @@ public class Users {
    * <p>
    *
    * @param password the password
-   * @throws IllegalArgumentException if password does not meet the password policy requirements
+   * @throws  IllegalArgumentException if password does not meet the password policy requirements
    */
   public void validatePassword(String password) {
     if (StringUtils.isEmpty(password)) {

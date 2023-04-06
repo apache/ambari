@@ -22,7 +22,6 @@ import static org.apache.commons.lang.StringUtils.defaultString;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Objects;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -286,8 +285,7 @@ public class HostEntity implements Comparable<HostEntity> {
 
     HostEntity that = (HostEntity) o;
 
-    return Objects.equals(getHostId(), that.getHostId()) &&
-      Objects.equals(hostName, that.hostName);
+    return getHostId() == that.getHostId() && hostName.equals(that.hostName);
   }
 
   /**
@@ -295,7 +293,12 @@ public class HostEntity implements Comparable<HostEntity> {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(getHostId(), hostName);
+    int result = null != getHostId() ? getHostId().hashCode() : 0;
+    if (null != hostName) {
+      result = 31 * result + hostName.hashCode();
+    }
+
+    return result;
   }
 
   @Override

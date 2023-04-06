@@ -21,9 +21,8 @@ describe('ClusterInformationCtrl', function() {
 
   var ctrl, $scope, Cluster, deferred, ConfirmationModal;
 
-  beforeEach(inject(function($controller, $rootScope, _Cluster_, _$q_, _ConfirmationModal_, _$httpBackend_){
+  beforeEach(inject(function($controller, $rootScope, _Cluster_, _$q_, _ConfirmationModal_){
     // The injector unwraps the underscores (_) from around the parameter names when matching
-    _$httpBackend_.expectGET('views/clusters/clusterInformation.html').respond(200);
     Cluster = _Cluster_;
     ConfirmationModal = _ConfirmationModal_;
     deferred = _$q_.defer();
@@ -33,9 +32,9 @@ describe('ClusterInformationCtrl', function() {
       $scope: $scope
     });
 
-    spyOn(Cluster, 'getBlueprint').and.returnValue(deferred.promise);
-    spyOn(Cluster, 'editName').and.returnValue(deferred.promise);
-    spyOn(ConfirmationModal, 'show').and.returnValue(deferred.promise);
+    spyOn(Cluster, 'getBlueprint').andReturn(deferred.promise);
+    spyOn(Cluster, 'editName').andReturn(deferred.promise);
+    spyOn(ConfirmationModal, 'show').andReturn(deferred.promise);
   }));
 
   describe('#getBlueprint', function() {

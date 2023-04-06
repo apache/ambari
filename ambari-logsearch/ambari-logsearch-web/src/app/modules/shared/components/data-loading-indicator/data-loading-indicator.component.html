@@ -1,0 +1,48 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<ng-container>
+  <div class="data-avaibility-progress">
+    <div class="progress-bar">
+      <div class="progress-bar-indicator" [style.width]="((dataLoadingProgress$ | async) ? (dataLoadingProgress$ | async) * 100 : '5') + '%'"></div>
+    </div>
+  </div>
+  <div class="data-avaibility">
+    <div *ngFor="let dataAvaibilityState of ((currentWatchedDataStatesAsArray$ | async))"
+      [class]="'state-item ' + dataAvaibilityState.storeKey + ' ' + (dataAvaibilityState.avaibility | lowercase)">
+      <div class="label">{{ ('dataAvaibilityState.' + dataAvaibilityState.storeKey + '.label') | translate }}</div>
+      <div class="state-indicator">
+        <div *ngIf="dataAvaibilityState.avaibility === 'LOADING'" class="state state-loading">
+            <loading-indicator></loading-indicator>
+        </div>
+        <div *ngIf="dataAvaibilityState.avaibility === 'AVAILABLE'" class="state state-available">
+            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+              <circle class="path circle" fill="none" stroke-width="12" stroke-miterlimit="10" cx="65.1" cy="65.1" r="62.1"/>
+              <polyline class="path check" fill="none" stroke-width="12" stroke-linecap="round" stroke-miterlimit="10" points="100.2,40.2 51.5,88.8 29.8,67.5 "/>
+            </svg>
+        </div>
+        <div *ngIf="dataAvaibilityState.avaibility === 'ERROR'" class="state state-error">
+            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+              <circle class="path circle" fill="none" stroke-width="6" stroke-miterlimit="10" cx="65.1" cy="65.1" r="62.1"/>
+              <line class="path line" fill="none" stroke-width="12" stroke-linecap="round" stroke-miterlimit="10" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
+              <line class="path line" fill="none" stroke-width="12" stroke-linecap="round" stroke-miterlimit="10" x1="95.8" y1="38" x2="34.4" y2="92.2"/>
+            </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="hasDataStateError$ | async" class="data-avaibility-error">{{'dataAvaibilityState.hasError.message' | translate}}</div>
+</ng-container>

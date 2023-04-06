@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -38,6 +40,7 @@ import org.apache.ambari.server.state.PropertyInfo;
  * The elements within a service's configuration file.
  */
 @XmlRootElement(name="configuration")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class ConfigurationXml implements Validable{
   
   @XmlAnyAttribute
@@ -90,6 +93,14 @@ public class ConfigurationXml implements Validable{
    */
   public List<PropertyInfo> getProperties() {
     return properties;
+  }
+
+  /***
+   *
+   * @param listProperties
+   */
+  public void setProperties(List<PropertyInfo> listProperties) {
+    this.properties = listProperties;
   }
 
   public Map<QName, String> getAttributes() {

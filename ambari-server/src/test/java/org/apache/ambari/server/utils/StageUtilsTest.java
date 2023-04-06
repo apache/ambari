@@ -54,7 +54,6 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -62,6 +61,7 @@ import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.codehaus.jackson.JsonGenerationException;
@@ -144,6 +144,11 @@ public class StageUtilsTest extends EasyMockSupport {
     StageUtils stageUtils = new StageUtils(injector.getInstance(StageFactory.class));
     Stage s = StageUtils.getATestStage(1, 2, "host1", "clusterHostInfo", "hostParamsStage");
     ExecutionCommand cmd = s.getExecutionCommands("host1").get(0).getExecutionCommand();
+    HashMap<String, Map<String, String>> configTags = new HashMap<>();
+    Map<String, String> globalTag = new HashMap<>();
+    globalTag.put("tag", "version1");
+    configTags.put("global", globalTag);
+    cmd.setConfigurationTags(configTags);
     String json = StageUtils.jaxbToString(cmd);
 
     InputStream is = new ByteArrayInputStream(

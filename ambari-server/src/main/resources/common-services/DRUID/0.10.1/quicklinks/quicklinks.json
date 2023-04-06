@@ -1,0 +1,37 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol": {
+      "type": "HTTP_ONLY"
+    },
+    "links": [
+      {
+        "name": "coordinator_console",
+        "label": "Druid Coordinator Console",
+        "component_name": "DRUID_COORDINATOR",
+        "requires_user_name": "false",
+        "url": "%@://%@:%@",
+        "port": {
+          "http_property": "druid.port",
+          "http_default_port": "8081",
+          "regex": "^(\\d+)$",
+          "site": "druid-coordinator"
+        }
+      },
+      {
+        "name": "overlord_console",
+        "label": "Druid Overlord Console",
+        "component_name": "DRUID_OVERLORD",
+        "requires_user_name": "false",
+        "url": "%@://%@:%@",
+        "port": {
+          "http_property": "druid.port",
+          "http_default_port": "8090",
+          "regex": "^(\\d+)$",
+          "site": "druid-overlord"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,352 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements. See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<configuration supports_final="true">
+  <!--
+  Note: This file includes only those configs which are supposed to have different value from the parent hive/hive-site.
+       It inherits the other required configs from hive/hive-site.
+       The inheritance logic in order to get hive2/hive-site goes like this :
+
+       1. We read the hive/hive-site which includes the stack defaults and Stack Advisor recommended values.
+       2. We take the read hive/hive-site (step 1), and on top of it apply the hive-interactive-site to get
+          hive2/hive-site.
+
+       Therefore, any config defined here will override the config value read from hive2/hive-site (step 1).
+  -->
+  <property>
+    <name>hive.llap.task.scheduler.locality.delay</name>
+    <value>-1</value>
+    <description>
+      Amount of time to wait (in ms) before allocating a request which contains location information,
+      to a location other than the ones requested. Set to -1 for an infinite delay, 0
+      for no delay.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>hive.mapjoin.hybridgrace.hashtable</name>
+    <value>false</value>
+    <description>Whether to use hybrid grace hash join as the join method for mapjoin.
+      Applies to dynamically partitioned joins when running in LLAP, but not to regular
+      broadcast(map) joins. hive.llap.enable.grace.join.in.llap is used for this.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>hive.llap.enable.grace.join.in.llap</name>
+    <value>false</value>
+    <description>Override if grace join should be allowed to run in llap for regular map joins.
+      Dynamic partitioned joins will honor the hive.mapjoin.hybridgrace.hashtable property in LLAP
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>hive.llap.execution.mode</name>
+    <value>only</value>
+    <description>Chooses which fragments of a query will run in llap</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>hive.tez.cartesian-product.enabled</name>
+    <value>true</value>
+    <description>Use Tez cartesian product edge for Hive cartesian product</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.logger</name>
+    <value>query-routing</value>
+    <description>Logger to be used by LLAP. (query-routing, RFA)</description>
+    <display-name>LLAP logger</display-name>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>hive.server2.tez.sessions.custom.queue.allowed</name>
+    <value>ignore</value>
+    <description>Whether to allow the users of this HS2 to specify custom queues - yes, no (fail if specified), ignore (use the default queues even if a custom one is specified)</description>
+    <display-name>Allow custom queues</display-name>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>hive.server2.tez.sessions.restricted.configs</name>
+    <value>hive.execution.mode,hive.execution.engine</value>
+    <description>The list of configuration settings that the users of the session pool of this HS2 are not allowed to override</description>
+    <display-name>Restricted session configs</display-name>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.am.liveness.heartbeat.interval.ms</name>
+    <value>10000ms</value>
+    <description>Tez AM-LLAP heartbeat interval. This should be below the task timeout</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.merge.nway.joins</name>
+    <value>false</value>
+    <description>Merge adjacent joins into a single n-way join</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>dfs.client.mmap.enabled</name>
+    <value>false</value>
+    <description>Disable HDFS caching fo LLAP</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>dfs.short.circuit.shared.memory.watcher.interrupt.check.ms</name>
+    <value>0</value>
+    <description>Disable HDFS caching fo LLAP</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- Druid related properties -->
+  <property>
+    <name>hive.druid.broker.address.default</name>
+    <value>localhost:8082</value>
+    <description>Host name of druid router if any or broker</description>
+    <on-ambari-upgrade add="false"/>
+    <depends-on>
+      <property>
+        <type>druid-router</type>
+        <name>druid.port</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>hive.druid.metadata.uri</name>
+    <value>jdbc:mysql://localhost:3355/druid</value>
+    <description>URI to connect to the database (for example jdbc:mysql://hostname:port/DBName)</description>
+    <on-ambari-upgrade add="false"/>
+    <depends-on>
+      <property>
+        <type>druid-common</type>
+        <name>druid.metadata.storage.connector.connectURI</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>hive.druid.coordinator.address.default</name>
+    <value>localhost:8082</value>
+    <description>Host name of druid router if any or broker</description>
+    <on-ambari-upgrade add="false"/>
+    <depends-on>
+      <property>
+        <type>druid-coordinator</type>
+        <name>druid.port</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>hive.druid.metadata.password</name>
+    <value>{{druid_metadata_password}}</value>
+    <property-type>PASSWORD</property-type>
+    <display-name>Druid Metadata Password</display-name>
+    <description>Druid meta data storage password</description>
+    <value-attributes>
+      <type>password</type>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+   <property>
+    <name>hive.druid.metadata.username</name>
+    <value>druid</value>
+    <description>Username used to connect to druid metadata storage</description>
+    <on-ambari-upgrade add="false"/>
+     <depends-on>
+      <property>
+        <type>druid-common</type>
+        <name>druid.metadata.storage.connector.user</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>hive.druid.indexer.segments.granularity</name>
+    <display-name>Default Granularity for the Druid segments</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>YEAR</value>
+        </entry>
+        <entry>
+          <value>MONTH</value>
+        </entry>
+        <entry>
+          <value>WEEK</value>
+        </entry>
+        <entry>
+          <value>DAY</value>
+        </entry>
+        <entry>
+          <value>HOUR</value>
+        </entry>
+        <entry>
+          <value>MINUTE</value>
+        </entry>
+        <entry>
+          <value>SECOND</value>
+        </entry>
+      </entries>
+    </value-attributes>
+    <value>DAY</value>
+    <description>Default Granularity for the segments created by the Druid storage handler, this can be overridden per table using table property druid.segment.granularity </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+   <property>
+    <name>hive.druid.indexer.partition.size.max</name>
+    <value>1000000</value>
+    <description>Maximum number of records per segment partition</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+   <property>
+    <name>hive.druid.indexer.memory.rownum.max</name>
+    <value>75000</value>
+    <description>Maximum number of records in memory while storing data in Druid</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.druid.select.distribute</name>
+    <value>true</value>
+    <description>If it is set to true, we distribute the execution of Druid Select queries</description>
+    <on-ambari-upgrade add="false"/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.druid.basePersistDirectory</name>
+    <value></value>
+    <description>
+      Local temporary directory used to persist intermediate indexing state,
+      if empty (recommended) will default to JVM system property java.io.tmpdir.
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.druid.storage.storageDirectory</name>
+    <value>{{druid_storage_dir}}</value>
+    <description>
+      Druid deep storage location for segments.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.druid.metadata.db.type</name>
+    <display-name>Druid metadata storage type </display-name>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>mysql</value>
+          <label>MYSQL</label>
+        </entry>
+        <entry>
+          <value>postgresql</value>
+          <label>POSTGRESQL</label>
+        </entry>
+      </entries>
+    </value-attributes>
+    <value>mysql</value>
+    <depends-on>
+      <property>
+        <type>druid-common</type>
+        <name>druid.metadata.storage.type</name>
+      </property>
+    </depends-on>
+    <description>Druid metadata storage type</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.druid.passiveWaitTimeMs</name>
+    <value>30000</value>
+    <description>
+      Wait time in ms default to 30 seconds.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.druid.working.directory</name>
+    <value>/tmp/druid-indexing</value>
+    <description>
+      Default hdfs working directory used to store some intermediate metadata.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.druid.maxTries</name>
+    <value>5</value>
+    <description>
+      Maximum number of http call retries before giving up.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.druid.bitmap.type</name>
+    <display-name>Druid metadata storage type </display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>roaring</value>
+        </entry>
+        <entry>
+          <value>concise</value>
+        </entry>
+      </entries>
+    </value-attributes>
+    <value>roaring</value>
+    <description>Druid Coding algorithm use to encode the bitmaps</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.druid.http.read.timeout</name>
+    <value>PT10M</value>
+    <description>
+      Maximum number of http call retries before giving up.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

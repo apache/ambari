@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false" supports_adding_forbidden="true">
+  <!-- topology file -->
+  <property>
+    <name>content</name>
+    <display-name>knoxsso-topology template</display-name>
+    <value>
+      &lt;topology&gt;
+          &lt;gateway&gt;
+              &lt;provider&gt;
+                  &lt;role&gt;webappsec&lt;/role&gt;
+                  &lt;name&gt;WebAppSec&lt;/name&gt;
+                  &lt;enabled&gt;true&lt;/enabled&gt;
+                  &lt;param&gt;&lt;name&gt;xframe.options.enabled&lt;/name&gt;&lt;value&gt;true&lt;/value&gt;&lt;/param&gt;
+              &lt;/provider&gt;
+
+              &lt;provider&gt;
+                  &lt;role&gt;authentication&lt;/role&gt;
+                  &lt;name&gt;ShiroProvider&lt;/name&gt;
+                  &lt;enabled&gt;true&lt;/enabled&gt;
+                  &lt;param&gt;
+                      &lt;name&gt;sessionTimeout&lt;/name&gt;
+                      &lt;value&gt;30&lt;/value&gt;
+                  &lt;/param&gt;
+                  &lt;param&gt;
+                      &lt;name&gt;redirectToUrl&lt;/name&gt;
+                      &lt;value&gt;/gateway/knoxsso/knoxauth/login.html&lt;/value&gt;
+                  &lt;/param&gt;
+                  &lt;param&gt;
+                      &lt;name&gt;restrictedCookies&lt;/name&gt;
+                      &lt;value&gt;rememberme,WWW-Authenticate&lt;/value&gt;
+                  &lt;/param&gt;
+                  &lt;param&gt;
+                      &lt;name&gt;main.ldapRealm&lt;/name&gt;
+                      &lt;value&gt;org.apache.hadoop.gateway.shirorealm.KnoxLdapRealm&lt;/value&gt;
+                  &lt;/param&gt;
+                  &lt;param&gt;
+                      &lt;name&gt;main.ldapContextFactory&lt;/name&gt;
+                      &lt;value&gt;org.apache.hadoop.gateway.shirorealm.KnoxLdapContextFactory&lt;/value&gt;
+                  &lt;/param&gt;
+                  &lt;param&gt;
+                      &lt;name&gt;main.ldapRealm.contextFactory&lt;/name&gt;
+                      &lt;value&gt;$ldapContextFactory&lt;/value&gt;
+                  &lt;/param&gt;
+                  &lt;param&gt;
+                      &lt;name&gt;main.ldapRealm.userDnTemplate&lt;/name&gt;
+                      &lt;value&gt;uid={0},ou=people,dc=hadoop,dc=apache,dc=org&lt;/value&gt;
+                  &lt;/param&gt;
+                  &lt;param&gt;
+                      &lt;name&gt;main.ldapRealm.contextFactory.url&lt;/name&gt;
+                      &lt;value&gt;ldap://localhost:33389&lt;/value&gt;
+                  &lt;/param&gt;    
+                  &lt;param&gt;
+                      &lt;name&gt;main.ldapRealm.authenticationCachingEnabled&lt;/name&gt;
+                      &lt;value&gt;false&lt;/value&gt;
+                  &lt;/param&gt;
+                  &lt;param&gt;
+                      &lt;name&gt;main.ldapRealm.contextFactory.authenticationMechanism&lt;/name&gt;
+                      &lt;value&gt;simple&lt;/value&gt;
+                  &lt;/param&gt;
+                  &lt;param&gt;
+                      &lt;name&gt;urls./**&lt;/name&gt;
+                      &lt;value&gt;authcBasic&lt;/value&gt;
+                  &lt;/param&gt;
+              &lt;/provider&gt;
+
+              &lt;provider&gt;
+                  &lt;role&gt;identity-assertion&lt;/role&gt;
+                  &lt;name&gt;Default&lt;/name&gt;
+                  &lt;enabled&gt;true&lt;/enabled&gt;
+              &lt;/provider&gt;
+          &lt;/gateway&gt;
+
+          &lt;application&gt;
+            &lt;name&gt;knoxauth&lt;/name&gt;
+          &lt;/application&gt;
+
+          &lt;service&gt;
+              &lt;role&gt;KNOXSSO&lt;/role&gt;
+              &lt;param&gt;
+                  &lt;name&gt;knoxsso.cookie.secure.only&lt;/name&gt;
+                  &lt;value&gt;false&lt;/value&gt;
+              &lt;/param&gt;
+              &lt;param&gt;
+                  &lt;name&gt;knoxsso.token.ttl&lt;/name&gt;
+                  &lt;value&gt;30000&lt;/value&gt;
+              &lt;/param&gt;
+              &lt;param&gt;
+                 &lt;name&gt;knoxsso.redirect.whitelist.regex&lt;/name&gt;
+                 &lt;value&gt;^https?:\/\/(localhost|127\.0\.0\.1|0:0:0:0:0:0:0:1|::1):[0-9].*$&lt;/value&gt;
+              &lt;/param&gt;
+          &lt;/service&gt;
+
+      &lt;/topology&gt;
+      </value>
+    <description>
+        The configuration specifies the KnoxSSO provider integration, cookie and token management details.
+    </description>
+    <value-attributes>
+      <type>content</type>
+      <empty-value-valid>true</empty-value-valid>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

@@ -31,7 +31,6 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -74,10 +73,7 @@ public class VersionDefinitionResourceProviderTest {
 
   @Before
   public void before() throws Exception {
-    InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
-    module.getProperties().put(Configuration.VDF_FROM_FILESYSTEM.getKey(), "true");
-
-    injector = Guice.createInjector(module);
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
 
     AmbariMetaInfo ami = injector.getInstance(AmbariMetaInfo.class);

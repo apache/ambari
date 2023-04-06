@@ -23,7 +23,7 @@ Ambari Agent
 import os
 import time
 from unittest import TestCase
-from mock.mock import patch, MagicMock, ANY
+from mock.mock import patch, MagicMock
 
 from only_for_platform import get_platform, not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
@@ -68,8 +68,7 @@ class TestXmlConfigResource(TestCase):
                 configuration_attributes={}
                 )
 
-    create_file_mock.assert_called_with('/dir/conf/file.xml', u'  <configuration  xmlns:xi="http://www.w3.org/2001/XInclude">\n    \n  </configuration>',
-        encoding='UTF-8', on_file_created=ANY)
+    create_file_mock.assert_called_with('/dir/conf/file.xml', '  <configuration  xmlns:xi="http://www.w3.org/2001/XInclude">\n    \n  </configuration>', encoding='UTF-8')
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
@@ -98,8 +97,7 @@ class TestXmlConfigResource(TestCase):
                 configuration_attributes={'attr': {'property1': 'attr_value'}}
                 )
 
-    create_file_mock.assert_called_with('/dir/conf/file.xml', u'  <configuration  xmlns:xi="http://www.w3.org/2001/XInclude">\n    \n    <property>\n      <name>property1</name>\n      <value>value1</value>\n      <attr>attr_value</attr>\n    </property>\n    \n  </configuration>',
-        encoding='UTF-8', on_file_created=ANY)
+    create_file_mock.assert_called_with('/dir/conf/file.xml', '  <configuration  xmlns:xi="http://www.w3.org/2001/XInclude">\n    \n    <property>\n      <name>property1</name>\n      <value>value1</value>\n      <attr>attr_value</attr>\n    </property>\n    \n  </configuration>', encoding='UTF-8')
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch("resource_management.core.sudo.create_file")
@@ -128,8 +126,7 @@ class TestXmlConfigResource(TestCase):
                 xml_include_file="/dif/conf/include_file.xml"
                 )
 
-    create_file_mock.assert_called_with('/dir/conf/file.xml', u'  <configuration  xmlns:xi="http://www.w3.org/2001/XInclude">\n    \n    <property>\n      <name>property1</name>\n      <value>value1</value>\n      <attr>attr_value</attr>\n    </property>\n    \n    <xi:include href="/dif/conf/include_file.xml"/>\n    \n  </configuration>',
-        encoding='UTF-8', on_file_created=ANY)
+    create_file_mock.assert_called_with('/dir/conf/file.xml', '  <configuration  xmlns:xi="http://www.w3.org/2001/XInclude">\n    \n    <property>\n      <name>property1</name>\n      <value>value1</value>\n      <attr>attr_value</attr>\n    </property>\n    \n    <xi:include href="/dif/conf/include_file.xml"/>\n    \n  </configuration>', encoding='UTF-8')
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch("resource_management.core.sudo.create_file")
@@ -180,9 +177,7 @@ class TestXmlConfigResource(TestCase):
                         "prop.empty": ""
                     }
                 })
-
-    create_file_mock.assert_called_with('/dir/conf/file.xml', u'  <configuration  xmlns:xi="http://www.w3.org/2001/XInclude">\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>prop.1</name>\n      <value>&#39;.&#39;yyyy-MM-dd-HH</value>\n      <attr1>x</attr1>\n    </property>\n    \n    <property>\n      <name>prop.2</name>\n      <value>INFO, openjpa</value>\n    </property>\n    \n    <property>\n      <name>prop.3</name>\n      <value>%d{ISO8601} %5p %c{1}:%L - %m%n</value>\n      <attr2>value3</attr2>\n    </property>\n    \n    <property>\n      <name>prop.4</name>\n      <value>${oozie.log.dir}/oozie.log</value>\n      <attr_value_empty></attr_value_empty>\n      <attr2>value4</attr2>\n    </property>\n    \n    <property>\n      <name>prop.empty</name>\n      <value></value>\n      <attr_value_empty></attr_value_empty>\n    </property>\n    \n  </configuration>',
-        encoding='UTF-8', on_file_created=ANY)
+    create_file_mock.assert_called_with('/dir/conf/file.xml', '  <configuration  xmlns:xi="http://www.w3.org/2001/XInclude">\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>prop.1</name>\n      <value>&#39;.&#39;yyyy-MM-dd-HH</value>\n      <attr1>x</attr1>\n    </property>\n    \n    <property>\n      <name>prop.2</name>\n      <value>INFO, openjpa</value>\n    </property>\n    \n    <property>\n      <name>prop.3</name>\n      <value>%d{ISO8601} %5p %c{1}:%L - %m%n</value>\n      <attr2>value3</attr2>\n    </property>\n    \n    <property>\n      <name>prop.4</name>\n      <value>${oozie.log.dir}/oozie.log</value>\n      <attr2>value4</attr2>\n      <attr_value_empty></attr_value_empty>\n    </property>\n    \n    <property>\n      <name>prop.empty</name>\n      <value></value>\n      <attr_value_empty></attr_value_empty>\n    </property>\n    \n  </configuration>', encoding='UTF-8')
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch("resource_management.core.sudo.create_file")
@@ -215,8 +210,7 @@ class TestXmlConfigResource(TestCase):
                 configuration_attributes={}
                 )
 
-    create_file_mock.assert_called_with('/dir/conf/file.xml', u'  <configuration  xmlns:xi="http://www.w3.org/2001/XInclude">\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>first</name>\n      <value>should be first</value>\n    </property>\n    \n    <property>\n      <name>second</name>\n      <value>should be second</value>\n    </property>\n    \n    <property>\n      <name>third</name>\n      <value>should be third</value>\n    </property>\n    \n    <property>\n      <name>z_last</name>\n      <value>should be last</value>\n    </property>\n    \n  </configuration>',
-        encoding='UTF-8', on_file_created=ANY)
+    create_file_mock.assert_called_with('/dir/conf/file.xml', '  <configuration  xmlns:xi="http://www.w3.org/2001/XInclude">\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>first</name>\n      <value>should be first</value>\n    </property>\n    \n    <property>\n      <name>second</name>\n      <value>should be second</value>\n    </property>\n    \n    <property>\n      <name>third</name>\n      <value>should be third</value>\n    </property>\n    \n    <property>\n      <name>z_last</name>\n      <value>should be last</value>\n    </property>\n    \n  </configuration>', encoding='UTF-8')
 
   @patch("resource_management.libraries.providers.xml_config.File")
   @patch("resource_management.core.sudo.path_exists")
@@ -231,7 +225,7 @@ class TestXmlConfigResource(TestCase):
                 conf_dir='/dir/conf',
                 configurations={'property1': 'value1'},
                 configuration_attributes={'attr': {'property1': 'attr_value'}},
-                mode = 0755,
+                mode = 0o755,
                 owner = "hdfs",
                 group = "hadoop",
                 encoding = "Code"
@@ -240,4 +234,4 @@ class TestXmlConfigResource(TestCase):
     self.assertEqual(file_mock.call_args[0][0],'/dir/conf/xmlFile.xml')
     call_args = file_mock.call_args[1].copy()
     del call_args['content']
-    self.assertEqual(call_args,{'owner': 'hdfs', 'group': 'hadoop', 'mode': 0755, 'encoding' : 'Code'})
+    self.assertEqual(call_args,{'owner': 'hdfs', 'group': 'hadoop', 'mode': 0o755, 'encoding' : 'Code'})

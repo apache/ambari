@@ -22,11 +22,7 @@
       <a class="panel-toggle category-header" {{QAAttr "category-header"}}>
         <span class="category-name" {{QAAttr "category-name"}}>{{view.category.displayName}}</span>
         {{#if view.category.errorCount}}
-          <span class="alert-badge" {{QAAttr "error-badge"}}>
-            <span class="counter label alerts-crit-count position-top">
-              {{view.category.errorCount}}
-            </span>
-          </span>
+          <span class="badge badge-important">{{view.category.errorCount}}</span>
         {{/if}}
       </a>
     </h3>
@@ -34,7 +30,7 @@
 
   <div class="panel-body collapse in" {{bindAttr style="view.isCategoryBodyVisible"}} {{QAAttr "panel-body"}}>
   <div class="service-config-section">
-    <form autocomplete="off" class="form-horizontal">
+    <form class="form-horizontal" autocomplete="off">
       {{#each configData in view.categoryConfigs}}
         {{#unless configData.isInDefaultTheme}} {{! configs related to default themes should not be shown on the Advanced tab }}
           {{#if configData.isComparison}}

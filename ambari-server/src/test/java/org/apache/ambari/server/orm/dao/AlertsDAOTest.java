@@ -48,9 +48,6 @@ import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.SortRequest.Order;
 import org.apache.ambari.server.controller.spi.SortRequestProperty;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.events.publishers.HostComponentUpdateEventPublisher;
-import org.apache.ambari.server.events.publishers.RequestUpdateEventPublisher;
-import org.apache.ambari.server.events.publishers.ServiceUpdateEventPublisher;
 import org.apache.ambari.server.orm.AlertDaoHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -71,17 +68,13 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
-import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
 import com.google.inject.persist.UnitOfWork;
-import com.google.inject.util.Modules;
 
 /**
  * Tests {@link AlertsDAO}.
@@ -109,8 +102,7 @@ public class AlertsDAOTest {
    */
   @Before
   public void setup() throws Exception {
-    m_injector = Guice.createInjector(Modules.override(
-        new InMemoryDefaultTestModule()).with(new MockModule()));
+    m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
     m_injector.getInstance(GuiceJpaInitializer.class);
     m_injector.getInstance(UnitOfWork.class).begin();
 
@@ -125,8 +117,6 @@ public class AlertsDAOTest {
 
     // !!! need a synchronous op for testing
     EventBusSynchronizer.synchronizeAmbariEventPublisher(m_injector);
-    EventBusSynchronizer.synchronizeAlertEventPublisher(m_injector);
-    EventBusSynchronizer.synchronizeSTOMPUpdatePublisher(m_injector);
 
     // install YARN so there is at least 1 service installed and no
     // unexpected alerts since the test YARN service doesn't have any alerts
@@ -1260,6 +1250,10 @@ public class AlertsDAOTest {
         AlertHistoryResourceProvider.ALERT_HISTORY_CLUSTER_NAME).equals("c1").and().property(
         AlertHistoryResourceProvider.ALERT_HISTORY_SERVICE_NAME).equals("HDFS").toPredicate();
 
+    clusterAndHdfsPredicate = new PredicateBuilder().property(
+        AlertHistoryResourceProvider.ALERT_HISTORY_CLUSTER_NAME).equals("c1").and().property(
+        AlertHistoryResourceProvider.ALERT_HISTORY_SERVICE_NAME).equals("HDFS").toPredicate();
+
     clusterAndHdfsAndCriticalPredicate = new PredicateBuilder().property(
         AlertHistoryResourceProvider.ALERT_HISTORY_CLUSTER_NAME).equals("c1").and().property(
         AlertHistoryResourceProvider.ALERT_HISTORY_SERVICE_NAME).equals("HDFS").and().property(
@@ -1481,22 +1475,5 @@ public class AlertsDAOTest {
 
     currentAlerts = m_dao.findCurrent();
     assertEquals(4, currentAlerts.size());
-  }
-
-  private class MockModule implements Module {
-
-    @Override
-    public void configure(Binder binder) {
-      HostComponentUpdateEventPublisher hostComponentUpdateEventPublisher =
-          EasyMock.createNiceMock(HostComponentUpdateEventPublisher.class);
-      RequestUpdateEventPublisher requestUpdateEventPublisher =
-          EasyMock.createNiceMock(RequestUpdateEventPublisher.class);
-      ServiceUpdateEventPublisher serviceUpdateEventPublisher =
-          EasyMock.createNiceMock(ServiceUpdateEventPublisher.class);
-
-      binder.bind(HostComponentUpdateEventPublisher.class).toInstance(hostComponentUpdateEventPublisher);
-      binder.bind(RequestUpdateEventPublisher.class).toInstance(requestUpdateEventPublisher);
-      binder.bind(ServiceUpdateEventPublisher.class).toInstance(serviceUpdateEventPublisher);
-    }
   }
 }

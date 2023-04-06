@@ -110,9 +110,11 @@ public class UserLocal<T> {
       }
       else {
         try {
-          T initValue = initialValue(context);
-          LOG.info("Obtained initial value : {} for key : {}",initValue,key);
-          instances.put(key, initValue);
+          if (!instances.containsKey(key)) {
+            T initValue = initialValue(context);
+            LOG.info("Obtained initial value : {} for key : {}",initValue,key);
+            instances.put(key, initValue);
+          }
         }finally{
           lock.unlock();
         }

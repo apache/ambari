@@ -58,10 +58,10 @@ public class DefaultServiceCalculatedState implements ServiceCalculatedState {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultServiceCalculatedState.class);
 
   @Inject
-  private static Provider<Clusters> clustersProvider;
+  protected static Provider<Clusters> clustersProvider = null;
 
   @Inject
-  static Provider<AmbariManagementController> managementControllerProvider;
+  protected static Provider<AmbariManagementController> managementControllerProvider = null;
 
 
   // Get the State of a host component
@@ -121,7 +121,7 @@ public class DefaultServiceCalculatedState implements ServiceCalculatedState {
                 hasDisabled = true;
               }
 
-              if (isInMaintenance && !componentInfo.isClient()) {
+              if (isInMaintenance & !componentInfo.isClient()) {
                 hasMM = true;
                 if ( maxMMState == null || state.ordinal() > maxMMState.ordinal()) {
                   maxMMState = state;

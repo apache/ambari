@@ -1,0 +1,256 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+  <property require-input="true">
+    <name>accumulo_root_password</name>
+    <value/>
+    <property-type>PASSWORD</property-type>
+    <display-name>Accumulo root password</display-name>
+    <description>Password for the Accumulo root user. This password will be
+      used to initialize Accumulo and to create the trace user. Changing this
+      will not change the password for the Accumulo root user.</description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property require-input="true">
+    <name>instance_secret</name>
+    <value/>
+    <display-name>Instance Secret</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>A secret unique to a given instance that all Accumulo server
+      processes must know in order to communicate with one
+      another.</description>
+    <value-attributes>
+      <type>password</type>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property require-input="false">
+    <name>trace_password</name>
+    <value>trace</value>
+    <display-name>Trace user password</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>Password for the trace user. The trace user will be created
+      with this password if that user does not already exist. Changing this
+      will not change the password for the trace user.</description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>accumulo_log_dir</name>
+    <value>/var/log/accumulo</value>
+    <display-name>Accumulo Log Dir</display-name>
+    <description>Log Directories for Accumulo.</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>accumulo_pid_dir</name>
+    <value>/var/run/accumulo</value>
+    <display-name>Accumulo PID Dir</display-name>
+    <description>Pid Directory for Accumulo.</description>
+    <value-attributes>
+      <type>directory</type>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>accumulo_instance_name</name>
+    <value>accumulo</value>
+    <display-name>Instance Name</display-name>
+    <description>Accumulo Instance Name.</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>accumulo_user</name>
+    <display-name>Accumulo User</display-name>
+    <value>accumulo</value>
+    <property-type>USER</property-type>
+    <description>User for running Accumulo server processes.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>accumulo_master_heapsize</name>
+    <value>1024</value>
+    <display-name>Accumulo Master Maximum Java heap size</display-name>
+    <description>Accumulo Master Heap Size.</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>accumulo_tserver_heapsize</name>
+    <value>1536</value>
+    <display-name>Accumulo TServer Maximum Java heap size</display-name>
+    <description>Accumulo Tablet Server Heap Size.</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>accumulo_monitor_heapsize</name>
+    <value>1024</value>
+    <display-name>Accumulo Monitor Maximum Java heap size</display-name>
+    <description>Accumulo Monitor Heap Size.</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>accumulo_gc_heapsize</name>
+    <value>256</value>
+    <display-name>Accumulo GC Maximum Java heap size</display-name>
+    <description>Accumulo Garbage Collector Heap Size.</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>accumulo_other_heapsize</name>
+    <value>1024</value>
+    <display-name>Accumulo Other Maximum Java heap size</display-name>
+    <description>Heap size for other Accumulo processes.</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>accumulo_monitor_bind_all</name>
+    <value>false</value>
+    <display-name>Monitor Bind All Interfaces</display-name>
+    <description>Controls whether the monitor binds to all interfaces.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>accumulo_user_keytab</name>
+    <description>Accumulo keytab path</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>accumulo_principal_name</name>
+    <description>Accumulo principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>content</name>
+    <display-name>accumulo-env template</display-name>
+    <description>The template for a client accumulo-env.sh file.</description>
+    <value>
+#! /usr/bin/env bash
+export HADOOP_PREFIX={{hadoop_prefix}}
+export HADOOP_CONF_DIR={{hadoop_conf_dir}}
+export JAVA_HOME={{java64_home}}
+export ZOOKEEPER_HOME={{zookeeper_home}}
+export ACCUMULO_LOG_DIR={{log_dir}}
+export ACCUMULO_CONF_DIR={{conf_dir}}
+export ACCUMULO_TSERVER_OPTS="-Xmx{{accumulo_tserver_heapsize}}m -Xms{{accumulo_tserver_heapsize}}m"
+export ACCUMULO_MASTER_OPTS="-Xmx{{accumulo_master_heapsize}}m -Xms{{accumulo_master_heapsize}}m"
+export ACCUMULO_MONITOR_OPTS="-Xmx{{accumulo_monitor_heapsize}}m -Xms{{accumulo_monitor_heapsize}}m"
+export ACCUMULO_GC_OPTS="-Xmx{{accumulo_gc_heapsize}}m -Xms{{accumulo_gc_heapsize}}m"
+export ACCUMULO_GENERAL_OPTS="-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 -Djava.net.preferIPv4Stack=true ${ACCUMULO_GENERAL_OPTS}"
+export ACCUMULO_OTHER_OPTS="-Xmx{{accumulo_other_heapsize}}m -Xms{{accumulo_other_heapsize}}m ${ACCUMULO_OTHER_OPTS}"
+# what do when the JVM runs out of heap memory
+export ACCUMULO_KILL_CMD='kill -9 %p'
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>server_content</name>
+    <description>The template for a server accumulo-env.sh file.</description>
+    <display-name>Server accumulo-env template</display-name>
+    <value>
+#! /usr/bin/env bash
+export HADOOP_PREFIX={{hadoop_prefix}}
+export HADOOP_CONF_DIR={{hadoop_conf_dir}}
+export JAVA_HOME={{java64_home}}
+export ZOOKEEPER_HOME={{zookeeper_home}}
+export ACCUMULO_PID_DIR={{pid_dir}}
+export ACCUMULO_LOG_DIR={{log_dir}}
+export ACCUMULO_CONF_DIR={{server_conf_dir}}
+export ACCUMULO_TSERVER_OPTS="-Xmx{{accumulo_tserver_heapsize}}m -Xms{{accumulo_tserver_heapsize}}m"
+export ACCUMULO_MASTER_OPTS="-Xmx{{accumulo_master_heapsize}}m -Xms{{accumulo_master_heapsize}}m"
+export ACCUMULO_MONITOR_OPTS="-Xmx{{accumulo_monitor_heapsize}}m -Xms{{accumulo_monitor_heapsize}}m"
+export ACCUMULO_GC_OPTS="-Xmx{{accumulo_gc_heapsize}}m -Xms{{accumulo_gc_heapsize}}m"
+export ACCUMULO_GENERAL_OPTS="-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 -Djava.net.preferIPv4Stack=true ${ACCUMULO_GENERAL_OPTS}"
+export ACCUMULO_OTHER_OPTS="-Xmx{{accumulo_other_heapsize}}m -Xms{{accumulo_other_heapsize}}m ${ACCUMULO_OTHER_OPTS}"
+{% if security_enabled %}
+export ACCUMULO_TSERVER_OPTS="${ACCUMULO_TSERVER_OPTS} -Djava.security.auth.login.config={{accumulo_jaas_file}} -Djavax.security.auth.useSubjectCredsOnly=false"
+export ACCUMULO_MASTER_OPTS="${ACCUMULO_MASTER_OPTS} -Djava.security.auth.login.config={{accumulo_jaas_file}} -Djavax.security.auth.useSubjectCredsOnly=false"
+export ACCUMULO_GC_OPTS="${ACCUMULO_GC_OPTS} -Djava.security.auth.login.config={{accumulo_jaas_file}} -Djavax.security.auth.useSubjectCredsOnly=false"
+{% endif %}
+export ACCUMULO_MONITOR_BIND_ALL={{monitor_bind_str}}
+# what do when the JVM runs out of heap memory
+export ACCUMULO_KILL_CMD='kill -9 %p'
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

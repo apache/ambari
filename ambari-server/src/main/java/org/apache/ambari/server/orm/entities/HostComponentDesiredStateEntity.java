@@ -245,7 +245,6 @@ public class HostComponentDesiredStateEntity {
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
-    result = 31 * result + (blueprintProvisioningState != null ? blueprintProvisioningState.hashCode() : 0);
     return result;
   }
 

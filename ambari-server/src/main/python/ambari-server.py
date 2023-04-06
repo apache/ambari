@@ -18,7 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import textwrap
 import logging
 import logging.config
 import logging.handlers
@@ -42,19 +41,19 @@ from ambari_server.enableStack import enable_stack_version
 from ambari_server.hostUpdate import update_host_names
 from ambari_server.kerberos_setup import setup_kerberos
 from ambari_server.serverConfiguration import configDefaults, get_ambari_properties, PID_NAME
-from ambari_server.serverSetup import reset, setup, setup_jce_policy, setup_jdbc
+from ambari_server.serverSetup import reset, setup, setup_jce_policy
 from ambari_server.serverUpgrade import upgrade, set_current
 from ambari_server.serverUtils import is_server_runing, refresh_stack_hash, wait_for_server_to_stop
 from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SYNC_ACTION, PSTART_ACTION, \
   REFRESH_STACK_HASH_ACTION, RESET_ACTION, RESTORE_ACTION, UPDATE_HOST_NAMES_ACTION, CHECK_DATABASE_ACTION, \
   SETUP_ACTION, SETUP_SECURITY_ACTION, RESTART_ACTION, START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, \
-  SETUP_JCE_ACTION, SETUP_JDBC_ACTION, SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION, \
+  SETUP_JCE_ACTION, SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION, \
   DB_PURGE_ACTION, INSTALL_MPACK_ACTION, UNINSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION, PAM_SETUP_ACTION, \
   MIGRATE_LDAP_PAM_ACTION, KERBEROS_SETUP_ACTION, SETUP_TPROXY_ACTION
 from ambari_server.setupHttps import setup_https, setup_truststore
 from ambari_server.setupMpacks import install_mpack, uninstall_mpack, upgrade_mpack, STACK_DEFINITIONS_RESOURCE_NAME, \
   SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME
-from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_sensitive_data_encryption, setup_ambari_krb5_jaas, setup_pam, \
+from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas, setup_pam, \
   migrate_ldap_pam, LDAP_TYPES
 from ambari_server.setupSso import setup_sso
 from ambari_server.setupTrustedProxy import setup_trusted_proxy
@@ -167,26 +166,26 @@ def stop(args):
   if status:
     try:
       os.kill(pid, signal.SIGTERM)
-    except OSError, e:
+    except OSError as e:
       err = "Unable to stop Ambari Server - " + str(e)
       print_info_msg(err)
       raise FatalException(1, err)
 
-    print "Waiting for server stop..."
+    print("Waiting for server stop...")
     logger.info("Waiting for server stop...")
 
     if not wait_for_server_to_stop(SERVER_STOP_TIMEOUT):
       err = "Ambari-server failed to stop gracefully. Sending SIGKILL to it"
-      print err
+      print(err)
       logger.error(err)
       os.kill(pid, signal.SIGKILL)
 
     pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
     os.remove(pid_file_path)
-    print "Ambari Server stopped"
+    print("Ambari Server stopped")
     logger.info("Ambari Server stopped")
   else:
-    print "Ambari Server is not running"
+    print("Ambari Server is not running")
     logger.info("Ambari Server is not running")
 
 
@@ -215,7 +214,7 @@ def status(args):
   args.exit_message = None
   status, statusStr = is_server_runing()
 
-  print "Ambari Server is " + statusStr
+  print("Ambari Server is " + statusStr)
 
   if status:
     args.exit_code = 0
@@ -233,13 +232,13 @@ def status(args):
   pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
   if status:
     args.exit_code = 0
-    print "Ambari Server running"
-    print "Found Ambari Server PID: " + str(pid) + " at: " + pid_file_path
+    print("Ambari Server running")
+    print("Found Ambari Server PID: " + str(pid) + " at: " + pid_file_path)
   else:
     if os.path.exists(pid_file_path):
-      print "Ambari Server not running. Stale PID File at: " + pid_file_path
+      print("Ambari Server not running. Stale PID File at: " + pid_file_path)
     else:
-      print "Ambari Server not running."
+      print("Ambari Server not running.")
     args.exit_code = 3
 
 
@@ -253,7 +252,7 @@ def refresh_stack_hash_action():
 def create_setup_security_actions(args):
   action_list = [
       ['setup-https', 'Enable HTTPS for Ambari server.', UserActionRestart(setup_https, args)],
-      ['encrypt-passwords', 'Encrypt passwords managed by Ambari.', UserAction(setup_sensitive_data_encryption, args)],
+      ['encrypt-passwords', 'Encrypt passwords stored in ambari.properties file.', UserAction(setup_master_key, args)],
       ['setup-kerberos-jaas', 'Setup Ambari kerberos JAAS configuration.', UserAction(setup_ambari_krb5_jaas, args)],
       ['setup-truststore', 'Setup truststore.', UserActionRestart(setup_truststore, args)],
       ['import-certificate', 'Import certificate to truststore.', UserActionRestart(setup_truststore, True, args)],
@@ -264,7 +263,7 @@ def create_setup_security_actions(args):
 def create_setup_security_actions(args):
   action_list = [
       ['setup-https', 'Enable HTTPS for Ambari server.', UserActionRestart(setup_https, args)],
-      ['encrypt-passwords', 'Encrypt passwords managed by Ambari.', UserAction(setup_sensitive_data_encryption, args)],
+      ['encrypt-passwords', 'Encrypt passwords stored in ambari.properties file.', UserAction(setup_master_key, args)],
       ['setup-kerberos-jaas', 'Setup Ambari kerberos JAAS configuration.', UserAction(setup_ambari_krb5_jaas, args)],
       ['setup-truststore', 'Setup truststore.', UserActionRestart(setup_truststore, args)],
       ['import-certificate', 'Import certificate to truststore.', UserActionRestart(setup_truststore, args, True)],
@@ -283,13 +282,13 @@ def setup_security(args):
         choice = optionCounter
   if choice is None:
     # Print menu options
-    print '=' * 75
-    print 'Choose one of the following options: '
+    print('=' * 75)
+    print('Choose one of the following options: ')
     iAction = 0
     for actionDesc in actions:
       iAction += 1
-      print '  [{0}] {1}'.format(iAction, actionDesc[1])
-    print '=' * 75
+      print('  [{0}] {1}'.format(iAction, actionDesc[1]))
+    print('=' * 75)
 
     choice_prompt = 'Enter choice, (1-{0}): '.format(iAction)
     choice_re = '[1-{0}]'.format(iAction)
@@ -319,7 +318,7 @@ def get_backup_path(args):
 
 def backup(args):
   logger.info("Backup.")
-  print "Backup requested."
+  print("Backup requested.")
   backup_command = ["BackupRestore", 'backup']
   path = get_backup_path(args)
   if not path is None:
@@ -329,7 +328,7 @@ def backup(args):
 
 def restore(args):
   logger.info("Restore.")
-  print "Restore requested."
+  print("Restore requested.")
   restore_command = ["BackupRestore", 'restore']
   path = get_backup_path(args)
   if not path is None:
@@ -359,13 +358,13 @@ def print_action_arguments_help(action):
       required_options = _action_option_dependence_map[action][0]
     optional_options = _action_option_dependence_map[action][1]
     if required_options or optional_options:
-      print "Options used by action {0}:".format(action)
+      print("Options used by action {0}:".format(action))
     if required_options:
-      print "  required:{0}".format(
-          ";".join([print_opt for print_opt, _ in required_options]))
+      print("  required:{0}".format(
+          ";".join([print_opt for print_opt, _ in required_options])))
     if optional_options:
-      print "  optional:{0}".format(
-            ";".join([print_opt for print_opt, _ in optional_options]))
+      print("  optional:{0}".format(
+            ";".join([print_opt for print_opt, _ in optional_options])))
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def init_action_parser(action, parser):
@@ -457,21 +456,6 @@ def init_action_parser(action, parser):
   # -h reserved for help
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
-def add_jdbc_parser_options(parser):
-  add_parser_options('--jdbc-driver', dest="jdbc_driver", default=None, parser=parser,
-    help="Specifies the path to the JDBC driver JAR file or archive " \
-         "with all required files(jdbc jar, libraries and etc), for the " \
-         "database type specified with the --jdbc-db option. " \
-         "Used only with --jdbc-db option. Archive is supported only for" \
-         " sqlanywhere database.",
-    required_for_actions = (SETUP_JDBC_ACTION,))
-  add_parser_options('--jdbc-db', dest="jdbc_db", default=None, parser=parser,
-    help="Specifies the database type [postgres|mysql|mssql|oracle|hsqldb|sqlanywhere] for the " \
-         "JDBC driver specified with the --jdbc-driver option. Used only with --jdbc-driver option.",
-    required_for_actions = (SETUP_JDBC_ACTION,))
-
-
-@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_setup_parser_options(parser):
   database_group = optparse.OptionGroup(parser, 'Database options (command need to include all options)')
   database_group.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|mssql|postgres|sqlanywhere", dest="dbms")
@@ -484,7 +468,15 @@ def init_setup_parser_options(parser):
   parser.add_option_group(database_group)
 
   jdbc_group = optparse.OptionGroup(parser, 'JDBC options (command need to include all options)')
-  add_jdbc_parser_options(jdbc_group)
+  jdbc_group.add_option('--jdbc-driver', default=None, help="Specifies the path to the JDBC driver JAR file or archive " \
+                                                            "with all required files(jdbc jar, libraries and etc), for the " \
+                                                            "database type specified with the --jdbc-db option. " \
+                                                            "Used only with --jdbc-db option. Archive is supported only for" \
+                                                            " sqlanywhere database." ,
+                        dest="jdbc_driver")
+  jdbc_group.add_option('--jdbc-db', default=None, help="Specifies the database type [postgres|mysql|mssql|oracle|hsqldb|sqlanywhere] for the " \
+                                                        "JDBC driver specified with the --jdbc-driver option. Used only with --jdbc-driver option.",
+                        dest="jdbc_db")
   parser.add_option_group(jdbc_group)
 
   other_group = optparse.OptionGroup(parser, 'Other options')
@@ -539,8 +531,6 @@ def init_ldap_sync_parser_options(parser):
                     dest="ldap_sync_users")
   parser.add_option('--groups', default=None, help="LDAP sync groups option.  Specifies the path to a CSV file of group names to be synchronized.",
                     dest="ldap_sync_groups")
-  parser.add_option('--post-process-existing-users', action="store_true", default=False, help="While performing an LDAP sync, reprocess existing users by executing the post creation hook on them, if the feature is enabled",
-                    dest="ldap_sync_post_process_existing_users")
   parser.add_option('--ldap-sync-admin-name', default=None, help="Username for LDAP sync", dest="ldap_sync_admin_name")
   parser.add_option('--ldap-sync-admin-password', default=None, help="Password for LDAP sync", dest="ldap_sync_admin_password")
 
@@ -564,7 +554,6 @@ def init_ldap_setup_parser_options(parser):
   parser.add_option('--ldap-type', default=None, help="Specify ldap type [{}] for offering defaults for missing options.".format("/".join(LDAP_TYPES)), dest="ldap_type")
   parser.add_option('--ldap-user-class', default=None, help="User Attribute Object Class for LDAP", dest="ldap_user_class")
   parser.add_option('--ldap-user-attr', default=None, help="User Attribute Name for LDAP", dest="ldap_user_attr")
-  parser.add_option('--ldap-user-group-member-attr', default=None, help="User Group Member Attribute for LDAP", dest="ldap_user_group_member_attr")
   parser.add_option('--ldap-group-class', default=None, help="Group Attribute Object Class for LDAP", dest="ldap_group_class")
   parser.add_option('--ldap-group-attr', default=None, help="Group Attribute Name for LDAP", dest="ldap_group_attr")
   parser.add_option('--ldap-member-attr', default=None, help="Group Membership Attribute Name for LDAP", dest="ldap_member_attr")
@@ -586,10 +575,6 @@ def init_ldap_setup_parser_options(parser):
   parser.add_option('--truststore-path', default=None, help="Path of TrustStore", dest="trust_store_path")
   parser.add_option('--truststore-password', default=None, help="Password for TrustStore", dest="trust_store_password")
   parser.add_option('--truststore-reconfigure', action="store_true", default=None, help="Force to reconfigure TrustStore if exits", dest="trust_store_reconfigure")
-  parser.add_option('--ldap-enabled-ambari', default=None, help="Indicates whether to enable/disable LDAP authentication for Ambari, itself", dest='ldap_enabled_ambari')
-  parser.add_option('--ldap-manage-services', default=None, help="Indicates whether Ambari should manage the LDAP configurations for specified services", dest='ldap_manage_services')
-  parser.add_option('--ldap-enabled-services', default=None, help="A comma separated list of services that are expected to be configured for LDAP (you are allowed to use '*' to indicate ALL services)", dest='ldap_enabled_services')
-
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_setup_sso_options(parser):
@@ -632,7 +617,7 @@ def init_set_current_parser_options(parser):
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_setup_security_parser_options(parser):
   parser.add_option('--security-option', default=None,
-                    help="Setup security option (setup-https|encrypt-passwords|setup-kerberos-jaas|setup-truststore|import-certificate)",
+                    help="Setup security option (setup-https|encrypt-password|setup-kerberos-jaas|setup-truststore|import-certificate)",
                     dest="security_option")
 
   https_group = optparse.OptionGroup(parser, "setup-https options")
@@ -775,8 +760,8 @@ def fix_database_options(options, parser):
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def fix_database_options(options, parser):
   if options.dbms == 'embedded':
-    print "WARNING: HostName for postgres server " + options.database_host + \
-          " will be ignored: using localhost."
+    print("WARNING: HostName for postgres server " + options.database_host + \
+          " will be ignored: using localhost.")
     options.database_host = "localhost"
     options.dbms = 'postgres'
     options.persistence_type = 'local'
@@ -797,8 +782,8 @@ def fix_database_options(options, parser):
     parser.error("Option --jdbc-driver is used only in pair with --jdbc-db")
 
   if options.sid_or_sname.lower() not in ["sid", "sname"]:
-    print "WARNING: Valid values for sid_or_sname are 'sid' or 'sname'. Use 'sid' if the db identifier type is " \
-          "Service ID. Use 'sname' if the db identifier type is Service Name"
+    print("WARNING: Valid values for sid_or_sname are 'sid' or 'sname'. Use 'sid' if the db identifier type is " \
+          "Service ID. Use 'sname' if the db identifier type is Service Name")
     parser.print_help()
     exit(-1)
   else:
@@ -846,7 +831,6 @@ def create_user_action_map(args, options):
   action_map = {
         SETUP_ACTION: UserAction(setup, options),
         SETUP_JCE_ACTION : UserActionPossibleArgs(setup_jce_policy, [2], args),
-        SETUP_JDBC_ACTION : UserAction(setup_jdbc, options),
         START_ACTION: UserAction(start, options),
         STOP_ACTION: UserAction(stop, options),
         RESTART_ACTION: UserAction(restart, options),
@@ -880,7 +864,6 @@ def init_action_parser(action, parser):
   action_parser_map = {
     SETUP_ACTION: init_setup_parser_options,
     SETUP_JCE_ACTION: init_empty_parser_options,
-    SETUP_JDBC_ACTION: add_jdbc_parser_options,
     START_ACTION: init_start_parser_options,
     STOP_ACTION: init_empty_parser_options,
     RESTART_ACTION: init_start_parser_options,
@@ -925,7 +908,7 @@ def setup_logging(logger, filename, logging_level):
 
   logging.basicConfig(format=formatstr, level=logging_level, filename=filename)
   logger.setLevel(logging_level)
-  logger.info("loglevel=logging.{0}".format(logging._levelNames[logging_level]))
+  logger.info("loglevel=logging.{0}".format(logging._levelToName[logging_level]))
 
 def init_logging():
   # init logger
@@ -968,7 +951,7 @@ def main(options, args, parser):
   options.warnings = []
 
   if len(args) == 0:
-    print parser.print_help()
+    print(parser.print_help())
     parser.error("No action entered")
 
   action_map = create_user_action_map(args, options)
@@ -996,7 +979,7 @@ def main(options, args, parser):
     matches += int(len(args) == args_number_required)
 
   if matches == 0:
-    print parser.print_help()
+    print(parser.print_help())
     possible_args = ' or '.join(str(x) for x in action_obj.possible_args_numbers)
     parser.error("Invalid number of arguments. Entered: " + str(len(args)) + ", required: " + possible_args)
 
@@ -1008,17 +991,17 @@ def main(options, args, parser):
       required, optional = _action_option_dependence_map[action]
       for opt_str, opt_dest in required:
         if hasattr(options, opt_dest) and getattr(options, opt_dest) is None:
-          print "Missing option {0} for action {1}".format(opt_str, action)
+          print("Missing option {0} for action {1}".format(opt_str, action))
           print_action_arguments_help(action)
-          print "Run ambari-server.py --help to see detailed description of each option"
+          print("Run ambari-server.py --help to see detailed description of each option")
           raise FatalException(1, "Missing option")
     action_obj.execute()
 
     if action_obj.need_restart:
       pstatus, pid = is_server_runing()
       if pstatus:
-        print 'NOTE: Restart Ambari Server to apply changes' + \
-              ' ("ambari-server restart|stop+start")'
+        print('NOTE: Restart Ambari Server to apply changes' + \
+              ' ("ambari-server restart|stop+start")')
 
     if options.warnings:
       for warning in options.warnings:
@@ -1037,7 +1020,7 @@ def main(options, args, parser):
       print_warning_msg(e.reason)
 
   if options.exit_message is not None:
-    print options.exit_message
+    print(options.exit_message)
 
   if options.exit_code is not None:  # not all actions may return a system exit code
     sys.exit(options.exit_code)
@@ -1085,7 +1068,7 @@ def enable_stack(options, args):
   if retcode == 0:
      status, pid = is_server_runing()
      if status:
-        print "restarting ambari server"
+        print("restarting ambari server")
         stop(options)
         start(options)
       

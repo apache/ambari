@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static java.util.Collections.emptyMap;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.GANGLIA;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
 
@@ -969,14 +968,13 @@ public abstract class AbstractProviderModule implements ProviderModule,
               ConfigurationResourceProvider.TYPE,
               ConfigurationResourceProvider.TAG), configPredicate);
     } catch (NoSuchResourceException e) {
-      LOG.info("Resource for the desired config not found.", e);
-      return emptyMap();
+      LOG.info("Resource for the desired config not found. " + e);
+      return Collections.emptyMap();
     }
-    return configResources.stream()
-        .findFirst()
-        .map(res -> res.getPropertiesMap()
-            .get(PROPERTIES_CATEGORY))
-        .orElse(emptyMap());
+    for (Resource res : configResources) {
+      return res.getPropertiesMap().get(PROPERTIES_CATEGORY);
+    }
+    return Collections.emptyMap();
   }
 
   private Map<String, String> getDesiredConfigMap(String clusterName, String versionTag,

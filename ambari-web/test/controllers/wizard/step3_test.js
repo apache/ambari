@@ -405,6 +405,14 @@ describe('App.WizardStep3Controller', function () {
 
   describe('#selectedHostsPopup', function () {
 
+    beforeEach(function () {
+      sinon.spy(App.ModalPopup, 'show');
+    });
+
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+    });
+
     it('should show App.ModalPopup', function () {
       c.selectedHostsPopup();
       expect(App.ModalPopup.show.calledOnce).to.equal(true);
@@ -942,6 +950,15 @@ describe('App.WizardStep3Controller', function () {
   });
 
   describe('#registerErrPopup', function () {
+
+    beforeEach(function () {
+      sinon.spy(App.ModalPopup, 'show');
+    });
+
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+    });
+
     it('should call App.ModalPopup.show', function () {
       c.registerErrPopup();
       expect(App.ModalPopup.show.calledOnce).to.equal(true);
@@ -1019,6 +1036,14 @@ describe('App.WizardStep3Controller', function () {
 
   describe('#submit', function () {
 
+    beforeEach(function () {
+      sinon.spy(App.ModalPopup, 'show');
+    });
+
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+    });
+
     it('if isHostHaveWarnings should show confirmation popup', function () {
       c.reopen({isHostHaveWarnings: true});
       c.submit();
@@ -1046,6 +1071,14 @@ describe('App.WizardStep3Controller', function () {
   });
 
   describe('#hostLogPopup', function () {
+
+    beforeEach(function () {
+      sinon.spy(App.ModalPopup, 'show');
+    });
+
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+    });
 
     it('should show App.ModalPopup', function () {
       c.hostLogPopup({context: Em.Object.create({})});
@@ -1154,10 +1187,12 @@ describe('App.WizardStep3Controller', function () {
   describe('#hostWarningsPopup', function () {
 
     beforeEach(function () {
+      sinon.spy(App.ModalPopup, 'show');
       sinon.stub(c, 'rerunChecks', Em.K);
     });
 
     afterEach(function () {
+      App.ModalPopup.show.restore();
       c.rerunChecks.restore();
     });
 
@@ -1185,6 +1220,15 @@ describe('App.WizardStep3Controller', function () {
   });
 
   describe('#registeredHostsPopup', function () {
+
+    beforeEach(function () {
+      sinon.spy(App.ModalPopup, 'show');
+    });
+
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+    });
+
     it('should show App.ModalPopup', function () {
       c.registeredHostsPopup();
       expect(App.ModalPopup.show.calledOnce).to.equal(true);

@@ -1,0 +1,36 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<div [ngClass]="{'dropup': isDropup}">
+  <button [ngClass]="['btn', 'dropdown-toggle', buttonClass]" data-toggle="dropdown">
+    <span class="filter-label">
+      <span *ngIf="iconClass || label" [class.plain]="!isMultipleChoice && !hideCaret && showSelectedValue">
+        <span *ngIf="iconClass" [ngClass]="iconClass"></span>
+        <span *ngIf="label && (!selection.length || isMultipleChoice || showCommonLabelWithSelection)"
+              [class.label-before-selection]="isSelectionDisplayable">
+          {{label}}
+        </span>
+      </span>
+      <span *ngIf="isSelectionDisplayable">{{selection[0].label | translate}}</span>
+      <span *ngIf="!hideCaret" class="caret"></span>
+    </span>
+  </button>
+  <ul data-component="dropdown-list" (selectedItemChange)="updateSelection($event)"
+    [ngClass]="{'dropdown-menu': true, 'dropdown-menu-right': isRightAlign}"
+    [items]="options" [actionArguments]="listItemArguments" [isMultipleChoice]="isMultipleChoice"
+    [useClearToDefaultSelection]="useClearToDefaultSelection"></ul>
+</div>

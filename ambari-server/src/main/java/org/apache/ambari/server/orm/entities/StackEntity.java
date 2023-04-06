@@ -29,9 +29,6 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
-import org.eclipse.persistence.config.HintValues;
-import org.eclipse.persistence.config.QueryHints;
-
 /**
  * The {@link StackEntity} class is used to model an alert that needs
  * to run in the system. Each received alert from an agent will essentially be
@@ -42,19 +39,12 @@ import org.eclipse.persistence.config.QueryHints;
     "stack_name", "stack_version" }))
 @TableGenerator(name = "stack_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "stack_id_seq", initialValue = 0)
 @NamedQueries({
-    @NamedQuery(name = "StackEntity.findByMpack", query = "SELECT stack FROM StackEntity stack where stack.mpackId = :mpackId"),
-    @NamedQuery(
-      name = "StackEntity.findAll",
-      query = "SELECT stack FROM StackEntity stack"
-    ),
-    @NamedQuery(
-      name = "StackEntity.findByNameAndVersion",
-      query = "SELECT stack FROM StackEntity stack WHERE stack.stackName = :stackName AND stack.stackVersion = :stackVersion",
-      hints = {
-        @QueryHint(name = QueryHints.QUERY_RESULTS_CACHE, value = HintValues.TRUE),
-        @QueryHint(name = QueryHints.QUERY_RESULTS_CACHE_SIZE, value = "100")
-      }
-    )
+    @NamedQuery(name = "StackEntity.findAll", query = "SELECT stack FROM StackEntity stack"),
+    @NamedQuery(name = "StackEntity.findByNameAndVersion", query = "SELECT stack FROM StackEntity stack WHERE stack.stackName = :stackName AND stack.stackVersion = :stackVersion",
+                hints = {
+                  @QueryHint(name = "eclipselink.query-results-cache", value = "true"),
+                  @QueryHint(name = "eclipselink.query-results-cache.size", value = "100")
+                })
 })
 public class StackEntity {
 
@@ -68,18 +58,6 @@ public class StackEntity {
 
   @Column(name = "stack_version", length = 255, nullable = false)
   private String stackVersion;
-
-  @Column(name = "mpack_id")
-  private Long mpackId;
-
-  public Long getMpackId() {
-    return mpackId;
-  }
-
-  public void setMpackId(Long mpackId) {
-    this.mpackId = mpackId;
-  }
-
 
   /**
    * Constructor.
@@ -176,7 +154,6 @@ public class StackEntity {
     buffer.append("id=").append(stackId);
     buffer.append(", name=").append(stackName);
     buffer.append(", version=").append(stackVersion);
-    buffer.append(", mpack_id=").append(mpackId);
     buffer.append("}");
     return buffer.toString();
   }

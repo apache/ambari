@@ -21,13 +21,13 @@ limitations under the License.
 import os
 import time
 import sys
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import socket
 import re
 from ambari_commons import OSCheck
 from functools import wraps
 
-from exceptions import FatalException, NonFatalException, TimeoutError
+from .exceptions import FatalException, NonFatalException, TimeoutError
 
 if OSCheck.is_windows_family():
   from ambari_commons.os_windows import os_run_os_command
@@ -36,8 +36,8 @@ else:
   from ambari_commons.os_linux import os_run_os_command
   pass
 
-from logging_utils import *
-from os_check import OSCheck
+from .logging_utils import *
+from .os_check import OSCheck
 
 
 def openurl(url, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, *args, **kwargs):
@@ -48,8 +48,8 @@ def openurl(url, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, *args, **kwargs):
   :rtype urllib2.Request
   """
   try:
-    return urllib2.urlopen(url, timeout=timeout, *args, **kwargs)
-  except urllib2.URLError as e:
+    return urllib.request.urlopen(url, timeout=timeout, *args, **kwargs)
+  except urllib.error.URLError as e:
     # Python 2.6 timeout handling
     if hasattr(e, "reason") and isinstance(e.reason, socket.timeout):
       raise TimeoutError(e.reason)
@@ -79,7 +79,7 @@ def download_file_anyway(link, destination, chunk_size=16 * 1024, progress_func 
     print_error_msg("Download {0} with python lib [urllib2] failed with error: {1}".format(link, str(sys.exc_info())))
 
   if not os.path.exists(destination):
-    print "Trying to download {0} to {1} with [curl] command.".format(link, destination)
+    print("Trying to download {0} to {1} with [curl] command.".format(link, destination))
     #print_info_msg("Trying to download {0} to {1} with [curl] command.".format(link, destination))
     curl_command = "curl --fail -k -o %s %s" % (destination, link)
     retcode, out, err = os_run_os_command(curl_command)
@@ -89,7 +89,7 @@ def download_file_anyway(link, destination, chunk_size=16 * 1024, progress_func 
 
   if not os.path.exists(destination):
     print_error_msg("Unable to download file {0}!".format(link))
-    print "ERROR: unable to donwload file %s!" % (link)
+    print("ERROR: unable to donwload file %s!" % (link))
 
 
 def download_progress(file_name, downloaded_size, blockSize, totalSize):
@@ -125,7 +125,7 @@ def find_range_components(meta):
     if len(range_comp1) > 1:
       range_comp2 = range_comp1[0].split(' ') #split away the "bytes" prefix
       if len(range_comp2) == 0:
-        raise FatalException(12, 'Malformed Content-Range response header: "{0}".'.format(hdr_range))
+        raise FatalException(12, 'Malformed Content-Range response header: "{0}".' % hdr_range)
       range_comp3 = range_comp2[1].split('-')
       seek_pos = int(range_comp3[0])
       if range_comp1[1] != '*': #'*' == unknown length
@@ -142,11 +142,11 @@ def find_range_components(meta):
 
 
 def force_download_file(link, destination, chunk_size = 16 * 1024, progress_func = None):
-  request = urllib2.Request(link)
+  request = urllib.request.Request(link)
 
   if os.path.exists(destination) and not os.path.isfile(destination):
     #Directory specified as target? Must be a mistake. Bail out, don't assume anything.
-    err = 'Download target {0} is a directory.'.format(destination)
+    err = 'Download target {0} is a directory.' % destination
     raise FatalException(1, err)
 
   (dest_path, file_name) = os.path.split(destination)
@@ -168,7 +168,7 @@ def force_download_file(link, destination, chunk_size = 16 * 1024, progress_func
     if not os.path.exists(dest_path):
       os.makedirs(dest_path)
 
-  response = urllib2.urlopen(request)
+  response = urllib.request.urlopen(request)
   (file_size, seek_pos) = find_range_components(response.info())
 
   print_info_msg("Downloading to: %s Bytes: %s" % (destination, file_size))
@@ -207,7 +207,7 @@ def force_download_file(link, destination, chunk_size = 16 * 1024, progress_func
 
   downloaded_size = os.stat(temp_dest).st_size
   if downloaded_size != file_size:
-    err = 'Size of downloaded file {0} is {1} bytes, it is probably damaged or incomplete'.format(destination, downloaded_size)
+    err = 'Size of downloaded file {0} is {1} bytes, it is probably damaged or incomplete' % (destination, downloaded_size)
     raise FatalException(1, err)
 
   # when download is complete -> mv temp_dest destination
@@ -267,7 +267,7 @@ def get_host_from_url(uri):
     return None
 
   # if not a string, return None
-  if not isinstance(uri, basestring):
+  if not isinstance(uri, str):
     return None
 
     # RFC3986, Appendix B

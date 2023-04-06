@@ -1,0 +1,32 @@
+{
+  "input": [
+    {
+      "type": "service_sample",
+      "rowtype": "service",
+      "path": "target/classes/log-samples/logs/service_sample.txt",
+      "group": "Ambari"
+    }
+  ],
+  "filter": [
+    {
+      "filter": "grok",
+      "conditions": {
+        "fields": {
+          "type": [
+            "service_sample"
+          ]
+        }
+      },
+      "log4j_format": "",
+      "multiline_pattern": "^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern": "(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}\\[%{LOGLEVEL:level}\\]%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values": {
+        "logtime": {
+          "map_date": {
+            "target_date_pattern": "yyyy-MM-dd HH:mm:ss,SSS"
+          }
+        }
+      }
+    }
+  ]
+}

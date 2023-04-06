@@ -39,6 +39,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
@@ -80,10 +81,11 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
     expect(ambariConfigurationDAO.findByCategory("invalid category")).andReturn(null).once();
 
     AmbariEventPublisher publisher = createMock(AmbariEventPublisher.class);
-
-    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher);
+    Configuration configuration = createMock(Configuration.class);
 
     replayAll();
+
+    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
 
     Map<String, RootServiceComponentConfiguration> allConfigurations = handler.getComponentConfigurations(null);
     Assert.assertEquals(3, allConfigurations.size());
@@ -119,9 +121,11 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
     publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
     expectLastCall().once();
 
-    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher);
+    Configuration configuration = createMock(Configuration.class);
 
     replayAll();
+
+    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
 
     handler.removeComponentConfiguration(SSO_CONFIGURATION.getCategoryName());
     handler.removeComponentConfiguration("invalid category");
@@ -145,9 +149,11 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
     publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
     expectLastCall().times(2);
 
-    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher);
+    Configuration configuration = createMock(Configuration.class);
 
     replayAll();
+
+    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
 
     handler.updateComponentCategory(SSO_CONFIGURATION.getCategoryName(), properties, false);
 
@@ -177,10 +183,11 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
     expect(ambariConfigurationDAO.findAll()).andReturn(allEntities).once();
 
     AmbariEventPublisher publisher = createMock(AmbariEventPublisher.class);
-
-    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher);
+    Configuration configuration = createMock(Configuration.class);
 
     replayAll();
+
+    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
 
     Map<String, Map<String, String>> allConfigurations = handler.getConfigurations();
     Assert.assertEquals(2, allConfigurations.size());
@@ -205,10 +212,11 @@ public class AmbariServerConfigurationHandlerTest extends EasyMockSupport {
     expect(ambariConfigurationDAO.findByCategory("invalid category")).andReturn(null).once();
 
     AmbariEventPublisher publisher = createMock(AmbariEventPublisher.class);
-
-    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher);
+    Configuration configuration = createMock(Configuration.class);
 
     replayAll();
+
+    AmbariServerConfigurationHandler handler = new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration);
 
     Map<String, String> ssoConfigurations = handler.getConfigurationProperties(SSO_CONFIGURATION.getCategoryName());
     Assert.assertEquals(2, ssoConfigurations.size());

@@ -22,9 +22,9 @@ describe('#comboSearch', function () {
   beforeEach(module('ambariAdminConsole'));
   beforeEach(module('views/directives/comboSearch.html'));
 
-  beforeEach(inject(function($rootScope, $compile, _$httpBackend_) {
+  beforeEach(inject(function($rootScope, $compile) {
     scope = $rootScope.$new();
-    _$httpBackend_.expectGET('views/clusters/clusterInformation.html').respond(200);
+
     var preCompiledElement = '<combo-search suggestions="filters" filter-change="filterItems" placeholder="Search"></combo-search>';
 
     scope.filters = [
@@ -164,7 +164,7 @@ describe('#comboSearch', function () {
   describe('#updateFilters', function() {
     it('filter function from parent scope should be called', function () {
       var isoScope = element.isolateScope();
-      spyOn(isoScope, 'extractFilters').and.returnValue([{}]);
+      spyOn(isoScope, 'extractFilters').andReturn([{}]);
 
       isoScope.updateFilters([{}]);
 

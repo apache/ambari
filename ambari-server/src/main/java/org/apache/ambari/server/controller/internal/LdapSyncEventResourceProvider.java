@@ -100,14 +100,14 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
   /**
    * The key property ids for a event resource.
    */
-  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.LdapSyncEvent, EVENT_ID_PROPERTY_ID)
       .build();
 
   /**
    * The property ids for a event resource.
    */
-  private static final Set<String> propertyIds = Sets.newHashSet(
+  private static Set<String> propertyIds = Sets.newHashSet(
       EVENT_ID_PROPERTY_ID,
       EVENT_STATUS_PROPERTY_ID,
       EVENT_STATUS_DETAIL_PROPERTY_ID,
@@ -129,7 +129,6 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
    */
   private static final String PRINCIPAL_TYPE_SPEC_KEY = "principal_type";
   private static final String SYNC_TYPE_SPEC_KEY      = "sync_type";
-  private static final String POST_PROCESS_EXISTING_USERS_SPEC_KEY = "post_process_existing_users";
   private static final String NAMES_SPEC_KEY          = "names";
 
   /**
@@ -319,7 +318,6 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
 
       LdapSyncSpecEntity.SyncType      syncType      = null;
       LdapSyncSpecEntity.PrincipalType principalType = null;
-      boolean postProcessExistingUsers = false;
 
       List<String> principalNames = Collections.emptyList();
 
@@ -334,10 +332,6 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
         } else if (key.equalsIgnoreCase(NAMES_SPEC_KEY)) {
           String names = entry.getValue();
           principalNames = Arrays.asList(names.split("\\s*,\\s*"));
-
-        } else if (key.equalsIgnoreCase(POST_PROCESS_EXISTING_USERS_SPEC_KEY)) {
-          postProcessExistingUsers = "true".equalsIgnoreCase(entry.getValue());
-
         } else {
           throw new IllegalArgumentException("Unknown spec key " + key + ".");
         }
@@ -347,7 +341,7 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
         throw new IllegalArgumentException("LDAP event spec must include both sync-type and principal-type.");
       }
 
-      LdapSyncSpecEntity spec = new LdapSyncSpecEntity(principalType, syncType, principalNames, postProcessExistingUsers);
+      LdapSyncSpecEntity spec = new LdapSyncSpecEntity(principalType, syncType, principalNames);
       specList.add(spec);
     }
     entity.setSpecs(specList);
@@ -508,13 +502,13 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
 
     switch (spec.getSyncType()) {
       case ALL:
-        return new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL, spec.getPostProcessExistingUsers());
+        return new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL);
       case EXISTING:
-        return new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING, spec.getPostProcessExistingUsers());
+        return new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING);
       case SPECIFIC:
         Set<String> principalNames = new HashSet<>(spec.getPrincipalNames());
         if (request == null ) {
-          request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, principalNames, spec.getPostProcessExistingUsers());
+          request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, principalNames);
         } else {
           request.addPrincipalNames(principalNames);
         }

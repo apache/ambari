@@ -48,10 +48,8 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
-import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -64,10 +62,6 @@ import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManagerFactory;
-import org.apache.ambari.server.stack.upgrade.Direction;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeHelper;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -76,21 +70,25 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.UpgradeContextFactory;
+import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
-import org.apache.ambari.spi.RepositoryType;
-import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
@@ -445,7 +443,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     public void configure(Binder binder) {
       StageDAO stageDAO = createNiceMock(StageDAO.class);
       PartialNiceMockBinder.newBuilder(StackUpgradeConfigurationMergeTest.this)
-          .addActionDBAccessorConfigsBindings().addPasswordEncryptorBindings().build().configure(binder);
+          .addActionDBAccessorConfigsBindings().addLdapBindings().build().configure(binder);
 
       binder.bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
       binder.bind(StageDAO.class).toInstance(stageDAO);
@@ -487,8 +485,6 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
       binder.bind(AuditLogger.class).toInstance(createNiceMock(AuditLoggerDefaultImpl.class));
       binder.bind(MetadataHolder.class).toInstance(createNiceMock(MetadataHolder.class));
       binder.bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
-      binder.bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
-      binder.bind(AmbariLdapConfigurationProvider.class).toInstance(createMock(AmbariLdapConfigurationProvider.class));
 
       binder.requestStaticInjection(UpgradeResourceProvider.class);
 

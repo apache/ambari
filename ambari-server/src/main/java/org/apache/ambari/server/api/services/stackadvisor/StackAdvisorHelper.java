@@ -59,6 +59,7 @@ public class StackAdvisorHelper {
   private File recommendationsDir;
   private String recommendationsArtifactsLifetime;
   private int recommendationsArtifactsRolloverMax;
+  public static String pythonStackAdvisorScript;
   private final AmbariMetaInfo metaInfo;
   private final AmbariServerConfigurationHandler ambariServerConfigurationHandler;
   private final Gson gson;
@@ -77,6 +78,8 @@ public class StackAdvisorHelper {
     this.recommendationsDir = conf.getRecommendationsDir();
     this.recommendationsArtifactsLifetime = conf.getRecommendationsArtifactsLifetime();
     this.recommendationsArtifactsRolloverMax = conf.getRecommendationsArtifactsRolloverMax();
+
+    this.pythonStackAdvisorScript = conf.getStackAdvisorScript();
     this.saRunner = saRunner;
     this.metaInfo = metaInfo;
     this.ambariServerConfigurationHandler = ambariServerConfigurationHandler;
@@ -147,10 +150,10 @@ public class StackAdvisorHelper {
     RecommendationResponse response = null;
     if (requestType == StackAdvisorRequestType.CONFIGURATIONS) {
       String hash = getHash(request);
-      LOG.info(String.format("Calling stack advisor with hash: %s, service: %s", hash, request.getServiceName()));
+      LOG.info(String.format("Arrived configuration stack advisor request with hash: %s, service: %s", hash, request.getServiceName()));
       response = configsRecommendationResponse.computeIfAbsent(hash, h -> {
         try {
-          LOG.info(String.format("Invoking configuration stack advisor command with hash: %s, service: %s", hash, request.getServiceName()));
+          LOG.info(String.format("Invoking configuration stack advisor request with hash: %s, service: %s", hash, request.getServiceName()));
           return command.invoke(request, serviceAdvisorType);
         } catch (StackAdvisorException e) {
           return null;
@@ -192,9 +195,6 @@ public class StackAdvisorHelper {
           requestId, saRunner, metaInfo, ambariServerConfigurationHandler, hostInfoCache);
     } else if (requestType == StackAdvisorRequestType.SSO_CONFIGURATIONS) {
       command = new ConfigurationRecommendationCommand(StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS_FOR_SSO, recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
-          requestId, saRunner, metaInfo, ambariServerConfigurationHandler, null);
-    } else if (requestType == StackAdvisorRequestType.LDAP_CONFIGURATIONS) {
-      command = new ConfigurationRecommendationCommand(StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS_FOR_LDAP, recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
           requestId, saRunner, metaInfo, ambariServerConfigurationHandler, null);
     } else if (requestType == StackAdvisorRequestType.KERBEROS_CONFIGURATIONS) {
       command = new ConfigurationRecommendationCommand(StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS_FOR_KERBEROS, recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,

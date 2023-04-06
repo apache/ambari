@@ -72,12 +72,8 @@ hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 hadoop_bin = stack_select.get_hadoop_dir("sbin")
 
+mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
 hadoop_home = stack_select.get_hadoop_dir("home")
-hadoop_hdfs_home = stack_select.get_hadoop_dir("hdfs_home")
-hadoop_mapred_home = stack_select.get_hadoop_dir("mapred_home")
-hadoop_yarn_home = stack_select.get_hadoop_dir("yarn_home")
-
-mapreduce_libs_path = format("{hadoop_mapred_home}/*,{hadoop_mapred_home}/lib/*")
 create_lib_snappy_symlinks = False
   
 current_service = config['serviceName']
@@ -115,7 +111,7 @@ hive_server_host =  default("/clusterHostInfo/hive_server_hosts", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 hs_host = default("/clusterHostInfo/historyserver_hosts", [])
 jtnode_host = default("/clusterHostInfo/jtnode_hosts", [])
-namenode_host = default("/clusterHostInfo/namenode_hosts", [])
+namenode_hosts = default("/clusterHostInfo/namenode_hosts", [])
 hdfs_client_hosts = default("/clusterHostInfo/hdfs_client_hosts", [])
 zk_hosts = default("/clusterHostInfo/zookeeper_server_hosts", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_hosts", [])
@@ -128,7 +124,7 @@ if 'cluster-env' in config['configurations'] and \
 else:
   ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 
-has_namenode = not len(namenode_host) == 0
+has_namenode = len(namenode_hosts) > 0
 has_hdfs_clients = len(hdfs_client_hosts) > 0
 has_hdfs = has_hdfs_clients or has_namenode
 has_resourcemanager = not len(rm_host) == 0
@@ -141,7 +137,7 @@ has_zk_host = not len(zk_hosts) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_metric_collector = not len(ams_collector_hosts) == 0
 
-is_namenode_master = hostname in namenode_host
+is_namenode_master = hostname in namenode_hosts
 is_jtnode_master = hostname in jtnode_host
 is_rmnode_master = hostname in rm_host
 is_hsnode_master = hostname in hs_host
@@ -300,7 +296,7 @@ hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', 
 hdfs_site = config['configurations']['hdfs-site']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
-smoke_hdfs_user_mode = 0770
+smoke_hdfs_user_mode = 0o770
 
 
 ##### Namenode RPC ports - metrics config section start #####

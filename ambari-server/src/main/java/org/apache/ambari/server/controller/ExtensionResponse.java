@@ -41,7 +41,7 @@ public class ExtensionResponse {
 
   @Override
   public int hashCode() {
-    int result;
+    int result = 1;
     result = 31 + getExtensionName().hashCode();
     return result;
   }

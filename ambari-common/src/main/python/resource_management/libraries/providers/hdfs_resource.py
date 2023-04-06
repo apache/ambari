@@ -26,7 +26,7 @@ import os
 import pwd
 import re
 import time
-from urlparse import urlparse
+from urllib.parse import urlparse
 from resource_management.core import shell
 from resource_management.core import sudo
 from resource_management.core.base import Fail
@@ -35,7 +35,6 @@ from resource_management.core.logger import Logger
 from resource_management.core.providers import Provider
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import File
-from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import namenode_ha_utils
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
@@ -70,8 +69,6 @@ EXCEPTIONS_TO_RETRY = {
   "RetriableException": ("", 20, 6),
 }
 
-DFS_WHICH_SUPPORT_WEBHDFS = ['hdfs']
-
 class HdfsResourceJar:
   """
   This is slower than HdfsResourceWebHDFS implementation of HdfsResouce, but it works in any cases on any DFS types.
@@ -85,7 +82,7 @@ class HdfsResourceJar:
   def action_delayed(self, action_name, main_resource):
     dfs_type = main_resource.resource.dfs_type
 
-    if main_resource.resource.nameservices is None and main_resource.has_core_configs: # all nameservices
+    if main_resource.resource.nameservices is None: # all nameservices
       nameservices = namenode_ha_utils.get_nameservices(main_resource.resource.hdfs_site)
     else:
       nameservices = main_resource.resource.nameservices
@@ -94,9 +91,16 @@ class HdfsResourceJar:
     if not nameservices or len(nameservices) < 2:
       self.action_delayed_for_nameservice(None, action_name, main_resource)
     else:
+      default_fs_protocol = urlparse(main_resource.resource.default_fs).scheme
+
+      if not default_fs_protocol or default_fs_protocol == "viewfs":
+        protocol = dfs_type.lower()
+      else:
+        protocol = default_fs_protocol
+
       for nameservice in nameservices:
         try:
-          nameservice = main_resource.default_protocol + "://" + nameservice
+          nameservice = protocol + "://" + nameservice
           self.action_delayed_for_nameservice(nameservice, action_name, main_resource)
         except namenode_ha_utils.NoActiveNamenodeException as ex:
           # one of ns can be down (during initial start forexample) no need to worry for federated cluster
@@ -108,17 +112,11 @@ class HdfsResourceJar:
   def action_delayed_for_nameservice(self, nameservice, action_name, main_resource):
     resource = {}
     env = Environment.get_instance()
-    env_dict_key = 'hdfs_files_sudo' if main_resource.create_as_root else 'hdfs_files'
-    
-    if main_resource.create_as_root:
-      Logger.info("Will create {0} as root user".format(main_resource.resource.target))
-      
-    
-    if not env_dict_key in env.config:
-      env.config[env_dict_key] = []
+    if not 'hdfs_files' in env.config:
+      env.config['hdfs_files'] = []
 
     # Put values in dictionary-resource
-    for field_name, json_field_name in RESOURCE_TO_JSON_FIELDS.iteritems():
+    for field_name, json_field_name in RESOURCE_TO_JSON_FIELDS.items():
       if field_name == 'action':
         resource[json_field_name] = action_name
       elif field_name == 'mode' and main_resource.resource.mode:
@@ -131,25 +129,21 @@ class HdfsResourceJar:
     resource['nameservice'] = nameservice
 
     # Add resource to create
-    env.config[env_dict_key].append(resource)
+    env.config['hdfs_files'].append(resource)
     
-  def action_execute(self, main_resource, sudo=False):
+  def action_execute(self, main_resource):
     env = Environment.get_instance()
-    env_dict_key = 'hdfs_files_sudo' if sudo else 'hdfs_files'
 
-    if not env_dict_key in env.config or not env.config[env_dict_key]:
+    # Check required parameters
+    main_resource.assert_parameter_is_set('user')
+
+    if not 'hdfs_files' in env.config or not env.config['hdfs_files']:
+      Logger.info("No resources to create. 'create_on_execute' or 'delete_on_execute' or 'download_on_execute' wasn't triggered before this 'execute' action.")
       return
     
-    # Check required parameters
-    if not sudo:
-      main_resource.assert_parameter_is_set('user')
-      user = main_resource.resource.user
-    else:
-      user = None
-
-
     hadoop_bin_dir = main_resource.resource.hadoop_bin_dir
     hadoop_conf_dir = main_resource.resource.hadoop_conf_dir
+    user = main_resource.resource.user
     security_enabled = main_resource.resource.security_enabled
     keytab_file = main_resource.resource.keytab
     kinit_path = main_resource.resource.kinit_path_local
@@ -165,19 +159,18 @@ class HdfsResourceJar:
     # Write json file to disk
     File(json_path,
          owner = user,
-         content = json.dumps(env.config[env_dict_key])
+         content = json.dumps(env.config['hdfs_files'])
     )
 
     # Execute jar to create/delete resources in hadoop
-    Execute(('hadoop', '--config', hadoop_conf_dir, 'jar', jar_path, json_path),
+    Execute(format("hadoop --config {hadoop_conf_dir} jar {jar_path} {json_path}"),
             user=user,
             path=[hadoop_bin_dir],
             logoutput=logoutput,
-            sudo=sudo,
     )
 
     # Clean
-    env.config[env_dict_key] = []
+    env.config['hdfs_files'] = []
 
 
 class WebHDFSCallException(Fail):
@@ -207,17 +200,12 @@ class WebHDFSUtil:
     self.run_user = run_user
     self.security_enabled = security_enabled
     self.logoutput = logoutput
-
-  @staticmethod
-  def get_default_protocol(default_fs, dfs_type):
-    default_fs_protocol = urlparse(default_fs).scheme.lower()
-    is_viewfs = default_fs_protocol == 'viewfs'
-    return dfs_type.lower() if is_viewfs else default_fs_protocol
     
   @staticmethod
-  def is_webhdfs_available(is_webhdfs_enabled, default_protocol):
-    return (is_webhdfs_enabled and default_protocol in DFS_WHICH_SUPPORT_WEBHDFS)
-
+  def is_webhdfs_available(is_webhdfs_enabled, dfs_type):
+    # only hdfs seems to support webHDFS
+    return (is_webhdfs_enabled and dfs_type == 'HDFS')
+    
   def run_command(self, *args, **kwargs):
     """
     This functions is a wrapper for self._run_command which does retry routine for it.
@@ -268,7 +256,7 @@ class WebHDFSUtil:
     if not self.security_enabled:
       request_args['user.name'] = self.run_user
     
-    for k,v in request_args.iteritems():
+    for k,v in request_args.items():
       url = format("{url}&{k}={v}")
     
     cmd = ["curl", "-sS","-L", "-w", "%{http_code}", "-X", method]
@@ -422,25 +410,16 @@ class HdfsResourceWebHDFS:
     
   def _create_resource(self):
     is_create = (self.main_resource.resource.source == None)
-    source = self.main_resource.resource.source
-    type = self.main_resource.resource.type
-    target = self.main_resource.resource.target
-    refresh_status = True
     
-    if is_create and type == "directory":
-      self._create_directory(target)
-    elif is_create and type == "file":
-      self._create_file(target, mode=self.mode)
-    elif not is_create and type == "file":
-      self._create_file(target, source=source, mode=self.mode)
-    elif not is_create and type == "directory":
-      self._create_directory(target)
-      self._copy_from_local_directory(target, source)
-    else:
-      refresh_status = False
-
-    if refresh_status:
-      self.target_status = self._get_file_status(target)
+    if is_create and self.main_resource.resource.type == "directory":
+      self._create_directory(self.main_resource.resource.target)
+    elif is_create and self.main_resource.resource.type == "file":
+      self._create_file(self.main_resource.target, mode=self.mode)
+    elif not is_create and self.main_resource.resource.type == "file":
+      self._create_file(self.main_resource.resource.target, source=self.main_resource.resource.source, mode=self.mode)
+    elif not is_create and self.main_resource.resource.type == "directory":
+      self._create_directory(self.main_resource.resource.target)
+      self._copy_from_local_directory(self.main_resource.resource.target, self.main_resource.resource.source)
     
   def _copy_from_local_directory(self, target, source):
     for next_path_part in sudo.listdir(source):
@@ -635,22 +614,12 @@ class HdfsResourceProvider(Provider):
   def __init__(self, resource):
     super(HdfsResourceProvider,self).__init__(resource)
 
-    self.has_core_configs = not is_empty(getattr(resource, 'default_fs'))
-    self.ignored_resources_list = HdfsResourceProvider.get_ignored_resources_list(self.resource.hdfs_resource_ignore_file)
-    self.create_as_root = False
-    
-    if not self.has_core_configs:
-      self.webhdfs_enabled = False
-      self.fsType = None
-      return
-
     self.assert_parameter_is_set('dfs_type')
-    self.fsType = getattr(resource, 'dfs_type').lower()
+    self.fsType = getattr(resource, 'dfs_type')
 
-    self.default_protocol = WebHDFSUtil.get_default_protocol(resource.default_fs, self.fsType)
-    self.can_use_webhdfs = True
+    self.ignored_resources_list = HdfsResourceProvider.get_ignored_resources_list(self.resource.hdfs_resource_ignore_file)
 
-    if self.fsType == 'hdfs':
+    if self.fsType == 'HDFS':
       self.assert_parameter_is_set('hdfs_site')
       self.webhdfs_enabled = self.resource.hdfs_site['dfs.webhdfs.enabled']
     else:
@@ -674,7 +643,7 @@ class HdfsResourceProvider(Provider):
     else:
       path = path
       
-    return re.sub("[/]+", "/", path).replace(" ", "%20")
+    return re.sub("[/]+", "/", path)
 
   @staticmethod
   def get_ignored_resources_list(hdfs_resource_ignore_file):
@@ -687,26 +656,12 @@ class HdfsResourceProvider(Provider):
     hdfs_resources_to_ignore = []
     for hdfs_resource_to_ignore in content.split("\n"):
       hdfs_resources_to_ignore.append(HdfsResourceProvider.parse_path(hdfs_resource_to_ignore))
-
+            
     return hdfs_resources_to_ignore
     
   def action_delayed(self, action_name):
     self.assert_parameter_is_set('type')
     
-    if self.has_core_configs:
-      path_protocol = urlparse(self.resource.target).scheme.lower()
-      
-      self.create_as_root = path_protocol == 'file' or self.default_protocol == 'file' and not path_protocol
-
-      # for protocols which are different that defaultFs webhdfs will not be able to create directories
-      # so for them fast-hdfs-resource.jar should be used
-      if path_protocol and path_protocol != self.default_protocol:
-        self.can_use_webhdfs = False
-        Logger.info("Cannot use webhdfs for {0} defaultFs = {1} has different protocol".format(self.resource.target, self.resource.default_fs))
-    else:
-      self.can_use_webhdfs = False
-      self.create_as_root = True
-
     parsed_path = HdfsResourceProvider.parse_path(self.resource.target)
 
     parsed_not_managed_paths = [HdfsResourceProvider.parse_path(path) for path in self.resource.immutable_paths]
@@ -728,12 +683,10 @@ class HdfsResourceProvider(Provider):
     self.action_delayed("download")
 
   def action_execute(self):
-    HdfsResourceWebHDFS().action_execute(self)
-    HdfsResourceJar().action_execute(self, sudo=False)
-    HdfsResourceJar().action_execute(self, sudo=True)
-    
+    self.get_hdfs_resource_executor().action_execute(self)
+
   def get_hdfs_resource_executor(self):
-    if self.can_use_webhdfs and WebHDFSUtil.is_webhdfs_available(self.webhdfs_enabled, self.default_protocol):
+    if WebHDFSUtil.is_webhdfs_available(self.webhdfs_enabled, self.fsType):
       return HdfsResourceWebHDFS()
     else:
       return HdfsResourceJar()
@@ -751,7 +704,5 @@ class HdfsResourceProvider(Provider):
     
     Execute(format("{kinit_path} -kt {keytab_file} {principal_name}"),
             user=user
-    )
-
-
+    )    
 

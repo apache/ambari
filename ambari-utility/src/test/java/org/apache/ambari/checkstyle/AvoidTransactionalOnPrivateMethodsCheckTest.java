@@ -19,21 +19,25 @@ package org.apache.ambari.checkstyle;
 
 import static org.apache.ambari.checkstyle.AvoidTransactionalOnPrivateMethodsCheck.MSG_TRANSACTIONAL_ON_PRIVATE_METHOD;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.junit.Test;
 
-import com.puppycrawl.tools.checkstyle.AbstractModuleTestSupport;
+import com.puppycrawl.tools.checkstyle.BaseCheckTestSupport;
 import com.puppycrawl.tools.checkstyle.DefaultConfiguration;
 
-public class AvoidTransactionalOnPrivateMethodsCheckTest extends AbstractModuleTestSupport {
+public class AvoidTransactionalOnPrivateMethodsCheckTest extends BaseCheckTestSupport {
 
   @Override
-  protected String getPackageLocation() {
-    return "org/apache/ambari/checkstyle";
+  protected String getPath(String filename) throws IOException {
+    return new File("src/test/resources/org/apache/ambari/checkstyle/" + filename)
+      .getCanonicalPath();
   }
 
   @Test
   public void transactionalOnPrivateMethod() throws Exception {
-    final DefaultConfiguration config = createModuleConfig(AvoidTransactionalOnPrivateMethodsCheck.class);
+    final DefaultConfiguration config = createCheckConfig(AvoidTransactionalOnPrivateMethodsCheck.class);
     final String[] expected = {
       "32: " + MSG_TRANSACTIONAL_ON_PRIVATE_METHOD,
       "41: " + MSG_TRANSACTIONAL_ON_PRIVATE_METHOD,

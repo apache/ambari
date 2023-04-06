@@ -24,8 +24,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -38,21 +36,19 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
 import org.apache.ambari.server.stack.ModuleFileUnmarshaller;
-import org.apache.ambari.server.stack.upgrade.ClusterGrouping;
-import org.apache.ambari.server.stack.upgrade.ConfigUpgradePack;
-import org.apache.ambari.server.stack.upgrade.ConfigureTask;
-import org.apache.ambari.server.stack.upgrade.Direction;
-import org.apache.ambari.server.stack.upgrade.ExecuteStage;
-import org.apache.ambari.server.stack.upgrade.Grouping;
-import org.apache.ambari.server.stack.upgrade.Task;
-import org.apache.ambari.server.stack.upgrade.Task.Type;
-import org.apache.ambari.server.stack.upgrade.UpgradePack;
-import org.apache.ambari.server.stack.upgrade.UpgradePack.ProcessingComponent;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.UpgradeContextFactory;
+import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
+import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping.ExecuteStage;
+import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.Grouping;
+import org.apache.ambari.server.state.stack.upgrade.Task;
+import org.apache.ambari.server.state.stack.upgrade.Task.Type;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -76,13 +72,7 @@ import junit.framework.Assert;
  * IDs exist in the {@code config-upgrade.xml} which will be used/created. Also
  * ensures that every XML file is valid against its XSD.
  */
-@Ignore
 @Category({ category.StackUpgradeTest.class})
-@Experimental(
-    feature = ExperimentalFeature.MULTI_SERVICE,
-    comment = "This was a very useful test that no longer works since all of the XML files for "
-        + "upgrades are delivered in mpacks. This should be converted into a some realtime check "
-        + "when an mpack is registered.")
 public class ConfigUpgradeValidityTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(ConfigUpgradeValidityTest.class);
@@ -160,6 +150,8 @@ public class ConfigUpgradeValidityTest {
         upgradeEntity.setRepositoryVersion(rve);
 
         UpgradeContext cx = upgradeContextFactory.create(cluster, upgradeEntity);
+
+        cx.setUpgradePack(upgradePack);
 
         ConfigUpgradePack configUpgradePack = ConfigurationPackBuilder.build(cx);
 

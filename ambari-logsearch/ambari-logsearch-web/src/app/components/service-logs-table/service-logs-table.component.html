@@ -1,0 +1,173 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<div class="panel panel-default">
+  <div [ngClass]="{'panel-body': true, 'layout-flex': layout==='FLEX', 'layout-table': layout==='TABLE'}">
+    <div class="service-logs-table-controls">
+      <div *ngIf="tooManyColumnsSelected" class="list-layout-warning">
+        <i class="fa fa-warning"></i>
+        {{'logs.brokenListLayoutMessage' | translate}}
+      </div>
+      <form *ngIf="logs && logs.length" [formGroup]="filtersForm">
+        <filter-dropdown formControlName="serviceLogsSorting" label="{{filters.serviceLogsSorting.label | translate}}"
+                         [showCommonLabelWithSelection]="true" [options]="filters.serviceLogsSorting.options"
+                         [isRightAlign]="true"></filter-dropdown>
+      </form>
+      <dropdown-button label="{{'logs.columns' | translate}}" [options]="columns" [isRightAlign]="true"
+                       (selectItem)="updateSelectedColumns($event)"
+                       [listItemArguments]="logsTypeMapObject.fieldsModel"
+                       [isMultipleChoice]="true"
+                       [useClearToDefaultSelection]="true">
+      </dropdown-button>
+      <div class="layout-btn-group">
+        <a *ngIf="layout==='FLEX'" class="btn" (click)="toggleShowLabels()" tooltip="{{'logs.toggleLabels' | translate}}">
+          <i [ngClass]="{'fa': true, 'fa-toggle-on': showLabels, 'fa-toggle-off': !showLabels}"></i>
+        </a>
+        <a class="btn" (click)="setLayout('TABLE')" tooltip="{{'logs.tableLayoutBtnTooltip' | translate}}">
+          <i [ngClass]="{'fa': true, 'fa-th-list': true, 'active': layout=='TABLE'}"></i>
+        </a>
+        <a class="btn" (click)="setLayout('FLEX')" tooltip="{{'logs.flexLayoutBtnTooltip' | translate}}">
+          <i [ngClass]="{'fa': true, 'fa-th': true, 'active': layout=='FLEX'}"></i>
+        </a>
+      </div>
+    </div>
+    <div *ngIf="layout=='TABLE'" [ngClass]="{'log-list-table-container':true, 'broken-layout': tooManyColumnsSelected}" #tableWrapperEl>
+      <table [ngClass]="{'table': true, 'table-hover': true}" #tableListEl
+             tooltip="{{tooManyColumnsSelected ? ('logs.brokenListLayoutTooltip' | translate) : ''}}"
+             placement="top" containerClass="tooltip-warning">
+        <colgroup>
+          <col class="log-action">
+          <col *ngIf="isColumnDisplayed('logtime')" class="log-time">
+          <col *ngIf="isColumnDisplayed('level')" class="log-level">
+          <col *ngIf="isColumnDisplayed('type')" class="log-type">
+          <ng-container *ngFor="let column of displayedColumns">
+            <col *ngIf="customStyledColumns.indexOf(column.value) === -1" [ngClass]="'col-default-fixed log-' + column.value">
+          </ng-container>
+          <col *ngIf="isColumnDisplayed('path')" class="log-path">
+          <col *ngIf="isColumnDisplayed('log_message')" class="log-message">
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="log-action"></th>
+            <th *ngIf="isColumnDisplayed('logtime')">{{getLabelForField('logtime') | translate}}</th>
+            <th *ngIf="isColumnDisplayed('level')">{{getLabelForField('level') | translate}}</th>
+            <th *ngIf="isColumnDisplayed('type')">{{getLabelForField('type') | translate}}</th>
+            <ng-container *ngFor="let column of displayedColumns">
+              <th *ngIf="customStyledColumns.indexOf(column.value) === -1">{{getLabelForField(column.value) | translate}}</th>
+            </ng-container>
+            <th *ngIf="isColumnDisplayed('path')">{{getLabelForField('path') | translate}}</th>
+            <th *ngIf="isColumnDisplayed('log_message')">{{getLabelForField('log_message') | translate}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let log of logs; let i = index">
+            <tr *ngIf="i === 0 || isDifferentDates(log.logtime, logs[i - 1].logtime)" class="log-date-row">
+              <th attr.colspan="{{displayedColumns.length + 1}}">
+                {{log.logtime | amTz: timeZone | amDateFormat: dateFormat}}
+              </th>
+            </tr>
+            <tr class="log-item-row">
+              <td class="log-action">
+                <dropdown-button iconClass="fa fa-ellipsis-v action" [hideCaret]="true" [options]="logActions"
+                                 [listItemArguments]="[log]" [showSelectedValue]="false"></dropdown-button>
+              </td>
+              <td *ngIf="isColumnDisplayed('logtime')" class="log-time">
+                <time>
+                  {{log.logtime | amTz: timeZone | amDateFormat: timeFormat}}
+                </time>
+              </td>
+              <td *ngIf="isColumnDisplayed('level')" [ngClass]="'log-level ' + log.level.toLowerCase()">
+                <log-level [logEntry]="log"></log-level>
+              </td>
+              <td *ngIf="isColumnDisplayed('type')" [ngClass]="'log-type'">
+                {{log.type | componentLabel | async}}
+              </td>
+              <ng-container *ngFor="let column of displayedColumns">
+                <td *ngIf="customStyledColumns.indexOf(column.value) === -1"
+                    [ngClass]="'log-' + column.value">{{log[column.value]}}</td>
+              </ng-container>
+              <td *ngIf="isColumnDisplayed('path')" [ngClass]="'log-path'">
+                {{log.path}}
+              </td>
+              <td *ngIf="isColumnDisplayed('log_message')" [ngClass]="'log-message'" width="*"
+                  (contextmenu)="openMessageContextMenu($event)">
+                <log-message [listenChangesOn]="displayedColumns" [message]="log.log_message"></log-message>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td attr.colspan="{{displayedColumns.length + 1}}">
+              <pagination class="col-md-12" *ngIf="logs && logs.length" [totalCount]="totalCount"
+                          [filtersForm]="filtersForm" [filterInstance]="filters.pageSize"
+                          [currentCount]="logs.length"></pagination>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <ng-container *ngIf="layout=='FLEX'">
+      <div [ngClass]="{'log-list': true, 'show-labels': showLabels}">
+        <ng-container *ngFor="let log of logs; let i = index">
+          <div *ngIf="i === 0 || isDifferentDates(log.logtime, logs[i - 1].logtime)" class="log-date-row">
+            {{log.logtime | amTz: timeZone | amDateFormat: dateFormat}}
+          </div>
+          <div [ngClass]="{'log-row': true, 'odd': i % 2, 'even': !(i % 2)}">
+            <div class="log-header">
+              <div class="log-action">
+                <dropdown-button iconClass="fa fa-ellipsis-v action" [hideCaret]="true" [options]="logActions"
+                                 [listItemArguments]="[log]" [showSelectedValue]="false"></dropdown-button>
+              </div>
+              <div *ngIf="isColumnDisplayed('level')" [ngClass]="'log-level ' + log.level.toLowerCase()">
+                <log-level [logEntry]="log"></log-level>
+              </div>
+              <div *ngIf="isColumnDisplayed('type')" [ngClass]="'log-type'" [title]="log.type">
+                <label *ngIf="showLabels">{{getLabelForField('type') | translate}}</label>
+                {{log.type}}
+              </div>
+              <div *ngIf="isColumnDisplayed('path')" [ngClass]="'log-path'" [title]="log.path">
+                <label *ngIf="showLabels">{{getLabelForField('path') | translate}}</label>
+                {{log.path}}
+              </div>
+              <ng-container *ngFor="let column of displayedColumns">
+                <div *ngIf="customStyledColumns.indexOf(column.value) === -1" [ngClass]="'log-' + (column.value | lowercase)"
+                     [title]="(log[column.value] || '')">
+                  <label *ngIf="showLabels">{{getLabelForField(column.value) | translate}}</label>
+                  {{log[column.value]}}
+                </div>
+              </ng-container>
+              <div *ngIf="isColumnDisplayed('logtime')" class="log-time">
+                <time>
+                  {{log.logtime | amTz: timeZone | amDateFormat: timeFormat}}
+                </time>
+              </div>
+            </div>
+            <div *ngIf="isColumnDisplayed('log_message')" class="log-message" (contextmenu)="openMessageContextMenu($event)">
+              <log-message [listenChangesOn]="displayedColumns" [message]="log.log_message"></log-message>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+      <pagination class="col-md-12" *ngIf="logs && logs.length" [totalCount]="totalCount" [filtersForm]="filtersForm"
+                  [filterInstance]="filters.pageSize" [currentCount]="logs.length"></pagination>
+    </ng-container>
+    <context-menu [isDisplayed]="isContextMenuDisplayed" [contextMenuItems]="contextMenuItems"
+                  [leftPosition]="contextMenuLeft" [topPosition]="contextMenuTop" (itemSelect)="updateQuery($event)"
+                  (contextMenuDismiss)="onContextMenuDismiss()"></context-menu>
+  </div>
+</div>

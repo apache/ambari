@@ -19,7 +19,6 @@ package org.apache.ambari.server.security.encryption;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Properties;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.junit.After;
@@ -41,7 +40,7 @@ public class CredentialProviderTest {
 
   private void createMasterKey() throws IOException {
     File f = tmpFolder.newFile(Configuration.MASTER_KEY_FILENAME_DEFAULT);
-    Assert.assertTrue(new MasterKeyServiceImpl("dummyKey").initializeMasterKeyFile(f, "blahblah!"));
+    Assert.assertTrue(MasterKeyServiceImpl.initializeMasterKeyFile(f, "blahblah!"));
     MasterKeyService ms = new MasterKeyServiceImpl(f);
     if (!ms.isMasterKeyInitialized()) {
       throw new ExceptionInInitializerError("Cannot create master key.");
@@ -53,20 +52,21 @@ public class CredentialProviderTest {
     CredentialProvider cr;
     File msFile = tmpFolder.newFile(Configuration.MASTER_KEY_FILENAME_DEFAULT);
     File mksFile = tmpFolder.newFile(Configuration.MASTER_KEYSTORE_FILENAME_DEFAULT);
-    Configuration configuration = new Configuration(new Properties());
-    configuration.setProperty(Configuration.MASTER_KEY_LOCATION, msFile.getParent());
-    configuration.setProperty(Configuration.MASTER_KEYSTORE_LOCATION, mksFile.getParent());
-
-    // With master key persisted
-    createMasterKey();
-    cr = new CredentialProvider(null, configuration);
+    try {
+      new CredentialProvider(null, null, true, null);
+      Assert.fail("Expected an exception");
+    } catch (Throwable t) {
+      Assert.assertTrue(t instanceof IllegalArgumentException);
+    }
+    // Without master key persisted
+    cr = new CredentialProvider("blahblah!", msFile, false, mksFile);
     Assert.assertNotNull(cr);
     Assert.assertNotNull(cr.getKeystoreService());
+    // With master key persisted
     msFile.delete();
     mksFile.delete();
-    // Without master key persisted
-
-    cr = new CredentialProvider("blahblah!", configuration);
+    createMasterKey();
+    cr = new CredentialProvider(null, msFile, true, mksFile);
     Assert.assertNotNull(cr);
     Assert.assertNotNull(cr.getKeystoreService());
   }
@@ -91,13 +91,10 @@ public class CredentialProviderTest {
   public void testCredentialStore() throws Exception {
     File msFile = tmpFolder.newFile(Configuration.MASTER_KEY_FILENAME_DEFAULT);
     File mksFile = tmpFolder.newFile(Configuration.MASTER_KEYSTORE_FILENAME_DEFAULT);
-    Configuration configuration = new Configuration(new Properties());
-    configuration.setProperty(Configuration.MASTER_KEY_LOCATION, msFile.getParent());
-    configuration.setProperty(Configuration.MASTER_KEYSTORE_LOCATION, mksFile.getParent());
 
     // With master key persisted
     createMasterKey();
-    CredentialProvider cr = new CredentialProvider(null, configuration);
+    CredentialProvider cr = new CredentialProvider(null, msFile, true, mksFile);
     Assert.assertNotNull(cr);
     Assert.assertNotNull(cr.getKeystoreService());
 

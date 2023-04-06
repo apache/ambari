@@ -241,9 +241,7 @@ module.exports = Em.Application.create({
    * @type {bool}
    */
   isHaEnabled: function () {
-    return App.Service.find('HDFS').get('isLoaded')
-      && App.MasterComponent.find('SECONDARY_NAMENODE').get('totalCount') === 0
-      && App.MasterComponent.find('NAMENODE').get('totalCount') > 1;
+    return App.Service.find('HDFS').get('isLoaded') && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
   }.property('router.clusterController.dataLoadList.services', 'router.clusterController.isServiceContentFullyLoaded'),
 
   hasNameNodeFederation: function () {

@@ -1,0 +1,155 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>enable_hive_interactive</name>
+    <value>false</value>
+    <description>Enable or disable interactive query in this cluster. &lt;br&gt; Note: Hive LLAP may not start up on busy clusters if YARN pre-emption is not enabled. Enable via the YARN configs page.</description>
+    <display-name>Enable Interactive Query (requires YARN pre-emption)</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>llap_java_opts</name>
+    <value>-XX:+AlwaysPreTouch {% if java_version > 7 %}-Xss512k -XX:+UseG1GC -XX:TLABSize=8m -XX:+ResizeTLAB -XX:+UseNUMA -XX:+AggressiveOpts -XX:InitiatingHeapOccupancyPercent=40 -XX:G1ReservePercent=20 -XX:MaxGCPauseMillis=200{% else %}-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC{% endif %}{{heap_dump_opts}}</value>
+    <description>Java opts for llap application</description>
+    <display-name>LLAP app java opts</display-name>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>num_retries_for_checking_llap_status</name>
+    <value>20</value>
+    <description>After starting LLAP app, retry count to check LLAP status before starting HiveServer2.</description>
+    <display-name>Number of retries while checking LLAP app status</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>30</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>num_llap_nodes_for_llap_daemons</name>
+    <value>1</value>
+    <description>Number of Node(s) on which Hive LLAP daemon runs.</description>
+    <display-name>Number of Node(s) for running Hive LLAP daemon</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>num_llap_nodes</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+
+  <!-- hive-env.sh -->
+  <property>
+    <name>content</name>
+    <display-name>hive-interactive-env template</display-name>
+    <description>This is the jinja template for hive-env.sh file</description>
+    <value>
+if [ "$SERVICE" = "cli" ]; then
+  if [ -z "$DEBUG" ]; then
+    export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:+UseParNewGC -XX:-UseGCOverheadLimit"
+  else
+    export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:-UseGCOverheadLimit"
+  fi
+fi
+
+# The heap size of the jvm stared by hive shell script can be controlled via:
+
+if [ "$SERVICE" = "metastore" ]; then
+  export HADOOP_HEAPSIZE={{hive_metastore_heapsize}} # Setting for HiveMetastore
+else
+  export HADOOP_HEAPSIZE={{hive_interactive_heapsize}} # Setting for HiveServer2 and Client
+fi
+
+{% if security_enabled %}
+export HADOOP_OPTS="$HADOOP_OPTS -Dzookeeper.sasl.client.username={{zk_principal_user}}"
+{% endif %}
+
+export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m"
+export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS{{heap_dump_opts}}"
+
+# Larger heap size may be required when running queries over large number of files or partitions.
+# By default hive shell scripts use a heap size of 256 (MB).  Larger heap size would also be
+# appropriate for hive server (hwi etc).
+
+
+# Set HADOOP_HOME to point to a specific hadoop install directory
+HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
+
+# Hive Configuration Directory can be controlled by:
+export HIVE_CONF_DIR={{hive_server_interactive_conf_dir}}
+
+# Add additional hcatalog jars
+if [ "${HIVE_AUX_JARS_PATH}" != "" ]; then
+  export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}
+else
+  export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-server2-hive2/lib/hive-hcatalog-core.jar
+fi
+
+export METASTORE_PORT={{hive_metastore_port}}
+
+# Spark assembly contains a conflicting copy of HiveConf from hive-1.2
+export HIVE_SKIP_SPARK_ASSEMBLY=true
+
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

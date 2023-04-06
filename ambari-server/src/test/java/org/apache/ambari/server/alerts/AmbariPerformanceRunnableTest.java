@@ -259,7 +259,8 @@ public class AmbariPerformanceRunnableTest {
 
 
       PartialNiceMockBinder.newBuilder().addConfigsBindings()
-          .addAlertDefinitionBinding().addLdapBindings().build().configure(binder);
+          .addLdapBindings()
+          .addAlertDefinitionBinding().build().configure(binder);
 
       binder.bind(AlertsDAO.class).toInstance(createNiceMock(AlertsDAO.class));
       binder.bind(ActionManager.class).toInstance(createNiceMock(ActionManager.class));

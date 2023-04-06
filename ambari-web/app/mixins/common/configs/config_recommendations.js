@@ -208,12 +208,7 @@ App.ConfigRecommendations = Em.Mixin.create({
    */
   cleanUpRecommendations: function () {
     var cleanDependentList = this.get('recommendations').filter(function (d) {
-      var service = this.get('stepConfigs').findProperty('serviceName', d.serviceName);
-      var serviceConfigs = service && service.get('configs') || [];
-      var configId = App.config.configId(d.propertyName, d.propertyFileName);
-      var config = serviceConfigs.findProperty('id', configId);
-      return !((Em.isNone(d.initialValue) && Em.isNone(d.recommendedValue)) || d.initialValue == d.recommendedValue) &&
-        (!config || Em.get(config, 'isNotDefaultValue'));
+      return !((Em.isNone(d.initialValue) && Em.isNone(d.recommendedValue)) || d.initialValue == d.recommendedValue);
     }, this);
     this.set('recommendations', cleanDependentList);
   },

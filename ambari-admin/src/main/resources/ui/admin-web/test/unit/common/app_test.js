@@ -21,8 +21,8 @@ describe('#App', function () {
   describe('HTTP', function () {
     var $httpBackend, $http;
     
-    beforeEach(module('ambariAdminConsole', function($provide, $routeProvider){
-      $routeProvider.otherwise(function(){return false;});
+    beforeEach(module('ambariAdminConsole', function($provide){
+
     }));
     afterEach(function() {
       $httpBackend.verifyNoOutstandingExpectation();

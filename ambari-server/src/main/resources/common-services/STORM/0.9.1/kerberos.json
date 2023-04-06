@@ -1,0 +1,107 @@
+{
+  "services": [
+    {
+      "name": "STORM",
+      "identities": [
+        {
+          "name": "storm_spnego",
+          "reference": "/spnego"
+        },
+        {
+          "name": "storm_smokeuser",
+          "reference": "/smokeuser"
+        },
+        {
+          "name": "storm_components",
+          "principal": {
+            "value": "${storm-env/storm_user}${principal_suffix}@${realm}",
+            "type": "user",
+            "configuration": "storm-env/storm_principal_name"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/storm.headless.keytab",
+            "owner": {
+              "name": "${storm-env/storm_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "storm-env/storm_keytab"
+          }
+        }
+      ],
+      "configurations": [
+        {
+          "storm-site": {
+            "nimbus.authorizer": "backtype.storm.security.auth.authorizer.SimpleACLAuthorizer",
+            "drpc.authorizer": "backtype.storm.security.auth.authorizer.DRPCSimpleACLAuthorizer",
+            "ui.filter": "org.apache.hadoop.security.authentication.server.AuthenticationFilter",
+            "storm.principal.tolocal": "backtype.storm.security.auth.KerberosPrincipalToLocal",
+            "supervisor.enable": "true",
+            "storm.zookeeper.superACL": "sasl:{{storm_bare_jaas_principal}}",
+            "java.security.auth.login.config": "{{conf_dir}}/storm_jaas.conf",
+            "nimbus.admins": "['{{storm_bare_jaas_principal}}']",
+            "nimbus.supervisor.users": "['{{storm_bare_jaas_principal}}']",
+            "ui.filter.params": "{'type': 'kerberos', 'kerberos.principal': '{{storm_ui_jaas_principal}}', 'kerberos.keytab': '{{storm_ui_keytab_path}}', 'kerberos.name.rules': 'DEFAULT'}"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "STORM_UI_SERVER",
+          "identities": [
+            {
+              "name": "storm_storm_ui_server_spnego",
+              "reference": "/spnego",
+              "principal": {
+                "configuration": "storm-env/storm_ui_principal_name"
+              },
+              "keytab": {
+                "configuration": "storm-env/storm_ui_keytab"
+              }
+            }
+          ]
+        },
+        {
+          "name": "NIMBUS",
+          "identities": [
+            {
+              "name": "nimbus_server",
+              "principal": {
+                "value": "nimbus/_HOST@${realm}",
+                "type": "service",
+                "configuration": "storm-env/nimbus_principal_name"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/nimbus.service.keytab",
+                "owner": {
+                  "name": "${storm-env/storm_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "storm-env/nimbus_keytab"
+              }
+            }
+          ]
+        },
+        {
+          "name": "DRPC_SERVER",
+          "identities": [
+            {
+              "name": "drpc_server",
+              "reference": "/STORM/NIMBUS/nimbus_server"
+            }
+          ]
+        },
+        {
+          "name" : "SUPERVISOR"
+        }
+      ]
+    }
+  ]
+}

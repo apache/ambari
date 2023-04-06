@@ -1,0 +1,61 @@
+{
+  "FALCON": {
+    "service": [],
+    "FALCON_SERVER": [
+      {
+        "name": "falcon_server_process",
+        "label": "Falcon Server Process",
+        "description": "This host-level alert is triggered if the individual Falcon server process cannot be established to be up and listening on the network.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "PORT",
+          "uri": "{{falcon-env/falcon_port}}",
+          "default_port": 15000,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      },
+      {
+        "name": "falcon_server_webui",
+        "label": "Falcon Server Web UI",
+        "description": "This host-level alert is triggered if the Falcon Server Web UI is unreachable.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{falcon-env/falcon_port}}",
+            "default_port": 15000,
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
+            "connection_timeout": 5.0
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {2:.3f}s"
+            },
+            "warning":{
+              "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
+            },
+            "critical": {
+              "text": "Connection failed to {1} ({3})"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

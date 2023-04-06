@@ -75,14 +75,14 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
   /**
    * The key property ids for a view URL resource.
    */
-  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.ViewURL, URL_NAME)
       .build();
 
   /**
    * The property ids for a view URL resource.
    */
-  private static final Set<String> propertyIds = Sets.newHashSet(
+  private static Set<String> propertyIds = Sets.newHashSet(
           URL_NAME,
           URL_SUFFIX,
           VIEW_INSTANCE_VERSION,

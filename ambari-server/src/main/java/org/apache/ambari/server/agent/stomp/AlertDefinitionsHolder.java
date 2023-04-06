@@ -30,7 +30,6 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.agent.stomp.dto.AlertCluster;
 import org.apache.ambari.server.events.AlertDefinitionEventType;
 import org.apache.ambari.server.events.AlertDefinitionsAgentUpdateEvent;
@@ -153,13 +152,15 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
         LOG.debug("Handled {} of alerts for {} cluster(s) on host with id {}, changed = {}", update.getEventType(), updateClusters.size(), hostId, changed);
         break;
       case CREATE:
-        if (!Sets.intersection(existingClusters.keySet(), updateClusters.keySet()).isEmpty()) {
-          throw new AmbariException("Existing clusters in create");
+        if (!updateClusters.isEmpty()) {
+          if (!Sets.intersection(existingClusters.keySet(), updateClusters.keySet()).isEmpty()) {
+            throw new AmbariException("Existing clusters in create");
+          }
+          mergedClusters.putAll(existingClusters);
+          mergedClusters.putAll(updateClusters);
+          LOG.debug("Handled {} of alerts for {} cluster(s)", update.getEventType(), updateClusters.size());
+          changed = true;
         }
-        mergedClusters.putAll(existingClusters);
-        mergedClusters.putAll(updateClusters);
-        LOG.debug("Handled {} of alerts for {} cluster(s)", update.getEventType(), updateClusters.size());
-        changed = true;
         break;
       default:
         LOG.warn("Unhandled event type {}", update.getEventType());
@@ -190,10 +191,10 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
     }
   }
 
-  private void safelyUpdateData(AlertDefinitionsAgentUpdateEvent event) throws AmbariException {
+  private void safelyUpdateData(AlertDefinitionsAgentUpdateEvent event) {
     try {
       updateData(event);
-    } catch (AmbariRuntimeException e) {
+    } catch (AmbariException e) {
       LOG.warn(String.format("Failed to %s alert definitions for host %s", event.getEventType(), event.getHostName()), e);
     }
   }

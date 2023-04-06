@@ -21,7 +21,7 @@ import getpass
 import os
 import random
 import shlex
-from ambari_commons import subprocess32
+import subprocess
 import sys
 import tempfile
 import time
@@ -145,7 +145,7 @@ def _parse_reparse_buffer(original, reparse_type=SYMBOLIC_LINK):
       'print_name_offset' : SZUSHORT,
       'print_name_length' : SZUSHORT,
       'flags' : SZULONG,
-      'buffer' : u'',
+      'buffer' : '',
       'pkeys' : [
         'substitute_name_offset',
         'substitute_name_length',
@@ -159,7 +159,7 @@ def _parse_reparse_buffer(original, reparse_type=SYMBOLIC_LINK):
       'substitute_name_length' : SZUSHORT,
       'print_name_offset' : SZUSHORT,
       'print_name_length' : SZUSHORT,
-      'buffer' : u'',
+      'buffer' : '',
       'pkeys' : [
         'substitute_name_offset',
         'substitute_name_length',
@@ -204,7 +204,7 @@ def readlink(fpath):
 
   try:
     # Open the file correctly depending on the string type.
-    if type(fpath) == unicode:
+    if type(fpath) == str:
       handle = win32file.CreateFileW(fpath, win32file.GENERIC_READ, 0, None, win32file.OPEN_EXISTING, win32file.FILE_FLAG_OPEN_REPARSE_POINT | win32file.FILE_FLAG_BACKUP_SEMANTICS, 0)
     else:
       handle = win32file.CreateFile(fpath, win32file.GENERIC_READ, 0, None, win32file.OPEN_EXISTING, win32file.FILE_FLAG_OPEN_REPARSE_POINT | win32file.FILE_FLAG_BACKUP_SEMANTICS, 0)
@@ -227,7 +227,7 @@ def readlink(fpath):
     if len(rpath) > 4 and rpath[0:4] == '\\??\\':
       rpath = rpath[4:]
     return rpath
-  except pywintypes.error, e:
+  except pywintypes.error as e:
     raise OSError(e.winerror, e.strerror, fpath)
 
 os.readlink = readlink
@@ -338,13 +338,13 @@ def run_os_command_impersonated(cmd, user, password, domain='.'):
   return exitcode, out, err
 
 def os_run_os_command(cmd, env=None, shell=False, cwd=None):
-  if isinstance(cmd,basestring):
+  if isinstance(cmd,str):
     cmd = cmd.replace("\\", "\\\\")
     cmd = shlex.split(cmd)
-  process = subprocess32.Popen(cmd,
-                             stdout=subprocess32.PIPE,
-                             stdin=subprocess32.PIPE,
-                             stderr=subprocess32.PIPE,
+  process = subprocess.Popen(cmd,
+                             stdout=subprocess.PIPE,
+                             stdin=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
                              env=env,
                              cwd=cwd,
                              shell=shell
@@ -471,16 +471,6 @@ def wait_for_pid_wmi(processName, parentPid, pattern, timeout):
   return 0
 
 
-def os_is_service_exist(serviceName):
-  try:
-    win32serviceutil.QueryServiceStatus(serviceName)
-  except:
-    # "Windows service NOT installed"
-    return False
-  else:
-    # "Windows service installed"
-    return True
-
 #need this for redirecting output form python process to file
 class SyncStreamWriter(object):
   def __init__(self, stream, hMutexWrite):
@@ -527,7 +517,7 @@ class WinServiceController:
       win32serviceutil.StartService(serviceName)
       if waitSecs:
         win32serviceutil.WaitForServiceStatus(serviceName, win32service.SERVICE_RUNNING, waitSecs)
-    except win32service.error, exc:
+    except win32service.error as exc:
       if exc.winerror != 1056:
         msg = "Error starting service: %s" % exc.strerror
         err = exc.winerror
@@ -544,7 +534,7 @@ class WinServiceController:
         win32serviceutil.StopService(serviceName)
       if waitSecs:
         win32serviceutil.WaitForServiceStatus(serviceName, win32service.SERVICE_STOPPED, waitSecs)
-    except win32service.error, exc:
+    except win32service.error as exc:
       if exc.winerror != 1062:
         msg = "Error stopping service: %s (%d)" % (exc.strerror, exc.winerror)
         err = exc.winerror
@@ -581,7 +571,7 @@ class WinServiceController:
           win32serviceutil.StartService(serviceName)
         if waitSecs:
           win32serviceutil.WaitForServiceStatus(serviceName, win32service.SERVICE_RUNNING, waitSecs)
-    except win32service.error, exc:
+    except win32service.error as exc:
       if exc.winerror != 1056:
         err = exc.winerror
     return err
@@ -602,7 +592,7 @@ class WinService(win32serviceutil.ServiceFramework):
     try:
       self.ReportServiceStatus(win32service.SERVICE_RUNNING)
       self.ServiceMain()
-    except Exception, x:
+    except Exception as x:
       #TODO: Log exception
       self.SvcStop()
 
@@ -689,7 +679,7 @@ class WinService(win32serviceutil.ServiceFramework):
         #Sending signal.CTRL_BREAK_EVENT doesn't work. It only detaches the child process from the master.
         #  Must brutally terminate the child process. Sorry Java.
         childProcess.terminate()
-      except OSError, e:
+      except OSError as e:
         print_info_msg("Unable to stop Ambari Server - " + str(e))
         return False
 

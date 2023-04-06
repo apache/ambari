@@ -22,7 +22,7 @@
     {{view view.dashboardMasterComponentView}}
     <div class="col-md-12">
       <div class="col-md-2">
-        {{#if view.showComponentsTitleForNonMasters}}
+        {{#if view.hasMultipleMasterGroups}}
           {{t dashboard.services.hdfs.summary.components}}
         {{/if}}
       </div>
@@ -57,75 +57,72 @@
             </a>
           </div>
         </div>
-        {{#if view.parentView.service.hasMasterOrSlaveComponent}}
-          {{! indent next row}}
-          <div class="row"></div>
-          {{! ResourceManager Uptime }}
-          <div class="row col-md-3 resourcemanager-uptime">
-            <div class="summary-value main-info">{{view.nodeUptime}}</div>
-            <div class="summary-label">{{t dashboard.services.yarn.resourceManager.uptime}}</div>
-          </div>
-          {{! indent next row}}
-          <div class="row"></div>
-          <div class="summary-label col-md-12">{{t dashboard.services.yarn.nodeManagers.status}}</div>
-          {{! NodeManagers active }}
-          <div class="row col-md-3 nodemanager-active">
-          <span class="summary-value main-info"
-            {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.active"}}
+        {{! indent next row}}
+        <div class="row"></div>
+        {{! ResourceManager Uptime }}
+        <div class="row col-md-3 resourcemanager-uptime">
+          <div class="summary-value main-info">{{view.nodeUptime}}</div>
+          <div class="summary-label">{{t dashboard.services.yarn.resourceManager.uptime}}</div>
+        </div>
+        {{! indent next row}}
+        <div class="row"></div>
+        <div class="summary-label col-md-12">{{t dashboard.services.yarn.nodeManagers.status}}</div>
+        {{! NodeManagers active }}
+        <div class="row col-md-3 nodemanager-active">
+        <span class="summary-value main-info"
+          {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.active"}}
               rel="tooltip">
-            {{view._nmActive}}
-          </span>
-            <div class="info-desc">{{t dashboard.services.yarn.nodeManagers.status.active}}</div>
-          </div>
-          {{! NodeManagers lost }}
-          <div class="row col-md-3 nodemanager-lost">
-          <span class="summary-value main-info"
-            {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.lost"}}
+          {{view._nmActive}}
+        </span>
+          <div class="info-desc">{{t dashboard.services.yarn.nodeManagers.status.active}}</div>
+        </div>
+        {{! NodeManagers lost }}
+        <div class="row col-md-3 nodemanager-lost">
+        <span class="summary-value main-info"
+          {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.lost"}}
               rel="tooltip">
-            {{view._nmLost}}
-          </span>
-            <div class="info-desc">{{t dashboard.services.yarn.nodeManagers.status.lost}}</div>
-          </div>
-          {{! NodeManagers unhealthy }}
-          <div class="row col-md-3 nodemanager-unhealthy">
-          <span class="summary-value main-info"
-            {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.unhealthy"}}
+          {{view._nmLost}}
+        </span>
+          <div class="info-desc">{{t dashboard.services.yarn.nodeManagers.status.lost}}</div>
+        </div>
+        {{! NodeManagers unhealthy }}
+        <div class="row col-md-3 nodemanager-unhealthy">
+        <span class="summary-value main-info"
+          {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.unhealthy"}}
               rel="tooltip">
-            {{view._nmUnhealthy}}
-          </span>
-            <div class="info-desc">{{t dashboard.services.yarn.nodeManagers.status.unhealthy}}</div>
-          </div>
-          {{! NodeManagers rebooted }}
-          <div class="row col-md-3 nodemanager-rebooted">
-          <span class="summary-value main-info"
+          {{view._nmUnhealthy}}
+        </span>
+          <div class="info-desc">{{t dashboard.services.yarn.nodeManagers.status.unhealthy}}</div>
+        </div>
+        {{! NodeManagers rebooted }}
+        <div class="row col-md-3 nodemanager-rebooted">
+        <span class="summary-value main-info"
           {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.rebooted"}}
               rel="tooltip">
           {{view._nmRebooted}}
-          </span>
-            <div class="info-desc">{{t dashboard.services.yarn.nodeManagers.status.rebooted}}</div>
-          </div>
-          {{! NodeManagers decommissioned }}
-          <div class="row col-md-3 nodemanager-decommissioned">
-          <span class="summary-value main-info"
+        </span>
+          <div class="info-desc">{{t dashboard.services.yarn.nodeManagers.status.rebooted}}</div>
+        </div>
+        {{! NodeManagers decommissioned }}
+        <div class="row col-md-3 nodemanager-decommissioned">
+        <span class="summary-value main-info"
           {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.decommissioned"}}
               rel="tooltip">
           {{view._nmDecom}}
-          </span>
-            <div class="info-desc">{{t dashboard.services.yarn.nodeManagers.status.decommissioned}}</div>
-          </div>
-          {{! indent next row}}
-          <div class="row"></div>
-          {{! ResourceManager Heap }}
-          <div class="row col-md-3 resourcemanager-heap">
-            <div class="summary-value main-info">{{view.nodeHeap}}</div>
-            <div class="summary-label">{{t dashboard.services.resourceManager.nodes.heap}}</div>
-          </div>
-        {{/if}}
+        </span>
+          <div class="info-desc">{{t dashboard.services.yarn.nodeManagers.status.decommissioned}}</div>
+        </div>
+        {{! indent next row}}
+        <div class="row"></div>
+        {{! ResourceManager Heap }}
+        <div class="row col-md-3 resourcemanager-heap">
+          <div class="summary-value main-info">{{view.nodeHeap}}</div>
+          <div class="summary-label">{{t dashboard.services.resourceManager.nodes.heap}}</div>
+        </div>
       </div>
     </div>
   </div>
 
-  {{#if view.parentView.service.hasMasterOrSlaveComponent}}
   {{! Service Metrics Section }}
   <div class="col-md-12 metrics-summary">
     <div class="col-md-2">{{t dashboard.services.hdfs.summary.service-metrics}}</div>
@@ -235,6 +232,5 @@
       </div>
     </div>
   </div>
-  {{/if}}
   {{! right column end }}
 </div>

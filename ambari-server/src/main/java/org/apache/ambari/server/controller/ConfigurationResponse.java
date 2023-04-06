@@ -64,6 +64,7 @@ public class ConfigurationResponse {
     this.type = type;
     this.versionTag = versionTag;
     this.version = version;
+    this.configs = configs;
     this.configAttributes = configAttributes;
     SecretReference.replacePasswordsWithReferencesForCustomProperties(configAttributes, configs, type, version);
   }
@@ -79,6 +80,7 @@ public class ConfigurationResponse {
     this.type = type;
     this.versionTag = versionTag;
     this.version = version;
+    this.configs = configs;
     this.configAttributes = configAttributes;
     this.propertiesTypes = propertiesTypes;
     SecretReference.replacePasswordsWithReferences(propertiesTypes, configs, type, version);

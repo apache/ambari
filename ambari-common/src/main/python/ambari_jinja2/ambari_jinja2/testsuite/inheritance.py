@@ -152,7 +152,7 @@ class InheritanceTestCase(JinjaTestCase):
         }))
         t = env.from_string('{% extends "master.html" %}{% block item %}'
                             '{{ item }}{% endblock %}')
-        assert t.render(seq=range(5)) == '[0][1][2][3][4]'
+        assert t.render(seq=list(range(5))) == '[0][1][2][3][4]'
 
     def test_super_in_scoped_block(self):
         env = Environment(loader=DictLoader({
@@ -161,7 +161,7 @@ class InheritanceTestCase(JinjaTestCase):
         }))
         t = env.from_string('{% extends "master.html" %}{% block item %}'
                             '{{ super() }}|{{ item * 2 }}{% endblock %}')
-        assert t.render(seq=range(5)) == '[0|0][1|2][2|4][3|6][4|8]'
+        assert t.render(seq=list(range(5))) == '[0|0][1|2][2|4][3|6][4|8]'
 
 
 class BugFixTestCase(JinjaTestCase):
@@ -198,7 +198,7 @@ class BugFixTestCase(JinjaTestCase):
             'standard.html': '''
         {% block content %}&nbsp;{% endblock %}
         '''
-        })).get_template("test.html").render().split() == [u'outer_box', u'my_macro']
+        })).get_template("test.html").render().split() == ['outer_box', 'my_macro']
 
 
 def suite():

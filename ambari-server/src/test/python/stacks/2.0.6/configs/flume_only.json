@@ -1,0 +1,221 @@
+{
+    "roleCommand": "SERVICE_CHECK", 
+    "clusterName": "c1", 
+    "hostname": "c6401.ambari.apache.org", 
+    "clusterLevelParams": {
+        "stack_version": "2.0", 
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "hooks_folder": "stack-hooks", 
+        "stack_name": "HDP", 
+        "group_list": "[\"hdfs\",\"hadoop\",\"users\"]", 
+        "user_groups": "{\"hive\":[\"hadoop\"], \"oozie\":[\"hadoop\",\"users\"], \"nobody\":[\"hadoop\",\"nobody\"], \"ambari-qa\":[\"hadoop\",\"users\"], \"flume\":[\"hadoop\"], \"hdfs\":[\"hadoop\"], \"storm\":[\"hadoop\"], \"mapred\":[\"hadoop\"], \"hbase\":[\"hadoop\"], \"tez\":[\"hadoop\",\"users\"], \"zookeeper\":[\"hadoop\"], \"falcon\":[\"hadoop\",\"users\"], \"sqoop\":[\"hadoop\"], \"yarn\":[\"hadoop\"], \"hcat\":[\"hadoop\"]}", 
+        "cluster_name": "c1", 
+        "user_list": "[\"ambari-qa\",\"hdfs\"]"
+    },
+    "ambariLevelParams": {
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources",
+        "agent_stack_retry_count": "5", 
+        "db_driver_filename": "mysql-connector-java.jar", 
+        "agent_stack_retry_on_unavailability": "false", 
+        "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
+        "jce_name": "jce_policy-7.zip", 
+        "java_version": "7", 
+        "ambari_db_rca_password": "mapred", 
+        "host_sys_prepped": "false", 
+        "db_name": "ambari", 
+        "oracle_jdbc_url": "http://c6401.ambari.apache.org/resources/ojdbc6.jar",
+        "ambari_db_rca_driver": "org.postgresql.Driver", 
+        "ambari_db_rca_username": "mapred", 
+        "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
+        "java_home": "/usr/jdk64/jdk1.7.0_45", 
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources/mysql-connector-java.jar"
+    },
+    "repositoryFile": {
+        "resolved": true, 
+        "repoVersion": "2.6.4.0-60", 
+        "repositories": [
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60", 
+                "repoName": "HDP", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-2.6-repo-1"
+            }, 
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60", 
+                "repoName": "HDP-GPL", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-2.6-GPL-repo-1"
+            }, 
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6", 
+                "repoName": "HDP-UTILS", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-UTILS-1.1.0.22-repo-1"
+            }
+        ], 
+        "feature": {
+            "m_isScoped": true, 
+            "m_isPreInstalled": false
+        }, 
+        "stackName": "HDP", 
+        "repoVersionId": 1
+    },
+    "agentLevelParams": {
+        "public_hostname": "c6401.ambari.apache.org", 
+        "hostname": "c6401.ambari.apache.org", 
+        "agentConfigParams": {
+            "agent": {
+                "parallel_execution": 0, 
+                "use_system_proxy_settings": true
+            }
+        }, 
+        "agentCacheDir": "/var/lib/ambari-agent/cache"
+    },
+    "hostLevelParams": {
+        "recoveryConfig": {
+            "retryGap": "5", 
+            "windowInMinutes": "60", 
+            "maxLifetimeCount": "1024", 
+            "components": "", 
+            "maxCount": "6", 
+            "type": "AUTO_START"
+        }, 
+        "hostRepositories": {
+            "componentRepos": {
+                "NAMENODE": 1, 
+                "SECONDARY_NAMENODE": 1, 
+                "DATANODE": 1, 
+                "HDFS_CLIENT": 1
+            }, 
+            "commandRepos": {
+                "1": {
+                    "resolved": true, 
+                    "repoVersion": "2.1.4.0-60", 
+                    "repositories": [
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60", 
+                            "repoName": "HDP", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-2.6-repo-1"
+                        }, 
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60", 
+                            "repoName": "HDP-GPL", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-2.6-GPL-repo-1"
+                        }, 
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6", 
+                            "repoName": "HDP-UTILS", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-UTILS-1.1.0.22-repo-1"
+                        }
+                    ], 
+                    "feature": {
+                        "m_isScoped": true, 
+                        "m_isPreInstalled": false
+                    }, 
+                    "stackName": "HDP", 
+                    "repoVersionId": 1
+                }
+            }
+        }
+    },
+    "serviceLevelParams": {
+        "credentialStoreEnabled": false, 
+        "status_commands_timeout": 300, 
+        "version": "2.7.3", 
+        "service_package_folder": "common-services/HDFS/2.1.0.2.0/package"
+    },
+    "commandType": "EXECUTION_COMMAND", 
+    "roleParams": {}, 
+    "serviceName": "HIVE",
+    "role": "HIVE_SERVER",
+    "commandParams": {
+        "command_timeout": "300", 
+        "service_package_folder": "OOZIE",
+        "script_type": "PYTHON",
+        "script": "scripts/service_check.py",
+        "excluded_hosts": "host1,host2",
+        "mark_draining_only" : "false",
+        "update_files_only" : "false",
+        "xml_configs_list":[{"hdfs-site.xml":"hdfs-site"}],
+        "env_configs_list":[{"hadoop-env.sh":"hadoop-env"},{"log4j.properties":"hdfs-log4j,yarn-log4j"}],
+        "properties_configs_list":[{"runtime.properties":"falcon-runtime.properties"},{"startup.properties":"falcon-startup.properties"}],
+        "output_file":"HDFS_CLIENT-configs.tar.gz",
+        "refresh_topology": "True"
+    },
+    "taskId": 152, 
+    "public_hostname": "c6401.ambari.apache.org", 
+    "configurations": {
+        "flume-env": {
+             "content": "export JAVA_HOME={{java64_home}}\nexport HIVE_HOME={{flume_hive_home}}",
+             "flume_user": "flume",
+             "flume_log_dir": "/var/log/flume",
+             "flume_run_dir": "/var/run/flume"
+        },
+        "flume-conf": {
+          "content": "a1.sources = r1\n a1.sinks = k1\n a1.channels = c1\n # Describe/configure the source\n a1.sources.r1.type = netcat\n a1.sources.r1.bind = localhost\n a1.sources.r1.port = 44444\n \n # Describe the sink\n a1.sinks.k1.type = logger\n \n # Use a channel which buffers events in memory\n a1.channels.c1.type = memory\n a1.channels.c1.capacity = 1000\n a1.channels.c1.transactionCapacity = 100\n \n # Bind the source and sink to the channel\n a1.sources.r1.channels = c1\n a1.sinks.k1.channel = c1\n"
+        },
+        "flume-log4j": {
+          "content": "log4jproperties\nline2"
+        },
+        "cluster-env": {
+          "managed_hdfs_resource_property_names": "",
+          "security_enabled": "false",
+          "ignore_groupsusers_create": "false",
+          "smokeuser": "ambari-qa",
+          "kerberos_domain": "EXAMPLE.COM",
+          "user_group": "hadoop"
+        }
+    },
+    "configurationAttributes": {
+    },
+    "configurationTags": {
+    },
+    "commandId": "7-1", 
+    "clusterHostInfo": {
+      "all_ping_ports": [
+        "8670"
+      ],
+      "flume_hosts": [
+        "c6401.ambari.apache.org"
+      ],
+      "all_hosts": [
+        "c6401.ambari.apache.org"
+      ],
+      "all_racks": [
+        "/default-rack"
+      ],
+      "all_ipv4_ips": [
+        "192.168.64.101"
+      ],
+      "ambari_server_host": [
+        "c6401.ambari.apache.org"
+      ]
+    }
+}

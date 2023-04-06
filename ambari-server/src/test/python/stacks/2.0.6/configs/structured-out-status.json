@@ -1,0 +1,5 @@
+{
+  "securityIssuesFound": "Configuration file hdfs-site did not pass the validation. Reason: Property dfs.journalnode.keytab.file does not exist. Configuration file core-site did not pass the validation. Reason: Property hadoop.security.authentication contains an unexpected value. Expected/Actual: kerberos/simple",
+  "version": "2.2.0.0-2041",
+  "securityState": "UNSECURED"
+}

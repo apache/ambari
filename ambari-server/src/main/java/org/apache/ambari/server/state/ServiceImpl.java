@@ -40,7 +40,6 @@ import org.apache.ambari.server.collections.Predicate;
 import org.apache.ambari.server.collections.PredicateUtils;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ServiceResponse;
-import org.apache.ambari.server.controller.internal.AmbariServerLDAPConfigurationHandler;
 import org.apache.ambari.server.controller.internal.AmbariServerSSOConfigurationHandler;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
@@ -88,8 +87,6 @@ public class ServiceImpl implements Service {
   private boolean isCredentialStoreRequired;
   private final boolean ssoIntegrationSupported;
   private final Predicate ssoEnabledTest;
-  private final boolean ldapIntegrationSupported;
-  private final Predicate ldapEnabledTest;
   private final boolean ssoRequiresKerberos;
   private final Predicate kerberosEnabledTest;
   private AmbariMetaInfo ambariMetaInfo;
@@ -105,10 +102,7 @@ public class ServiceImpl implements Service {
   private ConfigHelper configHelper;
 
   @Inject
-  private AmbariServerSSOConfigurationHandler ambariServerSSOConfigurationHandler;
-
-  @Inject
-  private AmbariServerLDAPConfigurationHandler ambariServerLDAPConfigurationHandler;
+  private AmbariServerSSOConfigurationHandler ambariServerConfigurationHandler;
 
   private final ClusterServiceDAO clusterServiceDAO;
   private final ServiceDesiredStateDAO serviceDesiredStateDAO;
@@ -175,9 +169,6 @@ public class ServiceImpl implements Service {
           serviceName);
     }
 
-    ldapIntegrationSupported = sInfo.isLdapSupported();
-    ldapEnabledTest = StringUtils.isNotBlank(sInfo.getLdapEnabledTest()) ? PredicateUtils.fromJSON(sInfo.getLdapEnabledTest()) : null;
-
     persist(serviceEntity);
   }
 
@@ -235,9 +226,6 @@ public class ServiceImpl implements Service {
               "Automated SSO integration will not be allowed for this service.",
           serviceName);
     }
-
-    ldapIntegrationSupported = sInfo.isLdapSupported();
-    ldapEnabledTest = StringUtils.isNotBlank(sInfo.getLdapEnabledTest()) ? PredicateUtils.fromJSON(sInfo.getLdapEnabledTest()) : null;
   }
 
 
@@ -426,7 +414,7 @@ public class ServiceImpl implements Service {
         getName(), desiredStackId, desiredRespositoryVersion.getVersion(), getRepositoryState(),
         getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled(),
         ssoIntegrationSupported, isSsoIntegrationDesired(), isSsoIntegrationEnabled(existingConfigurations),
-        isKerberosRequiredForSsoIntegration(), isKerberosEnabled(existingConfigurations), ldapIntegrationSupported,isLdapIntegrationEnabeled(existingConfigurations), isLdapIntegrationDesired());
+        isKerberosRequiredForSsoIntegration(), isKerberosEnabled(existingConfigurations));
 
     r.setDesiredRepositoryVersionId(desiredRespositoryVersion.getId());
 
@@ -593,7 +581,7 @@ public class ServiceImpl implements Service {
     // de-select every configuration from the service
     if (lastServiceConfigEntity != null) {
       for (ClusterConfigEntity serviceConfigEntity : lastServiceConfigEntity.getClusterConfigEntities()) {
-        LOG.info("Disabling and unmapping configuration {}", serviceConfigEntity);
+        LOG.info("Disabling configuration {}", serviceConfigEntity);
         serviceConfigEntity.setSelected(false);
         serviceConfigEntity.setUnmapped(true);
         clusterDAO.merge(serviceConfigEntity);
@@ -606,23 +594,9 @@ public class ServiceImpl implements Service {
         serviceConfigDAO.findByService(cluster.getClusterId(), getName());
 
     for (ServiceConfigEntity serviceConfigEntity : serviceConfigEntities) {
-      // unmapping all service configs
-      for (ClusterConfigEntity clusterConfigEntity : serviceConfigEntity.getClusterConfigEntities()) {
-        if (!clusterConfigEntity.isUnmapped()) {
-          LOG.info("Unmapping configuration {}", clusterConfigEntity);
-          clusterConfigEntity.setUnmapped(true);
-          clusterDAO.merge(clusterConfigEntity);
-        }
-      }
       // Only delete the historical version information and not original
       // config data
       serviceConfigDAO.remove(serviceConfigEntity);
-    }
-  }
-
-  void deleteAllServiceConfigGroups() throws AmbariException {
-    for (Long configGroupId : cluster.getConfigGroupsByServiceName(serviceName).keySet()) {
-      cluster.deleteConfigGroup(configGroupId);
     }
   }
 
@@ -696,7 +670,6 @@ public class ServiceImpl implements Service {
     StackId stackId = getDesiredStackId();
     try {
       deleteAllServiceConfigs();
-      deleteAllServiceConfigGroups();
 
       removeEntities();
     } catch (AmbariException e) {
@@ -814,7 +787,7 @@ public class ServiceImpl implements Service {
   }
 
   private boolean isSsoIntegrationDesired() {
-    return ambariServerSSOConfigurationHandler.getSSOEnabledServices().contains(serviceName);
+    return ambariServerConfigurationHandler.getSSOEnabledServices().contains(serviceName);
   }
 
   private boolean isSsoIntegrationEnabled(Map<String, Map<String, String>> existingConfigurations) {
@@ -823,13 +796,5 @@ public class ServiceImpl implements Service {
 
   private boolean isKerberosRequiredForSsoIntegration() {
     return ssoRequiresKerberos;
-  }
-
-  private boolean isLdapIntegrationEnabeled(Map<String, Map<String, String>> existingConfigurations) {
-    return ldapIntegrationSupported && ldapEnabledTest != null && ldapEnabledTest.evaluate(existingConfigurations);
-  }
-
-  private boolean isLdapIntegrationDesired() {
-    return ambariServerLDAPConfigurationHandler.getLDAPEnabledServices().contains(serviceName);
   }
 }

@@ -1,0 +1,75 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+nimbusHost: {{nimbus_host}}
+nimbusPort: {{nimbus_port}}
+
+# HTTP-specific options.
+http:
+
+  # The port on which the HTTP server listens for service requests.
+  port: {{rest_api_port}}
+
+  # The port on which the HTTP server listens for administrative requests.
+  adminPort: {{rest_api_admin_port}}
+
+{% if ganglia_installed %}
+enableGanglia: {{ganglia_installed}}
+
+# ganglia configuration (necessary if ganglia reporting is enabled)
+ganglia:
+
+  # how often to report to ganglia metrics (in seconds)
+  reportInterval: {{ganglia_report_interval}}
+
+  # the hostname of the gmond server where storm cluster metrics will be sent
+  host: "{{ganglia_server}}"
+
+  # address mode
+  # default is MULTICAST
+  addressMode: "UNICAST"
+
+  # an <IP>:<HOSTNAME> pair to spoof
+  # this allows us to simulate storm cluster metrics coming from a specific host
+  #spoof: "192.168.1.1:storm"
+{% endif %}
+
+{% if has_metric_collector and stack_supports_storm_ams %}
+enableGanglia: False
+
+ganglia:
+  reportInterval: {{metric_collector_report_interval}}
+
+enableMetricsSink: True
+
+metrics_collector:
+
+  reportInterval: {{metric_collector_report_interval}}
+  collector.hosts: "{{ams_collector_hosts}}"
+  protocol: "{{metric_collector_protocol}}"
+  port: "{{metric_collector_port}}"
+  appId: "{{metric_collector_app_id}}"
+  host_in_memory_aggregation: {{host_in_memory_aggregation}}
+  host_in_memory_aggregation_port: {{host_in_memory_aggregation_port}}
+  {% if is_aggregation_https_enabled %}
+    host_in_memory_aggregation_protocol: {{host_in_memory_aggregation_protocol}}
+  {% endif %}
+
+  # HTTPS settings
+  truststore.path : "{{metric_truststore_path}}"
+  truststore.type : "{{metric_truststore_type}}"
+  truststore.password : "{{metric_truststore_password}}"
+
+{% endif %}

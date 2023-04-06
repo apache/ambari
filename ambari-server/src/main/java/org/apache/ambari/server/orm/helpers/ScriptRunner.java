@@ -143,7 +143,9 @@ public class ScriptRunner {
         if (trimmedLine.startsWith("--")) {
           println(trimmedLine);
         } else if (trimmedLine.length() < 1
-          || trimmedLine.startsWith("//")
+          || trimmedLine.startsWith("//")) {
+          // Do nothing
+        } else if (trimmedLine.length() < 1
           || trimmedLine.startsWith("--")) {
           // Do nothing
         } else if (!fullLineDelimiter

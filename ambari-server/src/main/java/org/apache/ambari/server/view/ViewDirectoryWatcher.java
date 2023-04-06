@@ -88,7 +88,6 @@ public class ViewDirectoryWatcher implements DirectoryWatcher {
     };
   }
 
-  @Override
   public void start() {
 
     try {

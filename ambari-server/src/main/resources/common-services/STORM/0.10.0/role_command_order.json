@@ -1,0 +1,8 @@
+{
+  "general_deps" : {
+    "_comment" : "dependencies for STORM",
+    "NIMBUS-START" : ["ZOOKEEPER_SERVER-START", "RANGER_USERSYNC-START", "NAMENODE-START"],
+    "STORM_UI_SERVER-START" : ["NIMBUS-START", "NAMENODE-START"]
+
+  }
+}

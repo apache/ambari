@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -45,7 +44,6 @@ import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
@@ -153,10 +151,6 @@ public class Stack {
     this(stack.getStackName(), stack.getStackVersion(), ambariManagementController);
   }
 
-  public Stack(StackId stackId, AmbariManagementController ambariManagementController) throws AmbariException {
-    this(stackId.getStackName(), stackId.getStackVersion(), ambariManagementController);
-  }
-
   /**
    * Constructor.
    *
@@ -205,14 +199,6 @@ public class Stack {
     return version;
   }
 
-  public StackId getStackId() {
-    return new StackId(name, version);
-  }
-
-  @Override
-  public String toString() {
-    return "stack " + getStackId();
-  }
 
   Map<DependencyInfo, String> getDependencyConditionalServiceMap() {
     return dependencyConditionalServiceMap;
@@ -221,9 +207,9 @@ public class Stack {
   /**
    * Get services contained in the stack.
    *
-   * @return set of all services for the stack
+   * @return collection of all services for the stack
    */
-  public Set<String> getServices() {
+  public Collection<String> getServices() {
     return serviceComponents.keySet();
   }
 
@@ -650,25 +636,6 @@ public class Stack {
     }
     return new Configuration(stackConfigs, stackAttributes);
   }
-
-  /**
-   * @return default configuration of the stack, with some updates necessary so that the config can be applied
-   * (eg. some properties need a unit to be appended)
-   */
-  public Configuration getValidDefaultConfig() {
-    Configuration config = getDefaultConfig();
-    UnitUpdater.updateUnits(config, this);
-    return config;
-  }
-
-  public Configuration getDefaultConfig() {
-    Configuration config = getConfiguration();
-    config.getProperties().values().forEach(
-      each -> each.values().removeIf(Objects::isNull)
-    );
-    return config;
-  }
-
 
   /**
    * Parse components for the specified service from the stack definition.

@@ -468,8 +468,8 @@ public class ServiceComponentImpl implements ServiceComponent {
     for (ServiceComponentHost sch : hostComponents.values()) {
       if (!first) {
         sb.append(" , ");
+        first = false;
       }
-      first = false;
       sb.append("\n        ");
       sch.debugDump(sb);
       sb.append(" ");
@@ -558,15 +558,14 @@ public class ServiceComponentImpl implements ServiceComponent {
       ServiceComponentHost sch = getServiceComponentHost(hostname);
       LOG.info("Deleting servicecomponenthost for cluster" + ", clusterName=" + getClusterName()
           + ", serviceName=" + getServiceName() + ", componentName=" + getName()
-          + ", recoveryEnabled=" + isRecoveryEnabled() + ", hostname=" + sch.getHostName() + ", state=" + sch.getState());
+          + ", recoveryEnabled=" + isRecoveryEnabled() + ", hostname=" + sch.getHostName());
       if (!sch.canBeRemoved()) {
-        throw new AmbariException("Current host component state prohibiting component removal."
+        throw new AmbariException("Could not delete hostcomponent from cluster"
             + ", clusterName=" + getClusterName()
             + ", serviceName=" + getServiceName()
             + ", componentName=" + getName()
             + ", recoveryEnabled=" + isRecoveryEnabled()
-            + ", hostname=" + sch.getHostName()
-            + ", state=" + sch.getState());
+            + ", hostname=" + sch.getHostName());
       }
       sch.delete(deleteMetaData);
       hostComponents.remove(hostname);
@@ -648,7 +647,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Transactional
   public void updateRepositoryState(String reportedVersion) throws AmbariException {
 
-    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findById(
+    ServiceComponentDesiredStateEntity component = serviceComponentDesiredStateDAO.findById(
         desiredStateEntityId);
 
     List<ServiceComponentVersionEntity> componentVersions = serviceComponentDesiredStateDAO.findVersions(
@@ -681,10 +680,10 @@ public class ServiceComponentImpl implements ServiceComponent {
         componentVersion.setUserName("auto-reported");
 
         // since we've never seen this version before, mark the component as CURRENT
-        serviceComponentDesiredStateEntity.setRepositoryState(RepositoryVersionState.CURRENT);
-        serviceComponentDesiredStateEntity.addVersion(componentVersion);
+        component.setRepositoryState(RepositoryVersionState.CURRENT);
+        component.addVersion(componentVersion);
 
-        serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.merge(serviceComponentDesiredStateEntity);
+        component = serviceComponentDesiredStateDAO.merge(component);
 
         map.put(reportedVersion, componentVersion);
 
@@ -695,35 +694,35 @@ public class ServiceComponentImpl implements ServiceComponent {
     }
 
     if (MapUtils.isNotEmpty(map)) {
-      String desiredVersion = serviceComponentDesiredStateEntity.getDesiredVersion();
+      String desiredVersion = component.getDesiredVersion();
       RepositoryVersionEntity desiredRepositoryVersion = service.getDesiredRepositoryVersion();
 
       List<HostComponentStateEntity> hostComponents = hostComponentDAO.findByServiceAndComponentAndNotVersion(
-          serviceComponentDesiredStateEntity.getServiceName(), serviceComponentDesiredStateEntity.getComponentName(), reportedVersion);
+          component.getServiceName(), component.getComponentName(), reportedVersion);
 
       LOG.debug("{}/{} reportedVersion={}, desiredVersion={}, non-matching desired count={}, repo_state={}",
-          serviceComponentDesiredStateEntity.getServiceName(), serviceComponentDesiredStateEntity.getComponentName(), reportedVersion,
-          desiredVersion, hostComponents.size(), serviceComponentDesiredStateEntity.getRepositoryState());
+          component.getServiceName(), component.getComponentName(), reportedVersion,
+          desiredVersion, hostComponents.size(), component.getRepositoryState());
 
       // !!! if we are unknown, that means it's never been set.  Try to determine it.
       if (StackVersionListener.UNKNOWN_VERSION.equals(desiredVersion)) {
         if (CollectionUtils.isEmpty(hostComponents)) {
           // all host components are the same version as reported
-          serviceComponentDesiredStateEntity.setDesiredRepositoryVersion(desiredRepositoryVersion);
-          serviceComponentDesiredStateEntity.setRepositoryState(RepositoryVersionState.CURRENT);
+          component.setDesiredRepositoryVersion(desiredRepositoryVersion);
+          component.setRepositoryState(RepositoryVersionState.CURRENT);
         } else {
           // desired is UNKNOWN and there's a mix of versions in the host components
-          serviceComponentDesiredStateEntity.setRepositoryState(RepositoryVersionState.OUT_OF_SYNC);
+          component.setRepositoryState(RepositoryVersionState.OUT_OF_SYNC);
         }
       } else {
         if (!reportedVersion.equals(desiredVersion)) {
-          serviceComponentDesiredStateEntity.setRepositoryState(RepositoryVersionState.OUT_OF_SYNC);
+          component.setRepositoryState(RepositoryVersionState.OUT_OF_SYNC);
         } else if (CollectionUtils.isEmpty(hostComponents)) {
-          serviceComponentDesiredStateEntity.setRepositoryState(RepositoryVersionState.CURRENT);
+          component.setRepositoryState(RepositoryVersionState.CURRENT);
         }
       }
 
-      serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.merge(serviceComponentDesiredStateEntity);
+      component = serviceComponentDesiredStateDAO.merge(component);
     }
   }
 

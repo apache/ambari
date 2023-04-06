@@ -168,7 +168,7 @@ public class StackContext {
     public void execute() {
 
       long currentTime = System.nanoTime();
-      List<Future<Map<StackModule, RepoUrlInfoResult>>> results;
+      List<Future<Map<StackModule, RepoUrlInfoResult>>> results = new ArrayList<>();
 
       // !!! first, load the *_urlinfo.json files and block for completion
       try {

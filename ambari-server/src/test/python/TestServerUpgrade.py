@@ -18,13 +18,15 @@ limitations under the License.
 
 import os
 os.environ["ROOT"] = ""
-import StringIO
+import io
 import sys
 from ambari_commons.exceptions import FatalException
 from unittest import TestCase
 from mock.mock import patch, MagicMock
 from ambari_commons import os_utils
 import platform
+import distro
+import urllib
 
 import shutil
 project_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
@@ -32,7 +34,7 @@ shutil.copyfile(project_dir+"/ambari-server/conf/unix/ambari.properties", "/tmp/
 
 _search_file = os_utils.search_file
 os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
-with patch.object(platform, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '6.4', 'Final'))):
+with patch.object(distro, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '6.4', 'Final'))):
   with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
     with patch("os.access", return_value = MagicMock(return_value=True)):
       with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
@@ -41,7 +43,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
 
 os_utils.search_file = _search_file
 
-@patch.object(platform, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
+@patch.object(distro, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
 @patch("os.path.isdir", new = MagicMock(return_value=True))
 @patch("os.access", new = MagicMock(return_value=True))
 class TestServerUpgrade(TestCase):
@@ -52,7 +54,7 @@ class TestServerUpgrade(TestCase):
   @patch('ambari_server.serverUpgrade.get_ambari_properties')
   @patch('ambari_server.serverUtils.get_ambari_server_api_base')
   @patch('ambari_commons.logging_utils.get_verbose')
-  @patch('urllib2.urlopen')
+  @patch('urllib.request.urlopen')
   def test_set_current(self, urlopen_mock, get_verbose_mock, get_ambari_server_api_base_mock,
                        get_ambari_properties_mock, get_validated_string_input_mock,
                        no_finalize_options_set_mock, is_server_runing_mock):
@@ -69,7 +71,6 @@ class TestServerUpgrade(TestCase):
     except FatalException:
       pass  # expected
 
-
     is_server_runing_mock.return_value = True, 11111
 
     # Test insufficient options case
@@ -82,7 +83,7 @@ class TestServerUpgrade(TestCase):
 
     no_finalize_options_set_mock.return_value = False
 
-    # Test normal flow
+    # Test normal flow try
     get_validated_string_input_mock.return_value = 'dummy_string'
 
     p = get_ambari_properties_mock.return_value
@@ -92,13 +93,14 @@ class TestServerUpgrade(TestCase):
     get_verbose_mock.retun_value = False
 
     set_current(options)
-
     self.assertTrue(urlopen_mock.called)
+
     request = urlopen_mock.call_args_list[0][0][0]
-    self.assertEquals(request._Request__original, 'http://127.0.0.1:8080/api/v1/clusters/cc/stack_versions')
-    self.assertEquals(request.data, '{"ClusterStackVersions": {"state": "CURRENT", "repository_version": "HDP-2.2.2.0-2561", "force": false}}')
-    self.assertEquals(request.origin_req_host, '127.0.0.1')
-    self.assertEquals(request.headers, {'X-requested-by': 'ambari', 'Authorization': 'Basic ZHVtbXlfc3RyaW5nOmR1bW15X3N0cmluZw=='})
+    self.assertEqual(request.get_full_url(), 'http://127.0.0.1:8080/api/v1/clusters/cc/stack_versions')
+    self.assertEqual(request.data, '{"ClusterStackVersions": {"repository_version": "HDP-2.2.2.0-2561", "state": "CURRENT", "force": false}}')
+    self.assertEqual(request.origin_req_host, '127.0.0.1')
+    self.assertEqual(request.headers, {'X-requested-by': 'ambari', 'Authorization': 'Basic ZHVtbXlfc3RyaW5nOmR1bW15X3N0cmluZw=='})
+
 
   @patch("ambari_server.serverUpgrade.is_server_runing")
   @patch('ambari_server.serverUpgrade.SetCurrentVersionOptions.no_finalize_options_set')
@@ -106,7 +108,7 @@ class TestServerUpgrade(TestCase):
   @patch('ambari_server.serverUpgrade.get_ambari_properties')
   @patch('ambari_server.serverUtils.get_ambari_server_api_base')
   @patch('ambari_commons.logging_utils.get_verbose')
-  @patch('urllib2.urlopen')
+  @patch('urllib.request.urlopen')
   def test_set_current_with_force(self, urlopen_mock, get_verbose_mock, get_ambari_server_api_base_mock,
                        get_ambari_properties_mock, get_validated_string_input_mock,
                        no_finalize_options_set_mock, is_server_runing_mock):
@@ -123,7 +125,6 @@ class TestServerUpgrade(TestCase):
     except FatalException:
       pass  # expected
 
-
     is_server_runing_mock.return_value = True, 11111
 
     # Test insufficient options case
@@ -149,11 +150,10 @@ class TestServerUpgrade(TestCase):
 
     self.assertTrue(urlopen_mock.called)
     request = urlopen_mock.call_args_list[0][0][0]
-    self.assertEquals(request._Request__original, 'http://127.0.0.1:8080/api/v1/clusters/cc/stack_versions')
-    self.assertEquals(request.data, '{"ClusterStackVersions": {"state": "CURRENT", "repository_version": "HDP-2.2.2.0-2561", "force": true}}')
-    self.assertEquals(request.origin_req_host, '127.0.0.1')
-    self.assertEquals(request.headers, {'X-requested-by': 'ambari', 'Authorization': 'Basic ZHVtbXlfc3RyaW5nOmR1bW15X3N0cmluZw=='})
-
+    self.assertEqual(request.get_full_url(), 'http://127.0.0.1:8080/api/v1/clusters/cc/stack_versions')
+    self.assertEqual(request.data, '{"ClusterStackVersions": {"repository_version": "HDP-2.2.2.0-2561", "state": "CURRENT", "force": true}}')
+    self.assertEqual(request.origin_req_host, '127.0.0.1')
+    self.assertEqual(request.headers, {'X-requested-by': 'ambari', 'Authorization': 'Basic ZHVtbXlfc3RyaW5nOmR1bW15X3N0cmluZw=='})
 
   def testCurrentVersionOptions(self):
     # Negative test cases

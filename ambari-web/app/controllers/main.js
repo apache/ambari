@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+require('models/background_operation');
 
 App.MainController = Em.Controller.extend({
   name: 'mainController',

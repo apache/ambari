@@ -35,6 +35,7 @@ class MetadataEventListener(EventListener):
   def __init__(self, initializer_module):
     super(MetadataEventListener, self).__init__(initializer_module)
     self.metadata_cache = initializer_module.metadata_cache
+    self.config = initializer_module.config
 
   def on_event(self, headers, message):
     """
@@ -57,6 +58,11 @@ class MetadataEventListener(EventListener):
       self.metadata_cache.cache_delete(message['clusters'], message['hash'])
     else:
       logger.error("Unknown event type '{0}' for metadata event")
+
+    try:
+      self.config.update_configuration_from_metadata(message['clusters']['-1']['agentConfigs'])
+    except KeyError:
+      pass
 
   def get_handled_path(self):
     return Constants.METADATA_TOPIC

@@ -25,14 +25,13 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 
-class SubscriberPriorityScheduler(object):
+class SubscriberPriorityScheduler(object, metaclass=abc.ABCMeta):
     """ Abstract base class for choosing which recipient (subscriber) should receive a message. """
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def choice(self, subscribers, message):
         """
-        Chooses which subscriber (from list) should receive specified message.
+        Chooses which subscriber (from list) should recieve specified message.
 
         @param subscribers: Collection of subscribed connections eligible to receive message. 
         @type subscribers: C{list} of L{coilmq.server.StompConnection}

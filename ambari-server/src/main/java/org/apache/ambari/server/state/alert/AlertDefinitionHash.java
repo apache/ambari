@@ -75,7 +75,7 @@ public class AlertDefinitionHash {
   /**
    * The hash returned when there are no definitions to hash.
    */
-  public static final String NULL_MD5_HASH = "37a6259cc0c1dae299a7866489dff0bd";
+  public static String NULL_MD5_HASH = "37a6259cc0c1dae299a7866489dff0bd";
 
   /**
    * DAO for retrieving {@link AlertDefinitionEntity} instances.
@@ -554,7 +554,7 @@ public class AlertDefinitionHash {
         hostName);
 
     // no definitions found for this host, don't bother hashing
-    if(definitions.isEmpty()) {
+    if( null == definitions || definitions.size() == 0 ) {
       return NULL_MD5_HASH;
     }
 
@@ -621,14 +621,12 @@ public class AlertDefinitionHash {
       // services and components
       List<ServiceComponentHost> serviceComponents = cluster.getServiceComponentHosts(hostName);
       if (null == serviceComponents || !serviceComponents.isEmpty()) {
-        if (serviceComponents != null) {
-          for (ServiceComponentHost serviceComponent : serviceComponents) {
-            String serviceName = serviceComponent.getServiceName();
-            String componentName = serviceComponent.getServiceComponentName();
+        for (ServiceComponentHost serviceComponent : serviceComponents) {
+          String serviceName = serviceComponent.getServiceName();
+          String componentName = serviceComponent.getServiceComponentName();
 
-            // add all alerts for this service/component pair
-            definitions.addAll(m_definitionDao.findByServiceComponent(clusterId, serviceName, componentName));
-          }
+          // add all alerts for this service/component pair
+          definitions.addAll(m_definitionDao.findByServiceComponent(clusterId, serviceName, componentName));
         }
 
         // for every service, get the master components and see if the host

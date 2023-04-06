@@ -41,7 +41,7 @@ from ambari_commons import OSConst
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def hive_service(name, action='start', upgrade_type=None):
-  import params
+  from . import params
   if name == 'metastore':
     if action == 'start' or action == 'stop':
       Service(params.hive_metastore_win_service_name, action=action)
@@ -54,7 +54,7 @@ def hive_service(name, action='start', upgrade_type=None):
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hive_service(name, action='start', upgrade_type=None):
 
-  import params
+  from . import params
 
   if name == 'metastore':
     pid_file = format("{hive_pid_dir}/{hive_metastore_pid}")
@@ -142,7 +142,7 @@ def hive_service(name, action='start', upgrade_type=None):
     )
 
 def validate_connection(target_path_to_jdbc, hive_lib_path):
-  import params
+  from . import params
 
   path_to_jdbc = target_path_to_jdbc
   if not params.jdbc_jar_name:
@@ -166,7 +166,7 @@ def validate_connection(target_path_to_jdbc, hive_lib_path):
 
 
 def check_fs_root(conf_dir, execution_path):
-  import params
+  from . import params
 
   if not params.fs_root.startswith("hdfs://"):
     Logger.info("Skipping fs root check as fs_root does not start with hdfs://")

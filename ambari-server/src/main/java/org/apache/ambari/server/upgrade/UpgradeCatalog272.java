@@ -49,10 +49,11 @@ public class UpgradeCatalog272 extends AbstractUpgradeCatalog {
   static final String RENAME_COLLISION_BEHAVIOR_PROPERTY_SQL = String.format("UPDATE %s SET %s = '%s' WHERE %s = '%s' AND %s = '%s'", AMBARI_CONFIGURATION_TABLE,
       AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN, LDAP_CONFIGURATION_CORRECT_COLLISION_BEHAVIOR_PROPERTY_NAME, AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN,
       LDAP_CONFIGURATION.getCategoryName(), AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN, LDAP_CONFIGURATION_WRONG_COLLISION_BEHAVIOR_PROPERTY_NAME);
-
   protected static final String HOST_COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
+  protected static final String HOST_COMPONENT_STATE_TABLE = "hostcomponentstate";
   protected static final String CLUSTERS_TABLE = "clusters";
   protected static final String BLUEPRINT_PROVISIONING_STATE_COLUMN = "blueprint_provisioning_state";
+  protected static final String LAST_LIVE_STATE_COLUMN = "last_live_state";
 
   @Inject
   public UpgradeCatalog272(Injector injector) {
@@ -72,6 +73,7 @@ public class UpgradeCatalog272 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     moveBlueprintProvisioningState();
+    removeLastValidState();
   }
 
   @Override
@@ -111,4 +113,7 @@ public class UpgradeCatalog272 extends AbstractUpgradeCatalog {
             BlueprintProvisioningState.NONE, true));
   }
 
+  protected void removeLastValidState() throws SQLException {
+    dbAccessor.dropColumn(HOST_COMPONENT_STATE_TABLE, LAST_LIVE_STATE_COLUMN);
+  }
 }

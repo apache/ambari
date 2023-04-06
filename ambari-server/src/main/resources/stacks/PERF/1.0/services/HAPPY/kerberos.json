@@ -1,0 +1,82 @@
+{
+  "services": [
+    {
+      "name": "HAPPY",
+      "identities": [
+        {
+          "name": "happy_spnego",
+          "reference": "/spnego"
+        },
+        {
+          "name": "happy",
+          "principal": {
+            "value": "${happy-site/happy_user}${principal_suffix}@${realm}",
+            "type" : "user",
+            "configuration": "happy-site/happy_principal_name",
+            "local_username": "${happy-site/happy_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/happy.headless.keytab",
+            "owner": {
+              "name": "${happy-site/happy_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": "r"
+            },
+            "configuration": "happy-site/happy_user_keytab"
+          }
+        },
+        {
+          "name": "happy_smokeuser",
+          "reference": "/smokeuser"
+        }
+      ],
+      "configurations": [
+      ],
+      "components": [
+        {
+          "name": "HAPPY",
+          "identities": [
+            {
+              "name": "happy_happy_hdfs",
+              "reference": "/FAKEHDFS/FAKENAMENODE/hdfs"
+            },
+            {
+              "name": "happy_happy",
+              "principal": {
+                "value": "happy/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "happy-site/happy.happy.kerberos.principal",
+                "local_username": "${happy-site/happy_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/happy.service.keytab",
+                "owner": {
+                  "name": "${happy-site/happy_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "happy-site/happy.happy.keytab.file"
+              }
+            },
+            {
+              "name": "happy_happy_spnego",
+              "reference": "/spnego",
+              "principal": {
+                "configuration": "happy-site/happy.security.authentication.spnego.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "happy-site/happy.security.authentication.spnego.kerberos.keytab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

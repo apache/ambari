@@ -24,8 +24,8 @@ import sys
 import time
 import subprocess
 
-from hcat_service_check import hcat_service_check
-from webhcat_service_check import webhcat_service_check
+from .hcat_service_check import hcat_service_check
+from .webhcat_service_check import webhcat_service_check
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core import shell
@@ -39,7 +39,7 @@ class HiveServiceCheck(Script):
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HiveServiceCheckWindows(HiveServiceCheck):
   def service_check(self, env):
-    import params
+    from . import params
     env.set_params(params)
     smoke_cmd = os.path.join(params.stack_root,"Run-SmokeTests.cmd")
     service = "HIVE"
@@ -57,7 +57,7 @@ class HiveServiceCheckDefault(HiveServiceCheck):
     Logger.initialize_logger()
 
   def service_check(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     if params.security_enabled:
@@ -96,7 +96,7 @@ class HiveServiceCheckDefault(HiveServiceCheck):
     webhcat_service_check()
 
   def check_hive_server(self, env, server_component_name, kinit_cmd, address_list, server_port):
-    import params
+    from . import params
     env.set_params(params)
     Logger.info("Server Address List : {0}, Port : {1}".format(address_list, server_port))
 
@@ -143,7 +143,7 @@ class HiveServiceCheckDefault(HiveServiceCheck):
   Performs Service check for LLAP app
   """
   def check_llap(self, env, kinit_cmd, address, port, key, hive_auth="NOSASL", transport_mode="binary", http_endpoint="cliservice"):
-    import params
+    from . import params
     env.set_params(params)
 
     unique_id = get_unique_id_and_date()

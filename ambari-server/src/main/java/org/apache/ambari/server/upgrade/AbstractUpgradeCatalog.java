@@ -289,7 +289,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   /**
    * {@inheritDoc}
    */
-  @Override
   public Map<String,String> getUpgradeJsonOutput() {
     return upgradeJsonOutput;
   }

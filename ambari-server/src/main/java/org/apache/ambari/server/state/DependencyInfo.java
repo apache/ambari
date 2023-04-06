@@ -44,13 +44,6 @@ public class DependencyInfo {
   private String scope;
 
   /**
-   * The type of the dependency.  Either "inclusive" or "exclusive".
-   * "inclusive" means the dependent component MUST be co-hosted or installed on the same cluster
-   * "exclusive" means the dependent component CAN'T be co-hosted or installed on the same cluster
-   */
-  private String type = "inclusive";
-
-  /**
    * Service name of the dependency.
    */
   private String serviceName;
@@ -65,7 +58,6 @@ public class DependencyInfo {
    * If auto-deployment is enabled for the dependency, the dependency is
    * automatically deployed if it is not specified in the provided topology.
    */
-  @XmlElement(name="auto-deploy")
   private AutoDeployInfo m_autoDeploy;
 
   /**
@@ -131,6 +123,7 @@ public class DependencyInfo {
    *
    * @return auto-deploy information
    */
+  @XmlElement(name="auto-deploy")
   public AutoDeployInfo getAutoDeploy() {
     return m_autoDeploy;
   }
@@ -180,21 +173,11 @@ public class DependencyInfo {
     return !CollectionUtils.isEmpty(dependencyConditions);
   }
 
-  public String getType() {
-    return type;
-  }
-
-  public void setType(String type) {
-    this.type = type;
-  }
-
   @Override
   public String toString() {
-    String autoDeployString = m_autoDeploy == null? "false" : String.valueOf(m_autoDeploy.isEnabled());
     return "DependencyInfo[name=" + getName() +
            ", scope=" + getScope() +
-           ", type=" + getType() +
-           ", auto-deploy=" + autoDeployString +
+           ", auto-deploy=" + m_autoDeploy.isEnabled() +
            "]";
   }
 
@@ -209,7 +192,6 @@ public class DependencyInfo {
     if (m_autoDeploy != null ? !m_autoDeploy.equals(that.m_autoDeploy) : that.m_autoDeploy != null) return false;
     if (name != null ? !name.equals(that.name) : that.name != null) return false;
     if (scope != null ? !scope.equals(that.scope) : that.scope != null) return false;
-    if (type != null ? !type.equals(that.type) : that.type != null) return false;
     if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
 
     return true;

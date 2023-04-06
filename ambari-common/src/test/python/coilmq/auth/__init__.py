@@ -20,9 +20,8 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 
-class Authenticator(object):
+class Authenticator(object, metaclass=abc.ABCMeta):
     """ Abstract base class for authenticators. """
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def authenticate(self, login, passcode):

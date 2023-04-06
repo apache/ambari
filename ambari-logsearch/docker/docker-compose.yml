@@ -1,0 +1,95 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+version: '3.3'
+services:
+  zookeeper:
+    image: zookeeper:${ZOOKEEPER_VERSION:-3.4.10}
+    restart: always
+    hostname: zookeeper
+    networks:
+      - logsearch-network
+    ports:
+      - 2181:2181
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zookeeper:2888:3888
+  solr:
+    image: solr:${SOLR_VERSION:-7.7.0}
+    restart: always
+    hostname: solr
+    ports:
+      - "8983:8983"
+    networks:
+      - logsearch-network
+    env_file:
+      - Profile
+    entrypoint:
+      - docker-entrypoint.sh
+      - solr
+      - start
+      - "-f"
+      - "-c"
+      - "-z"
+      - ${ZOOKEEPER_CONNECTION_STRING}
+  logsearch:
+    image: ambari-logsearch:v1.0
+    restart: always
+    hostname: logsearch.apache.org
+    labels:
+      logfeeder.log.type: "logsearch_server"
+    networks:
+      - logsearch-network
+    env_file:
+      - Profile
+    ports:
+      - 61888:61888
+      - 4444:4444
+      - 5005:5005
+    environment:
+      COMPONENT: logsearch
+      COMPONENT_LOG: logsearch
+      ZK_CONNECT_STRING: ${ZOOKEEPER_CONNECTION_STRING}
+      DISPLAY: $DISPLAY_MAC
+    volumes:
+      - $AMBARI_LOCATION:/root/ambari
+      - $AMBARI_LOCATION/ambari-logsearch/docker/test-logs:/root/test-logs
+      - $AMBARI_LOCATION/ambari-logsearch/docker/test-config:/root/test-config
+  logfeeder:
+    image: ambari-logsearch:v1.0
+    restart: always
+    hostname: logfeeder.apache.org
+    privileged: true
+    labels:
+      logfeeder.log.type: "logfeeder"
+    networks:
+      - logsearch-network
+    env_file:
+      - Profile
+    ports:
+      - 5006:5006
+    environment:
+      COMPONENT: logfeeder
+      COMPONENT_LOG: logfeeder
+      ZK_CONNECT_STRING: ${ZOOKEEPER_CONNECTION_STRING}
+    volumes:
+      - $AMBARI_LOCATION:/root/ambari
+      - $AMBARI_LOCATION/ambari-logsearch/docker/test-logs:/root/test-logs
+      - $AMBARI_LOCATION/ambari-logsearch/docker/test-config:/root/test-config
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/local/bin/docker:/usr/local/bin/docker
+      - /var/lib/docker:/var/lib/docker
+networks:
+   logsearch-network:
+      driver: bridge

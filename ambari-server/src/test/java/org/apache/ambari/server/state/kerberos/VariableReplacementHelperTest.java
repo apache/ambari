@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.AmbariRuntimeException;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -132,8 +131,8 @@ public class VariableReplacementHelperTest {
     try {
       assertEquals("${config-type2/self_reference}",
         helper.replaceVariables("${config-type2/self_reference}", configurations));
-      Assert.fail(String.format("%s expected to be thrown", AmbariRuntimeException.class.getName()));
-    } catch (AmbariRuntimeException e) {
+      Assert.fail(String.format("%s expected to be thrown", AmbariException.class.getName()));
+    } catch (AmbariException e) {
       // This is expected...
     }
   }

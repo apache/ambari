@@ -30,7 +30,7 @@ import stat
 import sys
 import tempfile
 import time
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import print_warning_msg, print_error_msg, print_info_msg, get_verbose
 from ambari_commons.os_check import OSConst
@@ -44,23 +44,22 @@ from ambari_server.serverConfiguration import configDefaults, parse_properties_f
   get_credential_store_location, get_is_persisted, get_is_secure, get_master_key_location, get_db_type, write_property, \
   get_original_master_key, get_value_from_properties, get_java_exe_path, is_alias_string, read_ambari_user, \
   read_passwd_for_alias, remove_password_file, save_passwd_for_alias, store_password_file, update_properties_2, \
-  AMBARI_PROPERTIES_FILE, BLIND_PASSWORD, BOOTSTRAP_DIR_PROPERTY, JDBC_PASSWORD_FILENAME, JDBC_PASSWORD_PROPERTY, \
+  BLIND_PASSWORD, BOOTSTRAP_DIR_PROPERTY, JDBC_PASSWORD_FILENAME, JDBC_PASSWORD_PROPERTY, \
   JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_USE_INTEGRATED_AUTH_PROPERTY, \
   LDAP_MGR_PASSWORD_ALIAS, LDAP_MGR_PASSWORD_PROPERTY, CLIENT_SECURITY, \
-  SECURITY_IS_ENCRYPTION_ENABLED, SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED, SECURITY_KEY_ENV_VAR_NAME, SECURITY_KERBEROS_JASS_FILENAME, \
-  SECURITY_PROVIDER_KEY_CMD, SECURITY_SENSITIVE_DATA_ENCRYPTON_CMD, SECURITY_MASTER_KEY_FILENAME, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
+  SECURITY_IS_ENCRYPTION_ENABLED, SECURITY_KEY_ENV_VAR_NAME, SECURITY_KERBEROS_JASS_FILENAME, \
+  SECURITY_PROVIDER_KEY_CMD, SECURITY_MASTER_KEY_FILENAME, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
   SSL_TRUSTSTORE_PASSWORD_PROPERTY, SSL_TRUSTSTORE_PATH_PROPERTY, SSL_TRUSTSTORE_TYPE_PROPERTY, \
   JDK_NAME_PROPERTY, JCE_NAME_PROPERTY, JAVA_HOME_PROPERTY, \
   get_resources_location, SECURITY_MASTER_KEY_LOCATION, SETUP_OR_UPGRADE_MSG, \
   CHECK_AMBARI_KRB_JAAS_CONFIGURATION_PROPERTY
 from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base, \
-  get_ambari_admin_username_password_pair, perform_changes_via_rest_api, get_ssl_context, get_cluster_name, \
-  get_eligible_services, get_boolean_from_dictionary, get_value_from_dictionary
+  get_ambari_admin_username_password_pair, perform_changes_via_rest_api, get_ssl_context
 from ambari_server.setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input, \
   quit_if_has_answer
 from contextlib import closing
-from urllib2 import HTTPError
+from urllib.error import HTTPError
 
 logger = logging.getLogger(__name__)
 
@@ -90,18 +89,13 @@ SETUP_LDAP_CONFIG_URL = 'services/AMBARI/components/AMBARI_SERVER/configurations
 
 PAM_CONFIG_FILE = 'pam.configuration'
 
+IS_LDAP_CONFIGURED = "ambari.ldap.authentication.enabled"
 LDAP_MGR_USERNAME_PROPERTY = "ambari.ldap.connectivity.bind_dn"
 LDAP_MGR_PASSWORD_FILENAME = "ldap-password.dat"
 LDAP_ANONYMOUS_BIND="ambari.ldap.connectivity.anonymous_bind"
 LDAP_USE_SSL="ambari.ldap.connectivity.use_ssl"
 LDAP_DISABLE_ENDPOINT_IDENTIFICATION = "ambari.ldap.advanced.disable_endpoint_identification"
 NO_AUTH_METHOD_CONFIGURED = "no auth method"
-
-AMBARI_LDAP_AUTH_ENABLED = "ambari.ldap.authentication.enabled"
-LDAP_MANAGE_SERVICES = "ambari.ldap.manage_services"
-LDAP_ENABLED_SERVICES = "ambari.ldap.enabled_services"
-WILDCARD_FOR_ALL_SERVICES = "*"
-FETCH_SERVICES_FOR_LDAP_ENTRYPOINT = "clusters/%s/services?ServiceInfo/ldap_integration_supported=true&fields=ServiceInfo/*"
 
 def read_master_key(isReset=False, options = None):
   passwordPattern = ".*"
@@ -118,14 +112,14 @@ def read_master_key(isReset=False, options = None):
                                            True, True, answer = options.master_key)
 
     if not masterKey:
-      print "Master Key cannot be empty!"
+      print("Master Key cannot be empty!")
       continue
 
     masterKey2 = get_validated_string_input("Re-enter master key: ", passwordDefault, passwordPattern, passwordDescr,
                                             True, True, answer = options.master_key)
 
     if masterKey != masterKey2:
-      print "Master key did not match!"
+      print("Master key did not match!")
       continue
 
     input = False
@@ -162,7 +156,7 @@ def adjust_directory_permissions(ambari_user):
   if not os.path.exists(bootstrap_dir):
     try:
       os.makedirs(bootstrap_dir)
-    except Exception, ex:
+    except Exception as ex:
       print_warning_msg("Failed recreating the bootstrap directory: {0}".format(str(ex)))
       pass
   else:
@@ -211,7 +205,7 @@ def adjust_directory_permissions(ambari_user):
         configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((ambari_repo_file, "644", ambari_repo_file_owner, False))
 
 
-  print "Adjusting ambari-server permissions and ownership..."
+  print("Adjusting ambari-server permissions and ownership...")
 
   for pack in configDefaults.NR_ADJUST_OWNERSHIP_LIST:
     file = pack[0]
@@ -228,13 +222,13 @@ def adjust_directory_permissions(ambari_user):
     print_info_msg("Changing ownership: {0} {1} {2}".format(path, user, recursive))
     change_owner(path, user, recursive)
 
-def configure_ldap_password(ldap_manager_password_option, interactive_mode):
+def configure_ldap_password(options):
   password_default = ""
   password_prompt = 'Enter Bind DN Password: '
   confirm_password_prompt = 'Confirm Bind DN Password: '
   password_pattern = ".*"
   password_descr = "Invalid characters in password."
-  password = read_password(password_default, password_pattern, password_prompt, password_descr, ldap_manager_password_option, confirm_password_prompt) if interactive_mode else ldap_manager_password_option
+  password = read_password(password_default, password_pattern, password_prompt, password_descr, options.ldap_manager_password, confirm_password_prompt)
 
   return password
 
@@ -291,11 +285,6 @@ class LdapSyncOptions:
     except AttributeError:
       self.ldap_sync_admin_password = None
 
-    try:
-      self.ldap_sync_post_process_existing_users = options.ldap_sync_post_process_existing_users
-    except AttributeError:
-      self.ldap_sync_post_process_existing_users = False
-
   def no_ldap_sync_options_set(self):
     return not self.ldap_sync_all and not self.ldap_sync_existing and self.ldap_sync_users is None and self.ldap_sync_groups is None
 
@@ -307,7 +296,7 @@ def get_ldap_properties_from_db(properties, admin_login, admin_password):
   ldap_properties = None
   url = get_ambari_server_api_base(properties) + SETUP_LDAP_CONFIG_URL
   admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
-  request = urllib2.Request(url)
+  request = urllib.request.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')
   request.get_method = lambda: 'GET'
@@ -323,7 +312,7 @@ def get_ldap_properties_from_db(properties, admin_login, admin_password):
     sys.stdout.flush()
 
     try:
-      with closing(urllib2.urlopen(request, context=get_ssl_context(properties))) as response:
+      with closing(urllib.request.urlopen(request, context=get_ssl_context(properties))) as response:
         response_status_code = response.getcode()
         if response_status_code != 200:
           request_in_progress = False
@@ -349,7 +338,7 @@ def get_ldap_properties_from_db(properties, admin_login, admin_password):
   return ldap_properties
 
 def is_ldap_enabled(properties, admin_login, admin_password):
-  ldap_enabled = get_ldap_property_from_db(properties, admin_login, admin_password, AMBARI_LDAP_AUTH_ENABLED)
+  ldap_enabled = get_ldap_property_from_db(properties, admin_login, admin_password, IS_LDAP_CONFIGURED)
   return ldap_enabled if ldap_enabled is not None else 'false'
 
 
@@ -397,8 +386,8 @@ def sync_ldap(options):
     raise FatalException(1, err)
 
   url = get_ambari_server_api_base(properties) + SERVER_API_LDAP_URL
-  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
-  request = urllib2.Request(url)
+  admin_auth = base64.encodebytes(('%s:%s' % (admin_login, admin_password)).encode()).decode().replace('\n', '')
+  request = urllib.request.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')
 
@@ -422,18 +411,14 @@ def sync_ldap(options):
       new_specs = [{"principal_type":"groups","sync_type":"specific","names":""}]
       get_ldap_event_spec_names(ldap_sync_options.ldap_sync_groups, specs, new_specs)
 
-  if ldap_sync_options.ldap_sync_post_process_existing_users:
-    for spec in bodies[0]["Event"]["specs"]:
-      spec["post_process_existing_users"] = "true"
-
   if get_verbose():
     sys.stdout.write('\nCalling API ' + url + ' : ' + str(bodies) + '\n')
 
-  request.add_data(json.dumps(bodies))
+  request.data=json.dumps(bodies)
   request.get_method = lambda: 'POST'
 
   try:
-    response = urllib2.urlopen(request, context=get_ssl_context(properties))
+    response = urllib.request.urlopen(request, context=get_ssl_context(properties))
   except Exception as e:
     err = 'Sync event creation failed. Error details: %s' % e
     raise FatalException(1, err)
@@ -445,11 +430,11 @@ def sync_ldap(options):
   response_body = json.loads(response.read())
 
   url = response_body['resources'][0]['href']
-  request = urllib2.Request(url)
+  request = urllib.request.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')
   body = [{"LDAP":{"synced_groups":"*","synced_users":"*"}}]
-  request.add_data(json.dumps(body))
+  request.data=json.dumps(body)
   request.get_method = lambda: 'GET'
   request_in_progress = True
 
@@ -458,7 +443,7 @@ def sync_ldap(options):
     sys.stdout.flush()
 
     try:
-      response = urllib2.urlopen(request, context=get_ssl_context(properties))
+      response = urllib.request.urlopen(request, context=get_ssl_context(properties))
     except Exception as e:
       request_in_progress = False
       err = 'Sync event check failed. Error details: %s' % e
@@ -474,12 +459,12 @@ def sync_ldap(options):
     if sync_info['status'] == 'ERROR':
       raise FatalException(1, str(sync_info['status_detail']))
     elif sync_info['status'] == 'COMPLETE':
-      print '\n\nCompleted LDAP Sync.'
-      print 'Summary:'
-      for principal_type, summary in sync_info['summary'].iteritems():
-        print '  {0}:'.format(principal_type)
-        for action, amount in summary.iteritems():
-          print '    {0} = {1!s}'.format(action, amount)
+      print('\n\nCompleted LDAP Sync.')
+      print('Summary:')
+      for principal_type, summary in sync_info['summary'].items():
+        print('  {0}:'.format(principal_type))
+        for action, amount in summary.items():
+          print('    {0} = {1!s}'.format(action, amount))
       request_in_progress = False
     else:
       time.sleep(1)
@@ -487,26 +472,11 @@ def sync_ldap(options):
   sys.stdout.write('\n')
   sys.stdout.flush()
 
-def sensitive_data_encryption(options, direction, masterKey=None):
-  environ = os.environ.copy()
-  if masterKey:
-    environ[SECURITY_KEY_ENV_VAR_NAME] = masterKey
-  jdk_path = find_jdk()
-  if jdk_path is None:
-    print_error_msg("No JDK found, please run the \"setup\" "
-                    "command to install a JDK automatically or install any "
-                    "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
-    return 1
-  serverClassPath = ServerClassPath(get_ambari_properties(), options)
-  command = SECURITY_SENSITIVE_DATA_ENCRYPTON_CMD.format(get_java_exe_path(), serverClassPath.get_full_ambari_classpath_escaped_for_shell(), direction)
-  (retcode, stdout, stderr) = run_os_command(command, environ)
-  pass
-
-def setup_sensitive_data_encryption(options):
+def setup_master_key(options):
   if not is_root():
-    warn = 'ambari-server encrypt-passwords is run as ' \
+    warn = 'ambari-server setup-https is run as ' \
           'non-root user, some sudo privileges might be required'
-    print warn
+    print(warn)
 
   properties = get_ambari_properties()
   if properties == -1:
@@ -517,7 +487,7 @@ def setup_sensitive_data_encryption(options):
   db_password = properties.get_property(JDBC_PASSWORD_PROPERTY)
   # Encrypt passwords cannot be called before setup
   if db_sql_auth and not db_password:
-    print 'Please call "setup" before "encrypt-passwords". Exiting...'
+    print('Please call "setup" before "encrypt-passwords". Exiting...')
     return 1
 
   # Check configuration for location of master key
@@ -529,151 +499,134 @@ def setup_sensitive_data_encryption(options):
     with open(db_password, 'r') as passwdfile:
       db_password = passwdfile.read()
 
+  ldap_password = properties.get_property(LDAP_MGR_PASSWORD_PROPERTY)
+  if ldap_password:
+    # Read clear text LDAP password from file
+    if not is_alias_string(ldap_password) and os.path.isfile(ldap_password):
+      with open(ldap_password, 'r') as passwdfile:
+        ldap_password = passwdfile.read()
+
   ts_password = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
   resetKey = False
-  decrypt = False
   masterKey = None
 
   if isSecure:
-    print "Password encryption is enabled."
-    decrypt = get_YN_input("Do you want to decrypt passwords managed by Ambari? [y/n] (n): ", False)
-    if not decrypt:
-      resetKey = get_YN_input("Do you want to reset Master Key? [y/n] (n): ", False)
+    print("Password encryption is enabled.")
+    resetKey = True if options.security_option is not None else get_YN_input("Do you want to reset Master Key? [y/n] (n): ", False)
+
+  # For encrypting of only unencrypted passwords without resetting the key ask
+  # for master key if not persisted.
+  if isSecure and not isPersisted and not resetKey:
+    print("Master Key not persisted.")
+    masterKey = get_original_master_key(properties, options)
+  pass
 
   # Make sure both passwords are clear-text if master key is lost
-  if resetKey or decrypt:
-    if isPersisted:
-      sensitive_data_encryption(options, "decryption")
-    else:
-      print "Master Key not persisted."
+  if resetKey:
+    if not isPersisted:
+      print("Master Key not persisted.")
       masterKey = get_original_master_key(properties, options)
       # Unable get the right master key or skipped question <enter>
       if not masterKey:
-        # todo fix unreachable code
-        printManualDecryptionWarning(db_password, db_sql_auth, ts_password)
+        print("To disable encryption, do the following:")
+        print("- Edit " + find_properties_file() + \
+              " and set " + SECURITY_IS_ENCRYPTION_ENABLED + " = " + "false.")
+        err = "{0} is already encrypted. Please call {1} to store unencrypted" \
+              " password and call 'encrypt-passwords' again."
+        if db_sql_auth and db_password and is_alias_string(db_password):
+          print(err.format('- Database password', "'" + SETUP_ACTION + "'"))
+        if ldap_password and is_alias_string(ldap_password):
+          print(err.format('- LDAP manager password', "'" + LDAP_SETUP_ACTION + "'"))
+        if ts_password and is_alias_string(ts_password):
+          print(err.format('TrustStore password', "'" + LDAP_SETUP_ACTION + "'"))
+
         return 1
-      sensitive_data_encryption(options, "decryption", masterKey)
+      pass
+    pass
+  pass
 
   # Read back any encrypted passwords
-  db_password, ts_password = deryptPasswordsConfigs(db_password, db_sql_auth, masterKey, ts_password)
-  save_decrypted_ambari_properties(db_password, properties, ts_password)
+  if db_sql_auth  and db_password and is_alias_string(db_password):
+    db_password = read_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS, masterKey)
+  if ldap_password and is_alias_string(ldap_password):
+    ldap_password = read_passwd_for_alias(LDAP_MGR_PASSWORD_ALIAS, masterKey)
+  if ts_password and is_alias_string(ts_password):
+    ts_password = read_passwd_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS, masterKey)
+  # Read master key, if non-secure or reset is true
+  if resetKey or not isSecure:
+    masterKey = read_master_key(resetKey, options)
+    persist = get_YN_input("Do you want to persist master key. If you choose " \
+                           "not to persist, you need to provide the Master " \
+                           "Key while starting the ambari server as an env " \
+                           "variable named " + SECURITY_KEY_ENV_VAR_NAME + \
+                           " or the start will prompt for the master key."
+                           " Persist [y/n] (y)? ", True, options.master_key_persist)
+    if persist:
+      save_master_key(options, masterKey, get_master_key_location(properties) + os.sep +
+                      SECURITY_MASTER_KEY_FILENAME, persist)
+    elif not persist and masterKeyFile:
+      try:
+        os.remove(masterKeyFile)
+        print_info_msg("Deleting master key file at location: " + str(
+          masterKeyFile))
+      except Exception as e:
+        print('ERROR: Could not remove master key file. %s' % e)
+    # Blow up the credential store made with previous key, if any
+    store_file = get_credential_store_location(properties)
+    if os.path.exists(store_file):
+      try:
+        os.remove(store_file)
+      except:
+        print_warning_msg("Failed to remove credential store file.")
+      pass
+    pass
+  pass
 
-
-  if not decrypt:
-    if resetKey or not isSecure:
-      # Read master key and encrypt sensitive data, if non-secure or reset is true
-      masterKey, isPersisted = setup_master_key(masterKeyFile, options, properties, resetKey)
+  propertyMap = {SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
+  # Encrypt only un-encrypted passwords
+  if db_password and not is_alias_string(db_password):
+    retCode = save_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS, db_password, masterKey)
+    if retCode != 0:
+      print('Failed to save secure database password.')
     else:
-      if not isPersisted:
-        # For encrypting of only unencrypted passwords without resetting the key ask
-        # for master key if not persisted.
-        print "Master Key not persisted."
-        masterKey = get_original_master_key(properties, options)
-    encrypt_sensitive_data(db_password, masterKey, options, isPersisted, properties, ts_password)
+      propertyMap[JDBC_PASSWORD_PROPERTY] = get_alias_string(JDBC_RCA_PASSWORD_ALIAS)
+      remove_password_file(JDBC_PASSWORD_FILENAME)
+      if properties.get_property(JDBC_RCA_PASSWORD_FILE_PROPERTY):
+        propertyMap[JDBC_RCA_PASSWORD_FILE_PROPERTY] = get_alias_string(JDBC_RCA_PASSWORD_ALIAS)
+  pass
+
+  if ldap_password and not is_alias_string(ldap_password):
+    retCode = save_passwd_for_alias(LDAP_MGR_PASSWORD_ALIAS, ldap_password, masterKey)
+    if retCode != 0:
+      print('Failed to save secure LDAP password.')
+    else:
+      propertyMap[LDAP_MGR_PASSWORD_PROPERTY] = get_alias_string(LDAP_MGR_PASSWORD_ALIAS)
+      remove_password_file(LDAP_MGR_PASSWORD_FILENAME)
+  pass
+
+  if ts_password and not is_alias_string(ts_password):
+    retCode = save_passwd_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS, ts_password, masterKey)
+    if retCode != 0:
+      print('Failed to save secure TrustStore password.')
+    else:
+      propertyMap[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS)
+  pass
+
+  update_properties_2(properties, propertyMap)
 
   # Since files for store and master are created we need to ensure correct
   # permissions
   ambari_user = read_ambari_user()
   if ambari_user:
     adjust_directory_permissions(ambari_user)
+
   return 0
-
-
-def save_decrypted_ambari_properties(db_password, properties, ts_password):
-  propertyMap = {SECURITY_IS_ENCRYPTION_ENABLED: 'false'}
-  propertyMap[SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED] = 'false'
-  if db_password:
-    propertyMap[JDBC_PASSWORD_PROPERTY] = db_password
-    if properties.get_property(JDBC_RCA_PASSWORD_FILE_PROPERTY):
-      propertyMap[JDBC_RCA_PASSWORD_FILE_PROPERTY] = db_password
-  if ts_password:
-    propertyMap[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = ts_password
-  update_properties_2(properties, propertyMap)
-
-
-def encrypt_sensitive_data(db_password, masterKey, options, persist, properties, ts_password):
-  propertyMap = {SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
-  # Encrypt only un-encrypted passwords
-  if db_password and not is_alias_string(db_password):
-    retCode = save_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS, db_password, masterKey)
-    if retCode != 0:
-      print 'Failed to save secure database password.'
-    else:
-      propertyMap[JDBC_PASSWORD_PROPERTY] = get_alias_string(JDBC_RCA_PASSWORD_ALIAS)
-      remove_password_file(JDBC_PASSWORD_FILENAME)
-      if properties.get_property(JDBC_RCA_PASSWORD_FILE_PROPERTY):
-        propertyMap[JDBC_RCA_PASSWORD_FILE_PROPERTY] = get_alias_string(JDBC_RCA_PASSWORD_ALIAS)
-
-  if ts_password and not is_alias_string(ts_password):
-    retCode = save_passwd_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS, ts_password, masterKey)
-    if retCode != 0:
-      print 'Failed to save secure TrustStore password.'
-    else:
-      propertyMap[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS)
-
-  propertyMap[SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED] = 'true'
-  if persist:
-    sensitive_data_encryption(options, "encryption")
-  else:
-    sensitive_data_encryption(options, "encryption", masterKey)
-  update_properties_2(properties, propertyMap)
-
-
-def setup_master_key(masterKeyFile, options, properties, resetKey):
-  masterKey = read_master_key(resetKey, options)
-  persist = get_YN_input("Do you want to persist master key. If you choose " \
-                         "not to persist, you need to provide the Master " \
-                         "Key while starting the ambari server as an env " \
-                         "variable named " + SECURITY_KEY_ENV_VAR_NAME + \
-                         " or the start will prompt for the master key."
-                         " Persist [y/n] (y)? ", True, options.master_key_persist)
-  if persist:
-    save_master_key(options, masterKey, get_master_key_location(properties) + os.sep +
-                    SECURITY_MASTER_KEY_FILENAME, persist)
-  elif not persist and masterKeyFile:
-    try:
-      os.remove(masterKeyFile)
-      print_info_msg("Deleting master key file at location: " + str(
-        masterKeyFile))
-    except Exception, e:
-      print 'ERROR: Could not remove master key file. %s' % e
-  # Blow up the credential store made with previous key, if any
-  store_file = get_credential_store_location(properties)
-  if os.path.exists(store_file):
-    try:
-      os.remove(store_file)
-    except:
-      print_warning_msg("Failed to remove credential store file.")
-  return masterKey, persist
-
-
-def deryptPasswordsConfigs(db_password, db_sql_auth, masterKey, ts_password):
-  if db_sql_auth and db_password and is_alias_string(db_password):
-    db_password = read_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS, masterKey)
-  if ts_password and is_alias_string(ts_password):
-    ts_password = read_passwd_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS, masterKey)
-  return db_password, ts_password
-
-
-def printManualDecryptionWarning(db_password, db_sql_auth, ts_password):
-  print "To disable encryption, do the following:"
-  print "- Edit " + os.path.join(get_conf_dir(), AMBARI_PROPERTIES_FILE) + \
-        " and set " + SECURITY_IS_ENCRYPTION_ENABLED + " = " + "false." + \
-        " and set " + SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED + " = " + "false." + \
-        " and set all passwords and sensitive data in service configs to right value."
-  err = "{0} is already encrypted. Please call {1} to store unencrypted" \
-        " password and call 'encrypt-passwords' again."
-  if db_sql_auth and db_password and is_alias_string(db_password):
-    print err.format('- Database password', "'" + SETUP_ACTION + "'")
-  if ts_password and is_alias_string(ts_password):
-    print err.format('TrustStore password', "'" + LDAP_SETUP_ACTION + "'")
-
 
 def setup_ambari_krb5_jaas(options):
   jaas_conf_file = search_file(SECURITY_KERBEROS_JASS_FILENAME, get_conf_dir())
   if os.path.exists(jaas_conf_file):
-    print 'Setting up Ambari kerberos JAAS configuration to access ' + \
-          'secured Hadoop daemons...'
+    print('Setting up Ambari kerberos JAAS configuration to access ' + \
+          'secured Hadoop daemons...')
     principal = get_validated_string_input('Enter ambari server\'s kerberos '
                                  'principal name (ambari@EXAMPLE.COM): ', 'ambari@EXAMPLE.COM', '.*', '', False,
                                  False, answer = options.jaas_principal)
@@ -685,7 +638,7 @@ def setup_ambari_krb5_jaas(options):
     for line in fileinput.FileInput(jaas_conf_file, inplace=1):
       line = re.sub('keyTab=.*$', 'keyTab="' + keytab + '"', line)
       line = re.sub('principal=.*$', 'principal="' + principal + '"', line)
-      print line,
+      print(line, end=' ')
 
     write_property(CHECK_AMBARI_KRB_JAAS_CONFIGURATION_PROPERTY, "true")
   else:
@@ -710,12 +663,12 @@ class LdapPropTemplate:
     default_value = self.get_default_value(ldap_type)
     return format_prop_val_prompt(self.prompt_pattern, default_value)
 
-  def get_input(self, ldap_type, interactive_mode):
+  def get_input(self, ldap_type):
     default_value = self.get_default_value(ldap_type)
     return get_validated_string_input(self.get_prompt_text(ldap_type),
                                       default_value, self.prompt_regex,
                                        "Invalid characters in the input!", False, self.allow_empty_prompt,
-                                       answer = self.option) if interactive_mode else self.option
+                                       answer = self.option)
 
   def should_query_ldap_type(self):
     return not self.allow_empty_prompt and not self.option and self.default_value and self.default_value.depends_on_ldap_type()
@@ -772,7 +725,6 @@ def init_ldap_properties_list_reqd(properties, options):
     LdapPropTemplate(properties, options.ldap_ssl, "ambari.ldap.connectivity.use_ssl", "Use SSL [true/false]{0}: ", REGEX_TRUE_FALSE, False, LdapDefaultMap({LDAP_AD:'false', LDAP_IPA:'true', LDAP_GENERIC:'false'})),
     LdapPropTemplate(properties, options.ldap_user_class, "ambari.ldap.attributes.user.object_class", "User object class{0}: ", REGEX_ANYTHING, False, LdapDefaultMap({LDAP_AD:'user', LDAP_IPA:'posixAccount', LDAP_GENERIC:'posixUser'})),
     LdapPropTemplate(properties, options.ldap_user_attr, "ambari.ldap.attributes.user.name_attr", "User ID attribute{0}: ", REGEX_ANYTHING, False, LdapDefaultMap({LDAP_AD:'sAMAccountName', LDAP_IPA:'uid', LDAP_GENERIC:'uid'})),
-    LdapPropTemplate(properties, options.ldap_user_group_member_attr, "ambari.ldap.attributes.user.group_member_attr", "User group member attribute{0}: ", REGEX_ANYTHING, False, LdapDefaultMap({LDAP_AD:'memberof', LDAP_IPA:'member', LDAP_GENERIC:'memberof'})),
     LdapPropTemplate(properties, options.ldap_group_class, "ambari.ldap.attributes.group.object_class", "Group object class{0}: ", REGEX_ANYTHING, False, LdapDefaultMap({LDAP_AD:'group', LDAP_IPA:'posixGroup', LDAP_GENERIC:'posixGroup'})),
     LdapPropTemplate(properties, options.ldap_group_attr, "ambari.ldap.attributes.group.name_attr", "Group name attribute{0}: ", REGEX_ANYTHING, False, LdapDefault("cn")),
     LdapPropTemplate(properties, options.ldap_member_attr, "ambari.ldap.attributes.group.member_attr", "Group member attribute{0}: ", REGEX_ANYTHING, False, LdapDefaultMap({LDAP_AD:'member', LDAP_IPA:'member', LDAP_GENERIC:'memberUid'})),
@@ -811,14 +763,6 @@ def query_ldap_type(ldap_type_option):
                                     False,
                                     False,
                                     answer = ldap_type_option)
-
-def is_interactive(property_list):
-  for prop in property_list:
-    if not prop.option and not prop.allow_empty_prompt:
-      return True
-
-  return False
-
 
 def setup_ldap(options):
   logger.info("Setup LDAP.")
@@ -870,9 +814,7 @@ def setup_ldap(options):
                             LDAP_DISABLE_ENDPOINT_IDENTIFICATION,
                             SSL_TRUSTSTORE_TYPE_PROPERTY,
                             SSL_TRUSTSTORE_PATH_PROPERTY,
-                            SSL_TRUSTSTORE_PASSWORD_PROPERTY,
-                            LDAP_MANAGE_SERVICES,
-                            LDAP_ENABLED_SERVICES]
+                            SSL_TRUSTSTORE_PASSWORD_PROPERTY]
 
   ldap_property_list_passwords=[LDAP_MGR_PASSWORD_PROPERTY, SSL_TRUSTSTORE_PASSWORD_PROPERTY]
 
@@ -883,9 +825,8 @@ def setup_ldap(options):
 
   ldap_property_value_map = {}
   ldap_property_values_in_ambari_properties = {}
-  interactive_mode = is_interactive(ldap_property_list_reqd)
   for ldap_prop in ldap_property_list_reqd:
-    input = ldap_prop.get_input(ldap_type, interactive_mode)
+    input = ldap_prop.get_input(ldap_type)
 
     if input is not None and input != "":
       ldap_property_value_map[ldap_prop.prop_name] = input
@@ -895,9 +836,9 @@ def setup_ldap(options):
       mgr_password = None
       # Ask for manager credentials only if bindAnonymously is false
       if not anonymous:
-        username = ldap_bind_dn_template.get_input(ldap_type, interactive_mode)
+        username = ldap_bind_dn_template.get_input(ldap_type)
         ldap_property_value_map[LDAP_MGR_USERNAME_PROPERTY] = username
-        mgr_password = configure_ldap_password(options.ldap_manager_password, interactive_mode)
+        mgr_password = configure_ldap_password(options)
         ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = mgr_password
     elif ldap_prop.prop_name == LDAP_USE_SSL:
       ldaps = (input and input.lower() == 'true')
@@ -906,10 +847,8 @@ def setup_ldap(options):
       if ldaps:
         disable_endpoint_identification = get_validated_string_input("Disable endpoint identification during SSL handshake [true/false] ({0}): ".format(disable_endpoint_identification_default),
                                                                      disable_endpoint_identification_default,
-                                                                     REGEX_TRUE_FALSE, "Invalid characters in the input!", False, allowEmpty=True,
-                                                                     answer=options.ldap_sync_disable_endpoint_identification) if interactive_mode else options.ldap_sync_disable_endpoint_identification
-        if disable_endpoint_identification is not None:
-          ldap_property_value_map[LDAP_DISABLE_ENDPOINT_IDENTIFICATION] = disable_endpoint_identification
+                                                                     REGEX_TRUE_FALSE, "Invalid characters in the input!", False, allowEmpty=True, answer=options.ldap_sync_disable_endpoint_identification)
+        ldap_property_value_map[LDAP_DISABLE_ENDPOINT_IDENTIFICATION] = disable_endpoint_identification
 
         truststore_default = "n"
         truststore_set = bool(ssl_truststore_path_default)
@@ -919,32 +858,32 @@ def setup_ldap(options):
         if not custom_trust_store:
           custom_trust_store = get_YN_input("Do you want to provide custom TrustStore for Ambari [y/n] ({0})?".
                                           format(truststore_default),
-                                          truststore_set) if interactive_mode else None
+                                          truststore_set)
         if custom_trust_store:
           ts_type = get_validated_string_input("TrustStore type [jks/jceks/pkcs12] {0}:".format(get_prompt_default(ssl_truststore_type_default)),
-            ssl_truststore_type_default, "^(jks|jceks|pkcs12)?$", "Wrong type", False, answer=options.trust_store_type) if interactive_mode else options.trust_store_type
+            ssl_truststore_type_default, "^(jks|jceks|pkcs12)?$", "Wrong type", False, answer=options.trust_store_type)
           ts_path = None
           while True:
             ts_path = get_validated_string_input(format_prop_val_prompt("Path to TrustStore file{0}: ", ssl_truststore_path_default),
-                                                 ssl_truststore_path_default, ".*", False, False, answer = options.trust_store_path) if interactive_mode else options.trust_store_path
+                                                 ssl_truststore_path_default, ".*", False, False, answer = options.trust_store_path)
             if os.path.exists(ts_path):
               break
             else:
-              print 'File not found.'
+              print('File not found.')
               hasAnswer = options.trust_store_path is not None and options.trust_store_path
               quit_if_has_answer(hasAnswer)
 
-          ts_password = read_password("", ".*", "Password for TrustStore:", "Invalid characters in password", options.trust_store_password) if interactive_mode else options.trust_store_password
+          ts_password = read_password("", ".*", "Password for TrustStore:", "Invalid characters in password", options.trust_store_password)
 
           ldap_property_values_in_ambari_properties[SSL_TRUSTSTORE_TYPE_PROPERTY] = ts_type
           ldap_property_values_in_ambari_properties[SSL_TRUSTSTORE_PATH_PROPERTY] = ts_path
           ldap_property_values_in_ambari_properties[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = ts_password
           pass
         elif properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY):
-          print 'The TrustStore is already configured: '
-          print '  ' + SSL_TRUSTSTORE_TYPE_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY)
-          print '  ' + SSL_TRUSTSTORE_PATH_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_PATH_PROPERTY)
-          print '  ' + SSL_TRUSTSTORE_PASSWORD_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
+          print('The TrustStore is already configured: ')
+          print('  ' + SSL_TRUSTSTORE_TYPE_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY))
+          print('  ' + SSL_TRUSTSTORE_PATH_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_PATH_PROPERTY))
+          print('  ' + SSL_TRUSTSTORE_PASSWORD_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY))
           if get_YN_input("Do you want to remove these properties [y/n] (y)? ", True, options.trust_store_reconfigure):
             properties.removeOldProp(SSL_TRUSTSTORE_TYPE_PROPERTY)
             properties.removeOldProp(SSL_TRUSTSTORE_PATH_PROPERTY)
@@ -952,41 +891,46 @@ def setup_ldap(options):
         pass
       pass
 
-  populate_ambari_requires_ldap(options, ldap_property_value_map)
-  populate_service_management(options, ldap_property_value_map, properties, admin_login, admin_password)
-
-  print '=' * 20
-  print 'Review Settings'
-  print '=' * 20
+  print('=' * 20)
+  print('Review Settings')
+  print('=' * 20)
   for property in ldap_property_list_reqd:
-    if ldap_property_value_map.has_key(property.prop_name):
-      print("%s %s" % (property.get_prompt_text(ldap_type), ldap_property_value_map[property.prop_name]))
+    if property.prop_name in ldap_property_value_map:
+      print(("%s %s" % (property.get_prompt_text(ldap_type), ldap_property_value_map[property.prop_name])))
 
   for property in ldap_property_list_opt:
-    if ldap_property_value_map.has_key(property):
+    if property in ldap_property_value_map:
       if property not in ldap_property_list_passwords:
-        print("%s: %s" % (property, ldap_property_value_map[property]))
+        print(("%s: %s" % (property, ldap_property_value_map[property])))
       else:
-        print("%s: %s" % (property, BLIND_PASSWORD))
+        print(("%s: %s" % (property, BLIND_PASSWORD)))
 
   for property in ldap_property_list_opt:
-    if ldap_property_values_in_ambari_properties.has_key(property):
+    if property in ldap_property_values_in_ambari_properties:
       if property not in ldap_property_list_passwords:
-        print("%s: %s" % (property, ldap_property_values_in_ambari_properties[property]))
+        print(("%s: %s" % (property, ldap_property_values_in_ambari_properties[property])))
       else:
-        print("%s: %s" % (property, BLIND_PASSWORD))
+        print(("%s: %s" % (property, BLIND_PASSWORD)))
 
   save_settings = True if options.ldap_save_settings is not None else get_YN_input("Save settings [y/n] (y)? ", True)
 
   if save_settings:
     if isSecure:
+      if mgr_password:
+        encrypted_passwd = encrypt_password(LDAP_MGR_PASSWORD_ALIAS, mgr_password, options)
+        ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = store_password_file(encrypted_passwd, LDAP_MGR_PASSWORD_FILENAME)
+
       if ts_password:
         encrypted_passwd = encrypt_password(SSL_TRUSTSTORE_PASSWORD_ALIAS, ts_password, options)
         if ts_password != encrypted_passwd:
           ldap_property_values_in_ambari_properties[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = encrypted_passwd
+    else: #not secure
+      if mgr_password:
+        ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = store_password_file(mgr_password, LDAP_MGR_PASSWORD_FILENAME)
 
-    print 'Saving LDAP properties...'
+    print('Saving LDAP properties...')
 
+    ldap_property_value_map[IS_LDAP_CONFIGURED] = "true"
     #Saving LDAP configuration in Ambari DB using the REST API
     update_ldap_configuration(admin_login, admin_password, properties, ldap_property_value_map)
 
@@ -994,7 +938,7 @@ def setup_ldap(options):
     ldap_property_values_in_ambari_properties[CLIENT_SECURITY] = 'ldap'
     update_properties_2(properties, ldap_property_values_in_ambari_properties)
 
-    print 'Saving LDAP properties finished'
+    print('Saving LDAP properties finished')
 
   return 0
 
@@ -1119,7 +1063,7 @@ def setup_pam(options):
                       "Please create it before restarting Ambari.".format(pam_config_file))
 
   update_properties_2(properties, pam_property_value_map)
-  print 'Saving...done'
+  print('Saving...done')
   return 0
 
 #
@@ -1153,7 +1097,7 @@ def migrate_ldap_pam(args):
 
   ensure_jdbc_driver_is_installed(args, properties)
 
-  print 'Migrating LDAP Users & Groups to PAM'
+  print('Migrating LDAP Users & Groups to PAM')
 
   serverClassPath = ServerClassPath(properties, args)
   class_path = serverClassPath.get_full_ambari_classpath_escaped_for_shell()
@@ -1167,73 +1111,15 @@ def migrate_ldap_pam(args):
   (retcode, stdout, stderr) = run_os_command(command, env=environ)
   print_info_msg("Return code from LDAP to PAM migration command, retcode = " + str(retcode))
   if stdout:
-    print "Console output from LDAP to PAM migration command:"
-    print stdout
-    print
+    print("Console output from LDAP to PAM migration command:")
+    print(stdout)
+    print()
   if stderr:
-    print "Error output from LDAP to PAM migration command:"
-    print stderr
-    print
+    print("Error output from LDAP to PAM migration command:")
+    print(stderr)
+    print()
   if retcode > 0:
     print_error_msg("Error executing LDAP to PAM migration, please check the server logs.")
   else:
     print_info_msg('LDAP to PAM migration completed')
   return retcode
-
-
-def populate_ambari_requires_ldap(options, properties):
-  if options.ldap_enabled_ambari is None:
-    enabled = get_boolean_from_dictionary(properties, AMBARI_LDAP_AUTH_ENABLED, False)
-    enabled = get_YN_input("Use LDAP authentication for Ambari [y/n] ({0})? ".format('y' if enabled else 'n'), enabled)
-  else:
-    enabled = 'true' == options.ldap_enabled_ambari
-
-  properties[AMBARI_LDAP_AUTH_ENABLED] = 'true' if enabled else 'false'
-
-
-def populate_service_management(options, properties, ambari_properties, admin_login, admin_password):
-  services = ""
-  if options.ldap_enabled_services is None:
-    if options.ldap_manage_services is None:
-      manage_services = get_boolean_from_dictionary(properties, LDAP_MANAGE_SERVICES, False)
-      manage_services = get_YN_input("Manage LDAP configurations for eligible services [y/n] ({0})? ".format('y' if manage_services else 'n'), manage_services)
-    else:
-      manage_services = 'true' == options.ldap_manage_services
-      stored_manage_services = get_boolean_from_dictionary(properties, LDAP_MANAGE_SERVICES, False)
-      print("Manage LDAP configurations for eligible services [y/n] ({0})? {1}".format('y' if stored_manage_services else 'n', 'y' if manage_services else 'n'))
-
-    if manage_services:
-      enabled_services = get_value_from_dictionary(properties, LDAP_ENABLED_SERVICES, "").upper().split(',')
-
-      all = WILDCARD_FOR_ALL_SERVICES in enabled_services
-      configure_for_all_services = get_YN_input(" Manage LDAP for all services [y/n] ({0})? ".format('y' if all else 'n'), all)
-      if configure_for_all_services:
-        services = WILDCARD_FOR_ALL_SERVICES
-      else:
-        cluster_name = get_cluster_name(ambari_properties, admin_login, admin_password)
-
-        if cluster_name:
-          eligible_services = get_eligible_services(ambari_properties, admin_login, admin_password, cluster_name, FETCH_SERVICES_FOR_LDAP_ENTRYPOINT, 'LDAP')
-
-          if eligible_services and len(eligible_services) > 0:
-            service_list = []
-
-            for service in eligible_services:
-              enabled = service.upper() in enabled_services
-              question = "   Manage LDAP for {0} [y/n] ({1})? ".format(service, 'y' if enabled else 'n')
-              if get_YN_input(question, enabled):
-                service_list.append(service)
-
-            services = ','.join(service_list)
-          else:
-            print ("   There are no eligible services installed.")
-  else:
-    if options.ldap_manage_services:
-      manage_services = 'true' == options.ldap_manage_services
-    else:
-      manage_services = True
-
-    services = options.ldap_enabled_services.upper() if options.ldap_enabled_services else ""
-
-  properties[LDAP_MANAGE_SERVICES] = 'true' if manage_services else 'false'
-  properties[LDAP_ENABLED_SERVICES] = services

@@ -905,7 +905,6 @@ a:focus {
       display: inline-block;
       &.endpoint-value {
         padding-left: 30px;
-        word-break: break-word;
       }
       .clip-board{
         margin-left: 5px;
@@ -2082,9 +2081,6 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
   .prompt-input {
     width: 80px;
   }
-  .large-prompt-input {
-    width: 70%;
-  }
 }
 
 #views {
@@ -2478,16 +2474,6 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
       }
       .open-in-new-window {
         margin-top: 10px;
-      }
-      .description {
-        color: #999999;
-      }
-      .checks-list {
-        padding-left: 25px;
-        margin-top: 20px;
-        li {
-          margin-top: 15px;
-        }
       }
     }
   }
@@ -3028,74 +3014,4 @@ a.abort-icon:hover {
 .widgets-group-title {
   display: inline-block;
   text-transform: uppercase;
-}
-
-.service-rolling-restart {
-
-  .radio + .radio, .checkbox + .checkbox {
-    margin-top: 0;
-  }
-
-  .restart-header-info {
-    margin-bottom: 30px; margin-left: 10px;
-  }
-  .restart-options {
-    margin-left: 25px;
-    margin-bottom: 15px;
-    display: flex;
-  }
-  .option-rolling-block, .option-express-block {
-    label {
-      font-size: 16px;
-      left: -20px;
-    }
-    .fa {
-      font-size: 35px;
-      color: #999;
-      padding-bottom: 5px;
-    }
-  }
-  .fa-caret-right {
-    color: #1491C1;
-  }
-  .restart-advanced-configs {
-    font-size: 14px;
-    float: left;
-    clear: both;
-    margin-left: 40px;
-    margin-bottom: 10px;
-    a {
-      color: inherit;
-      text-decoration: none;
-      cursor: default;
-    }
-  }
-  .rolling-restart-advanced {
-    display: inline-block;
-    margin-top: 10px;
-    margin-left: 60px;
-    .rolling-restart-by {
-      display: flex;
-      margin-bottom: 20px;
-      input[type="radio"] {
-        padding-left: 15px;
-      }
-      .checkbox.radio {
-        display: inline-block;
-      }
-      .radio.big-radio {
-        padding-right: 20px;
-      }
-    }
-    .input-option {
-      padding-bottom: 10px;
-      margin: 0;
-    }
-    .num-retries {
-      padding-left: 10px;
-    }
-    .separator {
-      width: 40em;
-    }
-  }
 }

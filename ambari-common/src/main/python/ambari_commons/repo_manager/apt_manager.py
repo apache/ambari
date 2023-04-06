@@ -49,7 +49,7 @@ class AptManagerProperties(GenericManagerProperties):
   repo_update_cmd = [repo_manager_bin, 'update', '-qq']
 
   available_packages_cmd = [repo_cache_bin, "dump"]
-  installed_packages_cmd = ['COLUMNS=999', pkg_manager_bin, "-l"]
+  installed_packages_cmd = [pkg_manager_bin, "-l"]
 
   repo_definition_location = "/etc/apt/sources.list.d"
 
@@ -66,6 +66,8 @@ class AptManagerProperties(GenericManagerProperties):
   verify_dependency_cmd = [repo_manager_bin, '-qq', 'check']
 
   install_cmd_env = {'DEBIAN_FRONTEND': 'noninteractive'}
+
+  check_cmd = pkg_manager_bin + " --get-selections | grep -v deinstall | awk '{print $1}' | grep ^%s$"
 
   repo_url_exclude = "ubuntu.com"
   configuration_dump_cmd = [AMBARI_SUDO_BINARY, "apt-config", "dump"]
@@ -153,7 +155,7 @@ class AptManager(GenericManager):
 
   def transform_baseurl_to_repoid(self, base_url):
     """
-    Transforms the URL looking like proto://login:password@localhost/some/long/path to localhost_some_long_path
+    Transforms the URL looking like proto://localhost/some/long/path to localhost_some_long_path
 
     :type base_url str
     :rtype str
@@ -162,9 +164,6 @@ class AptManager(GenericManager):
     url_proto_pos = base_url.find(url_proto_mask)
     if url_proto_pos > 0:
       base_url = base_url[url_proto_pos+len(url_proto_mask):]
-
-    if "@" in base_url:
-      base_url = base_url.split("@", 1)[1]
 
     return base_url.replace("/", "_").replace(" ", "_")
 
@@ -252,13 +251,13 @@ class AptManager(GenericManager):
 
     if not name:
       raise ValueError("Installation command was executed with no package name")
-    elif not self._check_existence(name) or context.action_force:
+    elif context.is_upgrade or context.use_repos or not self._check_existence(name):
       cmd = self.properties.install_cmd[context.log_output]
       copied_sources_files = []
       is_tmp_dir_created = False
       if context.use_repos:
         if 'base' in context.use_repos:
-          use_repos = set([v for k, v in context.use_repos.items() if k != 'base'])
+          use_repos = set([v for k, v in list(context.use_repos.items()) if k != 'base'])
         else:
           cmd = cmd + ['-o', 'Dir::Etc::SourceList={0}'.format(self.properties.empty_file)]
           use_repos = set(context.use_repos.values())
@@ -266,7 +265,7 @@ class AptManager(GenericManager):
         if use_repos:
           is_tmp_dir_created = True
           apt_sources_list_tmp_dir = tempfile.mkdtemp(suffix="-ambari-apt-sources-d")
-          Logger.info("Temporary sources directory was created: {}".format(apt_sources_list_tmp_dir))
+          Logger.info("Temporary sources directory was created: %s" % apt_sources_list_tmp_dir)
 
           for repo in use_repos:
             new_sources_file = os.path.join(apt_sources_list_tmp_dir, repo + '.list')
@@ -342,12 +341,6 @@ class AptManager(GenericManager):
     apt-get in inconsistant state (locked, used, having invalid repo). Once packages are installed
     we should not rely on that.
     """
-    # this method is more optimised than #installed_packages, as here we do not call available packages(as we do not
-    # interested in repository, from where package come)
-    cmd = self.properties.installed_packages_cmd + [name]
 
-    with shell.process_executor(cmd, strategy=shell.ReaderStrategy.BufferedChunks, silent=True) as output:
-      for package, version in AptParser.packages_installed_reader(output):
-        return package == name
-
-    return False
+    r = shell.subprocess_executor(self.properties.check_cmd % name)
+    return not bool(r.code)

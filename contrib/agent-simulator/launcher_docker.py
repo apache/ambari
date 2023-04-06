@@ -29,11 +29,11 @@ from cluster import Cluster
 
 if __name__ == "__main__":
     if len(sys.argv) < 5:
-        print "configure the VM to set Docker, Weave network, run Ambari-agent inside the Docker"
-        print "Args: <the external IP of this VM>"
-        print "     <the Weave IP of the Ambari-server>"
-        print "     <the external IP of the Ambari-server>"
-        print "     <the name of the cluster>"
+        print("configure the VM to set Docker, Weave network, run Ambari-agent inside the Docker")
+        print("Args: <the external IP of this VM>")
+        print("     <the Weave IP of the Ambari-server>")
+        print("     <the external IP of the Ambari-server>")
+        print("     <the name of the cluster>")
         exit(1)
 
     Config.load()

@@ -46,7 +46,6 @@ public abstract class TopologyHostTask implements TopologyTask {
   /**
    * Run with an InternalAuthenticationToken as when running these tasks we might not have any active security context.
    */
-  @Override
   public void run() {
     Authentication savedAuthContext = SecurityContextHolder.getContext().getAuthentication();
     try {

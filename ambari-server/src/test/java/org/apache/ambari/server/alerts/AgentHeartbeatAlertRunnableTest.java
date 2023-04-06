@@ -247,10 +247,13 @@ public class AgentHeartbeatAlertRunnableTest {
    *
    */
   private class MockModule implements Module {
+    /**
+     *
+     */
     @Override
     public void configure(Binder binder) {
-      PartialNiceMockBinder.newBuilder().addConfigsBindings()
-          .addAlertDefinitionBinding().addLdapBindings().build().configure(binder);
+      PartialNiceMockBinder.newBuilder().addConfigsBindings().addLdapBindings()
+          .addAlertDefinitionBinding().build().configure(binder);
     }
   }
 }

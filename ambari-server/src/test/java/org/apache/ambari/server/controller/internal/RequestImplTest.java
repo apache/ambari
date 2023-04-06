@@ -197,8 +197,6 @@ public class RequestImplTest {
 
     request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.User));
     validPropertyIds = request.getPropertyIds();
-    Assert.assertFalse(validPropertyIds.contains("Users/unsupported_property_id"));
-    Assert.assertTrue(validPropertyIds.contains("Users/user_name"));
 
     request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.Stack));
     validPropertyIds = request.getPropertyIds();

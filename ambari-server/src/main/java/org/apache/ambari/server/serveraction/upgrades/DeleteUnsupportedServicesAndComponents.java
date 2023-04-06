@@ -38,10 +38,10 @@ import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMet
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentSupport;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.apache.commons.lang.StringUtils;
 

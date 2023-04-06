@@ -1,0 +1,116 @@
+{
+  "name": "default",
+  "description": "Default theme for Oozie service",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "oozie-database",
+            "display-name": "Database",
+            "layout": {
+              "tab-rows": 1,
+              "tab-columns": 1,
+              "sections": [
+                {
+                  "name": "oozie-database-configurations",
+                  "display-name": "Database Configurations",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "0",
+                  "column-span": "0",
+                  "section-columns": "2",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "oozie-database-configurations-col-1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "oozie-database-configurations-col-2",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "oozie-env/oozie_database",
+          "subsection-name": "oozie-database-configurations-col-1"
+        },
+        {
+          "config": "oozie-site/oozie.db.schema.name",
+          "subsection-name": "oozie-database-configurations-col-1"
+        },
+        {
+          "config": "oozie-site/oozie.service.JPAService.jdbc.username",
+          "subsection-name": "oozie-database-configurations-col-1"
+        },
+        {
+          "config": "oozie-site/oozie.service.JPAService.jdbc.url",
+          "subsection-name": "oozie-database-configurations-col-1"
+        },
+        {
+          "config": "oozie-site/oozie.service.JPAService.jdbc.driver",
+          "subsection-name": "oozie-database-configurations-col-2"
+        },
+        {
+          "config": "oozie-site/oozie.service.JPAService.jdbc.password",
+          "subsection-name": "oozie-database-configurations-col-2"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "oozie-env/oozie_database",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "oozie-site/oozie.service.JPAService.jdbc.username",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "oozie-site/oozie.service.JPAService.jdbc.password",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "oozie-site/oozie.service.JPAService.jdbc.driver",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "oozie-site/oozie.service.JPAService.jdbc.url",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "oozie-site/oozie.db.schema.name",
+        "widget": {
+          "type": "text-field"
+        }
+      }
+    ]
+  }
+}

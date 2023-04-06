@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>${revision}</version>
+    <version>2.7.5.0.0</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -27,6 +27,7 @@
   <artifactId>ambari-admin</artifactId>
   <packaging>jar</packaging>
   <name>Ambari Admin View</name>
+  <version>2.7.5.0.0</version>
   <description>Admin control panel</description>
   <build>
     <plugins>
@@ -135,7 +136,8 @@
               <commandlineArgs>${args.shell} ${basedir}${dirsep}set-ambari-version.${fileextension.shell} ${ambariVersion}</commandlineArgs>
             </configuration>
           </execution>
-          <!-- <execution>
+          <!--  @TODO: uncomment below execution for triggering ambar-admin UI unit tests from maven test phase.(AMBARI-7600)
+          <execution>
             <id>unit test</id>
             <phase>test</phase>
             <goals>
@@ -149,7 +151,8 @@
                 <argument>test-single-run</argument>
               </arguments>
             </configuration>
-          </execution> -->
+          </execution>
+          -->
         </executions>
       </plugin>
       <plugin>

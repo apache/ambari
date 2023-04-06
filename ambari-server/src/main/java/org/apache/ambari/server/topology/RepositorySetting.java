@@ -105,7 +105,6 @@ public class RepositorySetting {
     this.baseUrl = baseUrl;
   }
 
-  @Override
   public String toString(){
     StringBuilder strBldr = new StringBuilder();
     strBldr.append(OVERRIDE_STRATEGY);strBldr.append(": ");strBldr.append(overrideStrategy);

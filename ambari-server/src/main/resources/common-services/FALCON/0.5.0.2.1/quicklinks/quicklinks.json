@@ -1,0 +1,36 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol":
+    {
+      "type":"https",
+      "checks":[
+        {
+          "property":"falcon.enableTLS",
+          "desired":"true",
+          "site":"falcon-startup-properties"
+        }
+      ]
+    },
+
+    "links": [
+      {
+        "name": "falcon_web_ui",
+        "label": "Falcon Web UI",
+        "requires_user_name": "true",
+        "component_name": "FALCON_SERVER",
+        "url": "%@://%@:%@/",
+        "attributes": ["authenticated"],
+        "port":{
+          "http_property": "falcon_port",
+          "http_default_port": "15000",
+          "https_property": "falcon_port",
+          "https_default_port": "15443",
+          "regex": "^(\\d+)$",
+          "site": "falcon-env"
+        }
+      }
+    ]
+  }
+}

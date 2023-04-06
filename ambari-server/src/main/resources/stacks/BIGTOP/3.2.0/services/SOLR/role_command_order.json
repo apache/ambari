@@ -1,8 +1,0 @@
-{
-    "general_deps" : {
-      "_comment" : "dependencies for SOLR",
-      "SOLR-START" : ["ZOOKEEPER_SERVER-START"],
-      "SOLR_SERVICE_CHECK-SERVICE_CHECK": ["SOLR-START"]
-    }
-  }
-  

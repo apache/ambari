@@ -1,0 +1,77 @@
+{
+  "LOGSEARCH": {
+    "service": [
+      {
+        "name": "logfeeder_process_percent",
+        "label": "Percent LogFeeders Available",
+        "description": "This service-level alert is triggered if the configured percentage of LogFeeders processes cannot be determined to be up and listening on the network for the configured warning and critical thresholds. It aggregates the results of LogFeeders process down checks.",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "logfeeder_process",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 10
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 30
+            },
+            "units" : "%",
+            "type": "PERCENT"
+          }
+        }
+      }
+    ],
+    "LOGSEARCH_SERVER": [
+      {
+        "name": "logsearch_ui",
+        "label": "Log Search Web UI",
+        "description": "This host-level alert is triggered if the Log Search UI is unreachable.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{logsearch-properties/logsearch.protocol}}://0.0.0.0:{{logsearch-properties/logsearch.http.port}}/api/v1/info",
+            "https": "{{logsearch-properties/logsearch.protocol}}://0.0.0.0:{{logsearch-properties/logsearch.https.port}}/api/v1/info",
+            "https_property": "{{logsearch-properties/logsearch.protocol}}",
+            "https_property_value": "https",
+            "default_port": 61888,
+            "connection_timeout": 5.0
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {2:.3f}s"
+            },
+            "warning": {
+              "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
+            },
+            "critical": {
+              "text": "Connection failed to {1} ({3})"
+            }
+          }
+        }
+      }
+    ],
+    "LOGSEARCH_LOGFEEDER": [
+      {
+        "name": "logfeeder_process",
+        "label": "LogFeeder Status",
+        "description": "This alert indicates the status of the LogFeeder process as determined by the logfeeder status script.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "SCRIPT",
+          "path": "LOGSEARCH/0.5.0/package/alerts/alert_logfeeder.py"
+        }
+      }
+    ]
+  }
+}

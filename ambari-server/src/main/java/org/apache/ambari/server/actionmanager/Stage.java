@@ -357,7 +357,6 @@ public class Stage {
     ExecutionCommand cmd = new ExecutionCommand();
     ExecutionCommandWrapper wrapper = ecwFactory.createFromCommand(cmd);
     hrc.setExecutionCommandWrapper(wrapper);
-    cmd.setClusterId(Long.toString(clusterId));
     cmd.setHostname(hostName);
     cmd.setClusterName(clusterName);
     cmd.setRequestAndStage(requestId, stageId);
@@ -491,7 +490,16 @@ public class Stage {
     }
     cmd.setCommandParams(cmdParams);
 
-    cmd.setConfigurations(new TreeMap<>());
+    Map<String, Map<String, String>> configurations = new TreeMap<>();
+    cmd.setConfigurations(configurations);
+
+    Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<>();
+    cmd.setConfigurationAttributes(configurationAttributes);
+
+    if (configTags == null) {
+      configTags = new TreeMap<>();
+    }
+    cmd.setConfigurationTags(configTags);
 
     Map<String, String> roleParams = new HashMap<>();
     roleParams.put(ServerAction.ACTION_NAME, actionName);

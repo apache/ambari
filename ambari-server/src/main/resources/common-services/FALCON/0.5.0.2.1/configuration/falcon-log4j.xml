@@ -1,0 +1,208 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="false">
+  <!-- log4j.xml -->
+  <property>
+    <name>falcon_log_maxfilesize</name>
+    <value>256</value>
+    <description>The maximum size of backup file before the log is rotated</description>
+    <display-name>Falcon Log: backup file size</display-name>
+    <value-attributes>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+   </property>
+    <property>
+    <name>falcon_log_maxbackupindex</name>
+    <value>20</value>
+    <description>The number of backup files</description>
+    <display-name>Falcon Log: # of backup files</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>falcon_security_log_maxfilesize</name>
+    <value>256</value>
+    <description>The maximum size of backup file before the log is rotated</description>
+    <display-name>Falcon Security Log: backup file size</display-name>
+    <value-attributes>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+   </property>
+  <property>
+    <name>falcon_security_log_maxbackupindex</name>
+    <value>20</value>
+    <description>The number of backup files</description>
+    <display-name>Falcon Security Log: # of backup files</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>content</name>
+    <display-name>falcon-log4j template</display-name>
+    <description>Falcon server.xml</description>
+    <value><![CDATA[
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  -->
+
+<!--
+    This is used for falcon packaging only.
+  -->
+
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+    <appender name="FILE" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="File" value="${falcon.log.dir}/${falcon.app.type}.application.log"/>
+        <param name="Append" value="true"/>
+        <param name="Threshold" value="debug"/>
+        <param name="MaxFileSize" value="{{falcon_log_maxfilesize}}MB" />
+        <param name="MaxBackupIndex" value="{{falcon_log_maxbackupindex}}" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %-5p - [%t:%x] ~ %m (%c{1}:%L)%n"/>
+        </layout>
+    </appender>
+
+    <appender name="AUDIT" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="File" value="${falcon.log.dir}/${falcon.app.type}.audit.log"/>
+        <param name="Append" value="true"/>
+        <param name="Threshold" value="debug"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %x %m%n"/>
+        </layout>
+    </appender>
+
+    <appender name="METRIC" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="File" value="${falcon.log.dir}/${falcon.app.type}.metric.log"/>
+        <param name="Append" value="true"/>
+        <param name="Threshold" value="debug"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %m%n"/>
+        </layout>
+    </appender>
+
+    <appender name="FeedSLA" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="File" value="${falcon.log.dir}/${falcon.app.type}.feed.sla.log"/>
+        <param name="Append" value="true"/>
+        <param name="Threshold" value="debug"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %m%n"/>
+        </layout>
+    </appender>
+
+    <appender name="ALERT" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="File" value="${falcon.log.dir}/${falcon.app.type}.alerts.log"/>
+        <param name="Append" value="true"/>
+        <param name="Threshold" value="debug"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %m%n"/>
+        </layout>
+    </appender>
+
+    <appender name="SECURITY" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="File" value="${falcon.log.dir}/${falcon.app.type}.security.audit.log"/>
+        <param name="Append" value="true"/>
+        <param name="Threshold" value="debug"/>
+        <param name="MaxFileSize" value="{{falcon_security_log_maxfilesize}}MB"/>
+        <param name="MaxBackupIndex" value="{{falcon_security_log_maxbackupindex}}"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %x %m%n"/>
+        </layout>
+    </appender>
+
+    <logger name="org.apache.falcon" additivity="false">
+        <level value="debug"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <logger name="AUDIT">
+        <level value="info"/>
+        <appender-ref ref="AUDIT"/>
+    </logger>
+
+    <logger name="METRIC">
+        <level value="info"/>
+        <appender-ref ref="METRIC"/>
+    </logger>
+
+    <logger name="FeedSLA">
+        <level value="debug"/>
+        <appender-ref ref="FeedSLA"/>
+    </logger>
+
+    <logger name="org.apache.hadoop.security" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="SECURITY"/>
+    </logger>
+
+    <logger name="org.apache.hadoop" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <logger name="org.apache.oozie" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <logger name="org.apache.hadoop.hive" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <root>
+        <priority value="info"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</log4j:configuration>
+    ]]></value>
+    <value-attributes>
+      <type>content</type>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

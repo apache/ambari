@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.state.scheduler;
 
-import java.util.Collection;
-
 import org.apache.ambari.server.controller.RequestScheduleResponse;
 
 /**
@@ -163,10 +161,6 @@ public interface RequestExecution {
   String getRequestBody(Long batchId);
 
   /**
-   * Get the requests IDs for the batch
-   */
-  Collection<Long> getBatchRequestRequestsIDs(long batchId);
-  /**
    * Get batch request with specified order id
    */
   BatchRequest getBatchRequest(long batchId);
@@ -190,8 +184,6 @@ public interface RequestExecution {
   enum Status {
     SCHEDULED,
     COMPLETED,
-    DISABLED,
-    ABORTED,
-    PAUSED
+    DISABLED
   }
 }

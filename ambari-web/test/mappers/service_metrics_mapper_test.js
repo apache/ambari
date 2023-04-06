@@ -273,7 +273,7 @@ describe('App.serviceMetricsMapper', function () {
       sinon.stub(configurationController, 'getCurrentConfigsBySites', function () {
         return {done: function (callback) {
           return callback([
-            {type: 'hive-interactive-site', properties: {'hive.server2.webui.port': '1'}}
+            {type: 'hive-interactive-site', properties: {'hive.server2.webui.port': '1', 'hive.server2.leadertest.use.ip': true}},
           ]);
         }};
       });

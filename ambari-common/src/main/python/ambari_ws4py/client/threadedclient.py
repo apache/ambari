@@ -85,7 +85,7 @@ if __name__ == '__main__':
             print(("Closed down", code, reason))
 
         def received_message(self, m):
-            print("#%d" % len(m))
+            print(("#%d" % len(m)))
             if len(m) == 175:
                 self.close(reason='bye bye')
 

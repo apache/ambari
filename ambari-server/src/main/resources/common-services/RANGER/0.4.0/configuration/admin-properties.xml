@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false">
+  <property>
+    <name>DB_FLAVOR</name>
+    <value>MYSQL</value>
+    <display-name>DB FLAVOR</display-name>
+    <description>The database type to be used (mysql/oracle)</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>MYSQL</value>
+          <label>MYSQL</label>
+        </entry>
+        <entry>
+          <value>ORACLE</value>
+          <label>ORACLE</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>SQL_COMMAND_INVOKER</name>
+    <value>mysql</value>
+    <display-name>SQL Command Invoker</display-name>
+    <description>The executable path to be used to invoke command-line MYSQL</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>SQL_CONNECTOR_JAR</name>
+    <value>{{driver_curl_target}}</value>
+    <display-name>Location of Sql Connector Jar</display-name>
+    <description>Location of DB client library (please check the location of the jar file)</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>admin-properties</type>
+        <name>DB_FLAVOR</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true" update="true"/>
+  </property>
+  <property>
+    <name>db_root_user</name>
+    <value>root</value>
+    <display-name>Database Administrator (DBA) username</display-name>
+    <description>Database admin user. This user should have DBA permission to create the Ranger Database and Ranger Database User</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property require-input="true">
+    <name>db_root_password</name>
+    <value/>
+    <property-type>PASSWORD</property-type>
+    <display-name>Database Administrator (DBA) password</display-name>
+    <description>Database password for the database admin username</description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>db_host</name>
+    <value/>
+    <display-name>Ranger DB host</display-name>
+    <description>Database host</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>db_name</name>
+    <value>ranger</value>
+    <display-name>Ranger DB name</display-name>
+    <description>Database name</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>db_user</name>
+    <value>rangeradmin</value>
+    <display-name>Ranger DB username</display-name>
+    <description>Database username used for the Ranger schema</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property require-input="true">
+    <name>db_password</name>
+    <value/>
+    <property-type>PASSWORD</property-type>
+    <display-name>Ranger DB password</display-name>
+    <description>Database password for the Ranger schema</description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>audit_db_name</name>
+    <value>ranger_audit</value>
+    <description>Audit database name</description>
+    <display-name>Ranger Audit DB name</display-name>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>audit_db_user</name>
+    <value>rangerlogger</value>
+    <display-name>Ranger Audit DB username</display-name>
+    <description>Database user-id for storing auditlog information</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property require-input="true">
+    <name>audit_db_password</name>
+    <value/>
+    <property-type>PASSWORD</property-type>
+    <display-name>Ranger Audit DB password</display-name>
+    <description>Database password for storing auditlog information</description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>policymgr_external_url</name>
+    <value/>
+    <display-name>External URL</display-name>
+    <description>Policy Manager external url eg: http://RANGER_HOST:6080</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-site</type>
+        <name>http.enabled</name>
+      </property>
+      <property>
+        <type>ranger-site</type>
+        <name>http.service.port</name>
+      </property>
+      <property>
+        <type>ranger-site</type>
+        <name>https.service.port</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>policymgr_http_enabled</name>
+    <value>true</value>
+    <display-name>HTTP enabled</display-name>
+    <description>HTTP Enabled</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>authentication_method</name>
+    <value>UNIX</value>
+    <display-name>Authentication method</display-name>
+    <description/>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>usersync-properties</type>
+        <name>SYNC_SOURCE</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>remoteLoginEnabled</name>
+    <value>true</value>
+    <display-name>Allow remote Login</display-name>
+    <description/>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>authServiceHostName</name>
+    <value>localhost</value>
+    <description/>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>authServicePort</name>
+    <value>5151</value>
+    <description/>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>xa_ldap_url</name>
+    <value>"ldap://71.127.43.33:389"</value>
+    <description/>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>xa_ldap_userDNpattern</name>
+    <value>"uid={0},ou=users,dc=xasecure,dc=net"</value>
+    <description/>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>xa_ldap_groupSearchBase</name>
+    <value>"ou=groups,dc=xasecure,dc=net"</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>xa_ldap_groupSearchFilter</name>
+    <value>"(member=uid={0},ou=users,dc=xasecure,dc=net)"</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>xa_ldap_groupRoleAttribute</name>
+    <value>"cn"</value>
+    <description/>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>xa_ldap_ad_domain</name>
+    <display-name>Domain Name (AD specific)</display-name>
+    <value/>
+    <description>AD domain, only used if Authentication method is AD</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>xa_ldap_ad_url</name>
+    <value/>
+    <description/>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

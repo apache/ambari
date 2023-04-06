@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -32,11 +33,8 @@ import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.spi.ClusterInformation;
-import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
-import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -81,12 +79,10 @@ public class HealthCheckTest {
   public void testWarningWhenNoAlertsExist() throws AmbariException {
     when(alertsDAO.findCurrentByCluster(eq(CLUSTER_ID))).thenReturn(Collections.emptyList());
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null, null);
-
-    UpgradeCheckResult result = healthCheck.perform(request);
-    Assert.assertEquals(UpgradeCheckStatus.PASS, result.getStatus());
-    Assert.assertTrue(result.getFailedDetail().isEmpty());
+    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
+    healthCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(check.getFailedDetail().isEmpty());
   }
 
   @Test
@@ -114,12 +110,9 @@ public class HealthCheckTest {
 
     when(alertsDAO.findCurrentByCluster(eq(CLUSTER_ID))).thenReturn(asList(alertCurrentEntity));
 
-    ClusterInformation clusterInformation = new ClusterInformation(CLUSTER_NAME, false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING, null, null, null);
-
-    UpgradeCheckResult result = healthCheck.perform(request);
-
-    Assert.assertEquals(UpgradeCheckStatus.WARNING, result.getStatus());
-    Assert.assertFalse(result.getFailedDetail().isEmpty());
+    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
+    healthCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
+    Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
+    Assert.assertFalse(check.getFailedDetail().isEmpty());
   }
 }

@@ -10,7 +10,8 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
+ * distributed under the License is distribut
+ * ed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -18,8 +19,6 @@
 
 package org.apache.ambari.server.topology;
 
-import static java.util.stream.Collectors.toSet;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.ALL_COMPONENTS;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
 import static org.apache.ambari.server.state.ServiceInfo.HADOOP_COMPATIBLE_FS;
@@ -76,6 +75,8 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
     registerHostGroupInfo(topologyRequest.getHostGroupInfo());
 
+    // todo extract validation to specialized service
+    validateTopology();
     this.ambariContext = ambariContext;
   }
 
@@ -162,11 +163,6 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   @Override
-  public Set<String> getAllHosts() {
-    return hostGroupInfoMap.values().stream().flatMap(hg -> hg.getHostNames().stream()).collect(toSet());
-  }
-
-  @Override
   public Collection<String> getHostAssignmentsForComponent(String component) {
     //todo: ordering requirements?
     Collection<String> hosts = new ArrayList<>();
@@ -209,6 +205,25 @@ public class ClusterTopologyImpl implements ClusterTopology {
       && configProperties.get("yarn-site").get("yarn.resourcemanager.ha.enabled").equals("true");
   }
 
+  private void validateTopology()
+      throws InvalidTopologyException {
+
+    if(isNameNodeHAEnabled()){
+        Collection<String> nnHosts = getHostAssignmentsForComponent("NAMENODE");
+        if (nnHosts.size() < 2) {
+            throw new InvalidTopologyException("NAMENODE HA requires at least 2 hosts running NAMENODE but there are: " +
+                nnHosts.size() + " Hosts: " + nnHosts);
+        }
+        Map<String, String> hadoopEnvConfig = configuration.getFullProperties().get("hadoop-env");
+        if(hadoopEnvConfig != null && !hadoopEnvConfig.isEmpty() && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_active") && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_standby")) {
+           if((!HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")).matches() && !nnHosts.contains(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")))
+             || (!HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")).matches() && !nnHosts.contains(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")))){
+              throw new IllegalArgumentException("NAMENODE HA hosts mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected hosts are: " + nnHosts);
+        }
+        }
+    }
+  }
+
   @Override
   public boolean isClusterKerberosEnabled() {
     return ambariContext.isClusterKerberosEnabled(getClusterId());
@@ -222,7 +237,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
       Collection<String> skipInstallForComponents = new ArrayList<>();
       if (skipInstallTaskCreate) {
-        skipInstallForComponents.add(ALL_COMPONENTS);
+        skipInstallForComponents.add("ALL");
       } else {
         // get the set of components that are marked as START_ONLY for this hostgroup
         skipInstallForComponents.addAll(hostGroup.getComponentNames(ProvisionAction.START_ONLY));

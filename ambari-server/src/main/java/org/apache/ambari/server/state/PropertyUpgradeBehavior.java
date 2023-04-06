@@ -83,7 +83,6 @@ public class PropertyUpgradeBehavior {
     return update;
   }
 
-
   @Override
   public String toString() {
     return "PropertyUpgradeBehavior{" +

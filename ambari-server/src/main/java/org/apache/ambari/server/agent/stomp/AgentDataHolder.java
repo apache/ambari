@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @param <T> event with hash to control version
  */
 public abstract class AgentDataHolder<T extends Hashable> {
+  private final String salt = "";
   protected final ReentrantLock updateLock = new ReentrantLock();
   private final static ObjectMapper MAPPER = new ObjectMapper();
   static {
@@ -55,10 +56,6 @@ public abstract class AgentDataHolder<T extends Hashable> {
   }
 
   protected String getHash(T data) {
-    return getHash(data, "");
-  }
-
-  protected String getHash(T data, String salt) {
     String json = null;
     try {
       json = MAPPER.writeValueAsString(data);

@@ -28,7 +28,6 @@ import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -46,33 +45,23 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.commons.collections.MapUtils;
 import org.easymock.EasyMockSupport;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -83,15 +72,6 @@ import com.google.inject.Injector;
 
 
 public class DatabaseConsistencyCheckHelperTest {
-
-  private Injector injector;
-
-  @After
-  public void teardown() throws AmbariException, SQLException {
-    if (injector != null) {
-      H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
-    }
-  }
 
   @Test
   public void testCheckForConfigsSelectedMoreThanOnce() throws Exception {
@@ -921,45 +901,6 @@ public class DatabaseConsistencyCheckHelperTest {
     DatabaseConsistencyCheckHelper.fixConfigsSelectedMoreThanOnce();
 
     easyMockSupport.verifyAll();
-  }
-
-  @Test
-  public void testCheckForConfigsNotMappedToService() throws SQLException, AmbariException {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
-    injector.getInstance(GuiceJpaInitializer.class);
-    Clusters clusters = injector.getInstance(Clusters.class);
-    ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
-    ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
-    DatabaseConsistencyCheckHelper.setInjector(injector);
-
-    String STACK_VERSION = "0.1";
-    String REPO_VERSION = "0.1-1234";
-    StackId STACK_ID = new StackId("HDP", STACK_VERSION);
-    OrmTestHelper ormTestHelper = injector.getInstance(OrmTestHelper.class);
-    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(STACK_ID, REPO_VERSION);
-
-    String clusterName = "foo";
-    clusters.addCluster(clusterName, STACK_ID);
-    Cluster cluster = clusters.getCluster(clusterName);
-
-    String serviceName = "HDFS";
-    Service s = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
-    cluster.addService(s);
-
-    // add some cluster configs
-    configFactory.createNew(cluster, "hdfs-site", "version1",
-        new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<>());
-
-    configFactory.createNew(cluster, "hdfs-site", "version2",
-        new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<>());
-
-    DatabaseConsistencyCheckHelper.checkForConfigsNotMappedToService();
-    assertEquals(DatabaseConsistencyCheckResult.DB_CHECK_WARNING, DatabaseConsistencyCheckHelper.getLastCheckResult());
-
-    DatabaseConsistencyCheckHelper.fixClusterConfigsNotMappedToAnyService();
-    DatabaseConsistencyCheckHelper.resetCheckResult();
-    DatabaseConsistencyCheckHelper.checkForConfigsNotMappedToService();
-    assertEquals(DatabaseConsistencyCheckResult.DB_CHECK_SUCCESS, DatabaseConsistencyCheckHelper.getLastCheckResult());
   }
 
   private Injector createInjectorWithAmbariMetaInfo(AmbariMetaInfo mockAmbariMetainfo,

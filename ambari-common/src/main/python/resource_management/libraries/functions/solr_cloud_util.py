@@ -16,16 +16,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-import json
 import random
+import json
+from random import randrange
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_jinja2 import Environment as JinjaEnvironment
-from random import randrange
-from resource_management.core.logger import Logger
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.format import format
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.core.source import StaticFile
-from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions.format import format
+from resource_management.core.shell import as_sudo
+from resource_management.core.logger import Logger
 
 __all__ = ["upload_configuration_to_zk", "create_collection", "setup_kerberos", "set_cluster_prop",
            "setup_kerberos_plugin", "create_znode", "check_znode", "secure_solr_znode", "secure_znode"]
@@ -47,7 +49,7 @@ def __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, ja
   return solr_cli_prefix
 
 def __append_flags_if_exists(command, flagsDict):
-  for key, value in flagsDict.iteritems():
+  for key, value in flagsDict.items():
     if value is not None:
         command+= " %s %s" % (key, value)
   return command
@@ -167,14 +169,6 @@ def set_cluster_prop(zookeeper_quorum, solr_znode, prop_name, prop_value, java64
   set_cluster_prop_cmd = format('{solr_cli_prefix} --cluster-prop --property-name {prop_name} --property-value {prop_value}')
   Execute(set_cluster_prop_cmd)
 
-def set_autoscaling_props(zookeeper_quorum, solr_znode, autoscaling_json_file_location, java64_home, jaas_file = None, java_opts=None):
-  """
-  Set a cluster property on the Solr znode in autoscaling.json
-  """
-  solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, java_opts, jaas_file, True)
-  set_cluster_prop_cmd = format('{solr_cli_prefix} --set-autoscaling --autoscaling-json-location {autoscaling_json_file_location}')
-  Execute(set_cluster_prop_cmd)
-
 def secure_znode(config, zookeeper_quorum, solr_znode, jaas_file, java64_home, sasl_users=[], retry = 5 , interval = 10, java_opts=None):
   """
   Secure znode, set a list of sasl users acl to 'cdrwa', and set acl to 'r' only for the world.
@@ -221,7 +215,7 @@ def copy_solr_znode_from_local(zookeeper_quorum, solr_znode, java64_home, jaas_f
   Execute(copy_znode_cmd)
 
 def default_config(config, name, default_value):
-  subdicts = filter(None, name.split('/'))
+  subdicts = [_f for _f in name.split('/') if _f]
   if not config:
     return default_value
   for x in subdicts:
@@ -239,19 +233,19 @@ def setup_solr_client(config, custom_log4j = True, custom_log_location = None, l
     solr_client_log_maxbackupindex =  default_config(config, 'configurations/infra-solr-client-log4j/infra_client_log_maxbackupindex', 60)
 
     Directory(solr_client_log_dir,
-                mode=0755,
+                mode=0o755,
                 cd_access='a',
                 create_parents=True
                 )
     Directory(solr_client_dir,
-                mode=0755,
+                mode=0o755,
                 cd_access='a',
                 create_parents=True,
                 recursive_ownership=True
                 )
     solrCliFilename = format("{solr_client_dir}/solrCloudCli.sh")
     File(solrCliFilename,
-         mode=0755,
+         mode=0o755,
          content=StaticFile(solrCliFilename)
          )
     if custom_log4j:
@@ -270,15 +264,15 @@ def setup_solr_client(config, custom_log4j = True, custom_log_location = None, l
 
       File(format("{solr_client_dir}/log4j.properties"),
              content=template.render(context),
-             mode=0644
+             mode=0o644
              )
     else:
         File(format("{solr_client_dir}/log4j.properties"),
-             mode=0644
+             mode=0o644
              )
 
     File(solr_client_log,
-         mode=0664,
+         mode=0o664,
          content=''
          )
 

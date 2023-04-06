@@ -29,11 +29,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.ambari.annotations.UpgradeCheckInfo;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.spi.Request;
@@ -44,18 +44,14 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
-import org.apache.ambari.spi.upgrade.UpgradeCheckDescription;
-import org.apache.ambari.spi.upgrade.UpgradeCheckGroup;
-import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
-import org.apache.ambari.spi.upgrade.UpgradeCheckType;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -66,9 +62,9 @@ import com.google.inject.Singleton;
  * be 2.7.0.0.
  */
 @Singleton
-@UpgradeCheckInfo(
+@UpgradeCheck(
   group = UpgradeCheckGroup.REPOSITORY_VERSION)
-public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends ClusterCheck  {
+public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCheckDescriptor  {
 
   @Inject
   private RequestDAO requestDAO;
@@ -92,19 +88,11 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends ClusterChe
   private long retryInterval = 6000l; // 6 seconds sleep interval per retry.
   private int numTries = 20; // 20 times the check will try to see if request finished.
 
-  static final UpgradeCheckDescription AMS_HADOOP_SINK_VERSION_COMPATIBILITY = new UpgradeCheckDescription("AMS_HADOOP_SINK_VERSION_COMPATIBILITY",
-      UpgradeCheckType.HOST,
-      "Ambari Metrics Hadoop Sinks need to be compatible with the stack version. This check ensures that compatibility.",
-      new ImmutableMap.Builder<String, String>().put(UpgradeCheckDescription.DEFAULT,"Hadoop Sink version check failed. " +
-        "To fix this, please upgrade 'ambari-metrics-hadoop-sink' package to %s on all the failed hosts")
-        .put(AmbariMetricsHadoopSinkVersionCompatibilityCheck.HADOOP_SINK_VERSION_NOT_SPECIFIED, "Hadoop Sink version for pre-check not specified. " +
-          "Please use 'min-hadoop-sink-version' property in upgrade pack to specify min hadoop sink version").build());
-
   /**
    * Constructor.
    */
   public AmbariMetricsHadoopSinkVersionCompatibilityCheck() {
-    super(AMS_HADOOP_SINK_VERSION_COMPATIBILITY);
+    super(CheckDescription.AMS_HADOOP_SINK_VERSION_COMPATIBILITY);
   }
 
   /**
@@ -116,22 +104,27 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends ClusterChe
   }
 
   @Override
-  public UpgradeCheckResult perform(UpgradeCheckRequest prereqCheckRequest) throws AmbariException {
-    UpgradeCheckResult result = new UpgradeCheckResult(this);
+  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest prereqCheckRequest) throws AmbariException {
+
     String minHadoopSinkVersion = null;
-    Map<String, String> checkProperties = prereqCheckRequest.getCheckConfigurations();
+
+    UpgradePack.PrerequisiteCheckConfig prerequisiteCheckConfig = prereqCheckRequest.getPrerequisiteCheckConfig();
+    Map<String, String> checkProperties = null;
+    if(prerequisiteCheckConfig != null) {
+      checkProperties = prerequisiteCheckConfig.getCheckProperties(this.getClass().getName());
+    }
 
     if(checkProperties != null) {
       minHadoopSinkVersion = checkProperties.get(MIN_HADOOP_SINK_VERSION_PROPERTY_NAME);
-      retryInterval = Long.parseLong(checkProperties.getOrDefault(RETRY_INTERVAL_PROPERTY_NAME, "6000"));
-      numTries = Integer.parseInt(checkProperties.getOrDefault(NUM_TRIES_PROPERTY_NAME, "20"));
+      retryInterval = Long.valueOf(checkProperties.getOrDefault(RETRY_INTERVAL_PROPERTY_NAME, "6000"));
+      numTries = Integer.valueOf(checkProperties.getOrDefault(NUM_TRIES_PROPERTY_NAME, "20"));
     }
 
     if (StringUtils.isEmpty(minHadoopSinkVersion)) {
       LOG.debug("Hadoop Sink version for pre-check not specified.");
-      result.setStatus(UpgradeCheckStatus.FAIL);
-      result.setFailReason(getFailReason(HADOOP_SINK_VERSION_NOT_SPECIFIED, result, prereqCheckRequest));
-      return result;
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      prerequisiteCheck.setFailReason(getFailReason(HADOOP_SINK_VERSION_NOT_SPECIFIED, prerequisiteCheck, prereqCheckRequest));
+      return;
     }
 
     LOG.debug("Properties : Hadoop Sink Version = {} , retryInterval = {}, numTries = {}", minHadoopSinkVersion, retryInterval, numTries);
@@ -150,8 +143,8 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends ClusterChe
 
     if (CollectionUtils.isEmpty(hosts)) {
       LOG.warn("No hosts have the component METRICS_MONITOR.");
-      result.setStatus(UpgradeCheckStatus.PASS);
-      return result;
+      prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
+      return;
     }
 
     Set<Map<String, Object>> propertiesSet = new HashSet<>();
@@ -192,18 +185,16 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends ClusterChe
       }
 
       if (status.equals(PreUpgradeCheckStatus.SUCCESS)) {
-        result.setStatus(UpgradeCheckStatus.PASS);
+        prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
       } else {
-        result.setStatus(UpgradeCheckStatus.FAIL);
-        result.setFailReason(String.format(getFailReason(result, prereqCheckRequest), minHadoopSinkVersion));
-        result.setFailedOn(failedHosts);
+        prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+        prerequisiteCheck.setFailReason(String.format(getFailReason(prerequisiteCheck, prereqCheckRequest), minHadoopSinkVersion));
+        prerequisiteCheck.setFailedOn(failedHosts);
       }
     } catch (Exception e) {
       LOG.error("Error running Pre Upgrade check for AMS Hadoop Sink compatibility. " + e);
-      result.setStatus(UpgradeCheckStatus.FAIL);
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
     }
-
-    return result;
   }
 
   /**

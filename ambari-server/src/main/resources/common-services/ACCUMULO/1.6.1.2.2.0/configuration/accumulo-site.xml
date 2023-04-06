@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration>
+  <!-- Put your site-specific accumulo configurations here. The available configuration values along with their defaults are documented in docs/config.html Unless
+    you are simply testing at your workstation, you will most definitely need to change the three entries below. -->
+  <property>
+    <name>instance.volumes</name>
+    <value>hdfs://localhost:8020/apps/accumulo/data</value>
+    <description>Location of Accumulo data files in HDFS.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>instance.zookeeper.host</name>
+    <value>localhost:2181</value>
+    <description>Comma-separated list of ZooKeeper server:port
+      pairs.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>instance.zookeeper.timeout</name>
+    <value>30s</value>
+    <description>Timeout for zookeeper connections.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tserver.memory.maps.max</name>
+    <value>1G</value>
+    <description>Amount of memory to use for Accumulo's in-memory
+      map, where incoming writes are sorted.  If native maps are enabled
+      (tserver.memory.maps.native.enabled) this memory is
+      off-heap. Ensure that table.compaction.minor.logs.threshold *
+      tserver.walog.max.size &gt;= tserver.memory.maps.max.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tserver.memory.maps.native.enabled</name>
+    <value>true</value>
+    <description>Controls whether or not native maps are enabled
+      for Accumulo's in-memory map, where incoming writes are
+      sorted (see also tserver.memory.maps.max).</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tserver.cache.data.size</name>
+    <value>128M</value>
+    <description>Size of on-heap block cache for data blocks.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tserver.cache.index.size</name>
+    <value>256M</value>
+    <description>Size of on-heap block cache for index blocks.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tserver.sort.buffer.size</name>
+    <value>200M</value>
+    <description>Amount of memory to use for sorting walogs when
+      recovering from tserver failure.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tserver.walog.max.size</name>
+    <value>1G</value>
+    <description>Maximum size of each write-ahead log.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>master.port.client</name>
+    <value>9999</value>
+    <description>Port for client connections to the master.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>trace.port.client</name>
+    <value>12234</value>
+    <description>Port for delivering tracing data to the tracer
+      process.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tserver.port.client</name>
+    <value>9997</value>
+    <description>Port for client connections to the tservers.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>gc.port.client</name>
+    <value>50092</value>
+    <description>Port for monitoring the Accumulo garbage
+      collector.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>monitor.port.client</name>
+    <value>50095</value>
+    <description>Port for the Accumulo monitor UI.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>monitor.port.log4j</name>
+    <value>4560</value>
+    <description>Port for delivering logs for aggregation by the
+      Accumulo monitor.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>trace.user</name>
+    <value>trace</value>
+    <display-name>Trace user</display-name>
+    <description>User that the tracer process uses to write
+      tracing data to Accumulo.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>general.classpaths</name>
+    <value>
+$ACCUMULO_HOME/lib/accumulo-server.jar,
+$ACCUMULO_HOME/lib/accumulo-core.jar,
+$ACCUMULO_HOME/lib/accumulo-start.jar,
+$ACCUMULO_HOME/lib/accumulo-fate.jar,
+$ACCUMULO_HOME/lib/accumulo-proxy.jar,
+$ACCUMULO_HOME/lib/[^.].*.jar,
+$ZOOKEEPER_HOME/zookeeper[^.].*.jar,
+$HADOOP_CONF_DIR,
+$HADOOP_PREFIX/share/hadoop/common/[^.].*.jar,
+$HADOOP_PREFIX/share/hadoop/common/lib/(?!slf4j)[^.].*.jar,
+$HADOOP_PREFIX/share/hadoop/hdfs/[^.].*.jar,
+$HADOOP_PREFIX/share/hadoop/mapreduce/[^.].*.jar,
+$HADOOP_PREFIX/share/hadoop/yarn/[^.].*.jar,
+$HADOOP_PREFIX/share/hadoop/yarn/lib/jersey.*.jar
+    </value>
+    <description>List of jars and directories that will be added to
+      Accumulo's classpath.  Ordering matters, as the entries will be
+      searched in order when attempting to load a class.</description>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

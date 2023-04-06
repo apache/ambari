@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>ambari-metrics</artifactId>
+    <groupId>org.apache.ambari</groupId>
+    <version>2.7.5.0.0</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>ambari-metrics-storm-sink-legacy</artifactId>
+  <version>2.7.5.0.0</version>
+  <name>Ambari Metrics Storm Sink (Legacy)</name>
+  <packaging>jar</packaging>
+
+  <properties>
+    <!--<storm.version>0.9.3.2.2.1.0-2340</storm.version>-->
+    <storm.version>0.10.0.2.3.0.0-2557</storm.version>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.2</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>parse-version</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>regex-property</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>ambariVersion</name>
+              <value>${project.version}</value>
+              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
+              <replacement>$1.$2.$3.$4</replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.github.goldin</groupId>
+        <artifactId>copy-maven-plugin</artifactId>
+        <version>0.2.5</version>
+        <executions>
+          <execution>
+            <id>create-archive</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.2.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <outputFile>${project.build.directory}/${project.artifactId}-with-common-${project.version}.jar</outputFile>
+          <minimizeJar>false</minimizeJar>
+          <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
+          <artifactSet>
+            <includes>
+              <include>org.apache.ambari:ambari-metrics-common</include>
+              <include>org.codehaus.jackson:jackson-mapper-asl</include>
+              <include>org.codehaus.jackson:jackson-core-asl</include>
+              <include>org.codehaus.jackson:jackson-xc</include>
+              <include>org.apache.hadoop:hadoop-annotations</include>
+              <include>commons-logging:commons-logging</include>
+              <include>org.apache.commons:commons-lang3</include>
+              <include>commons-codec:commons-codec</include>
+            </includes>
+          </artifactSet>
+          <relocations>
+            <relocation>
+              <pattern>org.apache.commons.logging</pattern>
+              <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.logging</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.apache.hadoop.classification</pattern>
+              <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.hadoop.classification</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.codehaus.jackson</pattern>
+              <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.jackson</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.apache.commons.lang3</pattern>
+              <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.lang3</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.apache.commons.codec</pattern>
+              <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.codec</shadedPattern>
+            </relocation>
+          </relocations>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.vafer</groupId>
+        <artifactId>jdeb</artifactId>
+        <executions>
+          <execution>
+            <!--Stub execution on direct plugin call - workaround for ambari deb build process-->
+            <id>stub-execution</id>
+            <phase>none</phase>
+            <goals>
+              <goal>jdeb</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <skip>true</skip>
+          <attach>false</attach>
+          <submodules>false</submodules>
+          <controlDir>${project.basedir}/../src/main/package/deb/control</controlDir>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.3.2</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.8</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.storm</groupId>
+      <artifactId>storm-core</artifactId>
+      <version>${storm.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-metrics-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+      <version>1.9.13</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+      <version>4.10</version>
+    </dependency>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>3.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-easymock</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

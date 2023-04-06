@@ -78,7 +78,7 @@ from django.template import defaulttags as core_tags, loader, TextNode, \
      TOKEN_VAR
 from django.template.debug import DebugVariableNode as VariableNode
 from django.templatetags import i18n as i18n_tags
-from StringIO import StringIO
+from io import StringIO
 
 
 _node_handlers = {}
@@ -92,7 +92,7 @@ _newline_re = re.compile(r'(?:\r\n|\r|\n)')
 # call from it.
 _old_cycle_init = core_tags.CycleNode.__init__
 def _fixed_cycle_init(self, cyclevars, variable_name=None):
-    self.raw_cycle_vars = map(Variable, cyclevars)
+    self.raw_cycle_vars = list(map(Variable, cyclevars))
     _old_cycle_init(self, cyclevars, variable_name)
 core_tags.CycleNode.__init__ = _fixed_cycle_init
 
@@ -128,7 +128,7 @@ def convert_templates(output_dir, extensions=('.html', '.txt'), writer=None,
 
     if callback is None:
         def callback(template):
-            print template
+            print(template)
 
     for directory in settings.TEMPLATE_DIRS:
         for dirname, _, files in os.walk(directory):
@@ -308,7 +308,7 @@ class Writer(object):
         if node is not None and hasattr(node, 'source'):
             filename, lineno = self.get_location(*node.source)
             message = '[%s:%d] %s' % (filename, lineno, message)
-        print >> self.error_stream, message
+        print(message, file=self.error_stream)
 
     def translate_variable_name(self, var):
         """Performs variable name translation."""
@@ -327,14 +327,14 @@ class Writer(object):
         is no such filter.
         """
         if filter not in _resolved_filters:
-            for library in libraries.values():
-                for key, value in library.filters.iteritems():
+            for library in list(libraries.values()):
+                for key, value in library.filters.items():
                     _resolved_filters[value] = key
         return _resolved_filters.get(filter, None)
 
     def node(self, node):
         """Invokes the node handler for a node."""
-        for cls, handler in self.node_handlers.iteritems():
+        for cls, handler in self.node_handlers.items():
             if type(node) is cls or type(node).__name__ == cls:
                 handler(self, node)
                 break
@@ -581,7 +581,7 @@ def url_tag(writer, node):
     for arg in node.args:
         writer.write(', ')
         writer.node(arg)
-    for key, arg in node.kwargs.items():
+    for key, arg in list(node.kwargs.items()):
         writer.write(', %s=' % key)
         writer.node(arg)
     writer.write(')')

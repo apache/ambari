@@ -1,0 +1,25 @@
+{
+  "services": [
+    {
+      "name": "TEZ",
+      "components": [
+        {
+          "name": "TEZ_CLIENT",
+          "identities": [
+            {
+              "name": "tez_tez_client_hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
+            }
+          ],
+          "configurations": [
+            {
+              "tez-site": {
+                "tez.am.view-acls": ""
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

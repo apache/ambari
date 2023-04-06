@@ -51,8 +51,6 @@ import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.security.access.AccessDeniedException;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 
@@ -82,32 +80,38 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @SuppressWarnings("serial")
-  private static final Set<String> pkPropertyIds = ImmutableSet.<String>builder()
-    .add(WIDGET_ID_PROPERTY_ID)
-    .build();
+  private static Set<String> pkPropertyIds = new HashSet<String>() {
+    {
+      add(WIDGET_ID_PROPERTY_ID);
+    }
+  };
 
   @SuppressWarnings("serial")
-  public static final Set<String> propertyIds = ImmutableSet.<String>builder()
-    .add(WIDGET_ID_PROPERTY_ID)
-    .add(WIDGET_WIDGET_NAME_PROPERTY_ID)
-    .add(WIDGET_WIDGET_TYPE_PROPERTY_ID)
-    .add(WIDGET_TIME_CREATED_PROPERTY_ID)
-    .add(WIDGET_CLUSTER_NAME_PROPERTY_ID)
-    .add(WIDGET_AUTHOR_PROPERTY_ID)
-    .add(WIDGET_DESCRIPTION_PROPERTY_ID)
-    .add(WIDGET_SCOPE_PROPERTY_ID)
-    .add(WIDGET_METRICS_PROPERTY_ID)
-    .add(WIDGET_VALUES_PROPERTY_ID)
-    .add(WIDGET_PROPERTIES_PROPERTY_ID)
-    .add(WIDGET_TAG_PROPERTY_ID)
-    .build();
+  public static Set<String> propertyIds = new HashSet<String>() {
+    {
+      add(WIDGET_ID_PROPERTY_ID);
+      add(WIDGET_WIDGET_NAME_PROPERTY_ID);
+      add(WIDGET_WIDGET_TYPE_PROPERTY_ID);
+      add(WIDGET_TIME_CREATED_PROPERTY_ID);
+      add(WIDGET_CLUSTER_NAME_PROPERTY_ID);
+      add(WIDGET_AUTHOR_PROPERTY_ID);
+      add(WIDGET_DESCRIPTION_PROPERTY_ID);
+      add(WIDGET_SCOPE_PROPERTY_ID);
+      add(WIDGET_METRICS_PROPERTY_ID);
+      add(WIDGET_VALUES_PROPERTY_ID);
+      add(WIDGET_PROPERTIES_PROPERTY_ID);
+      add(WIDGET_TAG_PROPERTY_ID);
+    }
+  };
 
   @SuppressWarnings("serial")
-  public static final Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String>builder()
-    .put(Type.Widget, WIDGET_ID_PROPERTY_ID)
-    .put(Type.Cluster, WIDGET_CLUSTER_NAME_PROPERTY_ID)
-    .put(Type.User, WIDGET_AUTHOR_PROPERTY_ID)
-    .build();
+  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
+    {
+      put(Type.Widget, WIDGET_ID_PROPERTY_ID);
+      put(Type.Cluster, WIDGET_CLUSTER_NAME_PROPERTY_ID);
+      put(Type.User, WIDGET_AUTHOR_PROPERTY_ID);
+    }
+  };
 
   @Inject
   private static WidgetDAO widgetDAO;

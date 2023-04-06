@@ -20,16 +20,15 @@ package org.apache.ambari.server.checks;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.spi.ClusterInformation;
-import org.apache.ambari.spi.RepositoryVersion;
-import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
-import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
-import org.apache.ambari.spi.upgrade.UpgradeType;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +44,7 @@ public class ServicePresenceCheckTest {
 
   private final ServicePresenceCheck m_check = new ServicePresenceCheck();
 
-  final RepositoryVersion m_repositoryVersion = Mockito.mock(RepositoryVersion.class);
+  final RepositoryVersionEntity m_repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
 
   /**
    *
@@ -61,7 +60,7 @@ public class ServicePresenceCheckTest {
     };
 
     Mockito.when(m_repositoryVersion.getVersion()).thenReturn("2.5.0.0-1234");
-    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.5").toString());
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.5"));
   }
 
   @Test
@@ -76,12 +75,17 @@ public class ServicePresenceCheckTest {
     checkProperties.put(ServicePresenceCheck.REPLACED_SERVICES_PROPERTY_NAME,"OldServiceOne, OldServiceTwo");
     checkProperties.put(ServicePresenceCheck.NEW_SERVICES_PROPERTY_NAME,"NewServiceOne, NewServiceTwo");
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties, null);
+    PrerequisiteCheckConfig prerequisiteCheckConfig = Mockito.mock(PrerequisiteCheckConfig.class);
+    Mockito.when(prerequisiteCheckConfig.getCheckProperties(
+        m_check.getClass().getName())).thenReturn(checkProperties);
 
-    UpgradeCheckResult result = m_check.perform(request);
-    Assert.assertEquals(UpgradeCheckStatus.PASS, result.getStatus());
+    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
+    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
+
+    m_check.perform(check, request);
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }
 
   @Test
@@ -96,13 +100,16 @@ public class ServicePresenceCheckTest {
 
     Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put(ServicePresenceCheck.NO_UPGRADE_SUPPORT_SERVICES_PROPERTY_NAME,"Atlas, MyService");
+    PrerequisiteCheckConfig prerequisiteCheckConfig = Mockito.mock(PrerequisiteCheckConfig.class);
+    Mockito.when(prerequisiteCheckConfig.getCheckProperties(
+        m_check.getClass().getName())).thenReturn(checkProperties);
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties, null);
+    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
+    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
 
-    UpgradeCheckResult result = m_check.perform(request);
-    Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
+    m_check.perform(check, request);
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
   }
 
   @Test
@@ -120,12 +127,17 @@ public class ServicePresenceCheckTest {
     checkProperties.put(ServicePresenceCheck.REPLACED_SERVICES_PROPERTY_NAME, "Atlas, OldService");
     checkProperties.put(ServicePresenceCheck.NEW_SERVICES_PROPERTY_NAME, "Atlas2, NewService");
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties, null);
+    PrerequisiteCheckConfig prerequisiteCheckConfig = Mockito.mock(PrerequisiteCheckConfig.class);
+    Mockito.when(
+        prerequisiteCheckConfig.getCheckProperties(m_check.getClass().getName())).thenReturn(
+            checkProperties);
 
-    UpgradeCheckResult result = m_check.perform(request);
-    Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
+    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
+    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
+
+    m_check.perform(check, request);
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
   }
 
   @Test
@@ -142,12 +154,16 @@ public class ServicePresenceCheckTest {
     Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put(ServicePresenceCheck.REMOVED_SERVICES_PROPERTY_NAME, "OldService");
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties, null);
+    PrerequisiteCheckConfig prerequisiteCheckConfig = Mockito.mock(PrerequisiteCheckConfig.class);
+    Mockito.when(prerequisiteCheckConfig.getCheckProperties(
+        m_check.getClass().getName())).thenReturn(checkProperties);
 
-    UpgradeCheckResult result = m_check.perform(request);
-    Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
+    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
+    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
+
+    m_check.perform(check, request);
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
   }
 
   @Test
@@ -167,12 +183,16 @@ public class ServicePresenceCheckTest {
     checkProperties.put(ServicePresenceCheck.NEW_SERVICES_PROPERTY_NAME,"Atlas2, NewService");
     checkProperties.put(ServicePresenceCheck.REMOVED_SERVICES_PROPERTY_NAME, "RemovedService");
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties, null);
+    PrerequisiteCheckConfig prerequisiteCheckConfig = Mockito.mock(PrerequisiteCheckConfig.class);
+    Mockito.when(prerequisiteCheckConfig.getCheckProperties(
+        m_check.getClass().getName())).thenReturn(checkProperties);
 
-    UpgradeCheckResult result = m_check.perform(request);
-    Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
+    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
+    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
+
+    m_check.perform(check, request);
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
   }
 
   @Test
@@ -190,12 +210,16 @@ public class ServicePresenceCheckTest {
     checkProperties.put(ServicePresenceCheck.REPLACED_SERVICES_PROPERTY_NAME, "OldService");
     checkProperties.put(ServicePresenceCheck.NEW_SERVICES_PROPERTY_NAME,"NewService");
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties, null);
+    PrerequisiteCheckConfig prerequisiteCheckConfig = Mockito.mock(PrerequisiteCheckConfig.class);
+    Mockito.when(prerequisiteCheckConfig.getCheckProperties(
+        m_check.getClass().getName())).thenReturn(checkProperties);
 
-    UpgradeCheckResult result = m_check.perform(request);
-    Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
+    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
+    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
+
+    m_check.perform(check, request);
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
   }
 
   @Test
@@ -216,11 +240,15 @@ public class ServicePresenceCheckTest {
     checkProperties.put(ServicePresenceCheck.REPLACED_SERVICES_PROPERTY_NAME, "Storm, Ranger");
     checkProperties.put(ServicePresenceCheck.NEW_SERVICES_PROPERTY_NAME,"Storm2, Ranger2");
 
-    ClusterInformation clusterInformation = new ClusterInformation("cluster", false, null, null, null);
-    UpgradeCheckRequest request = new UpgradeCheckRequest(clusterInformation, UpgradeType.ROLLING,
-        m_repositoryVersion, checkProperties, null);
+    PrerequisiteCheckConfig prerequisiteCheckConfig = Mockito.mock(PrerequisiteCheckConfig.class);
+    Mockito.when(prerequisiteCheckConfig.getCheckProperties(
+        m_check.getClass().getName())).thenReturn(checkProperties);
 
-    UpgradeCheckResult result = m_check.perform(request);
-    Assert.assertEquals(UpgradeCheckStatus.FAIL, result.getStatus());
+    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
+    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
+
+    m_check.perform(check, request);
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
   }
 }

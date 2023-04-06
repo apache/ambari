@@ -224,7 +224,7 @@ class Protocol11(HeartbeatListener, ConnectionListener):
         """
         :param dict(str,str) headers:
         """
-        for key, val in headers.items():
+        for key, val in list(headers.items()):
             try:
                 val = val.replace('\\', '\\\\').replace('\n', '\\n').replace(':', '\\c')
             except:
@@ -442,7 +442,7 @@ class Protocol12(Protocol11):
         """
         :param dict(str,str) headers:
         """
-        for key, val in headers.items():
+        for key, val in list(headers.items()):
             try:
                 val = val.replace('\\', '\\\\').replace('\n', '\\n').replace(':', '\\c').replace('\r', '\\r')
             except:

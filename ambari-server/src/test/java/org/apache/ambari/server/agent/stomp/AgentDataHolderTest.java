@@ -25,7 +25,6 @@ import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.commons.collections.MapUtils;
 import org.junit.Test;
 
@@ -34,7 +33,7 @@ public class AgentDataHolderTest {
   @Test
   public void testGetHashWithTimestamp() {
     AmbariEventPublisher ambariEventPublisher = createNiceMock(AmbariEventPublisher.class);
-    AgentConfigsHolder agentConfigsHolder = new AgentConfigsHolder(ambariEventPublisher, Encryptor.NONE);
+    AgentConfigsHolder agentConfigsHolder = new AgentConfigsHolder(ambariEventPublisher);
 
     AgentConfigsUpdateEvent event1 = new AgentConfigsUpdateEvent(null, null);
     event1.setHash("01");

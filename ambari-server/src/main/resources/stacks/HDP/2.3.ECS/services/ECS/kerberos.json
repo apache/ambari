@@ -1,0 +1,54 @@
+{
+  "services": [
+    {
+      "name": "ECS",
+      "identities": [
+        {
+          "name": "ecs_smokeuser",
+          "reference": "/smokeuser"
+        },
+        {
+          "name": "hdfs",
+          "principal": {
+            "value": "${hadoop-env/hdfs_user}${principal_suffix}@${realm}",
+            "type" : "user" ,
+            "configuration": "hadoop-env/hdfs_principal_name",
+            "local_username" : "${hadoop-env/hdfs_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/hdfs.headless.keytab",
+            "owner": {
+              "name": "${hadoop-env/hdfs_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": "r"
+            },
+            "configuration": "hadoop-env/hdfs_user_keytab"
+          }
+        }
+      ],
+      "auth_to_local_properties" : [
+        "core-site/hadoop.security.auth_to_local"
+      ],
+      "configurations": [
+        {
+          "core-site": {
+            "hadoop.security.authentication": "kerberos",
+            "hadoop.security.authorization": "true",
+            "fs.viprfs.auth.identity_translation": "CURRENT_USER_REALM",
+            "viprfs.security.principal": "",
+            "hadoop.proxyuser.HTTP.groups": "${hadoop-env/proxyuser_group}"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "ECS_CLIENT"
+        }
+       ]
+    }
+  ]
+}
+

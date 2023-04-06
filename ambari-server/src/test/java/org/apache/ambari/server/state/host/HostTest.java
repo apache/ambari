@@ -46,7 +46,6 @@ import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
-import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -135,7 +134,7 @@ public class HostTest {
     Configuration configuration = mock(Configuration.class);
     doNothing().when(injector).injectMembers(any());
     when(injector.getInstance(AmbariEventPublisher.class)).thenReturn(mock(AmbariEventPublisher.class));
-    HeartBeatHandler handler = new HeartBeatHandler(configuration, clusters, manager, Encryptor.NONE, injector);
+    HeartBeatHandler handler = new HeartBeatHandler(configuration, clusters, manager, injector);
     String os = handler.getOsType("RedHat", "6.1");
     Assert.assertEquals("redhat6", os);
     os = handler.getOsType("RedHat", "6");

@@ -195,7 +195,6 @@ import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
@@ -205,7 +204,6 @@ import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.serveraction.kerberos.PrepareKerberosIdentitiesServerAction;
 import org.apache.ambari.server.stack.StackManagerFactory;
-import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContextFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -218,6 +216,7 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
@@ -601,7 +600,7 @@ public class UpgradeCatalog270Test {
     Module module = new AbstractModule() {
       @Override
       public void configure() {
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addPasswordEncryptorBindings().addLdapBindings().addFactoriesInstallBinding().build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addLdapBindings().addFactoriesInstallBinding().build().configure(binder());
 
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(OsFamily.class).toInstance(osFamily);
@@ -625,7 +624,6 @@ public class UpgradeCatalog270Test {
         bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
         bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
-        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
 
         install(new FactoryModuleBuilder().implement(
@@ -1270,9 +1268,6 @@ public class UpgradeCatalog270Test {
     expect(entityManager.find(anyObject(), anyObject())).andReturn(null).anyTimes();
     final Map<String, String> properties = new HashMap<>();
     properties.put(AmbariServerConfigurationKey.LDAP_ENABLED.key(), "true");
-    properties.put(AmbariServerConfigurationKey.AMBARI_MANAGES_LDAP_CONFIGURATION.key(), "true");
-    properties.put(AmbariServerConfigurationKey.LDAP_ENABLED_SERVICES.key(), "AMBARI");
-
     expect(ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), properties, false)).andReturn(true).once();
     replay(entityManager, ambariConfigurationDao);
 

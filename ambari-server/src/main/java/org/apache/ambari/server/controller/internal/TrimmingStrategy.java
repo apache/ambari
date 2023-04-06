@@ -18,44 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
-/**
- * Various strategies for trimming properties during blueprint deployment.
- */
-public enum TrimmingStrategy {
-
-  DEFAULT {
-    @Override
-    public String trim(String stringToTrim) {
-      return stringToTrim.trim();
-    }
-  },
-
-  DIRECTORIES {
-    @Override
-    public String trim(String stringToTrim) {
-      return stringToTrim.replaceAll("\\s*,+\\s*", ",").trim();
-    }
-  },
-
-  PASSWORD {
-    @Override
-    public String trim(String stringToTrim) {
-      return stringToTrim;
-    }
-  },
-
-  DELETE_SPACES_AT_END {
-    @Override
-    public String trim(String stringToTrim) {
-      if (" ".equals(stringToTrim)) {
-        return stringToTrim;
-      }
-      return stringToTrim.replaceAll("\\s+$", "");
-    }
-  }
-  ;
-
-  public abstract String trim(String stringToTrim);
-
+public interface TrimmingStrategy {
+  String trim(String stringToTrim);
 }
 

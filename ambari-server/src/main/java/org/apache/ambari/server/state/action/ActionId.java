@@ -31,7 +31,6 @@ public class ActionId {
     this.actionType = actionType;
   }
 
-  @Override
   public String toString() {
     return "[ actionId=" + actionId
         + ", actionType=" + actionType + "]";

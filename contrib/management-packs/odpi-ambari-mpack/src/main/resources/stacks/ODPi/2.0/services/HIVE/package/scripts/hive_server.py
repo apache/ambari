@@ -35,23 +35,23 @@ from resource_management.libraries.functions.security_commons import build_expec
 from ambari_commons import OSCheck, OSConst
 if OSCheck.is_windows_family():
   from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
-from setup_ranger_hive import setup_ranger_hive
+from .setup_ranger_hive import setup_ranger_hive
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from resource_management.core.logger import Logger
 
-import hive_server_upgrade
-from hive import hive
-from hive_service import hive_service
+from . import hive_server_upgrade
+from .hive import hive
+from .hive_service import hive_service
 
 
 class HiveServer(Script):
   def install(self, env):
-    import params
+    from . import params
     self.install_packages(env)
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     hive(name='hiveserver2')
 
@@ -59,18 +59,18 @@ class HiveServer(Script):
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HiveServerWindows(HiveServer):
   def start(self, env):
-    import params
+    from . import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
     hive_service('hiveserver2', action='start')
 
   def stop(self, env):
-    import params
+    from . import params
     env.set_params(params)
     hive_service('hiveserver2', action='stop')
 
   def status(self, env):
-    import status_params
+    from . import status_params
     check_windows_service_status(status_params.hive_server_win_service_name)
 
 
@@ -80,7 +80,7 @@ class HiveServerDefault(HiveServer):
     return "hive-server2"
 
   def start(self, env, upgrade_type=None):
-    import params
+    from . import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
 
@@ -94,7 +94,7 @@ class HiveServerDefault(HiveServer):
 
 
   def stop(self, env, upgrade_type=None):
-    import params
+    from . import params
     env.set_params(params)
 
     # During rolling upgrade, HiveServer2 should not be stopped before new server is available.
@@ -105,7 +105,7 @@ class HiveServerDefault(HiveServer):
 
 
   def status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     pid_file = format("{hive_pid_dir}/{hive_pid}")
 
@@ -115,7 +115,7 @@ class HiveServerDefault(HiveServer):
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Hive Server Stack Upgrade pre-restart")
-    import params
+    from . import params
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
@@ -140,7 +140,7 @@ class HiveServerDefault(HiveServer):
 
 
   def security_status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     if status_params.security_enabled:
       props_value_check = {"hive.server2.authentication": "KERBEROS",
@@ -200,11 +200,11 @@ class HiveServerDefault(HiveServer):
       self.put_structured_out({"securityState": "UNSECURED"})
 
   def get_log_folder(self):
-    import params
+    from . import params
     return params.hive_log_dir
   
   def get_user(self):
-    import params
+    from . import params
     return params.hive_user
 
 if __name__ == "__main__":

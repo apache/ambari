@@ -1,0 +1,155 @@
+{
+  "layouts": [
+    {
+      "layout_name": "default_accumulo_dashboard",
+      "display_name": "Standard Accumulo Dashboard",
+      "section_name": "ACCUMULO_SUMMARY",
+      "widgetLayoutInfo": [
+        {
+          "widget_name": "Accumulo Entries",
+          "description": "Number of key/value pairs stored in Accumulo.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "tserver.general.entries._sum",
+              "metric_path": "metrics/tserver/general/entries._sum",
+              "service_name": "ACCUMULO",
+              "component_name": "ACCUMULO_TSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Entries",
+              "value": "${tserver.general.entries._sum}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Accumulo Queries",
+          "description": "Number of queries running against Accumulo.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "tserver.general.queries._sum",
+              "metric_path": "metrics/tserver/general/queries._sum",
+              "service_name": "ACCUMULO",
+              "component_name": "ACCUMULO_TSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Queries",
+              "value": "${tserver.general.queries._sum}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Accumulo MinCs",
+          "description": "Number of minor compactions running in Accumulo.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "tserver.general.queuedMinCs._sum",
+              "metric_path": "metrics/tserver/general/queued_mincs._sum",
+              "service_name": "ACCUMULO",
+              "component_name": "ACCUMULO_TSERVER"
+            },
+            {
+              "name": "tserver.general.activeMinCs._sum",
+              "metric_path": "metrics/tserver/general/active_mincs._sum",
+              "service_name": "ACCUMULO",
+              "component_name": "ACCUMULO_TSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Queued MinCs",
+              "value": "${tserver.general.queuedMinCs._sum}"
+            },
+            {
+              "name": "Active MinCs",
+              "value": "${tserver.general.activeMinCs._sum}"
+            }
+          ],
+          "properties": {
+            "display_unit": "MinCs",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Accumulo MajCs",
+          "description": "Number of major compactions running in Accumulo.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "tserver.general.queuedMajCs._sum",
+              "metric_path": "metrics/tserver/general/queued_majcs._sum",
+              "service_name": "ACCUMULO",
+              "component_name": "ACCUMULO_TSERVER"
+            },
+            {
+              "name": "tserver.general.activeMajCs._sum",
+              "metric_path": "metrics/tserver/general/active_majcs._sum",
+              "service_name": "ACCUMULO",
+              "component_name": "ACCUMULO_TSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Queued MajCs",
+              "value": "${tserver.general.queuedMajCs._sum}"
+            },
+            {
+              "name": "Active MajCs",
+              "value": "${tserver.general.activeMajCs._sum}"
+            }
+          ],
+          "properties": {
+            "display_unit": "MajCs",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Average Hold Time",
+          "description": "This widget shows the average hold time across tablet servers.",
+          "default_section_name": "ACCUMULO_SUMMARY",
+          "widget_type": "NUMBER",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "tserver.general.holdTime._avg",
+              "metric_path": "metrics/tserver/general/hold_time._avg",
+              "service_name": "ACCUMULO",
+              "component_name": "ACCUMULO_TSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Average Hold Time Per Tablet Server",
+              "value": "${tserver.general.holdTime._avg}"
+            }
+          ],
+          "properties": {
+            "display_unit": "s",
+            "error_threshold":"10",
+            "warning_threshold": "1"
+          }
+        }
+      ]
+    }
+  ]
+}

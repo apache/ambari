@@ -1,0 +1,254 @@
+{
+    "roleCommand": "SERVICE_CHECK",
+    "clusterName": "phd",
+    "commandType": "EXECUTION_COMMAND",
+    "serviceName": "HAWQ",
+    "role": "HAWQ_SERVICE_CHECK",
+    "commandParams": {
+        "service_package_folder": "common-services/HDFS/2.1.0.2.0/package", 
+        "script": "scripts/service_check.py", 
+        "hooks_folder": "stack-hooks", 
+        "command_timeout": "300", 
+        "script_type": "PYTHON"
+    },
+    "clusterLevelParams": {
+        "stack_version": "3.3", 
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "hooks_folder": "stack-hooks", 
+        "stack_name": "PHD", 
+        "group_list": "[\"hdfs\",\"hadoop\",\"users\"]", 
+        "user_groups": "{\"hive\":[\"hadoop\"], \"oozie\":[\"hadoop\",\"users\"], \"nobody\":[\"hadoop\",\"nobody\"], \"ambari-qa\":[\"hadoop\",\"users\"], \"flume\":[\"hadoop\"], \"hdfs\":[\"hadoop\"], \"storm\":[\"hadoop\"], \"mapred\":[\"hadoop\"], \"hbase\":[\"hadoop\"], \"tez\":[\"hadoop\",\"users\"], \"zookeeper\":[\"hadoop\"], \"falcon\":[\"hadoop\",\"users\"], \"sqoop\":[\"hadoop\"], \"yarn\":[\"hadoop\"], \"hcat\":[\"hadoop\"]}",
+        "cluster_name": "c1", 
+        "user_list": "[\"ambari-qa\",\"hdfs\"]"
+    },
+    "ambariLevelParams": {
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources",
+        "agent_stack_retry_count": "5", 
+        "db_driver_filename": "mysql-connector-java.jar", 
+        "agent_stack_retry_on_unavailability": "false", 
+        "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
+        "jce_name": "jce_policy-7.zip", 
+        "java_version": "7", 
+        "ambari_db_rca_password": "mapred", 
+        "host_sys_prepped": "false", 
+        "db_name": "ambari", 
+        "oracle_jdbc_url": "http://c6401.ambari.apache.org/resources/ojdbc6.jar",
+        "ambari_db_rca_driver": "org.postgresql.Driver", 
+        "ambari_db_rca_username": "mapred", 
+        "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
+        "java_home": "/usr/jdk64/jdk1.7.0_45", 
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources/mysql-connector-java.jar"
+    },
+    "repositoryFile": {
+        "resolved": true, 
+        "repoVersion": "2.6.4.0-60", 
+        "repositories": [
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60", 
+                "repoName": "HDP", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-2.6-repo-1"
+            }, 
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60", 
+                "repoName": "HDP-GPL", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-2.6-GPL-repo-1"
+            }, 
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6", 
+                "repoName": "HDP-UTILS", 
+                "components": null, 
+                "osType": "redhat6", 
+                "distribution": null, 
+                "repoId": "HDP-UTILS-1.1.0.22-repo-1"
+            }
+        ], 
+        "feature": {
+            "m_isScoped": true, 
+            "m_isPreInstalled": false
+        }, 
+        "stackName": "HDP", 
+        "repoVersionId": 1
+    },
+    "agentLevelParams": {
+        "public_hostname": null, 
+        "hostname": "c6401.ambari.apache.org", 
+        "agentConfigParams": {
+            "agent": {
+                "parallel_execution": 0, 
+                "use_system_proxy_settings": true
+            }
+        }, 
+        "agentCacheDir": "/var/lib/ambari-agent/cache"
+    },
+    "hostLevelParams": {
+        "recoveryConfig": {
+            "retryGap": "5", 
+            "windowInMinutes": "60", 
+            "maxLifetimeCount": "1024", 
+            "components": "", 
+            "maxCount": "6", 
+            "type": "AUTO_START"
+        }, 
+        "hostRepositories": {
+            "componentRepos": {
+                "NAMENODE": 1, 
+                "SECONDARY_NAMENODE": 1, 
+                "DATANODE": 1, 
+                "HDFS_CLIENT": 1
+            }, 
+            "commandRepos": {
+                "1": {
+                    "resolved": true, 
+                    "repoVersion": "2.1.4.0-60", 
+                    "repositories": [
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60", 
+                            "repoName": "HDP", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-2.6-repo-1"
+                        }, 
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60", 
+                            "repoName": "HDP-GPL", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-2.6-GPL-repo-1"
+                        }, 
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6", 
+                            "repoName": "HDP-UTILS", 
+                            "components": null, 
+                            "osType": "redhat6", 
+                            "distribution": null, 
+                            "repoId": "HDP-UTILS-1.1.0.22-repo-1"
+                        }
+                    ], 
+                    "feature": {
+                        "m_isScoped": true, 
+                        "m_isPreInstalled": false
+                    }, 
+                    "stackName": "HDP", 
+                    "repoVersionId": 1
+                }
+            }
+        }
+    },
+    "configurationAttributes": {
+        "yarn-client": {},
+        "hdfs-site": {},
+        "core-site": {},
+        "hawq-env": {},
+        "hawq-site": {},
+        "hawq-check-env": {},
+        "hdfs-client": {},
+        "yarn-site": {},
+        "cluster-env": {}
+    },
+    "configurations": {
+        "yarn-client": {
+            "rpc.client.timeout": "3600000"
+        },
+        "hdfs-site": {
+            "dfs.allow.truncate": "true"
+        },
+        "core-site": {
+            "fs.defaultFS": "hdfs://c6401.ambari.apache.org:8020"
+        },
+        "hawq-env": {
+            "hawq_password": "gpadmin",
+            "hawq_ssh_exkeys": "false"
+        },
+        "hawq-site": {
+            "hawq_re_cgroup_hierarchy_name": "hawq",
+            "hawq_master_directory": "/data/hawq/master",
+            "hawq_segment_address_port": "40000",
+            "hawq_master_temp_directory": "/data/hawq/tmp/master",
+            "hawq_standby_address_host": "c6402.ambari.apache.org",
+            "hawq_master_address_port": "5432",
+            "hawq_segment_temp_directory": "/data/hawq/tmp/segment",
+            "hawq_master_address_host": "c6403.ambari.apache.org",
+            "hawq_rm_yarn_queue_name": "default",
+            "hawq_rm_yarn_address": "c6402.ambari.apache.org:8032",
+            "hawq_re_cgroup_mount_point": "/sys/fs/cgroup",
+            "hawq_dfs_url": "c6401.ambari.apache.org:8020/hawq_data",
+            "hawq_global_rm_type": "none",
+            "hawq_segment_directory": "/data/hawq/segment",
+            "hawq_rm_memory_limit_perseg": "64GB",
+            "hawq_rm_yarn_scheduler_address": "c6402.ambari.apache.org:8030",
+            "hawq_rm_yarn_app_name": "hawq",
+            "hawq_re_cpu_enable": "false",
+            "hawq_rm_nvcore_limit_perseg": "16"
+        },
+        "hawq-check-env": {
+            "content": ""
+        },
+        "hadoop-env": {
+            "hdfs_user": "hdfs"
+        },
+        "hdfs-client": {
+            "dfs.default.blocksize": "134217728"
+        },
+        "yarn-site": {
+            "yarn.resourcemanager.ha.enabled": "false"
+        },
+        "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
+            "security_enabled": "false",
+            "user_group": "hadoop",
+            "stack_name": "PHD",
+            "stack_root": "{\"PHD\": \"/usr/phd\"}",
+            "stack_tools": "{\n \"PHD\": { \"stack_selector\": [\"phd-select\", \"/usr/bin/phd-select\", \"phd-select\"],\n  \"conf_selector\": [\"conf-select\", \"/usr/bin/conf-select\", \"conf-select\"]\n}\n}",
+            "stack_features": "{\"PHD\":{\"stack_features\":[{\"name\":\"express_upgrade\",\"description\":\"Express upgrade support\",\"min_version\":\"3.0.0.0\"},{\"name\":\"rolling_upgrade\",\"description\":\"Rolling upgrade support\",\"min_version\":\"3.0.0.0\"},{\"name\":\"config_versioning\",\"description\":\"Configurable versions support\",\"min_version\":\"3.0.0.0\"}]\n}\n}"
+        }
+    },
+    "clusterHostInfo": {
+        "slave_hosts": [
+            "c6402.ambari.apache.org",
+            "c6403.ambari.apache.org",
+            "c6401.ambari.apache.org"
+        ],
+        "hawqmaster_hosts": [
+            "c6403.ambari.apache.org"
+        ],
+        "hawqstandby_hosts": [
+            "c6402.ambari.apache.org"
+        ],
+        "hawqsegment_hosts": [
+            "c6402.ambari.apache.org",
+            "c6403.ambari.apache.org",
+            "c6401.ambari.apache.org"
+        ],
+        "namenode_host": [
+            "c6401.ambari.apache.org"
+        ],
+        "ambari_server_host": [
+            "c6401.ambari.apache.org"
+        ],
+        "all_hosts": [
+            "c6402.ambari.apache.org",
+            "c6403.ambari.apache.org",
+            "c6401.ambari.apache.org"
+        ]
+    }
+}

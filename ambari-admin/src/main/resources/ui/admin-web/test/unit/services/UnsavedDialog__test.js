@@ -26,7 +26,7 @@ describe('UnsavedDialog Service', function () {
     UnsavedDialog = _UnsavedDialog_;
     $modal = _$modal_;
 
-    spyOn($modal, 'open').and.returnValue({
+    spyOn($modal, 'open').andReturn({
       result: {
         then: function() {
         }

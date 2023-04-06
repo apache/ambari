@@ -63,7 +63,7 @@ def setup_users():
   if params.has_hbase_masters:
     Directory (params.hbase_tmp_dir,
                owner = params.hbase_user,
-               mode=0775,
+               mode=0o775,
                create_parents = True,
                cd_access="a",
     )
@@ -74,7 +74,7 @@ def setup_users():
       Logger.info('Skipping setting uid for hbase user as host is sys prepped')
 
   if should_create_users_and_groups:
-    if params.has_hdfs_clients:
+    if params.has_hdfs:
       create_dfs_cluster_admins()
     if params.has_tez and params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.3') >= 0:
       create_tez_am_view_acls()
@@ -116,8 +116,8 @@ def create_users_and_groups(user_and_groups):
   groups_list = parts[1].strip(",").split(",") if parts[1] else []
 
   # skip creating groups and users if * is provided as value.
-  users_list = filter(lambda x: x != '*' , users_list)
-  groups_list = filter(lambda x: x != '*' , groups_list)
+  users_list = [x for x in users_list if x != '*']
+  groups_list = [x for x in groups_list if x != '*']
 
   if users_list:
     User(users_list,
@@ -137,7 +137,7 @@ def set_uid(user, user_dirs):
 
   File(format("{tmp_dir}/changeUid.sh"),
        content=StaticFile("changeToSecureUid.sh"),
-       mode=0555)
+       mode=0o555)
   ignore_groupsusers_create_str = str(params.ignore_groupsusers_create).lower()
   uid = get_uid(user, return_existing=True)
   Execute(format("{tmp_dir}/changeUid.sh {user} {user_dirs} {new_uid}", new_uid=0 if uid is None else uid),
@@ -169,7 +169,7 @@ def get_uid(user, return_existing=False):
         return None
       File(format("{tmp_dir}/changeUid.sh"),
            content=StaticFile("changeToSecureUid.sh"),
-           mode=0555)
+           mode=0o555)
       code, newUid = shell.call(format("{tmp_dir}/changeUid.sh {user}"))
       return int(newUid)
     else:
@@ -180,30 +180,28 @@ def setup_hadoop_env():
   import params
   stackversion = params.stack_version_unformatted
   Logger.info("FS Type: {0}".format(params.dfs_type))
-  if params.has_hdfs_clients or stackversion.find('Gluster') >= 0 or params.dfs_type == 'HCFS':
+  if params.has_hdfs or stackversion.find('Gluster') >= 0 or params.dfs_type == 'HCFS':
     if params.security_enabled:
       tc_owner = "root"
     else:
       tc_owner = params.hdfs_user
 
     # create /etc/hadoop
-    Directory(params.hadoop_dir, mode=0755)
+    Directory(params.hadoop_dir, mode=0o755)
 
     # write out hadoop-env.sh, but only if the directory exists
     if os.path.exists(params.hadoop_conf_dir):
       File(os.path.join(params.hadoop_conf_dir, 'hadoop-env.sh'), owner=tc_owner,
         group=params.user_group,
         content=InlineTemplate(params.hadoop_env_sh_template))
-        
-def setup_env():
-  import params
-  # Create tmp dir for java.io.tmpdir
-  # Handle a situation when /tmp is set to noexec
-  Directory(params.hadoop_java_io_tmpdir,
-            owner=params.hdfs_user if params.has_hdfs_clients else None,
-            group=params.user_group,
-            mode=01777
-  )
+
+    # Create tmp dir for java.io.tmpdir
+    # Handle a situation when /tmp is set to noexec
+    Directory(params.hadoop_java_io_tmpdir,
+              owner=params.hdfs_user,
+              group=params.user_group,
+              mode=0o1777
+    )
 
 def setup_java():
   """
@@ -239,7 +237,7 @@ def __setup_java(custom_java_home, custom_jdk_name):
          )
 
     File(jdk_curl_target,
-         mode = 0755,
+         mode = 0o755,
          )
 
     tmp_java_dir = tempfile.mkdtemp(prefix="jdk_tmp_", dir=params.tmp_dir)
@@ -266,7 +264,7 @@ def __setup_java(custom_java_home, custom_jdk_name):
       Directory(tmp_java_dir, action="delete")
 
     File(format("{custom_java_home}/bin/java"),
-         mode=0755,
+         mode=0o755,
          cd_access="a",
          )
     Execute(('chmod', '-R', '755', params.java_home),

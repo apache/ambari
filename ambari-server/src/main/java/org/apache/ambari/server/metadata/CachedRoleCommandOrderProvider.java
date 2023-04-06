@@ -97,12 +97,8 @@ public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider 
     } catch (AmbariException ignored) {
     }
 
-    int clusterCacheId = new HashCodeBuilder()
-      .append(cluster != null ? cluster.getClusterId() : -1)
-      .append(hasGLUSTERFS)
-      .append(isNameNodeHAEnabled)
-      .append(isResourceManagerHAEnabled)
-      .toHashCode();
+    int clusterCacheId = new HashCodeBuilder().append(cluster.getClusterId()).append(hasGLUSTERFS).append(isNameNodeHAEnabled).append
+      (isResourceManagerHAEnabled).toHashCode();
 
     RoleCommandOrder rco = rcoMap.get(clusterCacheId);
     if (rco == null) {

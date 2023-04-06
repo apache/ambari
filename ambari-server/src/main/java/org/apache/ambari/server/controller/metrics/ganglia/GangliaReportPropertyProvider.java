@@ -73,8 +73,9 @@ public class GangliaReportPropertyProvider extends MetricsReportPropertyProvider
 
     Set<Resource> keepers = new HashSet<>();
     for (Resource resource : resources) {
-      populateResource(resource, request, predicate);
-      keepers.add(resource);
+      if (populateResource(resource, request, predicate)) {
+        keepers.add(resource);
+      }
     }
     return keepers;
   }
@@ -89,15 +90,17 @@ public class GangliaReportPropertyProvider extends MetricsReportPropertyProvider
    * @param request   the request
    * @param predicate the predicate
    *
+   * @return true if the resource was successfully populated with the requested properties
+   *
    * @throws SystemException if unable to populate the resource
    */
-  private void populateResource(Resource resource, Request request, Predicate predicate)
+  private boolean populateResource(Resource resource, Request request, Predicate predicate)
       throws SystemException {
 
     Set<String> propertyIds = getPropertyIds();
 
     if (propertyIds.isEmpty()) {
-      return;
+      return true;
     }
     String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
 
@@ -106,12 +109,12 @@ public class GangliaReportPropertyProvider extends MetricsReportPropertyProvider
         LOG.warn("Attempting to get metrics but the Ganglia server is unknown. Resource=" + resource +
             " : Cluster=" + clusterName);
       }
-      return;
+      return true;
     }
 
     setProperties(resource, clusterName, request, getRequestPropertyIds(request, predicate));
 
-    return;
+    return true;
   }
 
   private boolean setProperties(Resource resource, String clusterName, Request request, Set<String> ids)

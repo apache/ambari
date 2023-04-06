@@ -75,7 +75,7 @@ class MulticastTransport(Transport):
 
         if frame_type in ['connected', 'message', 'receipt', 'error', 'heartbeat']:
             if frame_type == 'message':
-                if f.headers['destination'] not in self.subscriptions.values():
+                if f.headers['destination'] not in list(self.subscriptions.values()):
                     return
                 (f.headers, f.body) = self.notify('before_message', f.headers, f.body)
             self.notify(frame_type, f.headers, f.body)

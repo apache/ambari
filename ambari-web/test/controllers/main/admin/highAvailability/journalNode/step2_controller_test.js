@@ -111,7 +111,7 @@ describe('App.ManageJournalNodeWizardStep2Controller', function () {
       items: [
         {
           properties: {
-            'dfs.nameservices': 'id'
+            'dfs.nameservices': 'id0,id1'
           }
         }
       ]
@@ -142,9 +142,9 @@ describe('App.ManageJournalNodeWizardStep2Controller', function () {
       expect(controller.get('serverConfigData')).to.be.eql(data);
     });
 
-    it('nameServiceId should be "id"', function() {
+    it('nameServiceIds should be ["id0", "id1"]', function() {
       controller.onLoadConfigs(data);
-      expect(controller.get('content.nameServiceId')).to.be.equal('id');
+      expect(controller.get('content.nameServiceIds')).to.eql(['id0', 'id1']);
     });
 
     it('isLoaded should be true', function() {
@@ -157,7 +157,7 @@ describe('App.ManageJournalNodeWizardStep2Controller', function () {
 
     it('should return configs object', function() {
       controller.set('serverConfigData', {items: []});
-      controller.set('content.nameServiceId', 'id1');
+      controller.set('content.nameServiceIds', ['id1', 'id2']);
       expect(controller._prepareDependencies()).to.be.eql({
         namespaceId: 'id1',
         serverConfigs: []
@@ -200,48 +200,45 @@ describe('App.ManageJournalNodeWizardStep2Controller', function () {
       sinon.stub(controller, '_prepareLocalDB').returns({});
       sinon.stub(controller, '_prepareDependencies').returns({});
       sinon.stub(App.NnHaConfigInitializer, 'initialValue');
-      sinon.stub(controller, 'setNameSpaceConfigs').returns({});
+      sinon.stub(App, 'get', function (key) {
+        if (key === 'hasNameNodeFederation') {
+          return false;
+        }
+        return Em.get(App, key);
+      });
+      controller.set('content.controllerName', 'manageJournalNodeWizardController');
+      controller.set('content.masterComponentHosts', []);
+      controller.set('content.nameServiceIds', []);
     });
 
     afterEach(function() {
-      controller.set('moveJNConfig.configs', []);
-      controller.set('content', {});
       controller._prepareLocalDB.restore();
       controller._prepareDependencies.restore();
-      controller.setNameSpaceConfigs.restore();
       App.NnHaConfigInitializer.initialValue.restore();
       App.get.restore();
     });
 
-    it('should push an object to array of configs and call App.NnHaConfigInitializer', function() {
-      sinon.stub(App, 'get').withArgs('hasNameNodeFederation').returns(false);
-      controller.tweakServiceConfigs();
-      expect(controller.get('moveJNConfig.configs')[0]['name'] ==='dfs.namenode.shared.edits.dir').to.be.eql(true);
-      expect(controller.get('moveJNConfig.configs').length).to.be.eql(1);
+    it('App.NnHaConfigInitializer.initialValue should be called', function() {
+      controller.tweakServiceConfigs([
+        {
+          dependsOnNameServiceId: false,
+          presentForNonFederatedHDFS: true
+        }
+      ]);
       expect(App.NnHaConfigInitializer.initialValue.calledOnce).to.be.true;
     });
 
-    it('should call setNameSpaceConfigs', function() {
-      sinon.stub(App, 'get').withArgs('hasNameNodeFederation').returns(true);
-      controller.set('content', Em.Object.create({nameServiceId: 'b,c'}));
-      controller.tweakServiceConfigs();
-      expect(controller.setNameSpaceConfigs.calledOnce).to.be.true;
-    });
-  });
-
-  describe('#setNameSpaceConfigs', function() {
-    it('set moveJNConfig.configs', function() {
-      controller.set('moveJNConfig.configs', []);
-      controller.set('content', Em.Object.create({
-        nameServiceId: 'b,c',
-        masterComponentHosts: [
-          {component: 'JOURNALNODE', hostName: 'c7403.ambari.apache.org'},
-          {component: 'JOURNALNODE', hostName: 'c7402.ambari.apache.org'},
-          {component: 'JOURNALNODE', hostName: 'c7401.ambari.apache.org'},
-        ]
-      }));
-      controller.setNameSpaceConfigs(controller.get('content.nameServiceId').split(','));
-      expect(controller.get('moveJNConfig.configs').length).to.be.eql(2);
+    it('should return array of configs', function() {
+      expect(controller.tweakServiceConfigs([
+        {
+          dependsOnNameServiceId: false,
+          presentForNonFederatedHDFS: true
+        }
+      ])).to.be.eql([{
+        dependsOnNameServiceId: false,
+        isOverridable: false,
+        presentForNonFederatedHDFS: true
+      }]);
     });
   });
 

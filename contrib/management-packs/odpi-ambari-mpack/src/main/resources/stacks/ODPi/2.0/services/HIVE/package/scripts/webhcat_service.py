@@ -28,14 +28,14 @@ import traceback
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def webhcat_service(action='start', rolling_restart=False):
-  import params
+  from . import params
   if action == 'start' or action == 'stop':
     Service(params.webhcat_server_win_service_name, action=action)
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def webhcat_service(action='start', upgrade_type=None):
-  import params
+  from . import params
 
   environ = {
     'HADOOP_HOME': params.hadoop_home
@@ -88,7 +88,7 @@ def webhcat_service(action='start', upgrade_type=None):
     )
 
 def graceful_stop(cmd, environ):
-  import params
+  from . import params
   daemon_cmd = format('{cmd} stop')
 
   Execute(daemon_cmd,

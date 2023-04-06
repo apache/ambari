@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<configuration>
+  <property>
+    <name>rpc.client.timeout</name>
+    <value>3600000</value>
+    <description>
+      The timeout interval of an RPC invocation, in milliseconds.
+      The default is 3600000 (1 hour).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.connect.tcpnodelay</name>
+    <value>true</value>
+    <description>
+      Determines whether TCP_NODELAY is used when connecting to the RPC server.
+      The default is true.
+    </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.max.idle</name>
+    <value>10000</value>
+    <description>
+      The maximum idle time for an RPC connection, in milliseconds.
+      The default is 10000 (10 seconds).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.ping.interval</name>
+    <value>10000</value>
+    <description>
+      The periodic interval, in milliseconds, at which the RPC client sends a heart beat to the server. A value of zero (0) disables the heartbeat.
+      The default 10000 (10 seconds).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.connect.timeout</name>
+    <value>600000</value>
+    <description>
+     The timeout interval for establishing the RPC client connection, in milliseconds.
+     The default is 600000 (10 minutes).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.connect.retry</name>
+    <value>10</value>
+    <description>
+      The maximum number of times to retry a connection if the RPC client fails connect to the server.
+      The default is 10.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.read.timeout</name>
+    <value>3600000</value>
+    <description>
+      The timeout interval, in milliseconds, for when the RPC client is reading from the server.
+      The default is 3600000 (1 hour).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.write.timeout</name>
+    <value>3600000</value>
+    <description>
+      The timeout interval, in milliseconds, for when the RPC client is writing to the server.
+      The default is 3600000 (1 hour).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>rpc.client.socket.linger.timeout</name>
+    <value>-1</value>
+    <description>
+      The value to set for the SO_LINGER socket when connecting to the RPC server.
+      The default value is -1.
+    </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.client.read.shortcircuit</name>
+    <value>true</value>
+    <description>
+      Determines whether the DataNode is bypassed when reading file blocks, if the block and client are on the same node.
+      The default value, true, bypasses the DataNode.
+    </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.default.replica</name>
+    <value>3</value>
+    <description>
+      The default number of replicas.
+      The default value is 3.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.prefetchsize</name>
+    <value>10</value>
+    <description>
+      The number of blocks for which information is pre-fetched.
+      The default is 10.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.client.failover.max.attempts</name>
+    <value>15</value>
+    <description>
+      The maximum number of times that the DFS client retries issuing a RPC call, when multiple NameNodes are configured.
+      The default is 15.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.default.blocksize</name>
+    <value>134217728</value>
+    <description>
+      The default block size in bytes.
+      The default value is 134217728 (128 MB).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>bytes</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.client.log.severity</name>
+    <value>INFO</value>
+    <description>
+      The minimal log severity level. Valid values include: FATAL, ERROR, INFO, DEBUG1, DEBUG2, and DEBUG3.
+      The default is INFO.
+    </description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>INFO</value>
+        </entry>
+        <entry>
+          <value>FATAL</value>
+        </entry>
+        <entry>
+          <value>ERROR</value>
+        </entry>
+        <entry>
+          <value>DEBUG1</value>
+        </entry>
+        <entry>
+          <value>DEBUG2</value>
+        </entry>
+        <entry>
+          <value>DEBUG3</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>input.connect.timeout</name>
+    <value>600000</value>
+    <description>
+      The timeout interval, in milliseconds, for when the input stream is setting up a connection to a DataNode.
+      The default is 600000 (10 minutes).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>input.read.timeout</name>
+    <value>3600000</value>
+    <description>
+      The timeout interval, in milliseconds, for when the input stream is reading from a DataNode.
+      The default is 3600000 (1 hour).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>input.write.timeout</name>
+    <value>3600000</value>
+    <description>
+      The timeout interval, in milliseconds, for when the input stream is writing to a DataNode.
+      The default is 3600000 (1 hour).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>input.localread.default.buffersize</name>
+    <value>2097152</value>
+    <description>
+      The size of the buffer, in bytes, used to hold data from the file block and verify the checksum.
+      This value is used only when 'dfs.client.read.shortcircuit' is set to true.
+      The default is 1048576 (1 MB).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>bytes</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>input.localread.blockinfo.cachesize</name>
+    <value>1000</value>
+    <description>
+      The size of the file block path information cache, in bytes.
+      The default is 1000 bytes.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>bytes</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>input.read.getblockinfo.retry</name>
+    <value>3</value>
+    <description>
+      The maximum number of times the client should retry getting block information from the NameNode.
+      The default is 3.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>output.replace-datanode-on-failure</name>
+    <value>true</value>
+    <description>
+      Determines whether the client adds a new DataNode to pipeline if the number of nodes in the pipeline
+      is less than the specified number of replicas. The default is true.
+      For test environments with 3 HAWQ Segments or less, value should be false.
+    </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>output.default.chunksize</name>
+    <value>512</value>
+    <description>
+      The chunk size of the pipeline, in bytes.
+      The default is 512 bytes.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>bytes</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>output.default.packetsize</name>
+    <value>65536</value>
+    <description>
+      The packet size of the pipeline, in bytes.
+      The default is 65536 (64 kB).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>bytes</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>output.default.write.retry</name>
+    <value>10</value>
+    <description>
+      The maximum number of times that the client should reattempt to set up a failed pipeline.
+      The default is 10.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>output.connect.timeout</name>
+    <value>600000</value>
+    <description>
+      The timeout interval, in milliseconds, for when the output stream is setting up a connection to a DataNode.
+      The default is 600000 (10 minutes).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>output.read.timeout</name>
+    <value>3600000</value>
+    <description>
+      The timeout interval, in milliseconds, for when the output stream is reading from a DataNode.
+      The default is 3600000 (1 hour).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>output.write.timeout</name>
+    <value>3600000</value>
+    <description>
+      The timeout interval, in milliseconds, for when the output stream is writing to a DataNode.
+      The default is 3600000 (1 hour).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>output.packetpool.size</name>
+    <value>1024</value>
+    <description>
+      The maximum number of packets in a file's packet pool.
+      The default is 1024.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>bytes</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>output.close.timeout</name>
+    <value>900000</value>
+    <description>
+      The timeout interval for closing an output stream, in milliseconds.
+      The default is 900000 (1.5 hour).
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.domain.socket.path</name>
+    <value>/var/lib/hadoop-hdfs/dn_socket</value>
+    <description>
+      (Optional). The path to a UNIX domain socket to use for communication between the DataNode and local HDFS clients.
+      If the string "_PORT" is present in this path, it is replaced by the TCP port of the DataNode.
+    </description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>dfs.client.use.legacy.blockreader.local</name>
+    <value>false</value>
+    <description>
+      Determines whether the legacy short-circuit reader implementation, based on HDFS-2246, is used.
+      Set this property to true on non-Linux platforms that do not have the new implementation based on HDFS-347.
+      The default is false.
+    </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

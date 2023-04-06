@@ -33,7 +33,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
@@ -42,7 +41,6 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
-import org.apache.ambari.server.security.encryption.Encryptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.EasyMock;
@@ -58,8 +56,6 @@ import com.google.common.collect.Table.Cell;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.TypeLiteral;
-import com.google.inject.name.Names;
 
 import junit.framework.Assert;
 
@@ -342,7 +338,6 @@ public class AmbariAuthorizationFilterTest {
         bind(AuditLogger.class).toInstance(EasyMock.createNiceMock(AuditLogger.class));
         bind(HookService.class).toInstance(EasyMock.createMock(HookService.class));
         bind(HookContextFactory.class).toInstance(EasyMock.createMock(HookContextFactory.class));
-        bind(new TypeLiteral<Encryptor<AmbariServerConfiguration>>() {}).annotatedWith(Names.named("AmbariServerConfigurationEncryptor")).toInstance(Encryptor.NONE);
         bind(AmbariLdapConfigurationProvider.class).toInstance(EasyMock.createMock(AmbariLdapConfigurationProvider.class));
       }
     });
